@@ -1,0 +1,35 @@
+# Operating System Files
+.DS_Store
+Thumbs.db
+
+# IDE and Editors
+.idea/
+*.iml
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Build outputs & dependencies (Java / Maven / Gradle)
+target/
+build/
+bin/
+*.class
+*.jar
+*.war
+.gradle/
+
+# Node / Frontend
+node_modules/
+dist/
+.env.local
+.env.*.local
+
+# Logs
+logs/
+*.log
+
+# Sensitive / Secrets
+.env
