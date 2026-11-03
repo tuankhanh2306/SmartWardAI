@@ -33,25 +33,25 @@ You are an autonomous AI Software Engineer working on a solo 3-month thesis & in
 ## 3. ALGORITHMIC & ACADEMIC BOUNDARIES (DO NOT DELEGATE EVERYTHING TO LLM)
 To satisfy thesis defense criteria, core validation and deduplication logic MUST be implemented deterministically in Java, NOT by asking the LLM to "guess":
 
-1. **Module 1 - Legal RAG & Abstention Guardrail (`vn.edu.utc.smartward.rag`):**
+1. **Module 1 - Legal RAG & Abstention Guardrail (`vn.edu.uth.smartward.rag`):**
    - Chunk legal texts strictly by structure (`Article -> Clause`), storing `effective_date` and `status = 'ACTIVE'`.
    - Query `pgvector` using Cosine Distance (`<=>`).
    - **Hard Rule:** If `max_similarity < threshold` (configurable, default `0.78`), DO NOT call LLM generation. Immediately return the abstention response with `abstained = true`.
    - Every response DTO MUST include a `legalDisclaimer` field and `citedReferences` list.
 
-2. **Module 2 - Deterministic Form Rule Engine (`vn.edu.utc.smartward.formcheck`):**
+2. **Module 2 - Deterministic Form Rule Engine (`vn.edu.uth.smartward.formcheck`):**
    - Vision OCR is ONLY allowed to extract raw JSON fields (`fullName`, `cccdNumber`, `birthDate`, `issueDate`, `address`, `ocrConfidence`).
    - You MUST write pure Java classes (`CccdValidator`, `DateLogicValidator`, `MandatoryFieldValidator`) to validate:
      - 12-digit Vietnamese CCCD regex, valid 3-digit province code, valid gender/century digit (`0-9` corresponding to 20th/21st century), and matching 2-digit birth year.
      - Logical date order: `birthDate < issueDate <= LocalDate.now()` and age >= 14 for CCCD issue date.
      - Flag any field with `ocrConfidence < 0.70` as `MANUAL_REVIEW_REQUIRED`.
 
-3. **Module 3 - Two-Stage Spatial-Semantic Triage (`vn.edu.utc.smartward.triage`):**
+3. **Module 3 - Two-Stage Spatial-Semantic Triage (`vn.edu.uth.smartward.triage`):**
    - **Stage 1 (Spatial):** Execute Redis `GEOSEARCH` within radius `R` meters (configurable parameter).
    - **Stage 2 (Category + Semantic):** Among candidate clusters within radius `R` that are `OPEN` and created within the last `72 hours`, filter by exact `category` match AND `pgvector` Cosine Similarity $\ge \tau$.
    - Expose `R` and $\tau$ as method parameters so the EvaluationRunner can execute grid searches over $R \in \{25, 50, 75, 100, 150\}$ and $\tau \in \{0.70, 0.75, 0.80, 0.85, 0.90\}$.
 
-4. **Module 4 - Zero-Trust Document Vault (`vn.edu.utc.smartward.vault`):**
+4. **Module 4 - Zero-Trust Document Vault (`vn.edu.uth.smartward.vault`):**
    - Use pure Java `Graphics2D` to draw a semi-transparent diagonal watermark (`"CHỈ DÙNG ĐỂ SƠ DUYỆT HỒ SƠ TẠI UBND - [TIMESTAMP]"`) onto uploaded images.
    - Encrypt the watermarked bytes using `AES/GCM/NoPadding` (256-bit key) before uploading to MinIO.
    - Store the one-time access token in Redis with a 24-hour TTL. When viewed via `GET /api/v1/vault/view/{token}`, atomically fetch and delete the key using Redis `GETDEL` (or Lua script). Second access MUST return HTTP `410 Gone`.

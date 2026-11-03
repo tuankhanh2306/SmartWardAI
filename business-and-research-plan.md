@@ -1,5 +1,6 @@
 # Kế hoạch Nghiên cứu, Bối cảnh & Ràng buộc Vận hành
 **Dự án:** SmartWard AI (Civic Governance & Legal RAG Platform)  
+**Trường:** Đại học Giao thông vận tải TP.HCM (UTH)  
 **Tài liệu tham khảo cho:** Báo cáo Học kỳ Doanh nghiệp & Đồ án Tốt nghiệp (Chương 1 & Chương 2)
 
 ---

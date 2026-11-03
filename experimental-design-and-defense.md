@@ -108,7 +108,7 @@ Trình bày chi tiết các trường hợp hệ thống xử lý sai để th�
 
 ## 4. Gợi ý Cấu trúc 10 Slide Thuyết trình (Bảo vệ Đồ án & Báo cáo)
 
-* **Slide 1 – Tên đề tài & Thông tin sinh viên:** Nêu rõ tên đề tài: *"Nghiên cứu ứng dụng Kỹ thuật RAG và Phân tích Không gian - Ngữ nghĩa trong Xây dựng Hệ thống Hỗ trợ Hành chính công và Tiếp nhận Phản ánh Dân sinh cấp Xã/Phường"*.
+* **Slide 1 – Tên đề tài & Thông tin sinh viên:** Nêu rõ tên đề tài: *"Nghiên cứu ứng dụng Kỹ thuật RAG và Phân tích Không gian - Ngữ nghĩa trong Xây dựng Hệ thống Hỗ trợ Hành chính công và Tiếp nhận Phản ánh Dân sinh cấp Xã/Phường"*, Sinh viên thực hiện, Giảng viên hướng dẫn & Đơn vị đào tạo: Trường Đại học Giao thông vận tải TP.HCM (UTH).
 * **Slide 2 – Tình huống thực tế & Đặt vấn đề:** Minh họa bằng 2 hình ảnh đối chiếu: Người dân đi lại nhiều lần do sai sót tờ khai hành chính; Cán bộ Một cửa quá tải vì 15 báo cáo rời rạc về cùng một điểm hỏng nắp cống trong ngõ.
 * **Slide 3 – Câu hỏi nghiên cứu & Phạm vi đề tài:** Công bố 3 câu hỏi nghiên cứu cốt lõi (RQ1 về RAG & chống ảo giác; RQ2 về gom cụm Không gian – Ngữ nghĩa; RQ3 về Rule Engine hậu kiểm biểu mẫu).
 * **Slide 4 – Phân định đóng góp của sinh viên:** Bảng phân định rõ ràng giữa các API/thư viện nền tảng và các thuật toán, mô-đun logic nghiệp vụ do sinh viên tự lập trình.

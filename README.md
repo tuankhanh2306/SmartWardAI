@@ -1,6 +1,6 @@
 # SmartWard AI: Nền Tảng Hỗ Trợ Thủ Tục Hành Chính & Phân Luồng Phản Ánh Cấp Phường/Xã
 
-> **Đề tài:** Báo cáo Thực tập Doanh nghiệp & Đồ án Tốt nghiệp Kỹ sư CNTT  
+> **Đề tài:** Báo cáo Thực tập Doanh nghiệp & Đồ án Tốt nghiệp Kỹ sư CNTT - Trường Đại học Giao thông vận tải TP.HCM (UTH)  
 > **Mô hình kiến trúc:** Modular Monolith (Spring Boot 3.3 + Java 21)  
 > **Ràng buộc:** Zero-Cost Architecture (Docker Stack $\le 2.0\text{ GB}$ RAM, 0 VNĐ chi phí vận hành)
 
@@ -75,5 +75,5 @@ Toàn bộ tài liệu chi tiết đã được phân tách phục vụ cho từ
 | [**`architecture-and-flows.md`**](file:///e:/SmartWardAI/architecture-and-flows.md) | Lý giải kiến trúc Modular Monolith, sơ đồ kiến trúc hệ thống, 3 sơ đồ tuần tự Mermaid và ERD 6 bảng PostgreSQL. | Đưa vào **Chương 2 (Kiến trúc hệ thống)** và **Chương 3 (Thiết kế chi tiết)**. |
 | [**`experimental-design-and-defense.md`**](file:///e:/SmartWardAI/experimental-design-and-defense.md) | Phương pháp xây dựng dữ liệu kiểm thử (80 câu hỏi, 150 phản ánh có nhiễu GPS, 40 tờ khai), kết quả Grid Search, phân tích lỗi (Error Analysis), 6 câu hỏi phản biện và dàn ý 10 slide bảo vệ. | Đưa vào **Chương 3 (Kiểm thử)**, **Chương 4 (Kết quả và kinh nghiệm)** và chuẩn bị **Bảo vệ Khóa luận**. |
 | [**`project-constraints.md`**](file:///e:/SmartWardAI/project-constraints.md) | Chi tiết các ràng buộc ngân sách, phần cứng, kỹ thuật, an toàn thông tin (Nghị định 13) và giới hạn phạm vi. | Tham khảo cho mục **Phân tích ràng buộc & Ranh giới kỹ thuật** của báo cáo. |
-| [**`SPEC.md`**](file:///e:/SmartWardAI/SPEC.md) | Đặc tả kỹ thuật đầy đủ: Cấu trúc package Java (`vn.edu.utc.smartward`), API Contracts (7 REST endpoints cốt lõi). | Dùng cho **AI Coding Agent** để sinh mã nguồn chuẩn xác. |
+| [**`SPEC.md`**](file:///e:/SmartWardAI/SPEC.md) | Đặc tả kỹ thuật đầy đủ: Cấu trúc package Java (`vn.edu.uth.smartward`), API Contracts (7 REST endpoints cốt lõi). | Dùng cho **AI Coding Agent** để sinh mã nguồn chuẩn xác. |
 | [**`AGENT_RULES.md`**](file:///e:/SmartWardAI/AGENT_RULES.md) | Bộ quy tắc thực thi nghiêm ngặt dành cho AI Agent: Cấm over-engineering, mock provider offline, code standards. | Quy chuẩn kiểm soát chất lượng mã nguồn tự động. |

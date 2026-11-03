@@ -14,7 +14,7 @@ Build a clean, modular full-stack web application named `smartward-ai` designed 
 - **AI Integration:** REST Client / Spring AI configured for Gemini 2.5 Flash API (or local Ollama fallback) for Text Embeddings (`text-embedding-004` / 768 dims), Multimodal OCR extraction, and grounded answer generation.
 - **Frontend:** Vite + React (TypeScript) + TailwindCSS + Leaflet (OpenStreetMap) + Chart.js.
 
-## 3. Package Structure (`vn.edu.utc.smartward`)
+## 3. Package Structure (`vn.edu.uth.smartward`)
 - `config/`: `AsyncConfig`, `RedisConfig`, `MinioConfig`, `OpenApiConfig`, `CorsConfig`
 - `common/`: `ApiResponse`, `GlobalExceptionHandler`, `BusinessException`
 - `rag/`:
