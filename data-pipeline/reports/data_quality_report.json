@@ -1,0 +1,69 @@
+{
+  "generatedAt": "2026-11-03T03:23:03.247246+00:00",
+  "totalAudited": 5,
+  "totalPassed": 5,
+  "totalFailed": 0,
+  "passRate": "100.0%",
+  "details": [
+    {
+      "procedureCode": "TTHC-BT-01",
+      "procedureName": "Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ- UBND",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 8,
+        "legalBasisCount": 2
+      }
+    },
+    {
+      "procedureCode": "TTHC-CR-01",
+      "procedureName": "Đăng ký thường trú",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 6,
+        "docsCount": 20,
+        "legalBasisCount": 8
+      }
+    },
+    {
+      "procedureCode": "TTHC-CT-01",
+      "procedureName": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 5,
+        "docsCount": 1,
+        "legalBasisCount": 4
+      }
+    },
+    {
+      "procedureCode": "TTHC-HT-01",
+      "procedureName": "Thủ tục đăng ký khai sinh",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 33,
+        "legalBasisCount": 15
+      }
+    },
+    {
+      "procedureCode": "TTHC-HT-02",
+      "procedureName": "Thủ tục đăng ký kết hôn",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 23,
+        "legalBasisCount": 16
+      }
+    }
+  ]
+}

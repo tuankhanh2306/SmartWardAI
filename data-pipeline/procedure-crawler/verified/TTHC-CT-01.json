@@ -1,0 +1,89 @@
+{
+  "procedureCode": "TTHC-CT-01",
+  "officialPortalCode": "1.001606",
+  "procedureName": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận",
+  "category": "Chứng thực",
+  "agency": "Bộ Ngoại giao",
+  "process": "1.2. Cơ quan đại diện tiếp nhận hồ sơ, xem xét giải quyết.\n1.3. Nhận kết quả trực tiếp tại trụ sở cơ quan theo phiếu hẹn hồ sơ.\n\n- Khi tiếp nhận hồ sơ, Cơ quan đại diện cấp phiếu hẹn cho Người yêu cầu chứng nhận giấy tờ, trong đó ghi rõ địa điểm, thời gian tiếp nhận hồ sơ, giấy tờ kèm theo và thời gian trả lời kết quả.",
+  "processStepsCount": 2,
+  "requiredDocuments": [
+    {
+      "documentName": "bản chính giấy tờ, văn bản làm cơ sở để chứng thực bản sao và bản sao cần chứng thực. Trong trường hợp bản chính giấy tờ, văn bản do cơ quan, tổ chức có thẩm quyền của nước ngoài cấp, công chứng hoặc chứng nhận thì phải được hợp pháp hóa lãnh sự theo quy định của pháp luật trước khi yêu cầu chứng thực bản sao; trừ trường hợp được miễn hợp pháp hóa lãnh sự theo điều ước quốc tế mà Việt Nam là thành viên hoặc theo nguyên tắc có đi, có lại.",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    }
+  ],
+  "requiredDocumentsCount": 1,
+  "processingTime": "DIRECT: Thời hạn thực hiện yêu cầu chứng thực phải được đảm bảo ngay trong ngày CQĐD tiếp nhận yêu cầu hoặc trong ngày làm việc tiếp theo nếu tiếp nhận yêu cầu sau 15 giờ; trừ trường hợp cùng một lúc yêu cầu chứng thực bản sao từ nhiều loại giấy tờ, văn bản; bản chính có nhiều trang; yêu cầu số lượng nhiều bản sao; nội dung giấy tờ, văn bản phức tạp khó kiểm tra, đối chiếu mà cơ quan, tổ chức thực hiện chứng thực không thể đáp ứng được thời hạn quy định thì thời hạn chứng thực được kéo dài thêm không quá 02 (hai) ngày làm việc hoặc có thể dài hơn theo thỏa thuận bằng văn bản với người yêu cầu chứng thực.",
+  "fee": "Miễn phí / Không thu lệ phí",
+  "legalBasis": [
+    {
+      "documentNumber": "264/2016/TT-BTC",
+      "documentTitle": "Quy định mức thu, chế độ thu, nộp, quản lý và sử dụng phí, lệ phí trong lĩnh vực ngoại giao áp dụng tại các Cơ quan đại diện Việt Nam ở nước ngoài",
+      "year": "2016",
+      "effectiveDate": "2016-01-01"
+    },
+    {
+      "documentNumber": "33/2009/QH12",
+      "documentTitle": "Luật 33/2009/QH12",
+      "year": "2009",
+      "effectiveDate": "2009-01-01"
+    },
+    {
+      "documentNumber": "23/2015/NĐ-CP",
+      "documentTitle": "Về cấp bản sao từ sổ gốc, chứng thực bản sao từ bản chính, chứng thực chữ ký và chứng thực hợp đồng, giao dịch",
+      "year": "2015",
+      "effectiveDate": "2015-01-01"
+    },
+    {
+      "documentNumber": "20/2015/TT-BTP",
+      "documentTitle": "Quy định chi tiết và hướng dẫn thi hành một số điều của Nghị định số 23/2015/NĐ-CP ngày 16 tháng 02 năm 2015 của Chính phủ về cấp bản sao từ sổ gốc, chứng thực bản sao từ bản chính, chứng thực chữ ký và chứng thực hợp đồng, giao dịch",
+      "year": "2015",
+      "effectiveDate": "2015-01-01"
+    }
+  ],
+  "legalBasisCount": 4,
+  "sourceUrl": "https://dichvucong.gov.vn (API id: 019d2bf9-f18f-72ee-9d48-c87af3909b19)",
+  "collectedAt": "2026-11-03T03:21:14.673856+00:00",
+  "verificationStatus": "VERIFIED_TIER_1",
+  "chunks": [
+    {
+      "chunkId": "TTHC-CT-01_CHUNK_001",
+      "chunkType": "OVERVIEW",
+      "title": "Tổng quan & Thẩm quyền giải quyết Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận",
+      "content": "Thủ tục: Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận. Cơ quan có thẩm quyền giải quyết: Bộ Ngoại giao. Thời hạn giải quyết: DIRECT: Thời hạn thực hiện yêu cầu chứng thực phải được đảm bảo ngay trong ngày CQĐD tiếp nhận yêu cầu hoặc trong ngày làm việc tiếp theo nếu tiếp nhận yêu cầu sau 15 giờ; trừ trường hợp cùng một lúc yêu cầu chứng thực bản sao từ nhiều loại giấy tờ, văn bản; bản chính có nhiều trang; yêu cầu số lượng nhiều bản sao; nội dung giấy tờ, văn bản phức tạp khó kiểm tra, đối chiếu mà cơ quan, tổ chức thực hiện chứng thực không thể đáp ứng được thời hạn quy định thì thời hạn chứng thực được kéo dài thêm không quá 02 (hai) ngày làm việc hoặc có thể dài hơn theo thỏa thuận bằng văn bản với người yêu cầu chứng thực.. Mức phí/lệ phí: Miễn phí / Không thu lệ phí.",
+      "legalReference": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận"
+    },
+    {
+      "chunkId": "TTHC-CT-01_CHUNK_002",
+      "chunkType": "PROCESS_STEP",
+      "title": "Trình tự thực hiện Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận - Bước 1",
+      "content": "1.2. Cơ quan đại diện tiếp nhận hồ sơ, xem xét giải quyết.\n1.3. Nhận kết quả trực tiếp tại trụ sở cơ quan theo phiếu hẹn hồ sơ.",
+      "legalReference": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận - Trình tự giải quyết"
+    },
+    {
+      "chunkId": "TTHC-CT-01_CHUNK_003",
+      "chunkType": "PROCESS_STEP",
+      "title": "Trình tự thực hiện Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận - Bước 2",
+      "content": "- Khi tiếp nhận hồ sơ, Cơ quan đại diện cấp phiếu hẹn cho Người yêu cầu chứng nhận giấy tờ, trong đó ghi rõ địa điểm, thời gian tiếp nhận hồ sơ, giấy tờ kèm theo và thời gian trả lời kết quả.",
+      "legalReference": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận - Trình tự giải quyết"
+    },
+    {
+      "chunkId": "TTHC-CT-01_CHUNK_004",
+      "chunkType": "REQUIRED_DOCUMENTS",
+      "title": "Thành phần hồ sơ Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận",
+      "content": "Để thực hiện thủ tục Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận, công dân cần chuẩn bị các giấy tờ sau:\n- bản chính giấy tờ, văn bản làm cơ sở để chứng thực bản sao và bản sao cần chứng thực. Trong trường hợp bản chính giấy tờ, văn bản do cơ quan, tổ chức có thẩm quyền của nước ngoài cấp, công chứng hoặc chứng nhận thì phải được hợp pháp hóa lãnh sự theo quy định của pháp luật trước khi yêu cầu chứng thực bản sao; trừ trường hợp được miễn hợp pháp hóa lãnh sự theo điều ước quốc tế mà Việt Nam là thành viên hoặc theo nguyên tắc có đi, có lại. (1 bản chính)",
+      "legalReference": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận - Thành phần hồ sơ"
+    },
+    {
+      "chunkId": "TTHC-CT-01_CHUNK_005",
+      "chunkType": "LEGAL_BASIS",
+      "title": "Căn cứ pháp lý Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận",
+      "content": "Căn cứ pháp lý quy định thủ tục Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận bao gồm:\n- 264/2016/TT-BTC: Quy định mức thu, chế độ thu, nộp, quản lý và sử dụng phí, lệ phí trong lĩnh vực ngoại giao áp dụng tại các Cơ quan đại diện Việt Nam ở nước ngoài\n- 33/2009/QH12: Luật 33/2009/QH12\n- 23/2015/NĐ-CP: Về cấp bản sao từ sổ gốc, chứng thực bản sao từ bản chính, chứng thực chữ ký và chứng thực hợp đồng, giao dịch\n- 20/2015/TT-BTP: Quy định chi tiết và hướng dẫn thi hành một số điều của Nghị định số 23/2015/NĐ-CP ngày 16 tháng 02 năm 2015 của Chính phủ về cấp bản sao từ sổ gốc, chứng thực bản sao từ bản chính, chứng thực chữ ký và chứng thực hợp đồng, giao dịch",
+      "legalReference": "Văn bản quy phạm pháp luật"
+    }
+  ],
+  "chunksCount": 5,
+  "validatedAt": "2026-11-03T03:23:03.242729+00:00"
+}

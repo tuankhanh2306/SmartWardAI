@@ -1,0 +1,112 @@
+{
+  "procedureCode": "TTHC-BT-01",
+  "officialPortalCode": "3.000733",
+  "procedureName": "Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ- UBND",
+  "category": "Bảo trợ xã hội",
+  "agency": "UBND Thành phố Đà Nẵng",
+  "process": "a) Đối tượng hoặc gia đình đối tượng hoặc người giám hộ đề nghị hưởng trợ cấp xã hội hàng tháng làm 01 Tờ khai và cung cấp 01 bản sao đối với mỗi loại giấy tờ liên quan gửi trực tiếp tại tại Trung tâm Phục vụ hành chính công thành phố/Trung tâm Phục vụ hành chính công cấp xã; qua dịch vụ bưu chính; hoặc trực tuyến trên Cổng Dịch vụ công Quốc gia theo quy định đến Chủ tịch UBND cấp xã nơi cư trú.\nb) Trong thời hạn 10 ngày làm việc, kể từ ngày nhận được hồ sơ của đối tượng, Chủ tịch UBND cấp xã tổ chức xem xét, thực hiện xác thực và chuẩn hóa thông tin liên quan của đối tượng với cơ sở dữ liệu quốc gia về dân cư, quyết định và thực hiện chi trả trợ cấp xã hội hàng tháng cho đối tượng. Thời gian hưởng kể từ tháng Chủ tịch UBND cấp xã ký quyết định.\nTrường hợp không đủ điều kiện, trong thời hạn 03 ngày làm việc kể từ khi nhận hồ sơ của đối tượng, Chủ tịch UBND cấp xã trả lời bằng văn bản và nêu rõ lý do.",
+  "processStepsCount": 1,
+  "requiredDocuments": [
+    {
+      "documentName": "Tờ khai theo Mẫu số 01, 02, 03, 04, 05, 06, 07, 08 kèm theo Quy định ban hành kèm theo Quyết định số 124/2026/QĐ- UBND",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Giấy xác định mức độ khuyết tật đối với người khuyết tật.",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Giấy ra viện đối với đối tượng mắc bệnh hiểm nghèo.",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Xác nhận của cơ quan y tế có thẩm quyền đối với trường hợp nhiễm HIV/AIDS.",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Quyết định xuất ngũ hoặc xác nhận của cơ quan quân sự về thời gian tham gia quân đội đối với Bộ đội phục viên, xuất ngũ mắc bệnh tâm thần.",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Quyết định của cơ quan bảo hiểm xã hội về ngừng hưởng trợ cấp mất sức lao động đối với đối tượng ngừng hưởng trợ cấp mất sức lao động.",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Giấy xác nhận của cơ sở giáo dục phổ thông, cơ sở giáo dục nghề nghiệp và cơ sở giáo dục đại học (công lập và ngoài công lập) đối với người từ 16 đến 22 tuổi đang đi học (mẫu số 08).",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Giấy tờ liên quan khác (nếu có)",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    }
+  ],
+  "requiredDocumentsCount": 8,
+  "processingTime": "DIRECT: 10 ngày làm việc kể từ ngày tiếp nhận hồ sơ đầy đủ, hợp lệ | ONLINE: 10 ngày làm việc kể từ ngày tiếp nhận hồ sơ đầy đủ, hợp lệ | POSTAL: 10 ngày làm việc kể từ ngày tiếp nhận hồ sơ đầy đủ, hợp lệ",
+  "fee": "Theo quy định của HĐND cấp tỉnh/thành phố",
+  "legalBasis": [
+    {
+      "documentNumber": "Nghị quyết số 41/2025/NQ-HĐND (Thành phố Đà Nẵng)",
+      "documentTitle": "Quy định một số chính sách trợ giúp xã hội trên địa bàn thành phố Đà Nẵng",
+      "year": "2025",
+      "effectiveDate": "2025-01-01"
+    },
+    {
+      "documentNumber": "124/2026/QĐ-UBND (thành phố Đà Nẵng)",
+      "documentTitle": "Quy định về thẩm quyền, hồ sơ, trình tự, thủ tục thực hiện chính sách trợ giúp xã hội theo Nghị quyết số 41/2025/NQ-HĐND",
+      "year": "2026",
+      "effectiveDate": "2026-01-01"
+    }
+  ],
+  "legalBasisCount": 2,
+  "sourceUrl": "https://dichvucong.gov.vn (API id: 01a0b2bc-2e8b-72af-9807-ba861ba3eeec)",
+  "collectedAt": "2026-11-03T03:21:16.861905+00:00",
+  "verificationStatus": "VERIFIED_TIER_1",
+  "chunks": [
+    {
+      "chunkId": "TTHC-BT-01_CHUNK_001",
+      "chunkType": "OVERVIEW",
+      "title": "Tổng quan & Thẩm quyền giải quyết Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ- UBND",
+      "content": "Thủ tục: Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ- UBND. Cơ quan có thẩm quyền giải quyết: UBND Thành phố Đà Nẵng. Thời hạn giải quyết: DIRECT: 10 ngày làm việc kể từ ngày tiếp nhận hồ sơ đầy đủ, hợp lệ | ONLINE: 10 ngày làm việc kể từ ngày tiếp nhận hồ sơ đầy đủ, hợp lệ | POSTAL: 10 ngày làm việc kể từ ngày tiếp nhận hồ sơ đầy đủ, hợp lệ. Mức phí/lệ phí: Theo quy định của HĐND cấp tỉnh/thành phố.",
+      "legalReference": "Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ- UBND"
+    },
+    {
+      "chunkId": "TTHC-BT-01_CHUNK_002",
+      "chunkType": "PROCESS_STEP",
+      "title": "Trình tự thực hiện Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ- UBND - Bước 1",
+      "content": "a) Đối tượng hoặc gia đình đối tượng hoặc người giám hộ đề nghị hưởng trợ cấp xã hội hàng tháng làm 01 Tờ khai và cung cấp 01 bản sao đối với mỗi loại giấy tờ liên quan gửi trực tiếp tại tại Trung tâm Phục vụ hành chính công thành phố/Trung tâm Phục vụ hành chính công cấp xã; qua dịch vụ bưu chính; hoặc trực tuyến trên Cổng Dịch vụ công Quốc gia theo quy định đến Chủ tịch UBND cấp xã nơi cư trú.\nb) Trong thời hạn 10 ngày làm việc, kể từ ngày nhận được hồ sơ của đối tượng, Chủ tịch UBND cấp xã tổ chức xem xét, thực hiện xác thực và chuẩn hóa thông tin liên quan của đối tượng với cơ sở dữ liệu quốc gia về dân cư, quyết định và thực hiện chi trả trợ cấp xã hội hàng tháng cho đối tượng. Thời gian hưởng kể từ tháng Chủ tịch UBND cấp xã ký quyết định.\nTrường hợp không đủ điều kiện, trong thời hạn 03 ngày làm việc kể từ khi nhận hồ sơ của đối tượng, Chủ tịch UBND cấp xã trả lời bằng văn bản và nêu rõ lý do.",
+      "legalReference": "Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ- UBND - Trình tự giải quyết"
+    },
+    {
+      "chunkId": "TTHC-BT-01_CHUNK_003",
+      "chunkType": "REQUIRED_DOCUMENTS",
+      "title": "Thành phần hồ sơ Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ- UBND",
+      "content": "Để thực hiện thủ tục Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ- UBND, công dân cần chuẩn bị các giấy tờ sau:\n- Tờ khai theo Mẫu số 01, 02, 03, 04, 05, 06, 07, 08 kèm theo Quy định ban hành kèm theo Quyết định số 124/2026/QĐ- UBND (1 bản chính)\n- Giấy xác định mức độ khuyết tật đối với người khuyết tật. (1 bản chính)\n- Giấy ra viện đối với đối tượng mắc bệnh hiểm nghèo. (1 bản chính)\n- Xác nhận của cơ quan y tế có thẩm quyền đối với trường hợp nhiễm HIV/AIDS. (1 bản chính)\n- Quyết định xuất ngũ hoặc xác nhận của cơ quan quân sự về thời gian tham gia quân đội đối với Bộ đội phục viên, xuất ngũ mắc bệnh tâm thần. (1 bản chính)\n- Quyết định của cơ quan bảo hiểm xã hội về ngừng hưởng trợ cấp mất sức lao động đối với đối tượng ngừng hưởng trợ cấp mất sức lao động. (1 bản chính)\n- Giấy xác nhận của cơ sở giáo dục phổ thông, cơ sở giáo dục nghề nghiệp và cơ sở giáo dục đại học (công lập và ngoài công lập) đối với người từ 16 đến 22 tuổi đang đi học (mẫu số 08). (1 bản chính)\n- Giấy tờ liên quan khác (nếu có) (1 bản chính)",
+      "legalReference": "Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ- UBND - Thành phần hồ sơ"
+    },
+    {
+      "chunkId": "TTHC-BT-01_CHUNK_004",
+      "chunkType": "LEGAL_BASIS",
+      "title": "Căn cứ pháp lý Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ- UBND",
+      "content": "Căn cứ pháp lý quy định thủ tục Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ- UBND bao gồm:\n- Nghị quyết số 41/2025/NQ-HĐND (Thành phố Đà Nẵng): Quy định một số chính sách trợ giúp xã hội trên địa bàn thành phố Đà Nẵng\n- 124/2026/QĐ-UBND (thành phố Đà Nẵng): Quy định về thẩm quyền, hồ sơ, trình tự, thủ tục thực hiện chính sách trợ giúp xã hội theo Nghị quyết số 41/2025/NQ-HĐND",
+      "legalReference": "Văn bản quy phạm pháp luật"
+    }
+  ],
+  "chunksCount": 4,
+  "validatedAt": "2026-11-03T03:23:03.241216+00:00"
+}
