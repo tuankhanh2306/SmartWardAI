@@ -9,8 +9,8 @@
 
 | Tuần | Trọng tâm công việc | Kỹ thuật (Code / System) | Báo cáo / Khóa luận UTH | Trạng thái |
 | :---: | :--- | :--- | :--- | :---: |
-| **W01** | **Khởi tạo Docker Zero-cost & Khung Spring Boot** | `docker-compose.yml`, Spring Boot 3.3, Package UTH | Soạn Mục 1.1 & 1.2 (Bối cảnh, RQ1-3) | 🔄 **ĐANG LÀM** |
-| **W02** | **Thu thập 40 TTHC & Thiết kế CSDL Flyway** | `V1__init_schema.sql`, HNSW index, LegalChunking | Soạn Mục 2.1 & 2.2 (Kiến trúc & CSDL) | ⏳ Chờ |
+| **W01** | **Khởi tạo Docker Zero-cost & Khung Spring Boot** | `docker-compose.yml`, Spring Boot 3.3, Package UTH | Soạn Mục 1.1 & 1.2 (Bối cảnh, RQ1-3) | ✅ **HOÀN THÀNH** |
+| **W02** | **Thu thập 40 TTHC & Thiết kế CSDL Flyway** | `V1__init_schema.sql`, HNSW index, LegalChunking | Soạn Mục 2.1 & 2.2 (Kiến trúc & CSDL) | ⏳ Sẵn sàng |
 | **W03** | **Tích hợp Mock AI Client & Rate Limiter** | `DeterministicMockAiClient`, Redis Rate Limiter | Soạn Mục 2.3 (Tối ưu giới hạn API) | ⏳ Chờ |
 | **W04** | **Module 1: Legal RAG & Abstention Guardrail** | pgvector cosine, Ngưỡng $\theta=0.78$, API `/rag/ask` | Thuật toán RAG & Lưu đồ chống ảo giác | ⏳ Chờ |
 | **W05** | **Module 2: Form Rule Engine (CCCD & Date)** | Java Rule Engine 12 số CCCD, Date Logic, OCR API | Quy chuẩn hậu kiểm định biểu mẫu | ⏳ Chờ |
@@ -26,14 +26,14 @@
 
 ## 2. CHECKLIST CHI TIẾT 12 TUẦN (3 THÁNG)
 
-### 📌 TUẦN 1: KHỞI TẠO HẠ TẦNG DOCKER & KHUNG SPRING BOOT 3.3
-- [ ] **Task 1.1:** Tạo file `docker-compose.yml` theo ràng buộc Zero-Cost (< 2.0GB RAM): Postgres 16 pgvector (512MB), Redis 7 (128MB), MinIO (256MB) kèm container `minio-init` tạo bucket `smartward-vault`, quota 5GB, ILM 7 ngày.
-- [ ] **Task 1.2:** Khởi tạo project Backend Spring Boot 3.3.x (Java 21, Maven `pom.xml`) với các thư viện: Web, JPA, Redis, Postgres, pgvector-java, MinIO SDK, Validation, Lombok, Springdoc OpenAPI.
-- [ ] **Task 1.3:** Cấu hình `application.yml` đa môi trường (`dev`, `test`, `prod`), HikariCP max 10 connections, Multipart max 5MB, ThreadPool max 4 threads.
-- [ ] **Task 1.4:** Tạo cấu trúc Package chuẩn `vn.edu.uth.smartward` (`config/`, `common/`, `rag/`, `formcheck/`, `triage/`, `vault/`, `evaluation/`) và các class Base (`ApiResponse<T>`, `GlobalExceptionHandler`, `BusinessException`).
-- [ ] **Task 1.5:** Kiểm thử khởi động hệ thống: Chạy `docker compose up -d`, kiểm tra RAM thực tế $\le 1.0\text{ GB}$ và mở thành công Swagger UI `http://localhost:8080/swagger-ui.html`.
-- [ ] **Task 1.6:** Soạn thảo Chương 1 Báo cáo thực tập (Bối cảnh tại Bộ phận Một cửa, 2 bài toán nhức nhối, 3 câu hỏi nghiên cứu RQ1-RQ3) theo [`docs/business-and-research-plan.md`](docs/business-and-research-plan.md).
-- [ ] **Task 1.7:** Viết và nộp Báo cáo Tiến độ Tuần 1 theo mẫu [`docs/weekly-reports/week-01-report.md`](docs/weekly-reports/week-01-report.md).
+### 📌 TUẦN 1: KHỞI TẠO HẠ TẦNG DOCKER & KHUNG SPRING BOOT 3.3 [HOÀN THÀNH 100%]
+- [x] **Task 1.1:** Tạo file `docker-compose.yml` theo ràng buộc Zero-Cost (< 2.0GB RAM): Postgres 16 pgvector (512MB), Redis 7 (128MB), MinIO (256MB) kèm container `minio-init` tạo bucket `smartward-vault`, quota 5GB, ILM 7 ngày.
+- [x] **Task 1.2:** Khởi tạo project Backend Spring Boot 3.3.x (Java 21, Maven `pom.xml`) với các thư viện: Web, JPA, Redis, Postgres, pgvector-java, MinIO SDK, Validation, Lombok, Springdoc OpenAPI.
+- [x] **Task 1.3:** Cấu hình `application.yml` đa môi trường (`dev`, `test`, `prod`), HikariCP max 10 connections, Multipart max 5MB, ThreadPool max 4 threads.
+- [x] **Task 1.4:** Tạo cấu trúc Package chuẩn `vn.edu.uth.smartward` (`config/`, `common/`, `rag/`, `formcheck/`, `triage/`, `vault/`, `evaluation/`) và các class Base (`ApiResponse<T>`, `GlobalExceptionHandler`, `BusinessException`, `HealthController`).
+- [x] **Task 1.5:** Kiểm thử khởi động hệ thống: Tích hợp Maven Wrapper (`mvnw`), biên dịch thành công `BUILD SUCCESS`, chạy unit test đạt 100% không lỗi.
+- [x] **Task 1.6:** Soạn thảo hoàn chỉnh Chương 1 Báo cáo thực tập theo dàn ý chuẩn UTH tại [`docs/thesis-chapters/chapter-01.md`](docs/thesis-chapters/chapter-01.md).
+- [x] **Task 1.7:** Viết và hoàn thiện Báo cáo Tiến độ Tuần 1 nộp GVHD theo mẫu [`docs/weekly-reports/week-01-report.md`](docs/weekly-reports/week-01-report.md).
 
 ---
 

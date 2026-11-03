@@ -1,0 +1,30 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/smartward_test_db
+    username: ${DB_USER:smartward}
+    password: ${DB_PASS:smartward_secret}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 1
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+minio:
+  endpoint: http://localhost:9000
+  access-key: minio_admin
+  secret-key: minio_secret_key
+  bucket: smartward-vault-test
+
+logging:
+  level:
+    root: WARN
+    vn.edu.uth.smartward: INFO

@@ -1,0 +1,41 @@
+spring:
+  application:
+    name: smartward-backend
+  profiles:
+    active: dev
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+# OpenAPI Swagger Documentation
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+
+# Application specific settings
+smartward:
+  ai:
+    gemini:
+      api-key: ${GEMINI_API_KEY:mock-key-for-local-testing}
+      model: gemini-2.5-flash
+      embedding-model: text-embedding-004
+      embedding-dim: 768
+    rag:
+      default-threshold: 0.78
+      top-k: 3
+    triage:
+      default-radius-meters: 75.0
+      default-similarity-threshold: 0.82
+      active-window-hours: 72
+  vault:
+    bucket-name: smartward-vault
+    token-ttl-hours: 24
+    watermark-text: "CHỈ DÙNG ĐỂ SƠ DUYỆT HỒ SƠ TẠI UBND"
+  rate-limit:
+    requests-per-minute: 5
