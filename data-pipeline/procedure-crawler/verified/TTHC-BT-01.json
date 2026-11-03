@@ -75,7 +75,7 @@
   ],
   "legalBasisCount": 2,
   "sourceUrl": "https://dichvucong.gov.vn (API id: 01a0b2bc-2e8b-72af-9807-ba861ba3eeec)",
-  "collectedAt": "2026-11-03T03:21:16.861905+00:00",
+  "collectedAt": "2026-11-03T03:23:38.660519+00:00",
   "verificationStatus": "VERIFIED_TIER_1",
   "chunks": [
     {
@@ -108,5 +108,5 @@
     }
   ],
   "chunksCount": 4,
-  "validatedAt": "2026-11-03T03:23:03.241216+00:00"
+  "validatedAt": "2026-11-03T03:23:38.771638+00:00"
 }

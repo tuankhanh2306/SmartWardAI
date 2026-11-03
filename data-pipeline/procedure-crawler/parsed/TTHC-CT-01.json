@@ -19,6 +19,18 @@
   "fee": "Miễn phí / Không thu lệ phí",
   "legalBasis": [
     {
+      "documentNumber": "20/2015/TT-BTP",
+      "documentTitle": "Quy định chi tiết và hướng dẫn thi hành một số điều của Nghị định số 23/2015/NĐ-CP ngày 16 tháng 02 năm 2015 của Chính phủ về cấp bản sao từ sổ gốc, chứng thực bản sao từ bản chính, chứng thực chữ ký và chứng thực hợp đồng, giao dịch",
+      "year": "2015",
+      "effectiveDate": "2015-01-01"
+    },
+    {
+      "documentNumber": "23/2015/NĐ-CP",
+      "documentTitle": "Về cấp bản sao từ sổ gốc, chứng thực bản sao từ bản chính, chứng thực chữ ký và chứng thực hợp đồng, giao dịch",
+      "year": "2015",
+      "effectiveDate": "2015-01-01"
+    },
+    {
       "documentNumber": "264/2016/TT-BTC",
       "documentTitle": "Quy định mức thu, chế độ thu, nộp, quản lý và sử dụng phí, lệ phí trong lĩnh vực ngoại giao áp dụng tại các Cơ quan đại diện Việt Nam ở nước ngoài",
       "year": "2016",
@@ -29,23 +41,11 @@
       "documentTitle": "Luật 33/2009/QH12",
       "year": "2009",
       "effectiveDate": "2009-01-01"
-    },
-    {
-      "documentNumber": "23/2015/NĐ-CP",
-      "documentTitle": "Về cấp bản sao từ sổ gốc, chứng thực bản sao từ bản chính, chứng thực chữ ký và chứng thực hợp đồng, giao dịch",
-      "year": "2015",
-      "effectiveDate": "2015-01-01"
-    },
-    {
-      "documentNumber": "20/2015/TT-BTP",
-      "documentTitle": "Quy định chi tiết và hướng dẫn thi hành một số điều của Nghị định số 23/2015/NĐ-CP ngày 16 tháng 02 năm 2015 của Chính phủ về cấp bản sao từ sổ gốc, chứng thực bản sao từ bản chính, chứng thực chữ ký và chứng thực hợp đồng, giao dịch",
-      "year": "2015",
-      "effectiveDate": "2015-01-01"
     }
   ],
   "legalBasisCount": 4,
   "sourceUrl": "https://dichvucong.gov.vn (API id: 019d2bf9-f18f-72ee-9d48-c87af3909b19)",
-  "collectedAt": "2026-11-03T03:21:14.673856+00:00",
+  "collectedAt": "2026-11-03T03:23:37.984467+00:00",
   "verificationStatus": "PENDING",
   "chunks": [
     {
@@ -80,7 +80,7 @@
       "chunkId": "TTHC-CT-01_CHUNK_005",
       "chunkType": "LEGAL_BASIS",
       "title": "Căn cứ pháp lý Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận",
-      "content": "Căn cứ pháp lý quy định thủ tục Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận bao gồm:\n- 264/2016/TT-BTC: Quy định mức thu, chế độ thu, nộp, quản lý và sử dụng phí, lệ phí trong lĩnh vực ngoại giao áp dụng tại các Cơ quan đại diện Việt Nam ở nước ngoài\n- 33/2009/QH12: Luật 33/2009/QH12\n- 23/2015/NĐ-CP: Về cấp bản sao từ sổ gốc, chứng thực bản sao từ bản chính, chứng thực chữ ký và chứng thực hợp đồng, giao dịch\n- 20/2015/TT-BTP: Quy định chi tiết và hướng dẫn thi hành một số điều của Nghị định số 23/2015/NĐ-CP ngày 16 tháng 02 năm 2015 của Chính phủ về cấp bản sao từ sổ gốc, chứng thực bản sao từ bản chính, chứng thực chữ ký và chứng thực hợp đồng, giao dịch",
+      "content": "Căn cứ pháp lý quy định thủ tục Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận bao gồm:\n- 20/2015/TT-BTP: Quy định chi tiết và hướng dẫn thi hành một số điều của Nghị định số 23/2015/NĐ-CP ngày 16 tháng 02 năm 2015 của Chính phủ về cấp bản sao từ sổ gốc, chứng thực bản sao từ bản chính, chứng thực chữ ký và chứng thực hợp đồng, giao dịch\n- 23/2015/NĐ-CP: Về cấp bản sao từ sổ gốc, chứng thực bản sao từ bản chính, chứng thực chữ ký và chứng thực hợp đồng, giao dịch\n- 264/2016/TT-BTC: Quy định mức thu, chế độ thu, nộp, quản lý và sử dụng phí, lệ phí trong lĩnh vực ngoại giao áp dụng tại các Cơ quan đại diện Việt Nam ở nước ngoài\n- 33/2009/QH12: Luật 33/2009/QH12",
       "legalReference": "Văn bản quy phạm pháp luật"
     }
   ],

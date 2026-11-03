@@ -175,6 +175,12 @@
       "effectiveDate": "2025-01-01"
     },
     {
+      "documentNumber": "52/2014/QH13",
+      "documentTitle": "Luật 52/2014/QH13",
+      "year": "2014",
+      "effectiveDate": "2014-01-01"
+    },
+    {
       "documentNumber": "60/2014/QH13",
       "documentTitle": "Luật 60/2014/QH13",
       "year": "2014",
@@ -185,18 +191,6 @@
       "documentTitle": "Thông tư quy định chi tiết một số điều và biện pháp thi hành Nghị định số 87/2020/NĐ-CP ngày 28 tháng 7 năm 2020 của Chính phủ quy định về Cơ sở dữ liệu hộ tịch điện tử, đăng ký hộ tịch trực tuyến",
       "year": "2022",
       "effectiveDate": "2022-01-01"
-    },
-    {
-      "documentNumber": "52/2014/QH13",
-      "documentTitle": "Luật 52/2014/QH13",
-      "year": "2014",
-      "effectiveDate": "2014-01-01"
-    },
-    {
-      "documentNumber": "04/2024/TT-BTP",
-      "documentTitle": "Sửa đổi, bổ sung một số điều của Thông tư số 02/2020/TT-BTP ngày 08/4/2020 của Bộ trưởng Bộ Tư pháp ban hành, hướng dẫn sử dụng, quản lý mẫu sổ quốc tịch và mẫu giấy tờ về quốc tịch và Thông tư số 04/2020/TT-BTP ngày 28/5/2020 của Bộ trưởng Bộ Tư pháp quy định chi tiết thi hành một số điều của Luật Hộ tịch và Nghị định số 123/2015/NĐ-CP ngày 15/11/2015 của Chính phủ quy định chi tiết một số điều và biện pháp thi hành Luật Hộ tịch",
-      "year": "2024",
-      "effectiveDate": "2024-01-01"
     },
     {
       "documentNumber": "Thông tư số 03/2023/TT-BTP",
@@ -215,12 +209,6 @@
       "documentTitle": "Thông tư Hướng dẫn về phí và lệ phí thuộc thẩm quyền quyết định của Hội đồng nhân dân tỉnh, thành phố trực thuộc Trung ương",
       "year": "2019",
       "effectiveDate": "2019-01-01"
-    },
-    {
-      "documentNumber": "104/2022/NĐ-CP",
-      "documentTitle": "Nghị định sửa đổi, bổ sung một số điều của các Nghị định liên quan đến việc nộp xuất trình sổ hộ khẩu, sổ tạm trú giấy khi thực hiện thủ tục hành chính, cung cấp dịch vụ công",
-      "year": "2022",
-      "effectiveDate": "2022-01-01"
     },
     {
       "documentNumber": "123/2015/NĐ-CP",
@@ -245,11 +233,23 @@
       "documentTitle": "Nghị định quy định về Cơ sở dữ liệu hộ tịch điện tử, đăng ký hộ tịch trực tuyến",
       "year": "2020",
       "effectiveDate": "2020-01-01"
+    },
+    {
+      "documentNumber": "104/2022/NĐ-CP",
+      "documentTitle": "Nghị định sửa đổi, bổ sung một số điều của các Nghị định liên quan đến việc nộp xuất trình sổ hộ khẩu, sổ tạm trú giấy khi thực hiện thủ tục hành chính, cung cấp dịch vụ công",
+      "year": "2022",
+      "effectiveDate": "2022-01-01"
+    },
+    {
+      "documentNumber": "04/2024/TT-BTP",
+      "documentTitle": "Sửa đổi, bổ sung một số điều của Thông tư số 02/2020/TT-BTP ngày 08/4/2020 của Bộ trưởng Bộ Tư pháp ban hành, hướng dẫn sử dụng, quản lý mẫu sổ quốc tịch và mẫu giấy tờ về quốc tịch và Thông tư số 04/2020/TT-BTP ngày 28/5/2020 của Bộ trưởng Bộ Tư pháp quy định chi tiết thi hành một số điều của Luật Hộ tịch và Nghị định số 123/2015/NĐ-CP ngày 15/11/2015 của Chính phủ quy định chi tiết một số điều và biện pháp thi hành Luật Hộ tịch",
+      "year": "2024",
+      "effectiveDate": "2024-01-01"
     }
   ],
   "legalBasisCount": 16,
   "sourceUrl": "https://dichvucong.gov.vn (API id: 019d2bfd-3fac-7489-b53b-a15eb239a6fe)",
-  "collectedAt": "2026-11-03T03:21:12.936316+00:00",
+  "collectedAt": "2026-11-03T03:23:37.075623+00:00",
   "verificationStatus": "PENDING",
   "chunks": [
     {
@@ -277,7 +277,7 @@
       "chunkId": "TTHC-HT-02_CHUNK_004",
       "chunkType": "LEGAL_BASIS",
       "title": "Căn cứ pháp lý Thủ tục đăng ký kết hôn",
-      "content": "Căn cứ pháp lý quy định thủ tục Thủ tục đăng ký kết hôn bao gồm:\n- 04/2020/TT-BTP: Hướng dẫn Luật hộ tịch và Nghị định 123/2015/NĐ-CP hướng dẫn Luật hộ tịch do Bộ trưởng Bộ Tư pháp ban hành\n- 07/2025/NĐ-CP: Nghị định sửa đổi, bổ sung một số điều của các Nghị định trong lĩnh vực hộ tịch, quốc tịch, chứng thực.\n- 120/2025/NĐ-CP: Nghị định số 120/2025/NĐ-CP ngày 11/6/2025 của Chính phủ quy định về phân định thẩm quyền của chính quyền địa phương 02 cấp trong lĩnh vực quản lý nhà nước của Bộ Tư pháp.\n- 66.7/2025/NQ-CP: Nghị quyết số 66.7/2025/NQ-CP của Chính phủ: Quy định cắt giảm, đơn giản hóa thủ tục hành chính dựa trên dữ liệu\n- 60/2014/QH13: Luật 60/2014/QH13\n- 01/2022/TT-BTP: Thông tư quy định chi tiết một số điều và biện pháp thi hành Nghị định số 87/2020/NĐ-CP ngày 28 tháng 7 năm 2020 của Chính phủ quy định về Cơ sở dữ liệu hộ tịch điện tử, đăng ký hộ tịch trực tuyến\n- 52/2014/QH13: Luật 52/2014/QH13\n- 04/2024/TT-BTP: Sửa đổi, bổ sung một số điều của Thông tư số 02/2020/TT-BTP ngày 08/4/2020 của Bộ trưởng Bộ Tư pháp ban hành, hướng dẫn sử dụng, quản lý mẫu sổ quốc tịch và mẫu giấy tờ về quốc tịch và Thông tư số 04/2020/TT-BTP ngày 28/5/2020 của Bộ trưởng Bộ Tư pháp quy định chi tiết thi hành một số điều của Luật Hộ tịch và Nghị định số 123/2015/NĐ-CP ngày 15/11/2015 của Chính phủ quy định chi tiết một số điều và biện pháp thi hành Luật Hộ tịch\n- Thông tư số 03/2023/TT-BTP: Thông tư số 03/2023/TT-BTP ngày 02/8/2023 của Bộ trưởng Bộ Tư pháp\n- 106/2021/TT-BTC: Thông tư sửa đổi, bổ sung một số điều của Thông tư số 85/2019/TT-BTC ngày 29/11/2019 của Bộ Tài chính hướng dẫn về phí và lệ phí thuộc thẩm quyền quyết định của Hội đồng nhân dân tỉnh, thành phố trực thuộc Trung ương.\n- 85/2019/TT-BTC: Thông tư Hướng dẫn về phí và lệ phí thuộc thẩm quyền quyết định của Hội đồng nhân dân tỉnh, thành phố trực thuộc Trung ương\n- 104/2022/NĐ-CP: Nghị định sửa đổi, bổ sung một số điều của các Nghị định liên quan đến việc nộp xuất trình sổ hộ khẩu, sổ tạm trú giấy khi thực hiện thủ tục hành chính, cung cấp dịch vụ công\n- 123/2015/NĐ-CP: Nghị định số 123/2015/NĐ-CP ngày 15/11/2015 của Chính phủ quy định chi tiết một số điều và biện pháp thi hành Luật Hộ tịch\n- 08/2025/TT-BTP: Thông tư số 08/2025/TT-BTP ngày 12/6/2025 của Bộ trưởng Bộ Tư pháp quy định về phân định thẩm quyền của chính quyền địa phương 02 cấp và phân cấp trong lĩnh vực quản lý nhà nước của Bộ Tư pháp\n- 18/2026/NĐ-CP: Nghị định sửa đổi, bổ sung một số nghị định để cắt giảm, đơn giản hóa thủ tục hành chính, điều kiện kinh doanh thuộc phạm vi quản lý của Bộ Tư pháp\n- 87/2020/NĐ-CP: Nghị định quy định về Cơ sở dữ liệu hộ tịch điện tử, đăng ký hộ tịch trực tuyến",
+      "content": "Căn cứ pháp lý quy định thủ tục Thủ tục đăng ký kết hôn bao gồm:\n- 04/2020/TT-BTP: Hướng dẫn Luật hộ tịch và Nghị định 123/2015/NĐ-CP hướng dẫn Luật hộ tịch do Bộ trưởng Bộ Tư pháp ban hành\n- 07/2025/NĐ-CP: Nghị định sửa đổi, bổ sung một số điều của các Nghị định trong lĩnh vực hộ tịch, quốc tịch, chứng thực.\n- 120/2025/NĐ-CP: Nghị định số 120/2025/NĐ-CP ngày 11/6/2025 của Chính phủ quy định về phân định thẩm quyền của chính quyền địa phương 02 cấp trong lĩnh vực quản lý nhà nước của Bộ Tư pháp.\n- 66.7/2025/NQ-CP: Nghị quyết số 66.7/2025/NQ-CP của Chính phủ: Quy định cắt giảm, đơn giản hóa thủ tục hành chính dựa trên dữ liệu\n- 52/2014/QH13: Luật 52/2014/QH13\n- 60/2014/QH13: Luật 60/2014/QH13\n- 01/2022/TT-BTP: Thông tư quy định chi tiết một số điều và biện pháp thi hành Nghị định số 87/2020/NĐ-CP ngày 28 tháng 7 năm 2020 của Chính phủ quy định về Cơ sở dữ liệu hộ tịch điện tử, đăng ký hộ tịch trực tuyến\n- Thông tư số 03/2023/TT-BTP: Thông tư số 03/2023/TT-BTP ngày 02/8/2023 của Bộ trưởng Bộ Tư pháp\n- 106/2021/TT-BTC: Thông tư sửa đổi, bổ sung một số điều của Thông tư số 85/2019/TT-BTC ngày 29/11/2019 của Bộ Tài chính hướng dẫn về phí và lệ phí thuộc thẩm quyền quyết định của Hội đồng nhân dân tỉnh, thành phố trực thuộc Trung ương.\n- 85/2019/TT-BTC: Thông tư Hướng dẫn về phí và lệ phí thuộc thẩm quyền quyết định của Hội đồng nhân dân tỉnh, thành phố trực thuộc Trung ương\n- 123/2015/NĐ-CP: Nghị định số 123/2015/NĐ-CP ngày 15/11/2015 của Chính phủ quy định chi tiết một số điều và biện pháp thi hành Luật Hộ tịch\n- 08/2025/TT-BTP: Thông tư số 08/2025/TT-BTP ngày 12/6/2025 của Bộ trưởng Bộ Tư pháp quy định về phân định thẩm quyền của chính quyền địa phương 02 cấp và phân cấp trong lĩnh vực quản lý nhà nước của Bộ Tư pháp\n- 18/2026/NĐ-CP: Nghị định sửa đổi, bổ sung một số nghị định để cắt giảm, đơn giản hóa thủ tục hành chính, điều kiện kinh doanh thuộc phạm vi quản lý của Bộ Tư pháp\n- 87/2020/NĐ-CP: Nghị định quy định về Cơ sở dữ liệu hộ tịch điện tử, đăng ký hộ tịch trực tuyến\n- 104/2022/NĐ-CP: Nghị định sửa đổi, bổ sung một số điều của các Nghị định liên quan đến việc nộp xuất trình sổ hộ khẩu, sổ tạm trú giấy khi thực hiện thủ tục hành chính, cung cấp dịch vụ công\n- 04/2024/TT-BTP: Sửa đổi, bổ sung một số điều của Thông tư số 02/2020/TT-BTP ngày 08/4/2020 của Bộ trưởng Bộ Tư pháp ban hành, hướng dẫn sử dụng, quản lý mẫu sổ quốc tịch và mẫu giấy tờ về quốc tịch và Thông tư số 04/2020/TT-BTP ngày 28/5/2020 của Bộ trưởng Bộ Tư pháp quy định chi tiết thi hành một số điều của Luật Hộ tịch và Nghị định số 123/2015/NĐ-CP ngày 15/11/2015 của Chính phủ quy định chi tiết một số điều và biện pháp thi hành Luật Hộ tịch",
       "legalReference": "Văn bản quy phạm pháp luật"
     }
   ],
