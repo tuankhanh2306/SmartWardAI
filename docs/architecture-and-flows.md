@@ -10,6 +10,8 @@ Trong quy mô đồ án tốt nghiệp và giai đoạn thực tập 3 tháng do
 
 * **Vì sao không dùng Apache Kafka?**  
   Với lưu lượng cấp phường/xã (vài trăm đến vài nghìn yêu cầu/ngày), việc duy trì và vận hành một cụm Kafka là dư thừa tài nguyên (Over-engineering) và tiêu tốn tối thiểu 1–2 GB RAM. Hệ thống tận dụng cơ chế `Spring ApplicationEvents` kết hợp `@Async ThreadPoolExecutor` và hàng đợi nhẹ trên Redis để xử lý các tác vụ nền (như gọi OCR API, sinh vector embedding) mà vẫn đảm bảo giao diện phản hồi mượt mà không bị block.
+* **Vì sao chọn Web-First Responsive / PWA thay vì phát triển thêm Native Mobile App?**  
+  Người dân khi đến làm thủ tục hành chính tại UBND rất ngại cài đặt thêm ứng dụng di động mới lên điện thoại cá nhân. Thay vào đó, giải pháp Web Responsive / PWA cho phép người dân chỉ cần quét mã QR tại quầy Một cửa để mở ứng dụng ngay trên trình duyệt di động: tận dụng trực tiếp HTML5 Camera API để chụp tờ khai và Geolocation API để bắt tọa độ GPS sự cố hiện trường mà không cần cài đặt. Điều này vừa tối ưu hóa trải nghiệm tiếp cận dịch vụ công, vừa loại bỏ rủi ro vỡ tiến độ khi 1 sinh viên phải duy trì 2 codebase giao diện độc lập trong 12 tuần (phân hệ Native App được quy hoạch là hướng phát triển mở rộng trong tương lai).
 * **Vì sao dùng PostgreSQL kèm pgvector?**  
   Gộp chung dữ liệu quan hệ (thông tin thủ tục, hồ sơ, phản ánh hiện trường, người dùng) và dữ liệu vector (embedding điều khoản pháp luật, vector mô tả sự cố) vào cùng một hệ quản trị CSDL giúp đảm bảo toàn vẹn giao dịch (ACID). Điều này cho phép thực hiện các truy vấn kết hợp (Hybrid Search: lọc metadata SQL kết hợp đo khoảng cách cosine) trong một câu lệnh duy nhất mà không cần đồng bộ dữ liệu sang một Vector DB độc lập (như Milvus hay Pinecone).
 * **Vì sao dùng Redis?**  
@@ -26,8 +28,8 @@ Trong quy mô đồ án tốt nghiệp và giai đoạn thực tập 3 tháng do
 ```mermaid
 graph TD
     subgraph "Tầng Giao diện (Frontend - React/Vite + TailwindCSS)"
-        Citizen_UI["Cổng Công dân<br/>(Hỏi đáp RAG, Kiểm tra Tờ khai, Gửi Phản ánh)"]
-        Officer_UI["Bàn làm việc Cán bộ Phường/Xã<br/>(Bản đồ Cụm sự cố, Duyệt sơ bộ, Thống kê)"]
+        Citizen_UI["Cổng Công dân (Mobile-first PWA)<br/>(HTML5 Camera, GPS Geolocation, Chat RAG)"]
+        Officer_UI["Bàn làm việc Cán bộ (Desktop Dashboard)<br/>(Bản đồ Leaflet GIS, Sơ duyệt tờ khai, Vault)"]
     end
 
     subgraph "Tầng Ứng dụng (Spring Boot 3.3 Modular Monolith)"

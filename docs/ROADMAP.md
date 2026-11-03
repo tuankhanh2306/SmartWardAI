@@ -136,18 +136,21 @@ flowchart LR
 *Mục tiêu:* Hoàn thiện Frontend React/Vite, đóng gói sản phẩm hoàn chỉnh, hoàn thiện cuốn Báo cáo tốt nghiệp UTH và chuẩn bị slide bảo vệ.  
 *Phần Báo cáo tương ứng:* **Lời cảm ơn, Kết luận, Tài liệu tham khảo, Slide thuyết trình**.
 
-#### Tuần 10: Xây dựng Giao diện Người dùng (Frontend React + TailwindCSS + Leaflet)
+#### Tuần 10: Xây dựng Giao diện Người dùng Web-First Responsive / PWA (React + TailwindCSS + Leaflet)
 * **Công việc kỹ thuật:**
-  * Khởi tạo dự án Frontend React (TypeScript) với Vite và TailwindCSS.
-  * Xây dựng **Cổng Công dân (Citizen Portal)**:
-    * Giao diện Chatbot tra cứu TTHC (hiển thị trích dẫn luật rõ ràng, cảnh báo từ chối trả lời).
-    * Giao diện tải ảnh tờ khai và xem kết quả kiểm tra lỗi logic từng trường (Đạt / Cảnh báo / Sai).
-    * Form gửi phản ánh hiện trường kèm chọn vị trí trên bản đồ OpenStreetMap (Leaflet).
-  * Xây dựng **Bàn làm việc Cán bộ (Officer Dashboard)**:
-    * Bản đồ nhiệt cụm sự cố theo màu danh mục và mức độ ưu tiên.
-    * Giao diện xem ảnh giấy tờ bảo mật bằng One-time link (tự động vô hiệu hóa sau khi xem).
+  * Khởi tạo dự án Frontend `frontend/` sử dụng React (TypeScript) với Vite và TailwindCSS.
+  * Xây dựng **Cổng Công dân (Route `/citizen` - Mobile-First PWA)**:
+    * Tối ưu hiển thị trên màn hình di động, người dân quét mã QR tại UBND để truy cập tức thì không cần cài app.
+    * Giao diện Chatbot tra cứu TTHC (Legal RAG) hiển thị trích dẫn căn cứ pháp lý và cảnh báo từ chối an toàn.
+    * Tích hợp HTML5 Camera API để chụp trực tiếp tờ khai và hiển thị kết quả kiểm tra từng trường (Đạt / Cảnh báo / Lỗi logic).
+    * Tích hợp Geolocation API tự động lấy tọa độ GPS hiện trường khi gửi phản ánh sự cố.
+    * Hỗ trợ Web App Manifest để cài đặt dạng PWA (Add to Home Screen) trên thiết bị di động.
+  * Xây dựng **Bàn làm việc Cán bộ (Route `/officer` - Desktop Dashboard)**:
+    * Bản đồ số GIS Leaflet hiển thị các cụm sự cố theo phân loại màu sắc và mức độ ưu tiên.
+    * Giao diện sơ duyệt tờ khai và xem ảnh giấy tờ bảo mật bằng One-time link (tự vô hiệu hóa sau xem).
     * Tab chạy đánh giá Benchmark hiển thị biểu đồ Chart.js trực quan.
-* **Sản phẩm bàn giao:** Ứng dụng Web hoàn chỉnh kết nối mượt mà với Backend REST APIs.
+  * *Lưu ý học thuật:* Phân hệ Native Mobile App (React Native/Expo) được quy hoạch vào mục "Hướng phát triển tương lai (Future Works)" trong báo cáo để tối ưu nguồn lực và tránh rủi ro vỡ tiến độ.
+* **Sản phẩm bàn giao:** Ứng dụng Web-first responsive hoàn chỉnh kết nối mượt mà với Backend REST APIs.
 
 #### Tuần 11: Đóng gói Hệ thống, Kiểm thử Tải & Hoàn thiện Cuốn Báo cáo UTH
 * **Công việc kỹ thuật:**
