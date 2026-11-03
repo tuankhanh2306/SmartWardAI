@@ -1,0 +1,88 @@
+{
+  "procedureCode": "TTHC-CR-08",
+  "officialPortalCode": "1.010041",
+  "procedureName": "Xác nhận thông tin về cư trú",
+  "category": "Cư trú",
+  "agency": "Bộ Công an",
+  "process": "Bước 1: Cá nhân, tổ chức chuẩn bị hồ sơ theo quy định của pháp luật.\n Bước 2: Cá nhân, tổ chức nộp hồ sơ đến Công an cấp xã.\n Bước 3: Khi tiếp nhận hồ sơ xác nhận thông tin về cư trú, cơ quan đăng ký cư trú kiểm tra tính pháp lý và nội dung hồ sơ:\n- Trường hợp hồ sơ đã đầy đủ, chính xác theo quy định thì cán bộ đăng ký tiếp nhận hồ sơ và cấp Phiếu tiếp nhận hồ sơ và hẹn trả kết quả (mẫu CT04 ban hành kèm theo Thông tư số 116/2026/TT-BCA) cho người đăng ký.\n- Trường hợp hồ sơ chưa đầy đủ, chưa chính xác theo quy định thì cán bộ đăng ký trả lại hồ sơ và cấp Phiếu thông báo về việc giải quyết hồ sơ cư trú (mẫu CT06 ban hành kèm theo Thông tư số 116/2026/TT-BCA) cho người đăng ký; ghi rõ lý do trả lại và hướng dẫn chi tiết, cụ thể cho công dân.\nBước 4: Căn cứ theo ngày hẹn trên Phiếu tiếp nhận hồ sơ và hẹn trả kết quả để nhận thông báo kết quả giải quyết thủ tục đăng ký cư trú (nếu có).",
+  "processStepsCount": 1,
+  "requiredDocuments": [
+    {
+      "documentName": "Tờ khai thay đổi thông tin cư trú (mẫu CT01 ban hành kèm theo Thông tư số 116/2026/TT-BCA).",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "- Công dân khai báo thông tin theo biểu mẫu điện tử được cung cấp sẵn, không đính kèm biểu mẫu CT01. - Xác nhận thông tin về cư trú có thể cấp cho cá nhân hoặc cho hộ gia đình: + Trường hợp cấp cho hộ gia đình phải do chủ hộ đề xuất, trường hợp thành viên hộ gia đình đề xuất thì phải có ủy quyền hoặc đồng ý của chủ hộ trừ trường hợp chủ hộ chết, mất tích, không đủ năng lực hành vi dân sự hoặc đang chấp hành án phạt tù thì phải có ý kiến của các thành viên khác đủ năng lực hành vi dân sự trong hộ gia đình. + Trường hợp cá nhân đề nghị không cần chủ hộ đồng ý, trong đó công dân được cung cấp đầy đủ thông tin có liên quan đến hộ gia đình trong giai đoạn công dân là thành viên của hộ gia đình đó. - Trường hợp công dân không tự thực hiện thủ tục thì được ủy quyền cho người khác thực hiện, trừ trường hợp người giám hộ, người đại diện thực hiện thủ tục về cư trú cho người được giám hộ, người được đại diện thì không phải ủy quyền.",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    }
+  ],
+  "requiredDocumentsCount": 2,
+  "processingTime": "ONLINE: Trong thời hạn 1/2 ngày làm việc kể từ ngày tiếp nhận được hồ sơ đầy đủ, chính xác với trường hợp thông tin cần xác nhận đã có trong Cơ sở dữ liệu quốc gia về dân cư. | ONLINE: Trường hợp thông tin cần xác nhận không có trong Cơ sở dữ liệu quốc gia về dân cư, Cơ sở dữ liệu về cư trú cần xác minh thì thời hạn giải quyết không quá 03 ngày làm việc.",
+  "fee": "Miễn phí / Không thu lệ phí",
+  "legalBasis": [
+    {
+      "documentNumber": "68/2020/QH14",
+      "documentTitle": "Luật Cư trú 2020",
+      "year": "2020",
+      "effectiveDate": "2020-01-01"
+    },
+    {
+      "documentNumber": "154/2024/NĐ-CP",
+      "documentTitle": "Nghị định quy định chi tiết một số điều và biện pháp thi hành Luật Cư trú",
+      "year": "2024",
+      "effectiveDate": "2024-01-01"
+    },
+    {
+      "documentNumber": "116/2026/TT-BCA",
+      "documentTitle": "Thông tư số 116/2026/TT-BCA ngày 29/6/2026 của Bộ trưởng Bộ Công an quy định chi tiết một số điều và biện pháp thi hành Luật Cư trú",
+      "year": "2026",
+      "effectiveDate": "2026-01-01"
+    },
+    {
+      "documentNumber": "54/2025/TT-BCA",
+      "documentTitle": "Thông tư số 54/2025/TT-BCA ngày 01/7/2025 của Bộ trưởng Bộ Công an quy định về quy trình đăng ký cư trú.",
+      "year": "2025",
+      "effectiveDate": "2025-01-01"
+    }
+  ],
+  "legalBasisCount": 4,
+  "sourceUrl": "https://dichvucong.gov.vn (API ID: 019d2bf7-7f19-762d-be5e-741f71796016)",
+  "collectedAt": "2026-11-03T03:32:01.100657+00:00",
+  "verificationStatus": "VERIFIED_TIER_1",
+  "chunks": [
+    {
+      "chunkId": "TTHC-CR-08_CHUNK_001",
+      "chunkType": "OVERVIEW",
+      "title": "Tổng quan & Thẩm quyền giải quyết Xác nhận thông tin về cư trú",
+      "content": "Thủ tục: Xác nhận thông tin về cư trú. Cơ quan có thẩm quyền giải quyết: Bộ Công an. Thời hạn giải quyết: ONLINE: Trong thời hạn 1/2 ngày làm việc kể từ ngày tiếp nhận được hồ sơ đầy đủ, chính xác với trường hợp thông tin cần xác nhận đã có trong Cơ sở dữ liệu quốc gia về dân cư. | ONLINE: Trường hợp thông tin cần xác nhận không có trong Cơ sở dữ liệu quốc gia về dân cư, Cơ sở dữ liệu về cư trú cần xác minh thì thời hạn giải quyết không quá 03 ngày làm việc.. Mức phí/lệ phí: Miễn phí / Không thu lệ phí.",
+      "legalReference": "Xác nhận thông tin về cư trú"
+    },
+    {
+      "chunkId": "TTHC-CR-08_CHUNK_002",
+      "chunkType": "PROCESS_STEP",
+      "title": "Trình tự thực hiện Xác nhận thông tin về cư trú - Bước 1",
+      "content": "Bước 1: Cá nhân, tổ chức chuẩn bị hồ sơ theo quy định của pháp luật.\n Bước 2: Cá nhân, tổ chức nộp hồ sơ đến Công an cấp xã.\n Bước 3: Khi tiếp nhận hồ sơ xác nhận thông tin về cư trú, cơ quan đăng ký cư trú kiểm tra tính pháp lý và nội dung hồ sơ:\n- Trường hợp hồ sơ đã đầy đủ, chính xác theo quy định thì cán bộ đăng ký tiếp nhận hồ sơ và cấp Phiếu tiếp nhận hồ sơ và hẹn trả kết quả (mẫu CT04 ban hành kèm theo Thông tư số 116/2026/TT-BCA) cho người đăng ký.\n- Trường hợp hồ sơ chưa đầy đủ, chưa chính xác theo quy định thì cán bộ đăng ký trả lại hồ sơ và cấp Phiếu thông báo về việc giải quyết hồ sơ cư trú (mẫu CT06 ban hành kèm theo Thông tư số 116/2026/TT-BCA) cho người đăng ký; ghi rõ lý do trả lại và hướng dẫn chi tiết, cụ thể cho công dân.\nBước 4: Căn cứ theo ngày hẹn trên Phiếu tiếp nhận hồ sơ và hẹn trả kết quả để nhận thông báo kết quả giải quyết thủ tục đăng ký cư trú (nếu có).",
+      "legalReference": "Xác nhận thông tin về cư trú - Trình tự giải quyết"
+    },
+    {
+      "chunkId": "TTHC-CR-08_CHUNK_003",
+      "chunkType": "REQUIRED_DOCUMENTS",
+      "title": "Thành phần hồ sơ Xác nhận thông tin về cư trú",
+      "content": "Để thực hiện thủ tục Xác nhận thông tin về cư trú, công dân cần chuẩn bị các giấy tờ sau:\n- Tờ khai thay đổi thông tin cư trú (mẫu CT01 ban hành kèm theo Thông tư số 116/2026/TT-BCA). (1 bản chính)\n- - Công dân khai báo thông tin theo biểu mẫu điện tử được cung cấp sẵn, không đính kèm biểu mẫu CT01. - Xác nhận thông tin về cư trú có thể cấp cho cá nhân hoặc cho hộ gia đình: + Trường hợp cấp cho hộ gia đình phải do chủ hộ đề xuất, trường hợp thành viên hộ gia đình đề xuất thì phải có ủy quyền hoặc đồng ý của chủ hộ trừ trường hợp chủ hộ chết, mất tích, không đủ năng lực hành vi dân sự hoặc đang chấp hành án phạt tù thì phải có ý kiến của các thành viên khác đủ năng lực hành vi dân sự trong hộ gia đình. + Trường hợp cá nhân đề nghị không cần chủ hộ đồng ý, trong đó công dân được cung cấp đầy đủ thông tin có liên quan đến hộ gia đình trong giai đoạn công dân là thành viên của hộ gia đình đó. - Trường hợp công dân không tự thực hiện thủ tục thì được ủy quyền cho người khác thực hiện, trừ trường hợp người giám hộ, người đại diện thực hiện thủ tục về cư trú cho người được giám hộ, người được đại diện thì không phải ủy quyền. (1 bản chính)",
+      "legalReference": "Xác nhận thông tin về cư trú - Thành phần hồ sơ"
+    },
+    {
+      "chunkId": "TTHC-CR-08_CHUNK_004",
+      "chunkType": "LEGAL_BASIS",
+      "title": "Căn cứ pháp lý Xác nhận thông tin về cư trú",
+      "content": "Căn cứ pháp lý quy định thủ tục Xác nhận thông tin về cư trú bao gồm:\n- 68/2020/QH14: Luật Cư trú 2020\n- 154/2024/NĐ-CP: Nghị định quy định chi tiết một số điều và biện pháp thi hành Luật Cư trú\n- 116/2026/TT-BCA: Thông tư số 116/2026/TT-BCA ngày 29/6/2026 của Bộ trưởng Bộ Công an quy định chi tiết một số điều và biện pháp thi hành Luật Cư trú\n- 54/2025/TT-BCA: Thông tư số 54/2025/TT-BCA ngày 01/7/2025 của Bộ trưởng Bộ Công an quy định về quy trình đăng ký cư trú.",
+      "legalReference": "Văn bản quy phạm pháp luật"
+    }
+  ],
+  "chunksCount": 4,
+  "validatedAt": "2026-11-03T03:34:04.538273+00:00"
+}

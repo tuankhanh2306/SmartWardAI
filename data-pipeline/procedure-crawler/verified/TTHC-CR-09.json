@@ -1,0 +1,71 @@
+{
+  "procedureCode": "TTHC-CR-09",
+  "officialPortalCode": "1.117007",
+  "procedureName": "Xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế",
+  "category": "Cư trú",
+  "agency": "Bộ Công an",
+  "process": "- Bước 1: Cơ quan đầu mối phối hợp với Ủy ban nhân dân cấp xã, các cơ quan, tổ chức liên quan xác minh hoàn cảnh khó khăn về kinh tế.\n\n- Bước 2: Xác nhận của Ủy ban nhân dân cấp xã nơi nạn nhân cư trú hoặc cơ quan, tổ chức nơi nạn nhân học tập, làm việc về việc nạn nhân hoặc gia đình của nạn nhân đang gặp khó khăn về kinh tế đối với trường hợp nạn nhân bị thương trong vụ tai nạn giao thông đường bộ với tỷ lệ tổn thương cơ thể trên 31% đến dưới 81% đang gặp khó khăn về kinh tế hoặc xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế đối với trường hợp hộ gia đình có nạn nhân bị chết trong vụ tai nạn giao thông đường bộ đang gặp khó khăn về kinh tế.",
+  "processStepsCount": 2,
+  "requiredDocuments": [
+    {
+      "documentName": "Xác nhận của Ủy ban nhân dân cấp xã nơi nạn nhân, hộ gia đình nạn nhân cư trú hoặc của cơ quan, tổ chức nơi nạn nhân học tập, làm việc",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    }
+  ],
+  "requiredDocumentsCount": 1,
+  "processingTime": "DIRECT: Thực hiện ngay trong quá trình lập hồ sơ đề nghị chi từ Quỹ của Cơ quan đầu mối",
+  "fee": "Theo quy định của HĐND cấp tỉnh/thành phố",
+  "legalBasis": [
+    {
+      "documentNumber": "126/2026/TT-BCA",
+      "documentTitle": "Thông tư số 126/2026/TT-BCA ngày 30/6/2026 của Bộ trưởng Bộ Công an quy định trình tự, thủ tục thực hiện nội dung chi từ Quỹ giảm thiểu thiệt hại tai nạn giao thông đường bộ",
+      "year": "2026",
+      "effectiveDate": "2026-01-01"
+    }
+  ],
+  "legalBasisCount": 1,
+  "sourceUrl": "https://dichvucong.gov.vn (API ID: 01a11463-3eeb-776b-a646-9a9f0b5bb740)",
+  "collectedAt": "2026-11-03T03:33:46.786794+00:00",
+  "verificationStatus": "VERIFIED_TIER_1",
+  "chunks": [
+    {
+      "chunkId": "TTHC-CR-09_CHUNK_001",
+      "chunkType": "OVERVIEW",
+      "title": "Tổng quan & Thẩm quyền giải quyết Xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế",
+      "content": "Thủ tục: Xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế. Cơ quan có thẩm quyền giải quyết: Bộ Công an. Thời hạn giải quyết: DIRECT: Thực hiện ngay trong quá trình lập hồ sơ đề nghị chi từ Quỹ của Cơ quan đầu mối. Mức phí/lệ phí: Theo quy định của HĐND cấp tỉnh/thành phố.",
+      "legalReference": "Xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế"
+    },
+    {
+      "chunkId": "TTHC-CR-09_CHUNK_002",
+      "chunkType": "PROCESS_STEP",
+      "title": "Trình tự thực hiện Xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế - Bước 1",
+      "content": "- Bước 1: Cơ quan đầu mối phối hợp với Ủy ban nhân dân cấp xã, các cơ quan, tổ chức liên quan xác minh hoàn cảnh khó khăn về kinh tế.",
+      "legalReference": "Xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế - Trình tự giải quyết"
+    },
+    {
+      "chunkId": "TTHC-CR-09_CHUNK_003",
+      "chunkType": "PROCESS_STEP",
+      "title": "Trình tự thực hiện Xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế - Bước 2",
+      "content": "- Bước 2: Xác nhận của Ủy ban nhân dân cấp xã nơi nạn nhân cư trú hoặc cơ quan, tổ chức nơi nạn nhân học tập, làm việc về việc nạn nhân hoặc gia đình của nạn nhân đang gặp khó khăn về kinh tế đối với trường hợp nạn nhân bị thương trong vụ tai nạn giao thông đường bộ với tỷ lệ tổn thương cơ thể trên 31% đến dưới 81% đang gặp khó khăn về kinh tế hoặc xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế đối với trường hợp hộ gia đình có nạn nhân bị chết trong vụ tai nạn giao thông đường bộ đang gặp khó khăn về kinh tế.",
+      "legalReference": "Xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế - Trình tự giải quyết"
+    },
+    {
+      "chunkId": "TTHC-CR-09_CHUNK_004",
+      "chunkType": "REQUIRED_DOCUMENTS",
+      "title": "Thành phần hồ sơ Xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế",
+      "content": "Để thực hiện thủ tục Xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế, công dân cần chuẩn bị các giấy tờ sau:\n- Xác nhận của Ủy ban nhân dân cấp xã nơi nạn nhân, hộ gia đình nạn nhân cư trú hoặc của cơ quan, tổ chức nơi nạn nhân học tập, làm việc (1 bản chính)",
+      "legalReference": "Xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế - Thành phần hồ sơ"
+    },
+    {
+      "chunkId": "TTHC-CR-09_CHUNK_005",
+      "chunkType": "LEGAL_BASIS",
+      "title": "Căn cứ pháp lý Xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế",
+      "content": "Căn cứ pháp lý quy định thủ tục Xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế bao gồm:\n- 126/2026/TT-BCA: Thông tư số 126/2026/TT-BCA ngày 30/6/2026 của Bộ trưởng Bộ Công an quy định trình tự, thủ tục thực hiện nội dung chi từ Quỹ giảm thiểu thiệt hại tai nạn giao thông đường bộ",
+      "legalReference": "Văn bản quy phạm pháp luật"
+    }
+  ],
+  "chunksCount": 5,
+  "validatedAt": "2026-11-03T03:34:04.538793+00:00"
+}

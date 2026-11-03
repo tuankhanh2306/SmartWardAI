@@ -10,7 +10,7 @@
 | Tuần | Trọng tâm công việc | Kỹ thuật (Code / System) | Báo cáo / Khóa luận UTH | Trạng thái |
 | :---: | :--- | :--- | :--- | :---: |
 | **W01** | **Khởi tạo Docker Zero-cost & Khung Spring Boot** | `docker-compose.yml`, Spring Boot 3.3, Package UTH | Soạn Mục 1.1 & 1.2 (Bối cảnh, RQ1-3) | ✅ **HOÀN THÀNH** |
-| **W02** | **Thu thập 40 TTHC & Thiết kế CSDL Flyway** | `V1__init_schema.sql`, HNSW index, LegalChunking | Soạn Mục 2.1 & 2.2 (Kiến trúc & CSDL) | ⏳ Sẵn sàng |
+| **W02** | **Thu thập 40 TTHC & Thiết kế CSDL Flyway** | `V1__init_schema.sql`, HNSW index, LegalChunking | Soạn Mục 2.1 & 2.2 (Kiến trúc & CSDL) | 🔄 **ĐANG LÀM** |
 | **W03** | **Tích hợp Mock AI Client & Rate Limiter** | `DeterministicMockAiClient`, Redis Rate Limiter | Soạn Mục 2.3 (Tối ưu giới hạn API) | ⏳ Chờ |
 | **W04** | **Module 1: Legal RAG & Abstention Guardrail** | pgvector cosine, Ngưỡng $\theta=0.78$, API `/rag/ask` | Thuật toán RAG & Lưu đồ chống ảo giác | ⏳ Chờ |
 | **W05** | **Module 2: Form Rule Engine (CCCD & Date)** | Java Rule Engine 12 số CCCD, Date Logic, OCR API | Quy chuẩn hậu kiểm định biểu mẫu | ⏳ Chờ |
@@ -38,11 +38,11 @@
 ---
 
 ### 📌 TUẦN 2: THU THẬP DỮ LIỆU PHÁP LÝ & THIẾT KẾ CSDL FLYWAY
-- [ ] **Task 2.1:** Thu thập và chuẩn hóa văn bản của 40 TTHC cấp xã thuộc 4 nhóm (Hộ tịch, Cư trú, Chứng thực, Bảo trợ xã hội) từ Cổng Dịch vụ công Quốc gia.
-- [ ] **Task 2.2:** Viết migration Flyway `V1__init_schema.sql` tạo 6 bảng CSDL: `admin_procedures`, `legal_chunks` (vector 768 chiều & HNSW index), `issue_clusters`, `civic_reports`, `form_submissions`, `vault_documents`.
-- [ ] **Task 2.3:** Xây dựng các Entity JPA và Spring Data JPA Repositories tương ứng.
-- [ ] **Task 2.4:** Hiện thực hóa `LegalChunkingService` để băm nhỏ văn bản theo cấu trúc *Chương $\rightarrow$ Điều $\rightarrow$ Khoản $\rightarrow$ Điểm* kèm metadata (`effective_date`, `status = ACTIVE`).
-- [ ] **Task 2.5:** Viết Seeder nạp toàn bộ 40 TTHC và các đoạn chunk vào CSDL PostgreSQL.
+- [x] **Task 2.1:** Thu thập và chuẩn hóa văn bản của 40 TTHC cấp xã thuộc 4 nhóm (Hộ tịch, Cư trú, Chứng thực, Bảo trợ xã hội) từ Cổng Dịch vụ công Quốc gia qua Semi-Automated Data Pipeline (Đạt 40/40 verified JSON).
+- [x] **Task 2.2:** Viết migration Flyway `V1__init_schema.sql` tạo 6 bảng CSDL: `admin_procedures`, `legal_chunks` (vector 768 chiều & HNSW index), `issue_clusters`, `civic_reports`, `form_submissions`, `vault_documents`.
+- [x] **Task 2.3:** Xây dựng các Entity JPA và Spring Data JPA Repositories tương ứng (`AdminProcedure`, `LegalChunk`, `IssueCluster`, `CivicReport`, `FormSubmission`, `VaultDocument`).
+- [x] **Task 2.4:** Hiện thực hóa `LegalChunkingService` để băm nhỏ văn bản theo cấu trúc *Chương $\rightarrow$ Điều $\rightarrow$ Khoản $\rightarrow$ Điểm* kèm metadata (`effective_date`, `status = ACTIVE`) và viết Unit Test đạt 100% test pass.
+- [x] **Task 2.5:** Viết Seeder `ProcedureDataSeeder` nạp toàn bộ 40 TTHC và các đoạn chunk từ `classpath:db/seed/procedures/*.json` vào CSDL PostgreSQL.
 - [ ] **Task 2.6:** Soạn thảo Chương 2 Báo cáo (Lý giải kiến trúc Modular Monolith, Thiết kế CSDL quan hệ kết hợp pgvector) theo [`docs/architecture-and-flows.md`](docs/architecture-and-flows.md).
 - [ ] **Task 2.7:** Viết Báo cáo Tiến độ Tuần 2 nộp GVHD và Mentor.
 
@@ -106,9 +106,9 @@
 ---
 
 ### 📌 TUẦN 8: XÂY DỰNG DATASET KIỂM THỬ & BENCHMARK CONTROLLER
-- [ ] **Task 8.1:** Xây dựng bộ 80 câu hỏi kiểm thử RAG (40 câu hỏi trực tiếp, 25 câu tình huống đời thực từ 15 người dùng, 15 câu hỏi bẫy/ngoài phạm vi).
-- [ ] **Task 8.2:** Xây dựng tập 150 phản ánh hiện trường (30 sự cố gốc, 15 tình nguyện viên viết mô tả đa dạng, thêm nhiễu GPS $\sigma \in [10\text{m}, 40\text{m}]$).
-- [ ] **Task 8.3:** Chuẩn bị tập 40 ảnh chụp tờ khai (20 bản in, 20 bản viết tay cài cắm các lỗi logic xác định).
+- [x] **Task 8.1:** Xây dựng bộ 80 câu hỏi kiểm thử RAG (40 câu hỏi trực tiếp, 25 câu tình huống đời thực, 15 câu hỏi bẫy/ngoài phạm vi kiểm thử Abstention) tại `data-pipeline/rag-dataset/`.
+- [x] **Task 8.2:** Xây dựng tập 150 phản ánh hiện trường (30 sự cố gốc, 5 biến thể tự nhiên mỗi sự cố, thêm nhiễu GPS thực tế 5m-35m, phân loại Hard Cases) tại `data-pipeline/civic-reports/`.
+- [x] **Task 8.3:** Chuẩn bị tập 40 ảnh chụp tờ khai (20 bản in, 20 bản viết tay cài cắm các lỗi logic xác định, kèm file nhãn ground-truth `annotations.json`) tại `data-pipeline/form-dataset/`.
 - [ ] **Task 8.4:** Xây dựng `ExperimentRunnerService` tính toán tự động các chỉ số: Recall@3, MRR, Citation Precision, False Answer Rate.
 - [ ] **Task 8.5:** Xây dựng REST API `POST /api/v1/evaluation/run-benchmarks` xuất kết quả đo lường ra định dạng JSON/CSV.
 - [ ] **Task 8.6:** Soạn thảo Chương 4 - Phần 1 (Phương pháp luận thiết kế tập kiểm thử giảm thiểu thiên lệch chủ quan).

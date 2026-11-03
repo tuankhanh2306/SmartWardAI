@@ -76,28 +76,34 @@ SmartWardAI/data-pipeline/
 │   ├── run_pipeline.py             # Script tổng điều phối toàn bộ pipeline
 │   ├── fetch_procedures.py         # Crawler kết nối API Cổng DVC Quốc gia
 │   ├── parse_and_chunk.py          # Chuẩn hóa & băm Điều/Khoản cho RAG
-│   └── validator.py                # Bộ kiểm tra chất lượng dữ liệu tự động
+│   ├── validator.py                # Bộ kiểm tra chất lượng dữ liệu tự động
+│   ├── generate_rag_dataset.py     # Sinh bộ 80 câu hỏi RAG benchmark
+│   └── generate_civic_reports.py   # Sinh 150 phản ánh hiện trường + GPS noise
 └── reports/
     └── data_quality_report.json    # Báo cáo tỷ lệ đạt chuẩn và phân tích lỗi
 ```
 
 ---
 
-## 5. HƯỚNG DẪN CHẠY PIPELINE
+## 5. HƯỚNG DẪN CHẠY CÁC PIPELINE
 
-Chạy toàn bộ pipeline (Fetch $\rightarrow$ Parse & Chunk $\rightarrow$ Validate):
+### A. Pipeline 1: Dữ liệu Thủ tục Hành chính (40 TTHC)
 ```bash
+# Chạy toàn bộ luồng thu thập & kiểm định 40 thủ tục:
 python data-pipeline/scripts/run_pipeline.py
 ```
 
-Hoặc chạy từng giai đoạn độc lập:
+### B. Pipeline 2: Bộ dữ liệu kiểm thử RAG (80 Câu hỏi)
 ```bash
-# Giai đoạn 1: Tải dữ liệu thô từ Cổng DVC
-python data-pipeline/scripts/fetch_procedures.py
+python data-pipeline/scripts/generate_rag_dataset.py
+```
 
-# Giai đoạn 2: Chuẩn hóa và băm Điều/Khoản
-python data-pipeline/scripts/parse_and_chunk.py
+### C. Pipeline 3: Phản ánh Hiện trường & Gom cụm 2 Pha (150 Phản ánh)
+```bash
+python data-pipeline/scripts/generate_civic_reports.py
+```
 
-# Giai đoạn 3: Kiểm định chất lượng dữ liệu
-python data-pipeline/scripts/validator.py
+### D. Pipeline 4: Bộ ảnh tờ khai hành chính & Form Rule Engine (40 Tờ khai)
+```bash
+python data-pipeline/scripts/generate_form_dataset.py
 ```

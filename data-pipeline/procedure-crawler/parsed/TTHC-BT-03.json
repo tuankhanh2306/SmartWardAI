@@ -1,0 +1,63 @@
+{
+  "procedureCode": "TTHC-BT-03",
+  "officialPortalCode": "1.116907",
+  "procedureName": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội",
+  "category": "Bảo trợ xã hội",
+  "agency": "Bộ Y tế",
+  "process": "- Bước 1: Đối tượng hoặc người giám hộ, nhân viên công tác xã hội chuẩn bị hồ sơ theo quy định gửi Chủ tịch Uỷ ban nhân dân xã, phường, đặc khu nơi cư trú (sau đây gọi chung là cấp xã).\n - Bước 2: Trong thời hạn 03 ngày làm việc, kể từ ngày nhận được hồ sơ của đối tượng, Chủ tịch Ủy ban nhân dân cấp xã thực hiện xác thực thông tin liên quan của đối tượng với Cơ sở dữ liệu quốc gia về dân cư, Cơ sở dữ liệu tổng hợp quốc gia, Cơ sở dữ liệu chuyên ngành dùng chung, xem xét điều kiện của đối tượng và có văn bản gửi cơ sở trợ giúp xã hội kèm theo hồ sơ của đối tượng. Trường hợp đối tượng không đủ điều kiện tiếp nhận chăm sóc, nuôi dưỡng tại cơ sở trợ giúp xã hội thì Chủ tịch Ủy ban nhân dân cấp xã trả lời bằng văn bản và nêu rõ lý do;\n - Bước 3: Trong thời hạn 02 ngày làm việc, kể từ ngày nhận được văn bản đề nghị của Chủ tịch Ủy ban nhân dân cấp xã và hồ sơ của đối tượng, người đứng đầu cơ sở trợ giúp xã hội xem xét, quyết định tiếp nhận đối tượng vào nuôi dưỡng, chăm sóc tại cơ sở trợ giúp xã hội hoặc cung cấp dịch vụ chăm sóc tại cộng đồng phù hợp.\n Trường hợp không đủ điều kiện chăm sóc, nuôi dưỡng tại cơ sở trợ giúp xã hội, thì trả lời bằng văn bản và nêu rõ lý do.\n - Việc tiếp nhận thủ tục hành chính không phụ thuộc vào địa giới hành chính thực hiện theo quy định của pháp luật về thực hiện thủ tục hành chính không phụ thuộc địa giới hành chính.",
+  "processStepsCount": 1,
+  "requiredDocuments": [
+    {
+      "documentName": "Tờ khai đề nghị chăm sóc, nuôi dưỡng tại cơ sở trợ giúp xã hội (theo Mẫu số 04 ban hành kèm theo Nghị định số 335/2026/NĐ-CP).",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    }
+  ],
+  "requiredDocumentsCount": 1,
+  "processingTime": "DIRECT: 05 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ | ONLINE: 05 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ | POSTAL: 05 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ",
+  "fee": "Theo quy định của HĐND cấp tỉnh/thành phố",
+  "legalBasis": [
+    {
+      "documentNumber": "335/2026/NĐ-CP",
+      "documentTitle": "Nghị định số 335/2026/NĐ-CP ngày 21/8/2026 của Chính phủ quy\nđịnh chính sách trợ giúp xã hội",
+      "year": "2026",
+      "effectiveDate": "2026-01-01"
+    }
+  ],
+  "legalBasisCount": 1,
+  "sourceUrl": "https://dichvucong.gov.vn (API ID: 01a0f653-8729-706c-9cc8-c3234469d7cf)",
+  "collectedAt": "2026-11-03T03:33:51.165424+00:00",
+  "verificationStatus": "PENDING",
+  "chunks": [
+    {
+      "chunkId": "TTHC-BT-03_CHUNK_001",
+      "chunkType": "OVERVIEW",
+      "title": "Tổng quan & Thẩm quyền giải quyết Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội",
+      "content": "Thủ tục: Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội. Cơ quan có thẩm quyền giải quyết: Bộ Y tế. Thời hạn giải quyết: DIRECT: 05 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ | ONLINE: 05 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ | POSTAL: 05 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ. Mức phí/lệ phí: Theo quy định của HĐND cấp tỉnh/thành phố.",
+      "legalReference": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội"
+    },
+    {
+      "chunkId": "TTHC-BT-03_CHUNK_002",
+      "chunkType": "PROCESS_STEP",
+      "title": "Trình tự thực hiện Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội - Bước 1",
+      "content": "- Bước 1: Đối tượng hoặc người giám hộ, nhân viên công tác xã hội chuẩn bị hồ sơ theo quy định gửi Chủ tịch Uỷ ban nhân dân xã, phường, đặc khu nơi cư trú (sau đây gọi chung là cấp xã).\n - Bước 2: Trong thời hạn 03 ngày làm việc, kể từ ngày nhận được hồ sơ của đối tượng, Chủ tịch Ủy ban nhân dân cấp xã thực hiện xác thực thông tin liên quan của đối tượng với Cơ sở dữ liệu quốc gia về dân cư, Cơ sở dữ liệu tổng hợp quốc gia, Cơ sở dữ liệu chuyên ngành dùng chung, xem xét điều kiện của đối tượng và có văn bản gửi cơ sở trợ giúp xã hội kèm theo hồ sơ của đối tượng. Trường hợp đối tượng không đủ điều kiện tiếp nhận chăm sóc, nuôi dưỡng tại cơ sở trợ giúp xã hội thì Chủ tịch Ủy ban nhân dân cấp xã trả lời bằng văn bản và nêu rõ lý do;\n - Bước 3: Trong thời hạn 02 ngày làm việc, kể từ ngày nhận được văn bản đề nghị của Chủ tịch Ủy ban nhân dân cấp xã và hồ sơ của đối tượng, người đứng đầu cơ sở trợ giúp xã hội xem xét, quyết định tiếp nhận đối tượng vào nuôi dưỡng, chăm sóc tại cơ sở trợ giúp xã hội hoặc cung cấp dịch vụ chăm sóc tại cộng đồng phù hợp.\n Trường hợp không đủ điều kiện chăm sóc, nuôi dưỡng tại cơ sở trợ giúp xã hội, thì trả lời bằng văn bản và nêu rõ lý do.\n - Việc tiếp nhận thủ tục hành chính không phụ thuộc vào địa giới hành chính thực hiện theo quy định của pháp luật về thực hiện thủ tục hành chính không phụ thuộc địa giới hành chính.",
+      "legalReference": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội - Trình tự giải quyết"
+    },
+    {
+      "chunkId": "TTHC-BT-03_CHUNK_003",
+      "chunkType": "REQUIRED_DOCUMENTS",
+      "title": "Thành phần hồ sơ Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội",
+      "content": "Để thực hiện thủ tục Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội, công dân cần chuẩn bị các giấy tờ sau:\n- Tờ khai đề nghị chăm sóc, nuôi dưỡng tại cơ sở trợ giúp xã hội (theo Mẫu số 04 ban hành kèm theo Nghị định số 335/2026/NĐ-CP). (1 bản chính)",
+      "legalReference": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội - Thành phần hồ sơ"
+    },
+    {
+      "chunkId": "TTHC-BT-03_CHUNK_004",
+      "chunkType": "LEGAL_BASIS",
+      "title": "Căn cứ pháp lý Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội",
+      "content": "Căn cứ pháp lý quy định thủ tục Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội bao gồm:\n- 335/2026/NĐ-CP: Nghị định số 335/2026/NĐ-CP ngày 21/8/2026 của Chính phủ quy\nđịnh chính sách trợ giúp xã hội",
+      "legalReference": "Văn bản quy phạm pháp luật"
+    }
+  ],
+  "chunksCount": 4
+}

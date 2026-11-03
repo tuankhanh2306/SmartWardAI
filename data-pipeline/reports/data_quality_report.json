@@ -1,7 +1,7 @@
 {
-  "generatedAt": "2026-11-03T03:23:38.777165+00:00",
-  "totalAudited": 5,
-  "totalPassed": 5,
+  "generatedAt": "2026-11-03T03:34:04.572230+00:00",
+  "totalAudited": 40,
+  "totalPassed": 40,
   "totalFailed": 0,
   "passRate": "100.0%",
   "details": [
@@ -18,6 +18,66 @@
       }
     },
     {
+      "procedureCode": "TTHC-BT-02",
+      "procedureName": "Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 5,
+        "docsCount": 1,
+        "legalBasisCount": 1
+      }
+    },
+    {
+      "procedureCode": "TTHC-BT-03",
+      "procedureName": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 1,
+        "legalBasisCount": 1
+      }
+    },
+    {
+      "procedureCode": "TTHC-BT-04",
+      "procedureName": "Hỗ trợ chi phí mai táng đối với đối tượng hưởng trợ cấp hưu trí xã hội",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 5,
+        "docsCount": 1,
+        "legalBasisCount": 4
+      }
+    },
+    {
+      "procedureCode": "TTHC-BT-05",
+      "procedureName": "Thủ tục hỗ trợ chi phí mai táng cho đối tượng được trợ cấp xã hội hàng tháng ở cộng đồng theo Điều 4 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ-UBND",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 3,
+        "legalBasisCount": 2
+      }
+    },
+    {
+      "procedureCode": "TTHC-BT-06",
+      "procedureName": "Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 5,
+        "docsCount": 1,
+        "legalBasisCount": 1
+      }
+    },
+    {
       "procedureCode": "TTHC-CR-01",
       "procedureName": "Đăng ký thường trú",
       "passed": true,
@@ -30,6 +90,114 @@
       }
     },
     {
+      "procedureCode": "TTHC-CR-02",
+      "procedureName": "Liên thông điện tử: Đăng ký khai tử, xóa đăng ký thường trú, giải quyết mai táng phí, tử tuất",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 7,
+        "docsCount": 10,
+        "legalBasisCount": 1
+      }
+    },
+    {
+      "procedureCode": "TTHC-CR-03",
+      "procedureName": "Đăng ký tạm trú",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 6,
+        "docsCount": 14,
+        "legalBasisCount": 8
+      }
+    },
+    {
+      "procedureCode": "TTHC-CR-04",
+      "procedureName": "Thủ tục gia hạn tạm trú, cấp thị thực mới cho người nước ngoài đang tạm trú ở Việt Nam tại cơ quan có thẩm quyền ở trong nước của Bộ Ngoại giao",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 1,
+        "legalBasisCount": 2
+      }
+    },
+    {
+      "procedureCode": "TTHC-CR-05",
+      "procedureName": "Liên thông điện tử: Đăng ký khai tử, xóa đăng ký thường trú, giải quyết mai táng phí, tử tuất",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 7,
+        "docsCount": 10,
+        "legalBasisCount": 1
+      }
+    },
+    {
+      "procedureCode": "TTHC-CR-06",
+      "procedureName": "Thông báo lưu trú",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 1,
+        "legalBasisCount": 4
+      }
+    },
+    {
+      "procedureCode": "TTHC-CR-07",
+      "procedureName": "Khai báo tạm vắng",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 3,
+        "legalBasisCount": 4
+      }
+    },
+    {
+      "procedureCode": "TTHC-CR-08",
+      "procedureName": "Xác nhận thông tin về cư trú",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 2,
+        "legalBasisCount": 4
+      }
+    },
+    {
+      "procedureCode": "TTHC-CR-09",
+      "procedureName": "Xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 5,
+        "docsCount": 1,
+        "legalBasisCount": 1
+      }
+    },
+    {
+      "procedureCode": "TTHC-CR-10",
+      "procedureName": "Thủ tục xác nhận thông tin hộ tịch",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 25,
+        "legalBasisCount": 15
+      }
+    },
+    {
       "procedureCode": "TTHC-CT-01",
       "procedureName": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận",
       "passed": true,
@@ -39,6 +207,114 @@
         "chunksCount": 5,
         "docsCount": 1,
         "legalBasisCount": 4
+      }
+    },
+    {
+      "procedureCode": "TTHC-CT-02",
+      "procedureName": "Thủ tục Chứng thực chữ ký trong các giấy tờ, văn bản",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 2,
+        "legalBasisCount": 4
+      }
+    },
+    {
+      "procedureCode": "TTHC-CT-03",
+      "procedureName": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 5,
+        "docsCount": 1,
+        "legalBasisCount": 4
+      }
+    },
+    {
+      "procedureCode": "TTHC-CT-04",
+      "procedureName": "Chứng thực văn bản phân chia di sản mà di sản là động sản, quyền sử dụng đất, nhà ở",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 2,
+        "legalBasisCount": 6
+      }
+    },
+    {
+      "procedureCode": "TTHC-CT-05",
+      "procedureName": "Thủ tục ghi vào Sổ hộ tịch việc ly hôn, hủy việc kết hôn của công dân Việt Nam đã được giải quyết tại cơ quan có thẩm quyền của nước ngoài",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 24,
+        "legalBasisCount": 16
+      }
+    },
+    {
+      "procedureCode": "TTHC-CT-06",
+      "procedureName": "Thủ tục ghi vào Sổ hộ tịch việc hộ tịch khác của công dân Việt Nam đã được giải quyết tại cơ quan có thẩm quyền của nước ngoài (khai sinh; giám hộ; nhận cha, mẹ, con; xác định cha, mẹ, con; nuôi con nuôi; khai tử; thay đổi hộ tịch)",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 28,
+        "legalBasisCount": 16
+      }
+    },
+    {
+      "procedureCode": "TTHC-CT-07",
+      "procedureName": "Chứng thực văn bản từ chối nhận di sản",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 2,
+        "legalBasisCount": 5
+      }
+    },
+    {
+      "procedureCode": "TTHC-CT-08",
+      "procedureName": "Chứng thực di chúc",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 2,
+        "legalBasisCount": 6
+      }
+    },
+    {
+      "procedureCode": "TTHC-DC-01",
+      "procedureName": "(Đà Nẵng) Đăng ký biến động quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất trong các trường hợp chuyển đổi quyền sử dụng đất nông nghiệp mà không theo phương án dồn điền, đổi thửa; chuyển nhượng, thừa kế, tặng cho quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất, góp vốn bằng quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất (kể cả tặng cho quyền sử dụng đất cho Nhà nước hoặc cộng đồng dân cư hoặc mở rộng đường giao thông); cho thuê, cho thuê lại quyền sử dụng đất trong dự án xây dựng kinh doanh kết cấu hạ tầng; bán hoặc tặng cho hoặc để thừa kế hoặc góp vốn bằng tài sản gắn liền với đất thuê của Nhà nước theo hình thức thuê đất trả tiền hàng năm",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 16,
+        "legalBasisCount": 9
+      }
+    },
+    {
+      "procedureCode": "TTHC-DC-02",
+      "procedureName": "(Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất, hộ gia đình, cá nhân, cộng đồng dân cư",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 23,
+        "legalBasisCount": 9
       }
     },
     {
@@ -63,6 +339,150 @@
         "chunksCount": 4,
         "docsCount": 23,
         "legalBasisCount": 16
+      }
+    },
+    {
+      "procedureCode": "TTHC-HT-03",
+      "procedureName": "Thủ tục đăng ký khai tử có yếu tố nước ngoài tại khu vực biên giới",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 24,
+        "legalBasisCount": 15
+      }
+    },
+    {
+      "procedureCode": "TTHC-HT-04",
+      "procedureName": "Cấp bản sao Trích lục hộ tịch, bản sao Giấy khai sinh",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 25,
+        "legalBasisCount": 15
+      }
+    },
+    {
+      "procedureCode": "TTHC-HT-05",
+      "procedureName": "Thủ tục đăng ký nhận cha, mẹ, con có yếu tố nước ngoài",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 28,
+        "legalBasisCount": 16
+      }
+    },
+    {
+      "procedureCode": "TTHC-HT-06",
+      "procedureName": "Thủ tục đăng ký giám hộ",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 24,
+        "legalBasisCount": 16
+      }
+    },
+    {
+      "procedureCode": "TTHC-HT-07",
+      "procedureName": "Thủ tục đăng ký chấm dứt giám hộ có yếu tố nước ngoài",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 25,
+        "legalBasisCount": 16
+      }
+    },
+    {
+      "procedureCode": "TTHC-HT-08",
+      "procedureName": "Thủ tục đăng ký lại khai sinh có yếu tố nước ngoài",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 5,
+        "docsCount": 14,
+        "legalBasisCount": 16
+      }
+    },
+    {
+      "procedureCode": "TTHC-HT-09",
+      "procedureName": "Thủ tục đăng ký lại kết hôn có yếu tố nước ngoài",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 5,
+        "docsCount": 10,
+        "legalBasisCount": 16
+      }
+    },
+    {
+      "procedureCode": "TTHC-HT-10",
+      "procedureName": "Thủ tục đăng ký lại khai tử có yếu tố nước ngoài",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 5,
+        "docsCount": 11,
+        "legalBasisCount": 16
+      }
+    },
+    {
+      "procedureCode": "TTHC-HT-11",
+      "procedureName": "Thủ tục cấp Giấy xác nhận tình trạng hôn nhân",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 31,
+        "legalBasisCount": 16
+      }
+    },
+    {
+      "procedureCode": "TTHC-HT-12",
+      "procedureName": "Thủ tục thay đổi, cải chính, bổ sung thông tin hộ tịch, xác định lại dân tộc có yếu tố nước ngoài",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 23,
+        "legalBasisCount": 15
+      }
+    },
+    {
+      "procedureCode": "TTHC-XD-01",
+      "procedureName": "(Đà Nẵng) Đăng ký biến động đối với trường hợp thay đổi quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất theo thỏa thuận của các thành viên hộ gia đình hoặc của vợ và chồng; quyền sử dụng đất xây dựng công trình trên mặt đất phục vụ cho việc vận hành, khai thác sử dụng công trình ngầm, quyền sở hữu công trình ngầm; bán tài sản, điều chuyển, chuyển nhượng quyền sử dụng đất là tài sản công theo quy định của pháp luật về quản lý, sử dụng tài sản công; nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất theo kết quả giải quyết tranh chấp, khiếu nại, tố cáo về đất đai hoặc bản án, quyết định của Tòa án, quyết định thi hành án của cơ quan thi hành án đã được thi hành; quyết định hoặc phán quyết của Trọng tài thương mại Việt Nam về giải quyết tranh chấp giữa các bên phát sinh từ hoạt động thương mại liên quan đến đất đai; nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất do xử lý tài sản thế chấp là quyền sử dụng đất, tài sản gắn liền với đất đã được đăng ký, bao gồm cả xử lý khoản nợ có nguồn gốc từ khoản nợ xấu của tổ chức tín dụng, chi nhánh ngân hàng nước ngoài",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 16,
+        "legalBasisCount": 10
+      }
+    },
+    {
+      "procedureCode": "TTHC-XD-02",
+      "procedureName": "(Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố",
+      "passed": true,
+      "issues": [],
+      "warnings": [],
+      "metrics": {
+        "chunksCount": 4,
+        "docsCount": 14,
+        "legalBasisCount": 8
       }
     }
   ]

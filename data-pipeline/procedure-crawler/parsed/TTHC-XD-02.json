@@ -1,0 +1,183 @@
+{
+  "procedureCode": "TTHC-XD-02",
+  "officialPortalCode": "3.000785",
+  "procedureName": "(Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố",
+  "category": "Xây dựng",
+  "agency": "UBND Thành phố Đà Nẵng",
+  "process": "Bước 1: Người yêu cầu đăng ký nộp hồ sơ đến Trung tâm Phục vụ hành chính công thành phố hoặc cấp xã.\nKhi nộp hồ sơ, người yêu cầu đăng ký được lựa chọn nộp bản sao giấy tờ và xuất trình bản chính để cán bộ tiếp nhận hồ sơ kiểm tra đối chiếu hoặc nộp bản chính giấy tờ hoặc nộp bản sao giấy tờ đã có công chứng hoặc chứng thực; trường hợp nộp hồ sơ theo hình thức trực tuyến thì hồ sơ nộp phải được số hóa từ bản chính hoặc bản sao giấy tờ đã được công chứng, chứng thực.\nTrường hợp nộp bản sao hoặc bản số hóa các loại giấy tờ thì khi nhận kết quả giải quyết thủ tục hành chính người yêu cầu đăng ký phải nộp bản chính các giấy tờ thuộc thành phần hồ sơ theo quy định.\nBước 2: Cơ quan tiếp nhận hồ sơ thực hiện:\nKiểm tra tính đầy đủ của thành phần hồ sơ; cấp Giấy tiếp nhận hồ sơ và hẹn trả kết quả.\nTrường hợp chưa đầy đủ thành phần hồ sơ thì trả hồ sơ kèm Phiếu yêu cầu bổ sung, hoàn thiện hồ sơ để người yêu cầu đăng ký hoàn thiện, bổ sung theo quy định.\nChuyển hồ sơ đến Sở Nông nghiệp và Môi trường.\nBước 3: Sở Nông nghiệp và Môi trường thực hiện kiểm tra thực tế sử dụng đất của tổ chức, xác định ranh giới cụ thể của thửa đất theo quy định tại khoản 2 Điều 142 và khoản 2 Điều 145 Luật Đất đai và thực hiện các công việc sau:\na) Trình Ủy ban nhân dân thành phố quyết định hình thức sử dụng đất theo Mẫu số 26 ban hành kèm theo Quyết định số 135/2026/QĐ-UBND của UBND thành phố.\nb) Lập và gửi Phiếu chuyển thông tin để xác định nghĩa vụ tài chính về đất đai theo Mẫu số 10 ban hành kèm theo đến cơ quan thuế để xác định và thông báo thu nghĩa vụ tài chính cho người sử dụng đất.\nc) Cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất khi có thông tin từ cơ sở dữ liệu được liên thông hoặc chứng từ hoặc giấy tờ chứng minh đã hoàn thành nghĩa vụ tài chính.\nd) Chuyển kết quả cho cơ quan tiếp nhận hồ sơ để trả cho người sử dụng đất.\nđ) Chuyển hồ sơ kèm theo bản sao Giấy chứng nhận đã cấp đến Văn phòng đăng ký đất đai thành phố để cập nhật vào hồ sơ địa chính, cơ sở dữ liệu đất đai",
+  "processStepsCount": 1,
+  "requiredDocuments": [
+    {
+      "documentName": "Đơn đăng ký đất đai, tài sản gắn liền với đất theo Mẫu số 22 ban hành kèm theo Quyết định số 135/2026/QĐ-UBND ngày 24/9/2026 của UBND thành phố",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Một trong các loại giấy tờ quy định tại Điều 137, khoản 4, khoản 5 Điều 148, khoản 4, khoản 5 Điều 149 của Luật Đất đai (nếu có)",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Trường hợp chủ đầu tư xây dựng nhà ở để kinh doanh quy định tại khoản 4 Điều 148 của Luật Đất đai hoặc chủ đầu tư tạo lập công trình xây dựng quy định tại khoản 4 Điều 149 của Luật Đất đai đề nghị chứng nhận quyền sở hữu nhà ở, quyền sở hữu công trình xây dựng thì phải có quyết định phê duyệt dự án hoặc quyết định đầu tư dự án hoặc giấy phép đầu tư hoặc giấy chứng nhận đầu tư hoặc giấy phép xây dựng hoặc giấy tờ khác theo quy định của pháp luật; văn bản về việc nhà ở, công trình xây dựng đã được nghiệm thu đưa vào khai thác, sử dụng theo quy định của pháp luật về xây dựng; sơ đồ tài sản đề nghị chứng nhận quyền sở hữu.",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Đối với công trình xây dựng không phải là nhà ở thì phải có thêm giấy tờ về quyền sử dụng đất theo quy định của pháp luật về đất đai hoặc hợp đồng thuê đất với người sử dụng đất có mục đích sử dụng đất phù hợp với mục đích xây dựng công trình",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Sơ đồ hoặc bản trích lục bản đồ địa chính hoặc mảnh trích đo bản đồ địa chính thửa đất (nếu có); mảnh trích đo bản đồ địa chính thửa đất (nếu có) đối với người gốc Việt Nam định cư ở nước ngoài",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Báo cáo kết quả rà soát hiện trạng sử dụng đất theo Mẫu số 22d đối với trường hợp tổ chức trong nước, tổ chức tôn giáo, tổ chức tôn giáo trực thuộc đang sử dụng đất",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Quyết định vị trí đóng quân hoặc văn bản giao cơ sở nhà đất hoặc địa điểm công trình quốc phòng, an ninh được cấp có thẩm quyền phê duyệt cho đơn vị quân đội, đơn vị công an, đơn vị sự nghiệp công lập thuộc Quân đội nhân dân, Công an nhân dân; doanh nghiệp nhà nước do Bộ Quốc phòng, Bộ Công an được giao quản lý, sử dụng đất, công trình gắn liền với đất",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Hồ sơ thiết kế xây dựng công trình đã được cơ quan chuyên môn về xây dựng thẩm định hoặc đã có văn bản chấp thuận kết quả nghiệm thu hoàn thành hạng mục công trình, công trình xây dựng theo quy định của pháp luật về xây dựng đối với trường hợp chứng nhận quyền sở hữu công trình xây dựng trên đất nông nghiệp mà chủ sở hữu công trình không có một trong các loại giấy tờ quy định tại Điều 149 Luật Đất đai hoặc công trình được miễn giấy phép xây dựng theo quy định của pháp luật về xây dựng.",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Chứng từ thực hiện nghĩa vụ tài chính, giấy tờ liên quan đến việc miễn, giảm nghĩa vụ tài chính về đất đai, tài sản gắn liền với đất (nếu có)",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Trường hợp có nhiều người chung quyền sử dụng đất, chung quyền sở hữu tài sản gắn liền với đất có thỏa thuận cấp chung một Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất thì nộp thêm văn bản thỏa thuận đó",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Văn bản về việc đại diện theo quy định của pháp luật về dân sự đối với trường hợp thực hiện thủ tục thông qua người đại diện",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Tờ khai lệ phí trước bạ (bản chính)",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Tờ khai thuế thu nhập từ chuyển nhượng bất động sản theo quy định của pháp luật về thuế (bản chính, nếu có)",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    },
+    {
+      "documentName": "Văn bản của người sử dụng đất đề nghị được miễn, giảm các Khoản nghĩa vụ tài chính về đất đai (bản chính) và bản sao các giấy tờ chứng minh thuộc đối tượng được miễn, giảm theo quy định của pháp luật (nếu có); trừ trường hợp các loại giấy tờ miễn giảm tiền sử dụng đất đã tích hợp trên Cơ sở dữ liệu quốc gia về dân cư, dữ liệu chuyên ngành",
+      "originalQty": 1,
+      "copyQty": 0,
+      "isRequired": false
+    }
+  ],
+  "requiredDocumentsCount": 14,
+  "processingTime": "DIRECT: 4.1. Trường hợp hồ sơ đầy đủ và hợp lệ:\nKhông quá 17 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất lần đầu; không quá 20 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận lần đầu (trong đó đăng ký đất đai, tài sản gắn liền với đất lần đầu là không quá 17 ngày làm việc; cấp Giấy chứng nhận lần đầu là không quá 03 ngày làm việc).\nThời gian cơ quan thuế xác định nghĩa vụ tài chính: Không quá 05 ngày làm việc\nĐối với các xã miền núi, hải đảo, vùng sâu, vùng xa, vùng có điều kiện kinh tế - xã hội khó khăn, vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn thì thời gian thực hiện được tăng thêm 10 ngày làm việc.\n4.2. Trường hợp hồ sơ chưa đầy đủ, chưa hợp lệ thì trong thời gian không quá 03 ngày làm việc, Sở Nông nghiệp và Môi trường phải thông báo và hướng dẫn người nộp hồ sơ bổ sung, hoàn chỉnh hồ sơ theo quy định | ONLINE: 4.1. Trường hợp hồ sơ đầy đủ và hợp lệ:\nKhông quá 17 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất lần đầu; không quá 20 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận lần đầu (trong đó đăng ký đất đai, tài sản gắn liền với đất lần đầu là không quá 17 ngày làm việc; cấp Giấy chứng nhận lần đầu là không quá 03 ngày làm việc).\nThời gian cơ quan thuế xác định nghĩa vụ tài chính: Không quá 05 ngày làm việc\nĐối với các xã miền núi, hải đảo, vùng sâu, vùng xa, vùng có điều kiện kinh tế - xã hội khó khăn, vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn thì thời gian thực hiện được tăng thêm 10 ngày làm việc.\n4.2. Trường hợp hồ sơ chưa đầy đủ, chưa hợp lệ thì trong thời gian không quá 03 ngày làm việc, Sở Nông nghiệp và Môi trường phải thông báo và hướng dẫn người nộp hồ sơ bổ sung, hoàn chỉnh hồ sơ theo quy định | POSTAL: 4.1. Trường hợp hồ sơ đầy đủ và hợp lệ:\nKhông quá 17 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất lần đầu; không quá 20 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận lần đầu (trong đó đăng ký đất đai, tài sản gắn liền với đất lần đầu là không quá 17 ngày làm việc; cấp Giấy chứng nhận lần đầu là không quá 03 ngày làm việc).\nThời gian cơ quan thuế xác định nghĩa vụ tài chính: Không quá 05 ngày làm việc\nĐối với các xã miền núi, hải đảo, vùng sâu, vùng xa, vùng có điều kiện kinh tế - xã hội khó khăn, vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn thì thời gian thực hiện được tăng thêm 10 ngày làm việc.\n4.2. Trường hợp hồ sơ chưa đầy đủ, chưa hợp lệ thì trong thời gian không quá 03 ngày làm việc, Sở Nông nghiệp và Môi trường phải thông báo và hướng dẫn người nộp hồ sơ bổ sung, hoàn chỉnh hồ sơ theo quy định",
+  "fee": "Đối với đất và tài sản",
+  "legalBasis": [
+    {
+      "documentNumber": "49/2026/NĐ-CP",
+      "documentTitle": "quy định chi tiết và hướng dẫn một số điều của Nghị quyết số 254/2025/QH15 của Quốc hội quy định một số cơ chế, chính sách tháo gỡ khó khăn vướng mắc trong tổ chức thi hành Luật Đất đai",
+      "year": "2026",
+      "effectiveDate": "2026-01-01"
+    },
+    {
+      "documentNumber": "135/2026/QĐ-UBND (Thành phố Đà Nẵng)",
+      "documentTitle": "Quy định trình tự, thủ tục hành chính về đất đai trên địa bàn thành phố Đà Nẵng.",
+      "year": "2026",
+      "effectiveDate": "2026-01-01"
+    },
+    {
+      "documentNumber": "101/2024/NĐ-CP",
+      "documentTitle": "Nghị định quy định về điều tra cơ bản đất đai, đăng ký, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất và Hệ thống thông tin đất đai.",
+      "year": "2024",
+      "effectiveDate": "2024-01-01"
+    },
+    {
+      "documentNumber": "31/2024/QH15",
+      "documentTitle": "Luật Đất đai số 31/2024/QH15 ngày 18/01/2024 được sửa đổi bổ sung một số điều bởi Luật số 43/2024/QH15, Luật số 47/2024/QH15 và Luật số 58/2024/QH15 của Quốc hội.",
+      "year": "2024",
+      "effectiveDate": "2024-01-01"
+    },
+    {
+      "documentNumber": "151/2025/NĐ-CP",
+      "documentTitle": "Quy định về phân định thẩm quyền của chính quyền địa phương 02 cấp, phân quyền, phân cấp trong lĩnh vực đất đai",
+      "year": "2025",
+      "effectiveDate": "2025-01-01"
+    },
+    {
+      "documentNumber": "226/2025/NĐ-CP",
+      "documentTitle": "sửa đổi, bổ sung một số điều của các nghị định quy định chi tiết thi hành Luật Đất đai.",
+      "year": "2025",
+      "effectiveDate": "2025-01-01"
+    },
+    {
+      "documentNumber": "254/2025/QH15",
+      "documentTitle": "Quy định một số cơ chế, chính sách tháo gỡ khó khăn vướng mắc trong tổ chức thi hành Luật Đất đai",
+      "year": "2025",
+      "effectiveDate": "2025-01-01"
+    },
+    {
+      "documentNumber": "91/2026/QĐ-UBND (Thành phố Đà Nẵng)",
+      "documentTitle": "Quy định về phân cấp một số nhiệm vụ trong lĩnh vực đất đai trên địa bàn thành phố Đà Nẵng",
+      "year": "2026",
+      "effectiveDate": "2026-01-01"
+    }
+  ],
+  "legalBasisCount": 8,
+  "sourceUrl": "https://dichvucong.gov.vn (API ID: 01a1692f-998c-761a-bb0d-2e60b8387c52)",
+  "collectedAt": "2026-11-03T03:33:54.530344+00:00",
+  "verificationStatus": "PENDING",
+  "chunks": [
+    {
+      "chunkId": "TTHC-XD-02_CHUNK_001",
+      "chunkType": "OVERVIEW",
+      "title": "Tổng quan & Thẩm quyền giải quyết (Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố",
+      "content": "Thủ tục: (Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố. Cơ quan có thẩm quyền giải quyết: UBND Thành phố Đà Nẵng. Thời hạn giải quyết: DIRECT: 4.1. Trường hợp hồ sơ đầy đủ và hợp lệ:\nKhông quá 17 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất lần đầu; không quá 20 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận lần đầu (trong đó đăng ký đất đai, tài sản gắn liền với đất lần đầu là không quá 17 ngày làm việc; cấp Giấy chứng nhận lần đầu là không quá 03 ngày làm việc).\nThời gian cơ quan thuế xác định nghĩa vụ tài chính: Không quá 05 ngày làm việc\nĐối với các xã miền núi, hải đảo, vùng sâu, vùng xa, vùng có điều kiện kinh tế - xã hội khó khăn, vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn thì thời gian thực hiện được tăng thêm 10 ngày làm việc.\n4.2. Trường hợp hồ sơ chưa đầy đủ, chưa hợp lệ thì trong thời gian không quá 03 ngày làm việc, Sở Nông nghiệp và Môi trường phải thông báo và hướng dẫn người nộp hồ sơ bổ sung, hoàn chỉnh hồ sơ theo quy định | ONLINE: 4.1. Trường hợp hồ sơ đầy đủ và hợp lệ:\nKhông quá 17 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất lần đầu; không quá 20 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận lần đầu (trong đó đăng ký đất đai, tài sản gắn liền với đất lần đầu là không quá 17 ngày làm việc; cấp Giấy chứng nhận lần đầu là không quá 03 ngày làm việc).\nThời gian cơ quan thuế xác định nghĩa vụ tài chính: Không quá 05 ngày làm việc\nĐối với các xã miền núi, hải đảo, vùng sâu, vùng xa, vùng có điều kiện kinh tế - xã hội khó khăn, vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn thì thời gian thực hiện được tăng thêm 10 ngày làm việc.\n4.2. Trường hợp hồ sơ chưa đầy đủ, chưa hợp lệ thì trong thời gian không quá 03 ngày làm việc, Sở Nông nghiệp và Môi trường phải thông báo và hướng dẫn người nộp hồ sơ bổ sung, hoàn chỉnh hồ sơ theo quy định | POSTAL: 4.1. Trường hợp hồ sơ đầy đủ và hợp lệ:\nKhông quá 17 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất lần đầu; không quá 20 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận lần đầu (trong đó đăng ký đất đai, tài sản gắn liền với đất lần đầu là không quá 17 ngày làm việc; cấp Giấy chứng nhận lần đầu là không quá 03 ngày làm việc).\nThời gian cơ quan thuế xác định nghĩa vụ tài chính: Không quá 05 ngày làm việc\nĐối với các xã miền núi, hải đảo, vùng sâu, vùng xa, vùng có điều kiện kinh tế - xã hội khó khăn, vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn thì thời gian thực hiện được tăng thêm 10 ngày làm việc.\n4.2. Trường hợp hồ sơ chưa đầy đủ, chưa hợp lệ thì trong thời gian không quá 03 ngày làm việc, Sở Nông nghiệp và Môi trường phải thông báo và hướng dẫn người nộp hồ sơ bổ sung, hoàn chỉnh hồ sơ theo quy định. Mức phí/lệ phí: Đối với đất và tài sản.",
+      "legalReference": "(Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố"
+    },
+    {
+      "chunkId": "TTHC-XD-02_CHUNK_002",
+      "chunkType": "PROCESS_STEP",
+      "title": "Trình tự thực hiện (Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố - Bước 1",
+      "content": "Bước 1: Người yêu cầu đăng ký nộp hồ sơ đến Trung tâm Phục vụ hành chính công thành phố hoặc cấp xã.\nKhi nộp hồ sơ, người yêu cầu đăng ký được lựa chọn nộp bản sao giấy tờ và xuất trình bản chính để cán bộ tiếp nhận hồ sơ kiểm tra đối chiếu hoặc nộp bản chính giấy tờ hoặc nộp bản sao giấy tờ đã có công chứng hoặc chứng thực; trường hợp nộp hồ sơ theo hình thức trực tuyến thì hồ sơ nộp phải được số hóa từ bản chính hoặc bản sao giấy tờ đã được công chứng, chứng thực.\nTrường hợp nộp bản sao hoặc bản số hóa các loại giấy tờ thì khi nhận kết quả giải quyết thủ tục hành chính người yêu cầu đăng ký phải nộp bản chính các giấy tờ thuộc thành phần hồ sơ theo quy định.\nBước 2: Cơ quan tiếp nhận hồ sơ thực hiện:\nKiểm tra tính đầy đủ của thành phần hồ sơ; cấp Giấy tiếp nhận hồ sơ và hẹn trả kết quả.\nTrường hợp chưa đầy đủ thành phần hồ sơ thì trả hồ sơ kèm Phiếu yêu cầu bổ sung, hoàn thiện hồ sơ để người yêu cầu đăng ký hoàn thiện, bổ sung theo quy định.\nChuyển hồ sơ đến Sở Nông nghiệp và Môi trường.\nBước 3: Sở Nông nghiệp và Môi trường thực hiện kiểm tra thực tế sử dụng đất của tổ chức, xác định ranh giới cụ thể của thửa đất theo quy định tại khoản 2 Điều 142 và khoản 2 Điều 145 Luật Đất đai và thực hiện các công việc sau:\na) Trình Ủy ban nhân dân thành phố quyết định hình thức sử dụng đất theo Mẫu số 26 ban hành kèm theo Quyết định số 135/2026/QĐ-UBND của UBND thành phố.\nb) Lập và gửi Phiếu chuyển thông tin để xác định nghĩa vụ tài chính về đất đai theo Mẫu số 10 ban hành kèm theo đến cơ quan thuế để xác định và thông báo thu nghĩa vụ tài chính cho người sử dụng đất.\nc) Cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất khi có thông tin từ cơ sở dữ liệu được liên thông hoặc chứng từ hoặc giấy tờ chứng minh đã hoàn thành nghĩa vụ tài chính.\nd) Chuyển kết quả cho cơ quan tiếp nhận hồ sơ để trả cho người sử dụng đất.\nđ) Chuyển hồ sơ kèm theo bản sao Giấy chứng nhận đã cấp đến Văn phòng đăng ký đất đai thành phố để cập nhật vào hồ sơ địa chính, cơ sở dữ liệu đất đai",
+      "legalReference": "(Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố - Trình tự giải quyết"
+    },
+    {
+      "chunkId": "TTHC-XD-02_CHUNK_003",
+      "chunkType": "REQUIRED_DOCUMENTS",
+      "title": "Thành phần hồ sơ (Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố",
+      "content": "Để thực hiện thủ tục (Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố, công dân cần chuẩn bị các giấy tờ sau:\n- Đơn đăng ký đất đai, tài sản gắn liền với đất theo Mẫu số 22 ban hành kèm theo Quyết định số 135/2026/QĐ-UBND ngày 24/9/2026 của UBND thành phố (1 bản chính)\n- Một trong các loại giấy tờ quy định tại Điều 137, khoản 4, khoản 5 Điều 148, khoản 4, khoản 5 Điều 149 của Luật Đất đai (nếu có) (1 bản chính)\n- Trường hợp chủ đầu tư xây dựng nhà ở để kinh doanh quy định tại khoản 4 Điều 148 của Luật Đất đai hoặc chủ đầu tư tạo lập công trình xây dựng quy định tại khoản 4 Điều 149 của Luật Đất đai đề nghị chứng nhận quyền sở hữu nhà ở, quyền sở hữu công trình xây dựng thì phải có quyết định phê duyệt dự án hoặc quyết định đầu tư dự án hoặc giấy phép đầu tư hoặc giấy chứng nhận đầu tư hoặc giấy phép xây dựng hoặc giấy tờ khác theo quy định của pháp luật; văn bản về việc nhà ở, công trình xây dựng đã được nghiệm thu đưa vào khai thác, sử dụng theo quy định của pháp luật về xây dựng; sơ đồ tài sản đề nghị chứng nhận quyền sở hữu. (1 bản chính)\n- Đối với công trình xây dựng không phải là nhà ở thì phải có thêm giấy tờ về quyền sử dụng đất theo quy định của pháp luật về đất đai hoặc hợp đồng thuê đất với người sử dụng đất có mục đích sử dụng đất phù hợp với mục đích xây dựng công trình (1 bản chính)\n- Sơ đồ hoặc bản trích lục bản đồ địa chính hoặc mảnh trích đo bản đồ địa chính thửa đất (nếu có); mảnh trích đo bản đồ địa chính thửa đất (nếu có) đối với người gốc Việt Nam định cư ở nước ngoài (1 bản chính)\n- Báo cáo kết quả rà soát hiện trạng sử dụng đất theo Mẫu số 22d đối với trường hợp tổ chức trong nước, tổ chức tôn giáo, tổ chức tôn giáo trực thuộc đang sử dụng đất (1 bản chính)\n- Quyết định vị trí đóng quân hoặc văn bản giao cơ sở nhà đất hoặc địa điểm công trình quốc phòng, an ninh được cấp có thẩm quyền phê duyệt cho đơn vị quân đội, đơn vị công an, đơn vị sự nghiệp công lập thuộc Quân đội nhân dân, Công an nhân dân; doanh nghiệp nhà nước do Bộ Quốc phòng, Bộ Công an được giao quản lý, sử dụng đất, công trình gắn liền với đất (1 bản chính)\n- Hồ sơ thiết kế xây dựng công trình đã được cơ quan chuyên môn về xây dựng thẩm định hoặc đã có văn bản chấp thuận kết quả nghiệm thu hoàn thành hạng mục công trình, công trình xây dựng theo quy định của pháp luật về xây dựng đối với trường hợp chứng nhận quyền sở hữu công trình xây dựng trên đất nông nghiệp mà chủ sở hữu công trình không có một trong các loại giấy tờ quy định tại Điều 149 Luật Đất đai hoặc công trình được miễn giấy phép xây dựng theo quy định của pháp luật về xây dựng. (1 bản chính)\n- Chứng từ thực hiện nghĩa vụ tài chính, giấy tờ liên quan đến việc miễn, giảm nghĩa vụ tài chính về đất đai, tài sản gắn liền với đất (nếu có) (1 bản chính)\n- Trường hợp có nhiều người chung quyền sử dụng đất, chung quyền sở hữu tài sản gắn liền với đất có thỏa thuận cấp chung một Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất thì nộp thêm văn bản thỏa thuận đó (1 bản chính)\n- Văn bản về việc đại diện theo quy định của pháp luật về dân sự đối với trường hợp thực hiện thủ tục thông qua người đại diện (1 bản chính)\n- Tờ khai lệ phí trước bạ (bản chính) (1 bản chính)\n- Tờ khai thuế thu nhập từ chuyển nhượng bất động sản theo quy định của pháp luật về thuế (bản chính, nếu có) (1 bản chính)\n- Văn bản của người sử dụng đất đề nghị được miễn, giảm các Khoản nghĩa vụ tài chính về đất đai (bản chính) và bản sao các giấy tờ chứng minh thuộc đối tượng được miễn, giảm theo quy định của pháp luật (nếu có); trừ trường hợp các loại giấy tờ miễn giảm tiền sử dụng đất đã tích hợp trên Cơ sở dữ liệu quốc gia về dân cư, dữ liệu chuyên ngành (1 bản chính)",
+      "legalReference": "(Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố - Thành phần hồ sơ"
+    },
+    {
+      "chunkId": "TTHC-XD-02_CHUNK_004",
+      "chunkType": "LEGAL_BASIS",
+      "title": "Căn cứ pháp lý (Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố",
+      "content": "Căn cứ pháp lý quy định thủ tục (Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố bao gồm:\n- 49/2026/NĐ-CP: quy định chi tiết và hướng dẫn một số điều của Nghị quyết số 254/2025/QH15 của Quốc hội quy định một số cơ chế, chính sách tháo gỡ khó khăn vướng mắc trong tổ chức thi hành Luật Đất đai\n- 135/2026/QĐ-UBND (Thành phố Đà Nẵng): Quy định trình tự, thủ tục hành chính về đất đai trên địa bàn thành phố Đà Nẵng.\n- 101/2024/NĐ-CP: Nghị định quy định về điều tra cơ bản đất đai, đăng ký, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất và Hệ thống thông tin đất đai.\n- 31/2024/QH15: Luật Đất đai số 31/2024/QH15 ngày 18/01/2024 được sửa đổi bổ sung một số điều bởi Luật số 43/2024/QH15, Luật số 47/2024/QH15 và Luật số 58/2024/QH15 của Quốc hội.\n- 151/2025/NĐ-CP: Quy định về phân định thẩm quyền của chính quyền địa phương 02 cấp, phân quyền, phân cấp trong lĩnh vực đất đai\n- 226/2025/NĐ-CP: sửa đổi, bổ sung một số điều của các nghị định quy định chi tiết thi hành Luật Đất đai.\n- 254/2025/QH15: Quy định một số cơ chế, chính sách tháo gỡ khó khăn vướng mắc trong tổ chức thi hành Luật Đất đai\n- 91/2026/QĐ-UBND (Thành phố Đà Nẵng): Quy định về phân cấp một số nhiệm vụ trong lĩnh vực đất đai trên địa bàn thành phố Đà Nẵng",
+      "legalReference": "Văn bản quy phạm pháp luật"
+    }
+  ],
+  "chunksCount": 4
+}

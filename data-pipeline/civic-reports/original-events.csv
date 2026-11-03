@@ -1,0 +1,31 @@
+eventId,expectedClusterId,category,title,address,baseLatitude,baseLongitude,totalReportsExpected
+EVT-001,CLUST-001,ROAD_DAMAGE,Ổ gà sâu trên đường Võ Oanh (D3 cũ),"Số 15 Võ Oanh, Phường 25, Bình Thạnh",10.80352,106.71421,5
+EVT-002,CLUST-002,ROAD_DAMAGE,Nắp cống thoát nước bị kênh vênh nguy hiểm,"Ngã tư Nguyễn Gia Trí - D5, Phường 25, Bình Thạnh",10.80481,106.71583,5
+EVT-003,CLUST-003,ROAD_DAMAGE,Vỉa hè bị sụt lún gãy gạch lót,"Đoạn vỉa hè trước số 82 Ung Văn Khiêm, Phường 25, Bình Thạnh",10.80612,106.71714,5
+EVT-004,CLUST-004,ROAD_DAMAGE,Gờ giảm tốc trước cổng trường bị mòn bật ốc vít,"Trước cổng Cơ sở 1 UTH, Số 2 Võ Oanh, Phường 25",10.80289,106.71356,5
+EVT-005,CLUST-005,ROAD_DAMAGE,Biển báo giao thông bị nghiêng gãy do va chạm,"Góc giao lộ Điện Biên Phủ - Nguyễn Văn Thương, Phường 25",10.80095,106.71268,5
+EVT-006,CLUST-006,ROAD_DAMAGE,Mặt đường bị cày xới sau khi thi công đường ống,"Hẻm 48 Ung Văn Khiêm, Phường 25, Bình Thạnh",10.80554,106.71642,5
+EVT-007,CLUST-007,ROAD_DAMAGE,Gương cầu lồi góc cua bị vỡ nát,"Khúc cua góc Hẻm 120 Điện Biên Phủ, Phường 25",10.80153,106.71389,5
+EVT-008,CLUST-008,ROAD_DAMAGE,Bê tông dải phân cách bị xô lệch lấn làn,"Đoạn dạ cầu Sài Gòn hướng về Ung Văn Khiêm, Phường 25",10.80211,106.71822,5
+EVT-009,CLUST-009,ENVIRONMENT,Bãi rác tự phát bốc mùi hôi thối chân cầu,"Khu đất trống chân cầu Đỏ, Phường 25, Bình Thạnh",10.80695,106.71312,5
+EVT-010,CLUST-010,ENVIRONMENT,Cống thoát nước bị nghẹt trào nước đen ngòm,"Trước số 104 Nguyễn Gia Trí, Phường 25, Bình Thạnh",10.80415,106.7151,5
+EVT-011,CLUST-011,ENVIRONMENT,Cành cây gãy sau mưa đè chắn lối đi,Công viên bờ sông Thanh Đa gần Phường 25,10.80742,106.71885,5
+EVT-012,CLUST-012,ENVIRONMENT,Xà bần gạch đá đổ trộm bừa bãi,"Khu vực ven đường D1 nối dài, Phường 25, Bình Thạnh",10.80245,106.71565,5
+EVT-013,CLUST-013,ENVIRONMENT,Nước thải từ quán ăn xả thẳng ra rãnh thoát nước mưa,"Dãy hàng quán ăn vặt Hẻm 69 Nguyễn Gia Trí, Phường 25",10.80465,106.71478,5
+EVT-014,CLUST-014,ENVIRONMENT,Bao nilông rác thải tồn ứ quanh gốc cây xanh,"Trước cổng trường THPT Gia Định, đường D5, Phường 25",10.80521,106.71612,5
+EVT-015,CLUST-015,ENVIRONMENT,Mương nước thải lộ thiên ô nhiễm sủi bọt,Cuối Hẻm 153 Quốc lộ 13 (giáp ranh P.25),10.80785,106.71189,5
+EVT-016,CLUST-016,ENVIRONMENT,Bụi cát rơi vãi từ xe chở vật liệu xây dựng,Đoạn đường Ung Văn Khiêm gần ngã ba Đài Liệt Sĩ,10.80665,106.71455,5
+EVT-017,CLUST-017,LIGHTING_ELECTRICAL,Đèn đường cao áp không sáng ban đêm,"Trước số 35 Võ Oanh, Phường 25, Bình Thạnh",10.80385,106.71445,5
+EVT-018,CLUST-018,LIGHTING_ELECTRICAL,Dây cáp viễn thông chùng võng sát đầu người,"Đầu Hẻm 27 Điện Biên Phủ, Phường 25, Bình Thạnh",10.80112,106.7131,5
+EVT-019,CLUST-019,LIGHTING_ELECTRICAL,Trụ điện bị hở nắp hộp đấu nối rò điện,"Góc ngã ba D5 - Ung Văn Khiêm, Phường 25",10.80589,106.71689,5
+EVT-020,CLUST-020,LIGHTING_ELECTRICAL,Đèn đường chập chờn nhấp nháy liên tục,Đoạn đường Nguyễn Gia Trí trước Trường Tiểu học Đống Đa,10.80442,106.71542,5
+EVT-021,CLUST-021,LIGHTING_ELECTRICAL,Trụ điện nghiêng có nguy cơ ngã đổ,"Trước hẻm số 8 Võ Oanh, Phường 25, Bình Thạnh",10.80315,106.71382,5
+EVT-022,CLUST-022,LIGHTING_ELECTRICAL,Tủ điện công cộng bị cháy xém bốc khói khét,Gần trạm xe buýt ngã tư Hàng Xanh hướng về P.25,10.80185,106.71155,5
+EVT-023,CLUST-023,LIGHTING_ELECTRICAL,Đèn trang trí treo ngang đường bị đứt lủng lẳng,"Cổng chào khu phố đường D5, Phường 25",10.80512,106.71655,5
+EVT-024,CLUST-024,ORDER_SECURITY,Lấn chiếm lòng lề đường buôn bán rau củ,"Khu vực chợ tạm đầu Hẻm 15 Võ Oanh, Phường 25",10.80345,106.71415,5
+EVT-025,CLUST-025,ORDER_SECURITY,Bãi giữ xe tự phát chiếm trọn vỉa hè trường học,"Trước số 44 Nguyễn Gia Trí, Phường 25, Bình Thạnh",10.80455,106.71535,5
+EVT-026,CLUST-026,ORDER_SECURITY,Tập kết vật liệu xây dựng cát đá bít lối đi,"Trước công trình xây dựng số 71 Ung Văn Khiêm, Phường 25",10.80635,106.71745,5
+EVT-027,CLUST-027,ORDER_SECURITY,Biển quảng cáo đặt trái phép che khuất tầm nhìn góc cua,"Góc cua đường D5 rẽ vào Nguyễn Gia Trí, Phường 25",10.80492,106.71595,5
+EVT-028,CLUST-028,ORDER_SECURITY,Xe tải dừng đỗ bốc dỡ hàng hóa chiếm lòng đường giờ cao điểm,"Trước kho hàng số 95 Ung Văn Khiêm, Phường 25",10.80655,106.71695,5
+EVT-029,CLUST-029,ORDER_SECURITY,Dựng rạp đám tiệc lấn kín con hẻm dân sinh,"Hẻm 36 Nguyễn Gia Trí, Phường 25, Bình Thạnh",10.80425,106.71485,5
+EVT-030,CLUST-030,ORDER_SECURITY,Bàn ghế quán nhậu vỉa hè chiếm dụng lối đi bộ ban đêm,"Dãy quán nhậu vỉa hè đường Võ Oanh (gần bờ sông), Phường 25",10.80395,106.71475,5
