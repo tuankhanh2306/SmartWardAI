@@ -33,3 +33,20 @@ logs/
 
 # Sensitive / Secrets
 .env
+
+# Python / Data Pipeline Temporary Files
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+ENV/
+
+# Data Pipeline raw binaries & scrape caches (keep repo lightweight)
+data-pipeline/raw/
+data-pipeline/**/originals/
+data-pipeline/**/*.pdf
+data-pipeline/**/*.html
+data-pipeline/form-dataset/scans/
+!data-pipeline/**/.gitkeep
+
