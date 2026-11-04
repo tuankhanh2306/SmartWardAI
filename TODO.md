@@ -7,20 +7,20 @@
 
 ## 1. BẢNG THEO DÕI TỔNG THỂ 12 TUẦN (12-WEEK SPRINT TRACKER)
 
-| Tuần | Trọng tâm công việc | Kỹ thuật (Code / System) | Báo cáo / Khóa luận UTH | Trạng thái |
+| Tuần | Trọng tâm công việc | Kỹ thuật (Code / System) | Tài liệu kỹ thuật / Deliverables | Trạng thái |
 | :---: | :--- | :--- | :--- | :---: |
-| **W01** | **Khởi tạo Docker Zero-cost & Khung Spring Boot** | `docker-compose.yml`, Spring Boot 3.3, Package UTH | Soạn Chương 1 (Bối cảnh, RQ1-3, Đóng góp) | ✅ **HOÀN THÀNH** |
-| **W02** | **Thu thập 40 TTHC & Thiết kế CSDL Flyway** | `V1__init_schema.sql`, HNSW index, LegalChunking, Seeder | Soạn Chương 2 (Kiến trúc & CSDL quan hệ + Vector) | ✅ **HOÀN THÀNH** |
-| **W03** | **Tích hợp Mock AI Client & Rate Limiter** | `DeterministicMockAiClient`, Redis Rate Limiter (5 req/phút) | Soạn Mục 2.3 (Quản trị tài nguyên & API limits) | ✅ **HOÀN THÀNH** |
-| **W04** | **Module 1: Legal RAG & Abstention Guardrail** | pgvector cosine, Ngưỡng $\theta=0.78$, API `/rag/ask` | Soạn Chương 3 - Phần 1 (RAG & Chống ảo giác) | ✅ **HOÀN THÀNH** |
-| **W05** | **Module 2: Form Rule Engine (CCCD & Date)** | Java Rule Engine 12 số CCCD, Date Logic, OCR Client | Soạn Chương 3 - Phần 2 (Hậu kiểm định biểu mẫu) | ✅ **HOÀN THÀNH** |
-| **W06** | **Module 3: Triage Phản ánh 2 Pha** | Redis GEO ($R$) + pgvector Cosine ($\tau$) | Soạn Chương 3 - Phần 3 (Gom cụm phản ánh 2 pha) | ✅ **HOÀN THÀNH** |
-| **W07** | **Module 4: Zero-Trust Document Vault** | Watermark Java2D, AES-256, MinIO, Redis `GETDEL` | Soạn Chương 3 - Phần 4 (Bảo mật Nghị định 13) | ✅ **HOÀN THÀNH** |
-| **W08** | **Bộ dữ liệu kiểm thử & Evaluation Runner** | 80 câu RAG, 150 phản ánh (GPS noise), 40 tờ khai | Soạn Chương 4 - Phần 1 (Phương pháp thực nghiệm) | ✅ **HOÀN THÀNH** |
-| **W09** | **Chạy Grid Search $(R, \tau)$ & Phân tích lỗi** | Quét lưới, tính Recall@3, MRR, $F_1$, vẽ biểu đồ `evaluation/` | Hoàn thiện Chương 4 (Số liệu & Thảo luận) | ✅ **HOÀN THÀNH** |
-| **W10** | **Frontend Web Responsive / PWA (React + Vite)** | Cổng Công dân (Mobile-first PWA) & Bàn Cán bộ (Desktop) từ Google Stitch MCP | Hoàn thiện chương thiết kế giao diện | ✅ **HOÀN THÀNH** |
-| **W11** | **Đóng gói Docker $< 2\text{GB}$ & Rà soát Báo cáo** | Multi-stage Docker, Profile offline, Clean Code, RAM 1.7GB | Hoàn thiện toàn văn báo cáo UTH | ✅ **HOÀN THÀNH** |
-| **W12** | **Slide Thuyết trình 10 trang & Luyện Bảo vệ** | Kịch bản demo 3 phút, Slide bảo vệ UTH | Bảo vệ trước Hội đồng chấm tốt nghiệp | ⏳ Chờ |
+| **W01** | **Khởi tạo Docker Zero-cost & Khung Spring Boot** | `docker-compose.yml`, Spring Boot 3.3, Package UTH | Khảo sát bối cảnh, RQ1-3 & Thiết kế ban đầu | ✅ **HOÀN THÀNH** |
+| **W02** | **Thu thập 40 TTHC & Thiết kế CSDL Flyway** | `V1__init_schema.sql`, HNSW index, LegalChunking, Seeder | Đặc tả CSDL quan hệ 6 bảng kết hợp pgvector | ✅ **HOÀN THÀNH** |
+| **W03** | **Tích hợp Mock AI Client & Rate Limiter** | `DeterministicMockAiClient`, Redis Rate Limiter (5 req/phút) | Quy chuẩn quản trị tài nguyên & API limits | ✅ **HOÀN THÀNH** |
+| **W04** | **Module 1: Legal RAG & Abstention Guardrail** | pgvector cosine, Ngưỡng $\theta=0.78$, API `/rag/ask` | Thuật toán RAG Điều-Khoản & Chống ảo giác | ✅ **HOÀN THÀNH** |
+| **W05** | **Module 2: Form Rule Engine (CCCD & Date)** | Java Rule Engine 12 số CCCD, Date Logic, OCR Client | Thuật toán kiểm định biểu mẫu & 12 số CCCD | ✅ **HOÀN THÀNH** |
+| **W06** | **Module 3: Triage Phản ánh 2 Pha** | Redis GEO ($R$) + pgvector Cosine ($\tau$) | Giải thuật gom cụm phản ánh hiện trường 2 pha | ✅ **HOÀN THÀNH** |
+| **W07** | **Module 4: Zero-Trust Document Vault** | Watermark Java2D, AES-256, MinIO, Redis `GETDEL` | Giải pháp bảo mật tuân thủ Nghị định 13/2023 | ✅ **HOÀN THÀNH** |
+| **W08** | **Bộ dữ liệu kiểm thử & Evaluation Runner** | 80 câu RAG, 150 phản ánh (GPS noise), 40 tờ khai | Phương pháp thực nghiệm & Xây dựng Ground-truth | ✅ **HOÀN THÀNH** |
+| **W09** | **Chạy Grid Search $(R, \tau)$ & Phân tích lỗi** | Quét lưới, tính Recall@3, MRR, $F_1$, vẽ biểu đồ `evaluation/` | Báo cáo phân tích số liệu thực nghiệm & Thảo luận | ✅ **HOÀN THÀNH** |
+| **W10** | **Frontend Web Responsive / PWA (React + Vite)** | Cổng Công dân (Mobile-first PWA) & Bàn Cán bộ (Desktop) từ Google Stitch MCP | Tài liệu thiết kế giao diện & Tích hợp PWA | ✅ **HOÀN THÀNH** |
+| **W11** | **Đóng gói Docker $< 2\text{GB}$ & Hệ thống hóa Tài liệu** | Multi-stage Docker, Profile offline, Clean Code, RAM 1.7GB | Hệ thống hóa toàn diện tài liệu tại `docs/` | ✅ **HOÀN THÀNH** |
+| **W12** | **Slide Trình diễn, Video Demo & Nghiệm thu** | Kịch bản demo 3 phút, Slide trình diễn giải pháp | Bàn giao và nghiệm thu sản phẩm kỹ thuật | ⏳ Chờ |
 
 ---
 
@@ -32,7 +32,7 @@
 - [x] **Task 1.3:** Cấu hình `application.yml` đa môi trường (`dev`, `test`, `prod`), HikariCP max 10 connections, Multipart max 5MB, ThreadPool max 4 threads.
 - [x] **Task 1.4:** Tạo cấu trúc Package chuẩn `vn.edu.uth.smartward` (`config/`, `common/`, `rag/`, `formcheck/`, `triage/`, `vault/`, `evaluation/`) và các class Base (`ApiResponse<T>`, `GlobalExceptionHandler`, `BusinessException`, `HealthController`).
 - [x] **Task 1.5:** Kiểm thử khởi động hệ thống: Tích hợp Maven Wrapper (`mvnw`), biên dịch thành công `BUILD SUCCESS`, chạy unit test đạt 100% không lỗi.
-- [x] **Task 1.6:** Soạn thảo hoàn chỉnh Chương 1 Báo cáo thực tập theo dàn ý chuẩn UTH tại [`docs/thesis-chapters/chapter-01.md`](docs/thesis-chapters/chapter-01.md).
+- [x] **Task 1.6:** Soạn thảo hoàn chỉnh tài liệu Khảo sát bối cảnh thực tiễn, phân tích yêu cầu nghiệp vụ và các ràng buộc hệ thống.
 - [x] **Task 1.7:** Viết và hoàn thiện Báo cáo Tiến độ Tuần 1 nộp GVHD theo mẫu [`docs/weekly-reports/week-01-report.md`](docs/weekly-reports/week-01-report.md).
 
 ---
@@ -66,7 +66,7 @@
 - [x] **Task 4.4:** Viết thuật toán hậu kiểm tra trích dẫn (Post-verification) đảm bảo căn cứ pháp lý trong câu trả lời nằm đúng trong Top-K đã truy xuất.
 - [x] **Task 4.5:** Xây dựng REST API `POST /api/v1/rag/ask` trả về câu trả lời kèm mã trích dẫn, điểm tương đồng và tuyên bố miễn trừ trách nhiệm pháp lý.
 - [x] **Task 4.6:** Viết Unit Test & Integration Test kiểm thử luồng RAG và luồng từ chối trả lời (Đạt 21/21 tests passed).
-- [x] **Task 4.7:** Soạn thảo Chương 3 - Phần 1 (Giải thuật RAG Điều-Khoản và cơ chế chốt chặn chống ảo giác) tại `docs/thesis-chapters/chapter-03.md`.
+- [x] **Task 4.7:** Tài liệu hóa giải thuật RAG Điều-Khoản và cơ chế chốt chặn chống ảo giác trong kiến trúc hệ thống.
 - [x] **Task 4.8:** Viết Báo cáo Tiến độ Tuần 4 nộp GVHD và Mentor tại `docs/weekly-reports/week-04-report.md`.
 
 ---
@@ -78,7 +78,7 @@
 - [x] **Task 5.4:** Viết `MandatoryFieldValidator`: Kiểm tra trường bắt buộc và định dạng theo JSON schema từng mã TTHC.
 - [x] **Task 5.5:** Đánh dấu cảnh báo `MANUAL_REVIEW_REQUIRED` đối với các trường thông tin có độ tin cậy OCR nhận diện $< 0.70$.
 - [x] **Task 5.6:** Xây dựng REST API `POST /api/v1/forms/precheck` nhận ảnh upload multipart và trả về báo cáo kết quả kiểm tra từng trường.
-- [x] **Task 5.7:** Soạn thảo Chương 3 - Phần 2 (Động cơ quy tắc hậu kiểm định biểu mẫu hành chính) tại `docs/thesis-chapters/chapter-03.md`.
+- [x] **Task 5.7:** Tài liệu hóa động cơ quy tắc hậu kiểm định biểu mẫu hành chính và giải thuật kiểm tra 12 số CCCD.
 - [x] **Task 5.8:** Viết Báo cáo Tiến độ Tuần 5 nộp GVHD và Mentor tại `docs/weekly-reports/week-05-report.md`.
 
 ---
@@ -89,7 +89,7 @@
 - [x] **Task 6.3:** Hiện thực **Pha 2 (So khớp nghiệp vụ & ngữ nghĩa):** Trong các cụm ứng viên, lọc chính xác theo `category` và đo Cosine Similarity vector mô tả với vector tâm cụm.
 - [x] **Task 6.4:** Xử lý kết quả gom nhóm: Nếu $\text{Sim} \ge \tau = 0.82$, gộp phản ánh vào cụm sẵn có và tăng biến đếm `report_count`, cập nhật tâm cụm trung bình động; nếu khác danh mục hoặc $\text{Sim} < \tau$, tạo cụm sự cố mới độc lập.
 - [x] **Task 6.5:** Xây dựng các REST API: `POST /api/v1/issues/report` (gửi phản ánh) và `GET /api/v1/issues/clusters` (lấy danh sách cụm phục vụ bản đồ cán bộ).
-- [x] **Task 6.6:** Soạn thảo Chương 3 - Phần 3 (Thuật toán gom cụm phản ánh hiện trường 2 pha) tại `docs/thesis-chapters/chapter-03.md`.
+- [x] **Task 6.6:** Tài liệu hóa thuật toán gom cụm phản ánh hiện trường 2 pha (Spatial-Semantic Triage).
 - [x] **Task 6.7:** Viết Báo cáo Tiến độ Tuần 6 nộp GVHD và Mentor (Sơ kết giai đoạn giữa kỳ) tại `docs/weekly-reports/week-06-report.md`.
 
 ---
@@ -100,7 +100,7 @@
 - [x] **Task 7.3:** Tích hợp MinIO Java SDK để upload/download tệp mã hóa vào bucket `smartward-vault`.
 - [x] **Task 7.4:** Cài đặt cơ chế One-Time Read Token trên Redis với TTL 24 giờ; sử dụng lệnh nguyên tử `GETDEL` (Spring Data Redis `getAndDelete`) để lấy token và xóa ngay lập tức. Lần truy cập thứ 2 bắt buộc trả về HTTP `410 Gone`.
 - [x] **Task 7.5:** Xây dựng các REST API: `POST /api/v1/vault/upload` và `GET /api/v1/vault/view/{token}`.
-- [x] **Task 7.6:** Soạn thảo Chương 3 - Phần 4 (Giải pháp bảo vệ dữ liệu công dân tuân thủ Nghị định 13/2023/NĐ-CP) tại `docs/thesis-chapters/chapter-03.md`.
+- [x] **Task 7.6:** Tài liệu hóa giải pháp bảo vệ dữ liệu công dân tuân thủ Nghị định 13/2023/NĐ-CP (Watermark Java2D, AES-256, Token GETDEL).
 - [x] **Task 7.7:** Viết Báo cáo Tiến độ Tuần 7 nộp GVHD và Mentor tại `docs/weekly-reports/week-07-report.md`.
 
 ---
@@ -156,21 +156,21 @@
 - [x] **Task 11.1:** Đo kiểm tra tài nguyên toàn hệ thống (Frontend + Backend + CSDL): Đảm bảo tổng mức tiêu thụ RAM luôn $\le 2.0\text{ GB}$. Thiết lập hạn ngạch trần cứng $\sum \text{RAM} = 1,728\text{ MB} < 2,048\text{ MB}$ trong `docker-compose.yml`, thực tế chạy đầy tải đạt $\sim 585\text{ MB}$.
 - [x] **Task 11.2:** Kiểm thử toàn diện profile offline (`DeterministicMockAiClient`), đảm bảo hệ thống có thể demo mượt mà mọi lúc mọi nơi mà không cần Internet hay API key Google.
 - [x] **Task 11.3:** Rà soát toàn bộ mã nguồn, chuẩn hóa Clean Code, bổ sung Multi-stage Dockerfiles (`backend/Dockerfile`, `frontend/Dockerfile`, `frontend/nginx.conf`), JavaDoc và hoàn thiện hướng dẫn chạy ứng dụng trong `README.md`.
-- [x] **Task 11.4:** Tổng hợp toàn bộ các Chương 1, 2, 3, 4, 5, Lời cảm ơn, Lời cam đoan, Kết luận, Tài liệu tham khảo thành cuốn Báo cáo Đồ án tốt nghiệp UTH hoàn chỉnh tại `docs/thesis-chapters/FULL_THESIS_REPORT_UTH.md`.
-- [x] **Task 11.5:** Định dạng cuốn báo cáo chuẩn quy cách của Trường ĐH Giao thông vận tải TP.HCM (Font Times New Roman, lề, giãn dòng 1.5, danh mục từ viết tắt, 14 bảng biểu, 15 hình ảnh/biểu đồ).
-- [x] **Task 11.6:** Hoàn tất bản thảo toàn văn sẵn sàng gửi GVHD TS. Lê Văn Quốc Anh và Mentor Viettel An Giang duyệt trước khi in nộp.
+- [x] **Task 11.4:** Tổng hợp toàn bộ tài liệu kỹ thuật, kiến trúc và API specification thành hệ thống tài liệu chuẩn hóa tại `docs/`.
+- [x] **Task 11.5:** Rà soát và hoàn thiện bảng đối soát kỹ thuật, danh mục DTOs và các biểu đồ thực nghiệm.
+- [x] **Task 11.6:** Hoàn tất bản đóng gói kỹ thuật toàn diện sẵn sàng cho kiểm thử nghiệm thu.
 - [x] **Task 11.7:** Viết Báo cáo Tiến độ Tuần 11 nộp GVHD và Mentor (`docs/weekly-reports/week-11-report.md`).
 
 ---
 
-### 📌 TUẦN 12: SLIDE THUYẾT TRÌNH, VIDEO DEMO & BẢO VỆ TỐT NGHIỆP
-- [ ] **Task 12.1:** Thiết kế bộ 10 Slide thuyết trình chuẩn học thuật theo khung trong [`docs/defense/DEFENSE_PRESENTATION_AND_DEMO.md`](docs/defense/DEFENSE_PRESENTATION_AND_DEMO.md).
+### 📌 TUẦN 12: SLIDE TRÌNH DIỄN, VIDEO DEMO & NGHIỆM THU HỆ THỐNG
+- [ ] **Task 12.1:** Thiết kế bộ Slide trình diễn giải pháp kỹ thuật và kiến trúc hệ thống SmartWard AI.
 - [ ] **Task 12.2:** Xây dựng kịch bản Demo trực tiếp 3 phút (3 ca: RAG từ chối câu hỏi bẫy, Rule Engine phát hiện lỗi tờ khai, Triage tự gộp 2 phản ánh trùng).
-- [ ] **Task 12.3:** Quay video demo dự phòng (Backup Video Demo) phòng sự cố mất điện/mất mạng tại phòng hội đồng.
-- [ ] **Task 12.4:** Luyện tập trả lời thành thạo 6 câu hỏi phản biện then chốt của Hội đồng chấm tốt nghiệp UTH.
-- [ ] **Task 12.5:** Đóng bìa cứng mạ vàng cuốn Báo cáo tốt nghiệp có chữ ký GVHD và dấu mộc xác nhận của Doanh nghiệp.
-- [ ] **Task 12.6:** Thuyết trình và bảo vệ đề tài trước Hội đồng Đồ án Tốt nghiệp Khoa CNTT - UTH.
-- [ ] **Task 12.7:** Viết Báo cáo tổng kết toàn khóa thực tập và đồ án tốt nghiệp.
+- [ ] **Task 12.3:** Quay video demo dự phòng (Backup Video Demo) phòng sự cố kết nối.
+- [ ] **Task 12.4:** Tổng hợp các kịch bản kiểm thử và câu hỏi chất vấn kỹ thuật chuyên sâu.
+- [ ] **Task 12.5:** Đóng gói bản phát hành Release v1.0.0 kèm Docker image hoàn chỉnh.
+- [ ] **Task 12.6:** Trình diễn báo cáo nghiệm thu sản phẩm SmartWard AI.
+- [ ] **Task 12.7:** Hoàn thiện hồ sơ tổng kết toàn diện dự án.
 
 
 ---
