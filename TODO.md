@@ -10,9 +10,9 @@
 | Tuần | Trọng tâm công việc | Kỹ thuật (Code / System) | Báo cáo / Khóa luận UTH | Trạng thái |
 | :---: | :--- | :--- | :--- | :---: |
 | **W01** | **Khởi tạo Docker Zero-cost & Khung Spring Boot** | `docker-compose.yml`, Spring Boot 3.3, Package UTH | Soạn Chương 1 (Bối cảnh, RQ1-3, Đóng góp) | ✅ **HOÀN THÀNH** |
-| **W02** | **Thu thập 40 TTHC & Thiết kế CSDL Flyway** | `V1__init_schema.sql`, HNSW index, LegalChunking, Seeder | Soạn Chương 2 (Kiến trúc & CSDL quan hệ + Vector) | 🔄 **ĐANG LÀM** |
-| **W03** | **Tích hợp Mock AI Client & Rate Limiter** | `DeterministicMockAiClient`, Redis Rate Limiter (5 req/phút) | Soạn Mục 2.3 (Quản trị tài nguyên & API limits) | ⏳ Chờ |
-| **W04** | **Module 1: Legal RAG & Abstention Guardrail** | pgvector cosine, Ngưỡng $\theta=0.78$, API `/rag/ask` | Soạn Chương 3 - Phần 1 (RAG & Chống ảo giác) | ⏳ Chờ |
+| **W02** | **Thu thập 40 TTHC & Thiết kế CSDL Flyway** | `V1__init_schema.sql`, HNSW index, LegalChunking, Seeder | Soạn Chương 2 (Kiến trúc & CSDL quan hệ + Vector) | ✅ **HOÀN THÀNH** |
+| **W03** | **Tích hợp Mock AI Client & Rate Limiter** | `DeterministicMockAiClient`, Redis Rate Limiter (5 req/phút) | Soạn Mục 2.3 (Quản trị tài nguyên & API limits) | ✅ **HOÀN THÀNH** |
+| **W04** | **Module 1: Legal RAG & Abstention Guardrail** | pgvector cosine, Ngưỡng $\theta=0.78$, API `/rag/ask` | Soạn Chương 3 - Phần 1 (RAG & Chống ảo giác) | 🔄 **ĐANG LÀM** |
 | **W05** | **Module 2: Form Rule Engine (CCCD & Date)** | Java Rule Engine 12 số CCCD, Date Logic, OCR Client | Soạn Chương 3 - Phần 2 (Hậu kiểm định biểu mẫu) | ⏳ Chờ |
 | **W06** | **Module 3: Triage Phản ánh 2 Pha** | Redis GEO ($R$) + pgvector Cosine ($\tau$) | Soạn Chương 3 - Phần 3 (Gom cụm phản ánh 2 pha) | ⏳ Chờ |
 | **W07** | **Module 4: Zero-Trust Document Vault** | Watermark Java2D, AES-256, MinIO, Redis `GETDEL` | Soạn Chương 3 - Phần 4 (Bảo mật Nghị định 13) | ⏳ Chờ |
@@ -48,14 +48,14 @@
 
 ---
 
-### 📌 TUẦN 3: TÍCH HỢP MOCK AI CLIENT & BỘ GIỚI HẠN TỐC ĐỘ REDIS
-- [ ] **Task 3.1:** Thiết kế Interface `AiModelClient` trừu tượng hóa các tác vụ AI (Embedding, Vision OCR, Chat completion).
-- [ ] **Task 3.2:** Hiện thực `DeterministicMockAiClient` (`@Profile("dev | test")`) sinh vector giả lập và OCR mock để chạy test offline 100% không tốn quota.
-- [ ] **Task 3.3:** Hiện thực `GeminiAiClient` (`@Profile("prod")`) kết nối Gemini Flash API (`text-embedding-004` và Multimodal OCR).
-- [ ] **Task 3.4:** Xây dựng bộ giới hạn tốc độ (Rate Limiter) trên Redis: Giới hạn tối đa 5 yêu cầu/phút/IP để bảo vệ hạn mức Free-tier API.
-- [ ] **Task 3.5:** Cài đặt cơ chế lưu bộ nhớ đệm (Cache) trên Redis cho các câu hỏi thủ tục trùng lặp với TTL 1 giờ.
-- [ ] **Task 3.6:** Soạn thảo Mục 2.3 Báo cáo (Chiến lược quản trị tài nguyên và tối ưu giới hạn API AI).
-- [ ] **Task 3.7:** Viết Báo cáo Tiến độ Tuần 3 nộp GVHD và Mentor.
+### 📌 TUẦN 3: TÍCH HỢP MOCK AI CLIENT & BỘ GIỚI HẠN TỐC ĐỘ REDIS [HOÀN THÀNH 100%]
+- [x] **Task 3.1:** Thiết kế Interface `AiModelClient` trừu tượng hóa các tác vụ AI (Embedding, Vision OCR, Chat completion).
+- [x] **Task 3.2:** Hiện thực `DeterministicMockAiClient` (`@Profile("dev | test")`) sinh vector giả lập và OCR mock để chạy test offline 100% không tốn quota.
+- [x] **Task 3.3:** Hiện thực `GeminiAiClient` (`@Profile("prod")`) kết nối Gemini Flash API (`text-embedding-004` và Multimodal OCR).
+- [x] **Task 3.4:** Xây dựng bộ giới hạn tốc độ (Rate Limiter) trên Redis: Giới hạn tối đa 5 yêu cầu/phút/IP để bảo vệ hạn mức Free-tier API.
+- [x] **Task 3.5:** Cài đặt cơ chế lưu bộ nhớ đệm (Cache) trên Redis cho các câu hỏi thủ tục trùng lặp với TTL 1 giờ.
+- [x] **Task 3.6:** Soạn thảo Mục 2.3 Báo cáo (Chiến lược quản trị tài nguyên và tối ưu giới hạn API AI).
+- [x] **Task 3.7:** Viết Báo cáo Tiến độ Tuần 3 nộp GVHD và Mentor.
 
 ---
 
