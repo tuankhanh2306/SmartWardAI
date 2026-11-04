@@ -1,7 +1,7 @@
 # Kế Hoạch & Tiến Độ Thực Hiện Dự Án (Project Sprint Board)
 **Dự án:** SmartWard AI – Hệ thống Hỗ trợ Thủ tục Hành chính và Phân luồng Phản ánh Cấp Phường/Xã  
 **Đơn vị:** Viện Đào tạo Chất lượng cao – Trường Đại học Giao thông vận tải TP.HCM (UTH)  
-**Trạng thái hiện tại:** `Tuần 7 / 12` 🚀 (Chuẩn bị sang Tuần 8 - Chạy Benchmark Đánh giá Thực nghiệm)
+**Trạng thái hiện tại:** `Tuần 8 / 12` 🚀 (Đã hoàn thành Tuần 8 - Dataset & Evaluation Runner, chuẩn bị sang Tuần 9 - Grid Search & Plots)
 
 ---
 
@@ -16,8 +16,7 @@
 | **W05** | **Module 2: Form Rule Engine (CCCD & Date)** | Java Rule Engine 12 số CCCD, Date Logic, OCR Client | Soạn Chương 3 - Phần 2 (Hậu kiểm định biểu mẫu) | ✅ **HOÀN THÀNH** |
 | **W06** | **Module 3: Triage Phản ánh 2 Pha** | Redis GEO ($R$) + pgvector Cosine ($\tau$) | Soạn Chương 3 - Phần 3 (Gom cụm phản ánh 2 pha) | ✅ **HOÀN THÀNH** |
 | **W07** | **Module 4: Zero-Trust Document Vault** | Watermark Java2D, AES-256, MinIO, Redis `GETDEL` | Soạn Chương 3 - Phần 4 (Bảo mật Nghị định 13) | ✅ **HOÀN THÀNH** |
-| **W08** | **Bộ dữ liệu kiểm thử & Evaluation Runner** | 80 câu RAG, 150 phản ánh (GPS noise), 40 tờ khai | Soạn Chương 4 - Phần 1 (Phương pháp thực nghiệm) | 🔄 **ĐANG LÀM** |
-| **W08** | **Bộ dữ liệu kiểm thử & Evaluation Runner** | 80 câu RAG, 150 phản ánh (GPS noise), 40 tờ khai | Soạn Chương 4 - Phần 1 (Phương pháp thực nghiệm) | ⏳ Chờ |
+| **W08** | **Bộ dữ liệu kiểm thử & Evaluation Runner** | 80 câu RAG, 150 phản ánh (GPS noise), 40 tờ khai | Soạn Chương 4 - Phần 1 (Phương pháp thực nghiệm) | ✅ **HOÀN THÀNH** |
 | **W09** | **Chạy Grid Search $(R, \tau)$ & Phân tích lỗi** | Quét lưới, tính Recall@3, MRR, $F_1$, vẽ biểu đồ `evaluation/` | Hoàn thiện Chương 4 (Số liệu & Thảo luận) | ⏳ Chờ |
 | **W10** | **Frontend Web Responsive / PWA (React + Vite)** | Cổng Công dân (Mobile-first PWA) & Bàn Cán bộ (Desktop) | Hoàn thiện chương thiết kế giao diện | ⏳ Chờ |
 | **W11** | **Đóng gói Docker $< 2\text{GB}$ & Rà soát Báo cáo** | Profile offline, format clean code, test tải, `.env.example` | Hoàn thiện bản thảo nộp GVHD/Mentor | ⏳ Chờ |
@@ -106,14 +105,14 @@
 
 ---
 
-### 📌 TUẦN 8: XÂY DỰNG DATASET KIỂM THỬ & EVALUATION API
+### 📌 TUẦN 8: XÂY DỰNG DATASET KIỂM THỬ & EVALUATION API [HOÀN THÀNH 100%]
 - [x] **Task 8.1:** Xây dựng bộ 80 câu hỏi kiểm thử RAG (40 câu hỏi trực tiếp, 25 câu tình huống đời thực, 15 câu hỏi bẫy/ngoài phạm vi kiểm thử Abstention) tại `data-pipeline/rag-dataset/`.
 - [x] **Task 8.2:** Xây dựng tập 150 phản ánh hiện trường (30 sự cố gốc, 5 biến thể tự nhiên mỗi sự cố, thêm nhiễu GPS thực tế 10m-40m, cài cắm chính xác 25 ca biên khó: 10 Colocated, 10 High Lexical, 5 Distant) tại `data-pipeline/civic-reports/`.
 - [x] **Task 8.3:** Chuẩn bị tập 40 ảnh chụp tờ khai (20 bản in, 20 bản viết tay cài cắm các lỗi logic xác định, kèm file nhãn ground-truth `annotations.json`) tại `data-pipeline/form-dataset/`.
-- [ ] **Task 8.4:** Xây dựng `ExperimentRunnerService` trong backend tính toán tự động các chỉ số: Recall@3, MRR, Citation Precision, False Answer Rate.
-- [ ] **Task 8.5:** Xây dựng REST API `POST /api/v1/evaluation/run-benchmarks` xuất kết quả đo lường ra định dạng JSON/CSV.
-- [ ] **Task 8.6:** Soạn thảo Chương 4 - Phần 1 (Phương pháp luận thiết kế tập kiểm thử giảm thiểu thiên lệch chủ quan).
-- [ ] **Task 8.7:** Viết Báo cáo Tiến độ Tuần 8 nộp GVHD và Mentor.
+- [x] **Task 8.4:** Xây dựng `ExperimentRunnerService` trong backend tính toán tự động các chỉ số: Recall@3, MRR, Citation Precision, False Answer Rate.
+- [x] **Task 8.5:** Xây dựng REST API `POST /api/v1/evaluation/run-benchmarks` xuất kết quả đo lường ra định dạng JSON/CSV.
+- [x] **Task 8.6:** Soạn thảo Chương 4 - Phần 1 (Phương pháp luận thiết kế tập kiểm thử giảm thiểu thiên lệch chủ quan).
+- [x] **Task 8.7:** Viết Báo cáo Tiến độ Tuần 8 nộp GVHD và Mentor.
 
 ---
 

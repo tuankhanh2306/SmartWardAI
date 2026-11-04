@@ -1,0 +1,842 @@
+{
+  "datasetName": "SmartWard AI - Form Precheck Benchmark (40 Forms)",
+  "unit": "Trường Đại học Giao thông vận tải TP.HCM (UTH)",
+  "totalForms": 40,
+  "distribution": {
+    "printedCount": 20,
+    "handwrittenCount": 20,
+    "validCount": 16,
+    "invalidCount": 24
+  },
+  "ruleEngineChecklist": [
+    "CccdValidator: 12-digit length, 63 province codes, century/gender matching, birth year match",
+    "DateLogicValidator: birthDate < issueDate <= today, citizenAge >= 14 at issuance",
+    "MandatoryFieldValidator: non-empty fullName, permanentAddress, cccdNumber"
+  ],
+  "annotations": [
+    {
+      "imageId": "FORM_P001",
+      "imagePath": "printed/FORM_P001.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "VÕ MAI HƯƠNG",
+        "birthDate": "13/07/1984",
+        "gender": "Nữ",
+        "cccdNumber": "048184451695",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 164 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "VALID",
+      "expectedErrors": []
+    },
+    {
+      "imageId": "FORM_P002",
+      "imagePath": "printed/FORM_P002.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "PHẠM HỮU THẮNG",
+        "birthDate": "23/12/1978",
+        "gender": "Nam",
+        "cccdNumber": "074078103768",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 72 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "VALID",
+      "expectedErrors": []
+    },
+    {
+      "imageId": "FORM_P003",
+      "imagePath": "printed/FORM_P003.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "PHẠM PHƯƠNG DUNG",
+        "birthDate": "05/05/2000",
+        "gender": "Nữ",
+        "cccdNumber": "079300703189",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 99 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "VALID",
+      "expectedErrors": []
+    },
+    {
+      "imageId": "FORM_P004",
+      "imagePath": "printed/FORM_P004.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "PHẠM MINH LONG",
+        "birthDate": "15/10/1983",
+        "gender": "Nam",
+        "cccdNumber": "031083890652",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 98 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "VALID",
+      "expectedErrors": []
+    },
+    {
+      "imageId": "FORM_P005",
+      "imagePath": "printed/FORM_P005.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "HOÀNG PHƯƠNG TRANG",
+        "birthDate": "01/02/1977",
+        "gender": "Nữ",
+        "cccdNumber": "079177502195",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 181 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "VALID",
+      "expectedErrors": []
+    },
+    {
+      "imageId": "FORM_P006",
+      "imagePath": "printed/FORM_P006.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "NGUYỄN HỮU HẢI",
+        "birthDate": "09/07/1998",
+        "gender": "Nam",
+        "cccdNumber": "001098691400",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 261 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "VALID",
+      "expectedErrors": []
+    },
+    {
+      "imageId": "FORM_P007",
+      "imagePath": "printed/FORM_P007.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "TRẦN PHƯƠNG THẢO",
+        "birthDate": "26/05/1988",
+        "gender": "Nữ",
+        "cccdNumber": "001188149919",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 109 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "VALID",
+      "expectedErrors": []
+    },
+    {
+      "imageId": "FORM_P008",
+      "imagePath": "printed/FORM_P008.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "TRẦN THANH QUÂN",
+        "birthDate": "08/01/1976",
+        "gender": "Nam",
+        "cccdNumber": "079076963271",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 77 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "VALID",
+      "expectedErrors": []
+    },
+    {
+      "imageId": "FORM_P009",
+      "imagePath": "printed/FORM_P009.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "LÊ PHƯƠNG HƯƠNG",
+        "birthDate": "10/02/1985",
+        "gender": "Nữ",
+        "cccdNumber": "075185625",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 171 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "cccdNumber",
+          "errorType": "INVALID_CCCD_LENGTH",
+          "message": "Số Căn cước công dân phải đủ 12 chữ số (hiện tại có 9 chữ số)"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_P010",
+      "imagePath": "printed/FORM_P010.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "PHAN TIẾN DŨNG",
+        "birthDate": "10/02/1995",
+        "gender": "Nam",
+        "cccdNumber": "999095531586",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 92 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "cccdNumber",
+          "errorType": "INVALID_CCCD_PROVINCE",
+          "message": "Mã tỉnh/thành phố '999' trên CCCD không tồn tại theo danh mục Bộ Công an"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_P011",
+      "imagePath": "printed/FORM_P011.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "HOÀNG PHƯƠNG MAI",
+        "birthDate": "18/08/1993",
+        "gender": "Nữ",
+        "cccdNumber": "075293840819",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 100 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "cccdNumber",
+          "errorType": "INVALID_CCCD_CENTURY_GENDER",
+          "message": "Chữ số thế kỷ/giới tính '2' không khớp với năm sinh 1993 và giới tính Nữ"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_P012",
+      "imagePath": "printed/FORM_P012.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "VÕ QUỐC QUÂN",
+        "birthDate": "23/06/2004",
+        "gender": "Nam",
+        "cccdNumber": "048288444054",
+        "issueDate": "15/06/2019",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 154 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "cccdNumber",
+          "errorType": "INVALID_CCCD_YEAR",
+          "message": "Hai chữ số năm sinh trên CCCD '88' không khớp với năm sinh 2004"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_P013",
+      "imagePath": "printed/FORM_P013.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "HOÀNG PHƯƠNG THẢO",
+        "birthDate": "03/03/2001",
+        "gender": "Nữ",
+        "cccdNumber": "074301547879",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": ""
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "permanentAddress",
+          "errorType": "MISSING_MANDATORY_FIELD",
+          "message": "Nơi thường trú là trường bắt buộc không được để trống"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_P014",
+      "imagePath": "printed/FORM_P014.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "HOÀNG VĂN TUẤN",
+        "birthDate": "09/08/2004",
+        "gender": "Nam",
+        "cccdNumber": "079204259807",
+        "issueDate": "10/05/2002",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 186 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "issueDate",
+          "errorType": "INVALID_DATE_LOGIC",
+          "message": "Ngày cấp thẻ (10/05/2002) không thể xảy ra trước ngày sinh (09/08/2004)"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_P015",
+      "imagePath": "printed/FORM_P015.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "HUỲNH KIM DUNG",
+        "birthDate": "22/09/1987",
+        "gender": "Nữ",
+        "cccdNumber": "048187157",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 185 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "cccdNumber",
+          "errorType": "INVALID_CCCD_LENGTH",
+          "message": "Số Căn cước công dân phải đủ 12 chữ số (hiện tại có 9 chữ số)"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_P016",
+      "imagePath": "printed/FORM_P016.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "NGUYỄN ĐỨC HẢI",
+        "birthDate": "01/04/2002",
+        "gender": "Nam",
+        "cccdNumber": "999202905239",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 128 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "cccdNumber",
+          "errorType": "INVALID_CCCD_PROVINCE",
+          "message": "Mã tỉnh/thành phố '999' trên CCCD không tồn tại theo danh mục Bộ Công an"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_P017",
+      "imagePath": "printed/FORM_P017.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "TRẦN KIM MAI",
+        "birthDate": "13/01/1999",
+        "gender": "Nữ",
+        "cccdNumber": "001299549165",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 280 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "cccdNumber",
+          "errorType": "INVALID_CCCD_CENTURY_GENDER",
+          "message": "Chữ số thế kỷ/giới tính '2' không khớp với năm sinh 1999 và giới tính Nữ"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_P018",
+      "imagePath": "printed/FORM_P018.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "PHẠM VĂN HẢI",
+        "birthDate": "28/01/2006",
+        "gender": "Nam",
+        "cccdNumber": "075288764317",
+        "issueDate": "15/06/2021",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 80 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "cccdNumber",
+          "errorType": "INVALID_CCCD_YEAR",
+          "message": "Hai chữ số năm sinh trên CCCD '88' không khớp với năm sinh 2006"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_P019",
+      "imagePath": "printed/FORM_P019.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "PHAN THU THẢO",
+        "birthDate": "15/03/1993",
+        "gender": "Nữ",
+        "cccdNumber": "092193529485",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": ""
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "permanentAddress",
+          "errorType": "MISSING_MANDATORY_FIELD",
+          "message": "Nơi thường trú là trường bắt buộc không được để trống"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_P020",
+      "imagePath": "printed/FORM_P020.png",
+      "formType": "PRINTED",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "PHAN QUỐC DŨNG",
+        "birthDate": "21/03/1987",
+        "gender": "Nam",
+        "cccdNumber": "031087368941",
+        "issueDate": "10/05/1985",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 99 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "issueDate",
+          "errorType": "INVALID_DATE_LOGIC",
+          "message": "Ngày cấp thẻ (10/05/1985) không thể xảy ra trước ngày sinh (21/03/1987)"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_H001",
+      "imagePath": "handwritten/FORM_H001.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "HUỲNH PHƯƠNG MAI",
+        "birthDate": "16/03/1995",
+        "gender": "Nữ",
+        "cccdNumber": "075195351314",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 223 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "VALID",
+      "expectedErrors": []
+    },
+    {
+      "imageId": "FORM_H002",
+      "imagePath": "handwritten/FORM_H002.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "HOÀNG TIẾN PHÚC",
+        "birthDate": "13/08/1991",
+        "gender": "Nam",
+        "cccdNumber": "048091892716",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 144 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "VALID",
+      "expectedErrors": []
+    },
+    {
+      "imageId": "FORM_H003",
+      "imagePath": "handwritten/FORM_H003.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "HUỲNH THỊ HƯƠNG",
+        "birthDate": "17/05/1996",
+        "gender": "Nữ",
+        "cccdNumber": "031196353065",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 231 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "VALID",
+      "expectedErrors": []
+    },
+    {
+      "imageId": "FORM_H004",
+      "imagePath": "handwritten/FORM_H004.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "PHẠM MINH AN",
+        "birthDate": "24/09/1975",
+        "gender": "Nam",
+        "cccdNumber": "048075875174",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 247 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "VALID",
+      "expectedErrors": []
+    },
+    {
+      "imageId": "FORM_H005",
+      "imagePath": "handwritten/FORM_H005.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "HUỲNH MAI HƯƠNG",
+        "birthDate": "20/08/2003",
+        "gender": "Nữ",
+        "cccdNumber": "092303435859",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 97 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "VALID",
+      "expectedErrors": []
+    },
+    {
+      "imageId": "FORM_H006",
+      "imagePath": "handwritten/FORM_H006.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "HUỲNH VĂN THẮNG",
+        "birthDate": "12/09/1994",
+        "gender": "Nam",
+        "cccdNumber": "092094302033",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 200 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "VALID",
+      "expectedErrors": []
+    },
+    {
+      "imageId": "FORM_H007",
+      "imagePath": "handwritten/FORM_H007.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "VÕ KIM TRANG",
+        "birthDate": "20/08/2006",
+        "gender": "Nữ",
+        "cccdNumber": "092306788853",
+        "issueDate": "15/06/2021",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 91 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "VALID",
+      "expectedErrors": []
+    },
+    {
+      "imageId": "FORM_H008",
+      "imagePath": "handwritten/FORM_H008.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "NGUYỄN HỮU CƯỜNG",
+        "birthDate": "28/03/1980",
+        "gender": "Nam",
+        "cccdNumber": "031080620757",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 215 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "VALID",
+      "expectedErrors": []
+    },
+    {
+      "imageId": "FORM_H009",
+      "imagePath": "handwritten/FORM_H009.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "LÊ THU LINH",
+        "birthDate": "02/12/1997",
+        "gender": "Nữ",
+        "cccdNumber": "092197889",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 138 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "cccdNumber",
+          "errorType": "INVALID_CCCD_LENGTH",
+          "message": "Số Căn cước công dân phải đủ 12 chữ số (hiện tại có 9 chữ số)"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_H010",
+      "imagePath": "handwritten/FORM_H010.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "TRẦN VĂN DŨNG",
+        "birthDate": "19/05/1976",
+        "gender": "Nam",
+        "cccdNumber": "999076173531",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 153 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "cccdNumber",
+          "errorType": "INVALID_CCCD_PROVINCE",
+          "message": "Mã tỉnh/thành phố '999' trên CCCD không tồn tại theo danh mục Bộ Công an"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_H011",
+      "imagePath": "handwritten/FORM_H011.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "HUỲNH THỊ LAN",
+        "birthDate": "01/08/1988",
+        "gender": "Nữ",
+        "cccdNumber": "001288189484",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 218 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "cccdNumber",
+          "errorType": "INVALID_CCCD_CENTURY_GENDER",
+          "message": "Chữ số thế kỷ/giới tính '2' không khớp với năm sinh 1988 và giới tính Nữ"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_H012",
+      "imagePath": "handwritten/FORM_H012.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "NGUYỄN THANH CƯỜNG",
+        "birthDate": "18/05/2006",
+        "gender": "Nam",
+        "cccdNumber": "048288988859",
+        "issueDate": "15/06/2021",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 246 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "cccdNumber",
+          "errorType": "INVALID_CCCD_YEAR",
+          "message": "Hai chữ số năm sinh trên CCCD '88' không khớp với năm sinh 2006"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_H013",
+      "imagePath": "handwritten/FORM_H013.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "PHẠM THỊ LINH",
+        "birthDate": "27/04/2000",
+        "gender": "Nữ",
+        "cccdNumber": "074300953753",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": ""
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "permanentAddress",
+          "errorType": "MISSING_MANDATORY_FIELD",
+          "message": "Nơi thường trú là trường bắt buộc không được để trống"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_H014",
+      "imagePath": "handwritten/FORM_H014.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "LÊ MINH DŨNG",
+        "birthDate": "08/05/1984",
+        "gender": "Nam",
+        "cccdNumber": "048084266932",
+        "issueDate": "10/05/1982",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 177 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "issueDate",
+          "errorType": "INVALID_DATE_LOGIC",
+          "message": "Ngày cấp thẻ (10/05/1982) không thể xảy ra trước ngày sinh (08/05/1984)"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_H015",
+      "imagePath": "handwritten/FORM_H015.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "ĐẶNG THU DUNG",
+        "birthDate": "20/08/1985",
+        "gender": "Nữ",
+        "cccdNumber": "075185750",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 58 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "cccdNumber",
+          "errorType": "INVALID_CCCD_LENGTH",
+          "message": "Số Căn cước công dân phải đủ 12 chữ số (hiện tại có 9 chữ số)"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_H016",
+      "imagePath": "handwritten/FORM_H016.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "PHẠM THANH DŨNG",
+        "birthDate": "07/03/1975",
+        "gender": "Nam",
+        "cccdNumber": "999075507583",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 37 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "cccdNumber",
+          "errorType": "INVALID_CCCD_PROVINCE",
+          "message": "Mã tỉnh/thành phố '999' trên CCCD không tồn tại theo danh mục Bộ Công an"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_H017",
+      "imagePath": "handwritten/FORM_H017.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "NGUYỄN MAI LAN",
+        "birthDate": "28/11/2004",
+        "gender": "Nữ",
+        "cccdNumber": "048004283656",
+        "issueDate": "15/06/2019",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 231 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "cccdNumber",
+          "errorType": "INVALID_CCCD_CENTURY_GENDER",
+          "message": "Chữ số thế kỷ/giới tính '0' không khớp với năm sinh 2004 và giới tính Nữ"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_H018",
+      "imagePath": "handwritten/FORM_H018.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "VÕ MINH THẮNG",
+        "birthDate": "15/12/1981",
+        "gender": "Nam",
+        "cccdNumber": "048088781604",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 280 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "cccdNumber",
+          "errorType": "INVALID_CCCD_YEAR",
+          "message": "Hai chữ số năm sinh trên CCCD '88' không khớp với năm sinh 1981"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_H019",
+      "imagePath": "handwritten/FORM_H019.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "ĐẶNG PHƯƠNG ANH",
+        "birthDate": "26/06/1984",
+        "gender": "Nữ",
+        "cccdNumber": "031184153988",
+        "issueDate": "15/06/2018",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": ""
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "permanentAddress",
+          "errorType": "MISSING_MANDATORY_FIELD",
+          "message": "Nơi thường trú là trường bắt buộc không được để trống"
+        }
+      ]
+    },
+    {
+      "imageId": "FORM_H020",
+      "imagePath": "handwritten/FORM_H020.png",
+      "formType": "HANDWRITTEN",
+      "formTemplate": "CT01_RESIDENCE_DECLARATION",
+      "fields": {
+        "fullName": "NGUYỄN THANH HẢI",
+        "birthDate": "26/03/1991",
+        "gender": "Nam",
+        "cccdNumber": "074091430894",
+        "issueDate": "10/05/1989",
+        "issuePlace": "Cục Cảnh sát QLHC về TTXH",
+        "permanentAddress": "Số 67 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh"
+      },
+      "expectedStatus": "INVALID",
+      "expectedErrors": [
+        {
+          "field": "issueDate",
+          "errorType": "INVALID_DATE_LOGIC",
+          "message": "Ngày cấp thẻ (10/05/1989) không thể xảy ra trước ngày sinh (26/03/1991)"
+        }
+      ]
+    }
+  ]
+}

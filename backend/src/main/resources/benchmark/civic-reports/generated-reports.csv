@@ -1,0 +1,151 @@
+reportId,expectedClusterId,originEventId,category,description,latitude,longitude,noiseMeters,submittedAt,isHardCase,hardCaseType
+RPT-001,CLUST-001,EVT-001,ROAD_DAMAGE,"Đoạn trước số 15 Võ Oanh có ổ gà khá sâu, trời mưa đọng nước rất dễ té ngã xe máy.",10.80356,106.714216,4.5,2026-11-02T10:46:35,True,COLOCATED_DIFFERENT_CATEGORY
+RPT-002,CLUST-001,EVT-001,ROAD_DAMAGE,"Mặt đường Võ Oanh bị sụt lún thành một hố lớn, đề nghị phường cho giặm vá gấp.",10.803471,106.714178,6.5,2026-11-01T10:06:44,True,COLOCATED_DIFFERENT_CATEGORY
+RPT-003,CLUST-001,EVT-001,ROAD_DAMAGE,"Có ổ gà to nguy hiểm gần cổng trường đại học trên đường Võ Oanh, đã có sinh viên bị trượt bánh.",10.803527,106.714248,4.2,2026-11-01T15:57:33,True,COLOCATED_DIFFERENT_CATEGORY
+RPT-004,CLUST-001,EVT-001,ROAD_DAMAGE,"Mặt đường trước nhà số 15 D3 cũ bị hư hỏng, lồi lõm xuất hiện vũng nước sâu.",10.80355,106.714371,17.9,2026-11-02T05:37:27,True,COLOCATED_DIFFERENT_CATEGORY
+RPT-005,CLUST-001,EVT-001,ROAD_DAMAGE,"Đoạn đường Võ Oanh này xuống cấp nặng, cần cơ quan chức năng kiểm tra và dặm vá lại mặt đường.",10.803523,106.714154,6.2,2026-11-01T18:43:31,True,COLOCATED_DIFFERENT_CATEGORY
+RPT-006,CLUST-002,EVT-002,ROAD_DAMAGE,"Nắp cống ngay ngã tư Nguyễn Gia Trí giao D5 bị bung một bên, xe chạy qua kêu ầm ầm và rất bấp bênh.",10.804922,106.715798,13.0,2026-11-01T20:46:50,False,STANDARD
+RPT-007,CLUST-002,EVT-002,ROAD_DAMAGE,"Nắp cống thoát nước bị sụt lún thấp hơn mặt đường cả gang tay, rất nguy hiểm cho người đi ban đêm.",10.804788,106.715851,3.4,2026-11-01T18:15:29,False,STANDARD
+RPT-008,CLUST-002,EVT-002,ROAD_DAMAGE,"Miệng cống tại góc đường D5 bị lệch nắp, bánh xe lọt xuống là ngã ngay.",10.804803,106.715771,6.5,2026-11-02T03:46:04,False,STANDARD
+RPT-009,CLUST-002,EVT-002,ROAD_DAMAGE,Nắp gang cống thoát nước ngã tư Nguyễn Gia Trí bị xê dịch lộ khe hở lớn.,10.804925,106.715893,14.6,2026-11-02T15:59:26,False,STANDARD
+RPT-010,CLUST-002,EVT-002,ROAD_DAMAGE,Cần xử lý gấp nắp cống bị vênh ở ngã tư D5 - Nguyễn Gia Trí để tránh tai nạn giao thông.,10.804634,106.715735,22.1,2026-11-02T09:39:36,False,STANDARD
+RPT-011,CLUST-003,EVT-003,ROAD_DAMAGE,Vỉa hè đường Ung Văn Khiêm trước số 82 bị sụp lún tạo thành hố cát lởm chởm gạch.,10.806092,106.717095,5.8,2026-11-02T14:56:10,True,SAME_CATEGORY_DISTANT_LOCATION
+RPT-012,CLUST-003,EVT-003,ROAD_DAMAGE,"Gạch lát vỉa hè bị vỡ nát nhiều mảng, người đi bộ phải bước xuống lòng đường rất nguy hiểm.",10.806107,106.717153,2.0,2026-11-02T00:52:09,True,SAME_CATEGORY_DISTANT_LOCATION
+RPT-013,CLUST-003,EVT-003,ROAD_DAMAGE,Đoạn hè phố Ung Văn Khiêm bị bong tróc gạch và sụt lún nghiêm trọng sau đợt mưa lớn.,10.806154,106.717196,7.2,2026-11-02T09:33:49,True,SAME_CATEGORY_DISTANT_LOCATION
+RPT-014,CLUST-003,EVT-003,ROAD_DAMAGE,Lối đi bộ cho người tàn tật và người dân bị hỏng nặng đoạn trước số 82 Ung Văn Khiêm.,10.806067,106.717096,7.6,2026-11-01T14:59:23,True,SAME_CATEGORY_DISTANT_LOCATION
+RPT-015,CLUST-003,EVT-003,ROAD_DAMAGE,Đề nghị đơn vị quản lý đô thị chỉnh trang lại vỉa hè bị vỡ lún ở đường Ung Văn Khiêm.,10.806129,106.717156,2.0,2026-11-02T07:23:59,True,SAME_CATEGORY_DISTANT_LOCATION
+RPT-016,CLUST-004,EVT-004,ROAD_DAMAGE,Gờ giảm tốc cao su trước cổng trường ĐH GTVT bị tróc đinh ốc nhọn nhô lên gây thủng lốp xe.,10.802824,106.713406,18.3,2026-11-02T14:29:59,False,STANDARD
+RPT-017,CLUST-004,EVT-004,ROAD_DAMAGE,"Đinh vít giữ gờ giảm tốc bị bật bung khỏi mặt đường, rất sắc nhọn nguy hiểm cho người qua lại.",10.802898,106.713622,6.8,2026-11-01T18:22:15,False,STANDARD
+RPT-018,CLUST-004,EVT-004,ROAD_DAMAGE,"Gờ giảm tốc bị rách nát, các ốc sắt nhô cao khoảng 3cm ngay trước số 2 Võ Oanh.",10.802965,106.713514,9.8,2026-11-02T04:51:04,False,STANDARD
+RPT-019,CLUST-004,EVT-004,ROAD_DAMAGE,Thanh giảm tốc cao su cổng trường bị mòn vẹt và lỏng lẻo kêu lạch cạch mỗi khi xe cán qua.,10.802894,106.713578,2.0,2026-11-02T07:29:59,False,STANDARD
+RPT-020,CLUST-004,EVT-004,ROAD_DAMAGE,Cần tháo dỡ hoặc thay mới gờ giảm tốc hư hỏng trước trường UTH đường Võ Oanh.,10.802882,106.713642,9.0,2026-11-01T17:37:55,False,STANDARD
+RPT-021,CLUST-005,EVT-005,ROAD_DAMAGE,Biển báo cấm rẽ ngay ngã ba Nguyễn Văn Thương ra Điện Biên Phủ bị xe tải quẹt nghiêng gần đổ.,10.800949,106.712631,5.3,2026-11-01T21:40:11,False,STANDARD
+RPT-022,CLUST-005,EVT-005,ROAD_DAMAGE,"Cột biển báo giao thông bị cong gập sát lòng đường, che khuất tầm nhìn người tham gia giao thông.",10.800846,106.712674,11.6,2026-11-01T12:10:54,False,STANDARD
+RPT-023,CLUST-005,EVT-005,ROAD_DAMAGE,Trụ biển báo đường một chiều bị xiêu vẹo có nguy cơ ngã đổ khi có gió lốc.,10.800982,106.712641,5.6,2026-11-02T08:49:00,False,STANDARD
+RPT-024,CLUST-005,EVT-005,ROAD_DAMAGE,Biển báo đường bộ bị hư hại đổ nghiêng ở góc đường Điện Biên Phủ.,10.80091,106.712716,6.0,2026-11-02T05:51:21,False,STANDARD
+RPT-025,CLUST-005,EVT-005,ROAD_DAMAGE,Đề nghị cơ quan chức năng nắn thẳng lại cột biển chỉ dẫn giao thông bị móp méo.,10.800636,106.712621,35.6,2026-11-01T09:24:06,False,STANDARD
+RPT-026,CLUST-006,EVT-006,ROAD_DAMAGE,"Đơn vị đào đường lắp ống nước xong hoàn trả mặt bằng cẩu thả, đất đá lởm chởm trong hẻm 48.",10.805525,106.716387,3.9,2026-11-02T03:47:38,False,STANDARD
+RPT-027,CLUST-006,EVT-006,ROAD_DAMAGE,"Đoạn hẻm 48 Ung Văn Khiêm bị xới tung lên rồi chỉ lấp cát tạm, xe cộ đi qua bị trơn trượt.",10.805551,106.716327,10.2,2026-11-01T14:32:07,False,STANDARD
+RPT-028,CLUST-006,EVT-006,ROAD_DAMAGE,"Mặt hẻm bị băm nát sau khi thi công cấp thoát nước, gồ ghề đầy sỏi đá.",10.805596,106.716403,6.5,2026-11-02T15:39:17,False,STANDARD
+RPT-029,CLUST-006,EVT-006,ROAD_DAMAGE,"Công trình đào đường ống hoàn trả không bằng phẳng, tạo thành rãnh sâu dọc theo con hẻm.",10.805662,106.716398,13.8,2026-11-01T12:43:27,False,STANDARD
+RPT-030,CLUST-006,EVT-006,ROAD_DAMAGE,Yêu cầu đơn vị thi công trải lại nhựa đường bằng phẳng cho bà con hẻm 48 Ung Văn Khiêm đi lại.,10.805566,106.716379,5.4,2026-11-02T02:46:05,False,STANDARD
+RPT-031,CLUST-007,EVT-007,ROAD_DAMAGE,"Gương cầu lồi tại góc cua chữ L trong hẻm 120 bị vỡ mặt kính hoàn toàn, không quan sát được xe ngược chiều.",10.801579,106.713961,9.4,2026-11-02T12:15:06,False,STANDARD
+RPT-032,CLUST-007,EVT-007,ROAD_DAMAGE,Khúc cua khuất tầm nhìn ở hẻm 120 mà gương cầu an toàn bị kẻ xấu đập bể nát.,10.801515,106.713879,2.0,2026-11-02T02:06:04,False,STANDARD
+RPT-033,CLUST-007,EVT-007,ROAD_DAMAGE,"Gương phản quang quan sát góc cua bị hỏng, rất dễ xảy ra tông xe đối đầu.",10.801595,106.713858,8.1,2026-11-01T19:45:46,False,STANDARD
+RPT-034,CLUST-007,EVT-007,ROAD_DAMAGE,"Mặt gương cầu lồi tại cua hẻm Điện Biên Phủ nứt toác, không còn tác dụng soi đường.",10.801531,106.713908,2.0,2026-11-02T04:51:26,False,STANDARD
+RPT-035,CLUST-007,EVT-007,ROAD_DAMAGE,Đề nghị gắn lại gương cầu mới tại góc cua hẹp hẻm 120 để đảm bảo an toàn giao thông.,10.80156,106.713908,3.9,2026-11-02T11:37:15,False,STANDARD
+RPT-036,CLUST-008,EVT-008,ROAD_DAMAGE,Khối bê tông dải phân cách dưới chân cầu Sài Gòn bị đâm xô lệch nhô ra giữa làn đường xe máy.,10.802167,106.71828,9.1,2026-11-02T01:38:05,False,STANDARD
+RPT-037,CLUST-008,EVT-008,ROAD_DAMAGE,"Dải phân cách cứng bị xê dịch lấn làn đường xe chạy, buổi tối rất dễ tông trúng.",10.8021,106.718332,12.3,2026-11-01T16:24:46,False,STANDARD
+RPT-038,CLUST-008,EVT-008,ROAD_DAMAGE,"Các cục bê tông ngăn làn bị húc văng lung tung dưới chân cầu, gây hẹp lối lưu thông.",10.802098,106.71817,5.6,2026-11-01T22:57:53,False,STANDARD
+RPT-039,CLUST-008,EVT-008,ROAD_DAMAGE,Dải phân cách bị lệch vị trí tạo thành chướng ngại vật nguy hiểm hướng Ung Văn Khiêm.,10.802028,106.718254,9.9,2026-11-01T16:51:51,False,STANDARD
+RPT-040,CLUST-008,EVT-008,ROAD_DAMAGE,Cần xe chuyên dụng đến kéo ngay dải phân cách bê tông về đúng vị trí tim đường.,10.802224,106.718235,12.8,2026-11-02T04:23:14,False,STANDARD
+RPT-041,CLUST-009,EVT-009,ENVIRONMENT,"Chân cầu Đỏ xuất hiện bãi rác sinh hoạt tự phát ngập ngụa, bốc mùi hôi thối nồng nặc cả khu phố.",10.807027,106.713124,8.6,2026-11-01T11:21:32,False,STANDARD
+RPT-042,CLUST-009,EVT-009,ENVIRONMENT,"Người dân thiếu ý thức vứt nhiều bao rác, nệm cũ và xác động vật ở bãi đất chân cầu gây ô nhiễm nặng.",10.806973,106.713092,4.0,2026-11-01T11:28:48,False,STANDARD
+RPT-043,CLUST-009,EVT-009,ENVIRONMENT,"Rác thải ứ đọng nhiều ngày không ai thu dọn ở dạ cầu Đỏ, ruồi muỗi bu đầy.",10.806945,106.713151,3.4,2026-11-02T10:19:02,False,STANDARD
+RPT-044,CLUST-009,EVT-009,ENVIRONMENT,Đống rác tự phát to đùng bốc mùi xú uế ảnh hưởng nghiêm trọng đời sống các hộ dân lân cận.,10.806958,106.713294,19.0,2026-11-02T01:33:14,False,STANDARD
+RPT-045,CLUST-009,EVT-009,ENVIRONMENT,Đề nghị phường đặt biển cấm đổ rác và gắn camera phạt nguội bãi rác chân cầu Đỏ.,10.807035,106.71334,25.8,2026-11-01T23:49:30,False,STANDARD
+RPT-046,CLUST-010,EVT-010,ENVIRONMENT,"Hố ga trước số 104 Nguyễn Gia Trí bị nghẹt rác, nước cống đen ngòm tràn lênh láng ra mặt đường.",10.804288,106.714938,23.5,2026-11-01T10:53:45,False,STANDARD
+RPT-047,CLUST-010,EVT-010,ENVIRONMENT,Nước cống bốc mùi hôi tanh nồng nặc chảy tràn ra đường mỗi khi các quán ăn xả nước thải.,10.804185,106.715114,4.2,2026-11-01T12:49:27,False,STANDARD
+RPT-048,CLUST-010,EVT-010,ENVIRONMENT,"Miệng cống thoát nước bị tắc nghẽn hoàn toàn, nước thải sinh hoạt dềnh lên láng vỉa hè.",10.804157,106.715117,2.0,2026-11-02T00:42:05,False,STANDARD
+RPT-049,CLUST-010,EVT-010,ENVIRONMENT,"Cống rãnh khu vực 104 D2 cũ bị tắc dầu mỡ đóng tảng, nước không thoát được tràn ra lộ.",10.804157,106.715117,2.0,2026-11-01T11:38:18,False,STANDARD
+RPT-050,CLUST-010,EVT-010,ENVIRONMENT,Cần đội nạo vét cống rãnh đô thị xuống thông hút hố ga bị nghẹt trên đường Nguyễn Gia Trí.,10.804201,106.715117,5.9,2026-11-02T19:58:29,False,STANDARD
+RPT-051,CLUST-011,EVT-011,ENVIRONMENT,Trận mưa chiều qua làm gãy một cành cây phượng lớn nằm chắn ngang lối đi bộ công viên bờ sông.,10.807499,106.718834,9.0,2026-11-01T14:49:15,False,STANDARD
+RPT-052,CLUST-011,EVT-011,ENVIRONMENT,"Cành cây to bị gãy tét nhánh treo lơ lửng trên đầu người đi dạo, rất dễ rơi trúng người.",10.807329,106.718861,10.2,2026-11-02T15:15:45,False,STANDARD
+RPT-053,CLUST-011,EVT-011,ENVIRONMENT,Nhánh cây xanh bật gốc gãy đổ ngổn ngang chiếm hết đường đi dạo ven sông.,10.807453,106.718907,7.2,2026-11-02T17:25:41,False,STANDARD
+RPT-054,CLUST-011,EVT-011,ENVIRONMENT,"Cành cây mục gãy chắn lối đi bộ công viên Thanh Đa, người già và trẻ em không thể qua lại.",10.807384,106.719012,18.1,2026-11-02T09:22:50,False,STANDARD
+RPT-055,CLUST-011,EVT-011,ENVIRONMENT,Đề nghị công ty cây xanh cử nhân viên tới cưa tỉa thu dọn nhánh cây gãy nguy hiểm này.,10.807476,106.718934,11.1,2026-11-02T05:16:16,False,STANDARD
+RPT-056,CLUST-012,EVT-012,ENVIRONMENT,"Có xe ba gác lén đổ trộm cả đống xà bần, vữa xi măng ngay mép vỉa hè đường D1 nối dài vào ban đêm.",10.802449,106.715551,10.8,2026-11-01T11:00:02,False,STANDARD
+RPT-057,CLUST-012,EVT-012,ENVIRONMENT,"Đống đất đá phế thải xây dựng tràn ra gần nửa làn đường, bụi mù mịt khi xe chạy qua.",10.80226,106.715647,21.2,2026-11-02T18:37:38,False,STANDARD
+RPT-058,CLUST-012,EVT-012,ENVIRONMENT,Xà bần gạch vỡ bị vứt bừa bãi không người dọn dẹp gây mất mỹ quan đô thị nghiêm trọng.,10.80247,106.715623,3.7,2026-11-01T11:23:53,False,STANDARD
+RPT-059,CLUST-012,EVT-012,ENVIRONMENT,Khu vực đất công bị chiếm dụng làm nơi đổ trộm rác xây dựng và bê tông vụn.,10.80243,106.71561,4.9,2026-11-02T16:09:36,False,STANDARD
+RPT-060,CLUST-012,EVT-012,ENVIRONMENT,Đề nghị lực lượng đô thị phường kiểm tra trích xuất camera xử phạt hành vi đổ trộm xà bần.,10.802361,106.715601,11.3,2026-11-01T10:23:27,False,STANDARD
+RPT-061,CLUST-013,EVT-013,ENVIRONMENT,Các quán ăn vặt trong hẻm 69 thường xuyên đổ nước rửa chén và dầu mỡ thẳng ra miệng cống ven đường.,10.804632,106.71479,2.3,2026-11-02T17:42:52,False,STANDARD
+RPT-062,CLUST-013,EVT-013,ENVIRONMENT,Mùi dầu mỡ thức ăn thừa lên men hôi tanh bốc lên từ rãnh nước hẻm 69 gây ngột ngạt khó thở.,10.804623,106.71473,6.3,2026-11-01T19:59:47,False,STANDARD
+RPT-063,CLUST-013,EVT-013,ENVIRONMENT,"Quán xá xả nước thải bẩn chưa qua xử lý ra lòng hẻm, trơn trượt cho bà con đi bộ.",10.804575,106.714839,10.6,2026-11-01T20:03:58,False,STANDARD
+RPT-064,CLUST-013,EVT-013,ENVIRONMENT,Tình trạng xả thải chất béo thức ăn làm nghẹt cống rãnh chung của khu dân cư hẻm 69.,10.804677,106.714782,3.0,2026-11-02T06:44:26,False,STANDARD
+RPT-065,CLUST-013,EVT-013,ENVIRONMENT,UBND Phường cần kiểm tra vệ sinh môi trường các hộ kinh doanh ăn uống tại hẻm này.,10.804692,106.714801,5.2,2026-11-02T17:39:50,False,STANDARD
+RPT-066,CLUST-014,EVT-014,ENVIRONMENT,Các gốc cây xanh trước cổng trường học bị biến thành bãi tập kết rác với hàng chục túi nilông rách rưới.,10.805253,106.716078,6.6,2026-11-01T21:56:00,False,STANDARD
+RPT-067,CLUST-014,EVT-014,ENVIRONMENT,"Hộp xốp, ly nhựa vứt bừa bãi quanh bồn hoa cây xanh đường D5 trông rất nhếch nhác.",10.805166,106.716138,5.3,2026-11-02T19:26:05,False,STANDARD
+RPT-068,CLUST-014,EVT-014,ENVIRONMENT,Rác thải nhựa tồn đọng dưới gốc cây nhiều ngày bốc mùi hôi trước mắt học sinh.,10.805191,106.716086,4.3,2026-11-02T04:24:39,False,STANDARD
+RPT-069,CLUST-014,EVT-014,ENVIRONMENT,Gốc cây cổ thụ bị chất đống rác sinh hoạt và lá cây mục không được thu gom đúng giờ.,10.805257,106.716101,5.6,2026-11-01T12:44:46,False,STANDARD
+RPT-070,CLUST-014,EVT-014,ENVIRONMENT,Đề nghị công nhân vệ sinh quét dọn và trường học nhắc nhở học sinh giữ vệ sinh chung.,10.805197,106.716217,10.7,2026-11-02T06:10:08,False,STANDARD
+RPT-071,CLUST-015,EVT-015,ENVIRONMENT,"Đoạn mương hở cuối hẻm 153 nước đen kịt, sủi bọt trắng xóa và bốc mùi tanh tưởi khi trời nắng gắt.",10.807875,106.711976,9.8,2026-11-02T02:05:55,False,STANDARD
+RPT-072,CLUST-015,EVT-015,ENVIRONMENT,"Con mương nước thải không nắp đậy sinh sôi ruồi muỗi, nguy cơ bùng phát dịch sốt xuất huyết.",10.807876,106.711907,3.4,2026-11-01T23:49:30,False,STANDARD
+RPT-073,CLUST-015,EVT-015,ENVIRONMENT,Dòng nước ô nhiễm tù đọng không lưu thông được do rác chặn kín miệng cống thoát.,10.807949,106.711919,11.4,2026-11-02T19:17:34,False,STANDARD
+RPT-074,CLUST-015,EVT-015,ENVIRONMENT,"Mương thoát nước hở bị ô nhiễm nặng nề, rác nổi lềnh bềnh cả khúc mương.",10.807845,106.711789,11.1,2026-11-02T04:18:31,False,STANDARD
+RPT-075,CLUST-015,EVT-015,ENVIRONMENT,Cần nạo vét dòng chảy và có phương án cống hóa đoạn mương hở này để bảo vệ môi trường sống.,10.807562,106.711772,34.5,2026-11-02T09:11:08,False,STANDARD
+RPT-076,CLUST-016,EVT-016,ENVIRONMENT,"Xe tải chở cát không phủ bạt làm rơi vãi cát sỏi đầy đường Ung Văn Khiêm, bụi mù mịt khi có gió.",10.806512,106.714509,16.0,2026-11-02T14:12:38,False,STANDARD
+RPT-077,CLUST-016,EVT-016,ENVIRONMENT,Lớp cát dày rơi trên mặt đường nhựa khiến xe máy thắng gấp rất dễ bị trượt ngã nguy hiểm.,10.806543,106.714601,13.1,2026-11-02T17:39:29,False,STANDARD
+RPT-078,CLUST-016,EVT-016,ENVIRONMENT,Đường đầy cát bụi do công trình xây dựng gần đó không quét rửa bánh xe khi ra vào.,10.806689,106.714521,5.4,2026-11-01T16:21:09,False,STANDARD
+RPT-079,CLUST-016,EVT-016,ENVIRONMENT,Mặt đường Ung Văn Khiêm bụi bặm ô nhiễm không khí nặng vì đất cát rơi vương vãi kéo dài cả trăm mét.,10.806625,106.714506,5.5,2026-11-02T15:36:53,False,STANDARD
+RPT-080,CLUST-016,EVT-016,ENVIRONMENT,Cảnh sát trật tự cần xử lý xe ben chở đất cát làm vương vãi trên tuyến đường này.,10.806759,106.714494,13.6,2026-11-01T17:17:08,False,STANDARD
+RPT-081,CLUST-017,EVT-017,LIGHTING_ELECTRICAL,Bóng đèn cao áp chiếu sáng trước số 35 Võ Oanh bị cháy tắt tối om suốt 3 ngày nay.,10.803961,106.714433,12.5,2026-11-01T09:52:03,True,HIGH_LEXICAL_DIVERSITY
+RPT-082,CLUST-017,EVT-017,LIGHTING_ELECTRICAL,"Đoạn đường trước số 35 D3 cũ tối đen như mực do đèn đường bị hỏng, tiềm ẩn nguy cơ cướp giật.",10.803854,106.714432,2.0,2026-11-01T23:24:35,True,HIGH_LEXICAL_DIVERSITY
+RPT-083,CLUST-017,EVT-017,LIGHTING_ELECTRICAL,"Đèn đường chiếu sáng công cộng không hoạt động, ban đêm xe cộ đi lại rất khó quan sát.",10.803841,106.714536,9.5,2026-11-02T15:31:33,True,HIGH_LEXICAL_DIVERSITY
+RPT-084,CLUST-017,EVT-017,LIGHTING_ELECTRICAL,Cột đèn chiếu sáng đô thị số hiệu VT-12 bị mất điện tắt ngúm nhiều đêm liền.,10.803871,106.714574,13.8,2026-11-02T13:34:49,True,HIGH_LEXICAL_DIVERSITY
+RPT-085,CLUST-017,EVT-017,LIGHTING_ELECTRICAL,Đề nghị công ty chiếu sáng đô thị thay bóng đèn đường bị đứt tóc trước số 35 Võ Oanh.,10.803714,106.714641,25.8,2026-11-01T16:48:08,True,HIGH_LEXICAL_DIVERSITY
+RPT-086,CLUST-018,EVT-018,LIGHTING_ELECTRICAL,Búi dây cáp điện thoại và internet bị đứt thòng lòng xuống cách mặt đường chỉ hơn 1 mét ở đầu hẻm 27.,10.801106,106.713111,2.0,2026-11-01T18:45:03,False,STANDARD
+RPT-087,CLUST-018,EVT-018,LIGHTING_ELECTRICAL,Dây mạng chùng võng ngang đường quẹt trúng đầu người đi xe máy rất nguy hiểm.,10.801157,106.713092,4.2,2026-11-01T22:59:19,False,STANDARD
+RPT-088,CLUST-018,EVT-018,LIGHTING_ELECTRICAL,"Bó dây cáp lòng thòng như mạng nhện rớt xuống đường, có nguy cơ vướng vào thùng xe tải.",10.801308,106.713023,22.5,2026-11-01T13:02:13,False,STANDARD
+RPT-089,CLUST-018,EVT-018,LIGHTING_ELECTRICAL,Dây viễn thông bị chùng sát nóc xe ô tô ngay lối ra vào hẻm 27 Điện Biên Phủ.,10.801191,106.71325,18.2,2026-11-01T12:47:38,False,STANDARD
+RPT-090,CLUST-018,EVT-018,LIGHTING_ELECTRICAL,Đề nghị các nhà mạng bó gọn và kéo căng lại bó dây cáp đang rơi thõng nguy hiểm này.,10.801037,106.713223,16.4,2026-11-02T12:31:29,False,STANDARD
+RPT-091,CLUST-019,EVT-019,LIGHTING_ELECTRICAL,"Hộp điện sắt dưới chân cột đèn ngã ba D5 bị bật nắp lộ ruột dây điện trần, sợ bị giật khi trời mưa.",10.805825,106.716838,9.1,2026-11-02T05:10:50,False,STANDARD
+RPT-092,CLUST-019,EVT-019,LIGHTING_ELECTRICAL,"Cửa hộp đấu dây điện trụ thép bị mất nắp che, dây điện chằng chịt lòi ra ngoài sát tầm với trẻ em.",10.806,106.716922,12.7,2026-11-02T00:15:43,False,STANDARD
+RPT-093,CLUST-019,EVT-019,LIGHTING_ELECTRICAL,"Hộp điện chiếu sáng công cộng bị bung nắp rỉ sét, có dấu hiệu đánh lửa xẹt điện khi mưa ẩm.",10.805801,106.716993,15.0,2026-11-01T20:33:25,False,STANDARD
+RPT-094,CLUST-019,EVT-019,LIGHTING_ELECTRICAL,"Trụ điện góc D5 hở mối nối dây cáp điện sống, rất nguy hiểm cho người đi bộ mùa ngập úng.",10.805809,106.716754,17.4,2026-11-01T13:21:42,False,STANDARD
+RPT-095,CLUST-019,EVT-019,LIGHTING_ELECTRICAL,Báo khẩn cấp điện lực Bình Thạnh kiểm tra đóng nắp an toàn hộp kỹ thuật trụ điện góc D5.,10.805798,106.716886,10.3,2026-11-02T09:24:08,False,STANDARD
+RPT-096,CLUST-020,EVT-020,LIGHTING_ELECTRICAL,Bóng đèn cao áp trước cổng trường tiểu học cứ chớp nháy liên hồi như đèn vũ trường gây chói mắt người đi đường.,10.804438,106.715467,5.5,2026-11-02T08:16:21,False,STANDARD
+RPT-097,CLUST-020,EVT-020,LIGHTING_ELECTRICAL,Đèn đường bị chập rơ-le nhảy tanh tách nhấp nháy suốt đêm không đủ độ sáng.,10.804308,106.715189,28.2,2026-11-01T19:31:59,False,STANDARD
+RPT-098,CLUST-020,EVT-020,LIGHTING_ELECTRICAL,Đèn đường chiếu sáng trước trường Đống Đa bị hư hỏng bóng chập chờn lúc sáng lúc tắt.,10.804411,106.715445,2.9,2026-11-01T16:21:23,False,STANDARD
+RPT-099,CLUST-020,EVT-020,LIGHTING_ELECTRICAL,Hệ thống chiếu sáng công cộng khu vực này chập chờn gây mất an toàn giao thông lúc tan tầm.,10.804342,106.715438,8.9,2026-11-02T01:33:41,False,STANDARD
+RPT-100,CLUST-020,EVT-020,LIGHTING_ELECTRICAL,Đề nghị sửa chữa bóng đèn đường đang bị hư chập chờn trên đường Nguyễn Gia Trí.,10.804371,106.715342,10.1,2026-11-01T18:55:57,False,STANDARD
+RPT-101,CLUST-021,EVT-021,LIGHTING_ELECTRICAL,Cột điện bê tông trước hẻm số 8 Võ Oanh bị rạn nứt gốc và nghiêng hẳn về phía nhà dân.,10.803283,106.71391,17.8,2026-11-01T19:51:52,False,STANDARD
+RPT-102,CLUST-021,EVT-021,LIGHTING_ELECTRICAL,"Trụ điện chịu tải quá nhiều dây cáp nên bị kéo nghiêng khoảng 15 độ, nhìn rất ghê.",10.803193,106.713879,8.0,2026-11-01T10:37:02,False,STANDARD
+RPT-103,CLUST-021,EVT-021,LIGHTING_ELECTRICAL,"Chân cột điện bị nứt toác bê tông lòi sắt sau vụ va quẹt, trụ có xu hướng đổ ngã khi mưa bão.",10.803018,106.713707,19.2,2026-11-02T16:00:53,False,STANDARD
+RPT-104,CLUST-021,EVT-021,LIGHTING_ELECTRICAL,Cột điện xiêu vẹo đe dọa an toàn tính mạng người dân sinh sống gần hẻm số 8.,10.803143,106.713783,4.1,2026-11-01T22:26:21,False,STANDARD
+RPT-105,CLUST-021,EVT-021,LIGHTING_ELECTRICAL,Đề nghị cơ quan điện lực gia cố hoặc dựng cột điện mới thay thế cột đang nghiêng nguy hiểm.,10.803156,106.71398,17.5,2026-11-02T11:17:01,False,STANDARD
+RPT-106,CLUST-022,EVT-022,LIGHTING_ELECTRICAL,Tủ điện phân phối gần trạm dừng xe buýt phát ra tiếng nổ lẹt đẹt và bốc khói khét lẹt.,10.801857,106.711509,4.6,2026-11-01T16:39:33,True,HIGH_LEXICAL_DIVERSITY
+RPT-107,CLUST-022,EVT-022,LIGHTING_ELECTRICAL,"Hộp công tơ điện bị chập cháy xém vỏ nhựa đen sì, có mùi khét lẹt bốc ra nồng nặc.",10.802004,106.711601,18.1,2026-11-02T00:58:34,True,HIGH_LEXICAL_DIVERSITY
+RPT-108,CLUST-022,EVT-022,LIGHTING_ELECTRICAL,"Tủ trạm điện hạ thế có hiện tượng chập điện bốc khói, nguy cơ bùng phát cháy nổ cao.",10.801692,106.711268,35.5,2026-11-02T19:34:34,True,HIGH_LEXICAL_DIVERSITY
+RPT-109,CLUST-022,EVT-022,LIGHTING_ELECTRICAL,Phát hiện tủ điện ven đường xẹt tia lửa điện và khói đen ngùn ngụt lúc trời chuyển mưa.,10.802023,106.711493,20.3,2026-11-02T10:10:28,True,HIGH_LEXICAL_DIVERSITY
+RPT-110,CLUST-022,EVT-022,LIGHTING_ELECTRICAL,Cần lực lượng PCCC và điện lực ngắt điện xử lý sự cố chập cháy tủ điện khẩn cấp.,10.801894,106.711469,10.2,2026-11-02T04:10:31,True,HIGH_LEXICAL_DIVERSITY
+RPT-111,CLUST-023,EVT-023,LIGHTING_ELECTRICAL,Dây đèn led trang trí giăng ngang đường D5 bị đứt một đầu rớt thõng xuống quẹt vào nóc xe buýt.,10.805118,106.716499,5.6,2026-11-01T17:39:12,False,STANDARD
+RPT-112,CLUST-023,EVT-023,LIGHTING_ELECTRICAL,"Dây điện đèn lồng trang trí đung đưa sát nóc xe tải, người dân phải lấy cây gác tạm lên.",10.805132,106.716423,14.0,2026-11-02T03:14:43,False,STANDARD
+RPT-113,CLUST-023,EVT-023,LIGHTING_ELECTRICAL,Dải đèn led giăng cổng chào bị đứt lòng thòng giữa đường có thể giật điện người đi mưa.,10.805103,106.716661,12.3,2026-11-01T18:30:36,False,STANDARD
+RPT-114,CLUST-023,EVT-023,LIGHTING_ELECTRICAL,Đèn trang trí lễ hội đứt dây treo lơ lửng giữa tim đường cản trở lưu thông xe cộ.,10.805231,106.71646,15.7,2026-11-01T11:49:12,False,STANDARD
+RPT-115,CLUST-023,EVT-023,LIGHTING_ELECTRICAL,Ban điều hành khu phố cần cho người hạ giải hoặc căng lại dây đèn trang trí bị đứt.,10.805127,106.71661,6.6,2026-11-01T11:14:52,False,STANDARD
+RPT-116,CLUST-024,EVT-024,ORDER_SECURITY,"Các hộ tiểu thương kê sạp rau củ, dù bạt lấn chiếm ra tận tim đường hẻm 15 gây ùn tắc giao thông giờ cao điểm.",10.803429,106.714188,4.8,2026-11-02T01:18:26,True,COLOCATED_DIFFERENT_CATEGORY
+RPT-117,CLUST-024,EVT-024,ORDER_SECURITY,"Hàng quán buôn bán tràn xuống lòng đường Võ Oanh, xe máy không còn lối đi lọt.",10.803455,106.714168,2.0,2026-11-02T05:26:34,True,COLOCATED_DIFFERENT_CATEGORY
+RPT-118,CLUST-024,EVT-024,ORDER_SECURITY,Chợ tự phát tụ tập buôn bán cá thịt lấn hết vỉa hè và xả nước tanh hôi ra đường.,10.803491,106.714098,7.3,2026-11-02T11:47:44,True,COLOCATED_DIFFERENT_CATEGORY
+RPT-119,CLUST-024,EVT-024,ORDER_SECURITY,Tình trạng họp chợ lấn chiếm hành lang an toàn giao thông nghiêm trọng tại đầu hẻm 15 D3.,10.803227,106.714183,25.1,2026-11-01T22:38:58,True,COLOCATED_DIFFERENT_CATEGORY
+RPT-120,CLUST-024,EVT-024,ORDER_SECURITY,Đội trật tự đô thị phường 25 cần ra quân chấn chỉnh giải tỏa các sạp hàng lấn chiếm này.,10.803316,106.714117,15.3,2026-11-02T10:42:43,True,COLOCATED_DIFFERENT_CATEGORY
+RPT-121,CLUST-025,EVT-025,ORDER_SECURITY,Quán cà phê tự ý căng dây giữ hàng trăm chiếc xe máy chiếm trọn vỉa hè người đi bộ trước số 44.,10.804476,106.715356,8.3,2026-11-01T22:36:36,False,STANDARD
+RPT-122,CLUST-025,EVT-025,ORDER_SECURITY,Bãi giữ xe trái phép đẩy người đi bộ và sinh viên phải đi bộ dưới lòng đường xe chạy rầm rập.,10.804509,106.715095,28.3,2026-11-02T14:25:03,False,STANDARD
+RPT-123,CLUST-025,EVT-025,ORDER_SECURITY,Vỉa hè bị chiếm dụng 100% để làm bãi đỗ xe máy của các hàng quán kinh doanh.,10.804568,106.715348,2.0,2026-11-02T05:42:58,False,STANDARD
+RPT-124,CLUST-025,EVT-025,ORDER_SECURITY,"Hàng xe máy đậu kín mít bậc tam cấp vỉa hè, không còn một khoảng trống nào cho người đi bộ.",10.804579,106.715367,3.7,2026-11-02T00:00:05,False,STANDARD
+RPT-125,CLUST-025,EVT-025,ORDER_SECURITY,Yêu cầu xử lý dứt điểm hành vi lấn chiếm vỉa hè công cộng làm nơi kinh doanh giữ xe có thu tiền.,10.804615,106.715495,17.5,2026-11-02T00:54:52,False,STANDARD
+RPT-126,CLUST-026,EVT-026,ORDER_SECURITY,Nhà đang xây dựng đổ đống cát đá và sắt thép chiếm hết vỉa hè và lấn luôn nửa làn đường Ung Văn Khiêm.,10.806362,106.717276,19.1,2026-11-01T22:16:09,False,STANDARD
+RPT-127,CLUST-026,EVT-026,ORDER_SECURITY,"Vật liệu xây dựng gạch ngói tập kết ngổn ngang không che chắn, bít kín lối ra vào của người dân.",10.806347,106.717629,19.6,2026-11-02T03:52:46,False,STANDARD
+RPT-128,CLUST-026,EVT-026,ORDER_SECURITY,Công trình xây dựng lấn chiếm lòng lề đường làm bãi tập kết vật tư gây cản trở giao thông nghiêm trọng.,10.80637,106.717575,13.8,2026-11-01T11:24:05,False,STANDARD
+RPT-129,CLUST-026,EVT-026,ORDER_SECURITY,Cát đá xây dựng tràn xuống đường khiến người đi xe máy thường xuyên bị trượt té ngã.,10.806352,106.717392,6.3,2026-11-01T09:42:47,False,STANDARD
+RPT-130,CLUST-026,EVT-026,ORDER_SECURITY,Đề nghị thanh tra xây dựng phường kiểm tra và yêu cầu chủ hộ dọn dẹp vật liệu vào trong khuôn viên đất.,10.806355,106.717524,8.1,2026-11-02T01:34:28,False,STANDARD
+RPT-131,CLUST-027,EVT-027,ORDER_SECURITY,Biển quảng cáo hộp đèn của cửa hàng tiện lợi đặt ngay mũi tàu góc cua che khuất toàn bộ tầm nhìn của xe cộ.,10.804874,106.71593,5.5,2026-11-02T11:50:29,False,STANDARD
+RPT-132,CLUST-027,EVT-027,ORDER_SECURITY,Bảng hiệu đứng dựng chình ình dưới lòng đường góc cua rất dễ gây va chạm giao thông đối đầu.,10.804808,106.715861,15.8,2026-11-02T18:43:50,False,STANDARD
+RPT-133,CLUST-027,EVT-027,ORDER_SECURITY,Biển hiệu pano quảng cáo đặt sai quy định lấn ra sát mép đường xe chạy.,10.804929,106.715897,5.9,2026-11-02T05:15:14,False,STANDARD
+RPT-134,CLUST-027,EVT-027,ORDER_SECURITY,Tầm nhìn tại khúc cua nguy hiểm bị chặn đứng bởi hàng loạt biển hiệu quảng cáo di động.,10.804776,106.715874,18.1,2026-11-02T16:46:51,False,STANDARD
+RPT-135,CLUST-027,EVT-027,ORDER_SECURITY,Tổ trật tự đô thị cần tịch thu các biển quảng cáo đặt sai quy định che tầm nhìn ở góc cua D5.,10.804797,106.716045,17.2,2026-11-02T09:10:17,False,STANDARD
+RPT-136,CLUST-028,EVT-028,ORDER_SECURITY,Xe tải trọng lớn thường xuyên đậu chiếm trọn làn đường Ung Văn Khiêm vào giờ tan tầm để bốc dỡ hàng.,10.806602,106.71699,7.3,2026-11-02T12:02:12,False,STANDARD
+RPT-137,CLUST-028,EVT-028,ORDER_SECURITY,Xe tải dừng đỗ trái phép giữa ban ngày gây kẹt xe kéo dài từ cầu Sài Gòn tới ngã năm.,10.806561,106.716914,4.2,2026-11-02T03:38:45,False,STANDARD
+RPT-138,CLUST-028,EVT-028,ORDER_SECURITY,Hoạt động giao nhận hàng hóa chiếm dụng lòng đường hẹp làm tê liệt giao thông cục bộ.,10.806651,106.716998,12.4,2026-11-02T07:39:50,False,STANDARD
+RPT-139,CLUST-028,EVT-028,ORDER_SECURITY,Tài xế xe tải ngang nhiên đậu xe ngược chiều bốc hàng bất chấp biển cấm dừng đỗ.,10.806578,106.716911,5.3,2026-11-02T18:37:39,False,STANDARD
+RPT-140,CLUST-028,EVT-028,ORDER_SECURITY,Cảnh sát giao thông và trật tự phường cần xử phạt xe tải đỗ chiếm đường gây ùn tắc tại số 95.,10.806516,106.716825,14.2,2026-11-02T00:14:31,False,STANDARD
+RPT-141,CLUST-029,EVT-029,ORDER_SECURITY,"Một hộ dân dựng rạp liên hoan đám tiệc chiếm hết toàn bộ chiều rộng con hẻm 36, xe cộ không thể qua lại.",10.804095,106.714709,23.2,2026-11-02T01:16:14,False,STANDARD
+RPT-142,CLUST-029,EVT-029,ORDER_SECURITY,"Khung sắt rạp tiệc dựng bít bùng lối thoát hiểm của cả khu phố, nếu có sự cố cháy nổ xe cứu hỏa không vào được.",10.80422,106.714913,7.7,2026-11-01T17:35:32,False,STANDARD
+RPT-143,CLUST-029,EVT-029,ORDER_SECURITY,Rạp đám chiếm trọn lòng hẻm đi lại của bà con từ sáng đến đêm kèm loa đài ồn ào.,10.804247,106.714868,2.0,2026-11-02T04:56:41,False,STANDARD
+RPT-144,CLUST-029,EVT-029,ORDER_SECURITY,Tình trạng dựng rạp sinh hoạt cá nhân cản trở lưu thông chung của cả trăm hộ dân trong hẻm.,10.804145,106.715027,22.6,2026-11-02T02:18:02,False,STANDARD
+RPT-145,CLUST-029,EVT-029,ORDER_SECURITY,Tổ dân phố và công an phường cần can thiệp yêu cầu gia đình thu hẹp rạp chừa lối đi cho cư dân.,10.80431,106.714983,16.0,2026-11-01T20:54:42,False,STANDARD
+RPT-146,CLUST-030,EVT-030,ORDER_SECURITY,"Từ 18h tối các quán nhậu bày bàn ghế nhựa tràn ngập toàn bộ vỉa hè, khách nhậu ngồi lấn xuống lòng đường Võ Oanh.",10.803742,106.714673,24.7,2026-11-02T03:04:55,False,STANDARD
+RPT-147,CLUST-030,EVT-030,ORDER_SECURITY,"Quán nhậu chiếm dụng hè phố làm nơi kinh doanh ăn uống, người đi bộ bị xua đuổi xuống lòng đường.",10.804012,106.714788,8.0,2026-11-02T11:32:08,False,STANDARD
+RPT-148,CLUST-030,EVT-030,ORDER_SECURITY,"Bàn ghế, lò nướng khói nghi ngút bày la liệt chiếm hết không gian công cộng ven đường.",10.803908,106.714694,7.8,2026-11-02T02:10:43,False,STANDARD
+RPT-149,CLUST-030,EVT-030,ORDER_SECURITY,"Vỉa hè bị tư nhân hóa thành quán nhậu bia bọt ồn ào, xe khách đậu kín lòng đường.",10.803991,106.714778,5.5,2026-11-01T19:43:01,False,STANDARD
+RPT-150,CLUST-030,EVT-030,ORDER_SECURITY,"Đề nghị UBND Phường kiểm tra lập lại trật tự đô thị, trả lại vỉa hè thông thoáng cho người dân đi bộ.",10.803745,106.714785,23.2,2026-11-02T03:34:56,False,STANDARD
