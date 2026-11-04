@@ -43,7 +43,7 @@
 - [x] **Task 2.3:** Xây dựng các Entity JPA và Spring Data JPA Repositories tương ứng (`AdminProcedure`, `LegalChunk`, `IssueCluster`, `CivicReport`, `FormSubmission`, `VaultDocument`).
 - [x] **Task 2.4:** Hiện thực hóa `LegalChunkingService` để băm nhỏ văn bản theo cấu trúc *Chương $\rightarrow$ Điều $\rightarrow$ Khoản $\rightarrow$ Điểm* kèm metadata (`effective_date`, `status = ACTIVE`) và viết Unit Test đạt 100% test pass.
 - [x] **Task 2.5:** Viết Seeder `ProcedureDataSeeder` nạp toàn bộ 40 TTHC và các đoạn chunk từ `classpath:db/seed/procedures/*.json` vào CSDL PostgreSQL.
-- [ ] **Task 2.6:** Soạn thảo Chương 2 Báo cáo (Lý giải kiến trúc Modular Monolith, Thiết kế CSDL quan hệ kết hợp pgvector) theo [`docs/architecture-and-flows.md`](docs/architecture-and-flows.md).
+- [x] **Task 2.6:** Soạn thảo Chương 2 Báo cáo (Lý giải kiến trúc Modular Monolith, Thiết kế CSDL quan hệ kết hợp pgvector) theo [`docs/architecture/ARCHITECTURE_AND_FLOWS.md`](docs/architecture/ARCHITECTURE_AND_FLOWS.md).
 - [ ] **Task 2.7:** Viết Báo cáo Tiến độ Tuần 2 nộp GVHD và Mentor.
 
 ---
@@ -164,7 +164,7 @@
 ---
 
 ### 📌 TUẦN 12: SLIDE THUYẾT TRÌNH, VIDEO DEMO & BẢO VỆ TỐT NGHIỆP
-- [ ] **Task 12.1:** Thiết kế bộ 10 Slide thuyết trình chuẩn học thuật theo khung trong [`docs/experimental-design-and-defense.md`](docs/experimental-design-and-defense.md).
+- [ ] **Task 12.1:** Thiết kế bộ 10 Slide thuyết trình chuẩn học thuật theo khung trong [`docs/defense/DEFENSE_PRESENTATION_AND_DEMO.md`](docs/defense/DEFENSE_PRESENTATION_AND_DEMO.md).
 - [ ] **Task 12.2:** Xây dựng kịch bản Demo trực tiếp 3 phút (3 ca: RAG từ chối câu hỏi bẫy, Rule Engine phát hiện lỗi tờ khai, Triage tự gộp 2 phản ánh trùng).
 - [ ] **Task 12.3:** Quay video demo dự phòng (Backup Video Demo) phòng sự cố mất điện/mất mạng tại phòng hội đồng.
 - [ ] **Task 12.4:** Luyện tập trả lời thành thạo 6 câu hỏi phản biện then chốt của Hội đồng chấm tốt nghiệp UTH.
@@ -177,7 +177,7 @@
 
 ## 3. GIAI ĐOẠN MỞ RỘNG 8 TUẦN (W13–W20) — SmartWard AI 2.0 (LỘ TRÌNH TINH GỌN THỰC TẾ)
 
-> Chi tiết kỹ thuật & phân tích khả thi: [`docs/EXPANSION_ROADMAP.md`](docs/EXPANSION_ROADMAP.md)
+> Chi tiết kỹ thuật & phân tích khả thi: [`docs/roadmap/EXPANSION_ROADMAP_2.0.md`](docs/roadmap/EXPANSION_ROADMAP_2.0.md) | [Mục lục Tài liệu](docs/README.md)
 
 ### 📌 TUẦN 13: MULTI-WARD REGISTRY & ONBOARDING FLOW (WEB)
 - [ ] **Task 13.1:** Migration `V7__ward_registry.sql` (bảng `ward_registry`, `ward_operating_hours`). Seed dữ liệu 10 phường Quận Bình Thạnh (GPS centroid + GeoJSON boundary).

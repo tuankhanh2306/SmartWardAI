@@ -98,9 +98,12 @@ SmartWardAI/
 │   ├── results/              # Kết quả đo đạc lưu dưới dạng CSV / JSON
 │   └── charts/               # Biểu đồ PR curve, Hallucination chart phục vụ Báo cáo & Slide
 ├── data-pipeline/            # Pipeline thu thập & làm sạch 40 TTHC từ Cổng DVCQG
-├── docs/                     # Báo cáo Học kỳ Doanh nghiệp UTH, Kiến trúc, Slide
-│   ├── thesis-chapters/      # Bản thảo Chương 1, Chương 2 Báo cáo nộp GVHD
-│   └── weekly-reports/       # Báo cáo tiến độ tuần theo chuẩn mẫu UTH
+├── docs/                     # Hệ thống tài liệu toàn diện (Xem docs/README.md)
+│   ├── thesis-chapters/      # 5 Chương Khóa luận tốt nghiệp & Báo cáo toàn văn UTH
+│   ├── defense/              # 10 Slide bảo vệ, Kịch bản Demo 3 phút & Bộ Q&A phản biện
+│   ├── architecture/         # Đặc tả 7 REST APIs, CSDL, Luồng dữ liệu, Ràng buộc RAM
+│   ├── roadmap/              # Lộ trình 12 tuần cơ sở & Mở rộng SmartWard AI 2.0 (8 tuần)
+│   └── weekly-reports/       # Nhật ký 11 tuần thực tập tại Viettel An Giang & UTH
 ├── docker-compose.yml        # PostgreSQL 16 (pgvector), Redis 7, MinIO (< 1.0 GB RAM)
 ├── .env.example              # Mẫu cấu hình biến môi trường
 └── README.md                 # Tài liệu hướng dẫn tổng quan dự án
@@ -193,12 +196,18 @@ Hệ thống được tích hợp sẵn lớp giả lập AI tất định `Dete
 
 ## 7. Bản Đồ Tài Liệu Chi Tiết (Documentation Map)
 
-| Tài liệu | Đường dẫn | Nội dung & Ứng dụng |
+> 💡 **Khuyến nghị:** Mở **[`docs/README.md`](docs/README.md)** để xem Bản đồ tài liệu toàn diện kèm chỉ mục tra cứu nhanh theo mục đích.
+
+| Nhóm Tài liệu | Đường dẫn chi tiết | Nội dung & Mục đích ứng dụng |
 | :--- | :--- | :--- |
-| **Báo cáo Chương 1** | [`docs/thesis-chapters/chapter-01.md`](file:///e:/SmartWardAI/docs/thesis-chapters/chapter-01.md) | Bối cảnh thực tiễn, 3 RQ, Bảng phân định đóng góp học thuật. |
-| **Báo cáo Chương 2** | [`docs/thesis-chapters/chapter-02.md`](file:///e:/SmartWardAI/docs/thesis-chapters/chapter-02.md) | Lý giải kiến trúc Modular Monolith, Thiết kế CSDL 6 bảng & HNSW pgvector. |
-| **Đặc tả Kỹ thuật** | [`docs/SPEC.md`](file:///e:/SmartWardAI/docs/SPEC.md) | Đặc tả 7 REST APIs, cấu trúc package, ràng buộc dữ liệu. |
-| **Thiết kế Thực nghiệm** | [`docs/experimental-design-and-defense.md`](file:///e:/SmartWardAI/docs/experimental-design-and-defense.md) | Grid search $(R, \tau)$, phân tích lỗi, 6 câu hỏi phản biện & 10 slide bảo vệ. |
-| **Cẩm nang Phản biện & Q&A** | [`docs/SYSTEM_DESIGN_RATIONALE_AND_DEFENSE_QA.md`](file:///e:/SmartWardAI/docs/SYSTEM_DESIGN_RATIONALE_AND_DEFENSE_QA.md) | Lý giải toàn bộ công nghệ được chọn vs bị bác bỏ, bộ 10 câu hỏi đối kháng. |
-| **Lộ trình 12 tuần** | [`docs/ROADMAP.md`](file:///e:/SmartWardAI/docs/ROADMAP.md) & [`TODO.md`](file:///e:/SmartWardAI/TODO.md) | Kế hoạch triển khai chi tiết từng tuần đồng bộ code và báo cáo UTH. |
-| **Quy chuẩn Git** | [`docs/GIT_WORKFLOW.md`](file:///e:/SmartWardAI/docs/GIT_WORKFLOW.md) | Quy chuẩn Conventional Commits 1.0.0, Branching Strategy & Tagging. |
+| **Trung tâm Điều hướng** | [`docs/README.md`](docs/README.md) | Bản đồ tra cứu nhanh toàn bộ tài liệu dự án. |
+| **Báo cáo Toàn văn UTH** | [`docs/thesis-chapters/FULL_THESIS_REPORT_UTH.md`](docs/thesis-chapters/FULL_THESIS_REPORT_UTH.md) | Toàn văn 5 chương khóa luận tốt nghiệp theo chuẩn quy cách UTH. |
+| **Slide & Kịch bản Demo** | [`docs/defense/DEFENSE_PRESENTATION_AND_DEMO.md`](docs/defense/DEFENSE_PRESENTATION_AND_DEMO.md) | Khung 10 Slide thuyết trình & Kịch bản Demo 3 phút có kịch bản dự phòng. |
+| **Cẩm nang Phản biện Q&A** | [`docs/defense/DEFENSE_QA_AND_RATIONALE.md`](docs/defense/DEFENSE_QA_AND_RATIONALE.md) | Lý giải công nghệ lựa chọn vs bác bỏ, 6 câu hỏi phản biện hội đồng UTH. |
+| **Đánh giá Độc lập Đồ án** | [`docs/defense/PROJECT_DEFENSE_REVIEW.md`](docs/defense/PROJECT_DEFENSE_REVIEW.md) | Báo cáo kiểm định 8 khía cạnh kỹ thuật, học thuật và bảo mật NĐ 13. |
+| **Đặc tả Kỹ thuật API/DB** | [`docs/architecture/SYSTEM_SPECIFICATION.md`](docs/architecture/SYSTEM_SPECIFICATION.md) | Đặc tả 7 REST APIs, cấu trúc Entity, HNSW index và cấu trúc bảng. |
+| **Kiến trúc & Luồng Dữ liệu** | [`docs/architecture/ARCHITECTURE_AND_FLOWS.md`](docs/architecture/ARCHITECTURE_AND_FLOWS.md) | Sơ đồ tuần tự (Sequence Diagram), luồng RAG, Triage 2 pha, Vault. |
+| **Ràng buộc Phần cứng** | [`docs/architecture/PROJECT_CONSTRAINTS.md`](docs/architecture/PROJECT_CONSTRAINTS.md) | Quy định trần RAM ≤ 2.0GB, Zero-Cost 0 VNĐ, bảo vệ dữ liệu cá nhân. |
+| **Lộ trình Mở rộng 2.0** | [`docs/roadmap/EXPANSION_ROADMAP_2.0.md`](docs/roadmap/EXPANSION_ROADMAP_2.0.md) | Kế hoạch 8 tuần mở rộng Multi-Ward, Quét QR CCCD, Bi-Encoder Colab. |
+| **Lộ trình 12 tuần Cơ sở** | [`docs/roadmap/BASELINE_ROADMAP_12W.md`](docs/roadmap/BASELINE_ROADMAP_12W.md) & [`TODO.md`](TODO.md) | Tiến độ 12 tuần hoàn thành đồ án tốt nghiệp UTH. |
+| **Quy chuẩn Git** | [`docs/architecture/GIT_WORKFLOW.md`](docs/architecture/GIT_WORKFLOW.md) | Quy chuẩn Conventional Commits, phân nhánh và đóng gói release. |
