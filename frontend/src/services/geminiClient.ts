@@ -8,7 +8,7 @@ import { searchLegalKnowledge, type LegalProcedureItem } from './legalKnowledgeB
 import { type RagResponse, type LegalCitation } from '../api/client';
 
 const GEMINI_API_STORAGE_KEY = 'smartward_gemini_api_key';
-const DEFAULT_MODEL = 'gemini-1.5-flash';
+const DEFAULT_MODEL = 'gemini-2.5-flash';
 
 export function getGeminiApiKey(): string {
   const localKey = localStorage.getItem(GEMINI_API_STORAGE_KEY);
