@@ -5,7 +5,7 @@ interface WardContextType {
   currentWard: WardItem;
   setWard: (ward: WardItem) => void;
   allWards: WardItem[];
-  searchWards: (keyword: string, filterType?: 'ALL' | 'Phường' | 'Xã' | 'Thị trấn') => WardItem[];
+  searchWards: (keyword: string, filterType?: 'ALL' | 'Phường' | 'Xã' | 'Thị trấn' | 'Đặc khu') => WardItem[];
   isOfficeOpen: boolean;
 }
 

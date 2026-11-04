@@ -20,7 +20,7 @@ export const WardOnboarding: React.FC = () => {
   const { currentWard, setWard, searchWards, isOfficeOpen } = useWard();
 
   const [keyword, setKeyword] = useState('');
-  const [filterType, setFilterType] = useState<'ALL' | 'Phường' | 'Xã' | 'Thị trấn'>('ALL');
+  const [filterType, setFilterType] = useState<'ALL' | 'Phường' | 'Xã' | 'Đặc khu'>('ALL');
   const [selected, setSelected] = useState<WardItem>(currentWard);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -121,7 +121,7 @@ export const WardOnboarding: React.FC = () => {
               Định Vị Địa Bàn Thường Trú & Điểm Tiếp Dân Một Cửa
             </h1>
             <p className="mt-1.5 text-xs sm:text-sm text-[#444651] max-w-2xl leading-relaxed">
-              Chọn trực tiếp xã, phường hoặc thị trấn của bạn tại tỉnh An Giang. Toàn bộ thủ tục hành chính, trợ lý AI tư vấn và phản ánh sự cố đô thị sẽ được liên kết trực tiếp với UBND địa phương tương ứng.
+              Hệ thống 96 đơn vị hành chính trực thuộc Tỉnh An Giang (14 Phường • 79 Xã • 3 Đặc khu) phẳng hóa hoàn toàn, kết nối hạ tầng số cùng Viettel An Giang. Toàn bộ thủ tục hành chính, trợ lý AI tư vấn và phản ánh thực địa liên kết trực tiếp với UBND địa phương tương ứng.
             </p>
           </div>
 
@@ -148,14 +148,14 @@ export const WardOnboarding: React.FC = () => {
               type="text"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              placeholder="Gõ tên xã, phường (VD: Mỹ Bình, Mỹ Hòa Hưng, Núi Sập...)"
+              placeholder="Gõ tên xã, phường, đặc khu (VD: Phú Quốc, Long Xuyên, Ba Chúc, An Phú...)"
               className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl bg-[#F2F3FF]/70 border border-[#DAE2FD] focus:outline-hidden focus:border-[#00236F] focus:bg-white text-[#131B2E] transition-all"
             />
           </div>
 
           {/* Filter Type Pills */}
           <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
-            {(['ALL', 'Phường', 'Xã', 'Thị trấn'] as const).map((type) => (
+            {(['ALL', 'Phường', 'Xã', 'Đặc khu'] as const).map((type) => (
               <button
                 key={type}
                 onClick={() => setFilterType(type)}
