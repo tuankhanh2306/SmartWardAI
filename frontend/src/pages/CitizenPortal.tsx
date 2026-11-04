@@ -106,6 +106,8 @@ export const CitizenPortal: React.FC = () => {
       const resp = await askLegalRag(q, 3, {
         wardName: `${currentWard.name}, ${currentWard.province}`,
         officeAddress: currentWard.officeAddress,
+        phoneNumber: currentWard.phoneNumber,
+        workingHours: currentWard.workingHours,
       });
       const botMsg: ChatMessage = {
         id: `msg-${Date.now()}-bot`,

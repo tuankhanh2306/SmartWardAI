@@ -150,6 +150,50 @@ class RagQueryServiceTest {
     }
 
     @Test
+    void testAskQuestion_whenGreetingQuery_shouldReturnFriendlyGreetingWithoutLLM() {
+        when(redisRateLimiter.isAllowed(anyString())).thenReturn(true);
+        when(queryCacheService.getCachedResponse(anyString(), eq(RagAskResponse.class))).thenReturn(Optional.empty());
+
+        RagAskRequest request = RagAskRequest.builder()
+                .question("hi")
+                .wardName("Xã An Phú, Tỉnh An Giang")
+                .officeAddress("Đường Thoại Ngọc Hầu, Xã An Phú")
+                .build();
+
+        RagAskResponse response = ragQueryService.askQuestion(request, "127.0.0.1");
+
+        assertNotNull(response);
+        assertFalse(response.isAbstained(), "Greetings must NOT be abstained");
+        assertEquals(1.0, response.getMaxSimilarity());
+        assertTrue(response.getAnswer().contains("Xin chào! Tôi là Trợ lý Pháp lý Một Cửa tại Xã An Phú, Tỉnh An Giang"));
+        assertTrue(response.getAnswer().contains("Đăng ký khai sinh, kết hôn, khai tử"));
+        verifyNoInteractions(aiModelClient);
+        verify(chunkRepository, never()).findTopKSimilarChunksWithMetadata(anyString(), anyInt());
+    }
+
+    @Test
+    void testAskQuestion_whenWardOfficeQuery_shouldReturnWardOfficeInfoWithoutLLM() {
+        when(redisRateLimiter.isAllowed(anyString())).thenReturn(true);
+        when(queryCacheService.getCachedResponse(anyString(), eq(RagAskResponse.class))).thenReturn(Optional.empty());
+
+        RagAskRequest request = RagAskRequest.builder()
+                .question("trụ sở ủy ban ở đâu và mấy giờ làm việc?")
+                .wardName("Phường Mỹ Thới")
+                .officeAddress("123 Trần Hưng Đạo, Phường Mỹ Thới")
+                .build();
+
+        RagAskResponse response = ragQueryService.askQuestion(request, "127.0.0.1");
+
+        assertNotNull(response);
+        assertFalse(response.isAbstained());
+        assertEquals(1.0, response.getMaxSimilarity());
+        assertTrue(response.getAnswer().contains("Phường Mỹ Thới"));
+        assertTrue(response.getAnswer().contains("123 Trần Hưng Đạo, Phường Mỹ Thới"));
+        assertTrue(response.getAnswer().contains("Giờ tiếp nhận và trả kết quả"));
+        verifyNoInteractions(aiModelClient);
+    }
+
+    @Test
     void testPostVerifyCitations_shouldFilterHallucinatedChunkCodes() {
         LegalChunkMatch validChunk = createMockChunkMatch("KS-01-DK", "Khai sinh", "Hồ sơ", "Nội dung", "Luật", 0.85);
 

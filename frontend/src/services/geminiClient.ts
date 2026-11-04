@@ -5,17 +5,24 @@
  */
 
 import { searchLegalKnowledge, type LegalProcedureItem } from './legalKnowledgeBase';
+import { isGreetingQuery, isWardOfficeQuery, checkOutOfScopeQuery } from './intentClassifier';
 import { type RagResponse, type LegalCitation } from '../api/client';
 
 const GEMINI_API_STORAGE_KEY = 'smartward_gemini_api_key';
 const DEFAULT_MODEL = 'gemini-2.5-flash';
 
 export function getGeminiApiKey(): string {
-  const localKey = localStorage.getItem(GEMINI_API_STORAGE_KEY);
-  if (localKey && localKey.trim()) {
-    return localKey.trim();
+  if (typeof localStorage !== 'undefined') {
+    const localKey = localStorage.getItem(GEMINI_API_STORAGE_KEY);
+    if (localKey && localKey.trim()) {
+      return localKey.trim();
+    }
   }
-  const envKey = (import.meta as any).env?.VITE_GEMINI_API_KEY;
+  const globalEnv = (globalThis as any)?.process?.env;
+  const envKey =
+    (import.meta as any).env?.VITE_GEMINI_API_KEY ||
+    globalEnv?.VITE_GEMINI_API_KEY ||
+    globalEnv?.GEMINI_API_KEY;
   if (envKey && typeof envKey === 'string' && envKey.trim()) {
     return envKey.trim();
   }
@@ -23,10 +30,12 @@ export function getGeminiApiKey(): string {
 }
 
 export function setGeminiApiKey(key: string): void {
-  if (key && key.trim()) {
-    localStorage.setItem(GEMINI_API_STORAGE_KEY, key.trim());
-  } else {
-    localStorage.removeItem(GEMINI_API_STORAGE_KEY);
+  if (typeof localStorage !== 'undefined') {
+    if (key && key.trim()) {
+      localStorage.setItem(GEMINI_API_STORAGE_KEY, key.trim());
+    } else {
+      localStorage.removeItem(GEMINI_API_STORAGE_KEY);
+    }
   }
 }
 
@@ -66,35 +75,108 @@ export async function testGeminiConnection(key?: string): Promise<{ success: boo
   }
 }
 
+export interface WardContextInfo {
+  wardName?: string;
+  officeAddress?: string;
+  phoneNumber?: string;
+  workingHours?: string;
+}
+
 /**
  * Grounded RAG Generation using Gemini Flash ("Gemini Mini")
  * Combines natural reasoning with strict SmartWard AI administrative legal database.
  */
 export async function askGeminiWithRAG(
   query: string,
-  wardContext: { wardName?: string; officeAddress?: string } = {}
+  wardContext: WardContextInfo = {}
 ): Promise<RagResponse> {
-  const apiKey = getGeminiApiKey();
-  if (!apiKey) {
-    throw new Error('Chưa cấu hình Gemini API Key.');
+  const startTime = performance.now();
+  const wardName = wardContext.wardName || 'UBND Xã/Phường';
+  const officeAddress = wardContext.officeAddress || 'Trụ sở Bộ phận Tiếp nhận và Trả kết quả (Một cửa)';
+  const phoneNumber = wardContext.phoneNumber || '18001096';
+  const workingHours = wardContext.workingHours || 'Sáng: 07:30 – 11:30 | Chiều: 13:30 – 17:00 (Thứ 2 – Thứ 6)';
+
+  // 1. Natural Conversational Intent: Greeting & Introduction
+  if (isGreetingQuery(query)) {
+    const elapsed = Math.round(performance.now() - startTime);
+    return {
+      answer:
+        `Xin chào! Tôi là Trợ lý Pháp lý Một Cửa tại UBND ${wardName}.\n\n` +
+        `Tôi sẵn sàng giải đáp, tra cứu và hướng dẫn bà con chuẩn bị hồ sơ đầy đủ, đúng luật cho các thủ tục hành chính cấp xã/phường như:\n` +
+        `• Đăng ký khai sinh, kết hôn, khai tử, trích lục hộ tịch\n` +
+        `• Đăng ký thường trú, tạm trú, khai báo thông tin cư trú (Mẫu CT01)\n` +
+        `• Chứng thực chữ ký, chứng thực bản sao từ bản chính\n` +
+        `• Cấp giấy xác nhận tình trạng hôn nhân (giấy độc thân)\n` +
+        `• Các chế độ chính sách bảo trợ xã hội và tiền kiểm tra hồ sơ\n\n` +
+        `Bà con đang cần tìm hiểu hoặc chuẩn bị làm thủ tục nào? Hãy nhập câu hỏi để tôi hướng dẫn chi tiết từng bước nhé!`,
+      abstained: false,
+      maxSimilarity: 1.0,
+      appliedThreshold: 0.78,
+      responseTimeMs: elapsed,
+      cached: false,
+      disclaimer: 'Trợ lý Pháp lý Một Cửa SmartWard AI sẵn sàng phục vụ nhân dân.',
+      citations: [],
+    };
   }
 
-  const startTime = performance.now();
-  const wardName = wardContext.wardName || 'Phường 25, Quận Bình Thạnh';
-  const officeAddress = wardContext.officeAddress || '123 Nơ Trang Long, Phường 25, Quận Bình Thạnh, TP.HCM';
+  // 2. Commune Office Information (Address, Working Hours, Hotline)
+  if (isWardOfficeQuery(query)) {
+    const elapsed = Math.round(performance.now() - startTime);
+    return {
+      answer:
+        `Thông tin liên hệ và thời gian làm việc của Bộ phận Tiếp nhận và Trả kết quả (Một Cửa) thuộc UBND ${wardName}:\n\n` +
+        `• Trụ sở / Địa chỉ Một cửa: ${officeAddress}\n` +
+        `• Số điện thoại / Hotline: ${phoneNumber}\n` +
+        `• Giờ tiếp nhận và trả kết quả: ${workingHours}\n` +
+        `• Cổng Dịch vụ công Quốc gia: Nộp hồ sơ trực tuyến 24/7 tại dichvucong.gov.vn\n\n` +
+        `Bà con có thể đến trực tiếp trong khung giờ làm việc trên hoặc gửi câu hỏi về thủ tục hành chính để tôi hướng dẫn chuẩn bị đầy đủ hồ sơ trước khi đến nộp.`,
+      abstained: false,
+      maxSimilarity: 1.0,
+      appliedThreshold: 0.78,
+      responseTimeMs: elapsed,
+      cached: false,
+      disclaimer: 'Thông tin chính thức từ Danh bạ hành chính UBND cấp xã/phường.',
+      citations: [],
+    };
+  }
 
-  // 1. Semantic Retrieval over SmartWard AI Legal Knowledge Base
+  // 3. Out-of-scope check (Directing to Competent Authority)
+  const outOfScopeCheck = checkOutOfScopeQuery(query);
+  if (outOfScopeCheck.isOutOfScope) {
+    const elapsed = Math.round(performance.now() - startTime);
+    let abstentionMsg =
+      `Yêu cầu này nằm ngoài phạm vi dữ liệu thủ tục hành chính cấp xã hoặc vượt thẩm quyền giải quyết của UBND xã/phường theo quy định. ` +
+      `Nhằm tuân thủ nguyên tắc Không Ảo Giác và Nghị định 13/2023/NĐ-CP, hệ thống chỉ hỗ trợ các thủ tục hành chính cấp xã (Hộ tịch, Cư trú, Chứng thực, Bảo trợ xã hội, Đất đai cơ bản).\n\n`;
+    if (outOfScopeCheck.authority) {
+      abstentionMsg += `👉 Thẩm quyền giải quyết: Quý công dân vui lòng liên hệ ${outOfScopeCheck.authority} để được hướng dẫn chính xác.\n\n`;
+    }
+    abstentionMsg += `Quý công dân cũng có thể liên hệ Bộ phận Một cửa ${wardName} (Địa chỉ: ${officeAddress} • Hotline: ${phoneNumber}) hoặc Tổng đài Dịch vụ công Quốc gia 18001096 để được hỗ trợ thêm.`;
+
+    return {
+      answer: abstentionMsg,
+      abstained: true,
+      abstentionReason: outOfScopeCheck.reason || 'Yêu cầu không thuộc thẩm quyền cấp xã.',
+      maxSimilarity: 0.45,
+      appliedThreshold: 0.78,
+      responseTimeMs: elapsed,
+      cached: false,
+      disclaimer: 'Hệ thống SmartWard AI tuân thủ nghiêm ngặt nguyên tắc Chống Ảo Giác trong hành chính công.',
+      citations: [],
+    };
+  }
+
+  // 4. Semantic Retrieval over SmartWard AI Legal Knowledge Base
   const searchResult = searchLegalKnowledge(query, 3);
 
-  // 2. Abstention Guardrail: Out-of-scope check
+  // 5. Abstention Guardrail: Out-of-scope / Low similarity check
   if (!searchResult.isInScope || searchResult.items.length === 0) {
     const elapsed = Math.round(performance.now() - startTime);
     return {
       answer:
         'Hệ thống SmartWard AI từ chối giải đáp tự động đối với yêu cầu này. ' +
-        'Câu hỏi của bà con nằm ngoài phạm vi thẩm quyền giải quyết của UBND cấp xã/phường (hoặc độ tương đồng ngữ nghĩa dưới ngưỡng an toàn θ = 0.78). ' +
+        'Câu hỏi của bà con nằm ngoài danh mục 40 thủ tục hành chính cấp xã/phường có thẩm quyền (hoặc độ tương đồng ngữ nghĩa dưới ngưỡng an toàn θ = 0.78). ' +
         'Nhằm tuân thủ nguyên tắc Không Ảo Giác và Nghị định 13/2023/NĐ-CP, hệ thống chỉ hỗ trợ các thủ tục hành chính cấp xã (Hộ tịch, Cư trú, Chứng thực, Bảo trợ xã hội, Đất đai cơ bản). ' +
-        `Quý công dân vui lòng liên hệ Bộ phận Một cửa ${wardName} (Địa chỉ: ${officeAddress}) hoặc Tổng đài Dịch vụ công Quốc gia 18001096 để được hướng dẫn chính xác.`,
+        `Quý công dân vui lòng liên hệ Bộ phận Một cửa ${wardName} (Địa chỉ: ${officeAddress} • Hotline: ${phoneNumber}) hoặc Tổng đài Dịch vụ công Quốc gia 18001096 để được hướng dẫn chính xác.`,
       abstained: true,
       abstentionReason: 'Yêu cầu không thuộc danh mục 40 TTHC cấp xã hoặc vi phạm ranh giới an toàn pháp lý.',
       maxSimilarity: searchResult.maxScore,
@@ -106,7 +188,12 @@ export async function askGeminiWithRAG(
     };
   }
 
-  // 3. Build Grounded Prompt with Project's Legal Data
+  const apiKey = getGeminiApiKey();
+  if (!apiKey) {
+    throw new Error('Chưa cấu hình Gemini API Key.');
+  }
+
+  // 6. Build Grounded Prompt with Project's Legal Data
   const retrievedText = searchResult.items
     .map(
       (item: LegalProcedureItem) => `
@@ -171,7 +258,14 @@ ${retrievedText}
 
     if (!response.ok) {
       const errJson = await response.json().catch(() => ({}));
-      throw new Error(errJson.error?.message || `HTTP ${response.status}`);
+      const statusCode = response.status;
+      if (statusCode === 401 || statusCode === 403 || (statusCode === 400 && errJson.error?.message?.includes('API key'))) {
+        throw new Error('API_KEY_INVALID');
+      }
+      if (statusCode === 429) {
+        throw new Error('RATE_LIMIT_EXCEEDED');
+      }
+      throw new Error(errJson.error?.message || `HTTP ${statusCode}`);
     }
 
     const resJson = await response.json();
@@ -199,7 +293,7 @@ ${retrievedText}
     }
 
     if (!generatedText) {
-      throw new Error('Gemini không trả về nội dung hợp lệ.');
+      throw new Error('EMPTY_RESPONSE');
     }
 
     if (finishReason === 'MAX_TOKENS') {
@@ -235,7 +329,87 @@ ${retrievedText}
       disclaimer: mandatoryDisclaimer,
     };
   } catch (apiError: any) {
-    console.error('Gemini Live API error, falling back to local simulation:', apiError);
-    throw apiError;
+    console.error('Gemini Live API error, analyzing exception:', apiError);
+
+    const elapsed = Math.round(performance.now() - startTime);
+    const topItem = searchResult.items[0];
+
+    // Exception handling with graceful degradation (R4)
+    if (apiError.message === 'API_KEY_INVALID') {
+      return {
+        answer:
+          `Dịch vụ AI đang cần quản trị viên kiểm tra lại cấu hình API Key. ` +
+          `Để không gián đoạn công việc của bà con, sau đây là thông tin trích xuất trực tiếp từ cơ sở dữ liệu pháp lý của UBND:\n\n` +
+          `1. TÓM TẮT THỦ TỤC: [${topItem.code}] Thủ tục "${topItem.name}" thuộc lĩnh vực ${topItem.category}.\n\n` +
+          `2. THÀNH PHẦN HỒ SƠ:\n${topItem.dossier.map((d) => `   - ${d}`).join('\n')}\n\n` +
+          `3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n   - Thời hạn: ${topItem.timeLimit}\n   - Lệ phí: ${topItem.fee}\n\n` +
+          `4. NƠI TIẾP NHẬN & XỬ LÝ:\n   Bộ phận Một cửa của ${wardName} - Địa chỉ: ${officeAddress} (Hotline: ${phoneNumber}).\n\n` +
+          `5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n   Căn cứ: ${topItem.legalBasis}.\n   ${mandatoryDisclaimer}`,
+        abstained: false,
+        maxSimilarity: searchResult.maxScore,
+        appliedThreshold: 0.78,
+        responseTimeMs: elapsed,
+        cached: false,
+        disclaimer: mandatoryDisclaimer,
+        citations: [
+          {
+            chunkCode: `${topItem.code}_OFFICIAL`,
+            procedureCode: topItem.code,
+            procedureName: topItem.name,
+            title: topItem.name,
+            legalReference: topItem.legalBasis,
+            content: topItem.dossier.join('; '),
+            relevanceScore: searchResult.maxScore,
+          },
+        ],
+      };
+    }
+
+    if (apiError.message === 'RATE_LIMIT_EXCEEDED') {
+      return {
+        answer:
+          `Hệ thống AI đang phục vụ lượng lớn yêu cầu từ công dân. Quý công dân vui lòng thử lại sau ít phút hoặc tham khảo thông tin chuẩn bị hồ sơ dưới đây:\n\n` +
+          `1. TÓM TẮT THỦ TỤC: [${topItem.code}] Thủ tục ${topItem.name}.\n\n` +
+          `2. THÀNH PHẦN HỒ SƠ:\n${topItem.dossier.map((d) => `   - ${d}`).join('\n')}\n\n` +
+          `3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n   - Thời hạn: ${topItem.timeLimit}\n   - Lệ phí: ${topItem.fee}\n\n` +
+          `4. NƠI TIẾP NHẬN & XỬ LÝ: Bộ phận Một cửa của ${wardName} (Địa chỉ: ${officeAddress}).\n\n` +
+          `5. CĂN CỨ PHÁP LÝ:\n   Căn cứ: ${topItem.legalBasis}.\n   ${mandatoryDisclaimer}`,
+        abstained: false,
+        maxSimilarity: searchResult.maxScore,
+        appliedThreshold: 0.78,
+        responseTimeMs: elapsed,
+        cached: false,
+        disclaimer: mandatoryDisclaimer,
+        citations: [],
+      };
+    }
+
+    // Default network / timeout / unexpected error fallback to structured procedure data
+    return {
+      answer:
+        `Hệ thống kết nối AI trực tuyến tạm thời gián đoạn. Dữ liệu thủ tục chính thức được trích xuất từ cơ sở dữ liệu pháp lý của UBND:\n\n` +
+        `1. TÓM TẮT THỦ TỤC: [${topItem.code}] ${topItem.name} (${topItem.category}).\n\n` +
+        `2. THÀNH PHẦN HỒ SƠ:\n${topItem.dossier.map((d) => `   - ${d}`).join('\n')}\n\n` +
+        `3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n   - Thời hạn: ${topItem.timeLimit}\n   - Lệ phí: ${topItem.fee}\n\n` +
+        `4. NƠI TIẾP NHẬN & XỬ LÝ: Bộ phận Một cửa của ${wardName} (Địa chỉ: ${officeAddress} • Hotline: ${phoneNumber}).\n\n` +
+        `5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n   Căn cứ: ${topItem.legalBasis}.\n   ${mandatoryDisclaimer}`,
+      abstained: false,
+      maxSimilarity: searchResult.maxScore,
+      appliedThreshold: 0.78,
+      responseTimeMs: elapsed,
+      cached: false,
+      disclaimer: mandatoryDisclaimer,
+      citations: [
+        {
+          chunkCode: `${topItem.code}_OFFICIAL`,
+          procedureCode: topItem.code,
+          procedureName: topItem.name,
+          title: topItem.name,
+          legalReference: topItem.legalBasis,
+          content: topItem.dossier.join('; '),
+          relevanceScore: searchResult.maxScore,
+        },
+      ],
+    };
   }
 }

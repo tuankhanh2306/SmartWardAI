@@ -242,6 +242,17 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
   },
 ];
 
+import { isGreetingQuery, checkOutOfScopeQuery } from './intentClassifier';
+
+const STOP_WORDS = new Set([
+  'la', 'là', 'va', 'và', 'cua', 'của', 'cho', 'co', 'có', 'tai', 'tại', 'o', 'ở',
+  'gi', 'gì', 'nao', 'nào', 'dau', 'đâu', 'duoc', 'được', 'nhu', 'như', 'the', 'thế',
+  'thi', 'thì', 'ra', 'sao', 'toi', 'tôi', 'muon', 'muốn', 'hay', 'hãy', 'lam', 'làm',
+  'can', 'cần', 'giup', 'giúp', 'em', 'anh', 'chi', 'chị', 'minh', 'mình', 'nay', 'này',
+  'do', 'đó', 'voi', 'với', 've', 'về', 'trong', 'cac', 'các', 'nhung', 'những', 'mot', 'một',
+  'da', 'dạ', 'a', 'ạ', 'nhe', 'nhé', 'nha', 'di', 'đi', 'giùm', 'dum', 'hi', 'hello', 'alo', 'chao', 'chào'
+]);
+
 /**
  * Searches the legal knowledge base using keyword / semantic scoring
  */
@@ -252,49 +263,62 @@ export function searchLegalKnowledge(query: string, topK: number = 3): {
 } {
   const q = query.toLowerCase().trim();
 
-  // Out of scope check (Forbidden / Non-commune domains)
-  const outOfScopePatterns = [
-    'giá vàng', 'chứng khoán', 'bitcoin', 'tiền mã hóa', 'crypto',
-    'bất động sản đầu tư', 'lừa đảo qua mạng', 'tội phạm hình sự',
-    'giết người', 'cướp giật', 'bắt cóc', 'thừa kế tranh chấp tòa án',
-    'thuế xuất nhập khẩu', 'độ xe', 'bói toán', 'xổ số', 'lô đề'
-  ];
-
-  for (const pattern of outOfScopePatterns) {
-    if (q.includes(pattern)) {
-      return { items: [], maxScore: 0.15, isInScope: false };
-    }
+  // 1. Check if greeting -> not a procedure query
+  if (isGreetingQuery(q)) {
+    return { items: [], maxScore: 0.0, isInScope: false };
   }
 
-  const queryWords = q.split(/\s+/).filter((w) => w.length > 1);
+  // 2. Out of scope check (Forbidden / Non-commune domains)
+  const outOfScopeCheck = checkOutOfScopeQuery(q);
+  if (outOfScopeCheck.isOutOfScope) {
+    return { items: [], maxScore: 0.15, isInScope: false };
+  }
+
+  // 3. Extract meaningful non-stop content tokens
+  const queryTokens = q
+    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length > 1 && !STOP_WORDS.has(w));
 
   const scored = LEGAL_KNOWLEDGE_BASE.map((item) => {
     let score = 0;
 
-    // Check exact keyword list match
+    // Check exact keyword match (highest confidence)
     for (const kw of item.keywords) {
       if (q.includes(kw)) {
-        score += 0.45;
+        score += 0.50;
+        break;
       }
     }
 
     // Check procedure name
     if (q.includes(item.name.toLowerCase())) {
-      score += 0.4;
+      score += 0.40;
     }
 
-    // Word intersection with procedure content
-    const fullText = (item.name + ' ' + item.category + ' ' + item.keyRules.join(' ') + ' ' + item.dossier.join(' ')).toLowerCase();
-    let wordMatches = 0;
-    for (const word of queryWords) {
-      if (fullText.includes(word)) {
-        wordMatches++;
+    // Whole-word token intersection with procedure content
+    if (queryTokens.length > 0) {
+      const fullText = (
+        item.name + ' ' + item.category + ' ' + item.keyRules.join(' ') + ' ' + item.dossier.join(' ')
+      ).toLowerCase();
+      const docTokens = new Set(
+        fullText
+          .replace(/[^\p{L}\p{N}\s]/gu, ' ')
+          .split(/\s+/)
+          .filter(Boolean)
+      );
+
+      let matchedTokens = 0;
+      for (const token of queryTokens) {
+        if (docTokens.has(token)) {
+          matchedTokens++;
+        }
       }
+      score += (matchedTokens / queryTokens.length) * 0.30;
     }
-    score += (wordMatches / Math.max(queryWords.length, 1)) * 0.35;
 
     // Normalize to [0, 0.99]
-    const normalizedScore = Math.min(0.98, Math.max(0.1, score));
+    const normalizedScore = Math.min(0.98, Math.max(0.0, score));
 
     return { item, score: normalizedScore };
   });
@@ -303,10 +327,10 @@ export function searchLegalKnowledge(query: string, topK: number = 3): {
 
   const topItems = scored.slice(0, topK);
   const maxScore = topItems.length > 0 ? topItems[0].score : 0.0;
-  const isInScope = maxScore >= 0.35; // Semantic threshold for commune TTHC relevance
+  const isInScope = maxScore >= 0.45; // Strict threshold for commune TTHC relevance
 
   return {
-    items: topItems.map((s) => s.item),
+    items: isInScope ? topItems.map((s) => s.item) : [],
     maxScore,
     isInScope,
   };

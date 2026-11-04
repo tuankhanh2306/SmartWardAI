@@ -76,11 +76,21 @@ public class RagQueryService {
             return cached;
         }
 
-        // 3. Query Vectorization (768-dim)
+        // 3. Conversational Intent Check: Greeting & Introduction
+        if (isGreetingQuery(rawQuery)) {
+            return buildGreetingResponse(request.getWardName(), request.getOfficeAddress(), startTime);
+        }
+
+        // 4. Ward Office Info Check (Address, working hours, hotline)
+        if (isWardOfficeQuery(rawQuery)) {
+            return buildWardOfficeResponse(request.getWardName(), request.getOfficeAddress(), startTime);
+        }
+
+        // 5. Query Vectorization (768-dim)
         float[] queryEmbedding = aiModelClient.generateEmbedding(rawQuery);
         String pgVectorString = aiModelClient.toPgVectorString(queryEmbedding);
 
-        // 4. Retrieve Top-K Chunks using pgvector HNSW
+        // 6. Retrieve Top-K Chunks using pgvector HNSW
         int k = (request.getTopK() != null && request.getTopK() > 0) ? request.getTopK() : defaultTopK;
         List<LegalChunkMatch> candidateChunks = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, k);
 
@@ -96,7 +106,7 @@ public class RagQueryService {
         log.info("RAG retrieval for query '{}': found {} candidates, maxSimilarity={}",
                 truncate(rawQuery, 40), candidateChunks.size(), String.format(Locale.US, "%.4f", maxSimilarity));
 
-        // 5. Abstention Guardrail: S_max < theta (Safe abstention without calling LLM)
+        // 7. Abstention Guardrail: S_max < theta (Safe abstention without calling LLM)
         if (candidateChunks.isEmpty() || maxSimilarity < threshold) {
             long elapsed = System.currentTimeMillis() - startTime;
             String reason = String.format(Locale.US,
@@ -289,6 +299,124 @@ public class RagQueryService {
                 .legalReference(c.getLegalReference())
                 .excerpt(excerpt)
                 .similarityScore(c.getSimilarityScore() != null ? c.getSimilarityScore() : 0.0)
+                .build();
+    }
+
+    private static final Set<String> EXACT_GREETINGS = Set.of(
+            "hi", "hello", "hey", "alo", "chào", "xin chào", "kính chào",
+            "chào bạn", "chào bot", "chào ad", "chào cán bộ", "chào ủy ban",
+            "chào anh", "chào chị", "chào em",
+            "bạn là ai", "ai đó", "bạn là cái gì",
+            "bạn giúp được gì", "bạn có thể làm gì", "chức năng của bạn",
+            "hướng dẫn sử dụng", "giới thiệu", "giới thiệu bản thân",
+            "good morning", "good afternoon", "good evening", "start", "bắt đầu"
+    );
+
+    private static final List<String> PROCEDURE_KEYWORDS = List.of(
+            "khai sinh", "chứng sinh", "mới sinh", "sinh con",
+            "kết hôn", "lấy vợ", "lấy chồng", "hôn thú", "đăng ký kết hôn",
+            "khai tử", "chứng tử", "báo tử", "người mất",
+            "thường trú", "tạm trú", "ct01", "cư trú", "nhập khẩu", "hộ khẩu",
+            "chứng thực", "sao y", "công chứng", "chữ ký",
+            "độc thân", "tình trạng hôn nhân", "trích lục", "bảo trợ", "mai táng"
+    );
+
+    boolean isGreetingQuery(String query) {
+        if (query == null) return false;
+        String q = query.trim().toLowerCase().replaceAll("[!?.,;:]+$", "");
+        if (q.isEmpty()) return false;
+
+        // If query contains procedure keywords, it is a PROCEDURE query, not greeting
+        for (String kw : PROCEDURE_KEYWORDS) {
+            if (q.contains(kw)) {
+                return false;
+            }
+        }
+
+        if (EXACT_GREETINGS.contains(q)) {
+            return true;
+        }
+
+        if (q.length() <= 30) {
+            if (q.matches("^(hi|hello|hey|alo|xin\\s+chào|chào)(\\s+.*)?$")) {
+                return true;
+            }
+            if (q.matches("^(bạn|bot)\\s+(là\\s+ai|có\\s+thể\\s+làm\\s+gì|giúp\\s+gì).*$")) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    boolean isWardOfficeQuery(String query) {
+        if (query == null) return false;
+        String q = query.trim().toLowerCase();
+
+        for (String kw : PROCEDURE_KEYWORDS) {
+            if (q.contains(kw)) {
+                return false;
+            }
+        }
+
+        List<String> officePatterns = List.of(
+                "địa chỉ ở đâu", "trụ sở ở đâu", "địa chỉ ủy ban", "địa chỉ ubnd",
+                "ủy ban ở đâu", "ubnd ở đâu", "trụ sở ubnd",
+                "giờ làm việc", "mấy giờ làm việc", "mấy giờ mở cửa",
+                "giờ tiếp dân", "thời gian làm việc", "thứ 7 có làm việc không",
+                "số điện thoại", "hotline", "liên hệ ai"
+        );
+
+        return officePatterns.stream().anyMatch(q::contains);
+    }
+
+    private RagAskResponse buildGreetingResponse(String wardName, String officeAddress, long startTime) {
+        String wardLabel = (wardName != null && !wardName.isBlank()) ? wardName : "UBND cấp xã/phường";
+        String answer = String.format(
+                "Xin chào! Tôi là Trợ lý Pháp lý Một Cửa tại %s.\n\n" +
+                "Tôi sẵn sàng hỗ trợ bà con tra cứu, giải đáp và hướng dẫn chuẩn bị hồ sơ cho các thủ tục hành chính cấp xã/phường như:\n" +
+                "• Đăng ký khai sinh, kết hôn, khai tử, trích lục hộ tịch\n" +
+                "• Đăng ký thường trú, tạm trú, thông tin cư trú (Mẫu CT01)\n" +
+                "• Chứng thực chữ ký, chứng thực bản sao từ bản chính\n" +
+                "• Cấp giấy xác nhận tình trạng hôn nhân (giấy độc thân)\n" +
+                "• Các chế độ chính sách bảo trợ xã hội và tiền kiểm tra hồ sơ\n\n" +
+                "Bà con đang cần tìm hiểu hoặc chuẩn bị làm thủ tục nào? Hãy nhập câu hỏi để tôi hướng dẫn chi tiết nhé!",
+                wardLabel
+        );
+
+        return RagAskResponse.builder()
+                .answer(answer)
+                .abstained(false)
+                .maxSimilarity(1.0)
+                .appliedThreshold(defaultThreshold)
+                .citations(Collections.emptyList())
+                .cached(false)
+                .responseTimeMs(System.currentTimeMillis() - startTime)
+                .disclaimer("Trợ lý Pháp lý Một Cửa SmartWard AI sẵn sàng phục vụ nhân dân.")
+                .build();
+    }
+
+    private RagAskResponse buildWardOfficeResponse(String wardName, String officeAddress, long startTime) {
+        String wardLabel = (wardName != null && !wardName.isBlank()) ? wardName : "UBND cấp xã/phường";
+        String addrLabel = (officeAddress != null && !officeAddress.isBlank()) ? officeAddress : "Trụ sở Bộ phận Tiếp nhận và Trả kết quả";
+        String answer = String.format(
+                "Thông tin liên hệ và thời gian làm việc của Bộ phận Tiếp nhận và Trả kết quả (Một Cửa) thuộc %s:\n\n" +
+                "• Trụ sở / Địa chỉ Một cửa: %s\n" +
+                "• Giờ tiếp nhận và trả kết quả: Sáng từ 07:30 – 11:30 | Chiều từ 13:30 – 17:00 (Thứ 2 đến Thứ 6; Thứ 7 làm việc buổi sáng).\n" +
+                "• Cổng Dịch vụ công Quốc gia: Nộp hồ sơ trực tuyến 24/7 tại dichvucong.gov.vn\n\n" +
+                "Bà con có thể đến trực tiếp trong khung giờ làm việc trên hoặc gửi câu hỏi về thủ tục hành chính để tôi hướng dẫn chuẩn bị đầy đủ hồ sơ trước khi đến nộp.",
+                wardLabel, addrLabel
+        );
+
+        return RagAskResponse.builder()
+                .answer(answer)
+                .abstained(false)
+                .maxSimilarity(1.0)
+                .appliedThreshold(defaultThreshold)
+                .citations(Collections.emptyList())
+                .cached(false)
+                .responseTimeMs(System.currentTimeMillis() - startTime)
+                .disclaimer("Thông tin chính thức từ Danh bạ hành chính UBND cấp xã/phường.")
                 .build();
     }
 
