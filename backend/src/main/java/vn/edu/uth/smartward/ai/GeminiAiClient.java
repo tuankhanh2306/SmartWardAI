@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
@@ -16,10 +17,12 @@ import java.util.Map;
 /**
  * Production Gemini AI Client connecting to Google Generative Language API.
  * Uses text-embedding-004 (768 dimensions) and gemini-2.5-flash for multimodal OCR and chat.
+ * Active in "prod" profile or when explicitly enabling "gemini" profile.
  */
 @Slf4j
 @Component
-@Profile("prod")
+@Primary
+@Profile({"prod", "gemini"})
 public class GeminiAiClient implements AiModelClient {
 
     private static final String GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta";

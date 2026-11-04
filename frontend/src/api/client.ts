@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { isGeminiConfigured, askGeminiWithRAG } from '../services/geminiClient';
 
 const api = axios.create({
   baseURL: '/api/v1',
@@ -32,11 +33,22 @@ export interface RagResponse {
 }
 
 export const askLegalRag = async (query: string, topK: number = 3): Promise<RagResponse> => {
+  // 1. First, attempt to invoke Spring Boot Backend (/api/v1/rag/ask)
   try {
     const resp = await api.post<RagResponse>('/rag/ask', { query, topK });
     return resp.data;
-  } catch {
-    // Intelligent Offline / Fallback Simulation (Guaranteed Demo Resilience)
+  } catch (backendError) {
+    // 2. If Backend is offline or unavailable, check if Gemini Live RAG is configured
+    if (isGeminiConfigured()) {
+      try {
+        console.info('Invoking in-app Gemini Mini Live RAG Engine with Project Knowledge...');
+        return await askGeminiWithRAG(query);
+      } catch (geminiError) {
+        console.warn('Gemini Live API failed, falling back to local simulation:', geminiError);
+      }
+    }
+
+    // 3. Intelligent Offline / Fallback Simulation (Guaranteed Demo Resilience)
     const lower = query.toLowerCase();
 
     // Case A: Adversarial / Out-of-Scope (Abstention Guardrail theta = 0.78)

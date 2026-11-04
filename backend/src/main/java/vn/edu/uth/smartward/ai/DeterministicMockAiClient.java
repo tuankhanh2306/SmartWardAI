@@ -16,7 +16,7 @@ import java.util.Random;
  */
 @Slf4j
 @Component
-@Profile({"dev", "test"})
+@Profile("!prod & !gemini")
 public class DeterministicMockAiClient implements AiModelClient {
 
     private static final int EMBEDDING_DIM = 768;

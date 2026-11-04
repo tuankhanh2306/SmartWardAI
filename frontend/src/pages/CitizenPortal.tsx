@@ -1,5 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { askLegalRag, type RagResponse } from '../api/client';
+import { isGeminiConfigured } from '../services/geminiClient';
+import { AiSettingsModal } from '../components/AiSettingsModal';
 import { useNavigate } from 'react-router-dom';
 import {
   Send,
@@ -37,6 +39,8 @@ export const CitizenPortal: React.FC = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeCitation, setActiveCitation] = useState<number | null>(null);
   const [isMicActive, setIsMicActive] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [geminiActive, setGeminiActive] = useState(isGeminiConfigured());
 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -311,7 +315,20 @@ export const CitizenPortal: React.FC = () => {
                 <Bot className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
-                <span className="text-sm font-bold tracking-tight">Trợ Lý Pháp Lý Một Cửa AI</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-bold tracking-tight">Trợ Lý Pháp Lý Một Cửa AI</span>
+                  <button
+                    onClick={() => setAiModalOpen(true)}
+                    className={`px-2 py-0.5 rounded-full text-[10px] font-bold border transition active:scale-95 flex items-center gap-1 cursor-pointer ${
+                      geminiActive
+                        ? 'bg-[#10B981]/20 border-[#10B981]/40 text-[#6EE7B7]'
+                        : 'bg-white/10 border-white/20 text-[#ACEDFF] hover:bg-white/20'
+                    }`}
+                  >
+                    <Sparkles className="w-2.5 h-2.5" />
+                    {geminiActive ? 'Gemini Flash' : 'Cấu hình AI'}
+                  </button>
+                </div>
                 <span className="text-[11px] text-[#ACEDFF] flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-[#57DFFE] animate-pulse" />
                   Cơ sở dữ liệu 40 TTHC & Pháp điển điện tử
@@ -331,6 +348,35 @@ export const CitizenPortal: React.FC = () => {
               <RotateCcw className="w-4 h-4" />
             </button>
           </div>
+
+          {/* AI Engine Notification Bar */}
+          {geminiActive ? (
+            <div className="px-4 py-2 bg-[#ECFDF5] border-b border-[#A7F3D0] flex items-center justify-between text-xs transition-colors">
+              <span className="text-[#065F46] flex items-center gap-1.5 font-medium">
+                <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+                Đang kích hoạt <strong>Google Gemini Flash Mini</strong> — Có tư duy, hiểu câu hỏi tự nhiên & đối chiếu 40 TTHC dự án!
+              </span>
+              <button
+                onClick={() => setAiModalOpen(true)}
+                className="text-[11px] text-[#059669] hover:underline font-bold shrink-0 ml-2"
+              >
+                Cài đặt
+              </button>
+            </div>
+          ) : (
+            <div className="px-4 py-2 bg-gradient-to-r from-[#EFF6FF] to-[#FAF8FF] border-b border-[#DBEAFE] flex items-center justify-between text-xs transition-colors">
+              <span className="text-[#1E40AF] flex items-center gap-1.5 font-medium">
+                <Sparkles className="w-3.5 h-3.5 text-[#2563EB] shrink-0" />
+                Đang dùng AI mô phỏng. Bật <strong>Gemini Mini</strong> để AI tự tư duy và trả lời tự nhiên theo dữ liệu dự án!
+              </span>
+              <button
+                onClick={() => setAiModalOpen(true)}
+                className="px-2.5 py-1 bg-[#2563EB] text-white rounded-lg font-bold hover:bg-[#1D4ED8] transition text-[11px] shrink-0 ml-2"
+              >
+                Bật Gemini
+              </button>
+            </div>
+          )}
 
           {/* Messages Scroll Viewport */}
           <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-5 bg-[#FAF8FF]/40">
@@ -600,6 +646,13 @@ export const CitizenPortal: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Gemini AI Settings Modal */}
+      <AiSettingsModal
+        isOpen={aiModalOpen}
+        onClose={() => setAiModalOpen(false)}
+        onSaved={() => setGeminiActive(isGeminiConfigured())}
+      />
     </div>
   );
 };

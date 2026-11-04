@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Landmark, Bot, ShieldCheck, Map, FileCheck2, ArrowRight } from 'lucide-react';
+import { Menu, X, Landmark, Bot, ShieldCheck, Map, FileCheck2, ArrowRight, Sparkles } from 'lucide-react';
+import { isGeminiConfigured } from '../services/geminiClient';
+import { AiSettingsModal } from './AiSettingsModal';
 
 export const Header: React.FC = () => {
   const location = useLocation();
   const path = location.pathname;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [aiModalOpen, setAiModalOpen] = useState(false);
+  const [geminiActive, setGeminiActive] = useState(isGeminiConfigured());
 
   const navLinks = [
     { to: '/citizen', label: 'Cổng Công Dân', icon: Bot },
@@ -64,13 +68,36 @@ export const Header: React.FC = () => {
 
         {/* Live System Status & Officer Profile */}
         <div className="flex items-center gap-3 shrink-0">
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-white/80 rounded-full border border-[#DAE2FD] shadow-xs">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00687A] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00687A]" />
-            </span>
-            <span className="text-xs text-[#00687A] font-bold tracking-tight">AI Trực Tuyến</span>
-          </div>
+          <button
+            onClick={() => setAiModalOpen(true)}
+            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-xs transition-all active:scale-95 cursor-pointer ${
+              geminiActive
+                ? 'bg-[#EBFDF3] border-[#86EFAC] text-[#166534] hover:bg-[#DCFCE7]'
+                : 'bg-[#FFFBEB] border-[#FDE68A] text-[#92400E] hover:bg-[#FEF3C7]'
+            }`}
+            title="Nhấn để cấu hình Trí tuệ nhân tạo Gemini Mini"
+          >
+            {geminiActive ? (
+              <>
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#16A34A] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#16A34A]" />
+                </span>
+                <span className="text-xs font-bold tracking-tight flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-[#16A34A]" />
+                  Gemini Flash (Có tư duy)
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="h-2 w-2 rounded-full bg-[#D97706]" />
+                <span className="text-xs font-bold tracking-tight flex items-center gap-1">
+                  <Sparkles className="w-3.5 h-3.5 text-[#D97706]" />
+                  Bật Gemini Flash
+                </span>
+              </>
+            )}
+          </button>
 
           <div className="hidden md:flex items-center gap-2.5 pl-2 border-l border-[#DAE2FD]">
             <div className="w-8 h-8 rounded-full bg-[#00687A] text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-[#ACEDFF]/60">
@@ -120,6 +147,13 @@ export const Header: React.FC = () => {
           })}
         </div>
       )}
+
+      {/* Gemini AI Engine Configuration Modal */}
+      <AiSettingsModal
+        isOpen={aiModalOpen}
+        onClose={() => setAiModalOpen(false)}
+        onSaved={() => setGeminiActive(isGeminiConfigured())}
+      />
     </header>
   );
 };
