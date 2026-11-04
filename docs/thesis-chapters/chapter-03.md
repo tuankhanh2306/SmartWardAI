@@ -258,3 +258,96 @@ Module 3 đã được kiểm thử toàn diện qua:
 - [`TriageControllerTest`](file:///E:/SmartWardAI/backend/src/test/java/vn/edu/uth/smartward/triage/TriageControllerTest.java): Kiểm thử các REST API `POST /api/v1/issues/report` và `GET /api/v1/issues/clusters`.
 
 Tổng cộng toàn bộ hệ thống đạt: **43/43 tests Passed (100% BUILD SUCCESS)**.
+
+
+---
+
+## 3.4. PHÂN HỆ 4: KHO HỒ SƠ TÀI LIỆU KHÔNG TIN CẬY (ZERO-TRUST DOCUMENT VAULT) TUÂN THỦ NGHỊ ĐỊNH 13/2023/NĐ-CP
+
+### 3.4.1. Đặt vấn đề và Yêu cầu Pháp lý về Bảo vệ Dữ liệu Cá nhân
+Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân (có hiệu lực từ ngày 01/07/2023) đặt ra các chế tài và nghĩa vụ pháp lý vô cùng nghiêm ngặt đối với các hệ thống tiếp nhận, xử lý thông tin định danh:
+1. **Dữ liệu cá nhân nhạy cảm:** Hình ảnh Căn cước công dân (CCCD), Giấy chứng sinh, Giấy chứng nhận kết hôn... chứa đựng toàn bộ bí mật đời tư (số định danh, vân tay, khuôn mặt, địa chỉ thường trú, quan hệ gia đình).
+2. **Rủi ro rò rỉ và lạm dụng:** Nếu lưu trữ file ảnh nguyên bản (plaintext) trên máy chủ hoặc cho phép tải về không giới hạn, kẻ xấu có thể đánh cắp để mở tài khoản ngân hàng ảo, vay tín dụng đen hoặc mạo danh công dân.
+3. **Nguyên tắc giảm thiểu dữ liệu (Data Minimization):** Dữ liệu chỉ được lưu trữ trong thời gian tối thiểu cần thiết để hoàn thành mục đích sơ duyệt và phải bị tiêu hủy hoặc vô hiệu hóa ngay sau khi phục vụ xong.
+
+Để đáp ứng 100% các yêu cầu pháp lý trên, SmartWard AI thiết kế **Zero-Trust Document Vault** dựa trên 4 lớp bảo vệ độc lập:
+$$\text{Security Pipeline} = \text{Dynamic Watermark} \longrightarrow \text{AES-256-GCM} \longrightarrow \text{MinIO Vault} \longrightarrow \text{Atomic GETDEL One-Time Token}$$
+
+---
+
+### 3.4.2. Cơ chế Đóng dấu Watermark Động bằng Java2D (Anti-Repurposing)
+Mọi tài liệu hình ảnh khi được tải lên hệ thống lập tức đi qua bộ xử lý `ImageWatermarkService`:
+- Sử dụng thư viện đồ họa Java2D (`Graphics2D`) can thiệp trực tiếp vào ma trận điểm ảnh (bitmap).
+- Kỹ thuật hòa trộn kênh Alpha: `AlphaComposite.SRC_OVER` với độ trong suốt $\alpha = 0.38$.
+- Góc xoay nghiêng: $-28^\circ$ phủ chéo khắp trang giấy.
+- Nội dung watermark bao gồm dấu ấn hành chính và tem thời gian động:
+  $$\text{Watermark} = \text{"CHỈ DÙNG ĐỂ SƠ DUYỆT HỒ SƠ TẠI UBND - [dd/MM/yyyy HH:mm]"}$$
+
+Tác dụng: Kể cả khi file ảnh bị chụp lại màn hình, dấu bản quyền chìm sẽ ngăn chặn hoàn toàn khả năng sử dụng ảnh này vào các mục đích tài chính, ngân hàng hay thủ tục khác.
+
+---
+
+### 3.4.3. Thuật toán Mã hóa Xác thực Đối xứng AES/GCM/NoPadding (256-bit)
+Toàn bộ file ảnh sau khi đóng watermark được mã hóa bằng thuật toán **AES ở chế độ Galois/Counter Mode (GCM)** trước khi chạm vào ổ cứng:
+1. **Khóa đối xứng:** $K \in \{0, 1\}^{256}$ (256-bit AES key).
+2. **Vector khởi tạo ngẫu nhiên (IV):** Mỗi tài liệu sinh một giá trị $\text{IV} \in \{0, 1\}^{96}$ (12 bytes) hoàn toàn ngẫu nhiên bằng `SecureRandom`. Tuyệt đối không tái sử dụng IV.
+3. **Mã xác thực dữ liệu (Authentication Tag):** GCM tự động sinh thẻ xác thực $\text{Tag} \in \{0, 1\}^{128}$ (16 bytes).
+4. **Cấu trúc lưu trữ Ciphertext:**
+   $$\text{Payload} = [\text{IV}_{12\text{ bytes}}] \parallel [\text{Ciphertext}] \parallel [\text{AuthTag}_{16\text{ bytes}}]$$
+
+Nếu một bit dữ liệu trong file lưu trữ bị tin tặc sửa đổi trên ổ đĩa, quá trình giải mã tại `ZeroTrustVaultService` sẽ lập tức ném lỗi ngoại lệ xác thực `AEADBadTagException` và từ chối xuất dữ liệu.
+
+---
+
+### 3.4.4. Cơ chế Token Truy cập Một Lần (One-Time Access Link via Redis GETDEL)
+Để cán bộ Một cửa có thể đối chiếu hồ sơ mà không tạo ra liên kết vĩnh viễn trên Internet:
+1. Hệ thống sinh mã ngẫu nhiên bảo mật cao: $\text{OTT} = \text{"OTT\_"} + \text{UUIDv4}$.
+2. Token được lưu vào Redis với thời gian sống $\text{TTL} = 24$ giờ:
+   $$\text{SET smartward:vault:token:OTT\_xxx <documentCode> EX 86400}$$
+3. Khi cán bộ nhấp vào liên kết xem tài liệu:
+   Hệ thống thực thi lệnh nguyên tử `GETDEL` (Redis 6.2+ / Spring Data Redis `getAndDelete`):
+   $$\text{docCode} = \text{GETDEL } \text{smartward:vault:token:OTT\_xxx}$$
+   - Lệnh này lấy mã tài liệu và **xóa sổ vĩnh viễn token khỏi Redis trong đúng 1 chu kỳ CPU**.
+   - Ngay sau đó, tài liệu được giải mã và render trực tiếp vào luồng HTTP response (`Content-Type: image/png`).
+   - Header bảo mật cấm lưu cache: `Cache-Control: no-store, no-cache, must-revalidate`.
+4. **Lần truy cập thứ hai trở đi:**
+   Do token đã bị `GETDEL` xóa sổ, truy vấn Redis trả về `null`. Hệ thống đối chiếu CSDL thấy cờ $\text{is\_viewed} = \text{true}$ $\rightarrow$ Lập tức ném `BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED)` và phản hồi mã lỗi chuẩn **HTTP 410 GONE** (`SW_410`).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor CB as Cán bộ UBND
+    participant C as VaultController
+    participant S as ZeroTrustVaultService
+    participant R as Redis (Port 6379)
+    participant M as MinIO (Port 9000)
+    participant DB as PostgreSQL
+
+    CB->>C: GET /api/v1/vault/view/OTT_xxx
+    C->>S: consumeOneTimeDocument("OTT_xxx")
+    S->>R: Lệnh nguyên tử GETDEL "smartward:vault:token:OTT_xxx"
+    alt Lần xem 1: Token tồn tại
+        R-->>S: Trả về docCode & XÓA TOKEN NGAY LẬP TỨC
+        S->>M: Tải file mã hóa AES-256 từ bucket "smartward-vault"
+        M-->>S: Ciphertext
+        S->>S: Giải mã AES-GCM (Kiểm tra 128-bit Tag)
+        S->>DB: Đánh dấu is_viewed = true
+        S-->>C: Decrypted Watermarked Bytes
+        C-->>CB: HTTP 200 OK (Render ảnh trực tiếp, no-cache)
+    else Lần xem 2 trở đi: Token đã bị xóa
+        R-->>S: null
+        S->>DB: Kiểm tra trạng thái: is_viewed == true
+        S-->>C: Ném BusinessException (TOKEN_EXPIRED_OR_CONSUMED)
+        C-->>CB: HTTP 410 GONE ("Liên kết đã hết hạn hoặc đã sử dụng")
+    end
+```
+
+---
+
+### 3.4.5. Kết quả Kiểm thử Tự động Module 4
+Module 4 được kiểm thử nghiêm ngặt qua 8 unit test mới:
+- [`ImageWatermarkServiceTest`](file:///E:/SmartWardAI/backend/src/test/java/vn/edu/uth/smartward/vault/ImageWatermarkServiceTest.java): Đạt 2/2 test (Đóng dấu thành công ảnh in-memory, decode lại chuẩn xác, fallback an toàn).
+- [`ZeroTrustVaultServiceTest`](file:///E:/SmartWardAI/backend/src/test/java/vn/edu/uth/smartward/vault/ZeroTrustVaultServiceTest.java): Đạt 3/3 test (Chu trình Mã hóa - Giải mã toàn vẹn, Bắt lỗi chống giả mạo khi can thiệp ciphertext, Bắt lỗi HTTP 410 Gone khi token đã xem).
+- [`VaultControllerTest`](file:///E:/SmartWardAI/backend/src/test/java/vn/edu/uth/smartward/vault/VaultControllerTest.java): Đạt 3/3 test (Upload Multipart thành công, Xem lần 1 HTTP 200, Xem lần 2 HTTP 410 Gone).
+
+Tổng cộng toàn bộ hệ thống đạt: **51/51 tests Passed (100% BUILD SUCCESS)**.

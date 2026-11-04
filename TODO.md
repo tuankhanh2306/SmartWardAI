@@ -1,7 +1,7 @@
 # Kế Hoạch & Tiến Độ Thực Hiện Dự Án (Project Sprint Board)
 **Dự án:** SmartWard AI – Hệ thống Hỗ trợ Thủ tục Hành chính và Phân luồng Phản ánh Cấp Phường/Xã  
 **Đơn vị:** Viện Đào tạo Chất lượng cao – Trường Đại học Giao thông vận tải TP.HCM (UTH)  
-**Trạng thái hiện tại:** `Tuần 6 / 12` 🚀 (Chuẩn bị sang Tuần 7 - Hoàn thành Sơ kết Giữa kỳ)
+**Trạng thái hiện tại:** `Tuần 7 / 12` 🚀 (Chuẩn bị sang Tuần 8 - Chạy Benchmark Đánh giá Thực nghiệm)
 
 ---
 
@@ -15,7 +15,8 @@
 | **W04** | **Module 1: Legal RAG & Abstention Guardrail** | pgvector cosine, Ngưỡng $\theta=0.78$, API `/rag/ask` | Soạn Chương 3 - Phần 1 (RAG & Chống ảo giác) | ✅ **HOÀN THÀNH** |
 | **W05** | **Module 2: Form Rule Engine (CCCD & Date)** | Java Rule Engine 12 số CCCD, Date Logic, OCR Client | Soạn Chương 3 - Phần 2 (Hậu kiểm định biểu mẫu) | ✅ **HOÀN THÀNH** |
 | **W06** | **Module 3: Triage Phản ánh 2 Pha** | Redis GEO ($R$) + pgvector Cosine ($\tau$) | Soạn Chương 3 - Phần 3 (Gom cụm phản ánh 2 pha) | ✅ **HOÀN THÀNH** |
-| **W07** | **Module 4: Zero-Trust Document Vault** | Watermark Java2D, AES-256, MinIO, Redis `GETDEL` | Soạn Chương 3 - Phần 4 (Bảo mật Nghị định 13) | 🔄 **ĐANG LÀM** |
+| **W07** | **Module 4: Zero-Trust Document Vault** | Watermark Java2D, AES-256, MinIO, Redis `GETDEL` | Soạn Chương 3 - Phần 4 (Bảo mật Nghị định 13) | ✅ **HOÀN THÀNH** |
+| **W08** | **Bộ dữ liệu kiểm thử & Evaluation Runner** | 80 câu RAG, 150 phản ánh (GPS noise), 40 tờ khai | Soạn Chương 4 - Phần 1 (Phương pháp thực nghiệm) | 🔄 **ĐANG LÀM** |
 | **W08** | **Bộ dữ liệu kiểm thử & Evaluation Runner** | 80 câu RAG, 150 phản ánh (GPS noise), 40 tờ khai | Soạn Chương 4 - Phần 1 (Phương pháp thực nghiệm) | ⏳ Chờ |
 | **W09** | **Chạy Grid Search $(R, \tau)$ & Phân tích lỗi** | Quét lưới, tính Recall@3, MRR, $F_1$, vẽ biểu đồ `evaluation/` | Hoàn thiện Chương 4 (Số liệu & Thảo luận) | ⏳ Chờ |
 | **W10** | **Frontend Web Responsive / PWA (React + Vite)** | Cổng Công dân (Mobile-first PWA) & Bàn Cán bộ (Desktop) | Hoàn thiện chương thiết kế giao diện | ⏳ Chờ |
@@ -94,14 +95,14 @@
 
 ---
 
-### 📌 TUẦN 7: MODULE 4 – ZERO-TRUST DOCUMENT VAULT
-- [ ] **Task 7.1:** Xây dựng `ImageWatermarkService` bằng Java2D (`Graphics2D`) vẽ chìm watermark chéo với nội dung: `"CHỈ DÙNG ĐỂ SƠ DUYỆT HỒ SƠ TẠI UBND - [TIMESTAMP]"`.
-- [ ] **Task 7.2:** Hiện thực `ZeroTrustVaultService`: Mã hóa file ảnh đã đóng watermark bằng thuật toán `AES/GCM/NoPadding` (256-bit key).
-- [ ] **Task 7.3:** Tích hợp MinIO Java SDK để upload/download tệp mã hóa vào bucket `smartward-vault`.
-- [ ] **Task 7.4:** Cài đặt cơ chế One-Time Read Token trên Redis với TTL 24 giờ; sử dụng lệnh nguyên tử `GETDEL` (hoặc Lua script) để lấy token và xóa ngay lập tức. Lần truy cập thứ 2 bắt buộc trả về HTTP `410 Gone`.
-- [ ] **Task 7.5:** Xây dựng các REST API: `POST /api/v1/vault/upload` và `GET /api/v1/vault/view/{token}`.
-- [ ] **Task 7.6:** Soạn thảo Chương 3 - Phần 4 (Giải pháp bảo vệ dữ liệu công dân tuân thủ Nghị định 13/2023/NĐ-CP).
-- [ ] **Task 7.7:** Viết Báo cáo Tiến độ Tuần 7 nộp GVHD và Mentor.
+### 📌 TUẦN 7: MODULE 4 – ZERO-TRUST DOCUMENT VAULT [HOÀN THÀNH 100%]
+- [x] **Task 7.1:** Xây dựng `ImageWatermarkService` bằng Java2D (`Graphics2D`) vẽ chìm watermark chéo với nội dung: `"CHỈ DÙNG ĐỂ SƠ DUYỆT HỒ SƠ TẠI UBND - [TIMESTAMP]"`.
+- [x] **Task 7.2:** Hiện thực `ZeroTrustVaultService`: Mã hóa file ảnh đã đóng watermark bằng thuật toán `AES/GCM/NoPadding` (256-bit key).
+- [x] **Task 7.3:** Tích hợp MinIO Java SDK để upload/download tệp mã hóa vào bucket `smartward-vault`.
+- [x] **Task 7.4:** Cài đặt cơ chế One-Time Read Token trên Redis với TTL 24 giờ; sử dụng lệnh nguyên tử `GETDEL` (Spring Data Redis `getAndDelete`) để lấy token và xóa ngay lập tức. Lần truy cập thứ 2 bắt buộc trả về HTTP `410 Gone`.
+- [x] **Task 7.5:** Xây dựng các REST API: `POST /api/v1/vault/upload` và `GET /api/v1/vault/view/{token}`.
+- [x] **Task 7.6:** Soạn thảo Chương 3 - Phần 4 (Giải pháp bảo vệ dữ liệu công dân tuân thủ Nghị định 13/2023/NĐ-CP) tại `docs/thesis-chapters/chapter-03.md`.
+- [x] **Task 7.7:** Viết Báo cáo Tiến độ Tuần 7 nộp GVHD và Mentor tại `docs/weekly-reports/week-07-report.md`.
 
 ---
 
