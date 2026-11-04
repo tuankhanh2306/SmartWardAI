@@ -175,71 +175,62 @@
 
 ---
 
-## 3. GIAI DOAN MO RONG 8 TUAN (W13-W20) — SmartWard AI 2.0
+## 3. GIAI ĐOẠN MỞ RỘNG 8 TUẦN (W13–W20) — SmartWard AI 2.0 (LỘ TRÌNH TINH GỌN THỰC TẾ)
 
-> Xem tai lieu day du tai: `docs/EXPANSION_ROADMAP.md`
+> Chi tiết kỹ thuật & phân tích khả thi: [`docs/EXPANSION_ROADMAP.md`](docs/EXPANSION_ROADMAP.md)
 
-### TUAN 13: MULTI-WARD REGISTRY + ONBOARDING FLOW
-- [ ] Task 13.1: Migration V7__ward_registry.sql (ward_registry, ward_operating_hours, ward_service_catalog). Seed 10 phuong Binh Thanh.
-- [ ] Task 13.2: WardRegistryController + WardService - GET /api/v1/wards?province=&district=
-- [ ] Task 13.3: WardContext.tsx (React Context) - wardCode, wardInfo, setWard()
-- [ ] Task 13.4: Trang /onboarding - Province > District > Ward cascade dropdown, Ward Info Card, Leaflet GPS map
-- [ ] Task 13.5: localStorage luu wardCode + Axios interceptor X-Ward-Code header
-- [ ] Task 13.6: Ward Switcher trong Header
+### 📌 TUẦN 13: MULTI-WARD REGISTRY & ONBOARDING FLOW (WEB)
+- [ ] **Task 13.1:** Migration `V7__ward_registry.sql` (bảng `ward_registry`, `ward_operating_hours`). Seed dữ liệu 10 phường Quận Bình Thạnh (GPS centroid + GeoJSON boundary).
+- [ ] **Task 13.2:** Triển khai `WardRegistryController` và `WardService` (`GET /api/v1/wards?province=&district=`).
+- [ ] **Task 13.3:** Xây dựng `WardContext.tsx` (React Context API) quản lý `wardCode`, `wardInfo`, `setWard()`.
+- [ ] **Task 13.4:** Xây dựng trang `/onboarding` (Cascade Dropdown Tỉnh/Quận/Phường, bản đồ Leaflet định vị trụ sở & viền địa bàn, Thẻ thông tin hành chính).
+- [ ] **Task 13.5:** Tích hợp `localStorage` lưu `wardCode` và cấu hình Axios Interceptor tự động thêm header `X-Ward-Code`.
+- [ ] **Task 13.6:** Nút chuyển đổi nhanh địa bàn (Ward Switcher) trên thanh Navigation Header.
 
-### TUAN 14: WARD-SCOPED BACKEND MIDDLEWARE
-- [ ] Task 14.1: WardContextFilter (Spring OncePerRequestFilter) - doc X-Ward-Code, set ThreadLocal
-- [ ] Task 14.2: Migration V8__ward_scoped_columns.sql - them ward_code vao legal_chunks, issue_clusters
-- [ ] Task 14.3: Cap nhat RagService - WHERE ward_code = ?
-- [ ] Task 14.4: Cap nhat TriageService - ST_Within(point, ward_boundary_polygon)
-- [ ] Task 14.5: Cap nhat GisService - filter heatmap by ward boundary
-- [ ] Task 14.6: Redis key prefix: WARD:{wardCode}:*
+### 📌 TUẦN 14: PHÂN LỚP NGHIỆP VỤ & QUYỀN HẠN CẤP PHƯỜNG
+- [ ] **Task 14.1:** Triển khai `WardContextFilter` (Spring OncePerRequestFilter) đọc `X-Ward-Code` header đưa vào `ThreadLocal`.
+- [ ] **Task 14.2:** Migration `V8__ward_service_catalog.sql` (bảng `ward_service_catalog`, thêm `ward_code` vào `issue_clusters`).
+- [ ] **Task 14.3:** Chuẩn hóa RAG: Dùng chung toàn bộ `legal_chunks` cấp Tỉnh (TP.HCM), **không phân mảnh pháp luật theo phường**.
+- [ ] **Task 14.4:** Cập nhật `TriageService`: Kiểm tra điểm sự cố nằm trong ranh giới địa bàn phường (`ST_Within(point, boundary)`).
+- [ ] **Task 14.5:** Cập nhật Redis Key Prefix: `WARD:{wardCode}:clusters` và `WARD:{wardCode}:services`.
 
-### TUAN 15: PER-WARD OFFICER DASHBOARD
-- [ ] Task 15.1: Route /officer/ward/:wardCode/dashboard
-- [ ] Task 15.2: KPI Row - Tong su co, Thoi gian xu ly TB, SLA %, Cho xu ly
-- [ ] Task 15.3: Per-ward GIS map - chi hien thi clusters trong dia ban xa
-- [ ] Task 15.4: Incident list table voi filter theo loai su co
-- [ ] Task 15.5: Officer Activity Log - deadline tracking
-- [ ] Task 15.6: Ward Alert Broadcasting UI
+### 📌 TUẦN 15: PER-WARD OFFICER DASHBOARD ĐỘC LẬP
+- [ ] **Task 15.1:** Xây dựng trang `/officer/ward/:wardCode/dashboard` cho cán bộ từng phường.
+- [ ] **Task 15.2:** Hàng thẻ KPI Real-time (Tổng sự cố, Tỷ lệ gộp trùng tự động, Thời gian giải quyết TB, Cảnh báo điểm nóng).
+- [ ] **Task 15.3:** Bản đồ GIS cán bộ chỉ lọc và hiển thị sự cố nằm trong ranh giới phường quản lý.
+- [ ] **Task 15.4:** Bảng danh sách phản ánh phân loại theo nhóm sự cố (Hạ tầng, ANTT, Vệ sinh môi trường).
+- [ ] **Task 15.5:** Bảng nhật ký xử lý công việc và phân công nhiệm vụ của cán bộ Một Cửa.
 
-### TUAN 16: DYNAMIC HEATMAP + QR TOKEN
-- [ ] Task 16.1: leaflet.heat plugin integration
-- [ ] Task 16.2: HeatmapController GET /api/v1/gis/heatmap
-- [ ] Task 16.3: Heatmap filter UI + playback animation
-- [ ] Task 16.4: Migration V9__qr_tokens.sql
-- [ ] Task 16.5: QrTokenController POST /api/v1/qr/generate (JWT RS256) + /api/v1/qr/checkin
-- [ ] Task 16.6: Frontend QR scan UI (jsqr + camera)
+### 📌 TUẦN 16: DYNAMIC HEATMAP ST_SnapToGrid & HÀNG ĐỢI ẢO QR
+- [ ] **Task 16.1:** Backend API Heatmap: Tổng hợp điểm nhiệt từ `issue_clusters` hoặc `ST_SnapToGrid` trả về `[[lat, lon, intensity]]`.
+- [ ] **Task 16.2:** Frontend render Heatmap thời gian thực bằng `leaflet.heat` (Canvas) trên nền bản đồ hiện có.
+- [ ] **Task 16.3:** Migration `V9__qr_virtual_queue.sql` (bảng `service_queues`, `qr_checkin_tokens`).
+- [ ] **Task 16.4:** Dịch vụ Hàng đợi ảo dùng `Redis Sorted Set` (`ZADD`, `ZRANK`, `ZREM`) đánh số và ước tính thời gian chờ.
+- [ ] **Task 16.5:** Giao diện quét QR Check-in trên Web cán bộ Một Cửa (xác nhận công dân có mặt tại trụ sở).
 
-### TUAN 17: VIETNAMESE BI-ENCODER FINE-TUNING
-- [ ] Task 17.1: Thu thap 1000 cap Q&A tu 40 TTHC + 500 negative pairs
-- [ ] Task 17.2: Training script ai-training/finetune_biencoder.py (Sentence Transformers)
-- [ ] Task 17.3: Fine-tune tren Google Colab T4, export ONNX
-- [ ] Task 17.4: Tich hop ONNX vao Spring Boot (Deep Java Library)
-- [ ] Task 17.5: Migration V10__ai_feedback.sql (HITL active learning queue)
-- [ ] Task 17.6: So sanh Recall@3/MRR truoc-sau fine-tune
+### 📌 TUẦN 17: TINH CHỈNH BI-ENCODER TIẾNG VIỆT (COLAB T4)
+- [ ] **Task 17.1:** Chuẩn hóa 1,000 cặp câu hỏi - căn cứ TTHC chuẩn + 500 mẫu âm tính.
+- [ ] **Task 17.2:** Script huấn luyện Python (`Sentence Transformers` + `MultipleNegativesRankingLoss`) trên Google Colab T4.
+- [ ] **Task 17.3:** Xuất mô hình `vietnamese-bi-encoder` sang ONNX FP16 (~120MB).
+- [ ] **Task 17.4:** Nhúng ONNX vào Spring Boot qua DJL (Deep Java Library) với footprint bộ nhớ nhỏ (~200MB Off-heap).
+- [ ] **Task 17.5:** Đánh giá thực nghiệm so sánh `Recall@3` và `MRR` trước/sau fine-tune phục vụ bài báo NCKH.
 
-### TUAN 18: LOCAL SLM (OLLAMA) + VIETOCR
-- [ ] Task 18.1: Ollama service trong docker-compose (Qwen-2.5-3B GGUF 4-bit)
-- [ ] Task 18.2: OllamaAiClient thay DeterministicMockAiClient (prod profile)
-- [ ] Task 18.3: VietOCR Docker service + OcrController POST /api/v1/ocr/extract
-- [ ] Task 18.4: OCR tich hop vao Form Precheck UI - upload anh -> auto-fill
-- [ ] Task 18.5: Fine-tune VietOCR tren 500 anh to khai
-- [ ] Task 18.6: Human-in-the-Loop admin panel
+### 📌 TUẦN 18: HUMAN-IN-THE-LOOP ACTIVE LEARNING AUDIT PANEL
+- [ ] **Task 18.1:** Migration `V10__ai_feedback.sql` (bảng `ai_feedback_queue`).
+- [ ] **Task 18.2:** Cơ chế lọc ngưỡng: Tự động đưa các câu hỏi có similarity $0.55 \le S < 0.78$ vào hàng đợi thẩm định.
+- [ ] **Task 18.3:** Giao diện Cán bộ Audit Panel: Đọc câu hỏi, chỉnh sửa câu trả lời mẫu chuẩn và bấm "Lưu dữ liệu học máy".
+- [ ] **Task 18.4:** Tạo profile mở rộng `docker-compose.ai.yml` riêng cho GPU Workstation (Qwen-2.5-3B + VietOCR), giữ Core Server ≤ 1.2 GB.
 
-### TUAN 19: MOBILE APP FOUNDATION (EXPO SDK 51)
-- [ ] Task 19.1: Khoi tao Expo SDK 51 project (mobile/) TypeScript template
-- [ ] Task 19.2: Shared types: frontend/src/api/client.ts -> shared/types/api.ts
-- [ ] Task 19.3: Ward Onboarding screen (React Native Picker)
-- [ ] Task 19.4: WatermelonDB offline-first SQLite sync
-- [ ] Task 19.5: GPS voi expo-location
-- [ ] Task 19.6: Navigation: @react-navigation/native (Bottom Tab + Stack)
+### 📌 TUẦN 19: MOBILE APP EXPO & OFFLINE QUEUE
+- [ ] **Task 19.1:** Khởi tạo dự án Mobile Expo SDK 51 (`mobile/`) dùng TypeScript template.
+- [ ] **Task 19.2:** Tái sử dụng các định nghĩa kiểu dữ liệu (DTO Types) từ `frontend/src/api/client.ts`.
+- [ ] **Task 19.3:** Màn hình Onboarding di động: Chọn phường/xã và xem thông tin Một Cửa.
+- [ ] **Task 19.4:** Tích hợp TanStack Query kết hợp `AsyncStorage` làm cơ chế Offline Mutation Queue (lưu tạm phản ánh khi mất sóng).
+- [ ] **Task 19.5:** Định vị GPS di động bằng `expo-location`.
 
-### TUAN 20: MOBILE NFC + CAMERA + FCM + BETA SUBMIT
-- [ ] Task 20.1: NFC CCCD reader (react-native-nfc-manager, ICAO 9303)
-- [ ] Task 20.2: Camera + MLKit Document Scanner (expo-camera)
-- [ ] Task 20.3: Firebase FCM (@react-native-firebase/messaging) - 4 loai notification
-- [ ] Task 20.4: QR Check-in tren mobile
-- [ ] Task 20.5: E2E test tren Android emulator + iOS Simulator
-- [ ] Task 20.6: Google Play Internal Testing + Apple TestFlight submit
-- [ ] Task 20.7: Pilot deployment docs cho UBND phuong thuc te
+### 📌 TUẦN 20: QUÉT QR MẶT TRƯỚC CCCD & ĐÓNG GÓI HOÀN CHỈNH
+- [ ] **Task 20.1:** Tích hợp `expo-camera` quét mã QR chuẩn in trên mặt trước thẻ Căn cước công dân gắn chip.
+- [ ] **Task 20.2:** Viết hàm `parseCccdQrCode()` giải mã chuỗi phân cách `|` trích xuất 100% chính xác: CCCD, CMND cũ, Họ tên, Ngày sinh, Địa chỉ.
+- [ ] **Task 20.3:** Auto-fill thông tin vào Tờ khai Mẫu CT01 trên mobile chỉ trong 0.5 giây.
+- [ ] **Task 20.4:** Kiểm thử toàn diện liên thông Web PWA + Mobile App + Backend Core.
+- [ ] **Task 20.5:** Hoàn thiện video demo kịch bản nghiệp vụ sẵn sàng cho đề tài NCKH UTH (Tháng 3/2027).
