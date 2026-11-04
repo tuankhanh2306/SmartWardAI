@@ -141,6 +141,21 @@ public class RagQueryService {
         String systemPrompt = buildSystemPrompt(candidateChunks, request.getWardName(), request.getOfficeAddress());
         String generatedAnswer = aiModelClient.generateChatResponse(systemPrompt, rawQuery);
 
+        // 6.1. Strip any conversational preamble before "1. TÓM TẮT THỦ TỤC:"
+        if (generatedAnswer != null) {
+            int markerIdx = generatedAnswer.indexOf("1. TÓM TẮT THỦ TỤC:");
+            if (markerIdx > 0) {
+                generatedAnswer = generatedAnswer.substring(markerIdx).trim();
+            }
+        }
+
+        // 6.2. Ensure Section 5 is present if omitted by LLM
+        if (generatedAnswer != null && !generatedAnswer.contains("5. CĂN CỨ PHÁP LÝ") && !candidateChunks.isEmpty()) {
+            LegalChunkMatch topChunk = candidateChunks.get(0);
+            String ref = topChunk.getLegalReference() != null ? topChunk.getLegalReference() : "Quy định pháp luật hiện hành";
+            generatedAnswer = generatedAnswer.trim() + "\n\n5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n[" + topChunk.getChunkCode() + "] Căn cứ " + ref + ".\n" + LEGAL_DISCLAIMER;
+        }
+
         // Ensure disclaimer is always present at the end
         if (generatedAnswer != null && !generatedAnswer.contains("không thay thế quyết định chính thức")) {
             generatedAnswer = generatedAnswer.trim() + "\n\n" + LEGAL_DISCLAIMER;

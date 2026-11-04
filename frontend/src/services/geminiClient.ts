@@ -89,6 +89,32 @@ export interface WardContextInfo {
 }
 
 /**
+ * Builds guaranteed complete 5-section administrative response directly from structured legal data
+ */
+export function buildStructuredProcedureResponse(
+  item: LegalProcedureItem,
+  wardName: string,
+  officeAddress: string,
+  disclaimer: string
+): string {
+  const dossierItems = item.dossier.map((d) => `- ${d} [${item.code}]`).join('\n');
+  return (
+    `1. TÓM TẮT THỦ TỤC:\n` +
+    `Thủ tục ${item.name} (${item.category}) được tiếp nhận và giải quyết tại UBND ${wardName}.\n\n` +
+    `2. THÀNH PHẦN HỒ SƠ:\n` +
+    `${dossierItems}\n\n` +
+    `3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n` +
+    `- Thời hạn giải quyết: ${item.timeLimit} [${item.code}]\n` +
+    `- Mức lệ phí: ${item.fee} [${item.code}]\n\n` +
+    `4. NƠI TIẾP NHẬN & XỬ LÝ:\n` +
+    `Bộ phận Tiếp nhận và Trả kết quả (Một Cửa) thuộc UBND ${wardName} (Địa chỉ: ${officeAddress}).\n\n` +
+    `5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n` +
+    `[${item.code}] Căn cứ ${item.legalBasis}.\n` +
+    `${disclaimer}`
+  );
+}
+
+/**
  * Grounded RAG Generation using Gemini Flash ("Gemini Mini")
  * Combines natural reasoning with strict SmartWard AI administrative legal database.
  */
@@ -253,15 +279,15 @@ ${item.keyRules.map((r) => `  - ${r}`).join('\n')}
     '*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*';
 
   const systemInstruction = `
-Bạn là công chức mẫn cán tại Bộ phận Tiếp nhận và Trả kết quả (Một Cửa) thuộc ${wardName}.
+Bạn là cán bộ phụ trách hướng dẫn thủ tục tại Bộ phận Tiếp nhận và Trả kết quả (Một Cửa) thuộc ${wardName}.
 NHIỆM VỤ: Hướng dẫn thủ tục hành chính công trực tiếp, chính xác, ân cần và chuẩn mực.
 
 QUY TẮC BẮT BUỘC (TUÂN THỦ 100%, KHÔNG NGOẠI LỆ):
-1. NGUYÊN TẮC TRỰC TIẾP & KHÔNG RƯỜM RÀ: TUYỆT ĐỐI CẤM các câu chào hỏi khách sáo (như "Xin chào quý công dân", "Chào bạn", "Tôi rất vui..."), CẤM cảm ơn/xin lỗi lê thê, CẤM lặp lại câu hỏi. BẮT BUỘC BẮT ĐẦU NGAY BẰNG: "1. TÓM TẮT THỦ TỤC:".
+1. NGUYÊN TẮC TRỰC TIẾP & KHÔNG RƯỜM RÀ: TUYỆT ĐỐI CẤM các câu chào hỏi khách sáo (như "Chào mừng quý công dân...", "Xin chào...", "Chào bạn...", "Tôi hiểu rằng...", "Tôi rất vui..."), CẤM cảm ơn/xin lỗi lê thê, CẤM nhắc lại câu hỏi của người dân. BẮT BUỘC BẮT ĐẦU NGAY BẰNG: "1. TÓM TẮT THỦ TỤC:".
 2. CHỈ sử dụng dữ liệu trong các đoạn văn bản pháp lý được cung cấp bên dưới. TUYỆT ĐỐI KHÔNG tự suy đoán, bịa đặt điều luật hay số liệu.
 3. QUY TẮC THIẾU THÔNG TIN: Nếu trong dữ liệu chưa có thông tin về thời hạn, lệ phí hoặc địa chỉ, BẮT BUỘC ghi rõ: "Chưa có dữ liệu, vui lòng liên hệ Bộ phận Một cửa". TUYỆT ĐỐI KHÔNG đoán mò.
 4. BẮT BUỘC TRÍCH DẪN MÃ ĐOẠN: Khi nêu điều kiện, giấy tờ, thời hạn hoặc lệ phí, phải đính kèm mã trích dẫn dạng [MÃ_ĐOẠN] (ví dụ: [${searchResult.items[0].code}]).
-5. ĐỊNH DẠNG BẮT BUỘC ĐỦ 5 PHẦN THEO ĐÚNG THỨ TỰ:
+5. ĐỊNH DẠNG BẮT BUỘC ĐỦ 5 PHẦN THEO ĐÚNG THỨ TỰ (KHÔNG ĐƯỢC THIẾU BẤT KỲ PHẦN NÀO):
    1. TÓM TẮT THỦ TỤC: (Tối đa 01 câu trả lời thẳng vào vấn đề chính).
    2. THÀNH PHẦN HỒ SƠ: (Gạch đầu dòng từng loại giấy tờ phải nộp và xuất trình).
    3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ: (Nêu rõ số ngày làm việc và mức phí; nếu thiếu ghi "Chưa có dữ liệu, vui lòng liên hệ Bộ phận Một cửa").
@@ -290,6 +316,9 @@ ${retrievedText}
         generationConfig: {
           temperature: 0.1,
           maxOutputTokens: 8192,
+          thinkingConfig: {
+            thinkingBudget: 0,
+          },
         },
       }),
     });
@@ -334,9 +363,38 @@ ${retrievedText}
       throw new Error('EMPTY_RESPONSE');
     }
 
-    if (finishReason === 'MAX_TOKENS') {
-      console.warn('Gemini response truncated due to MAX_TOKENS');
-      generatedText += '\n\n*(Nội dung thủ tục rất chi tiết và vượt quá giới hạn hiển thị tự động. Vui lòng liên hệ trực tiếp Bộ phận Một cửa để nhận hướng dẫn và biểu mẫu đầy đủ.)*';
+    // 1. Strip any conversational preamble before "1. TÓM TẮT THỦ TỤC:"
+    const marker = '1. TÓM TẮT THỦ TỤC:';
+    const markerIdx = generatedText.indexOf(marker);
+    if (markerIdx > 0) {
+      generatedText = generatedText.substring(markerIdx).trim();
+    }
+
+    // 2. Truncation detection & structured recovery (R1e & R3)
+    const isTruncated =
+      finishReason === 'MAX_TOKENS' ||
+      !generatedText.includes('2. THÀNH PHẦN HỒ SƠ') ||
+      !generatedText.includes('3. THỜI HẠN GIẢI QUYẾT') ||
+      !generatedText.includes('4. NƠI TIẾP NHẬN') ||
+      generatedText.endsWith('quan') ||
+      !/[.!?*)]$/.test(generatedText.trim());
+
+    if (isTruncated) {
+      console.warn('Gemini response truncated or incomplete. Rebuilding complete answer from structured legal database.');
+      generatedText = buildStructuredProcedureResponse(
+        searchResult.items[0],
+        wardName,
+        officeAddress,
+        mandatoryDisclaimer
+      );
+    }
+
+    // 3. Ensure Section 5 is present
+    if (!generatedText.includes('5. CĂN CỨ PHÁP LÝ')) {
+      const topItem = searchResult.items[0];
+      generatedText =
+        generatedText.trim() +
+        `\n\n5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n[${topItem.code}] Căn cứ ${topItem.legalBasis}.\n${mandatoryDisclaimer}`;
     }
 
     if (!generatedText.includes('không thay thế quyết định chính thức')) {
