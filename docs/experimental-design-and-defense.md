@@ -31,9 +31,42 @@
 
 ## 2. Thực nghiệm Xác định Tham số Tối ưu (Không chọn ngưỡng cảm tính)
 
+### 2.0. Cơ Sở Lý Thuyết Về Các Chỉ Số Đo Lường: Precision, Recall và F1-Score
+
+Để đảm bảo tính khoa học chặt chẽ và chuẩn mực học thuật, nghiên cứu xác lập rõ bản chất toán học và ý nghĩa nghiệp vụ của từng chỉ số đo lường:
+
+#### A. Khái niệm cơ bản và Công thức toán học
+Xét bài toán phân loại nhị phân hoặc phân cụm cặp (Pairwise Clustering):
+* **$TP$ (True Positive - Đúng thực tế):** Hệ thống gom đúng các phản ánh thuộc cùng một sự cố, hoặc RAG truy xuất đúng đoạn điều khoản căn cứ.
+* **$FP$ (False Positive - Báo sai / Gộp nhầm):** Hai sự cố khác nhau (VD: cháy bóng đèn vs nghẹt cống) nhưng hệ thống gộp chung thành một cụm; hoặc mô hình AI tự suy diễn căn cứ luật không tồn tại (Ảo giác).
+* **$FN$ (False Negative - Bỏ sót):** Cùng một sự cố nhưng do GPS điện thoại bị trôi dạt nên hệ thống không nhận ra, bỏ sót và tạo cụm mới riêng lẻ.
+
+Từ đó, hai chỉ số nền tảng được định nghĩa:
+$$\text{Precision (Độ chính xác)} = \frac{TP}{TP + FP}$$
+*(Ý nghĩa: Trong tất cả những gì hệ thống đã gộp/đã khẳng định, có bao nhiêu % là đúng sự thật? Đo lường khả năng **KHÔNG BỊ GỘP NHẦM / KHÔNG BỊA ĐẶT**).*
+
+$$\text{Recall (Độ bao phủ / Độ nhạy)} = \frac{TP}{TP + FN}$$
+*(Ý nghĩa: Trong tất cả các sự cố thực tế cần phát hiện, hệ thống đã tóm được bao nhiêu %? Đo lường khả năng **KHÔNG BỊ BỎ SÓT**).*
+
+#### B. Vì sao bắt buộc phải dùng $F_1$-Score (Trung bình điều hòa - Harmonic Mean)?
+Trong thực tế, Precision và Recall luôn có sự đánh đổi nghịch đảo (Trade-off). Nếu lấy trung bình cộng số học $\frac{\text{Precision} + \text{Recall}}{2}$, một thuật toán cực đoan gộp toàn bộ phản ánh trong phường vào một cụm duy nhất sẽ có $\text{Recall} = 100\%$ nhưng $\text{Precision} \approx 5\%$, trung bình cộng vẫn đạt $52.5\%$ (gây ảo tưởng về chất lượng).
+
+$F_1$-Score sử dụng **trung bình điều hòa (Harmonic Mean)**:
+$$F_1 = 2 \times \frac{\text{Precision} \times \text{Recall}}{\text{Precision} + \text{Recall}} = \frac{2 \cdot TP}{2 \cdot TP + FP + FN}$$
+Đặc tính toán học của trung bình điều hòa là nó bị kéo mạnh về phía giá trị nhỏ hơn. Nếu một trong hai chỉ số tiến về 0 thì $F_1$ sẽ tiến về 0. Do đó, $F_1$-Score là trọng tài công tâm nhất, **buộc hệ thống phải đồng thời tối ưu cả việc không gộp nhầm (Precision cao) và không bỏ sót (Recall cao)**.
+
+#### C. Vì sao không dùng Accuracy thông thường? (Hiện tượng Class Imbalance)
+Trong bài toán gom cụm 150 phản ánh hiện trường, tổng số cặp phản ánh có thể ghép nối là $\binom{150}{2} = \frac{150 \times 149}{2} = 11,175$ cặp. Trong đó:
+* Số cặp cùng sự cố thực tế ($TP$) chỉ có $30 \times \binom{5}{2} = 300$ cặp (chiếm vỏn vẹn **2.68%**).
+* Số cặp khác sự cố ($TN$) lên tới $10,875$ cặp (chiếm **97.32%**).
+
+Nếu dùng chỉ số Accuracy thông thường, một mô hình tầm thường "không làm gì cả, phán tất cả là khác nhau" vẫn đạt độ chính xác $97.32\%$. Đây là cạm bẫy mất cân bằng nhãn (**Class Imbalance Trap**). Vì vậy, việc sử dụng Precision, Recall và $F_1$-Score trên tập cặp thực sự là yêu cầu khoa học bắt buộc.
+
+---
+
 ### Thực nghiệm 1: Đánh giá Hệ thống RAG (So sánh 3 Cấu hình)
 Thực hiện đánh giá trên bộ 80 câu hỏi với các chỉ số đo lường chuẩn:
-* **Recall@3 & MRR (Mean Reciprocal Rank):** Đánh giá chất lượng truy hồi của `pgvector` (đoạn điều khoản chính xác có nằm trong Top-3 kết quả tìm kiếm không).
+* **Recall@3 & MRR (Mean Reciprocal Rank):** Đánh giá chất lượng truy hồi của `pgvector`. $\text{Recall@3}$ đo tỷ lệ các câu hỏi mà đoạn điều khoản chính xác nằm trong Top-3 kết quả tìm kiếm được trả về. Nếu $\text{Recall@3} < 80\%$, LLM phía sau sẽ không có đủ ngữ cảnh luật để trả lời đúng.
 * **Citation Precision:** Tỷ lệ câu trả lời trích dẫn chính xác số hiệu Điều, Khoản và mã thủ tục hành chính liên quan.
 * **Hallucination / False Answer Rate:** Tỷ lệ mô hình tự suy đoán sai lệch thông tin, đặc biệt trên 15 câu hỏi bẫy (Nhóm C).
 
@@ -107,6 +140,14 @@ Trình bày chi tiết các trường hợp hệ thống xử lý sai để th�
 > **Trả lời:**  
 > - **Công cụ có sẵn:** Em tái sử dụng API mô hình ngôn ngữ lớn để trích xuất văn bản thô từ ảnh (Vision OCR) và sinh vector biểu diễn ngữ nghĩa (`text-embedding-004`).  
 > - **Phần tự phát triển (100% Core):** Toàn bộ kiến trúc backend Spring Boot; thuật toán băm nhỏ văn bản theo Điều - Khoản; cơ chế Guardrail từ chối trả lời; Rule Engine giải mã 12 số CCCD và kiểm tra logic ngày tháng; thuật toán gom nhóm phản ánh 2 pha; mô-đun đóng dấu watermark động; cơ chế One-time token an toàn và toàn bộ bộ công cụ đo đạc thực nghiệm.
+
+### Câu 7: Tại sao em không dùng Accuracy (Độ chính xác) mà bắt buộc phải dùng Precision, Recall và F1-Score?
+> **Trả lời:**  
+> Kính thưa Thầy/Cô, trong bài toán gom cụm phản ánh hiện trường, số lượng cặp phản ánh khác sự cố chiếm đa số áp đảo (hơn 97% là âm tính). Nếu dùng chỉ số Accuracy thông thường, một mô hình tầm thường "phán tất cả phản ánh là khác nhau" vẫn đạt Accuracy trên 97%, rơi vào cạm bẫy mất cân bằng nhãn (Class Imbalance).  
+> Do đó, em bắt buộc phải sử dụng **Precision, Recall và F1-Score (Trung bình điều hòa - Harmonic Mean)**:  
+> - **Precision:** Đo lường việc không bị gộp nhầm các sự cố khác loại xảy ra gần nhau (tránh False Positive).  
+> - **Recall:** Đo lường việc không bỏ sót các phản ánh của người dân khi GPS bị trôi dạt 15–30m (tránh False Negative).  
+> - **F1-Score:** Là thước đo công tâm nhất vì bản chất trung bình điều hòa sẽ phạt nặng nếu một trong hai chỉ số bị thấp, buộc hệ thống phải tìm ra điểm cân bằng tối ưu tại $R = 75\text{m}, \tau = 0.82$ với $F_1 = 91.4\%$.
 
 ---
 
