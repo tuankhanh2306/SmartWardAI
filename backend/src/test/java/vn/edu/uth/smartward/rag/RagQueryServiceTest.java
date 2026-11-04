@@ -112,7 +112,7 @@ class RagQueryServiceTest {
         assertTrue(response.isAbstained(), "System must abstain when S_max < theta");
         assertEquals(0.65, response.getMaxSimilarity());
         assertTrue(response.getCitations().isEmpty());
-        assertTrue(response.getAnswer().contains("từ chối"));
+        assertTrue(response.getAnswer().contains("chưa tìm thấy thông tin thủ tục"));
         verify(aiModelClient, never()).generateChatResponse(anyString(), anyString());
         verify(queryCacheService).putResponse(anyString(), any(RagAskResponse.class), eq(1800L));
     }
@@ -190,6 +190,48 @@ class RagQueryServiceTest {
         assertTrue(response.getAnswer().contains("Phường Mỹ Thới"));
         assertTrue(response.getAnswer().contains("123 Trần Hưng Đạo, Phường Mỹ Thới"));
         assertTrue(response.getAnswer().contains("Giờ tiếp nhận và trả kết quả"));
+        verifyNoInteractions(aiModelClient);
+    }
+
+    @Test
+    void testAskQuestion_whenWellbeingQuery_shouldReturnFriendlySmallTalkWithoutLLM() {
+        when(redisRateLimiter.isAllowed(anyString())).thenReturn(true);
+        when(queryCacheService.getCachedResponse(anyString(), eq(RagAskResponse.class))).thenReturn(Optional.empty());
+
+        RagAskRequest request = RagAskRequest.builder()
+                .question("hôm nay thế nào")
+                .wardName("Xã An Phú, Tỉnh An Giang")
+                .build();
+
+        RagAskResponse response = ragQueryService.askQuestion(request, "127.0.0.1");
+
+        assertNotNull(response);
+        assertFalse(response.isAbstained(), "Wellbeing/small talk must NOT be abstained");
+        assertEquals(1.0, response.getMaxSimilarity());
+        assertTrue(response.getAnswer().contains("hoạt động bình thường 24/7"));
+        assertTrue(response.getAnswer().contains("Xã An Phú, Tỉnh An Giang"));
+        verifyNoInteractions(aiModelClient);
+    }
+
+    @Test
+    void testAskQuestion_whenProcedureListQuery_shouldReturn40ProceduresCatalogWithoutLLM() {
+        when(redisRateLimiter.isAllowed(anyString())).thenReturn(true);
+        when(queryCacheService.getCachedResponse(anyString(), eq(RagAskResponse.class))).thenReturn(Optional.empty());
+
+        RagAskRequest request = RagAskRequest.builder()
+                .question("nêu 40 thủ tục")
+                .wardName("Xã An Phú, Tỉnh An Giang")
+                .build();
+
+        RagAskResponse response = ragQueryService.askQuestion(request, "127.0.0.1");
+
+        assertNotNull(response);
+        assertFalse(response.isAbstained(), "Procedure catalog query must NOT be abstained");
+        assertEquals(1.0, response.getMaxSimilarity());
+        assertTrue(response.getAnswer().contains("LĨNH VỰC HỘ TỊCH & NHÂN THÂN"));
+        assertTrue(response.getAnswer().contains("TTHC-HT-01"));
+        assertTrue(response.getAnswer().contains("TTHC-CR-01"));
+        assertTrue(response.getAnswer().contains("TTHC-CT-01"));
         verifyNoInteractions(aiModelClient);
     }
 

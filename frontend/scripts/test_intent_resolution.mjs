@@ -1,4 +1,10 @@
-import { isGreetingQuery, isWardOfficeQuery, checkOutOfScopeQuery } from '../src/services/intentClassifier.js';
+import {
+  isGreetingQuery,
+  isWardOfficeQuery,
+  checkOutOfScopeQuery,
+  isProcedureListQuery,
+  classifySmallTalk,
+} from '../src/services/intentClassifier.js';
 import { searchLegalKnowledge } from '../src/services/legalKnowledgeBase.js';
 
 console.log('Testing SmartWard AI Intent Classification & Legal Search:');
@@ -7,7 +13,12 @@ const testCases = [
   { query: 'hi', expectedGreeting: true, expectedInScope: false },
   { query: 'hello', expectedGreeting: true, expectedInScope: false },
   { query: 'xin chào', expectedGreeting: true, expectedInScope: false },
-  { query: 'chào cán bộ', expectedGreeting: true, expectedInScope: false },
+  { query: 'hôm nay thế nào', expectedGreeting: true, expectedSmallTalk: 'WELLBEING', expectedInScope: false },
+  { query: 'khỏe không', expectedGreeting: true, expectedSmallTalk: 'WELLBEING', expectedInScope: false },
+  { query: 'cảm ơn cán bộ', expectedGreeting: true, expectedSmallTalk: 'THANKS', expectedInScope: false },
+  { query: 'nêu 40 thủ tục', expectedProcedureList: true, expectedInScope: false },
+  { query: 'danh sách thủ tục', expectedProcedureList: true, expectedInScope: false },
+  { query: 'có những thủ tục nào', expectedProcedureList: true, expectedInScope: false },
   { query: 'bạn là ai', expectedGreeting: true, expectedInScope: false },
   { query: 'bạn có thể làm gì', expectedGreeting: true, expectedInScope: false },
   { query: 'Tôi muốn làm thủ tục đăng ký khai sinh cho cháu mới sinh tại Xã An Phú cần giấy tờ gì và mất bao lâu?', expectedGreeting: false, expectedInScope: true, expectedProc: 'TTHC-HT-01' },
@@ -24,17 +35,29 @@ let failed = 0;
 for (const tc of testCases) {
   const isGreet = isGreetingQuery(tc.query);
   const isWard = isWardOfficeQuery(tc.query);
+  const isList = isProcedureListQuery(tc.query);
+  const st = classifySmallTalk(tc.query);
   const oos = checkOutOfScopeQuery(tc.query);
   const legal = searchLegalKnowledge(tc.query, 1);
 
   console.log(`\nQuery: "${tc.query}"`);
   console.log(`  -> isGreeting: ${isGreet}`);
+  console.log(`  -> isProcedureList: ${isList}`);
+  console.log(`  -> smallTalk: ${st.type}`);
   console.log(`  -> isWardOffice: ${isWard}`);
   console.log(`  -> isOutOfScope: ${oos.isOutOfScope}`);
   console.log(`  -> isInScope (Procedure): ${legal.isInScope}, topMatch: ${legal.items[0]?.code || 'NONE'}`);
 
   if (tc.expectedGreeting !== undefined && isGreet !== tc.expectedGreeting) {
     console.error(`  FAIL: expectedGreeting=${tc.expectedGreeting}, got=${isGreet}`);
+    failed++;
+  }
+  if (tc.expectedProcedureList !== undefined && isList !== tc.expectedProcedureList) {
+    console.error(`  FAIL: expectedProcedureList=${tc.expectedProcedureList}, got=${isList}`);
+    failed++;
+  }
+  if (tc.expectedSmallTalk !== undefined && st.type !== tc.expectedSmallTalk) {
+    console.error(`  FAIL: expectedSmallTalk=${tc.expectedSmallTalk}, got=${st.type}`);
     failed++;
   }
   if (tc.expectedWardInfo !== undefined && isWard !== tc.expectedWardInfo) {

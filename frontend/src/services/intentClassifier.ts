@@ -1,7 +1,8 @@
 /**
  * Intent Classifier for SmartWard AI
- * Distinguishes conversational greetings, commune contact queries, out-of-scope inquiries,
- * and genuine administrative procedure inquiries.
+ * Distinguishes conversational greetings, small talk (wellbeing, gratitude, farewell),
+ * procedure catalog inquiries (e.g., "nêu 40 thủ tục"), commune contact queries,
+ * out-of-scope inquiries, and genuine administrative procedure inquiries.
  */
 
 export const PROCEDURE_KEYWORDS = [
@@ -16,18 +17,71 @@ export const PROCEDURE_KEYWORDS = [
   'đất đai', 'chuyển mục đích', 'đo đạc', 'trích lục bản đồ'
 ];
 
-export function isGreetingQuery(query: string): boolean {
+/**
+ * Checks if the user is asking to view the catalog / list of 40 procedures
+ */
+export function isProcedureListQuery(query: string): boolean {
   const q = query.trim().toLowerCase().replace(/[!?.,;:]+$/, '');
   if (!q) return false;
 
-  // If query contains explicit procedure keywords, it is a PROCEDURE query, NOT a greeting
+  const listPatterns = [
+    'nêu 40 thủ tục', 'nêu thủ tục', 'kể 40 thủ tục', 'kể tên 40 thủ tục', 'kể các thủ tục',
+    'kể tên các thủ tục', 'kể tên thủ tục', 'danh sách 40 thủ tục', 'danh sách thủ tục',
+    'danh mục 40 thủ tục', 'danh mục thủ tục', 'danh mục tthc', 'danh sách tthc',
+    'có những thủ tục nào', 'có bao nhiêu thủ tục', 'gồm những thủ tục nào', 'có các thủ tục nào',
+    'liệt kê 40 thủ tục', 'liệt kê các thủ tục', 'liệt kê thủ tục',
+    'các thủ tục cấp xã', 'các thủ tục hành chính', 'các thủ tục',
+    'hỗ trợ những thủ tục gì', 'hỗ trợ thủ tục nào', 'hỗ trợ những gì', 'làm được những thủ tục nào',
+    'danh sách dịch vụ', '40 thủ tục'
+  ];
+
+  return listPatterns.some((pattern) => q.includes(pattern));
+}
+
+export type SmallTalkType = 'GREETING' | 'WELLBEING' | 'THANKS' | 'GOODBYE' | 'NONE';
+
+/**
+ * Classifies conversational small talk or greetings
+ */
+export function classifySmallTalk(query: string): { matched: boolean; type: SmallTalkType } {
+  const q = query.trim().toLowerCase().replace(/[!?.,;:]+$/, '');
+  if (!q) return { matched: false, type: 'NONE' };
+
+  // If query explicitly contains specific procedure keywords, it is a PROCEDURE query!
   for (const kw of PROCEDURE_KEYWORDS) {
     if (q.includes(kw)) {
-      return false;
+      return { matched: false, type: 'NONE' };
     }
   }
 
-  // Exact greeting phrases
+  // 1. Wellbeing / Social Small Talk ("hôm nay thế nào", "khỏe không"...)
+  const wellbeingPatterns = [
+    'hôm nay thế nào', 'hôm nay ra sao', 'hôm nay bạn thế nào', 'hôm nay sao rồi', 'hôm nay ổn không',
+    'ngày mới thế nào', 'khỏe không', 'bạn khỏe không', 'cán bộ khỏe không', 'dạo này thế nào',
+    'thế nào rồi', 'chúc ngày mới', 'chúc một ngày tốt lành', 'buổi sáng tốt lành', 'ngày tốt lành'
+  ];
+  if (wellbeingPatterns.some((p) => q.includes(p))) {
+    return { matched: true, type: 'WELLBEING' };
+  }
+
+  // 2. Gratitude / Affirmation ("cảm ơn", "thanks", "ok"...)
+  const thanksPatterns = [
+    'cảm ơn', 'cam on', 'cảm ơn bạn', 'cảm ơn cán bộ', 'cảm ơn nhiều', 'cảm ơn nha', 'cảm ơn nhé',
+    'thanks', 'thank you', 'tuyệt vời', 'tốt lắm', 'rất tốt', 'chu đáo quá', 'được rồi',
+    'hiểu rồi', 'rõ rồi', 'ok bạn', 'oke bạn'
+  ];
+  const exactThanks = new Set(['ok', 'oke', 'ok!', 'oke!', 'thank', 'thanks', 'cảm ơn', 'cam on']);
+  if (exactThanks.has(q) || thanksPatterns.some((p) => q === p || q.startsWith(p + ' '))) {
+    return { matched: true, type: 'THANKS' };
+  }
+
+  // 3. Goodbye / Farewell ("tạm biệt", "bye"...)
+  const goodbyePatterns = ['tạm biệt', 'tam biet', 'bye', 'bye bye', 'hẹn gặp lại', 'chào tạm biệt'];
+  if (goodbyePatterns.some((p) => q.includes(p))) {
+    return { matched: true, type: 'GOODBYE' };
+  }
+
+  // 4. Standard Greetings / Introductions ("hi", "hello", "xin chào"...)
   const exactGreetings = new Set([
     'hi', 'hello', 'hey', 'alo', 'chào', 'xin chào', 'kính chào',
     'chào bạn', 'chào bạn nha', 'chào bạn nhé',
@@ -39,30 +93,31 @@ export function isGreetingQuery(query: string): boolean {
     'good morning', 'good afternoon', 'good evening',
     'start', 'bắt đầu'
   ]);
-
   if (exactGreetings.has(q)) {
-    return true;
+    return { matched: true, type: 'GREETING' };
   }
 
-  // Short queries matching greeting patterns
   if (q.length <= 30) {
     const greetingRegex = /^(hi|hello|hey|alo|xin\s+chào|chào)(\s+.*)?$/i;
     if (greetingRegex.test(q)) {
-      return true;
+      return { matched: true, type: 'GREETING' };
     }
     const identityRegex = /^(bạn|bot)\s+(là\s+ai|có\s+thể\s+làm\s+gì|giúp\s+gì)/i;
     if (identityRegex.test(q)) {
-      return true;
+      return { matched: true, type: 'GREETING' };
     }
   }
 
-  return false;
+  return { matched: false, type: 'NONE' };
+}
+
+export function isGreetingQuery(query: string): boolean {
+  return classifySmallTalk(query).matched;
 }
 
 export function isWardOfficeQuery(query: string): boolean {
   const q = query.trim().toLowerCase();
 
-  // If query contains procedure keywords like "thủ tục làm khai sinh tại ubnd ở đâu", prefer procedure guide
   for (const kw of PROCEDURE_KEYWORDS) {
     if (q.includes(kw)) {
       return false;
@@ -155,4 +210,50 @@ export function checkOutOfScopeQuery(query: string): OutOfScopeResult {
   }
 
   return { isOutOfScope: false };
+}
+
+/**
+ * Builds standard, structured catalog response for the 40 commune administrative procedures
+ */
+export function buildProcedureCatalogResponse(wardName: string = 'UBND cấp xã/phường'): string {
+  return `Danh mục các thủ tục hành chính công trọng tâm cấp xã/phường được hỗ trợ tại ${wardName} gồm 5 nhóm chính:
+
+📋 1. LĨNH VỰC HỘ TỊCH & NHÂN THÂN:
+• [TTHC-HT-01] Đăng ký khai sinh (thông thường & lưu động)
+• [TTHC-HT-02] Đăng ký kết hôn (trong nước)
+• [TTHC-HT-03] Cấp Giấy xác nhận tình trạng hôn nhân (Giấy độc thân)
+• [TTHC-HT-04] Cấp bản sao Trích lục hộ tịch (khai sinh, kết hôn, khai tử)
+• [TTHC-HT-05] Đăng ký khai tử và giải quyết hỗ trợ mai táng
+• [TTHC-HT-06] Đăng ký nhận cha, mẹ, con
+• [TTHC-HT-07] Thay đổi, cải chính hộ tịch, bổ sung thông tin hộ tịch
+• [TTHC-HT-08] Đăng ký giám hộ và chấm dứt giám hộ
+
+🏠 2. LĨNH VỰC QUẢN LÝ CƯ TRÚ (CÔNG AN XÃ/PHƯỜNG & ĐỀ ÁN 06):
+• [TTHC-CR-01] Đăng ký thường trú (Nộp tờ khai CT01)
+• [TTHC-CR-02] Xóa đăng ký thường trú
+• [TTHC-CR-03] Đăng ký tạm trú và gia hạn tạm trú
+• [TTHC-CR-04] Khai báo tạm vắng và thông báo lưu trú
+• [TTHC-CR-05] Xác nhận thông tin về cư trú (Mẫu CT07)
+• [TTHC-CR-06] Tách hộ và điều chỉnh thông tin nơi cư trú
+
+📑 3. LĨNH VỰC CHỨNG THỰC & TƯ PHÁP CƠ SỞ:
+• [TTHC-CT-01] Chứng thực bản sao từ bản chính (Sao y văn bằng, giấy tờ)
+• [TTHC-CT-02] Chứng thực chữ ký trong các giấy tờ, văn bản cá nhân
+• [TTHC-CT-03] Chứng thực hợp đồng, giao dịch liên quan đến tài sản cơ bản
+• [TTHC-CT-04] Chứng thực di chúc, văn bản từ chối nhận di sản thừa kế
+
+🤝 4. LĨNH VỰC BẢO TRỢ XÃ HỘI & CHÍNH SÁCH CÔNG:
+• [TTHC-BT-01] Trợ cấp xã hội hàng tháng (Người cao tuổi, khuyết tật, trẻ mồ côi)
+• [TTHC-BT-02] Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội
+• [TTHC-BT-03] Cấp thẻ Bảo hiểm Y tế cho đối tượng bảo trợ xã hội
+• [TTHC-BT-04] Trợ giúp xã hội đột xuất cho hộ gia đình khó khăn, thiên tai
+• [TTHC-BT-05] Thủ tục xác nhận người có công, gia đình chính sách
+
+🌾 5. LĨNH VỰC ĐỊA CHÍNH & ĐẤT ĐAI CƠ BẢN:
+• [TTHC-DD-01] Xác nhận hiện trạng sử dụng đất và tình trạng không có tranh chấp
+• [TTHC-DD-02] Tiếp nhận và luân chuyển hồ sơ đăng ký biến động đất đai
+• [TTHC-DD-03] Hòa giải tranh chấp đất đai tại cấp xã/phường
+• [TTHC-DD-04] Trích lục bản đồ địa chính và hồ sơ thửa đất
+
+👉 Bà con đang cần làm thủ tục nào? Hãy gõ câu hỏi hoặc tên thủ tục (ví dụ: "khai sinh cần giấy tờ gì", "kết hôn mất bao lâu", "hướng dẫn điền CT01") để tôi hướng dẫn chi tiết từng bước nhé!`;
 }

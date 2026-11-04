@@ -5,7 +5,13 @@
  */
 
 import { searchLegalKnowledge, type LegalProcedureItem } from './legalKnowledgeBase';
-import { isGreetingQuery, isWardOfficeQuery, checkOutOfScopeQuery } from './intentClassifier';
+import {
+  isWardOfficeQuery,
+  checkOutOfScopeQuery,
+  isProcedureListQuery,
+  classifySmallTalk,
+  buildProcedureCatalogResponse,
+} from './intentClassifier';
 import { type RagResponse, type LegalCitation } from '../api/client';
 
 const GEMINI_API_STORAGE_KEY = 'smartward_gemini_api_key';
@@ -96,11 +102,40 @@ export async function askGeminiWithRAG(
   const phoneNumber = wardContext.phoneNumber || '18001096';
   const workingHours = wardContext.workingHours || 'Sáng: 07:30 – 11:30 | Chiều: 13:30 – 17:00 (Thứ 2 – Thứ 6)';
 
-  // 1. Natural Conversational Intent: Greeting & Introduction
-  if (isGreetingQuery(query)) {
+  // 1. Procedure Catalog Request ("nêu 40 thủ tục", "danh sách thủ tục"...)
+  if (isProcedureListQuery(query)) {
     const elapsed = Math.round(performance.now() - startTime);
     return {
-      answer:
+      answer: buildProcedureCatalogResponse(wardName),
+      abstained: false,
+      maxSimilarity: 1.0,
+      appliedThreshold: 0.78,
+      responseTimeMs: elapsed,
+      cached: false,
+      disclaimer: 'Danh mục 40 TTHC cấp xã chuẩn hóa theo Nghị định 13/2023 và Đề án 06.',
+      citations: [],
+    };
+  }
+
+  // 2. Natural Conversational Intent: Small Talk, Wellbeing, Gratitude, Farewell, Greeting
+  const smallTalk = classifySmallTalk(query);
+  if (smallTalk.matched) {
+    const elapsed = Math.round(performance.now() - startTime);
+    let reply = '';
+    if (smallTalk.type === 'WELLBEING') {
+      reply =
+        `Dạ chào bà con! Hôm nay tôi vẫn hoạt động bình thường 24/7 và luôn sẵn sàng hỗ trợ giải đáp mọi thủ tục hành chính công tại UBND ${wardName}.\n\n` +
+        `Hôm nay bà con đang cần làm giấy tờ gì hoặc có vướng mắc về thủ tục nào (như khai sinh, kết hôn, cư trú CT01, chứng thực, xác nhận độc thân...) để tôi hướng dẫn cụ thể nhé!`;
+    } else if (smallTalk.type === 'THANKS') {
+      reply =
+        `Dạ không có gì ạ! Rất vui được hỗ trợ bà con. Chúc bà con giải quyết công việc hành chính thật nhanh chóng và thuận lợi.\n\n` +
+        `Nếu cần tra cứu thêm thủ tục hoặc tiền kiểm tra biểu mẫu tại UBND ${wardName}, bà con cứ nhắn lại tôi nhé!`;
+    } else if (smallTalk.type === 'GOODBYE') {
+      reply =
+        `Tạm biệt bà con! Chúc bà con một ngày vui vẻ và làm việc hiệu quả.\n\n` +
+        `Bất cứ khi nào cần tra cứu thủ tục hành chính hoặc hỏi đáp biểu mẫu tại UBND ${wardName}, bà con có thể quay lại trò chuyện cùng tôi bất cứ lúc nào!`;
+    } else {
+      reply =
         `Xin chào! Tôi là Trợ lý Pháp lý Một Cửa tại UBND ${wardName}.\n\n` +
         `Tôi sẵn sàng giải đáp, tra cứu và hướng dẫn bà con chuẩn bị hồ sơ đầy đủ, đúng luật cho các thủ tục hành chính cấp xã/phường như:\n` +
         `• Đăng ký khai sinh, kết hôn, khai tử, trích lục hộ tịch\n` +
@@ -108,7 +143,11 @@ export async function askGeminiWithRAG(
         `• Chứng thực chữ ký, chứng thực bản sao từ bản chính\n` +
         `• Cấp giấy xác nhận tình trạng hôn nhân (giấy độc thân)\n` +
         `• Các chế độ chính sách bảo trợ xã hội và tiền kiểm tra hồ sơ\n\n` +
-        `Bà con đang cần tìm hiểu hoặc chuẩn bị làm thủ tục nào? Hãy nhập câu hỏi để tôi hướng dẫn chi tiết từng bước nhé!`,
+        `Bà con đang cần tìm hiểu hoặc chuẩn bị làm thủ tục nào? Hãy nhập câu hỏi để tôi hướng dẫn chi tiết từng bước nhé!`;
+    }
+
+    return {
+      answer: reply,
       abstained: false,
       maxSimilarity: 1.0,
       appliedThreshold: 0.78,
@@ -119,7 +158,7 @@ export async function askGeminiWithRAG(
     };
   }
 
-  // 2. Commune Office Information (Address, Working Hours, Hotline)
+  // 3. Commune Office Information (Address, Working Hours, Hotline)
   if (isWardOfficeQuery(query)) {
     const elapsed = Math.round(performance.now() - startTime);
     return {
@@ -140,7 +179,7 @@ export async function askGeminiWithRAG(
     };
   }
 
-  // 3. Out-of-scope check (Directing to Competent Authority)
+  // 4. Out-of-scope check (Directing to Competent Authority)
   const outOfScopeCheck = checkOutOfScopeQuery(query);
   if (outOfScopeCheck.isOutOfScope) {
     const elapsed = Math.round(performance.now() - startTime);
@@ -165,20 +204,19 @@ export async function askGeminiWithRAG(
     };
   }
 
-  // 4. Semantic Retrieval over SmartWard AI Legal Knowledge Base
+  // 5. Semantic Retrieval over SmartWard AI Legal Knowledge Base
   const searchResult = searchLegalKnowledge(query, 3);
 
-  // 5. Abstention Guardrail: Out-of-scope / Low similarity check
+  // 6. Abstention Guardrail: Out-of-scope / Low similarity check
   if (!searchResult.isInScope || searchResult.items.length === 0) {
     const elapsed = Math.round(performance.now() - startTime);
     return {
       answer:
-        'Hệ thống SmartWard AI từ chối giải đáp tự động đối với yêu cầu này. ' +
-        'Câu hỏi của bà con nằm ngoài danh mục 40 thủ tục hành chính cấp xã/phường có thẩm quyền (hoặc độ tương đồng ngữ nghĩa dưới ngưỡng an toàn θ = 0.78). ' +
-        'Nhằm tuân thủ nguyên tắc Không Ảo Giác và Nghị định 13/2023/NĐ-CP, hệ thống chỉ hỗ trợ các thủ tục hành chính cấp xã (Hộ tịch, Cư trú, Chứng thực, Bảo trợ xã hội, Đất đai cơ bản). ' +
-        `Quý công dân vui lòng liên hệ Bộ phận Một cửa ${wardName} (Địa chỉ: ${officeAddress} • Hotline: ${phoneNumber}) hoặc Tổng đài Dịch vụ công Quốc gia 18001096 để được hướng dẫn chính xác.`,
+        `Hệ thống SmartWard AI hiện chưa tìm thấy thông tin thủ tục tương ứng với câu hỏi của bà con trong phạm vi thẩm quyền của UBND cấp xã/phường.\n\n` +
+        `Để đảm bảo thông tin chính xác và tuân thủ quy chuẩn an toàn theo Nghị định 13/2023/NĐ-CP, hệ thống chỉ cung cấp hướng dẫn cho các thủ tục hành chính cấp xã (Hộ tịch, Cư trú, Chứng thực, Bảo trợ xã hội, Đất đai cơ bản).\n\n` +
+        `👉 Bà con có thể gõ rõ tên thủ tục (ví dụ: 'đăng ký khai sinh', 'đăng ký kết hôn', 'nộp mẫu CT01', 'chứng thực sao y', 'xác nhận độc thân', hoặc gõ 'nêu 40 thủ tục' để xem danh mục) hoặc liên hệ trực tiếp Bộ phận Tiếp nhận và Trả kết quả (Một cửa) tại ${wardName} (Địa chỉ: ${officeAddress} • Hotline: ${phoneNumber}) để được cán bộ hỗ trợ chu đáo.`,
       abstained: true,
-      abstentionReason: 'Yêu cầu không thuộc danh mục 40 TTHC cấp xã hoặc vi phạm ranh giới an toàn pháp lý.',
+      abstentionReason: 'Câu hỏi chưa nằm trong danh mục 40 thủ tục hành chính công cấp xã/phường có thẩm quyền giải quyết.',
       maxSimilarity: searchResult.maxScore,
       appliedThreshold: 0.78,
       responseTimeMs: elapsed,

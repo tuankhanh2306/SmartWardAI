@@ -1,6 +1,12 @@
 import axios from 'axios';
 import { isGeminiConfigured, askGeminiWithRAG } from '../services/geminiClient';
-import { isGreetingQuery, isWardOfficeQuery, checkOutOfScopeQuery } from '../services/intentClassifier';
+import {
+  isWardOfficeQuery,
+  checkOutOfScopeQuery,
+  isProcedureListQuery,
+  classifySmallTalk,
+  buildProcedureCatalogResponse,
+} from '../services/intentClassifier';
 
 const api = axios.create({
   baseURL: '/api/v1',
@@ -50,10 +56,38 @@ export const askLegalRag = async (
   const mandatoryDisclaimer =
     '*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*';
 
-  // 1. Pre-filter: Greeting Intent (Instant Warm Response, 0 Cost)
-  if (isGreetingQuery(query)) {
+  // 1. Procedure Catalog Request ("nêu 40 thủ tục", "danh sách thủ tục"...)
+  if (isProcedureListQuery(query)) {
     return {
-      answer:
+      answer: buildProcedureCatalogResponse(currentWardName),
+      abstained: false,
+      maxSimilarity: 1.0,
+      appliedThreshold: 0.78,
+      responseTimeMs: 6.0,
+      cached: false,
+      disclaimer: 'Danh mục 40 TTHC cấp xã chuẩn hóa theo Nghị định 13/2023 và Đề án 06.',
+      citations: [],
+    };
+  }
+
+  // 2. Conversational Intent: Small Talk, Wellbeing, Gratitude, Farewell, Greeting
+  const smallTalk = classifySmallTalk(query);
+  if (smallTalk.matched) {
+    let reply = '';
+    if (smallTalk.type === 'WELLBEING') {
+      reply =
+        `Dạ chào bà con! Hôm nay tôi vẫn hoạt động bình thường 24/7 và luôn sẵn sàng hỗ trợ giải đáp mọi thủ tục hành chính công tại UBND ${currentWardName}.\n\n` +
+        `Hôm nay bà con đang cần làm giấy tờ gì hoặc có vướng mắc về thủ tục nào (như khai sinh, kết hôn, cư trú CT01, chứng thực, xác nhận độc thân...) để tôi hướng dẫn cụ thể nhé!`;
+    } else if (smallTalk.type === 'THANKS') {
+      reply =
+        `Dạ không có gì ạ! Rất vui được hỗ trợ bà con. Chúc bà con giải quyết công việc hành chính thật nhanh chóng và thuận lợi.\n\n` +
+        `Nếu cần tra cứu thêm thủ tục hoặc tiền kiểm tra biểu mẫu tại UBND ${currentWardName}, bà con cứ nhắn lại tôi nhé!`;
+    } else if (smallTalk.type === 'GOODBYE') {
+      reply =
+        `Tạm biệt bà con! Chúc bà con một ngày vui vẻ và làm việc hiệu quả.\n\n` +
+        `Bất cứ khi nào cần tra cứu thủ tục hành chính hoặc hỏi đáp biểu mẫu tại UBND ${currentWardName}, bà con có thể quay lại trò chuyện cùng tôi bất cứ lúc nào!`;
+    } else {
+      reply =
         `Xin chào! Tôi là Trợ lý Pháp lý Một Cửa tại UBND ${currentWardName}.\n\n` +
         `Tôi sẵn sàng giải đáp, tra cứu và hướng dẫn bà con chuẩn bị hồ sơ đầy đủ, đúng quy định cho các thủ tục hành chính cấp xã/phường như:\n` +
         `• Đăng ký khai sinh, kết hôn, khai tử, trích lục hộ tịch\n` +
@@ -61,7 +95,11 @@ export const askLegalRag = async (
         `• Chứng thực chữ ký, chứng thực bản sao từ bản chính\n` +
         `• Cấp giấy xác nhận tình trạng hôn nhân (giấy độc thân)\n` +
         `• Các chế độ chính sách bảo trợ xã hội và tiền kiểm tra hồ sơ\n\n` +
-        `Bà con đang cần tìm hiểu hoặc chuẩn bị làm thủ tục nào? Hãy nhập câu hỏi để tôi hướng dẫn chi tiết từng bước nhé!`,
+        `Bà con đang cần tìm hiểu hoặc chuẩn bị làm thủ tục nào? Hãy nhập câu hỏi để tôi hướng dẫn chi tiết từng bước nhé!`;
+    }
+
+    return {
+      answer: reply,
       abstained: false,
       maxSimilarity: 1.0,
       appliedThreshold: 0.78,
@@ -272,8 +310,8 @@ export const askLegalRag = async (
     // Case F: Unmatched General Inquiry - Polite prompt without guessing
     return {
       answer:
-        `Hệ thống SmartWard AI hiện chưa nhận diện rõ thủ tục hành chính mà bà con đang cần tìm hiểu. ` +
-        `Để tôi có thể tra cứu chính xác căn cứ pháp lý, hồ sơ và thời hạn giải quyết, bà con vui lòng nhập rõ tên thủ tục (ví dụ: "đăng ký khai sinh", "đăng ký kết hôn", "hướng dẫn nộp mẫu CT01", "cấp giấy xác nhận độc thân", "chứng thực sao y").\n\n` +
+        `Hệ thống SmartWard AI hiện chưa nhận diện rõ thủ tục hành chính mà bà con đang cần tìm hiểu.\n\n` +
+        `Để tôi có thể tra cứu chính xác căn cứ pháp lý, hồ sơ và thời hạn giải quyết, bà con vui lòng nhập rõ tên thủ tục (ví dụ: "đăng ký khai sinh", "đăng ký kết hôn", "hướng dẫn nộp mẫu CT01", "cấp giấy xác nhận độc thân", "chứng thực sao y", hoặc gõ "nêu 40 thủ tục" để xem toàn bộ danh mục).\n\n` +
         `Bà con cũng có thể liên hệ trực tiếp Bộ phận Một cửa ${currentWardName} (Địa chỉ: ${currentAddress} • Hotline: ${currentPhone}) để được cán bộ tiếp nhận hướng dẫn cụ thể.`,
       abstained: true,
       abstentionReason: 'Câu hỏi chưa chỉ định rõ tên thủ tục hành chính cụ thể.',

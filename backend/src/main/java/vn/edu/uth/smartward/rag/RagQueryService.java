@@ -76,21 +76,26 @@ public class RagQueryService {
             return cached;
         }
 
-        // 3. Conversational Intent Check: Greeting & Introduction
-        if (isGreetingQuery(rawQuery)) {
-            return buildGreetingResponse(request.getWardName(), request.getOfficeAddress(), startTime);
+        // 3. Procedure Catalog Request ("nêu 40 thủ tục", "danh sách thủ tục"...)
+        if (isProcedureListQuery(rawQuery)) {
+            return buildProcedureCatalogResponse(request.getWardName(), startTime);
         }
 
-        // 4. Ward Office Info Check (Address, working hours, hotline)
+        // 4. Conversational Intent Check: Small talk, Wellbeing, Gratitude, Greeting
+        if (isGreetingOrSmallTalk(rawQuery)) {
+            return buildSmallTalkResponse(rawQuery, request.getWardName(), startTime);
+        }
+
+        // 5. Ward Office Info Check (Address, working hours, hotline)
         if (isWardOfficeQuery(rawQuery)) {
             return buildWardOfficeResponse(request.getWardName(), request.getOfficeAddress(), startTime);
         }
 
-        // 5. Query Vectorization (768-dim)
+        // 6. Query Vectorization (768-dim)
         float[] queryEmbedding = aiModelClient.generateEmbedding(rawQuery);
         String pgVectorString = aiModelClient.toPgVectorString(queryEmbedding);
 
-        // 6. Retrieve Top-K Chunks using pgvector HNSW
+        // 7. Retrieve Top-K Chunks using pgvector HNSW
         int k = (request.getTopK() != null && request.getTopK() > 0) ? request.getTopK() : defaultTopK;
         List<LegalChunkMatch> candidateChunks = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, k);
 
@@ -106,7 +111,7 @@ public class RagQueryService {
         log.info("RAG retrieval for query '{}': found {} candidates, maxSimilarity={}",
                 truncate(rawQuery, 40), candidateChunks.size(), String.format(Locale.US, "%.4f", maxSimilarity));
 
-        // 7. Abstention Guardrail: S_max < theta (Safe abstention without calling LLM)
+        // 8. Abstention Guardrail: S_max < theta (Safe abstention without calling LLM)
         if (candidateChunks.isEmpty() || maxSimilarity < threshold) {
             long elapsed = System.currentTimeMillis() - startTime;
             String reason = String.format(Locale.US,
@@ -228,8 +233,8 @@ public class RagQueryService {
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("Yêu cầu này nằm ngoài phạm vi dữ liệu thủ tục hành chính cấp xã hoặc mức độ tin cậy pháp lý không đạt ngưỡng an toàn (0.78). ");
-        sb.append("Hệ thống kiên quyết từ chối suy đoán để tuân thủ quy chuẩn an toàn thông tin theo Nghị định 13/2023/NĐ-CP. ");
+        sb.append("Hệ thống SmartWard AI hiện chưa tìm thấy thông tin thủ tục tương ứng với câu hỏi của bà con trong phạm vi thẩm quyền của UBND cấp xã/phường. ");
+        sb.append("Để đảm bảo thông tin chính xác và tuân thủ quy chuẩn an toàn theo Nghị định 13/2023/NĐ-CP, hệ thống chỉ hỗ trợ các thủ tục hành chính cấp xã (Hộ tịch, Cư trú, Chứng thực, Bảo trợ xã hội, Đất đai cơ bản). ");
 
         if (specificAuthority != null) {
             sb.append("Thủ tục quý công dân đang quan tâm thuộc thẩm quyền giải quyết của ").append(specificAuthority).append(". ");
@@ -237,9 +242,9 @@ public class RagQueryService {
         } else {
             String wardLabel = (wardName != null && !wardName.isBlank()) ? wardName : "UBND cấp xã";
             String addrLabel = (officeAddress != null && !officeAddress.isBlank()) ? " (Địa chỉ: " + officeAddress + ")" : "";
-            sb.append("Quý công dân vui lòng liên hệ trực tiếp Bộ phận Tiếp nhận và Trả kết quả (Một cửa) tại ")
+            sb.append("Bà con có thể gõ rõ tên thủ tục (ví dụ: 'đăng ký khai sinh', 'đăng ký kết hôn', 'nộp mẫu CT01', 'chứng thực sao y', hoặc gõ 'nêu 40 thủ tục' để xem danh mục) hoặc liên hệ trực tiếp Bộ phận Tiếp nhận và Trả kết quả (Một cửa) tại ")
               .append(wardLabel).append(addrLabel)
-              .append(" hoặc Tổng đài Dịch vụ công Quốc gia 18001096 để được hỗ trợ chính xác.");
+              .append(" hoặc Tổng đài Dịch vụ công Quốc gia 18001096 để được hỗ trợ chu đáo.");
         }
 
         return sb.toString();
@@ -321,16 +326,42 @@ public class RagQueryService {
             "độc thân", "tình trạng hôn nhân", "trích lục", "bảo trợ", "mai táng"
     );
 
-    boolean isGreetingQuery(String query) {
+    private static final List<String> PROCEDURE_LIST_PATTERNS = List.of(
+            "nêu 40 thủ tục", "nêu thủ tục", "kể 40 thủ tục", "kể tên 40 thủ tục", "kể các thủ tục",
+            "kể tên các thủ tục", "kể tên thủ tục", "danh sách 40 thủ tục", "danh sách thủ tục",
+            "danh mục 40 thủ tục", "danh mục thủ tục", "danh mục tthc", "danh sách tthc",
+            "có những thủ tục nào", "có bao nhiêu thủ tục", "gồm những thủ tục nào", "có các thủ tục nào",
+            "liệt kê 40 thủ tục", "liệt kê các thủ tục", "liệt kê thủ tục",
+            "các thủ tục cấp xã", "các thủ tục hành chính", "các thủ tục",
+            "hỗ trợ những thủ tục gì", "hỗ trợ thủ tục nào", "hỗ trợ những gì", "danh sách dịch vụ", "40 thủ tục"
+    );
+
+    boolean isProcedureListQuery(String query) {
+        if (query == null) return false;
+        String q = query.trim().toLowerCase().replaceAll("[!?.,;:]+$", "");
+        return PROCEDURE_LIST_PATTERNS.stream().anyMatch(q::contains);
+    }
+
+    boolean isGreetingOrSmallTalk(String query) {
         if (query == null) return false;
         String q = query.trim().toLowerCase().replaceAll("[!?.,;:]+$", "");
         if (q.isEmpty()) return false;
 
-        // If query contains procedure keywords, it is a PROCEDURE query, not greeting
         for (String kw : PROCEDURE_KEYWORDS) {
             if (q.contains(kw)) {
                 return false;
             }
+        }
+
+        // Small talk patterns
+        List<String> smallTalkPatterns = List.of(
+                "hôm nay thế nào", "hôm nay ra sao", "hôm nay bạn thế nào", "ngày mới thế nào",
+                "khỏe không", "bạn khỏe không", "cán bộ khỏe không", "dạo này thế nào", "thế nào rồi",
+                "cảm ơn", "cam on", "thanks", "thank you", "tuyệt vời", "tốt lắm", "được rồi",
+                "tạm biệt", "bye", "bye bye", "hẹn gặp lại", "ok", "oke"
+        );
+        if (smallTalkPatterns.stream().anyMatch(p -> q.contains(p) || q.equals(p))) {
+            return true;
         }
 
         if (EXACT_GREETINGS.contains(q)) {
@@ -347,6 +378,111 @@ public class RagQueryService {
         }
 
         return false;
+    }
+
+    private RagAskResponse buildSmallTalkResponse(String rawQuery, String wardName, long startTime) {
+        String q = rawQuery.trim().toLowerCase().replaceAll("[!?.,;:]+$", "");
+        String wardLabel = (wardName != null && !wardName.isBlank()) ? wardName : "UBND cấp xã/phường";
+        String answer;
+
+        if (q.contains("hôm nay thế nào") || q.contains("khỏe không") || q.contains("thế nào rồi") || q.contains("ra sao")) {
+            answer = String.format(
+                    "Dạ chào bà con! Hôm nay tôi vẫn hoạt động bình thường 24/7 và luôn sẵn sàng hỗ trợ giải đáp mọi thủ tục hành chính công tại %s.\n\n" +
+                    "Hôm nay bà con đang cần làm giấy tờ gì hoặc có vướng mắc về thủ tục nào (như khai sinh, kết hôn, cư trú CT01, chứng thực, xác nhận độc thân...) để tôi hướng dẫn cụ thể nhé!",
+                    wardLabel
+            );
+        } else if (q.contains("cảm ơn") || q.contains("thanks") || q.contains("tuyệt vời") || q.contains("tốt lắm") || q.equals("ok") || q.equals("oke")) {
+            answer = String.format(
+                    "Dạ không có gì ạ! Rất vui được hỗ trợ bà con. Chúc bà con giải quyết công việc hành chính thật nhanh chóng và thuận lợi.\n\n" +
+                    "Nếu cần tra cứu thêm thủ tục hoặc tiền kiểm tra biểu mẫu tại %s, bà con cứ nhắn lại tôi nhé!",
+                    wardLabel
+            );
+        } else if (q.contains("tạm biệt") || q.contains("bye")) {
+            answer = String.format(
+                    "Tạm biệt bà con! Chúc bà con một ngày vui vẻ và làm việc hiệu quả.\n\n" +
+                    "Bất cứ khi nào cần tra cứu thủ tục hành chính tại %s, bà con có thể quay lại trò chuyện cùng tôi bất cứ lúc nào!",
+                    wardLabel
+            );
+        } else {
+            answer = String.format(
+                    "Xin chào! Tôi là Trợ lý Pháp lý Một Cửa tại %s.\n\n" +
+                    "Tôi sẵn sàng hỗ trợ bà con tra cứu, giải đáp và hướng dẫn chuẩn bị hồ sơ cho các thủ tục hành chính cấp xã/phường như:\n" +
+                    "• Đăng ký khai sinh, kết hôn, khai tử, trích lục hộ tịch\n" +
+                    "• Đăng ký thường trú, tạm trú, thông tin cư trú (Mẫu CT01)\n" +
+                    "• Chứng thực chữ ký, chứng thực bản sao từ bản chính\n" +
+                    "• Cấp giấy xác nhận tình trạng hôn nhân (giấy độc thân)\n" +
+                    "• Các chế độ chính sách bảo trợ xã hội và tiền kiểm tra hồ sơ\n\n" +
+                    "Bà con đang cần tìm hiểu hoặc chuẩn bị làm thủ tục nào? Hãy nhập câu hỏi để tôi hướng dẫn chi tiết nhé!",
+                    wardLabel
+            );
+        }
+
+        return RagAskResponse.builder()
+                .answer(answer)
+                .abstained(false)
+                .maxSimilarity(1.0)
+                .appliedThreshold(defaultThreshold)
+                .citations(Collections.emptyList())
+                .cached(false)
+                .responseTimeMs(System.currentTimeMillis() - startTime)
+                .disclaimer("Trợ lý Pháp lý Một Cửa SmartWard AI sẵn sàng phục vụ nhân dân.")
+                .build();
+    }
+
+    private RagAskResponse buildProcedureCatalogResponse(String wardName, long startTime) {
+        String wardLabel = (wardName != null && !wardName.isBlank()) ? wardName : "UBND cấp xã/phường";
+        String answer = String.format(
+                "Danh mục các thủ tục hành chính công trọng tâm cấp xã/phường được hỗ trợ tại %s gồm 5 nhóm chính:\n\n" +
+                "📋 1. LĨNH VỰC HỘ TỊCH & NHÂN THÂN:\n" +
+                "• [TTHC-HT-01] Đăng ký khai sinh (thông thường & lưu động)\n" +
+                "• [TTHC-HT-02] Đăng ký kết hôn (trong nước)\n" +
+                "• [TTHC-HT-03] Cấp Giấy xác nhận tình trạng hôn nhân (Giấy độc thân)\n" +
+                "• [TTHC-HT-04] Cấp bản sao Trích lục hộ tịch (khai sinh, kết hôn, khai tử)\n" +
+                "• [TTHC-HT-05] Đăng ký khai tử và giải quyết hỗ trợ mai táng\n" +
+                "• [TTHC-HT-06] Đăng ký nhận cha, mẹ, con\n" +
+                "• [TTHC-HT-07] Thay đổi, cải chính hộ tịch, bổ sung thông tin hộ tịch\n" +
+                "• [TTHC-HT-08] Đăng ký giám hộ và chấm dứt giám hộ\n\n" +
+                "🏠 2. LĨNH VỰC QUẢN LÝ CƯ TRÚ (CÔNG AN XÃ/PHƯỜNG & ĐỀ ÁN 06):\n" +
+                "• [TTHC-CR-01] Đăng ký thường trú (Nộp tờ khai CT01)\n" +
+                "• [TTHC-CR-02] Xóa đăng ký thường trú\n" +
+                "• [TTHC-CR-03] Đăng ký tạm trú và gia hạn tạm trú\n" +
+                "• [TTHC-CR-04] Khai báo tạm vắng và thông báo lưu trú\n" +
+                "• [TTHC-CR-05] Xác nhận thông tin về cư trú (Mẫu CT07)\n" +
+                "• [TTHC-CR-06] Tách hộ và điều chỉnh thông tin nơi cư trú\n\n" +
+                "📑 3. LĨNH VỰC CHỨNG THỰC & TƯ PHÁP CƠ SỞ:\n" +
+                "• [TTHC-CT-01] Chứng thực bản sao từ bản chính (Sao y văn bằng, giấy tờ)\n" +
+                "• [TTHC-CT-02] Chứng thực chữ ký trong các giấy tờ, văn bản cá nhân\n" +
+                "• [TTHC-CT-03] Chứng thực hợp đồng, giao dịch liên quan đến tài sản cơ bản\n" +
+                "• [TTHC-CT-04] Chứng thực di chúc, văn bản từ chối nhận di sản thừa kế\n\n" +
+                "🤝 4. LĨNH VỰC BẢO TRỢ XÃ HỘI & CHÍNH SÁCH CÔNG:\n" +
+                "• [TTHC-BT-01] Trợ cấp xã hội hàng tháng (Người cao tuổi, khuyết tật, trẻ mồ côi)\n" +
+                "• [TTHC-BT-02] Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội\n" +
+                "• [TTHC-BT-03] Cấp thẻ Bảo hiểm Y tế cho đối tượng bảo trợ xã hội\n" +
+                "• [TTHC-BT-04] Trợ giúp xã hội đột xuất cho hộ gia đình khó khăn, thiên tai\n" +
+                "• [TTHC-BT-05] Thủ tục xác nhận người có công, gia đình chính sách\n\n" +
+                "🌾 5. LĨNH VỰC ĐỊA CHÍNH & ĐẤT ĐAI CƠ BẢN:\n" +
+                "• [TTHC-DD-01] Xác nhận hiện trạng sử dụng đất và tình trạng không có tranh chấp\n" +
+                "• [TTHC-DD-02] Tiếp nhận và luân chuyển hồ sơ đăng ký biến động đất đai\n" +
+                "• [TTHC-DD-03] Hòa giải tranh chấp đất đai tại cấp xã/phường\n" +
+                "• [TTHC-DD-04] Trích lục bản đồ địa chính và hồ sơ thửa đất\n\n" +
+                "👉 Bà con đang cần làm thủ tục nào? Hãy gõ câu hỏi hoặc tên thủ tục (ví dụ: \"khai sinh cần giấy tờ gì\", \"kết hôn mất bao lâu\", \"hướng dẫn điền CT01\") để tôi hướng dẫn chi tiết từng bước nhé!",
+                wardLabel
+        );
+
+        return RagAskResponse.builder()
+                .answer(answer)
+                .abstained(false)
+                .maxSimilarity(1.0)
+                .appliedThreshold(defaultThreshold)
+                .citations(Collections.emptyList())
+                .cached(false)
+                .responseTimeMs(System.currentTimeMillis() - startTime)
+                .disclaimer("Danh mục 40 TTHC cấp xã chuẩn hóa theo Nghị định 13/2023 và Đề án 06.")
+                .build();
+    }
+
+    boolean isGreetingQuery(String query) {
+        return isGreetingOrSmallTalk(query);
     }
 
     boolean isWardOfficeQuery(String query) {
@@ -368,32 +504,6 @@ public class RagQueryService {
         );
 
         return officePatterns.stream().anyMatch(q::contains);
-    }
-
-    private RagAskResponse buildGreetingResponse(String wardName, String officeAddress, long startTime) {
-        String wardLabel = (wardName != null && !wardName.isBlank()) ? wardName : "UBND cấp xã/phường";
-        String answer = String.format(
-                "Xin chào! Tôi là Trợ lý Pháp lý Một Cửa tại %s.\n\n" +
-                "Tôi sẵn sàng hỗ trợ bà con tra cứu, giải đáp và hướng dẫn chuẩn bị hồ sơ cho các thủ tục hành chính cấp xã/phường như:\n" +
-                "• Đăng ký khai sinh, kết hôn, khai tử, trích lục hộ tịch\n" +
-                "• Đăng ký thường trú, tạm trú, thông tin cư trú (Mẫu CT01)\n" +
-                "• Chứng thực chữ ký, chứng thực bản sao từ bản chính\n" +
-                "• Cấp giấy xác nhận tình trạng hôn nhân (giấy độc thân)\n" +
-                "• Các chế độ chính sách bảo trợ xã hội và tiền kiểm tra hồ sơ\n\n" +
-                "Bà con đang cần tìm hiểu hoặc chuẩn bị làm thủ tục nào? Hãy nhập câu hỏi để tôi hướng dẫn chi tiết nhé!",
-                wardLabel
-        );
-
-        return RagAskResponse.builder()
-                .answer(answer)
-                .abstained(false)
-                .maxSimilarity(1.0)
-                .appliedThreshold(defaultThreshold)
-                .citations(Collections.emptyList())
-                .cached(false)
-                .responseTimeMs(System.currentTimeMillis() - startTime)
-                .disclaimer("Trợ lý Pháp lý Một Cửa SmartWard AI sẵn sàng phục vụ nhân dân.")
-                .build();
     }
 
     private RagAskResponse buildWardOfficeResponse(String wardName, String officeAddress, long startTime) {

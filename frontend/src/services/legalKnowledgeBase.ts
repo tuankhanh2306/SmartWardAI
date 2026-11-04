@@ -242,7 +242,7 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
   },
 ];
 
-import { isGreetingQuery, checkOutOfScopeQuery } from './intentClassifier';
+import { isGreetingQuery, isProcedureListQuery, checkOutOfScopeQuery } from './intentClassifier';
 
 const STOP_WORDS = new Set([
   'la', 'là', 'va', 'và', 'cua', 'của', 'cho', 'co', 'có', 'tai', 'tại', 'o', 'ở',
@@ -263,8 +263,8 @@ export function searchLegalKnowledge(query: string, topK: number = 3): {
 } {
   const q = query.toLowerCase().trim();
 
-  // 1. Check if greeting -> not a procedure query
-  if (isGreetingQuery(q)) {
+  // 1. Check if greeting, small talk, or asking for full procedure catalog
+  if (isGreetingQuery(q) || isProcedureListQuery(q)) {
     return { items: [], maxScore: 0.0, isInScope: false };
   }
 
