@@ -106,3 +106,78 @@ Hệ thống kiểm thử tự động của Phân hệ 1 đã được xây d�
 - [`RagControllerTest`](file:///E:/SmartWardAI/backend/src/test/java/vn/edu/uth/smartward/rag/RagControllerTest.java): Kiểm thử REST API `POST /api/v1/rag/ask` với MockMvc (kiểm tra HTTP 200, HTTP 422 khi dữ liệu rỗng, và cấu trúc payload JSON).
 
 Kết quả kiểm thử Maven đạt: **21/21 tests Passed (100% BUILD SUCCESS)**.
+
+
+---
+
+## 3.2. PHÂN HỆ 2: ĐỘNG CƠ QUY TẮC ĐỊNH THỨC HẬU KIỂM ĐỊNH BIỂU MẪU HÀNH CHÍNH (DETERMINISTIC FORM RULE ENGINE)
+
+### 3.2.1. Bản chất và Triết lý Kiến trúc: Pre-check & Audit
+Theo các quy định pháp luật hiện hành và Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân:
+- Tờ khai hành chính (ví dụ: Tờ khai thay đổi thông tin cư trú Mẫu CT01, Tờ khai đăng ký khai sinh) có giá trị pháp lý gắn liền với chữ ký sống và cam đoan trực tiếp của công dân.
+- Hệ thống AI **tuyệt đối không được phép tự động chỉnh sửa thông tin hành chính của công dân trên phần mềm** để tránh sai lệch trách nhiệm pháp lý và vi phạm tính toàn vẹn hồ sơ.
+- Thay vào đó, SmartWard AI đóng vai trò **Bộ sơ duyệt thông minh (Pre-check & Audit Engine)**:
+  1. Công dân chụp ảnh tờ khai đã điền tay hoặc bản in sẵn.
+  2. Hệ thống trích xuất thông tin qua Vision OCR.
+  3. Động cơ quy tắc định thức đối soát logic toán học và pháp lý.
+  4. Hệ thống xuất ra bản báo cáo cảnh báo chi tiết các điểm sai sót (ví dụ: thừa/thiếu chữ số CCCD, nghịch lý ngày cấp trước ngày sinh, mã tỉnh giả mạo).
+  5. Công dân tự tay sửa lại trên tờ khai giấy trước khi bước vào nộp tại Bộ phận Tiếp nhận và Trả kết quả (Một cửa), loại bỏ 100% tình trạng bị cán bộ trả hồ sơ do sai sót hình thức.
+
+---
+
+### 3.2.2. Bộ Quy tắc Kiểm định Số Định danh Cá nhân (CCCD 12 Chữ số)
+Bộ kiểm định `CccdValidator` mã hóa trực tiếp quy định của Thông tư 59/2021/TT-BCA và Luật Căn cước:
+Cấu trúc 12 chữ số: $\text{CCCD} = [P_1 P_2 P_3][G][Y_1 Y_2][S_1 S_2 S_3 S_4 S_5 S_6]$
+
+1. **Kiểm tra độ dài và định dạng:**
+   $$\text{CCCD} \in \{0, \dots, 9\}^{12}$$
+   Nếu không khớp $\rightarrow$ báo lỗi `INVALID_CCCD_LENGTH`.
+2. **Kiểm tra Mã Tỉnh/Thành phố ($P_1 P_2 P_3$):**
+   $$P = P_1 P_2 P_3 \in \mathcal{P}_{63}$$
+   Trong đó $\mathcal{P}_{63}$ là tập hợp đúng 63 mã tỉnh/thành phố hợp pháp theo danh mục của Bộ Công an (ví dụ: `001` - Hà Nội, `048` - Đà Nẵng, `079` - TP.HCM). Các mã bất hợp pháp như `999` lập tức bị bắt lỗi `INVALID_CCCD_PROVINCE`.
+3. **Kiểm tra Mã Thế kỷ và Giới tính ($G$):**
+   Chữ số thứ 4 được giải mã định thức theo thế kỷ sinh và giới tính:
+   - Sinh thế kỷ 20 ($1900 - 1999$): Nam $\rightarrow 0$, Nữ $\rightarrow 1$.
+   - Sinh thế kỷ 21 ($2000 - 2099$): Nam $\rightarrow 2$, Nữ $\rightarrow 3$.
+   - Sinh thế kỷ 22 ($2100 - 2199$): Nam $\rightarrow 4$, Nữ $\rightarrow 5$.
+   Nếu chữ số $G$ không khớp với năm sinh và giới tính khai báo $\rightarrow$ báo lỗi `INVALID_CCCD_CENTURY_GENDER`.
+4. **Kiểm tra Khớp Năm sinh ($Y_1 Y_2$):**
+   $$Y_1 Y_2 = \text{BirthYear} \pmod{100}$$
+   Nếu không khớp $\rightarrow$ báo lỗi `INVALID_CCCD_YEAR`.
+
+---
+
+### 3.2.3. Bộ Quy tắc Logic Thời gian và Độ tuổi (Date Logic Engine)
+Bộ kiểm định `DateLogicValidator` ngăn ngừa các nghịch lý logic thời gian:
+1. **Kiểm tra chuỗi thời gian hợp thức:**
+   $$\text{BirthDate} < \text{IssueDate} \le \text{CurrentDate}$$
+   - Nếu $\text{IssueDate} > \text{CurrentDate}$ (ngày cấp trong tương lai) $\rightarrow$ báo lỗi `INVALID_DATE_LOGIC`.
+   - Nếu $\text{BirthDate} \ge \text{IssueDate}$ (ngày cấp trước hoặc cùng ngày sinh) $\rightarrow$ báo lỗi `INVALID_DATE_LOGIC`.
+2. **Kiểm tra điều kiện độ tuổi cấp căn cước:**
+   Theo quy định pháp luật căn cước, công dân chỉ được cấp thẻ CCCD từ đủ 14 tuổi:
+   $$\text{AgeAtIssuance} = \text{Period}(\text{BirthDate}, \text{IssueDate}).\text{Years} \ge 14$$
+   Nếu $\text{AgeAtIssuance} < 14 \rightarrow$ báo lỗi `INVALID_DATE_LOGIC`.
+
+---
+
+### 3.2.4. Kiểm tra Trường bắt buộc và Cảnh báo Độ tin cậy OCR
+1. **Trường bắt buộc (`MandatoryFieldValidator`):** Các trường `fullName`, `birthDate`, `gender`, `cccdNumber`, `permanentAddress` nếu bị để trống hoặc rỗng sẽ kích hoạt lỗi `MISSING_MANDATORY_FIELD`.
+2. **Cảnh báo độ tin cậy thấp (`MANUAL_REVIEW_REQUIRED`):**
+   Đối với tờ khai viết tay (handwritten), chất lượng chữ viết có thể bị mờ nhòe. Mỗi trường trích xuất mang điểm tin cậy $C_{\text{field}} \in [0.0, 1.0]$.
+   $$\text{Warning}(field) = \begin{cases} 
+   \text{MANUAL\_REVIEW\_REQUIRED}, & \text{khi } C_{\text{field}} < 0.70 \\
+   \text{OK}, & \text{khi } C_{\text{field}} \ge 0.70 
+   \end{cases}$$
+   Cảnh báo mức `WARNING` không làm vô hiệu tờ khai nhưng nhắc nhở cán bộ kiểm tra kỹ bằng mắt thường.
+
+---
+
+### 3.2.5. Kết quả Kiểm thử Thực nghiệm
+Module 2 đã được kiểm thử tự động toàn diện qua 17 unit test mới:
+- [`CccdValidatorTest`](file:///E:/SmartWardAI/backend/src/test/java/vn/edu/uth/smartward/formcheck/CccdValidatorTest.java): Đạt 7/7 test.
+- [`DateLogicValidatorTest`](file:///E:/SmartWardAI/backend/src/test/java/vn/edu/uth/smartward/formcheck/DateLogicValidatorTest.java): Đạt 4/4 test.
+- [`MandatoryFieldValidatorTest`](file:///E:/SmartWardAI/backend/src/test/java/vn/edu/uth/smartward/formcheck/MandatoryFieldValidatorTest.java): Đạt 2/2 test.
+- [`FormPrecheckServiceTest`](file:///E:/SmartWardAI/backend/src/test/java/vn/edu/uth/smartward/formcheck/FormPrecheckServiceTest.java): Đạt 3/3 test.
+- [`FormCheckControllerTest`](file:///E:/SmartWardAI/backend/src/test/java/vn/edu/uth/smartward/formcheck/FormCheckControllerTest.java): Đạt 1/1 test.
+
+Tổng cộng toàn bộ hệ thống đạt: **38/38 tests Passed (100% BUILD SUCCESS)**.

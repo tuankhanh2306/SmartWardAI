@@ -1,7 +1,7 @@
 # Kế Hoạch & Tiến Độ Thực Hiện Dự Án (Project Sprint Board)
 **Dự án:** SmartWard AI – Hệ thống Hỗ trợ Thủ tục Hành chính và Phân luồng Phản ánh Cấp Phường/Xã  
 **Đơn vị:** Viện Đào tạo Chất lượng cao – Trường Đại học Giao thông vận tải TP.HCM (UTH)  
-**Trạng thái hiện tại:** `Tuần 4 / 12` 🚀 (Chuẩn bị sang Tuần 5)
+**Trạng thái hiện tại:** `Tuần 5 / 12` 🚀 (Chuẩn bị sang Tuần 6)
 
 ---
 
@@ -13,7 +13,8 @@
 | **W02** | **Thu thập 40 TTHC & Thiết kế CSDL Flyway** | `V1__init_schema.sql`, HNSW index, LegalChunking, Seeder | Soạn Chương 2 (Kiến trúc & CSDL quan hệ + Vector) | ✅ **HOÀN THÀNH** |
 | **W03** | **Tích hợp Mock AI Client & Rate Limiter** | `DeterministicMockAiClient`, Redis Rate Limiter (5 req/phút) | Soạn Mục 2.3 (Quản trị tài nguyên & API limits) | ✅ **HOÀN THÀNH** |
 | **W04** | **Module 1: Legal RAG & Abstention Guardrail** | pgvector cosine, Ngưỡng $\theta=0.78$, API `/rag/ask` | Soạn Chương 3 - Phần 1 (RAG & Chống ảo giác) | ✅ **HOÀN THÀNH** |
-| **W05** | **Module 2: Form Rule Engine (CCCD & Date)** | Java Rule Engine 12 số CCCD, Date Logic, OCR Client | Soạn Chương 3 - Phần 2 (Hậu kiểm định biểu mẫu) | 🔄 **ĐANG LÀM** |
+| **W05** | **Module 2: Form Rule Engine (CCCD & Date)** | Java Rule Engine 12 số CCCD, Date Logic, OCR Client | Soạn Chương 3 - Phần 2 (Hậu kiểm định biểu mẫu) | ✅ **HOÀN THÀNH** |
+| **W06** | **Module 3: Triage Phản ánh 2 Pha** | Redis GEO ($R$) + pgvector Cosine ($\tau$) | Soạn Chương 3 - Phần 3 (Gom cụm phản ánh 2 pha) | 🔄 **ĐANG LÀM** |
 | **W06** | **Module 3: Triage Phản ánh 2 Pha** | Redis GEO ($R$) + pgvector Cosine ($\tau$) | Soạn Chương 3 - Phần 3 (Gom cụm phản ánh 2 pha) | ⏳ Chờ |
 | **W07** | **Module 4: Zero-Trust Document Vault** | Watermark Java2D, AES-256, MinIO, Redis `GETDEL` | Soạn Chương 3 - Phần 4 (Bảo mật Nghị định 13) | ⏳ Chờ |
 | **W08** | **Bộ dữ liệu kiểm thử & Evaluation Runner** | 80 câu RAG, 150 phản ánh (GPS noise), 40 tờ khai | Soạn Chương 4 - Phần 1 (Phương pháp thực nghiệm) | ⏳ Chờ |
@@ -71,15 +72,15 @@
 
 ---
 
-### 📌 TUẦN 5: MODULE 2 – DETERMINISTIC FORM RULE ENGINE
-- [ ] **Task 5.1:** Xây dựng `OcrExtractionClient` kết nối Vision OCR trích xuất JSON biểu mẫu (`fullName`, `cccdNumber`, `birthDate`, `issueDate`, `address`, `confidence`).
-- [ ] **Task 5.2:** Viết pure Java class `CccdValidator`: Kiểm tra regex 12 chữ số, đối chiếu bảng mã 63 tỉnh/thành, giải mã chữ số thế kỷ/giới tính (`0-9`), khớp 2 chữ số cuối của năm sinh.
-- [ ] **Task 5.3:** Viết pure Java class `DateLogicValidator`: Kiểm tra thứ tự logic `birthDate < issueDate <= today` và điều kiện công dân $\ge 14$ tuổi khi cấp căn cước.
-- [ ] **Task 5.4:** Viết `MandatoryFieldValidator`: Kiểm tra trường bắt buộc và định dạng theo JSON schema từng mã TTHC.
-- [ ] **Task 5.5:** Đánh dấu cảnh báo `MANUAL_REVIEW_REQUIRED` đối với các trường thông tin có độ tin cậy OCR nhận diện $< 0.70$.
-- [ ] **Task 5.6:** Xây dựng REST API `POST /api/v1/forms/precheck` nhận ảnh upload multipart và trả về báo cáo kết quả kiểm tra từng trường.
-- [ ] **Task 5.7:** Soạn thảo Chương 3 - Phần 2 (Động cơ quy tắc hậu kiểm định biểu mẫu hành chính).
-- [ ] **Task 5.8:** Viết Báo cáo Tiến độ Tuần 5 nộp GVHD và Mentor.
+### 📌 TUẦN 5: MODULE 2 – DETERMINISTIC FORM RULE ENGINE [HOÀN THÀNH 100%]
+- [x] **Task 5.1:** Xây dựng `OcrExtractionClient` kết nối Vision OCR trích xuất JSON biểu mẫu (`fullName`, `cccdNumber`, `birthDate`, `issueDate`, `address`, `confidence`).
+- [x] **Task 5.2:** Viết pure Java class `CccdValidator`: Kiểm tra regex 12 chữ số, đối chiếu bảng mã 63 tỉnh/thành, giải mã chữ số thế kỷ/giới tính (`0-9`), khớp 2 chữ số cuối của năm sinh.
+- [x] **Task 5.3:** Viết pure Java class `DateLogicValidator`: Kiểm tra thứ tự logic `birthDate < issueDate <= today` và điều kiện công dân $\ge 14$ tuổi khi cấp căn cước.
+- [x] **Task 5.4:** Viết `MandatoryFieldValidator`: Kiểm tra trường bắt buộc và định dạng theo JSON schema từng mã TTHC.
+- [x] **Task 5.5:** Đánh dấu cảnh báo `MANUAL_REVIEW_REQUIRED` đối với các trường thông tin có độ tin cậy OCR nhận diện $< 0.70$.
+- [x] **Task 5.6:** Xây dựng REST API `POST /api/v1/forms/precheck` nhận ảnh upload multipart và trả về báo cáo kết quả kiểm tra từng trường.
+- [x] **Task 5.7:** Soạn thảo Chương 3 - Phần 2 (Động cơ quy tắc hậu kiểm định biểu mẫu hành chính) tại `docs/thesis-chapters/chapter-03.md`.
+- [x] **Task 5.8:** Viết Báo cáo Tiến độ Tuần 5 nộp GVHD và Mentor tại `docs/weekly-reports/week-05-report.md`.
 
 ---
 
