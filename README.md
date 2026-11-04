@@ -166,5 +166,6 @@ npm run dev
 | **Báo cáo Chương 2** | [`docs/thesis-chapters/chapter-02.md`](file:///e:/SmartWardAI/docs/thesis-chapters/chapter-02.md) | Lý giải kiến trúc Modular Monolith, Thiết kế CSDL 6 bảng & HNSW pgvector. |
 | **Đặc tả Kỹ thuật** | [`docs/SPEC.md`](file:///e:/SmartWardAI/docs/SPEC.md) | Đặc tả 7 REST APIs, cấu trúc package, ràng buộc dữ liệu. |
 | **Thiết kế Thực nghiệm** | [`docs/experimental-design-and-defense.md`](file:///e:/SmartWardAI/docs/experimental-design-and-defense.md) | Grid search $(R, \tau)$, phân tích lỗi, 6 câu hỏi phản biện & 10 slide bảo vệ. |
+| **Cẩm nang Phản biện & Q&A** | [`docs/SYSTEM_DESIGN_RATIONALE_AND_DEFENSE_QA.md`](file:///e:/SmartWardAI/docs/SYSTEM_DESIGN_RATIONALE_AND_DEFENSE_QA.md) | Lý giải toàn bộ công nghệ được chọn vs bị bác bỏ, bộ 10 câu hỏi đối kháng. |
 | **Lộ trình 12 tuần** | [`docs/ROADMAP.md`](file:///e:/SmartWardAI/docs/ROADMAP.md) & [`TODO.md`](file:///e:/SmartWardAI/TODO.md) | Kế hoạch triển khai chi tiết từng tuần đồng bộ code và báo cáo UTH. |
 | **Quy chuẩn Git** | [`docs/GIT_WORKFLOW.md`](file:///e:/SmartWardAI/docs/GIT_WORKFLOW.md) | Quy chuẩn Conventional Commits 1.0.0, Branching Strategy & Tagging. |
