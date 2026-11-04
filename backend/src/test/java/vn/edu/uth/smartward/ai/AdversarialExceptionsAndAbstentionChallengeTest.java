@@ -172,7 +172,11 @@ class AdversarialExceptionsAndAbstentionChallengeTest {
     @CsvSource({
             "Tôi muốn làm hộ chiếu phổ thông để đi du lịch nước ngoài, Cục Quản lý xuất nhập cảnh",
             "Đổi bằng lái xe ô tô hạng B2 đã hết hạn ở đâu, Sở Giao thông vận tải",
-            "Hướng dẫn quyết toán thuế thu nhập cá nhân năm 2026, Chi cục Thuế"
+            "Hướng dẫn quyết toán thuế thu nhập cá nhân năm 2026, Chi cục Thuế",
+            "Xin cấp phiếu lý lịch tư pháp số 1 để xin việc, Sở Tư pháp",
+            "Thủ tục đăng ký biển số xe máy mới mua, Phòng CSGT",
+            "Làm thủ tục cấp thẻ căn cước công dân lần đầu cho con, Công an cấp huyện",
+            "Tranh chấp tài sản thừa kế đất đai gia đình khởi kiện ở đâu, Tòa án nhân dân"
     })
     @DisplayName("Abstention 2a: Out-of-scope queries trigger immediate backend abstention with ZERO LLM calls and correct authority")
     void abstention_outOfScopeQueriesDirectToAuthorityWithoutLLM(String query, String expectedAuthority) {
@@ -414,6 +418,70 @@ class AdversarialExceptionsAndAbstentionChallengeTest {
         assertEquals("Dịch vụ AI hiện không khả dụng. Quý công dân vui lòng thử lại sau.", ex.getMessage());
         assertFalse(ex.getMessage().contains(SECRET_API_KEY));
         mockServer.verify();
+    }
+
+    // =========================================================================
+    // SECTION 4: AI & RAG Quality Hardening (Sanitization, Preamble Pruning, Timeout)
+    // =========================================================================
+
+    @Test
+    @DisplayName("Quality 4a: sanitizeAnswerCitations strips hallucinated citations and keeps valid citations")
+    void quality_sanitizeAnswerCitationsRemovesHallucinatedCodes() {
+        RagQueryService ragService = new RagQueryService(null, null, null, null);
+        String rawAnswer = """
+            1. TÓM TẮT THỦ TỤC:
+            Thủ tục đăng ký khai sinh [TTHC-HT-01] được xử lý tại UBND xã.
+            Theo quy định [FAKE-99], công dân cần nộp hồ sơ đúng hạn.
+            Chi tiết xem thêm tại [TTHC-HT-01-DK] và [LUAT-BIA-DAT-999].
+            """;
+
+        Set<String> validCodes = Set.of("TTHC-HT-01", "TTHC-HT-01-DK");
+        String sanitized = ragService.sanitizeAnswerCitations(rawAnswer, validCodes);
+
+        assertTrue(sanitized.contains("[TTHC-HT-01]"), "Valid code [TTHC-HT-01] must be kept");
+        assertTrue(sanitized.contains("[TTHC-HT-01-DK]"), "Valid code [TTHC-HT-01-DK] must be kept");
+        assertFalse(sanitized.contains("[FAKE-99]"), "Hallucinated code [FAKE-99] must be stripped");
+        assertFalse(sanitized.contains("[LUAT-BIA-DAT-999]"), "Hallucinated code [LUAT-BIA-DAT-999] must be stripped");
+    }
+
+    @Test
+    @DisplayName("Quality 4b: prunePreamble cleanly strips conversational preambles before section 1")
+    void quality_prunePreambleRemovesConversationalGreeting() {
+        RagQueryService ragService = new RagQueryService(null, null, null, null);
+        String greetingAnswer = """
+            Dạ chào quý công dân thân mến! Rất vui được hỗ trợ bà con giải đáp thắc mắc hôm nay.
+            Dưới đây là hướng dẫn chi tiết theo quy định:
+
+            1. TÓM TẮT THỦ TỤC:
+            Đăng ký khai sinh cho trẻ mới sinh thực hiện trong 01 ngày làm việc.
+            2. THÀNH PHẦN HỒ SƠ:
+            - Tờ khai mẫu
+            """;
+
+        String pruned = ragService.prunePreamble(greetingAnswer);
+        assertTrue(pruned.startsWith("1. TÓM TẮT THỦ TỤC:"),
+                "Response must start strictly with Section 1 header but was: " + pruned);
+        assertFalse(pruned.contains("Dạ chào quý công dân"), "Conversational preamble must be removed");
+    }
+
+    @Test
+    @DisplayName("Quality 4c: prunePreamble handles markdown bold or header prefixes before section 1")
+    void quality_prunePreambleHandlesMarkdownHeaders() {
+        RagQueryService ragService = new RagQueryService(null, null, null, null);
+        String answerWithBold = "Chào bạn!\n\n**1. TÓM TẮT THỦ TỤC:**\nThủ tục thực hiện nhanh chóng.";
+        String pruned = ragService.prunePreamble(answerWithBold);
+        assertTrue(pruned.startsWith("**1. TÓM TẮT THỦ TỤC:**"), "Should start with Section 1 header");
+        assertFalse(pruned.contains("Chào bạn!"), "Greeting must be pruned");
+    }
+
+    @Test
+    @DisplayName("Quality 4d: GeminiAiClient initRestClient configures client with timeoutSeconds")
+    void quality_geminiAiClientInitRestClientSetsTimeout() {
+        GeminiAiClient client = new GeminiAiClient(objectMapper);
+        client.setTimeoutSeconds(45);
+        client.initRestClient();
+        assertNotNull(ReflectionTestUtils.getField(client, "restClient"),
+                "restClient must be initialized after initRestClient");
     }
 
     private LegalChunkMatch createMockChunkMatch(String code, String procName, String title, String content, String legalRef, double score) {

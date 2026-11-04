@@ -1,4 +1,23 @@
-import { askLegalRag } from '../src/api/client.js';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import path from 'node:path';
+import fs from 'node:fs';
+
+const currentFile = fileURLToPath(import.meta.url);
+
+if (!process.env.SMARTWARD_TSX_ACTIVE) {
+  const rootDir = path.resolve(path.dirname(currentFile), '../..');
+  const loaderPath = path.resolve(rootDir, 'frontend/node_modules/tsx/dist/loader.mjs');
+  if (fs.existsSync(loaderPath)) {
+    const res = spawnSync(process.execPath, ['--import', pathToFileURL(loaderPath).href, currentFile, ...process.argv.slice(2)], {
+      stdio: 'inherit',
+      env: { ...process.env, SMARTWARD_TSX_ACTIVE: '1' }
+    });
+    process.exit(res.status ?? 0);
+  }
+}
+
+const { askLegalRag } = await import('../src/api/client.js');
 
 async function run() {
   console.log('--- Testing askLegalRag Responses ---');

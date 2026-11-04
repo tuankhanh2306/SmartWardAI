@@ -39,7 +39,7 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
       'Trường hợp trẻ bị bỏ rơi: Cán bộ tư pháp lập biên bản, niêm yết 7 ngày liên tục tại trụ sở UBND trước khi làm khai sinh.',
       'Trẻ sinh ra do mang thai hộ: Phải có văn bản xác nhận của cơ sở y tế đã thực hiện kỹ thuật hỗ trợ sinh sản.',
     ],
-    keywords: ['khai sinh', 'chứng sinh', 'mới sinh', 'sinh con', 'đẻ con', 'đặt tên cho con', 'giấy khai sinh', 'đăng ký sinh'],
+    keywords: ['khai sinh', 'chứng sinh', 'mới sinh', 'sinh con', 'đẻ con', 'đặt tên cho con', 'giấy khai sinh', 'đăng ký sinh', 'khai sanh', 'mần giấy khai sanh', 'mới sanh', 'cho bé', 'cho cháu'],
   },
   {
     code: 'TTHC-HT-02',
@@ -60,7 +60,7 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
       'Cấm kết hôn: Kết hôn giả tạo; tảo hôn; cưỡng ép; đang có vợ/chồng; người có cùng dòng máu trực hệ, phạm vi ba đời.',
       'BẮT BUỘC cả hai bên nam nữ phải trực tiếp có mặt tại UBND cấp xã ký vào Sổ hộ tịch và Giấy chứng nhận kết hôn.',
     ],
-    keywords: ['kết hôn', 'đăng ký kết hôn', 'lấy vợ', 'lấy chồng', 'giấy kết hôn', 'hôn thú', 'làm hôn thú'],
+    keywords: ['kết hôn', 'đăng ký kết hôn', 'lấy vợ', 'lấy chồng', 'giấy kết hôn', 'hôn thú', 'làm hôn thú', 'giá thú', 'mần giấy giá thú'],
   },
   {
     code: 'TTHC-HT-04',
@@ -197,7 +197,7 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
       'BẮT BUỘC người yêu cầu chứng thực phải ký trực tiếp trước mặt người thực hiện chứng thực (cán bộ tư pháp - hộ tịch).',
       'Không chứng thực chữ ký trong các trường hợp: Người yêu cầu mất năng lực hành vi dân sự; Giấy tờ văn bản có nội dung trái pháp luật, đạo đức xã hội; Giấy tờ văn bản dùng để trốn tránh nghĩa vụ.',
     ],
-    keywords: ['chứng thực chữ ký', 'ký xác nhận', 'chứng chữ ký', 'ký trước mặt công chứng', 'xác nhận chữ ký'],
+    keywords: ['chứng thực chữ ký', 'ký xác nhận', 'chứng chữ ký', 'ký trước mặt công chứng', 'xác nhận chữ ký', 'ký chứng thực', 'ký trước mặt cán bộ', 'ký trước mặt'],
   },
 
   // --- BẢO TRỢ XÃ HỘI ---
@@ -219,7 +219,7 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
       'Đối tượng được hưởng: Trẻ em dưới 16 tuổi không có nguồn nuôi dưỡng; Người cao tuổi thuộc hộ nghèo không có người phụng dưỡng; Người khuyết tật nặng và đặc biệt nặng; Người đơn thân nghèo đang nuôi con.',
       'Mức chuẩn trợ giúp xã hội theo NĐ 20/2021/NĐ-CP là 360.000 đồng/tháng (được nhân với hệ số tương ứng từng nhóm đối tượng, TP.HCM áp dụng chuẩn riêng cao hơn theo Nghị quyết HĐND TP).',
     ],
-    keywords: ['trợ cấp xã hội', 'bảo trợ xã hội', 'tiền trợ cấp', 'người khuyết tật', 'người già neo đơn', 'mồ côi', 'trợ cấp hàng tháng'],
+    keywords: ['trợ cấp xã hội', 'bảo trợ xã hội', 'tiền trợ cấp', 'người khuyết tật', 'người già neo đơn', 'mồ côi', 'trợ cấp hàng tháng', 'tiền già', 'lãnh tiền già', 'người cao tuổi', 'chế độ người cao tuổi'],
   },
   {
     code: 'TTHC-BT-02',
@@ -240,9 +240,46 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
     ],
     keywords: ['tiền mai táng', 'hỗ trợ mai táng', 'mai táng phí', 'chi phí mai táng', 'chết có trợ cấp mai táng'],
   },
+  {
+    code: 'TTHC-HT-05',
+    name: 'Đăng ký khai tử',
+    category: 'Hộ tịch',
+    legalBasis: 'Điều 32, 33, 34 Luật Hộ tịch 2014; Nghị định 123/2015/NĐ-CP; Thông tư 04/2020/TT-BTP',
+    timeLimit: 'Giải quyết ngay trong ngày làm việc tiếp nhận hồ sơ',
+    fee: 'Miễn phí hoàn toàn khi đăng ký đúng hạn (trong 15 ngày kể từ ngày chết)',
+    authority: 'UBND cấp xã nơi cư trú cuối cùng của người chết',
+    dossier: [
+      'Tờ khai đăng ký khai tử theo mẫu',
+      'Giấy báo tử hoặc giấy tờ thay thế Giấy báo tử do cơ sở y tế hoặc cơ quan có thẩm quyền cấp',
+      'Xuất trình CCCD của người đi khai tử',
+    ],
+    keyRules: [
+      'Trách nhiệm đăng ký khai tử thuộc về vợ, chồng hoặc con, cha, mẹ hoặc người thân thích khác.',
+      'Thời hạn đăng ký khai tử là trong vòng 15 ngày kể từ ngày có sự kiện chết.',
+    ],
+    keywords: ['khai tử', 'khai tu', 'chứng tử', 'giấy báo tử', 'người mất', 'người chết', 'mần giấy khai tử', 'mần giấy tử', 'báo tử'],
+  },
+  {
+    code: 'TTHC-CR-04',
+    name: 'Khai báo tạm vắng và thông báo lưu trú',
+    category: 'Cư trú',
+    legalBasis: 'Điều 30, 31 Luật Cư trú số 68/2020/QH14; Thông tư 55/2021/TT-BCA',
+    timeLimit: 'Giải quyết ngay trong ngày làm việc',
+    fee: 'Miễn phí hoàn toàn',
+    authority: 'Công an xã/phường/thị trấn',
+    dossier: [
+      'Tờ khai thay đổi thông tin cư trú (Mẫu CT01)',
+      'Xuất trình CCCD hoặc giấy tờ chứng minh thông tin nhân thân',
+    ],
+    keyRules: [
+      'Công dân vắng mặt tại nơi cư trú từ 12 tháng trở lên mà không đăng ký tạm trú tại nơi ở mới thì phải khai báo tạm vắng.',
+      'Có thể nộp trực tiếp tại Công an xã hoặc trực tuyến qua Cổng dịch vụ công quản lý cư trú.',
+    ],
+    keywords: ['tạm vắng', 'khai báo tạm vắng', 'thông báo lưu trú', 'lưu trú', 'đi làm ăn xa', 'vang mat'],
+  },
 ];
 
-import { isGreetingQuery, isProcedureListQuery, checkOutOfScopeQuery } from './intentClassifier';
+import { isGreetingQuery, isProcedureListQuery, checkOutOfScopeQuery, removeVietnameseAccents } from './intentClassifier';
 
 const STOP_WORDS = new Set([
   'la', 'là', 'va', 'và', 'cua', 'của', 'cho', 'co', 'có', 'tai', 'tại', 'o', 'ở',
@@ -262,6 +299,7 @@ export function searchLegalKnowledge(query: string, topK: number = 3): {
   isInScope: boolean;
 } {
   const q = query.toLowerCase().trim();
+  const qNoAccent = removeVietnameseAccents(q);
 
   // 1. Check if greeting, small talk, or asking for full procedure catalog
   if (isGreetingQuery(q) || isProcedureListQuery(q)) {
@@ -285,14 +323,16 @@ export function searchLegalKnowledge(query: string, topK: number = 3): {
 
     // Check exact keyword match (highest confidence)
     for (const kw of item.keywords) {
-      if (q.includes(kw)) {
+      const kwNoAccent = removeVietnameseAccents(kw);
+      if (q.includes(kw) || qNoAccent.includes(kwNoAccent)) {
         score += 0.50;
         break;
       }
     }
 
     // Check procedure name
-    if (q.includes(item.name.toLowerCase())) {
+    const nameNoAccent = removeVietnameseAccents(item.name);
+    if (q.includes(item.name.toLowerCase()) || qNoAccent.includes(nameNoAccent)) {
       score += 0.40;
     }
 

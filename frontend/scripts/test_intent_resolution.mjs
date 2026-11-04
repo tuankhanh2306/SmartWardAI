@@ -1,11 +1,30 @@
-import {
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import path from 'node:path';
+import fs from 'node:fs';
+
+const currentFile = fileURLToPath(import.meta.url);
+
+if (!process.env.SMARTWARD_TSX_ACTIVE) {
+  const rootDir = path.resolve(path.dirname(currentFile), '../..');
+  const loaderPath = path.resolve(rootDir, 'frontend/node_modules/tsx/dist/loader.mjs');
+  if (fs.existsSync(loaderPath)) {
+    const res = spawnSync(process.execPath, ['--import', pathToFileURL(loaderPath).href, currentFile, ...process.argv.slice(2)], {
+      stdio: 'inherit',
+      env: { ...process.env, SMARTWARD_TSX_ACTIVE: '1' }
+    });
+    process.exit(res.status ?? 0);
+  }
+}
+
+const {
   isGreetingQuery,
   isWardOfficeQuery,
   checkOutOfScopeQuery,
   isProcedureListQuery,
   classifySmallTalk,
-} from '../src/services/intentClassifier.js';
-import { searchLegalKnowledge } from '../src/services/legalKnowledgeBase.js';
+} = await import('../src/services/intentClassifier.js');
+const { searchLegalKnowledge } = await import('../src/services/legalKnowledgeBase.js');
 
 console.log('Testing SmartWard AI Intent Classification & Legal Search:');
 

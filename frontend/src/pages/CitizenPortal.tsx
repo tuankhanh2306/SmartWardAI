@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { askLegalRag, type RagResponse } from '../api/client';
+import { askLegalRag, type RagResponse, type LegalCitation } from '../api/client';
 import { isGeminiConfigured } from '../services/geminiClient';
 import { AiSettingsModal } from '../components/AiSettingsModal';
 import { useNavigate } from 'react-router-dom';
@@ -40,7 +40,7 @@ export const CitizenPortal: React.FC = () => {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-  const [activeCitation, setActiveCitation] = useState<number | null>(null);
+  const [activeCitation, setActiveCitation] = useState<LegalCitation | null>(null);
   const [isMicActive, setIsMicActive] = useState(false);
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [geminiActive, setGeminiActive] = useState(isGeminiConfigured());
@@ -495,7 +495,7 @@ export const CitizenPortal: React.FC = () => {
                         {/* Action 2: View Legal Citations Drawer */}
                         {msg.ragData?.citations && msg.ragData.citations.length > 0 && (
                           <button
-                            onClick={() => setActiveCitation(0)}
+                            onClick={() => setActiveCitation(msg.ragData!.citations[0])}
                             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F2F3FF] hover:bg-[#EAEDFF] text-[#00687A] text-[11px] font-semibold transition active:scale-95"
                           >
                             <BookOpen className="w-3 h-3" />
@@ -584,6 +584,7 @@ export const CitizenPortal: React.FC = () => {
                 <input
                   type="text"
                   value={query}
+                  maxLength={1000}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Nhập câu hỏi TTHC (ví dụ: đăng ký khai sinh, kết hôn, CT01)..."
                   className="w-full h-11 pl-4 pr-10 rounded-xl bg-[#FAF8FF] border border-[#EAEDFF] focus:border-[#00236F] focus:bg-white text-xs md:text-sm text-[#131B2E] placeholder-[#757682] focus:outline-none focus:ring-2 focus:ring-[#00236F]/10 transition-all"
@@ -618,7 +619,7 @@ export const CitizenPortal: React.FC = () => {
       </div>
 
       {/* Citation Detail Modal / Drawer with Smooth Fade-Scale Animation */}
-      {activeCitation !== null && messages[1]?.ragData?.citations[0] && (
+      {activeCitation !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-fadeIn">
           <div className="bg-white max-w-lg w-full rounded-2xl p-6 shadow-2xl border border-[#EAEDFF] flex flex-col gap-4 animate-scaleUp">
             <div className="flex items-center justify-between pb-2 border-b border-[#EAEDFF]">
@@ -640,21 +641,21 @@ export const CitizenPortal: React.FC = () => {
               <div>
                 <span className="text-[#757682] block text-[11px]">Văn bản quy phạm:</span>
                 <span className="font-bold text-[#131B2E] text-xs">
-                  {messages[1].ragData.citations[0].legalReference}
+                  {activeCitation.legalReference || activeCitation.title}
                 </span>
               </div>
 
               <div>
                 <span className="text-[#757682] block text-[11px]">Nội dung điều khoản:</span>
                 <p className="p-3 bg-[#FAF8FF] border border-[#EAEDFF] rounded-xl text-xs text-[#131B2E] leading-relaxed mt-1">
-                  "{messages[1].ragData.citations[0].content}"
+                  "{activeCitation.content}"
                 </p>
               </div>
 
               <div className="flex items-center justify-between text-[11px] text-[#757682] pt-1">
-                <span>Mã đoạn: <code>{messages[1].ragData.citations[0].chunkCode}</code></span>
+                <span>Mã đoạn: <code>{activeCitation.chunkCode}</code></span>
                 <span className="font-bold text-[#00687A]">
-                  Độ tương đồng Cosine: {(messages[1].ragData.citations[0].relevanceScore * 100).toFixed(1)}%
+                  Độ tương đồng Cosine: {((activeCitation.relevanceScore || 0) * 100).toFixed(1)}%
                 </span>
               </div>
             </div>

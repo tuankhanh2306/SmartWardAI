@@ -2,6 +2,7 @@ package vn.edu.uth.smartward.ai;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
@@ -73,18 +74,23 @@ public class GeminiAiClient implements AiModelClient {
 
     public GeminiAiClient(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
-        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
-        factory.setConnectTimeout(Duration.ofSeconds(8));
-        factory.setReadTimeout(Duration.ofSeconds(25));
-        this.restClient = RestClient.builder()
-                .requestFactory(factory)
-                .baseUrl(GEMINI_BASE_URL)
-                .build();
+        initRestClient();
     }
 
     public GeminiAiClient(RestClient restClient, ObjectMapper objectMapper) {
         this.restClient = restClient;
         this.objectMapper = objectMapper;
+    }
+
+    @PostConstruct
+    void initRestClient() {
+        SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
+        factory.setConnectTimeout(Duration.ofSeconds(8));
+        factory.setReadTimeout(Duration.ofSeconds(timeoutSeconds > 0 ? timeoutSeconds : 25));
+        this.restClient = RestClient.builder()
+                .requestFactory(factory)
+                .baseUrl(GEMINI_BASE_URL)
+                .build();
     }
 
     // Package-private accessors for testing and configuration injection

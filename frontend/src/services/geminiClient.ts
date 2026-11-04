@@ -184,28 +184,7 @@ export async function askGeminiWithRAG(
     };
   }
 
-  // 3. Commune Office Information (Address, Working Hours, Hotline)
-  if (isWardOfficeQuery(query)) {
-    const elapsed = Math.round(performance.now() - startTime);
-    return {
-      answer:
-        `Thông tin liên hệ và thời gian làm việc của Bộ phận Tiếp nhận và Trả kết quả (Một Cửa) thuộc UBND ${wardName}:\n\n` +
-        `• Trụ sở / Địa chỉ Một cửa: ${officeAddress}\n` +
-        `• Số điện thoại / Hotline: ${phoneNumber}\n` +
-        `• Giờ tiếp nhận và trả kết quả: ${workingHours}\n` +
-        `• Cổng Dịch vụ công Quốc gia: Nộp hồ sơ trực tuyến 24/7 tại dichvucong.gov.vn\n\n` +
-        `Bà con có thể đến trực tiếp trong khung giờ làm việc trên hoặc gửi câu hỏi về thủ tục hành chính để tôi hướng dẫn chuẩn bị đầy đủ hồ sơ trước khi đến nộp.`,
-      abstained: false,
-      maxSimilarity: 1.0,
-      appliedThreshold: 0.78,
-      responseTimeMs: elapsed,
-      cached: false,
-      disclaimer: 'Thông tin chính thức từ Danh bạ hành chính UBND cấp xã/phường.',
-      citations: [],
-    };
-  }
-
-  // 4. Out-of-scope check (Directing to Competent Authority)
+  // 3. Out-of-scope check (Directing to Competent Authority - Priority over Office to avoid hijacking)
   const outOfScopeCheck = checkOutOfScopeQuery(query);
   if (outOfScopeCheck.isOutOfScope) {
     const elapsed = Math.round(performance.now() - startTime);
@@ -230,8 +209,43 @@ export async function askGeminiWithRAG(
     };
   }
 
-  // 5. Semantic Retrieval over SmartWard AI Legal Knowledge Base
-  const searchResult = searchLegalKnowledge(query, 3);
+  // 4. Commune Office Information (Address, Working Hours, Hotline)
+  if (isWardOfficeQuery(query)) {
+    const elapsed = Math.round(performance.now() - startTime);
+    return {
+      answer:
+        `Thông tin liên hệ và thời gian làm việc của Bộ phận Tiếp nhận và Trả kết quả (Một Cửa) thuộc UBND ${wardName}:\n\n` +
+        `• Trụ sở / Địa chỉ Một cửa: ${officeAddress}\n` +
+        `• Số điện thoại / Hotline: ${phoneNumber}\n` +
+        `• Giờ tiếp nhận và trả kết quả: ${workingHours}\n` +
+        `• Cổng Dịch vụ công Quốc gia: Nộp hồ sơ trực tuyến 24/7 tại dichvucong.gov.vn\n\n` +
+        `Bà con có thể đến trực tiếp trong khung giờ làm việc trên hoặc gửi câu hỏi về thủ tục hành chính để tôi hướng dẫn chuẩn bị đầy đủ hồ sơ trước khi đến nộp.`,
+      abstained: false,
+      maxSimilarity: 1.0,
+      appliedThreshold: 0.78,
+      responseTimeMs: elapsed,
+      cached: false,
+      disclaimer: 'Thông tin chính thức từ Danh bạ hành chính UBND cấp xã/phường.',
+      citations: [],
+    };
+  }
+
+  // 5. Semantic Retrieval over SmartWard AI Legal Knowledge Base (with Southern dialect normalization)
+  let normalizedSearchQuery = query.toLowerCase();
+  normalizedSearchQuery = normalizedSearchQuery
+    .replaceAll('giấy khai sanh', 'giấy khai sinh')
+    .replaceAll('khai sanh', 'khai sinh')
+    .replaceAll('mần giấy giá thú', 'đăng ký kết hôn')
+    .replaceAll('giá thú', 'kết hôn')
+    .replaceAll('hôn thư', 'kết hôn')
+    .replaceAll('chế độ tiền già', 'trợ cấp xã hội người cao tuổi')
+    .replaceAll('lãnh tiền già', 'trợ cấp xã hội người cao tuổi')
+    .replaceAll('tiền già', 'trợ cấp xã hội người cao tuổi')
+    .replaceAll('mần giấy tử', 'khai tử')
+    .replaceAll('chứng giấy tờ', 'chứng thực sao y')
+    .replaceAll('chứng giấy', 'chứng thực sao y')
+    .replaceAll('mần giấy', 'chứng thực sao y');
+  const searchResult = searchLegalKnowledge(normalizedSearchQuery, 3);
 
   // 6. Abstention Guardrail: Out-of-scope / Low similarity check
   if (!searchResult.isInScope || searchResult.items.length === 0) {

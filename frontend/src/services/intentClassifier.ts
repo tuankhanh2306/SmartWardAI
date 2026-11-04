@@ -5,15 +5,30 @@
  * out-of-scope inquiries, and genuine administrative procedure inquiries.
  */
 
+/**
+ * Removes Vietnamese diacritical marks/accents for robust, fault-tolerant text normalization.
+ */
+export function removeVietnameseAccents(str: string): string {
+  if (!str) return '';
+  return str
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .toLowerCase();
+}
+
 export const PROCEDURE_KEYWORDS = [
   'khai sinh', 'chứng sinh', 'mới sinh', 'sinh con', 'đẻ con', 'đặt tên cho con', 'giấy khai sinh',
+  'khai sanh', 'giấy khai sanh', 'làm giấy khai sanh', 'mần giấy khai sanh',
   'kết hôn', 'lấy vợ', 'lấy chồng', 'hôn thú', 'đăng ký kết hôn', 'kết bạn đời',
-  'khai tử', 'chứng tử', 'báo tử', 'người mất', 'qua đời', 'giấy chứng tử',
-  'thường trú', 'tạm trú', 'ct01', 'cư trú', 'nhập khẩu', 'hộ khẩu', 'tách hộ', 'chuyển khẩu', 'lưu trú',
-  'chứng thực', 'sao y', 'công chứng', 'chữ ký', 'bản sao', 'chứng thực chữ ký',
-  'độc thân', 'xác nhận tình trạng hôn nhân', 'tình trạng hôn nhân', 'chưa kết hôn',
+  'giá thú', 'mần giấy giá thú', 'tờ giá thú', 'hôn thư',
+  'khai tử', 'chứng tử', 'báo tử', 'người mất', 'qua đời', 'giấy chứng tử', 'mần giấy tử', 'mần giấy khai tử',
+  'thường trú', 'tạm trú', 'ct01', 'cư trú', 'nhập khẩu', 'hộ khẩu', 'tách hộ', 'chuyển khẩu', 'lưu trú', 'sổ hộ khẩu', 'nhập hộ khẩu', 'tạm vắng',
+  'chứng thực', 'sao y', 'công chứng', 'chữ ký', 'bản sao', 'chứng thực chữ ký', 'chứng giấy', 'chứng giấy tờ', 'chứng sao y', 'mần giấy',
+  'độc thân', 'xác nhận tình trạng hôn nhân', 'tình trạng hôn nhân', 'chưa kết hôn', 'giấy độc thân',
   'trích lục', 'bản sao trích lục', 'hộ tịch',
-  'bảo trợ', 'trợ cấp', 'người cao tuổi', 'khuyết tật', 'mai táng phí',
+  'bảo trợ', 'trợ cấp', 'người cao tuổi', 'khuyết tật', 'mai táng phí', 'tiền già', 'lãnh tiền già', 'chế độ tiền già', 'xin tiền già',
   'đất đai', 'chuyển mục đích', 'đo đạc', 'trích lục bản đồ'
 ];
 
@@ -23,6 +38,15 @@ export const PROCEDURE_KEYWORDS = [
 export function isProcedureListQuery(query: string): boolean {
   const q = query.trim().toLowerCase().replace(/[!?.,;:]+$/, '');
   if (!q) return false;
+  const qNoAccent = removeVietnameseAccents(q);
+
+  // If query contains specific procedure keywords, it is an inquiry about that procedure,
+  // NOT a request for the full catalog!
+  for (const kw of PROCEDURE_KEYWORDS) {
+    if (q.includes(kw) || qNoAccent.includes(removeVietnameseAccents(kw))) {
+      return false;
+    }
+  }
 
   const listPatterns = [
     'nêu 40 thủ tục', 'nêu thủ tục', 'kể 40 thủ tục', 'kể tên 40 thủ tục', 'kể các thủ tục',
@@ -31,11 +55,14 @@ export function isProcedureListQuery(query: string): boolean {
     'có những thủ tục nào', 'có bao nhiêu thủ tục', 'gồm những thủ tục nào', 'có các thủ tục nào',
     'liệt kê 40 thủ tục', 'liệt kê các thủ tục', 'liệt kê thủ tục',
     'các thủ tục cấp xã', 'các thủ tục hành chính', 'các thủ tục',
-    'hỗ trợ những thủ tục gì', 'hỗ trợ thủ tục nào', 'hỗ trợ những gì', 'làm được những thủ tục nào',
-    'danh sách dịch vụ', '40 thủ tục'
+    'hỗ trợ những thủ tục gì', 'hỗ trợ thủ tục nào', 'hỗ trợ những thủ tục nào', 'hỗ trợ những gì', 'làm được những thủ tục nào',
+    'giải quyết được những thủ tục gì', 'dịch vụ công tại xã', 'dịch vụ công cấp xã',
+    'danh sách dịch vụ', '40 thủ tục', 'xã có thủ tục gì', '5 nhóm thủ tục', 'những việc hành chính'
   ];
 
-  return listPatterns.some((pattern) => q.includes(pattern));
+  return listPatterns.some((pattern) => {
+    return q.includes(pattern) || qNoAccent.includes(removeVietnameseAccents(pattern));
+  });
 }
 
 export type SmallTalkType = 'GREETING' | 'WELLBEING' | 'THANKS' | 'GOODBYE' | 'NONE';
@@ -46,10 +73,11 @@ export type SmallTalkType = 'GREETING' | 'WELLBEING' | 'THANKS' | 'GOODBYE' | 'N
 export function classifySmallTalk(query: string): { matched: boolean; type: SmallTalkType } {
   const q = query.trim().toLowerCase().replace(/[!?.,;:]+$/, '');
   if (!q) return { matched: false, type: 'NONE' };
+  const qNoAccent = removeVietnameseAccents(q);
 
   // If query explicitly contains specific procedure keywords, it is a PROCEDURE query!
   for (const kw of PROCEDURE_KEYWORDS) {
-    if (q.includes(kw)) {
+    if (q.includes(kw) || qNoAccent.includes(removeVietnameseAccents(kw))) {
       return { matched: false, type: 'NONE' };
     }
   }
@@ -57,10 +85,10 @@ export function classifySmallTalk(query: string): { matched: boolean; type: Smal
   // 1. Wellbeing / Social Small Talk ("hôm nay thế nào", "khỏe không"...)
   const wellbeingPatterns = [
     'hôm nay thế nào', 'hôm nay ra sao', 'hôm nay bạn thế nào', 'hôm nay sao rồi', 'hôm nay ổn không',
-    'ngày mới thế nào', 'khỏe không', 'bạn khỏe không', 'cán bộ khỏe không', 'dạo này thế nào',
+    'ngày mới thế nào', 'ngày mới ra sao', 'khỏe không', 'bạn khỏe không', 'cán bộ khỏe không', 'dạo này thế nào',
     'thế nào rồi', 'chúc ngày mới', 'chúc một ngày tốt lành', 'buổi sáng tốt lành', 'ngày tốt lành'
   ];
-  if (wellbeingPatterns.some((p) => q.includes(p))) {
+  if (wellbeingPatterns.some((p) => q.includes(p) || qNoAccent.includes(removeVietnameseAccents(p)))) {
     return { matched: true, type: 'WELLBEING' };
   }
 
@@ -71,39 +99,39 @@ export function classifySmallTalk(query: string): { matched: boolean; type: Smal
     'hiểu rồi', 'rõ rồi', 'ok bạn', 'oke bạn'
   ];
   const exactThanks = new Set(['ok', 'oke', 'ok!', 'oke!', 'thank', 'thanks', 'cảm ơn', 'cam on']);
-  if (exactThanks.has(q) || thanksPatterns.some((p) => q === p || q.startsWith(p + ' '))) {
+  if (exactThanks.has(q) || exactThanks.has(qNoAccent) || thanksPatterns.some((p) => q === p || qNoAccent === removeVietnameseAccents(p) || q.startsWith(p + ' '))) {
     return { matched: true, type: 'THANKS' };
   }
 
   // 3. Goodbye / Farewell ("tạm biệt", "bye"...)
   const goodbyePatterns = ['tạm biệt', 'tam biet', 'bye', 'bye bye', 'hẹn gặp lại', 'chào tạm biệt'];
-  if (goodbyePatterns.some((p) => q.includes(p))) {
+  if (goodbyePatterns.some((p) => q.includes(p) || qNoAccent.includes(removeVietnameseAccents(p)))) {
     return { matched: true, type: 'GOODBYE' };
   }
 
   // 4. Standard Greetings / Introductions ("hi", "hello", "xin chào"...)
   const exactGreetings = new Set([
     'hi', 'hello', 'hey', 'alo', 'chào', 'xin chào', 'kính chào',
-    'chào bạn', 'chào bạn nha', 'chào bạn nhé',
-    'chào bot', 'chào ad', 'chào cán bộ', 'chào ủy ban',
-    'chào anh', 'chào chị', 'chào em',
-    'bạn là ai', 'ai đó', 'bạn là cái gì',
-    'bạn giúp được gì', 'bạn có thể làm gì', 'chức năng của bạn',
+    'chào bạn', 'chào bạn nha', 'chào bạn nhé', 'chao ban', 'chao anh chi', 'chao',
+    'chào bot', 'chào ad', 'chào cán bộ', 'chào ủy ban', 'kính chào ủy ban',
+    'chào anh', 'chào chị', 'chào em', 'cán bộ ơi', 'cán bộ oi', 'ad ơi',
+    'bạn là ai', 'ai đó', 'bạn là cái gì', 'chức năng của trợ lý là gì', 'chức năng của bạn',
+    'bạn giúp được gì', 'bạn có thể làm gì', 'bạn làm việc thế nào',
     'hướng dẫn sử dụng', 'giới thiệu', 'giới thiệu bản thân',
     'good morning', 'good afternoon', 'good evening',
     'start', 'bắt đầu'
   ]);
-  if (exactGreetings.has(q)) {
+  if (exactGreetings.has(q) || exactGreetings.has(qNoAccent)) {
     return { matched: true, type: 'GREETING' };
   }
 
-  if (q.length <= 30) {
-    const greetingRegex = /^(hi|hello|hey|alo|xin\s+chào|chào)(\s+.*)?$/i;
-    if (greetingRegex.test(q)) {
+  if (q.length <= 40) {
+    const greetingRegex = /^(hi|hello|hey|alo|xin\s+chao|xin\s+chào|chao|chào|kinh\s+chao|kính\s+chào)(\s+.*)?$/i;
+    if (greetingRegex.test(q) || greetingRegex.test(qNoAccent)) {
       return { matched: true, type: 'GREETING' };
     }
-    const identityRegex = /^(bạn|bot)\s+(là\s+ai|có\s+thể\s+làm\s+gì|giúp\s+gì)/i;
-    if (identityRegex.test(q)) {
+    const identityRegex = /^(bạn|bot|tro\s+ly|trợ\s+lý)\s+(là\s+ai|có\s+thể\s+làm\s+gì|giúp\s+gì|giúp\s+được\s+gì|giup\s+duoc\s+gi|giup\s+gi|làm\s+việc\s+thế\s+nào|chức\s+năng)/i;
+    if (identityRegex.test(q) || identityRegex.test(qNoAccent) || qNoAccent.includes('giup duoc gi') || qNoAccent.includes('giup gi cho toi')) {
       return { matched: true, type: 'GREETING' };
     }
   }
@@ -118,22 +146,62 @@ export function isGreetingQuery(query: string): boolean {
 export function isWardOfficeQuery(query: string): boolean {
   const q = query.trim().toLowerCase();
 
+  // If query is out-of-scope (e.g. Passports, BHXH, Driver license), it must NEVER be routed to ward office info
+  if (checkOutOfScopeQuery(query).isOutOfScope) {
+    return false;
+  }
+
+  const qNoAccent = removeVietnameseAccents(q);
+
   for (const kw of PROCEDURE_KEYWORDS) {
-    if (q.includes(kw)) {
+    if (q.includes(kw) || qNoAccent.includes(removeVietnameseAccents(kw))) {
       return false;
     }
   }
 
-  const officePatterns = [
-    'địa chỉ ở đâu', 'trụ sở ở đâu', 'địa chỉ ủy ban', 'địa chỉ ubnd',
-    'ủy ban ở đâu', 'ubnd ở đâu', 'trụ sở ubnd', 'ở đâu',
-    'giờ làm việc', 'mấy giờ làm việc', 'mấy giờ mở cửa', 'mấy giờ đóng cửa',
-    'giờ tiếp dân', 'thời gian làm việc', 'thứ 7 có làm việc không',
-    'thứ bảy có làm không', 'chủ nhật có làm không',
-    'số điện thoại', 'hotline', 'số hotline', 'liên hệ ai', 'điện thoại ubnd'
-  ];
+  // Location/HQ checks (preventing "xa hoi" from falsely matching "xa")
+  const hasOfficeKeyword =
+    qNoAccent.includes('ubnd') ||
+    qNoAccent.includes('uy ban') ||
+    qNoAccent.includes('mot cua') ||
+    qNoAccent.includes('tru so') ||
+    qNoAccent.includes('tiep dan') ||
+    /(^|\s)(ubnd|uy ban|phuong)(\s|$)/.test(qNoAccent) ||
+    (/(^|\s)xa(\s|$)/.test(qNoAccent) && !qNoAccent.includes('xa hoi'));
 
-  return officePatterns.some((pattern) => q.includes(pattern));
+  const isLocationHQ =
+    (qNoAccent.includes('o dau') || qNoAccent.includes('nam o dau') || qNoAccent.includes('dia chi') || qNoAccent.includes('tru so') || qNoAccent.includes('duong nao') || qNoAccent.includes('duong di')) &&
+    hasOfficeKeyword;
+
+  if (isLocationHQ) {
+    return true;
+  }
+
+  // Working hours and contact checks
+  const isHoursOrContact =
+    qNoAccent.includes('gio lam viec') ||
+    qNoAccent.includes('may gio') ||
+    qNoAccent.includes('thoi gian lam viec') ||
+    qNoAccent.includes('thoi gian tiep') ||
+    qNoAccent.includes('gio tiep dan') ||
+    qNoAccent.includes('tiep dan') ||
+    qNoAccent.includes('tiep nhan') ||
+    qNoAccent.includes('mo cua') ||
+    qNoAccent.includes('dong cua') ||
+    qNoAccent.includes('thu 7') ||
+    qNoAccent.includes('thu bay') ||
+    qNoAccent.includes('chu nhat') ||
+    qNoAccent.includes('so dien thoai') ||
+    qNoAccent.includes('sdt') ||
+    qNoAccent.includes('hotline') ||
+    qNoAccent.includes('tong dai') ||
+    qNoAccent.includes('lien he ai');
+
+  if (isHoursOrContact) {
+    return true;
+  }
+
+  return false;
 }
 
 export interface OutOfScopeResult {
@@ -143,7 +211,9 @@ export interface OutOfScopeResult {
 }
 
 export function checkOutOfScopeQuery(query: string): OutOfScopeResult {
-  const q = query.trim().toLowerCase();
+  // Normalize digits (e.g., "\b1\b" -> "một", "1 lần" -> "một lần") so queries like "rút bảo hiểm xã hội 1 lần" match reliably
+  const normalized = query.toLowerCase().replace(/\b1\b/g, 'một');
+  const q = normalized.trim();
 
   if (q.includes('hộ chiếu') || q.includes('passport') || q.includes('visa') || q.includes('xuất cảnh') || q.includes('nhập cảnh')) {
     return {
@@ -177,7 +247,7 @@ export function checkOutOfScopeQuery(query: string): OutOfScopeResult {
     };
   }
 
-  if (q.includes('rút bhxh') || q.includes('bảo hiểm xã hội một lần') || q.includes('sổ bhxh')) {
+  if (q.includes('rút bhxh') || q.includes('bảo hiểm xã hội một lần') || q.includes('sổ bhxh') || q.includes('bảo hiểm xã hội') || q.includes('bhxh')) {
     return {
       isOutOfScope: true,
       authority: 'Cơ quan Bảo hiểm xã hội cấp huyện/tỉnh',
@@ -185,7 +255,31 @@ export function checkOutOfScopeQuery(query: string): OutOfScopeResult {
     };
   }
 
-  if (q.includes('tranh chấp') && (q.includes('thừa kế') || q.includes('chia tài sản') || q.includes('tòa án') || q.includes('khởi kiện') || q.includes('án phí'))) {
+  if (q.includes('lý lịch tư pháp') || q.includes('phiếu lý lịch tư pháp') || q.includes('lltp')) {
+    return {
+      isOutOfScope: true,
+      authority: 'Sở Tư pháp cấp tỉnh hoặc Trung tâm Lý lịch tư pháp quốc gia',
+      reason: 'Thủ tục cấp Phiếu lý lịch tư pháp thuộc thẩm quyền của Sở Tư pháp cấp tỉnh hoặc Trung tâm Lý lịch tư pháp quốc gia, không thuộc thẩm quyền UBND cấp xã.',
+    };
+  }
+
+  if (q.includes('biển số xe') || q.includes('đăng ký xe máy') || q.includes('đăng ký ô tô') || q.includes('cà vẹt xe') || q.includes('sang tên xe') || q.includes('đăng ký xe')) {
+    return {
+      isOutOfScope: true,
+      authority: 'Công an cấp huyện hoặc Phòng Cảnh sát giao thông Công an tỉnh',
+      reason: 'Thủ tục đăng ký phương tiện giao thông và cấp biển số xe thuộc thẩm quyền cơ quan Công an cấp huyện hoặc Phòng CSGT Công an tỉnh.',
+    };
+  }
+
+  if (q.includes('căn cước công dân') || q.includes('làm cccd') || q.includes('thẻ căn cước') || q.includes('cấp căn cước')) {
+    return {
+      isOutOfScope: true,
+      authority: 'Công an cấp huyện (Bộ phận Cấp thẻ Căn cước)',
+      reason: 'Thủ tục cấp mới, cấp đổi thẻ Căn cước công dân thuộc thẩm quyền của Công an cấp huyện, không thuộc thẩm quyền giải quyết của UBND cấp xã.',
+    };
+  }
+
+  if (q.includes('tranh chấp') && (q.includes('thừa kế') || q.includes('chia tài sản') || q.includes('tòa án') || q.includes('khởi kiện') || q.includes('án phí') || q.includes('kiện tụng'))) {
     return {
       isOutOfScope: true,
       authority: 'Tòa án nhân dân có thẩm quyền',

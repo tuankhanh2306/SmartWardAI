@@ -142,12 +142,7 @@ public class RagQueryService {
         String generatedAnswer = aiModelClient.generateChatResponse(systemPrompt, rawQuery);
 
         // 6.1. Strip any conversational preamble before "1. TÓM TẮT THỦ TỤC:"
-        if (generatedAnswer != null) {
-            int markerIdx = generatedAnswer.indexOf("1. TÓM TẮT THỦ TỤC:");
-            if (markerIdx > 0) {
-                generatedAnswer = generatedAnswer.substring(markerIdx).trim();
-            }
-        }
+        generatedAnswer = prunePreamble(generatedAnswer);
 
         // 6.2. Ensure Section 5 is present if omitted by LLM
         if (generatedAnswer != null && !generatedAnswer.contains("5. CĂN CỨ PHÁP LÝ") && !candidateChunks.isEmpty()) {
@@ -163,6 +158,14 @@ public class RagQueryService {
 
         // 7. Post-Verification of Legal Citations
         List<LegalCitationDto> verifiedCitations = postVerifyCitations(generatedAnswer, candidateChunks);
+
+        Set<String> validCodes = new HashSet<>();
+        for (LegalChunkMatch c : candidateChunks) {
+            if (c.getChunkCode() != null) {
+                validCodes.add(c.getChunkCode());
+            }
+        }
+        generatedAnswer = sanitizeAnswerCitations(generatedAnswer, validCodes);
 
         long elapsed = System.currentTimeMillis() - startTime;
 
@@ -231,7 +234,7 @@ public class RagQueryService {
     /**
      * Resolves safe abstention guidance with competent authority identification when applicable.
      */
-    private String resolveAbstentionMessage(String query, String wardName, String officeAddress) {
+    String resolveAbstentionMessage(String query, String wardName, String officeAddress) {
         String lower = query.toLowerCase();
         String specificAuthority = null;
 
@@ -245,6 +248,14 @@ public class RagQueryService {
             specificAuthority = "Sở Kế hoạch và Đầu tư tỉnh/thành phố";
         } else if (lower.contains("bảo hiểm xã hội") || lower.contains("rút bhxh") || lower.contains("sổ bảo hiểm")) {
             specificAuthority = "Cơ quan Bảo hiểm xã hội cấp huyện hoặc tỉnh";
+        } else if (lower.contains("lý lịch tư pháp") || lower.contains("phiếu lý lịch tư pháp") || lower.contains("lltp")) {
+            specificAuthority = "Sở Tư pháp cấp tỉnh hoặc Trung tâm Lý lịch tư pháp quốc gia";
+        } else if (lower.contains("biển số xe") || lower.contains("đăng ký xe máy") || lower.contains("đăng ký ô tô") || lower.contains("đăng ký xe") || lower.contains("cà vẹt xe") || lower.contains("sang tên xe")) {
+            specificAuthority = "Công an cấp huyện hoặc Phòng CSGT Công an tỉnh";
+        } else if (lower.contains("căn cước công dân") || lower.contains("thẻ căn cước") || lower.contains("cấp căn cước") || lower.contains("làm căn cước") || lower.contains("làm cccd") || lower.contains("căn cước")) {
+            specificAuthority = "Công an cấp huyện";
+        } else if (lower.contains("tranh chấp tài sản") || lower.contains("tranh chấp thừa kế") || lower.contains("kiện tụng") || lower.contains("khởi kiện") || lower.contains("tòa án") || (lower.contains("tranh chấp") && (lower.contains("thừa kế") || lower.contains("chia tài sản")))) {
+            specificAuthority = "Tòa án nhân dân có thẩm quyền";
         }
 
         StringBuilder sb = new StringBuilder();
@@ -263,6 +274,64 @@ public class RagQueryService {
         }
 
         return sb.toString();
+    }
+
+    /**
+     * Prunes any conversational preamble before "1. TÓM TẮT THỦ TỤC:"
+     * ensuring response starts directly with the administrative section header.
+     */
+    public String prunePreamble(String answer) {
+        if (answer == null || answer.isBlank()) {
+            return answer;
+        }
+
+        // Match marker "1. TÓM TẮT THỦ TỤC:" with optional markdown formatting (e.g., **, #)
+        Pattern markerPattern = Pattern.compile("(?i)(?:\\*\\*|#{1,3}\\s*)?1\\.\\s*TÓM TẮT THỦ TỤC:?");
+        Matcher m = markerPattern.matcher(answer);
+        if (m.find()) {
+            int startIdx = m.start();
+            if (startIdx > 0) {
+                return answer.substring(startIdx).trim();
+            }
+        }
+        return answer.trim();
+    }
+
+    /**
+     * Sanitizes citation codes in the generated answer text.
+     * Strips hallucinated brackets like [FAKE-99] when not matching any valid retrieved chunk code,
+     * ensuring citizens never see fake citation codes in the text.
+     */
+    public String sanitizeAnswerCitations(String answer, Set<String> validCodes) {
+        if (answer == null || answer.isBlank()) {
+            return answer;
+        }
+
+        Set<String> upperValidCodes = new HashSet<>();
+        if (validCodes != null) {
+            for (String code : validCodes) {
+                if (code != null) {
+                    upperValidCodes.add(code.trim().toUpperCase());
+                }
+            }
+        }
+
+        Matcher matcher = CITATION_PATTERN.matcher(answer);
+        StringBuilder sb = new StringBuilder();
+        while (matcher.find()) {
+            String code = matcher.group(1).trim().toUpperCase();
+            if (upperValidCodes.contains(code)) {
+                matcher.appendReplacement(sb, Matcher.quoteReplacement(matcher.group(0)));
+            } else {
+                log.warn("Sanitizing hallucinated citation [{}] from answer text", code);
+                matcher.appendReplacement(sb, "");
+            }
+        }
+        matcher.appendTail(sb);
+
+        // Normalize multiple spaces or space before period left by stripped brackets
+        String cleaned = sb.toString().replaceAll(" {2,}", " ").replaceAll(" \\.", ".");
+        return cleaned.trim();
     }
 
     /**

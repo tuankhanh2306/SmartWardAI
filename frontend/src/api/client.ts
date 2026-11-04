@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { isGeminiConfigured, askGeminiWithRAG } from '../services/geminiClient';
+import { isGeminiConfigured, askGeminiWithRAG, buildStructuredProcedureResponse } from '../services/geminiClient';
+import { searchLegalKnowledge } from '../services/legalKnowledgeBase';
 import {
   isWardOfficeQuery,
   checkOutOfScopeQuery,
@@ -110,27 +111,7 @@ export const askLegalRag = async (
     };
   }
 
-  // 2. Pre-filter: Ward Office Information
-  if (isWardOfficeQuery(query)) {
-    return {
-      answer:
-        `Thông tin liên hệ và thời gian làm việc của Bộ phận Tiếp nhận và Trả kết quả (Một Cửa) thuộc UBND ${currentWardName}:\n\n` +
-        `• Trụ sở / Địa chỉ Một cửa: ${currentAddress}\n` +
-        `• Số điện thoại / Hotline: ${currentPhone}\n` +
-        `• Giờ tiếp nhận và trả kết quả: ${currentWorkingHours}\n` +
-        `• Cổng Dịch vụ công Quốc gia: Nộp hồ sơ trực tuyến 24/7 tại dichvucong.gov.vn\n\n` +
-        `Bà con có thể đến trực tiếp trong khung giờ làm việc trên hoặc gửi câu hỏi về thủ tục hành chính để tôi hướng dẫn chuẩn bị đầy đủ hồ sơ trước khi đến nộp.`,
-      abstained: false,
-      maxSimilarity: 1.0,
-      appliedThreshold: 0.78,
-      responseTimeMs: 6.0,
-      cached: false,
-      disclaimer: 'Thông tin chính thức từ Danh bạ hành chính UBND cấp xã/phường.',
-      citations: [],
-    };
-  }
-
-  // 3. Pre-filter: Out of scope inquiry
+  // 2. Pre-filter: Out-of-scope inquiry (Priority over ward office to prevent delegation hijacking)
   const outOfScopeCheck = checkOutOfScopeQuery(query);
   if (outOfScopeCheck.isOutOfScope) {
     let msg =
@@ -150,6 +131,26 @@ export const askLegalRag = async (
       responseTimeMs: 8.0,
       cached: false,
       disclaimer: mandatoryDisclaimer,
+      citations: [],
+    };
+  }
+
+  // 3. Pre-filter: Ward Office Information
+  if (isWardOfficeQuery(query)) {
+    return {
+      answer:
+        `Thông tin liên hệ và thời gian làm việc của Bộ phận Tiếp nhận và Trả kết quả (Một Cửa) thuộc UBND ${currentWardName}:\n\n` +
+        `• Trụ sở / Địa chỉ Một cửa: ${currentAddress}\n` +
+        `• Số điện thoại / Hotline: ${currentPhone}\n` +
+        `• Giờ tiếp nhận và trả kết quả: ${currentWorkingHours}\n` +
+        `• Cổng Dịch vụ công Quốc gia: Nộp hồ sơ trực tuyến 24/7 tại dichvucong.gov.vn\n\n` +
+        `Bà con có thể đến trực tiếp trong khung giờ làm việc trên hoặc gửi câu hỏi về thủ tục hành chính để tôi hướng dẫn chuẩn bị đầy đủ hồ sơ trước khi đến nộp.`,
+      abstained: false,
+      maxSimilarity: 1.0,
+      appliedThreshold: 0.78,
+      responseTimeMs: 6.0,
+      cached: false,
+      disclaimer: 'Thông tin chính thức từ Danh bạ hành chính UBND cấp xã/phường.',
       citations: [],
     };
   }
@@ -176,146 +177,62 @@ export const askLegalRag = async (
       }
     }
 
-    // 6. Local Intelligent Fallback Simulation (Guaranteed Resilience)
-    const lower = query.toLowerCase();
+    // 6. Local Intelligent Fallback Simulation (Unified Knowledge Base & Resilience)
+    let normalizedQuery = query.toLowerCase();
+    normalizedQuery = normalizedQuery
+      .replaceAll('giấy khai sanh', 'giấy khai sinh')
+      .replaceAll('khai sanh', 'khai sinh')
+      .replaceAll('mần giấy giá thú', 'đăng ký kết hôn')
+      .replaceAll('giá thú', 'kết hôn')
+      .replaceAll('hôn thư', 'kết hôn')
+      .replaceAll('chế độ tiền già', 'trợ cấp xã hội người cao tuổi')
+      .replaceAll('lãnh tiền già', 'trợ cấp xã hội người cao tuổi')
+      .replaceAll('tiền già', 'trợ cấp xã hội người cao tuổi')
+      .replaceAll('mần giấy tử', 'khai tử')
+      .replaceAll('chứng giấy tờ', 'chứng thực sao y')
+      .replaceAll('chứng giấy', 'chứng thực sao y')
+      .replaceAll('mần giấy', 'chứng thực sao y');
 
-    // Case A: Birth Registration (Khai sinh)
-    if (lower.includes('khai sinh') || lower.includes('mới sinh') || lower.includes('chứng sinh') || lower.includes('sinh con')) {
-      return {
-        answer:
-          `1. TÓM TẮT THỦ TỤC:\nThủ tục đăng ký khai sinh cho trẻ mới sinh được giải quyết trong 01 ngày làm việc tại Ủy ban nhân dân cấp xã nơi cư trú của cha hoặc mẹ.\n\n` +
-          `2. THÀNH PHẦN HỒ SƠ:\n- Tờ khai đăng ký khai sinh theo mẫu quy định.\n- Bản chính Giấy chứng sinh do cơ sở y tế có thẩm quyền cấp (hoặc văn bản của người làm chứng/giấy cam đoan nếu sinh ngoài cơ sở y tế).\n- Xuất trình bản chính Căn cước công dân của người yêu cầu đăng ký và Giấy chứng nhận kết hôn của cha mẹ (nếu đã kết hôn).\n\n` +
-          `3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n- Thời hạn giải quyết: Trong ngày làm việc tiếp nhận đủ hồ sơ hợp lệ (nếu cần xác minh thì không quá 05 ngày).\n- Lệ phí: Miễn lệ phí hoàn toàn khi đăng ký đúng hạn trong vòng 60 ngày kể từ ngày sinh.\n\n` +
-          `4. NƠI TIẾP NHẬN & XỬ LÝ:\nBộ phận Tiếp nhận và Trả kết quả (Một cửa) thuộc ${currentWardName} (Địa chỉ: ${currentAddress} • Hotline: ${currentPhone}).\n\n` +
-          `5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n[TTHC-HT-01_CHK_003] Căn cứ Điều 15, 16 Luật Hộ tịch 2014 và Nghị định 123/2015/NĐ-CP của Chính phủ.\n${mandatoryDisclaimer}`,
-        abstained: false,
-        maxSimilarity: 0.942,
-        appliedThreshold: 0.78,
-        responseTimeMs: 18.5,
-        cached: true,
-        disclaimer: mandatoryDisclaimer,
-        citations: [
-          {
-            chunkCode: 'TTHC-HT-01_CHK_003',
-            procedureCode: 'TTHC-HT-01',
-            procedureName: 'Đăng ký khai sinh',
-            title: 'Thành phần hồ sơ và thời hạn giải quyết Đăng ký khai sinh',
-            legalReference: 'Điều 15, 16 Luật Hộ tịch 2014 & Nghị định 123/2015/NĐ-CP',
-            content:
-              'Người yêu cầu đăng ký khai sinh nộp Tờ khai theo mẫu và Giấy chứng sinh cho cơ quan đăng ký hộ tịch. Trường hợp không có giấy chứng sinh thì nộp văn bản của người làm chứng xác nhận về việc sinh; nếu không có người làm chứng thì phải có giấy cam đoan về việc sinh.',
-            relevanceScore: 0.942,
-          },
-        ],
-      };
-    }
+    const searchResult = searchLegalKnowledge(normalizedQuery, 3);
+    if (searchResult.isInScope && searchResult.items.length > 0) {
+      const primaryItem = searchResult.items[0];
+      const answer = buildStructuredProcedureResponse(
+        primaryItem,
+        currentWardName,
+        currentAddress,
+        mandatoryDisclaimer
+      );
+      const citations: LegalCitation[] = searchResult.items.map((item) => ({
+        chunkCode: `${item.code}_CHK_001`,
+        procedureCode: item.code,
+        procedureName: item.name,
+        title: `${item.name} - ${item.category}`,
+        legalReference: item.legalBasis,
+        content: item.keyRules.join(' '),
+        relevanceScore: searchResult.maxScore,
+      }));
 
-    // Case B: Marriage Registration (Kết hôn)
-    if (lower.includes('kết hôn') || lower.includes('đăng ký kết hôn') || lower.includes('lấy vợ') || lower.includes('lấy chồng') || lower.includes('hôn thú')) {
       return {
-        answer:
-          `1. TÓM TẮT THỦ TỤC:\nThủ tục đăng ký kết hôn được giải quyết ngay trong ngày làm việc khi hai bên nam nữ cùng có mặt và nộp đủ hồ sơ hợp lệ.\n\n` +
-          `2. THÀNH PHẦN HỒ SƠ:\n- Tờ khai đăng ký kết hôn theo mẫu quy định (hai bên cùng ký tên).\n- Xuất trình bản chính Căn cước công dân gắn chip của cả hai bên nam, nữ.\n- Giấy xác nhận tình trạng hôn nhân (nếu một bên cư trú khác địa bàn đăng ký kết hôn).\n\n` +
-          `3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n- Thời hạn giải quyết: Ngay trong ngày làm việc tiếp nhận hồ sơ.\n- Lệ phí: Miễn lệ phí hoàn toàn cho công dân cư trú trên địa bàn.\n\n` +
-          `4. NƠI TIẾP NHẬN & XỬ LÝ:\nBộ phận Tiếp nhận và Trả kết quả (Một cửa) thuộc ${currentWardName} (Địa chỉ: ${currentAddress} • Hotline: ${currentPhone}).\n\n` +
-          `5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n[TTHC-HT-02_CHK_001] Căn cứ Điều 17, 18 Luật Hộ tịch số 60/2014/QH13 và Nghị định 123/2015/NĐ-CP.\n${mandatoryDisclaimer}`,
+        answer,
         abstained: false,
-        maxSimilarity: 0.928,
-        appliedThreshold: 0.78,
-        responseTimeMs: 16.8,
-        cached: true,
-        disclaimer: mandatoryDisclaimer,
-        citations: [
-          {
-            chunkCode: 'TTHC-HT-02_CHK_001',
-            procedureCode: 'TTHC-HT-02',
-            procedureName: 'Đăng ký kết hôn',
-            title: 'Thẩm quyền và thủ tục đăng ký kết hôn trong nước',
-            legalReference: 'Điều 17, 18 Luật Hộ tịch số 60/2014/QH13',
-            content:
-              'Ủy ban nhân dân cấp xã nơi cư trú của một trong hai bên nam, nữ thực hiện đăng ký kết hôn. Hai bên nam, nữ nộp tờ khai đăng ký kết hôn theo mẫu quy định cho cơ quan đăng ký hộ tịch và cùng có mặt khi đăng ký kết hôn.',
-            relevanceScore: 0.928,
-          },
-        ],
-      };
-    }
-
-    // Case C: Residence / CT01
-    if (lower.includes('thường trú') || lower.includes('tạm trú') || lower.includes('cư trú') || lower.includes('ct01') || lower.includes('nhập khẩu')) {
-      return {
-        answer:
-          `1. TÓM TẮT THỦ TỤC:\nThủ tục đăng ký cư trú (thường trú/tạm trú) được tiếp nhận và giải quyết trong tối đa 03 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ.\n\n` +
-          `2. THÀNH PHẦN HỒ SƠ:\n- Tờ khai thay đổi thông tin cư trú (Mẫu CT01).\n- Giấy tờ, tài liệu chứng minh chỗ ở hợp pháp (Hợp đồng thuê nhà, Sổ đỏ/Sổ hồng hoặc văn bản đồng ý của chủ hộ).\n- Xuất trình bản chính Căn cước công dân gắn chip của người yêu cầu đăng ký.\n\n` +
-          `3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n- Thời hạn giải quyết: 03 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ.\n- Lệ phí: Theo biểu mức quy định tại Nghị quyết Hội đồng nhân dân cấp tỉnh.\n\n` +
-          `4. NƠI TIẾP NHẬN & XỬ LÝ:\nCông an xã/phường hoặc Bộ phận Một cửa ${currentWardName} (Địa chỉ: ${currentAddress}) hoặc nộp trực tuyến qua Cổng Dịch vụ công Bộ Công an.\n\n` +
-          `5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n[TTHC-CT-01_CHK_002] Căn cứ Điều 21, 22 Luật Cư trú 2020 và Thông tư số 56/2021/TT-BCA của Bộ Công an.\n${mandatoryDisclaimer}`,
-        abstained: false,
-        maxSimilarity: 0.895,
-        appliedThreshold: 0.78,
-        responseTimeMs: 22.1,
-        cached: false,
-        disclaimer: mandatoryDisclaimer,
-        citations: [
-          {
-            chunkCode: 'TTHC-CT-01_CHK_002',
-            procedureCode: 'TTHC-CT-01',
-            procedureName: 'Đăng ký thường trú',
-            title: 'Hồ sơ, thủ tục đăng ký thường trú tại chỗ ở hợp pháp',
-            legalReference: 'Điều 21, 22 Luật Cư trú 2020 & Thông tư số 56/2021/TT-BCA',
-            content:
-              'Công dân nộp hồ sơ đăng ký thường trú gồm: Tờ khai thay đổi thông tin cư trú (Mẫu CT01); Giấy tờ, tài liệu chứng minh việc sở hữu chỗ ở hợp pháp hoặc văn bản đồng ý của chủ hộ, chủ sở hữu chỗ ở hợp pháp.',
-            relevanceScore: 0.895,
-          },
-        ],
-      };
-    }
-
-    // Case D: Single Status Certificate (Xác nhận độc thân)
-    if (lower.includes('độc thân') || lower.includes('tình trạng hôn nhân')) {
-      return {
-        answer:
-          `1. TÓM TẮT THỦ TỤC:\nThủ tục cấp Giấy xác nhận tình trạng hôn nhân được giải quyết trong thời hạn 03 ngày làm việc tại UBND cấp xã nơi thường trú.\n\n` +
-          `2. THÀNH PHẦN HỒ SƠ:\n- Tờ khai cấp Giấy xác nhận tình trạng hôn nhân theo mẫu.\n- Xuất trình bản chính Căn cước công dân gắn chip.\n- Bản án/Quyết định ly hôn đã có hiệu lực (nếu đã ly hôn) hoặc Giấy chứng tử (nếu vợ/chồng đã mất).\n\n` +
-          `3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n- Thời hạn giải quyết: Trong 03 ngày làm việc (trường hợp cần xác minh thêm thì không quá 03 ngày làm việc tiếp theo).\n- Lệ phí: Thu theo biểu mức Nghị quyết HĐND cấp tỉnh ban hành.\n\n` +
-          `4. NƠI TIẾP NHẬN & XỬ LÝ:\nBộ phận Tiếp nhận và Trả kết quả (Một cửa) thuộc ${currentWardName} (Địa chỉ: ${currentAddress} • Hotline: ${currentPhone}).\n\n` +
-          `5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n[TTHC-HT-03_CHK_001] Căn cứ Điều 21, 22 Nghị định 123/2015/NĐ-CP và Thông tư 04/2020/TT-BTP.\n${mandatoryDisclaimer}`,
-        abstained: false,
-        maxSimilarity: 0.912,
+        maxSimilarity: searchResult.maxScore,
         appliedThreshold: 0.78,
         responseTimeMs: 15.0,
-        cached: false,
+        cached: true,
         disclaimer: mandatoryDisclaimer,
-        citations: [],
+        citations,
       };
     }
 
-    // Case E: Certification (Chứng thực sao y / chữ ký)
-    if (lower.includes('chứng thực') || lower.includes('sao y') || lower.includes('chữ ký')) {
-      return {
-        answer:
-          `1. TÓM TẮT THỦ TỤC:\nThủ tục chứng thực chữ ký hoặc chứng thực bản sao từ bản chính được giải quyết ngay trong ngày làm việc.\n\n` +
-          `2. THÀNH PHẦN HỒ SƠ:\n- Bản chính giấy tờ, văn bản cần chứng thực chữ ký hoặc sao y.\n- Xuất trình Căn cước công dân gắn chip của người yêu cầu chứng thực.\n- Ký tên trực tiếp trước mặt người thực hiện chứng thực (đối với chứng thực chữ ký).\n\n` +
-          `3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n- Thời hạn: Trong ngày làm việc tiếp nhận yêu cầu.\n- Lệ phí: Theo biểu mức Nghị định 23/2015/NĐ-CP (khoảng 2.000đ - 10.000đ/trường hợp).\n\n` +
-          `4. NƠI TIẾP NHẬN & XỬ LÝ:\nBộ phận Tiếp nhận và Trả kết quả (Một cửa) thuộc ${currentWardName} (Địa chỉ: ${currentAddress} • Hotline: ${currentPhone}).\n\n` +
-          `5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n[TTHC-CT-02_CHK_001] Căn cứ Nghị định số 23/2015/NĐ-CP của Chính phủ về cấp bản sao từ sổ gốc, chứng thực bản sao, chứng thực chữ ký.\n${mandatoryDisclaimer}`,
-        abstained: false,
-        maxSimilarity: 0.905,
-        appliedThreshold: 0.78,
-        responseTimeMs: 14.0,
-        cached: false,
-        disclaimer: mandatoryDisclaimer,
-        citations: [],
-      };
-    }
-
-    // Case F: Unmatched General Inquiry - Polite prompt without guessing
+    // Unmatched General Inquiry - Polite prompt without guessing
     return {
       answer:
         `Hệ thống SmartWard AI hiện chưa nhận diện rõ thủ tục hành chính mà bà con đang cần tìm hiểu.\n\n` +
         `Để tôi có thể tra cứu chính xác căn cứ pháp lý, hồ sơ và thời hạn giải quyết, bà con vui lòng nhập rõ tên thủ tục (ví dụ: "đăng ký khai sinh", "đăng ký kết hôn", "hướng dẫn nộp mẫu CT01", "cấp giấy xác nhận độc thân", "chứng thực sao y", hoặc gõ "nêu 40 thủ tục" để xem toàn bộ danh mục).\n\n` +
         `Bà con cũng có thể liên hệ trực tiếp Bộ phận Một cửa ${currentWardName} (Địa chỉ: ${currentAddress} • Hotline: ${currentPhone}) để được cán bộ tiếp nhận hướng dẫn cụ thể.`,
       abstained: true,
-      abstentionReason: 'Câu hỏi chưa chỉ định rõ tên thủ tục hành chính cụ thể.',
-      maxSimilarity: 0.35,
+      abstentionReason: 'Câu hỏi chưa chỉ định rõ tên thủ tục hành chính cụ thể trong phạm vi cấp xã.',
+      maxSimilarity: searchResult.maxScore,
       appliedThreshold: 0.78,
       responseTimeMs: 10.0,
       cached: false,
