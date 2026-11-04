@@ -1,7 +1,7 @@
 # Kế Hoạch & Tiến Độ Thực Hiện Dự Án (Project Sprint Board)
 **Dự án:** SmartWard AI – Hệ thống Hỗ trợ Thủ tục Hành chính và Phân luồng Phản ánh Cấp Phường/Xã  
 **Đơn vị:** Viện Đào tạo Chất lượng cao – Trường Đại học Giao thông vận tải TP.HCM (UTH)  
-**Trạng thái hiện tại:** `Tuần 5 / 12` 🚀 (Chuẩn bị sang Tuần 6)
+**Trạng thái hiện tại:** `Tuần 6 / 12` 🚀 (Chuẩn bị sang Tuần 7 - Hoàn thành Sơ kết Giữa kỳ)
 
 ---
 
@@ -14,9 +14,8 @@
 | **W03** | **Tích hợp Mock AI Client & Rate Limiter** | `DeterministicMockAiClient`, Redis Rate Limiter (5 req/phút) | Soạn Mục 2.3 (Quản trị tài nguyên & API limits) | ✅ **HOÀN THÀNH** |
 | **W04** | **Module 1: Legal RAG & Abstention Guardrail** | pgvector cosine, Ngưỡng $\theta=0.78$, API `/rag/ask` | Soạn Chương 3 - Phần 1 (RAG & Chống ảo giác) | ✅ **HOÀN THÀNH** |
 | **W05** | **Module 2: Form Rule Engine (CCCD & Date)** | Java Rule Engine 12 số CCCD, Date Logic, OCR Client | Soạn Chương 3 - Phần 2 (Hậu kiểm định biểu mẫu) | ✅ **HOÀN THÀNH** |
-| **W06** | **Module 3: Triage Phản ánh 2 Pha** | Redis GEO ($R$) + pgvector Cosine ($\tau$) | Soạn Chương 3 - Phần 3 (Gom cụm phản ánh 2 pha) | 🔄 **ĐANG LÀM** |
-| **W06** | **Module 3: Triage Phản ánh 2 Pha** | Redis GEO ($R$) + pgvector Cosine ($\tau$) | Soạn Chương 3 - Phần 3 (Gom cụm phản ánh 2 pha) | ⏳ Chờ |
-| **W07** | **Module 4: Zero-Trust Document Vault** | Watermark Java2D, AES-256, MinIO, Redis `GETDEL` | Soạn Chương 3 - Phần 4 (Bảo mật Nghị định 13) | ⏳ Chờ |
+| **W06** | **Module 3: Triage Phản ánh 2 Pha** | Redis GEO ($R$) + pgvector Cosine ($\tau$) | Soạn Chương 3 - Phần 3 (Gom cụm phản ánh 2 pha) | ✅ **HOÀN THÀNH** |
+| **W07** | **Module 4: Zero-Trust Document Vault** | Watermark Java2D, AES-256, MinIO, Redis `GETDEL` | Soạn Chương 3 - Phần 4 (Bảo mật Nghị định 13) | 🔄 **ĐANG LÀM** |
 | **W08** | **Bộ dữ liệu kiểm thử & Evaluation Runner** | 80 câu RAG, 150 phản ánh (GPS noise), 40 tờ khai | Soạn Chương 4 - Phần 1 (Phương pháp thực nghiệm) | ⏳ Chờ |
 | **W09** | **Chạy Grid Search $(R, \tau)$ & Phân tích lỗi** | Quét lưới, tính Recall@3, MRR, $F_1$, vẽ biểu đồ `evaluation/` | Hoàn thiện Chương 4 (Số liệu & Thảo luận) | ⏳ Chờ |
 | **W10** | **Frontend Web Responsive / PWA (React + Vite)** | Cổng Công dân (Mobile-first PWA) & Bàn Cán bộ (Desktop) | Hoàn thiện chương thiết kế giao diện | ⏳ Chờ |
@@ -84,14 +83,14 @@
 
 ---
 
-### 📌 TUẦN 6: MODULE 3 – TWO-STAGE SPATIAL-SEMANTIC TRIAGE
-- [ ] **Task 6.1:** Cấu hình Redis GEO index cho tọa độ địa lý các cụm sự cố hiện trường.
-- [ ] **Task 6.2:** Hiện thực **Pha 1 (Lọc không gian):** Dùng lệnh Redis `GEOSEARCH` quét các cụm sự cố đang `OPEN` hoặc `IN_PROGRESS` trong vòng 72 giờ qua trong bán kính $R$ mét.
-- [ ] **Task 6.3:** Hiện thực **Pha 2 (So khớp nghiệp vụ & ngữ nghĩa):** Trong các cụm ứng viên, lọc chính xác theo `category` và đo Cosine Similarity vector mô tả với vector tâm cụm.
-- [ ] **Task 6.4:** Xử lý kết quả gom nhóm: Nếu $\text{Sim} \ge \tau$, gộp phản ánh vào cụm sẵn có và tăng biến đếm `report_count`; nếu khác danh mục hoặc $\text{Sim} < \tau$, tạo cụm sự cố mới độc lập.
-- [ ] **Task 6.5:** Xây dựng các REST API: `POST /api/v1/issues/report` (gửi phản ánh) và `GET /api/v1/issues/clusters` (lấy danh sách cụm phục vụ bản đồ cán bộ).
-- [ ] **Task 6.6:** Soạn thảo Chương 3 - Phần 3 (Thuật toán gom cụm phản ánh hiện trường 2 pha).
-- [ ] **Task 6.7:** Viết Báo cáo Tiến độ Tuần 6 nộp GVHD và Mentor (Sơ kết giai đoạn giữa kỳ).
+### 📌 TUẦN 6: MODULE 3 – TWO-STAGE SPATIAL-SEMANTIC TRIAGE [HOÀN THÀNH 100%]
+- [x] **Task 6.1:** Cấu hình Redis GEO index cho tọa độ địa lý các cụm sự cố hiện trường (`SpatialIndexService.java`).
+- [x] **Task 6.2:** Hiện thực **Pha 1 (Lọc không gian):** Dùng lệnh Redis `GEOSEARCH` quét các cụm sự cố đang `OPEN` hoặc `IN_PROGRESS` trong vòng 72 giờ qua trong bán kính $R = 75$ mét.
+- [x] **Task 6.3:** Hiện thực **Pha 2 (So khớp nghiệp vụ & ngữ nghĩa):** Trong các cụm ứng viên, lọc chính xác theo `category` và đo Cosine Similarity vector mô tả với vector tâm cụm.
+- [x] **Task 6.4:** Xử lý kết quả gom nhóm: Nếu $\text{Sim} \ge \tau = 0.82$, gộp phản ánh vào cụm sẵn có và tăng biến đếm `report_count`, cập nhật tâm cụm trung bình động; nếu khác danh mục hoặc $\text{Sim} < \tau$, tạo cụm sự cố mới độc lập.
+- [x] **Task 6.5:** Xây dựng các REST API: `POST /api/v1/issues/report` (gửi phản ánh) và `GET /api/v1/issues/clusters` (lấy danh sách cụm phục vụ bản đồ cán bộ).
+- [x] **Task 6.6:** Soạn thảo Chương 3 - Phần 3 (Thuật toán gom cụm phản ánh hiện trường 2 pha) tại `docs/thesis-chapters/chapter-03.md`.
+- [x] **Task 6.7:** Viết Báo cáo Tiến độ Tuần 6 nộp GVHD và Mentor (Sơ kết giai đoạn giữa kỳ) tại `docs/weekly-reports/week-06-report.md`.
 
 ---
 

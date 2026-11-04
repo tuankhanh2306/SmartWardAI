@@ -181,3 +181,80 @@ Module 2 đã được kiểm thử tự động toàn diện qua 17 unit test m
 - [`FormCheckControllerTest`](file:///E:/SmartWardAI/backend/src/test/java/vn/edu/uth/smartward/formcheck/FormCheckControllerTest.java): Đạt 1/1 test.
 
 Tổng cộng toàn bộ hệ thống đạt: **38/38 tests Passed (100% BUILD SUCCESS)**.
+
+
+---
+
+## 3.3. PHÂN HỆ 3: THUẬT TOÁN GOM CỤM VÀ PHÂN LUỒNG PHẢN ÁNH HIỆN TRƯỜNG 2 PHA (TWO-STAGE SPATIAL-SEMANTIC TRIAGE)
+
+### 3.3.1. Đặt vấn đề và Thách thức Phân luồng Hiện trường
+Tại cấp phường/xã, khi xảy ra một sự cố công cộng (ví dụ: một hố sụt lún trên đường Võ Oanh, sự cố ngập úng sau mưa lớn tại góc đường Ung Văn Khiêm, hoặc bãi rác tự phát bốc mùi), hàng chục người dân đi ngang qua có thể cùng sử dụng điện thoại chụp ảnh và gửi phản ánh.
+- **Nếu xử lý thủ công hoặc tiếp nhận riêng rẽ:** Mỗi phản ánh trở thành một phiếu xử lý độc lập, gây quá tải hệ thống, cán bộ phải đọc và điều động nhân sự nhiều lần tới cùng một vị trí.
+- **Nếu chỉ gom cụm theo GPS (Khoảng cách không gian):** Sẽ xảy ra lỗi gộp nhầm tai hại khi hai sự cố khác hẳn nhau về bản chất xảy ra sát nhau (ví dụ: một vụ tai nạn giao thông và một đống rác nằm cách nhau 3 mét nhưng do 2 phòng ban khác nhau giải quyết).
+- **Nếu chỉ gom cụm theo Ngữ nghĩa (NLP / Vector Embedding):** Hai sự cố hỏng nắp cống ở hai đầu đối diện của phường (cách nhau 2km) sẽ bị gộp nhầm thành một chỉ vì người dân dùng từ ngữ mô tả tương tự nhau.
+
+Do đó, SmartWard AI đề xuất **Thuật toán Phân luồng và Gom cụm Hiện trường 2 Pha (Two-Stage Spatial-Semantic Triage)**: Kết hợp bộ lọc không gian cực nhanh trên Redis GEO (Pha 1) với bộ lọc ngữ nghĩa và nghiệp vụ chính xác trên pgvector Cosine Similarity (Pha 2).
+
+---
+
+### 3.3.2. Mô hình Toán học Thuật toán Gom cụm 2 Pha
+
+```mermaid
+flowchart TD
+    A["Phản ánh mới r: (lat, lon, cat, desc)"] --> B["Pha 1: Lọc Không gian (Redis GEOSEARCH)"]
+    B -->|"Tìm cụm trong bán kính R mét (R = 75m)"| C{"Có ứng viên trong R?"}
+    C -->|Không| D["Tạo Cụm Sự cố Mới (CLUST_NEW)"]
+    C -->|Có| E["Pha 2: Lọc Danh mục & Ngữ nghĩa"]
+    E --> F{"Khớp chính xác Category?"}
+    F -->|Không khớp| D
+    F -->|Khớp| G["Tính Cosine Similarity: Sim(v_r, v_c)"]
+    G --> H{"Sim_max >= tau (tau = 0.82)?"}
+    H -->|Không| D
+    H -->|Có| I["Gộp vào Cụm Hiện có: report_count + 1"]
+    I --> J["Cập nhật Tâm Cụm: Trung bình động GPS & Vector"]
+    D --> K["Lưu CSDL & Đánh chỉ mục Redis GEO"]
+    J --> K
+```
+
+#### Pha 1: Lọc Không gian Bán kính $R$ (Spatial Candidate Discovery)
+Cho phản ánh hiện trường $r$ với tọa độ địa lý $(\text{lat}_r, \text{lon}_r)$.
+Hệ thống sử dụng chỉ mục Redis GEO lưu trữ tọa độ tâm của các cụm sự cố đang hoạt động ($\text{status} \in \{\text{'OPEN'}, \text{'IN\_PROGRESS'}\}$) trong cửa sổ thời gian $T_{\text{window}} = 72$ giờ:
+$$\mathcal{C}_{\text{nearby}} = \left\{ c \in \mathcal{C}_{\text{active}} \mid \text{HaversineDist}((\text{lat}_r, \text{lon}_r), (\text{lat}_c, \text{lon}_c)) \le R \right\}$$
+Trong đó bán kính quét mặc định là $R = 75.0\text{ m}$. Lệnh `GEOSEARCH` trên Redis hoàn tất trong thời gian $< 1.0\text{ ms}$.
+
+- Nếu $\mathcal{C}_{\text{nearby}} = \emptyset$: Phản ánh nằm ở vị trí địa lý độc lập $\rightarrow$ Lập tức khởi tạo cụm sự cố mới.
+
+#### Pha 2: So khớp Nghiệp vụ và Đo Độ tương đồng Ngữ nghĩa ($\tau$)
+Với mỗi cụm ứng viên $c \in \mathcal{C}_{\text{nearby}}$:
+1. **Lọc Nghiệp vụ (Category Hard Filter):**
+   Bắt buộc $\text{Category}(r) = \text{Category}(c)$. Nếu khác danh mục nghiệp vụ (ví dụ: `ROAD_DAMAGE` và `FLOODING`), loại bỏ ứng viên ngay lập tức để tránh gộp nhầm các sự cố khác bản chất.
+2. **Đo Độ tương đồng Ngữ nghĩa Cosine:**
+   Biểu diễn mô tả của phản ánh $\mathbf{v}_r = \text{Embedding}(\text{desc}_r)$ và vector tâm cụm $\mathbf{v}_c$:
+   $$\text{Sim}(\mathbf{v}_r, \mathbf{v}_c) = \mathbf{v}_r \cdot \mathbf{v}_c$$
+   Xác định cụm tương đồng cao nhất:
+   $$c^* = \arg\max_{c \in \mathcal{C}_{\text{nearby}}, \text{cat}(c)=\text{cat}(r)} \text{Sim}(\mathbf{v}_r, \mathbf{v}_c), \quad \text{Sim}_{\max} = \max \text{Sim}(\mathbf{v}_r, \mathbf{v}_c)$$
+
+#### Quyết định Gom cụm (Clustering Decision):
+- **Trường hợp Gộp ($\text{Sim}_{\max} \ge \tau$, mặc định $\tau = 0.82$):**
+  - Gộp phản ánh $r$ vào cụm $c^*$.
+  - Tăng số lượng phản ánh: $N_{\text{new}} = N_{\text{old}} + 1$.
+  - Cập nhật tọa độ tâm cụm trung bình động:
+    $$\text{lat}_{c,\text{new}} = \frac{N_{\text{old}} \cdot \text{lat}_{c,\text{old}} + \text{lat}_r}{N_{\text{new}}}, \quad \text{lon}_{c,\text{new}} = \frac{N_{\text{old}} \cdot \text{lon}_{c,\text{old}} + \text{lon}_r}{N_{\text{new}}}$$
+  - Cập nhật vector tâm cụm trung bình động chuẩn hóa:
+    $$\mathbf{v}_{c,\text{new}} = \frac{N_{\text{old}} \cdot \mathbf{v}_{c,\text{old}} + \mathbf{v}_r}{N_{\text{new}}}, \quad \mathbf{v}_{c,\text{new}} \leftarrow \frac{\mathbf{v}_{c,\text{new}}}{\|\mathbf{v}_{c,\text{new}}\|_2}$$
+  - Cập nhật lại vị trí tâm cụm trên chỉ mục Redis GEO.
+- **Trường hợp Tạo cụm mới ($\text{Sim}_{\max} < \tau$ hoặc không có ứng viên cùng danh mục):**
+  - Khởi tạo cụm mới với $N=1$, tâm là tọa độ và vector của phản ánh $r$.
+  - Thêm tọa độ vào Redis GEO index.
+
+---
+
+### 3.3.3. Kết quả Kiểm thử Đơn vị và Tích hợp Module 3
+Module 3 đã được kiểm thử toàn diện qua:
+- [`TwoStageTriageServiceTest`](file:///E:/SmartWardAI/backend/src/test/java/vn/edu/uth/smartward/triage/TwoStageTriageServiceTest.java):
+  1. Khởi tạo cụm mới khi không có cụm nào trong bán kính $R = 75$m.
+  2. Gộp thành công vào cụm có sẵn khi khoảng cách $6.5\text{m} \le 75\text{m}$, cùng danh mục `ROAD_DAMAGE` và điểm Cosine $\text{Sim} = 0.998 \ge 0.82$, tự động tăng `reportCount` từ 1 lên 2.
+  3. Từ chối gộp (tạo cụm mới) khi hai phản ánh xảy ra cùng vị trí (khoảng cách 1.0m) nhưng khác danh mục (`ROAD_DAMAGE` vs `FLOODING`).
+- [`TriageControllerTest`](file:///E:/SmartWardAI/backend/src/test/java/vn/edu/uth/smartward/triage/TriageControllerTest.java): Kiểm thử các REST API `POST /api/v1/issues/report` và `GET /api/v1/issues/clusters`.
+
+Tổng cộng toàn bộ hệ thống đạt: **43/43 tests Passed (100% BUILD SUCCESS)**.
