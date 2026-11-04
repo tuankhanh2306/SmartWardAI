@@ -83,4 +83,25 @@ class RagControllerTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.errorCode").value("SW_422"));
     }
+
+    @Test
+    void testAskQuestion_successWithQueryAlias() throws Exception {
+        RagAskResponse mockResponse = RagAskResponse.builder()
+                .answer("Hồ sơ khai sinh cần giấy chứng sinh.")
+                .abstained(false)
+                .maxSimilarity(0.89)
+                .disclaimer(RagQueryService.LEGAL_DISCLAIMER)
+                .build();
+
+        when(ragQueryService.askQuestion(any(RagAskRequest.class), anyString())).thenReturn(mockResponse);
+
+        String jsonWithQuery = "{\"query\":\"Tôi muốn làm khai sinh cho con\",\"topK\":3,\"wardName\":\"Xã An Phú\"}";
+
+        mockMvc.perform(post("/api/v1/rag/ask")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonWithQuery))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.answer").value("Hồ sơ khai sinh cần giấy chứng sinh."));
+    }
 }

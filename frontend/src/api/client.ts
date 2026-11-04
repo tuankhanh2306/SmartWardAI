@@ -6,7 +6,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 4000,
+  timeout: 30000,
 });
 
 // 1. Legal RAG Types & API
@@ -37,15 +37,23 @@ export const askLegalRag = async (
   topK: number = 3,
   wardContext: { wardName?: string; officeAddress?: string } = {}
 ): Promise<RagResponse> => {
+  const currentWardName = wardContext.wardName || 'UBND cấp Xã/Phường';
+  const currentAddress = wardContext.officeAddress || 'Bộ phận Một cửa';
+  const mandatoryDisclaimer =
+    '*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*';
+
   // 1. First, attempt to invoke Spring Boot Backend (/api/v1/rag/ask)
   try {
-    const resp = await api.post<RagResponse>('/rag/ask', {
+    const resp = await api.post<any>('/rag/ask', {
+      question: query,
       query,
       topK,
       wardName: wardContext.wardName,
+      officeAddress: wardContext.officeAddress,
     });
-    return resp.data;
-  } catch (backendError) {
+    const result = resp.data?.data ? resp.data.data : resp.data;
+    return result as RagResponse;
+  } catch (backendError: any) {
     // 2. If Backend is offline or unavailable, check if Gemini Live RAG is configured
     if (isGeminiConfigured()) {
       try {
@@ -55,9 +63,6 @@ export const askLegalRag = async (
         console.warn('Gemini Live API failed, falling back to local simulation:', geminiError);
       }
     }
-
-    const currentWardName = wardContext.wardName || 'UBND cấp Xã/Phường';
-    const currentAddress = wardContext.officeAddress || 'Bộ phận Một cửa';
 
     // 3. Intelligent Offline / Fallback Simulation (Guaranteed Demo Resilience)
     const lower = query.toLowerCase();
@@ -70,11 +75,13 @@ export const askLegalRag = async (
       lower.includes('giá vàng') ||
       lower.includes('chứng khoán') ||
       lower.includes('lừa đảo') ||
-      lower.includes('bitcoin')
+      lower.includes('bitcoin') ||
+      lower.includes('hộ chiếu') ||
+      lower.includes('bằng lái')
     ) {
       return {
         answer:
-          `Hệ thống từ chối trả lời tự động nhằm bảo đảm an toàn pháp lý. Câu hỏi của bà con nằm ngoài phạm vi thẩm quyền của UBND cấp xã/phường (hoặc độ tương đồng ngữ nghĩa dưới ngưỡng an toàn θ = 0.78). Bà con vui lòng liên hệ trực tiếp Bộ phận Một cửa ${currentWardName} (Địa chỉ: ${currentAddress}) để được cán bộ tư pháp hướng dẫn chi tiết.`,
+          `Yêu cầu này nằm ngoài phạm vi dữ liệu thủ tục hành chính cấp xã hoặc mức độ tin cậy pháp lý không đạt ngưỡng an toàn (0.78). Hệ thống kiên quyết từ chối suy đoán để tuân thủ quy chuẩn an toàn thông tin theo Nghị định 13/2023/NĐ-CP. Quý công dân vui lòng liên hệ trực tiếp Bộ phận Tiếp nhận và Trả kết quả (Một cửa) tại ${currentWardName} (Địa chỉ: ${currentAddress}) để được cán bộ tư pháp hướng dẫn chi tiết.`,
         abstained: true,
         abstentionReason:
           'Độ tương đồng tài liệu cao nhất (0.612) thấp hơn ngưỡng an toàn tối thiểu (θ = 0.78). Áp dụng chốt chặn an toàn theo quy định.',
@@ -82,7 +89,7 @@ export const askLegalRag = async (
         appliedThreshold: 0.78,
         responseTimeMs: 14.2,
         cached: false,
-        disclaimer: 'Hệ thống SmartWard AI tuân thủ nghiêm ngặt nguyên tắc Không Ảo Giác trong lĩnh vực hành chính công.',
+        disclaimer: mandatoryDisclaimer,
         citations: [],
       };
     }
@@ -91,13 +98,31 @@ export const askLegalRag = async (
     if (lower.includes('khai sinh') || lower.includes('mới sinh') || lower.includes('chứng sinh')) {
       return {
         answer:
-          'Thủ tục Đăng ký khai sinh được giải quyết trong 01 ngày làm việc (trường hợp cần xác minh thì không quá 05 ngày làm việc). Lệ phí: Miễn phí hoàn toàn khi đăng ký đúng hạn trong vòng 60 ngày kể từ ngày sinh. Hồ sơ gồm: Tờ khai đăng ký khai sinh theo mẫu, Giấy chứng sinh của cơ sở y tế (nếu không có thì nộp văn bản xác nhận của người làm chứng hoặc giấy cam đoan).',
+          `1. TÓM TẮT THỦ TỤC:
+Thủ tục đăng ký khai sinh cho trẻ mới sinh được giải quyết trong 01 ngày làm việc tại Ủy ban nhân dân cấp xã.
+
+2. THÀNH PHẦN HỒ SƠ:
+- Tờ khai đăng ký khai sinh theo mẫu quy định.
+- Giấy chứng sinh do cơ sở y tế có thẩm quyền cấp (hoặc văn bản của người làm chứng/giấy cam đoan nếu sinh tại nhà).
+- Xuất trình bản chính Căn cước công dân của cha, mẹ hoặc người yêu cầu đăng ký.
+- Giấy chứng nhận kết hôn của cha mẹ (nếu đã kết hôn).
+
+3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:
+- Thời hạn giải quyết: Trong ngày làm việc tiếp nhận đủ hồ sơ hợp lệ (trường hợp cần xác minh thì không quá 05 ngày).
+- Lệ phí: Miễn lệ phí hoàn toàn khi đăng ký đúng hạn trong vòng 60 ngày kể từ ngày sinh.
+
+4. NƠI TIẾP NHẬN & XỬ LÝ:
+Bộ phận Tiếp nhận và Trả kết quả (Một cửa) thuộc ${currentWardName} (Địa chỉ: ${currentAddress}).
+
+5. CĂN CỨ PHÁP LÝ & LƯU Ý:
+[TTHC-HT-01_CHK_003] Căn cứ Điều 15, 16 Luật Hộ tịch 2014 và Nghị định 123/2015/NĐ-CP của Chính phủ.
+${mandatoryDisclaimer}`,
         abstained: false,
         maxSimilarity: 0.942,
         appliedThreshold: 0.78,
         responseTimeMs: 18.5,
         cached: true,
-        disclaimer: 'Thông tin có giá trị tham khảo và trích xuất từ Cổng Dịch vụ công Quốc gia & Luật Hộ tịch.',
+        disclaimer: mandatoryDisclaimer,
         citations: [
           {
             chunkCode: 'TTHC-HT-01_CHK_003',
@@ -117,13 +142,30 @@ export const askLegalRag = async (
     if (lower.includes('kết hôn') || lower.includes('đăng ký kết hôn') || lower.includes('lấy vợ') || lower.includes('lấy chồng')) {
       return {
         answer:
-          'Thủ tục Đăng ký kết hôn được giải quyết ngay trong ngày tiếp nhận hồ sơ đủ điều kiện (trường hợp cần xác minh thì không quá 05 ngày làm việc). Hai bên nam nữ phải trực tiếp có mặt tại UBND cấp xã/phường nơi cư trú của một trong hai bên. Hồ sơ gồm: Tờ khai đăng ký kết hôn, CCCD gắn chip của hai bên, và Giấy xác nhận tình trạng hôn nhân (nếu cư trú khác địa bàn). Lệ phí: Miễn phí cho công dân cư trú trên địa bàn.',
+          `1. TÓM TẮT THỦ TỤC:
+Thủ tục đăng ký kết hôn được giải quyết ngay trong ngày làm việc khi hai bên nam nữ cùng có mặt và nộp đủ hồ sơ hợp lệ.
+
+2. THÀNH PHẦN HỒ SƠ:
+- Tờ khai đăng ký kết hôn theo mẫu quy định (hai bên cùng ký tên).
+- Bản chính Căn cước công dân gắn chip của hai bên nam, nữ.
+- Giấy xác nhận tình trạng hôn nhân (nếu cư trú khác địa bàn đăng ký kết hôn).
+
+3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:
+- Thời hạn giải quyết: Ngay trong ngày làm việc tiếp nhận hồ sơ.
+- Lệ phí: Miễn lệ phí hoàn toàn cho công dân cư trú trên địa bàn.
+
+4. NƠI TIẾP NHẬN & XỬ LÝ:
+Bộ phận Tiếp nhận và Trả kết quả (Một cửa) thuộc ${currentWardName} (Địa chỉ: ${currentAddress}).
+
+5. CĂN CỨ PHÁP LÝ & LƯU Ý:
+[TTHC-HT-02_CHK_001] Căn cứ Điều 17, 18 Luật Hộ tịch số 60/2014/QH13 và Nghị định 123/2015/NĐ-CP.
+${mandatoryDisclaimer}`,
         abstained: false,
         maxSimilarity: 0.928,
         appliedThreshold: 0.78,
         responseTimeMs: 16.8,
         cached: true,
-        disclaimer: 'Trích xuất từ Luật Hộ tịch 2014 và Thông tư hướng dẫn thi hành Bộ Tư pháp.',
+        disclaimer: mandatoryDisclaimer,
         citations: [
           {
             chunkCode: 'TTHC-HT-02_CHK_001',
@@ -142,13 +184,30 @@ export const askLegalRag = async (
     // Case D: Residence / CT01
     return {
       answer:
-        `Thủ tục đăng ký thường trú / tạm trú thực hiện theo Mẫu tờ khai CT01 ban hành kèm theo Thông tư 56/2021/TT-BCA. Thời hạn giải quyết: 03 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ. Công dân nộp bản scan hoặc bản gốc tờ khai kèm CCCD gắn chip và giấy tờ chứng minh chỗ ở hợp pháp (Hợp đồng thuê nhà hoặc Sổ hồng) tại Công an ${currentWardName} (Địa bàn Tỉnh An Giang) hoặc nộp trực tuyến qua Cổng Dịch vụ công Bộ Công an.`,
+        `1. TÓM TẮT THỦ TỤC:
+Thủ tục đăng ký thường trú được tiếp nhận và giải quyết trong tối đa 03 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ.
+
+2. THÀNH PHẦN HỒ SƠ:
+- Tờ khai thay đổi thông tin cư trú (Mẫu CT01).
+- Giấy tờ, tài liệu chứng minh chỗ ở hợp pháp (Hợp đồng thuê nhà, Sổ hồng hoặc văn bản đồng ý của chủ hộ).
+- Bản chính Căn cước công dân gắn chip của người yêu cầu đăng ký.
+
+3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:
+- Thời hạn giải quyết: 03 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ.
+- Lệ phí: Theo biểu mức quy định tại Nghị quyết Hội đồng nhân dân cấp tỉnh.
+
+4. NƠI TIẾP NHẬN & XỬ LÝ:
+Công an xã/phường thuộc ${currentWardName} (Địa chỉ: ${currentAddress}) hoặc nộp trực tuyến qua Cổng Dịch vụ công Bộ Công an.
+
+5. CĂN CỨ PHÁP LÝ & LƯU Ý:
+[TTHC-CT-01_CHK_002] Căn cứ Điều 21, 22 Luật Cư trú 2020 và Thông tư số 56/2021/TT-BCA của Bộ Công an.
+${mandatoryDisclaimer}`,
       abstained: false,
       maxSimilarity: 0.895,
       appliedThreshold: 0.78,
       responseTimeMs: 22.1,
       cached: false,
-      disclaimer: 'Căn cứ Luật Cư trú số 68/2020/QH14 và hướng dẫn Cục Cảnh sát QLHC về TTXH.',
+      disclaimer: mandatoryDisclaimer,
       citations: [
         {
           chunkCode: 'TTHC-CT-01_CHK_002',

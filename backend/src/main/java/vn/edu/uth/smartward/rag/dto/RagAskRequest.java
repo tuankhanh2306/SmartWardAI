@@ -1,5 +1,6 @@
 package vn.edu.uth.smartward.rag.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -18,10 +19,17 @@ import lombok.*;
 @Schema(description = "Yêu cầu hỏi đáp thủ tục hành chính qua Legal RAG")
 public class RagAskRequest {
 
+    @JsonAlias({"query", "question"})
     @NotBlank(message = "Câu hỏi pháp lý không được để trống")
     @Size(max = 1000, message = "Câu hỏi không được vượt quá 1000 ký tự")
     @Schema(description = "Câu hỏi của công dân về thủ tục hành chính", example = "Tôi muốn làm khai sinh cho con mới sinh cần giấy tờ gì?")
     private String question;
+
+    @Schema(description = "Tên Ủy ban nhân dân cấp Xã/Phường địa phương tiếp nhận", example = "Xã An Phú, Tỉnh An Giang")
+    private String wardName;
+
+    @Schema(description = "Địa chỉ trụ sở Bộ phận Một cửa địa phương", example = "Đường Thoại Ngọc Hầu, Xã An Phú, Huyện An Phú, Tỉnh An Giang")
+    private String officeAddress;
 
     @Schema(description = "Lĩnh vực thủ tục hành chính (tùy chọn: Hộ tịch, Cư trú, Đất đai...)", example = "Hộ tịch")
     private String category;

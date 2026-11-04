@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import vn.edu.uth.smartward.ai.AiModelClient;
+import vn.edu.uth.smartward.ai.GeminiAiClient;
 import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ErrorCode;
 import vn.edu.uth.smartward.common.QueryCacheService;
@@ -22,9 +23,10 @@ import java.util.regex.Pattern;
  * Implements:
  * 1. 768-dim Query Vectorization
  * 2. pgvector HNSW Cosine Similarity Retrieval
- * 3. Abstention Guardrail (theta = 0.78 default)
- * 4. Citation Post-verification
- * 5. Redis Rate Limiting & Distributed Cache
+ * 3. Abstention Guardrail (theta = 0.78 default) with competent authority routing
+ * 4. 5-Section Standardized Administrative Formatting
+ * 5. Citation Post-verification
+ * 6. Non-caching of truncated responses & Redis Distributed Cache
  */
 @Slf4j
 @Service
@@ -43,13 +45,7 @@ public class RagQueryService {
     private int defaultTopK;
 
     public static final String LEGAL_DISCLAIMER =
-            "Thông tin phản hồi tự động từ hệ thống SmartWard AI chỉ mang tính chất hướng dẫn, tham khảo thủ tục hành chính tại UBND cấp xã. " +
-            "Để hoàn thiện hồ sơ chính thức, quý công dân vui lòng đối chiếu văn bản quy phạm pháp luật hiện hành hoặc liên hệ trực tiếp Bộ phận Tiếp nhận và Trả kết quả (Một cửa).";
-
-    private static final String ABSTENTION_MESSAGE =
-            "Yêu cầu này nằm ngoài phạm vi dữ liệu thủ tục hành chính cấp xã hoặc mức độ tin cậy pháp lý không đạt ngưỡng an toàn (0.78). " +
-            "Hệ thống kiên quyết từ chối suy đoán để tuân thủ quy chuẩn an toàn thông tin theo Nghị định 13/2023/NĐ-CP. " +
-            "Quý công dân vui lòng liên hệ trực tiếp Bộ phận Tiếp nhận và Trả kết quả (Một cửa) tại UBND cấp xã hoặc Tổng đài Dịch vụ công Quốc gia 18001096 để được hỗ trợ chính xác.";
+            "*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*";
 
     private static final Pattern CITATION_PATTERN = Pattern.compile("\\[([A-Za-z0-9_\\-]+)\\]");
 
@@ -100,15 +96,17 @@ public class RagQueryService {
         log.info("RAG retrieval for query '{}': found {} candidates, maxSimilarity={}",
                 truncate(rawQuery, 40), candidateChunks.size(), String.format(Locale.US, "%.4f", maxSimilarity));
 
-        // 5. Abstention Guardrail: S_max < theta
+        // 5. Abstention Guardrail: S_max < theta (Safe abstention without calling LLM)
         if (candidateChunks.isEmpty() || maxSimilarity < threshold) {
             long elapsed = System.currentTimeMillis() - startTime;
             String reason = String.format(Locale.US,
                     "Điểm tương đồng cao nhất (%.3f) thấp hơn ngưỡng an toàn pháp lý (%.2f).",
                     maxSimilarity, threshold);
 
+            String abstentionAnswer = resolveAbstentionMessage(rawQuery, request.getWardName(), request.getOfficeAddress());
+
             RagAskResponse abstainedResponse = RagAskResponse.builder()
-                    .answer(ABSTENTION_MESSAGE)
+                    .answer(abstentionAnswer)
                     .abstained(true)
                     .abstentionReason(reason)
                     .maxSimilarity(maxSimilarity)
@@ -124,9 +122,14 @@ public class RagQueryService {
             return abstainedResponse;
         }
 
-        // 6. Build Context and Invoke LLM
-        String systemPrompt = buildSystemPrompt(candidateChunks);
+        // 6. Build Grounded Context and Invoke LLM
+        String systemPrompt = buildSystemPrompt(candidateChunks, request.getWardName(), request.getOfficeAddress());
         String generatedAnswer = aiModelClient.generateChatResponse(systemPrompt, rawQuery);
+
+        // Ensure disclaimer is always present at the end
+        if (generatedAnswer != null && !generatedAnswer.contains("không thay thế quyết định chính thức")) {
+            generatedAnswer = generatedAnswer.trim() + "\n\n" + LEGAL_DISCLAIMER;
+        }
 
         // 7. Post-Verification of Legal Citations
         List<LegalCitationDto> verifiedCitations = postVerifyCitations(generatedAnswer, candidateChunks);
@@ -145,24 +148,43 @@ public class RagQueryService {
                 .disclaimer(LEGAL_DISCLAIMER)
                 .build();
 
-        // 8. Cache successful RAG response with standard TTL (1 hour)
-        queryCacheService.putResponse(rawQuery, response);
+        // 8. Cache successful RAG response with standard TTL (1 hour) ONLY IF NOT TRUNCATED
+        boolean isTruncated = generatedAnswer != null && (
+                generatedAnswer.contains(GeminiAiClient.TRUNCATION_FALLBACK_NOTICE) ||
+                generatedAnswer.contains("vượt quá giới hạn hiển thị tự động")
+        );
+
+        if (!isTruncated) {
+            queryCacheService.putResponse(rawQuery, response);
+        } else {
+            log.warn("Response truncated, skipping caching in Redis for query: '{}'", truncate(rawQuery, 40));
+        }
+
         return response;
     }
 
     /**
-     * Builds structured legal prompt enforcing strict adherence to retrieved text.
+     * Builds structured legal prompt enforcing strict adherence to retrieved text and 5-section administrative structure.
      */
-    private String buildSystemPrompt(List<LegalChunkMatch> chunks) {
+    private String buildSystemPrompt(List<LegalChunkMatch> chunks, String wardName, String officeAddress) {
+        String effectiveWard = (wardName != null && !wardName.isBlank()) ? wardName : "UBND cấp xã/phường nơi tiếp nhận";
+        String effectiveAddress = (officeAddress != null && !officeAddress.isBlank()) ? officeAddress : "Bộ phận Tiếp nhận và Trả kết quả (Một cửa)";
+
         StringBuilder sb = new StringBuilder();
-        sb.append("Bạn là Trợ lý Pháp lý Hành chính công SmartWard AI, hỗ trợ giải đáp thủ tục cấp xã/phường cho công dân.\n");
-        sb.append("QUY TẮC BẮT BUỘC:\n");
-        sb.append("1. CHỈ sử dụng thông tin trong các đoạn văn bản pháp lý được cung cấp dưới đây.\n");
-        sb.append("2. TUYỆT ĐỐI KHÔNG tự suy diễn, bịa đặt hoặc đưa ra thông tin không có trong tài liệu đính kèm.\n");
-        sb.append("3. BẮT BUỘC trích dẫn rõ mã đoạn luật dạng [MÃ_ĐOẠN] (ví dụ: [KS-01-DK]) khi nêu bất kỳ điều kiện, thời hạn, phí hoặc hồ sơ nào.\n");
-        sb.append("4. Nếu trong văn bản không đủ thông tin để trả lời trọn vẹn, hãy nói rõ những phần chưa có cơ sở pháp lý.\n");
-        sb.append("5. Ngôn ngữ trang trọng, chuẩn mực hành chính Việt Nam.\n\n");
-        sb.append("--- CĂN CỨ PHÁP LÝ ĐƯỢC CUNG CẤP ---\n");
+        sb.append("Bạn là công chức mẫn cán tại Bộ phận Tiếp nhận và Trả kết quả (Một cửa) thuộc ").append(effectiveWard).append(".\n");
+        sb.append("NHIỆM VỤ: Hướng dẫn thủ tục hành chính công trực tiếp, chính xác, ân cần và chuẩn mực.\n\n");
+        sb.append("QUY TẮC BẮT BUỘC (TUÂN THỦ 100%, KHÔNG NGOẠI LỆ):\n");
+        sb.append("1. NGUYÊN TẮC TRỰC TIẾP & KHÔNG RƯỜM RÀ: TUYỆT ĐỐI CẤM các câu chào hỏi khách sáo (như 'Xin chào quý công dân', 'Chào bạn', 'Rất vui được hỗ trợ'), CẤM cảm ơn/xin lỗi lê thê, CẤM lặp lại câu hỏi. BẮT BUỘC BẮT ĐẦU NGAY BẰNG: '1. TÓM TẮT THỦ TỤC:'.\n");
+        sb.append("2. CHỈ sử dụng dữ liệu trong các đoạn văn bản pháp lý được cung cấp bên dưới. TUYỆT ĐỐI KHÔNG tự suy đoán, bịa đặt điều luật hay số liệu.\n");
+        sb.append("3. QUY TẮC THIẾU THÔNG TIN: Nếu trong dữ liệu chưa có thông tin về thời hạn, lệ phí hoặc địa chỉ, BẮT BUỘC ghi rõ: 'Chưa có dữ liệu, vui lòng liên hệ Bộ phận Một cửa'. TUYỆT ĐỐI KHÔNG đoán mò.\n");
+        sb.append("4. BẮT BUỘC TRÍCH DẪN MÃ ĐOẠN: Khi nêu điều kiện, giấy tờ, thời hạn hoặc lệ phí, phải đính kèm mã trích dẫn dạng [MÃ_ĐOẠN] (ví dụ: [KS-01-DK]).\n");
+        sb.append("5. ĐỊNH DẠNG BẮT BUỘC ĐỦ 5 PHẦN THEO ĐÚNG THỨ TỰ:\n");
+        sb.append("   1. TÓM TẮT THỦ TỤC: (Tối đa 01 câu trả lời thẳng vào vấn đề chính).\n");
+        sb.append("   2. THÀNH PHẦN HỒ SƠ: (Gạch đầu dòng từng loại giấy tờ phải nộp và xuất trình).\n");
+        sb.append("   3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ: (Nêu rõ số ngày làm việc và mức phí cụ thể; nếu thiếu ghi 'Chưa có dữ liệu, vui lòng liên hệ Bộ phận Một cửa').\n");
+        sb.append("   4. NƠI TIẾP NHẬN & XỬ LÝ: (Ghi rõ: Bộ phận Một cửa của ").append(effectiveWard).append(" - Địa chỉ: ").append(effectiveAddress).append(").\n");
+        sb.append("   5. CĂN CỨ PHÁP LÝ & LƯU Ý: (Nêu mã thủ tục/điều khoản quy định và kết thúc bắt buộc bằng câu disclaimer: '").append(LEGAL_DISCLAIMER).append("').\n\n");
+        sb.append("--- DỮ LIỆU CĂN CỨ PHÁP LÝ CHÍNH THỨC ĐƯỢC CUNG CẤP ---\n");
 
         for (LegalChunkMatch c : chunks) {
             sb.append(String.format("[MÃ: %s] Thủ tục: %s | Tiêu đề: %s | Căn cứ: %s\nNội dung: %s\n\n",
@@ -171,6 +193,43 @@ public class RagQueryService {
                     c.getTitle(),
                     c.getLegalReference() != null ? c.getLegalReference() : "Quy định hiện hành",
                     c.getContent()));
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * Resolves safe abstention guidance with competent authority identification when applicable.
+     */
+    private String resolveAbstentionMessage(String query, String wardName, String officeAddress) {
+        String lower = query.toLowerCase();
+        String specificAuthority = null;
+
+        if (lower.contains("hộ chiếu") || lower.contains("passport") || lower.contains("xuất cảnh") || lower.contains("nhập cảnh")) {
+            specificAuthority = "Cục Quản lý xuất nhập cảnh (Bộ Công an) hoặc Phòng Quản lý xuất nhập cảnh Công an tỉnh/thành phố";
+        } else if (lower.contains("bằng lái") || lower.contains("giấy phép lái xe") || lower.contains("gplx") || lower.contains("đổi bằng")) {
+            specificAuthority = "Sở Giao thông vận tải hoặc Trung tâm sát hạch và cấp giấy phép lái xe";
+        } else if (lower.contains("thuế thu nhập cá nhân") || lower.contains("hoàn thuế") || lower.contains("mã số thuế cá nhân")) {
+            specificAuthority = "Chi cục Thuế khu vực hoặc Cục Thuế tỉnh/thành phố";
+        } else if (lower.contains("đăng ký doanh nghiệp") || lower.contains("thành lập công ty") || lower.contains("giấy phép kinh doanh công ty")) {
+            specificAuthority = "Sở Kế hoạch và Đầu tư tỉnh/thành phố";
+        } else if (lower.contains("bảo hiểm xã hội") || lower.contains("rút bhxh") || lower.contains("sổ bảo hiểm")) {
+            specificAuthority = "Cơ quan Bảo hiểm xã hội cấp huyện hoặc tỉnh";
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("Yêu cầu này nằm ngoài phạm vi dữ liệu thủ tục hành chính cấp xã hoặc mức độ tin cậy pháp lý không đạt ngưỡng an toàn (0.78). ");
+        sb.append("Hệ thống kiên quyết từ chối suy đoán để tuân thủ quy chuẩn an toàn thông tin theo Nghị định 13/2023/NĐ-CP. ");
+
+        if (specificAuthority != null) {
+            sb.append("Thủ tục quý công dân đang quan tâm thuộc thẩm quyền giải quyết của ").append(specificAuthority).append(". ");
+            sb.append("Quý công dân vui lòng liên hệ cơ quan trên để được hướng dẫn chi tiết.");
+        } else {
+            String wardLabel = (wardName != null && !wardName.isBlank()) ? wardName : "UBND cấp xã";
+            String addrLabel = (officeAddress != null && !officeAddress.isBlank()) ? " (Địa chỉ: " + officeAddress + ")" : "";
+            sb.append("Quý công dân vui lòng liên hệ trực tiếp Bộ phận Tiếp nhận và Trả kết quả (Một cửa) tại ")
+              .append(wardLabel).append(addrLabel)
+              .append(" hoặc Tổng đài Dịch vụ công Quốc gia 18001096 để được hỗ trợ chính xác.");
         }
 
         return sb.toString();

@@ -59,31 +59,87 @@ public class DeterministicMockAiClient implements AiModelClient {
                 userPrompt.length() > 50 ? userPrompt.substring(0, 50) + "..." : userPrompt);
 
         // Extract first chunk code from systemPrompt if available for realistic citation testing
-        String chunkPrefix = "";
+        String chunkCode = "TTHC-01";
         if (systemPrompt != null) {
             java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\[MÃ:\\s*([A-Za-z0-9_\\-]+)\\]").matcher(systemPrompt);
             if (m.find()) {
-                chunkPrefix = "[" + m.group(1) + "] ";
+                chunkCode = m.group(1);
             }
         }
 
-        // Deterministic answer based on keywords
         String lower = userPrompt.toLowerCase();
+        boolean missingFeeOrAddress = lower.contains("thiếu lệ phí") || lower.contains("không có lệ phí") ||
+                                      lower.contains("thiếu địa chỉ") || lower.contains("không có địa chỉ");
+
+        String feeText = missingFeeOrAddress ? "Chưa có dữ liệu, vui lòng liên hệ Bộ phận Một cửa" :
+                "Miễn lệ phí hoàn toàn khi đăng ký đúng thời hạn quy định.";
+        String addressText = missingFeeOrAddress ? "Chưa có dữ liệu, vui lòng liên hệ Bộ phận Một cửa" :
+                "Bộ phận Tiếp nhận và Trả kết quả (Một cửa) thuộc UBND cấp xã/phường nơi tiếp nhận hồ sơ.";
+
+        StringBuilder sb = new StringBuilder();
+        sb.append("1. TÓM TẮT THỦ TỤC:\n");
+
         if (lower.contains("khai sinh")) {
-            return chunkPrefix + "Thủ tục đăng ký khai sinh được giải quyết trong 01 ngày làm việc tại Ủy ban nhân dân cấp xã. " +
-                    "Hồ sơ cần nộp bao gồm: Giấy chứng sinh (hoặc văn bản thay thế), Tờ khai đăng ký khai sinh, và xuất trình CCCD của cha mẹ. " +
-                    "(Căn cứ: Luật Hộ tịch 2014 & Nghị định 123/2015/NĐ-CP).";
+            sb.append("Thủ tục đăng ký khai sinh cho trẻ mới sinh được giải quyết trong 01 ngày làm việc tại Ủy ban nhân dân cấp xã.\n\n");
+            sb.append("2. THÀNH PHẦN HỒ SƠ:\n");
+            sb.append("- Tờ khai đăng ký khai sinh theo mẫu quy định.\n");
+            sb.append("- Giấy chứng sinh do cơ sở y tế có thẩm quyền cấp (hoặc văn bản thay thế theo luật định).\n");
+            sb.append("- Xuất trình bản chính Căn cước công dân hoặc Hộ chiếu của cha, mẹ để đối chiếu.\n");
+            sb.append("- Giấy chứng nhận kết hôn của cha mẹ (trường hợp cha mẹ đã đăng ký kết hôn).\n\n");
+            sb.append("3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n");
+            sb.append("- Thời hạn giải quyết: Trong ngày làm việc tiếp nhận đủ hồ sơ hợp lệ.\n");
+            sb.append("- Lệ phí: ").append(feeText).append("\n\n");
+            sb.append("4. NƠI TIẾP NHẬN & XỬ LÝ:\n");
+            sb.append(addressText).append("\n\n");
+            sb.append("5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n");
+            sb.append("[").append(chunkCode).append("] Căn cứ Luật Hộ tịch 2014 và Nghị định 123/2015/NĐ-CP của Chính phủ.\n");
+            sb.append("*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*");
+            return sb.toString();
         } else if (lower.contains("kết hôn")) {
-            return chunkPrefix + "Thủ tục đăng ký kết hôn được giải quyết ngay trong ngày làm việc sau khi hai bên nam nữ có mặt và nộp đủ hồ sơ hợp lệ. " +
-                    "Thủ tục hoàn toàn miễn phí khi đăng ký đúng hạn. (Căn cứ: Luật Hộ tịch 2014 & Nghị định 123/2015/NĐ-CP).";
+            sb.append("Thủ tục đăng ký kết hôn được giải quyết ngay trong ngày làm việc khi hai bên nam nữ có mặt và nộp đủ hồ sơ hợp lệ.\n\n");
+            sb.append("2. THÀNH PHẦN HỒ SƠ:\n");
+            sb.append("- Tờ khai đăng ký kết hôn theo mẫu quy định (hai bên cùng ký tên).\n");
+            sb.append("- Bản chính Căn cước công dân của hai bên nam, nữ.\n");
+            sb.append("- Giấy xác nhận tình trạng hôn nhân (nếu cư trú khác địa bàn đăng ký kết hôn).\n\n");
+            sb.append("3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n");
+            sb.append("- Thời hạn giải quyết: Ngay trong ngày làm việc tiếp nhận hồ sơ.\n");
+            sb.append("- Lệ phí: ").append(feeText).append("\n\n");
+            sb.append("4. NƠI TIẾP NHẬN & XỬ LÝ:\n");
+            sb.append(addressText).append("\n\n");
+            sb.append("5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n");
+            sb.append("[").append(chunkCode).append("] Căn cứ Luật Hộ tịch 2014 và Nghị định 123/2015/NĐ-CP của Chính phủ.\n");
+            sb.append("*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*");
+            return sb.toString();
         } else if (lower.contains("thường trú")) {
-            return chunkPrefix + "Thủ tục đăng ký thường trú được tiếp nhận tại Công an cấp xã/phường. " +
-                    "Hồ sơ gồm Tờ khai thay đổi thông tin cư trú (Mẫu CT01) và giấy tờ chứng minh chỗ ở hợp pháp. " +
-                    "Thời hạn giải quyết tối đa 07 ngày làm việc. (Căn cứ: Luật Cư trú 2020).";
+            sb.append("Thủ tục đăng ký thường trú được tiếp nhận và giải quyết trong tối đa 07 ngày làm việc.\n\n");
+            sb.append("2. THÀNH PHẦN HỒ SƠ:\n");
+            sb.append("- Tờ khai thay đổi thông tin cư trú (Mẫu CT01).\n");
+            sb.append("- Giấy tờ, tài liệu chứng minh chỗ ở hợp pháp (Sổ hồng, hợp đồng thuê nhà...).\n");
+            sb.append("- Bản chính Căn cước công dân của người yêu cầu đăng ký.\n\n");
+            sb.append("3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n");
+            sb.append("- Thời hạn giải quyết: Tối đa 07 ngày làm việc kể từ ngày nhận đủ hồ sơ.\n");
+            sb.append("- Lệ phí: ").append(feeText).append("\n\n");
+            sb.append("4. NƠI TIẾP NHẬN & XỬ LÝ:\n");
+            sb.append(addressText).append("\n\n");
+            sb.append("5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n");
+            sb.append("[").append(chunkCode).append("] Căn cứ Luật Cư trú 2020 và Thông tư số 56/2021/TT-BCA của Bộ Công an.\n");
+            sb.append("*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*");
+            return sb.toString();
         }
 
-        return chunkPrefix + "Theo quy định pháp luật hành chính hiện hành tại Ủy ban nhân dân cấp xã, thủ tục được tiếp nhận tại Bộ phận Một cửa. " +
-                "Công dân vui lòng chuẩn bị đầy đủ hồ sơ theo hướng dẫn niêm yết.";
+        sb.append("Thủ tục hành chính được tiếp nhận và hướng dẫn giải quyết theo quy định pháp luật hành chính hiện hành.\n\n");
+        sb.append("2. THÀNH PHẦN HỒ SƠ:\n");
+        sb.append("- Tờ khai hành chính theo mẫu quy định tương ứng với thủ tục yêu cầu.\n");
+        sb.append("- Bản sao có chứng thực hoặc bản chính kèm theo giấy tờ tùy thân hợp lệ.\n\n");
+        sb.append("3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n");
+        sb.append("- Thời hạn giải quyết: ").append(missingFeeOrAddress ? "Chưa có dữ liệu, vui lòng liên hệ Bộ phận Một cửa" : "Theo quy định niêm yết công khai").append(".\n");
+        sb.append("- Lệ phí: ").append(feeText).append("\n\n");
+        sb.append("4. NƠI TIẾP NHẬN & XỬ LÝ:\n");
+        sb.append(addressText).append("\n\n");
+        sb.append("5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n");
+        sb.append("[").append(chunkCode).append("] Căn cứ quy định pháp luật hiện hành và văn bản niêm yết tại UBND cấp xã.\n");
+        sb.append("*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*");
+        return sb.toString();
     }
 
     @Override

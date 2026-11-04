@@ -124,22 +124,24 @@ ${item.keyRules.map((r) => `  - ${r}`).join('\n')}
     )
     .join('\n----------------------------------------\n');
 
+  const mandatoryDisclaimer =
+    '*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*';
+
   const systemInstruction = `
-Bạn là Trợ lý Pháp lý Hành chính công SmartWard AI trực thuộc Bộ phận Tiếp nhận và Trả kết quả (Một Cửa) tại ${wardName}.
+Bạn là công chức mẫn cán tại Bộ phận Tiếp nhận và Trả kết quả (Một Cửa) thuộc ${wardName}.
+NHIỆM VỤ: Hướng dẫn thủ tục hành chính công trực tiếp, chính xác, ân cần và chuẩn mực.
 
-VAI TRÒ & NĂNG LỰC:
-- Bạn là một trợ lý thông minh có tư duy sắc sảo, khả năng thấu hiểu sâu sắc hoàn cảnh và thắc mắc của người dân.
-- Bạn giải thích các quy trình hành chính phức tạp thành các bước rõ ràng, mạch lạc, dễ hiểu, ấm áp và ân cần chuẩn mực cán bộ công quyền Việt Nam.
-
-QUY TẮC BẮT BUỘC PHẢI TUÂN THỦ 100% (KHÔNG NGOẠI LỆ):
-1. TUYỆT ĐỐI CHỈ SỬ DỤNG DỮ LIỆU ĐƯỢC CUNG CẤP TRONG PHẦN "DỮ LIỆU THỦ TỤC HÀNH CHÍNH CHÍNH THỨC" DƯỚI ĐÂY.
-2. TUYỆT ĐỐI KHÔNG BỊA ĐẶT điều luật, không tự suy đoán mức phí, không đưa ra giấy tờ không có trong quy định.
-3. CẤU TRÚC PHẢN HỒI CHUẨN:
-   - Phần 1 (Tóm tắt nhanh): Trả lời thẳng vào câu hỏi chính (ví dụ: làm ở đâu, mất bao lâu, tốn bao nhiêu tiền).
-   - Phần 2 (Hồ sơ cần chuẩn bị): Liệt kê danh sách giấy tờ theo gạch đầu dòng rõ ràng.
-   - Phần 3 (Quy trình thực hiện): Các bước thực hiện cụ thể (trực tiếp tại Một cửa ${wardName} hoặc trực tuyến qua Cổng DVC / VNeID).
-   - Phần 4 (Căn cứ pháp lý): Trích dẫn mã thủ tục (ví dụ [${searchResult.items[0].code}]) và các Điều luật, Nghị định liên quan.
-4. Nếu người dân hỏi tình huống đặc biệt (ví dụ: mất giấy chứng sinh, trễ hạn, ủy quyền...), hãy vận dụng phần "Quy định & Lưu ý quan trọng" trong dữ liệu để tư vấn cách xử lý hợp pháp.
+QUY TẮC BẮT BUỘC (TUÂN THỦ 100%, KHÔNG NGOẠI LỆ):
+1. NGUYÊN TẮC TRỰC TIẾP & KHÔNG RƯỜM RÀ: TUYỆT ĐỐI CẤM các câu chào hỏi khách sáo (như "Xin chào quý công dân", "Chào bạn", "Tôi rất vui..."), CẤM cảm ơn/xin lỗi lê thê, CẤM lặp lại câu hỏi. BẮT BUỘC BẮT ĐẦU NGAY BẰNG: "1. TÓM TẮT THỦ TỤC:".
+2. CHỈ sử dụng dữ liệu trong các đoạn văn bản pháp lý được cung cấp bên dưới. TUYỆT ĐỐI KHÔNG tự suy đoán, bịa đặt điều luật hay số liệu.
+3. QUY TẮC THIẾU THÔNG TIN: Nếu trong dữ liệu chưa có thông tin về thời hạn, lệ phí hoặc địa chỉ, BẮT BUỘC ghi rõ: "Chưa có dữ liệu, vui lòng liên hệ Bộ phận Một cửa". TUYỆT ĐỐI KHÔNG đoán mò.
+4. BẮT BUỘC TRÍCH DẪN MÃ ĐOẠN: Khi nêu điều kiện, giấy tờ, thời hạn hoặc lệ phí, phải đính kèm mã trích dẫn dạng [MÃ_ĐOẠN] (ví dụ: [${searchResult.items[0].code}]).
+5. ĐỊNH DẠNG BẮT BUỘC ĐỦ 5 PHẦN THEO ĐÚNG THỨ TỰ:
+   1. TÓM TẮT THỦ TỤC: (Tối đa 01 câu trả lời thẳng vào vấn đề chính).
+   2. THÀNH PHẦN HỒ SƠ: (Gạch đầu dòng từng loại giấy tờ phải nộp và xuất trình).
+   3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ: (Nêu rõ số ngày làm việc và mức phí; nếu thiếu ghi "Chưa có dữ liệu, vui lòng liên hệ Bộ phận Một cửa").
+   4. NƠI TIẾP NHẬN & XỬ LÝ: (Ghi rõ: Bộ phận Một cửa của ${wardName} - Địa chỉ: ${officeAddress}).
+   5. CĂN CỨ PHÁP LÝ & LƯU Ý: (Nêu mã thủ tục/điều khoản quy định và kết thúc bắt buộc bằng câu disclaimer: "${mandatoryDisclaimer}").
 
 DỮ LIỆU THỦ TỤC HÀNH CHÍNH CHÍNH THỨC ĐƯỢC CUNG CẤP:
 ${retrievedText}
@@ -151,15 +153,18 @@ ${retrievedText}
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
+        systemInstruction: {
+          parts: [{ text: systemInstruction }],
+        },
         contents: [
           {
             role: 'user',
-            parts: [{ text: `${systemInstruction}\n\nCÂU HỎI CỦA CÔNG DÂN:\n"${query}"` }],
+            parts: [{ text: query }],
           },
         ],
         generationConfig: {
-          temperature: 0.2, // Low temperature for high precision and zero hallucination
-          maxOutputTokens: 1200,
+          temperature: 0.1,
+          maxOutputTokens: 8192,
         },
       }),
     });
@@ -171,10 +176,39 @@ ${retrievedText}
 
     const resJson = await response.json();
     const candidate = resJson.candidates?.[0];
-    const generatedText = candidate?.content?.parts?.[0]?.text;
+    const finishReason = candidate?.finishReason;
+
+    if (finishReason === 'SAFETY') {
+      return {
+        answer: 'Phản hồi bị giới hạn vì lý do an toàn thông tin theo quy định. Quý công dân vui lòng liên hệ trực tiếp Bộ phận Một cửa.',
+        abstained: true,
+        abstentionReason: 'Gemini safety block policy triggered.',
+        maxSimilarity: searchResult.maxScore,
+        appliedThreshold: 0.78,
+        citations: [],
+        cached: false,
+        responseTimeMs: Math.round(performance.now() - startTime),
+        disclaimer: mandatoryDisclaimer,
+      };
+    }
+
+    const parts = candidate?.content?.parts;
+    let generatedText = '';
+    if (Array.isArray(parts)) {
+      generatedText = parts.map((p: any) => p?.text || '').join('');
+    }
 
     if (!generatedText) {
       throw new Error('Gemini không trả về nội dung hợp lệ.');
+    }
+
+    if (finishReason === 'MAX_TOKENS') {
+      console.warn('Gemini response truncated due to MAX_TOKENS');
+      generatedText += '\n\n*(Nội dung thủ tục rất chi tiết và vượt quá giới hạn hiển thị tự động. Vui lòng liên hệ trực tiếp Bộ phận Một cửa để nhận hướng dẫn và biểu mẫu đầy đủ.)*';
+    }
+
+    if (!generatedText.includes('không thay thế quyết định chính thức')) {
+      generatedText = generatedText.trim() + '\n\n' + mandatoryDisclaimer;
     }
 
     const elapsed = Math.round(performance.now() - startTime);
@@ -198,7 +232,7 @@ ${retrievedText}
       citations,
       cached: false,
       responseTimeMs: elapsed,
-      disclaimer: `Thông tin được tổng hợp thông minh bởi Gemini Flash dựa trên CSDL 40 TTHC chính thức của SmartWard AI tại ${wardName}.`,
+      disclaimer: mandatoryDisclaimer,
     };
   } catch (apiError: any) {
     console.error('Gemini Live API error, falling back to local simulation:', apiError);
