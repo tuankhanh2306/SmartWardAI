@@ -53,3 +53,7 @@ data-pipeline/form-dataset/scans/
 .agents/
 !data-pipeline/**/.gitkeep
 
+# Graphify visualization outputs
+graph.html
+graphify-out/
+

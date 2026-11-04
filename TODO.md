@@ -1,7 +1,7 @@
 # Kế Hoạch & Tiến Độ Thực Hiện Dự Án (Project Sprint Board)
 **Dự án:** SmartWard AI – Hệ thống Hỗ trợ Thủ tục Hành chính và Phân luồng Phản ánh Cấp Phường/Xã  
 **Đơn vị:** Viện Đào tạo Chất lượng cao – Trường Đại học Giao thông vận tải TP.HCM (UTH)  
-**Trạng thái hiện tại:** `Tuần 9 / 12` 🚀 (Đã hoàn thành Tuần 9 - Grid Search & Plots, chuẩn bị sang Tuần 10 - Xây dựng Giao diện Frontend Web/PWA)
+**Trạng thái hiện tại:** `Tuần 10 / 12` 🟢 (Đã hoàn thành Tuần 10 - Xây dựng Giao diện Frontend Web/PWA từ bản thiết kế Google Stitch qua Stitch MCP, chuẩn bị sang Tuần 11 - Đóng gói Docker & Hoàn thiện Báo cáo UTH)
 
 ---
 
@@ -18,7 +18,7 @@
 | **W07** | **Module 4: Zero-Trust Document Vault** | Watermark Java2D, AES-256, MinIO, Redis `GETDEL` | Soạn Chương 3 - Phần 4 (Bảo mật Nghị định 13) | ✅ **HOÀN THÀNH** |
 | **W08** | **Bộ dữ liệu kiểm thử & Evaluation Runner** | 80 câu RAG, 150 phản ánh (GPS noise), 40 tờ khai | Soạn Chương 4 - Phần 1 (Phương pháp thực nghiệm) | ✅ **HOÀN THÀNH** |
 | **W09** | **Chạy Grid Search $(R, \tau)$ & Phân tích lỗi** | Quét lưới, tính Recall@3, MRR, $F_1$, vẽ biểu đồ `evaluation/` | Hoàn thiện Chương 4 (Số liệu & Thảo luận) | ✅ **HOÀN THÀNH** |
-| **W10** | **Frontend Web Responsive / PWA (React + Vite)** | Cổng Công dân (Mobile-first PWA) & Bàn Cán bộ (Desktop) | Hoàn thiện chương thiết kế giao diện | ⏳ Chờ |
+| **W10** | **Frontend Web Responsive / PWA (React + Vite)** | Cổng Công dân (Mobile-first PWA) & Bàn Cán bộ (Desktop) từ Google Stitch MCP | Hoàn thiện chương thiết kế giao diện | ✅ **HOÀN THÀNH** |
 | **W11** | **Đóng gói Docker $< 2\text{GB}$ & Rà soát Báo cáo** | Profile offline, format clean code, test tải, `.env.example` | Hoàn thiện bản thảo nộp GVHD/Mentor | ⏳ Chờ |
 | **W12** | **Slide Thuyết trình 10 trang & Luyện Bảo vệ** | Kịch bản demo 3 phút, Slide bảo vệ UTH | Bảo vệ trước Hội đồng chấm tốt nghiệp | ⏳ Chờ |
 
@@ -128,19 +128,27 @@
 ---
 
 ### 📌 TUẦN 10: XÂY DỰNG GIAO DIỆN WEB RESPONSIVE / PWA (REACT + VITE + TAILWIND)
-- [ ] **Task 10.1:** Khởi tạo project `frontend/` (TypeScript, React, Vite, TailwindCSS, Lucide Icons).
-- [ ] **Task 10.2:** Xây dựng **Cổng Công dân (Route `/citizen` - Mobile-First PWA):**
-  - Giao diện Chatbot tư vấn TTHC (Legal RAG) hiển thị trích dẫn căn cứ pháp lý và cảnh báo an toàn.
-  - Tích hợp HTML5 Camera API để người dân chụp trực tiếp tờ khai trên điện thoại và gửi kiểm tra logic tức thì.
-  - Tích hợp Geolocation API để tự động lấy tọa độ GPS chính xác khi gửi phản ánh sự cố hiện trường.
-- [ ] **Task 10.3:** Xây dựng **Bàn làm việc Cán bộ (Route `/officer` - Desktop Dashboard):**
-  - Bản đồ số sự cố GIS (Leaflet / OpenStreetMap) hiển thị trực quan các cụm phản ánh theo phân loại màu sắc và số lượng người báo.
-  - Bàn sơ duyệt hồ sơ: hiển thị kết quả kiểm tra từng trường thông tin tờ khai.
-  - Modal xem ảnh giấy tờ bảo mật bằng One-time Token tự hủy (vô hiệu hóa ngay sau khi xem).
-- [ ] **Task 10.4:** Bổ sung cấu hình Web App Manifest để Cổng Công dân có thể cài đặt dạng PWA (Add to Home Screen) trên điện thoại di động.
-- [ ] **Task 10.5:** Ghi nhận giải pháp Native Mobile App (React Native/Expo) vào mục "Hướng phát triển tương lai (Future Works)" trong tài liệu và slide.
-- [ ] **Task 10.6:** Soạn thảo nội dung về Thiết kế Giao diện Người dùng trong Báo cáo.
-- [ ] **Task 10.7:** Viết Báo cáo Tiến độ Tuần 10 nộp GVHD và Mentor.
+- [x] **Task 10.1:** Khởi tạo project `frontend/` (TypeScript, React 18, Vite 6, TailwindCSS, Lucide Icons, Leaflet OpenStreetMap). Tích hợp Google Stitch qua `@_davideast/stitch-mcp` (Project ID: `6123300235406367451`).
+- [x] **Task 10.2:** Xây dựng **Cổng Công dân (Route `/citizen` - Mobile-First PWA):**
+  - Giao diện Chatbot tư vấn TTHC (Legal RAG) hiển thị trích dẫn căn cứ pháp lý, popover chi tiết và banner cảnh báo từ chối (Abstention Guardrail).
+  - Khối Bento 4 nút hành động nhanh (Khai sinh, Đăng ký kết hôn, Tạm trú, Xác nhận tình trạng hôn nhân).
+  - Tích hợp kết nối trực tiếp API Backend Spring Boot `/api/v1/rag/ask`.
+- [x] **Task 10.3:** Xây dựng **Tiền kiểm định tờ khai & Báo sự cố (Route `/citizen/form`):**
+  - Form kiểm tra tính hợp lệ CCCD 12 số, ngày cấp thẻ theo mốc 14/25/40/60 tuổi, kiểm tra logic không sinh trước ngày cấp.
+  - Ban hành rõ thông báo quy tắc hành chính: Hệ thống chỉ nhắc nhở người dân sửa bằng bút trên tờ khai giấy, không cho sửa trực tiếp trên màn hình.
+  - Form báo sự cố hiện trường tích hợp Geolocation GPS, phân loại danh mục và hiển thị kết quả phân luồng 2 pha (bán kính $R=75\text{m}$ và độ tương đồng ngữ nghĩa $\tau=0.82$).
+- [x] **Task 10.4:** Xây dựng **Trung tâm chỉ huy GIS Cán bộ (Route `/officer/map`):**
+  - Bản đồ số sự cố GIS (Leaflet / OpenStreetMap) định vị địa bàn Phường 25 (Bình Thạnh).
+  - Hiển thị trực quan các cụm phản ánh theo phân loại màu sắc, vòng tròn bán kính $R=75\text{m}$, số lượng người báo trùng lặp.
+  - Thanh tra điều phối hiện trường: xem chi tiết sự cố, cấp độ ưu tiên và nút điều động lực lượng trật tự đô thị / công an phường.
+- [x] **Task 10.5:** Xây dựng **Bàn sơ duyệt tờ khai (Route `/officer/audit`):**
+  - Bộ hiển thị bản scan tờ khai CT01 và CCCD với lớp Watermark chéo chống giả mạo ("CHỈ DÙNG ĐỂ SƠ DUYỆT TẠI UBND PHƯỜNG 25...").
+  - Hộp nhận diện OCR Bounding Boxes trực quan (Họ tên, Số CCCD, Ngày sinh, Địa chỉ, Chữ ký sinh trắc).
+  - Bảng đối soát từng trường dữ liệu với điểm tin cậy AI 94.2% khớp CSDL Dân cư Quốc gia (Đề án 06).
+  - Widget đồng hồ đếm ngược TTL và nút "Mô phỏng HTTP 410" minh chứng cơ chế Redis `GETDEL` Single-Use Token Vault tuân thủ Nghị định 13/2023/NĐ-CP.
+  - Dock thao tác cố định: Yêu cầu bổ sung (với quick popover lý do), Chuyển lãnh đạo ký số, Chấp thuận sơ duyệt.
+- [x] **Task 10.6:** Bổ sung cấu hình Web App Manifest (`manifest.json`) cho phép cài đặt PWA trên điện thoại và tài liệu hóa giải pháp Native Mobile App trong phần Future Works.
+- [x] **Task 10.7:** Viết Báo cáo Tiến độ Tuần 10 nộp GVHD và Mentor (`docs/weekly-reports/week-10-report.md`).
 
 ---
 

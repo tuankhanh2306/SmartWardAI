@@ -1,0 +1,21 @@
+{
+  "short_name": "SmartWard",
+  "name": "SmartWard AI - Cổng Dịch Vụ Công & Phân Luồng Phản Ánh Cấp Xã",
+  "icons": [
+    {
+      "src": "/pwa-icon.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/pwa-icon.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/citizen",
+  "background_color": "#FAF8FF",
+  "theme_color": "#00236F",
+  "display": "standalone",
+  "orientation": "portrait"
+}

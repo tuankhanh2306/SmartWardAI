@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"on-primary":"#ffffff","surface-bright":"#faf8ff","primary":"#00236f","error-container":"#ffdad6","on-primary-fixed-variant":"#264191","surface-container-lowest":"#ffffff","tertiary":"#00246b","primary-fixed":"#dce1ff","on-tertiary-fixed":"#00174b","surface":"#faf8ff","secondary-fixed":"#acedff","on-tertiary-container":"#8da9ff","surface-tint":"#4059aa","on-primary-fixed":"#00164e","inverse-surface":"#283044","on-surface":"#131b2e","inverse-primary":"#b6c4ff","secondary-container":"#57dffe","on-tertiary":"#ffffff","outline-variant":"#c5c5d3","tertiary-fixed-dim":"#b4c5ff","surface-container-highest":"#dae2fd","surface-container-low":"#f2f3ff","error":"#ba1a1a","tertiary-fixed":"#dbe1ff","tertiary-container":"#00389a","secondary-fixed-dim":"#4cd7f6","on-error-container":"#93000a","primary-container":"#1e3a8a","surface-dim":"#d2d9f4","surface-container":"#eaedff","on-secondary":"#ffffff","outline":"#757682","on-surface-variant":"#444651","on-background":"#131b2e","on-tertiary-fixed-variant":"#003ea8","primary-fixed-dim":"#b6c4ff","background":"#faf8ff","secondary":"#00687a","on-secondary-container":"#006172","on-primary-container":"#90a8ff","on-error":"#ffffff","surface-container-high":"#e2e7ff","on-secondary-fixed":"#001f26","on-secondary-fixed-variant":"#004e5c","inverse-on-surface":"#eef0ff","surface-variant":"#dae2fd"},borderRadius:{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},spacing:{"margin-mobile":"1rem","space-xs":"0.25rem","space-sm":"0.5rem","space-md":"1rem","margin":"2rem","gutter-mobile":"1rem","space-lg":"1.5rem","gutter":"1.5rem","space-xl":"2.5rem"},fontFamily:{"label-lg":["Be Vietnam Pro"],"label-md":["Be Vietnam Pro"],"label-sm":["Be Vietnam Pro"],"headline-sm":["Be Vietnam Pro"],"headline-xl-mobile":["Be Vietnam Pro"],"body-md":["Be Vietnam Pro"],"headline-xl":["Be Vietnam Pro"],"body-sm":["Be Vietnam Pro"],"headline-lg-mobile":["Be Vietnam Pro"],"headline-md":["Be Vietnam Pro"],"headline-lg":["Be Vietnam Pro"],"body-lg":["Be Vietnam Pro"]},fontSize:{"label-lg":["14px",{"lineHeight":"20px","letterSpacing":"0.01em","fontWeight":"600"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"600"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.03em","fontWeight":"500"}],"headline-sm":["16px",{"lineHeight":"24px","fontWeight":"600"}],"headline-xl-mobile":["28px",{"lineHeight":"36px","letterSpacing":"-0.01em","fontWeight":"700"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}],"headline-xl":["36px",{"lineHeight":"44px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-sm":["12px",{"lineHeight":"18px","fontWeight":"400"}],"headline-lg-mobile":["22px",{"lineHeight":"30px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-lg":["28px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}]}}}}</script></head><body class="bg-background font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-gutter flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-sm shrink-0"><img alt="Huy hiệu UBND Phường 25" class="w-9 h-9 rounded-full object-cover shrink-0" src="https://lh3.googleusercontent.com/aida/AEtjO1U8AI6C51D5LmpG6aUTlZl4HnGpbyN2LcUoqFR9mu12K9cJWCRbG9VBZiNkIpoJtvKKESMq0VfsVplG6dp2aRebgNz_c5VNhSOF4aD7X5fcPebdf8VEhf1Pm5Ao1OdmHGFMmkqzYVwixkeNDoLQZIDyEtTwzlx7Js-gHnqPzYYFAfaNDhBENTFkwnrhTYpAY9WuII4YgJWrfYShrd5Zwd6GSkS2eclGN6bi_zI6SuOD"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary uppercase tracking-tight leading-none">UBND PHƯỜNG 25 - HỆ THỐNG SMARTWARD AI</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Bộ phận Một Cửa Số &amp; Điều Hành Hiện Trường</span></div></div><nav class="hidden lg:flex items-center gap-space-xs p-1 bg-surface-container-low rounded-lg" data-active-classes="bg-primary-container text-on-primary font-label-md rounded-lg shadow-sm"><a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface px-space-md py-1.5 rounded-lg transition-colors whitespace-nowrap" data-path="cong-dich-vu-cong-dan" href="#">Cổng Dịch Vụ Công Dân</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface px-space-md py-1.5 rounded-lg transition-colors whitespace-nowrap" data-path="ban-so-duyet-to-khai" href="#">Bàn Sơ Duyệt Tờ Khai</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface px-space-md py-1.5 rounded-lg transition-colors whitespace-nowrap" data-path="trung-tam-chi-huy-hien-truong" href="#">Trung Tâm Chỉ Huy Hiện Trường</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface px-space-md py-1.5 rounded-lg transition-colors whitespace-nowrap" data-path="kho-bao-mat-zero-trust" href="#">Kho Bảo Mật Zero-Trust</a></nav><div class="flex items-center gap-space-md shrink-0"><div class="hidden sm:flex items-center gap-1.5 px-space-sm py-1 bg-surface-container rounded-full"><span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span class="font-label-sm text-label-sm text-secondary font-medium">Hệ thống AI Trực tuyến</span></div><button class="relative p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute -top-1 -right-1 bg-error text-on-error font-label-sm text-[10px] w-4 h-4 rounded-full flex items-center justify-center leading-none font-bold">3</span></button><div class="flex items-center gap-space-sm pl-space-sm"><img alt="Profile" class="w-8 h-8 rounded-full object-cover shrink-0" src="https://lh3.googleusercontent.com/aida/AEtjO1U8AI6C51D5LmpG6aUTlZl4HnGpbyN2LcUoqFR9mu12K9cJWCRbG9VBZiNkIpoJtvKKESMq0VfsVplG6dp2aRebgNz_c5VNhSOF4aD7X5fcPebdf8VEhf1Pm5Ao1OdmHGFMmkqzYVwixkeNDoLQZIDyEtTwzlx7Js-gHnqPzYYFAfaNDhBENTFkwnrhTYpAY9WuII4YgJWrfYShrd5Zwd6GSkS2eclGN6bi_zI6SuOD"/><div class="hidden xl:flex flex-col text-left"><span class="font-label-md text-label-md text-on-surface leading-none">Trần Thị Hương (P.25)</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Cán bộ Một cửa</span></div></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 bg-surface-container-lowest z-40 flex flex-col justify-between py-space-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col gap-space-sm"><div class="px-space-md py-space-xs"><span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Nghiệp Vụ Hành Chính</span></div><nav class="flex flex-col gap-1 px-space-sm" data-active-classes="bg-primary-container text-on-primary font-label-md rounded-lg shadow-sm"><a class="flex items-center gap-space-sm px-space-md py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" data-path="ban-so-duyet-to-khai" href="#"><span class="material-symbols-outlined text-[20px]">fact_check</span>Tiếp nhận &amp; Sơ duyệt</a><a class="flex items-center gap-space-sm px-space-md py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" data-path="trung-tam-chi-huy-hien-truong" href="#"><span class="material-symbols-outlined text-[20px]">map</span>Phân luồng Hiện trường</a><a class="flex items-center gap-space-sm px-space-md py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" data-path="kho-bao-mat-zero-trust" href="#"><span class="material-symbols-outlined text-[20px]">lock</span>Kho Dữ liệu Số P.25</a><a class="flex items-center gap-space-sm px-space-md py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" data-path="bao-cao-thong-ke" href="#"><span class="material-symbols-outlined text-[20px]">bar_chart</span>Báo cáo &amp; Thống kê</a></nav></div><div class="px-space-md flex flex-col gap-space-sm"><div class="p-space-sm rounded-lg bg-surface-container-low"><div class="flex items-center gap-1.5 text-primary mb-1"><span class="material-symbols-outlined text-[16px]">verified_user</span><span class="font-label-sm text-label-sm font-semibold">Bảo Mật Cấp 3</span></div><p class="font-body-sm text-body-sm text-on-surface-variant leading-tight">Xác thực CCCD gắn chip &amp; Dữ liệu VNeID đồng bộ.</p></div><div class="font-body-sm text-body-sm text-on-surface-variant">© 2025 UBND Phường 25</div></div></aside><div class="pl-64"><main class="w-full pt-16 min-h-screen bg-background"><div class="flex flex-col w-full">
+<!-- Top Operational Banner & Zero-Trust Telemetry Ribbon -->
+<section class="p-gutter pb-0">
+<div class="flex flex-col xl:flex-row xl:items-center justify-between gap-space-md p-space-lg bg-surface-container-lowest rounded-xl shadow-sm">
+<div class="flex items-start sm:items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-on-primary shrink-0">
+<span class="material-symbols-outlined text-[28px]" style="font-variation-settings: 'FILL' 1;">policy</span>
+</div>
+<div>
+<div class="flex flex-wrap items-center gap-space-xs">
+<span class="font-headline-md text-headline-md text-primary">Bàn Sơ Duyệt Hồ Sơ Tờ Khai CT01</span>
+<span class="px-space-sm py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm uppercase tracking-wider">Phiên số: 2026.11.04-P25-8841</span>
+</div>
+<div class="flex flex-wrap items-center gap-space-md mt-1 text-on-surface-variant font-body-sm text-body-sm">
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-primary">badge</span>
+              Mã hồ sơ: <strong class="text-on-surface font-semibold">CT01-P25-079095012345</strong>
+</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">verified_user</span>
+              Cán bộ phụ trách: <strong class="text-on-surface font-semibold">Trần Thị Hương (P.25)</strong>
+</span>
+<span class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px] text-secondary">schedule</span>
+              Thời gian khởi tạo: 04/11/2026 08:50:14
+            </span>
+</div>
+</div>
+</div>
+<!-- Zero-Trust Vault Security Status Widget -->
+<div class="flex flex-col lg:flex-row items-stretch lg:items-center gap-space-md p-space-md bg-surface-container-low rounded-xl">
+<div class="flex items-center gap-space-sm">
+<div class="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase font-bold tracking-wider">Kho Bảo Mật Zero-Trust</span>
+<div class="flex items-center gap-1 font-label-md text-label-md text-on-surface">
+<span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-mono text-xs">GET /vault/view/tk_9a8f21cd7</span>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-space-sm pl-0 lg:pl-space-md lg:border-l lg:border-surface-variant/70">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">TTL Liên Kết Tự Hủy</span>
+<span class="font-headline-sm text-headline-sm text-primary font-mono font-bold tracking-tight" id="ttl-counter">23:45:12</span>
+</div>
+<div class="flex flex-col gap-1 items-end">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed font-label-sm text-label-sm font-semibold">
+<span class="material-symbols-outlined text-[14px]">gavel</span>
+              NĐ 13/2023/NĐ-CP
+            </span>
+<button class="font-label-sm text-label-sm text-primary hover:underline flex items-center gap-0.5" id="btn-simulate-410" type="button">
+<span>Mô phỏng HTTP 410</span>
+<span class="material-symbols-outlined text-[14px]">open_in_new</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Side-by-Side Verification Desk Core Canvas -->
+<section class="p-gutter grid grid-cols-1 xl:grid-cols-12 gap-gutter">
+<!-- LEFT PANE: Citizen Original Scan Document Viewer (6 cols) -->
+<div class="xl:col-span-6 flex flex-col bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden">
+<!-- Document Controls & Metatags -->
+<div class="p-space-md bg-surface-container flex flex-wrap items-center justify-between gap-space-sm">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px]">document_scanner</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Tờ Khai CT01 &amp; CCCD Bản Gốc</span>
+<span class="px-2 py-0.5 bg-surface-container-highest text-primary font-label-sm text-label-sm rounded-md font-semibold">Trang 1/2</span>
+</div>
+<!-- Zoom & Filter Toolbar -->
+<div class="flex items-center gap-1 bg-surface-container-lowest p-1 rounded-lg shadow-sm">
+<button class="p-1.5 rounded-md hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" id="btn-zoom-out" title="Thu nhỏ" type="button">
+<span class="material-symbols-outlined text-[18px]">zoom_out</span>
+</button>
+<span class="font-label-sm text-label-sm text-on-surface px-1 font-mono font-bold min-w-[45px] text-center" id="zoom-level">100%</span>
+<button class="p-1.5 rounded-md hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" id="btn-zoom-in" title="Phóng to" type="button">
+<span class="material-symbols-outlined text-[18px]">zoom_in</span>
+</button>
+<div class="w-px h-4 bg-outline-variant/40 mx-1"></div>
+<button class="p-1.5 rounded-md hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" id="btn-rotate" title="Xoay 90°" type="button">
+<span class="material-symbols-outlined text-[18px]">rotate_right</span>
+</button>
+<button class="p-1.5 rounded-md hover:bg-surface-container text-on-surface-variant hover:text-on-surface transition-colors" id="btn-contrast" title="Tăng tương phản" type="button">
+<span class="material-symbols-outlined text-[18px]">contrast</span>
+</button>
+<button class="px-2 py-1 rounded-md bg-surface-container text-primary font-label-sm text-label-sm hover:bg-primary hover:text-on-primary transition-colors flex items-center gap-1" id="btn-bw-filter" title="Bộ lọc OCR Trắng Đen" type="button">
+<span class="material-symbols-outlined text-[16px]">filter_b_and_w</span>
+<span>OCR B/W</span>
+</button>
+</div>
+</div>
+<!-- Scanned Canvas Viewport with Security Watermark -->
+<div class="relative w-full h-[620px] bg-surface-dim overflow-auto flex items-center justify-center p-space-md select-none" id="viewport-container">
+<!-- Scanned Document Simulation Wrapper -->
+<div class="relative w-[500px] h-[700px] bg-white rounded-md shadow-md p-6 overflow-hidden transition-all duration-200" id="scanned-document-sheet">
+<!-- REPEATING DIAGONAL FRAUD-PREVENTION WATERMARK -->
+<div class="absolute inset-0 pointer-events-none z-30 flex flex-col justify-around overflow-hidden opacity-30 select-none">
+<div class="-rotate-45 transform whitespace-nowrap text-error font-mono text-[12px] font-bold tracking-widest uppercase text-center py-4">
+              CHỈ DÙNG ĐỂ SƠ DUYỆT TẠI UBND PHƯỜNG 25 - 04/11/2026 08:50 - CÁN BỘ: TRẦN THỊ HƯƠNG - KHÔNG CÓ GIÁ TRỊ THỰC THI PHÁP LÝ NGOÀI PHIÊN LÀM VIỆC
+            </div>
+<div class="-rotate-45 transform whitespace-nowrap text-error font-mono text-[12px] font-bold tracking-widest uppercase text-center py-4">
+              CHỈ DÙNG ĐỂ SƠ DUYỆT TẠI UBND PHƯỜNG 25 - 04/11/2026 08:50 - CÁN BỘ: TRẦN THỊ HƯƠNG - KHÔNG CÓ GIÁ TRỊ THỰC THI PHÁP LÝ NGOÀI PHIÊN LÀM VIỆC
+            </div>
+<div class="-rotate-45 transform whitespace-nowrap text-error font-mono text-[12px] font-bold tracking-widest uppercase text-center py-4">
+              CHỈ DÙNG ĐỂ SƠ DUYỆT TẠI UBND PHƯỜNG 25 - 04/11/2026 08:50 - CÁN BỘ: TRẦN THỊ HƯƠNG - KHÔNG CÓ GIÁ TRỊ THỰC THI PHÁP LÝ NGOÀI PHIÊN LÀM VIỆC
+            </div>
+<div class="-rotate-45 transform whitespace-nowrap text-error font-mono text-[12px] font-bold tracking-widest uppercase text-center py-4">
+              CHỈ DÙNG ĐỂ SƠ DUYỆT TẠI UBND PHƯỜNG 25 - 04/11/2026 08:50 - CÁN BỘ: TRẦN THỊ HƯƠNG - KHÔNG CÓ GIÁ TRỊ THỰC THI PHÁP LÝ NGOÀI PHIÊN LÀM VIỆC
+            </div>
+</div>
+<!-- Document Header Section -->
+<div class="relative z-10 text-center pb-3">
+<span class="font-label-sm text-[10px] uppercase font-bold text-on-surface block leading-tight">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</span>
+<span class="font-label-sm text-[9px] text-on-surface-variant block font-semibold">Độc lập - Tự do - Hạnh phúc</span>
+<div class="w-16 h-0.5 bg-on-surface mx-auto my-1.5"></div>
+<span class="font-label-lg text-label-lg font-bold text-on-surface block tracking-wide mt-2">TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ</span>
+<span class="font-label-sm text-[10px] text-on-surface-variant italic">(Mẫu CT01 ban hành kèm theo Thông tư số 56/2021/TT-BCA)</span>
+</div>
+<!-- Document Body with Interactive OCR Bounding Boxes -->
+<div class="relative z-10 mt-4 flex flex-col gap-3 font-body-sm text-[11px] leading-tight text-on-surface">
+<div class="flex items-center">
+<span class="font-semibold w-28">Kính gửi:</span>
+<span class="flex-1 font-medium bg-surface-container-high/40 px-1.5 py-0.5 rounded">Công an Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh</span>
+</div>
+<!-- OCR Bounding Box 1: Name -->
+<div class="p-1 rounded bg-secondary/5 relative group cursor-pointer transition-all" id="bbox-name">
+<span class="absolute -top-2.5 right-1 bg-secondary text-on-primary font-mono text-[9px] px-1 py-0.2 rounded font-bold">OCR 99%</span>
+<div class="flex items-baseline">
+<span class="font-semibold w-28 text-on-surface">1. Họ, chữ đệm và tên:</span>
+<span class="font-bold text-primary tracking-wide text-xs">NGUYỄN VĂN AN</span>
+</div>
+</div>
+<!-- OCR Bounding Box 2: DOB & Gender -->
+<div class="p-1 rounded bg-secondary/5 relative group cursor-pointer transition-all" id="bbox-dob">
+<span class="absolute -top-2.5 right-1 bg-secondary text-on-primary font-mono text-[9px] px-1 py-0.2 rounded font-bold">OCR 96%</span>
+<div class="grid grid-cols-2">
+<div class="flex items-baseline">
+<span class="font-semibold w-24 text-on-surface">2. Ngày sinh:</span>
+<span class="font-bold text-on-surface">15/08/1995</span>
+</div>
+<div class="flex items-baseline">
+<span class="font-semibold w-20 text-on-surface">3. Giới tính:</span>
+<span class="font-bold text-on-surface">Nam</span>
+</div>
+</div>
+</div>
+<!-- OCR Bounding Box 3: Citizen ID -->
+<div class="p-1 rounded bg-secondary/5 relative group cursor-pointer transition-all" id="bbox-id">
+<span class="absolute -top-2.5 right-1 bg-secondary text-on-primary font-mono text-[9px] px-1 py-0.2 rounded font-bold">OCR 98.7%</span>
+<div class="grid grid-cols-2">
+<div class="flex items-baseline">
+<span class="font-semibold w-24 text-on-surface">4. Số ĐDCN/CCCD:</span>
+<span class="font-mono font-bold text-primary">079095012345</span>
+</div>
+<div class="flex items-baseline">
+<span class="font-semibold w-20 text-on-surface">5. Ngày cấp:</span>
+<span class="font-bold text-on-surface">20/09/2021</span>
+</div>
+</div>
+</div>
+<!-- OCR Bounding Box 4: Address -->
+<div class="p-1 rounded bg-secondary/5 relative group cursor-pointer transition-all" id="bbox-address">
+<span class="absolute -top-2.5 right-1 bg-secondary text-on-primary font-mono text-[9px] px-1 py-0.2 rounded font-bold">OCR 93.4%</span>
+<div class="flex items-baseline">
+<span class="font-semibold w-28 text-on-surface">6. Nơi thường trú:</span>
+<span class="font-bold text-on-surface">Số 15 Võ Oanh, Phường 25, Bình Thạnh, TP.HCM</span>
+</div>
+</div>
+<div class="flex items-baseline">
+<span class="font-semibold w-28 text-on-surface">7. Nội dung đề nghị:</span>
+<span class="font-medium text-on-surface">Đăng ký thường trú theo diện chuyển chỗ ở hợp pháp</span>
+</div>
+<!-- Scanned Signature Sample Area -->
+<div class="mt-8 pt-4 grid grid-cols-2 text-center">
+<div>
+<span class="font-label-sm text-[10px] text-on-surface-variant block">Ý KIẾN CỦA CHỦ HỘ</span>
+<span class="text-[9px] italic text-on-surface-variant block">(Ký, ghi rõ họ tên)</span>
+<div class="h-16 flex items-center justify-center font-serif italic text-primary/70 text-lg">
+                  Nguyễn Văn Tuấn
+                </div>
+</div>
+<div>
+<span class="font-label-sm text-[10px] text-on-surface block font-semibold">NGƯỜI KÊ KHAI</span>
+<span class="text-[9px] italic text-on-surface-variant block">(Ký, ghi rõ họ tên)</span>
+<!-- Interactive Signature Box -->
+<div class="h-16 flex items-center justify-center font-serif italic text-primary text-xl font-bold p-1 rounded bg-secondary/5 relative group cursor-pointer" id="bbox-signature">
+<span class="absolute -top-2 right-1 bg-secondary text-on-primary font-mono text-[9px] px-1 py-0.2 rounded font-bold">Match 98%</span>
+                  Nguyễn Văn An
+                </div>
+</div>
+</div>
+<!-- Official Seal Footprint -->
+<div class="flex items-center justify-between text-[9px] text-on-surface-variant mt-2 pt-2">
+<span class="font-mono">MÃ KIỂM TRA ĐIỆN TỬ: 7F82-D09B-12C4</span>
+<span>Được số hóa bởi Hệ thống SmartWard AI</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Scanned Thumbnail Quick Navigation Strip -->
+<div class="p-space-sm bg-surface-container-low flex items-center gap-space-sm overflow-x-auto">
+<div class="flex items-center gap-space-xs shrink-0 px-space-sm py-1 bg-surface-container-lowest rounded-lg shadow-sm">
+<span class="w-2 h-2 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm font-semibold text-primary">Tài liệu kèm theo:</span>
+</div>
+<div class="flex items-center gap-space-sm shrink-0">
+<div class="flex items-center gap-space-xs p-1.5 bg-primary-container text-on-primary rounded-lg cursor-pointer">
+<span class="material-symbols-outlined text-[16px]">description</span>
+<span class="font-label-sm text-label-sm font-medium">Bản scan CT01 (2 trang)</span>
+</div>
+<div class="flex items-center gap-space-xs p-1.5 bg-surface-container-lowest hover:bg-surface-container rounded-lg cursor-pointer transition-colors text-on-surface">
+<span class="material-symbols-outlined text-[16px] text-secondary">credit_card</span>
+<span class="font-label-sm text-label-sm">CCCD Gắn Chip (2 mặt)</span>
+</div>
+<div class="flex items-center gap-space-xs p-1.5 bg-surface-container-lowest hover:bg-surface-container rounded-lg cursor-pointer transition-colors text-on-surface">
+<span class="material-symbols-outlined text-[16px] text-secondary">home</span>
+<span class="font-label-sm text-label-sm">Hợp đồng thuê nhà / Sổ hồng</span>
+</div>
+</div>
+</div>
+</div>
+<!-- RIGHT PANE: AI Rule Engine Audit Report (6 cols) -->
+<div class="xl:col-span-6 flex flex-col gap-space-md">
+<!-- OCR AI Health Confidence Banner -->
+<div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm">
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<!-- Inline SVG Gauge for 94.2% AI Confidence -->
+<div class="relative w-16 h-16 shrink-0 flex items-center justify-center">
+<svg class="w-16 h-16 transform -rotate-90" viewbox="0 0 36 36">
+<path class="text-surface-container-high" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-width="3.5"></path>
+<path class="text-secondary transition-all duration-1000 ease-out" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="currentColor" stroke-dasharray="94.2, 100" stroke-linecap="round" stroke-width="3.5"></path>
+</svg>
+<div class="absolute inset-0 flex items-center justify-center font-headline-sm text-headline-sm font-bold text-primary">
+                94.2%
+              </div>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">Tổng Điểm Tin Cậy OCR: 94.2%</span>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-bold">ĐẠT CHUẨN SƠ DUYỆT</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+                Được AI Rule Engine Phường 25 tự động đối chiếu chéo thời gian thực với CSDL Dân cư Quốc gia (Đề án 06/CP).
+              </p>
+</div>
+</div>
+<div class="flex sm:flex-col items-center sm:items-end justify-between shrink-0">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Trạng thái xác thực</span>
+<span class="font-label-md text-label-md text-secondary font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">check_circle</span> 4/4 Trường Hợp Lệ
+            </span>
+</div>
+</div>
+</div>
+<!-- Field-by-Field Cross Verification Audit Table -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex-1 flex flex-col">
+<div class="px-space-lg py-space-md bg-surface-container flex items-center justify-between">
+<div class="flex items-center gap-space-sm">
+<span class="material-symbols-outlined text-primary text-[20px]">fact_check</span>
+<span class="font-headline-sm text-headline-sm text-on-surface">Bảng Đối Soát Từng Trường Dữ Liệu</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Hover vào dòng để định vị toạ độ scan</span>
+</div>
+<div class="divide-y divide-surface-container-low flex-1 overflow-y-auto">
+<!-- Field Row 1: Full Name -->
+<div class="p-space-md hover:bg-surface-container-low/50 transition-colors cursor-pointer group" onmouseenter="highlightScanBox('name')" onmouseleave="clearScanHighlights()">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[22px] shrink-0 mt-0.5" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase font-semibold">1. Họ và tên công dân</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container font-mono text-[10px] text-on-surface font-semibold">99.1% conf.</span>
+</div>
+<div class="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+<span class="font-headline-sm text-headline-sm text-primary font-bold">NGUYỄN VĂN AN</span>
+<span class="text-on-surface-variant font-body-sm text-body-sm flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-secondary">cloud_done</span>
+                      Khớp 100% CSDL Dân cư Quốc gia
+                    </span>
+</div>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold shrink-0">Hợp Lệ</span>
+</div>
+</div>
+<!-- Field Row 2: CCCD Number & Logic Decoding -->
+<div class="p-space-md hover:bg-surface-container-low/50 transition-colors cursor-pointer group" onmouseenter="highlightScanBox('id')" onmouseleave="clearScanHighlights()">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[22px] shrink-0 mt-0.5" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase font-semibold">2. Số CCCD Gắn Chip</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container font-mono text-[10px] text-on-surface font-semibold">98.7% conf.</span>
+</div>
+<div class="mt-1">
+<span class="font-headline-sm text-headline-sm font-mono text-primary font-bold tracking-wider">079095012345</span>
+</div>
+<!-- AI Logic Breakdown -->
+<div class="mt-2 p-space-sm bg-surface-container-low rounded-lg flex flex-wrap items-center gap-2 text-on-surface font-body-sm text-body-sm">
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-highest font-mono text-xs">
+                      Mã tỉnh: <strong class="text-primary">079</strong> (TP.HCM)
+                    </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-highest font-mono text-xs">
+                      Mã giới tính/thế kỷ: <strong class="text-primary">0</strong> (Nam, TK 20)
+                    </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-highest font-mono text-xs">
+                      Năm sinh: <strong class="text-primary">95</strong> (1995)
+                    </span>
+<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-surface-container-highest font-mono text-xs">
+                      Số ngẫu nhiên: <strong class="text-primary">012345</strong>
+</span>
+</div>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold shrink-0">Hợp Lệ</span>
+</div>
+</div>
+<!-- Field Row 3: DOB & Issue Date Validation -->
+<div class="p-space-md hover:bg-surface-container-low/50 transition-colors cursor-pointer group" onmouseenter="highlightScanBox('dob')" onmouseleave="clearScanHighlights()">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[22px] shrink-0 mt-0.5" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase font-semibold">3. Ngày sinh / Ngày cấp thẻ</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container font-mono text-[10px] text-on-surface font-semibold">96.0% conf.</span>
+</div>
+<div class="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 font-body-md text-body-md">
+<span>Sinh: <strong class="text-on-surface font-semibold">15/08/1995</strong></span>
+<span>Cấp ngày: <strong class="text-on-surface font-semibold">20/09/2021</strong></span>
+<span class="text-on-surface-variant font-body-sm text-body-sm">
+                      (Tuổi cấp thẻ: <strong class="text-primary">26 tuổi</strong> - Đúng mốc quy định 25 tuổi, hợp lệ)
+                    </span>
+</div>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold shrink-0">Hợp Lệ</span>
+</div>
+</div>
+<!-- Field Row 4: Permanent Address -->
+<div class="p-space-md hover:bg-surface-container-low/50 transition-colors cursor-pointer group" onmouseenter="highlightScanBox('address')" onmouseleave="clearScanHighlights()">
+<div class="flex items-start justify-between gap-space-sm">
+<div class="flex items-start gap-space-sm">
+<span class="material-symbols-outlined text-secondary text-[22px] shrink-0 mt-0.5" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<div>
+<div class="flex items-center gap-2">
+<span class="font-label-md text-label-md text-on-surface-variant uppercase font-semibold">4. Nơi thường trú đề nghị</span>
+<span class="px-1.5 py-0.2 rounded bg-surface-container font-mono text-[10px] text-on-surface font-semibold">93.4% conf.</span>
+</div>
+<div class="mt-1">
+<span class="font-headline-sm text-headline-sm text-on-surface font-semibold">Số 15 Võ Oanh, Phường 25, Quận Bình Thạnh, TP.HCM</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+                    Địa chỉ hợp lệ trong địa bàn hành chính Phường 25. Trùng khớp cơ sở dữ liệu số nhà địa chính.
+                  </p>
+</div>
+</div>
+<span class="px-2 py-0.5 rounded-full bg-secondary-fixed text-on-secondary-fixed font-label-sm text-label-sm font-semibold shrink-0">Hợp Lệ</span>
+</div>
+</div>
+</div>
+<!-- Biometric Signature Verification Alert Box -->
+<div class="p-space-md bg-surface-container-low border-t border-surface-container flex items-center justify-between gap-space-sm" onmouseenter="highlightScanBox('signature')" onmouseleave="clearScanHighlights()">
+<div class="flex items-center gap-space-sm">
+<div class="w-10 h-10 rounded-lg bg-secondary/15 flex items-center justify-center text-secondary shrink-0">
+<span class="material-symbols-outlined text-[24px]">draw</span>
+</div>
+<div>
+<div class="flex items-center gap-1.5">
+<span class="font-label-md text-label-md text-on-surface font-bold">Xác Thực Sinh Trắc Chữ Ký Số Hóa:</span>
+<span class="font-label-md text-label-md text-secondary font-bold">Trùng khớp 98%</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">
+                Chữ ký của công dân trùng khớp với hồ sơ cấp CCCD gắn chip lưu tại Bộ Công an.
+              </span>
+</div>
+</div>
+<span class="material-symbols-outlined text-secondary text-[24px]">verified</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Zero-Trust Vault Security Status Component -->
+<section class="px-gutter pb-space-md">
+<div class="p-space-lg bg-surface-container-lowest rounded-xl shadow-sm flex flex-col md:flex-row items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="w-12 h-12 rounded-xl bg-primary-container flex items-center justify-center text-on-primary shrink-0">
+<span class="material-symbols-outlined text-[28px]">enhanced_encryption</span>
+</div>
+<div>
+<div class="flex flex-wrap items-center gap-2">
+<span class="font-headline-sm text-headline-sm text-on-surface font-bold">Mã Khóa Dữ Liệu Tự Động Phường 25</span>
+<span class="px-2 py-0.5 rounded bg-surface-container-high text-primary font-mono font-bold text-xs">AES-256-GCM Ephemeral</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-0.5">
+            Dữ liệu được tải trực tiếp từ Kho Bảo Mật Zero-Trust với cơ chế bảo vệ danh tính công dân. Tất cả lượt truy cập đều được ghi log bất biến vào Sổ cái Kiểm toán An ninh số.
+          </p>
+</div>
+</div>
+<div class="flex items-center gap-space-md shrink-0">
+<div class="text-right">
+<span class="font-label-sm text-label-sm text-on-surface-variant block">Phiên làm việc còn hiệu lực:</span>
+<span class="font-label-md text-label-md text-secondary font-bold">1 Lần Duy Nhất (Single-Use Token)</span>
+</div>
+<div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed">
+<span class="material-symbols-outlined text-[20px]">vpn_key</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Spacer to prevent overlap with sticky action bar -->
+<div class="h-24"></div>
+<!-- FIXED ADMINISTRATIVE ACTION BAR (Bottom Action Dock) -->
+<aside class="fixed bottom-0 right-0 left-64 z-40 bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_-4px_16px_rgba(0,0,0,0.06)] px-gutter py-space-md flex flex-wrap items-center justify-between gap-space-md">
+<!-- Left Action Metadata -->
+<div class="flex items-center gap-space-md">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-secondary animate-pulse"></span>
+<span class="font-label-md text-label-md text-on-surface font-semibold">Tình trạng hồ sơ:</span>
+<span class="px-2.5 py-1 rounded-md bg-secondary-fixed text-on-secondary-fixed font-label-md text-label-md font-bold">SẴN SÀNG DUYỆT</span>
+</div>
+<span class="hidden md:inline font-body-sm text-body-sm text-on-surface-variant">
+        Tất cả 4/4 tiêu chí đều đạt điểm tin cậy trên 90%.
+      </span>
+</div>
+<!-- Interactive Decision Buttons -->
+<div class="flex items-center gap-space-sm relative">
+<!-- Button 2: Yêu cầu bổ sung with quick popover -->
+<div class="relative">
+<button class="h-10 px-space-md bg-error text-on-error hover:bg-error/90 font-label-md text-label-md rounded-lg shadow-sm flex items-center gap-1.5 transition-all" id="btn-request-supplement" type="button">
+<span class="material-symbols-outlined text-[18px]">edit_document</span>
+<span>Yêu Cầu Bổ Sung</span>
+<span class="material-symbols-outlined text-[16px]">expand_less</span>
+</button>
+<!-- Quick Selection Popover for Officer -->
+<div class="hidden absolute bottom-12 right-0 w-80 bg-surface-container-lowest rounded-xl shadow-xl p-space-md flex flex-col gap-space-sm z-50" id="supplement-popover">
+<div class="flex items-center justify-between pb-2">
+<span class="font-headline-sm text-headline-sm text-on-surface">Lý do yêu cầu bổ sung</span>
+<button class="text-on-surface-variant hover:text-on-surface" id="btn-close-popover" type="button">
+<span class="material-symbols-outlined text-[18px]">close</span>
+</button>
+</div>
+<div class="flex flex-col gap-1.5 font-body-sm text-body-sm">
+<label class="flex items-center gap-2 p-1.5 rounded hover:bg-surface-container-low cursor-pointer">
+<input class="w-4 h-4 rounded text-primary focus:ring-primary" type="checkbox"/>
+<span>Thiếu giấy xác nhận tình trạng hôn nhân</span>
+</label>
+<label class="flex items-center gap-2 p-1.5 rounded hover:bg-surface-container-low cursor-pointer">
+<input class="w-4 h-4 rounded text-primary focus:ring-primary" type="checkbox"/>
+<span>Ảnh scan bị cắt góc / mờ thông tin</span>
+</label>
+<label class="flex items-center gap-2 p-1.5 rounded hover:bg-surface-container-low cursor-pointer">
+<input class="w-4 h-4 rounded text-primary focus:ring-primary" type="checkbox"/>
+<span>Sai thông tin nơi sinh so với CCCD</span>
+</label>
+<label class="flex items-center gap-2 p-1.5 rounded hover:bg-surface-container-low cursor-pointer">
+<input class="w-4 h-4 rounded text-primary focus:ring-primary" type="checkbox"/>
+<span>Chưa có văn bản đồng ý của chủ sở hữu nhà</span>
+</label>
+</div>
+<textarea class="w-full h-16 p-2 rounded-lg bg-surface-container-low font-body-sm text-body-sm text-on-surface focus:outline-none focus:ring-1 focus:ring-primary resize-none mt-1" placeholder="Ghi chú thêm cho công dân..."></textarea>
+<button class="w-full h-9 bg-error text-on-error rounded-lg font-label-md text-label-md font-semibold hover:bg-error/90 transition-colors mt-1" id="btn-submit-supplement" type="button">
+            Gửi thông báo qua VNeID &amp; SMS
+          </button>
+</div>
+</div>
+<!-- Button 3: Chuyển Lãnh Đạo Ký Số -->
+<button class="h-10 px-space-md bg-surface-container-high text-primary hover:bg-surface-container-highest font-label-md text-label-md rounded-lg transition-colors flex items-center gap-1.5" id="btn-forward-leader" type="button">
+<span class="material-symbols-outlined text-[18px]">forward_to_inbox</span>
+<span>Chuyển Lãnh Đạo Ký Số</span>
+</button>
+<!-- Button 1: Chấp thuận sơ duyệt (Emerald Button) -->
+<button class="h-10 px-space-lg bg-primary text-on-primary hover:bg-primary-container font-label-md text-label-md rounded-lg shadow-sm flex items-center gap-2 transition-all" id="btn-approve-dossier" type="button">
+<span class="material-symbols-outlined text-[20px]" style="font-variation-settings: 'FILL' 1;">task_alt</span>
+<span class="tracking-wide">Chấp Thuận Sơ Duyệt - Đủ Điều Kiện Nộp Chính Thức</span>
+</button>
+</div>
+</aside>
+<!-- HTTP 410 Gone Demonstration Modal / Toast -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-inverse-surface/60 backdrop-blur-sm p-4" id="modal-http-410">
+<div class="bg-surface-container-lowest max-w-md w-full rounded-2xl p-space-xl shadow-2xl flex flex-col items-center text-center">
+<div class="w-16 h-16 rounded-full bg-error-container text-error flex items-center justify-center mb-space-md">
+<span class="material-symbols-outlined text-[36px]">link_off</span>
+</div>
+<span class="px-2.5 py-0.5 rounded-full bg-error-container text-on-error-container font-mono text-xs font-bold uppercase mb-2">
+        HTTP 410 GONE - TOKEN EXPIRED
+      </span>
+<h3 class="font-headline-md text-headline-md text-on-surface font-bold">
+        Liên Kết Đã Tự Hủy Vĩnh Viễn
+      </h3>
+<p class="font-body-md text-body-md text-on-surface-variant mt-space-sm">
+        Theo quy chuẩn Zero-Trust của UBND Phường 25 và Nghị định 13/2023/NĐ-CP, token dùng một lần <code class="font-mono text-xs bg-surface-container px-1 py-0.5 rounded">tk_9a8f21cd7</code> đã tự động thu hồi và tiêu hủy toàn bộ cache trong RAM.
+      </p>
+<div class="mt-space-lg p-space-md bg-surface-container-low rounded-xl w-full text-left font-mono text-xs text-on-surface-variant">
+<div><strong>Timestamp:</strong> 2026-11-04T08:50:38.102Z</div>
+<div><strong>Action:</strong> Ephemeral token auto-purge</div>
+<div><strong>Status:</strong> Purged from memory</div>
+</div>
+<button class="mt-space-lg w-full h-11 bg-primary text-on-primary font-label-md text-label-md rounded-xl hover:bg-primary-container transition-colors" id="btn-close-410" type="button">
+        Đóng Thông Báo &amp; Tái Cấp Quyền Truy Cập
+      </button>
+</div>
+</div>
+<!-- Approval Success Toast (Hidden initially) -->
+<div class="hidden fixed top-20 right-8 z-50 bg-primary text-on-primary p-space-md rounded-xl shadow-xl flex items-center gap-space-md transition-all" id="approval-toast">
+<span class="material-symbols-outlined text-[28px]">check_circle</span>
+<div>
+<h4 class="font-headline-sm text-headline-sm font-bold">Đã Phê Duyệt Sơ Duyệt Thành Công!</h4>
+<p class="font-body-sm text-body-sm text-surface-container-high">Hồ sơ CT01-P25-079095012345 đã được chuyển tiếp vào Hệ thống Tiếp nhận Chính thức.</p>
+</div>
+</div>
+</div>
+<script>
+  // Dynamic Zoom & Rotate State
+  let currentZoom = 100;
+  let currentRotation = 0;
+  let isBW = false;
+  let isContrast = false;
+
+  const docSheet = document.getElementById('scanned-document-sheet');
+  const zoomText = document.getElementById('zoom-level');
+
+  function updateDocTransform() {
+    docSheet.style.transform = `scale(${currentZoom / 100}) rotate(${currentRotation}deg)`;
+    zoomText.textContent = `${currentZoom}%`;
+  }
+
+  document.getElementById('btn-zoom-in').addEventListener('click', () => {
+    if (currentZoom < 180) {
+      currentZoom += 25;
+      updateDocTransform();
+    }
+  });
+
+  document.getElementById('btn-zoom-out').addEventListener('click', () => {
+    if (currentZoom > 75) {
+      currentZoom -= 25;
+      updateDocTransform();
+    }
+  });
+
+  document.getElementById('btn-rotate').addEventListener('click', () => {
+    currentRotation = (currentRotation + 90) % 360;
+    updateDocTransform();
+  });
+
+  document.getElementById('btn-bw-filter').addEventListener('click', () => {
+    isBW = !isBW;
+    applyFilters();
+  });
+
+  document.getElementById('btn-contrast').addEventListener('click', () => {
+    isContrast = !isContrast;
+    applyFilters();
+  });
+
+  function applyFilters() {
+    let filterString = '';
+    if (isBW) filterString += 'grayscale(100%) ';
+    if (isContrast) filterString += 'contrast(160%) brightness(95%) ';
+    docSheet.style.filter = filterString.trim();
+  }
+
+  // Cross-Field Hover Spotlighting
+  const bboxMap = {
+    'name': document.getElementById('bbox-name'),
+    'id': document.getElementById('bbox-id'),
+    'dob': document.getElementById('bbox-dob'),
+    'address': document.getElementById('bbox-address'),
+    'signature': document.getElementById('bbox-signature')
+  };
+
+  window.highlightScanBox = function(key) {
+    clearScanHighlights();
+    const target = bboxMap[key];
+    if (target) {
+      target.classList.add('bg-secondary-fixed/50', 'ring-2', 'ring-secondary', 'scale-[1.02]');
+    }
+  };
+
+  window.clearScanHighlights = function() {
+    Object.values(bboxMap).forEach(box => {
+      if (box) {
+        box.classList.remove('bg-secondary-fixed/50', 'ring-2', 'ring-secondary', 'scale-[1.02]');
+      }
+    });
+  };
+
+  // TTL Countdown Timer Simulation
+  let hours = 23, minutes = 45, seconds = 12;
+  const ttlElement = document.getElementById('ttl-counter');
+
+  setInterval(() => {
+    if (seconds > 0) {
+      seconds--;
+    } else {
+      if (minutes > 0) {
+        minutes--;
+        seconds = 59;
+      } else if (hours > 0) {
+        hours--;
+        minutes = 59;
+        seconds = 59;
+      }
+    }
+    const h = String(hours).padStart(2, '0');
+    const m = String(minutes).padStart(2, '0');
+    const s = String(seconds).padStart(2, '0');
+    ttlElement.textContent = `${h}:${m}:${s}`;
+  }, 1000);
+
+  // HTTP 410 Gone Modal Logic
+  const modal410 = document.getElementById('modal-http-410');
+  document.getElementById('btn-simulate-410').addEventListener('click', () => {
+    modal410.classList.remove('hidden');
+  });
+
+  document.getElementById('btn-close-410').addEventListener('click', () => {
+    modal410.classList.add('hidden');
+  });
+
+  // Supplement Popover Logic
+  const popover = document.getElementById('supplement-popover');
+  const btnSupplement = document.getElementById('btn-request-supplement');
+  const btnClosePopover = document.getElementById('btn-close-popover');
+  const btnSubmitSupplement = document.getElementById('btn-submit-supplement');
+
+  btnSupplement.addEventListener('click', (e) => {
+    e.stopPropagation();
+    popover.classList.toggle('hidden');
+  });
+
+  btnClosePopover.addEventListener('click', () => {
+    popover.classList.add('hidden');
+  });
+
+  btnSubmitSupplement.addEventListener('click', () => {
+    popover.classList.add('hidden');
+    alert('Đã gửi thông báo yêu cầu bổ sung hồ sơ tới ứng dụng VNeID của công dân Nguyễn Văn An!');
+  });
+
+  // Dossier Approval Simulation
+  const btnApprove = document.getElementById('btn-approve-dossier');
+  const toast = document.getElementById('approval-toast');
+
+  btnApprove.addEventListener('click', () => {
+    toast.classList.remove('hidden');
+    btnApprove.disabled = true;
+    btnApprove.classList.add('opacity-75');
+    btnApprove.innerHTML = `<span class="material-symbols-outlined text-[20px]">done_all</span><span>Đã Chấp Thuận Sơ Duyệt</span>`;
+    
+    setTimeout(() => {
+      toast.classList.add('hidden');
+    }, 4500);
+  });
+
+  // Forward to Leader
+  document.getElementById('btn-forward-leader').addEventListener('click', () => {
+    alert('Hồ sơ đã được mã hóa và chuyển vào danh sách chờ ký số của Chủ tịch UBND Phường 25!');
+  });
+</script></main></div></body></html>

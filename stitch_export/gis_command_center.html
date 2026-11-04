@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+
+<html lang="vi"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="web_dashboard" name="shell-type"/><link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/><style>@layer base{html,body{margin:0;padding:0;}body{overscroll-behavior:none;}main>:first-child{margin-top:0!important;}main>:last-child{margin-bottom:0!important;}}::-webkit-scrollbar{display:none;}</style><script src="https://cdn.tailwindcss.com"></script><script id="tailwind-config">tailwind.config={darkMode:"class",theme:{extend:{colors:{"on-primary":"#ffffff","surface-bright":"#faf8ff","primary":"#00236f","error-container":"#ffdad6","on-primary-fixed-variant":"#264191","surface-container-lowest":"#ffffff","tertiary":"#00246b","primary-fixed":"#dce1ff","on-tertiary-fixed":"#00174b","surface":"#faf8ff","secondary-fixed":"#acedff","on-tertiary-container":"#8da9ff","surface-tint":"#4059aa","on-primary-fixed":"#00164e","inverse-surface":"#283044","on-surface":"#131b2e","inverse-primary":"#b6c4ff","secondary-container":"#57dffe","on-tertiary":"#ffffff","outline-variant":"#c5c5d3","tertiary-fixed-dim":"#b4c5ff","surface-container-highest":"#dae2fd","surface-container-low":"#f2f3ff","error":"#ba1a1a","tertiary-fixed":"#dbe1ff","tertiary-container":"#00389a","secondary-fixed-dim":"#4cd7f6","on-error-container":"#93000a","primary-container":"#1e3a8a","surface-dim":"#d2d9f4","surface-container":"#eaedff","on-secondary":"#ffffff","outline":"#757682","on-surface-variant":"#444651","on-background":"#131b2e","on-tertiary-fixed-variant":"#003ea8","primary-fixed-dim":"#b6c4ff","background":"#faf8ff","secondary":"#00687a","on-secondary-container":"#006172","on-primary-container":"#90a8ff","on-error":"#ffffff","surface-container-high":"#e2e7ff","on-secondary-fixed":"#001f26","on-secondary-fixed-variant":"#004e5c","inverse-on-surface":"#eef0ff","surface-variant":"#dae2fd"},borderRadius:{"DEFAULT":"0.125rem","lg":"0.25rem","xl":"0.5rem","full":"0.75rem"},spacing:{"margin-mobile":"1rem","space-xs":"0.25rem","space-sm":"0.5rem","space-md":"1rem","margin":"2rem","gutter-mobile":"1rem","space-lg":"1.5rem","gutter":"1.5rem","space-xl":"2.5rem"},fontFamily:{"label-lg":["Be Vietnam Pro"],"label-md":["Be Vietnam Pro"],"label-sm":["Be Vietnam Pro"],"headline-sm":["Be Vietnam Pro"],"headline-xl-mobile":["Be Vietnam Pro"],"body-md":["Be Vietnam Pro"],"headline-xl":["Be Vietnam Pro"],"body-sm":["Be Vietnam Pro"],"headline-lg-mobile":["Be Vietnam Pro"],"headline-md":["Be Vietnam Pro"],"headline-lg":["Be Vietnam Pro"],"body-lg":["Be Vietnam Pro"]},fontSize:{"label-lg":["14px",{"lineHeight":"20px","letterSpacing":"0.01em","fontWeight":"600"}],"label-md":["12px",{"lineHeight":"16px","letterSpacing":"0.02em","fontWeight":"600"}],"label-sm":["11px",{"lineHeight":"14px","letterSpacing":"0.03em","fontWeight":"500"}],"headline-sm":["16px",{"lineHeight":"24px","fontWeight":"600"}],"headline-xl-mobile":["28px",{"lineHeight":"36px","letterSpacing":"-0.01em","fontWeight":"700"}],"body-md":["14px",{"lineHeight":"22px","fontWeight":"400"}],"headline-xl":["36px",{"lineHeight":"44px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-sm":["12px",{"lineHeight":"18px","fontWeight":"400"}],"headline-lg-mobile":["22px",{"lineHeight":"30px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-md":["20px",{"lineHeight":"28px","letterSpacing":"-0.01em","fontWeight":"600"}],"headline-lg":["28px",{"lineHeight":"36px","letterSpacing":"-0.02em","fontWeight":"700"}],"body-lg":["16px",{"lineHeight":"26px","fontWeight":"400"}]}}}}</script></head><body class="bg-background font-body-md text-on-surface antialiased"><header class="fixed top-0 left-0 right-0 z-50 bg-surface-container-lowest/95 backdrop-blur-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="h-16 w-full px-gutter flex items-center justify-between gap-space-md"><div class="flex items-center gap-space-sm shrink-0"><img alt="Huy hiệu UBND Phường 25" class="w-9 h-9 rounded-full object-cover shrink-0" src="https://lh3.googleusercontent.com/aida/AEtjO1U8AI6C51D5LmpG6aUTlZl4HnGpbyN2LcUoqFR9mu12K9cJWCRbG9VBZiNkIpoJtvKKESMq0VfsVplG6dp2aRebgNz_c5VNhSOF4aD7X5fcPebdf8VEhf1Pm5Ao1OdmHGFMmkqzYVwixkeNDoLQZIDyEtTwzlx7Js-gHnqPzYYFAfaNDhBENTFkwnrhTYpAY9WuII4YgJWrfYShrd5Zwd6GSkS2eclGN6bi_zI6SuOD"/><div class="flex flex-col"><span class="font-headline-sm text-headline-sm text-primary uppercase tracking-tight leading-none">UBND PHƯỜNG 25 - HỆ THỐNG SMARTWARD AI</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Bộ phận Một Cửa Số &amp; Điều Hành Hiện Trường</span></div></div><nav class="hidden lg:flex items-center gap-space-xs p-1 bg-surface-container-low rounded-lg" data-active-classes="bg-primary-container text-on-primary font-label-md rounded-lg shadow-sm"><a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface px-space-md py-1.5 rounded-lg transition-colors whitespace-nowrap" data-path="cong-dich-vu-cong-dan" href="#">Cổng Dịch Vụ Công Dân</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface px-space-md py-1.5 rounded-lg transition-colors whitespace-nowrap" data-path="ban-so-duyet-to-khai" href="#">Bàn Sơ Duyệt Tờ Khai</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface px-space-md py-1.5 rounded-lg transition-colors whitespace-nowrap" data-path="trung-tam-chi-huy-hien-truong" href="#">Trung Tâm Chỉ Huy Hiện Trường</a><a class="font-label-md text-label-md text-on-surface-variant hover:text-on-surface px-space-md py-1.5 rounded-lg transition-colors whitespace-nowrap" data-path="kho-bao-mat-zero-trust" href="#">Kho Bảo Mật Zero-Trust</a></nav><div class="flex items-center gap-space-md shrink-0"><div class="hidden sm:flex items-center gap-1.5 px-space-sm py-1 bg-surface-container rounded-full"><span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span><span class="font-label-sm text-label-sm text-secondary font-medium">Hệ thống AI Trực tuyến</span></div><button class="relative p-1.5 rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors"><span class="material-symbols-outlined text-[20px]">notifications</span><span class="absolute -top-1 -right-1 bg-error text-on-error font-label-sm text-[10px] w-4 h-4 rounded-full flex items-center justify-center leading-none font-bold">3</span></button><div class="flex items-center gap-space-sm pl-space-sm"><img alt="Profile" class="w-8 h-8 rounded-full object-cover shrink-0" src="https://lh3.googleusercontent.com/aida/AEtjO1U8AI6C51D5LmpG6aUTlZl4HnGpbyN2LcUoqFR9mu12K9cJWCRbG9VBZiNkIpoJtvKKESMq0VfsVplG6dp2aRebgNz_c5VNhSOF4aD7X5fcPebdf8VEhf1Pm5Ao1OdmHGFMmkqzYVwixkeNDoLQZIDyEtTwzlx7Js-gHnqPzYYFAfaNDhBENTFkwnrhTYpAY9WuII4YgJWrfYShrd5Zwd6GSkS2eclGN6bi_zI6SuOD"/><div class="hidden xl:flex flex-col text-left"><span class="font-label-md text-label-md text-on-surface leading-none">Trần Thị Hương (P.25)</span><span class="font-label-sm text-label-sm text-on-surface-variant leading-tight mt-0.5">Cán bộ Một cửa</span></div></div></div></div></header><aside class="fixed left-0 top-16 bottom-0 w-64 bg-surface-container-lowest z-40 flex flex-col justify-between py-space-md shadow-[0_1px_8px_rgba(0,0,0,0.04)]"><div class="flex flex-col gap-space-sm"><div class="px-space-md py-space-xs"><span class="font-label-sm text-label-sm uppercase tracking-wider text-on-surface-variant font-bold">Nghiệp Vụ Hành Chính</span></div><nav class="flex flex-col gap-1 px-space-sm" data-active-classes="bg-primary-container text-on-primary font-label-md rounded-lg shadow-sm"><a class="flex items-center gap-space-sm px-space-md py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" data-path="ban-so-duyet-to-khai" href="#"><span class="material-symbols-outlined text-[20px]">fact_check</span>Tiếp nhận &amp; Sơ duyệt</a><a class="flex items-center gap-space-sm px-space-md py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" data-path="trung-tam-chi-huy-hien-truong" href="#"><span class="material-symbols-outlined text-[20px]">map</span>Phân luồng Hiện trường</a><a class="flex items-center gap-space-sm px-space-md py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" data-path="kho-bao-mat-zero-trust" href="#"><span class="material-symbols-outlined text-[20px]">lock</span>Kho Dữ liệu Số P.25</a><a class="flex items-center gap-space-sm px-space-md py-2 rounded-lg font-label-md text-label-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high transition-colors" data-path="bao-cao-thong-ke" href="#"><span class="material-symbols-outlined text-[20px]">bar_chart</span>Báo cáo &amp; Thống kê</a></nav></div><div class="px-space-md flex flex-col gap-space-sm"><div class="p-space-sm rounded-lg bg-surface-container-low"><div class="flex items-center gap-1.5 text-primary mb-1"><span class="material-symbols-outlined text-[16px]">verified_user</span><span class="font-label-sm text-label-sm font-semibold">Bảo Mật Cấp 3</span></div><p class="font-body-sm text-body-sm text-on-surface-variant leading-tight">Xác thực CCCD gắn chip &amp; Dữ liệu VNeID đồng bộ.</p></div><div class="font-body-sm text-body-sm text-on-surface-variant">© 2025 UBND Phường 25</div></div></aside><div class="pl-64"><main class="w-full pt-16 min-h-screen bg-background"><div class="flex flex-col w-full">
+<div class="p-space-lg flex flex-col gap-space-md">
+<!-- Top Operations Triage Header Bar -->
+<div class="bg-surface-container-lowest p-space-md rounded-xl shadow-sm flex flex-col xl:flex-row xl:items-center justify-between gap-space-md">
+<div class="flex items-center gap-space-md">
+<div class="w-11 h-11 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-[26px]">spatial_tracking</span>
+</div>
+<div class="flex flex-col">
+<div class="flex items-center gap-space-xs flex-wrap">
+<span class="font-headline-sm text-headline-sm text-primary">TRUNG TÂM CHỈ HUY SPATIAL-SEMANTIC TRIAGE P.25</span>
+<span class="px-space-xs py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm uppercase">GIS AI Live</span>
+<span class="px-space-xs py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-label-sm text-label-sm">Zone: Bình Thạnh - TP.HCM</span>
+</div>
+<span class="font-body-sm text-body-sm text-on-surface-variant">Phân luồng tự động đa cụm bằng mô hình gộp tọa độ bán kính R và Semantic Cosine Matching</span>
+</div>
+</div>
+<!-- Quick Triage Stats Metric Pills -->
+<div class="flex items-center gap-space-sm flex-wrap">
+<div class="flex items-center gap-2 px-space-md py-1.5 rounded-lg bg-surface-container-low">
+<span class="w-2.5 h-2.5 rounded-full bg-error animate-ping"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Khẩn cấp:</span>
+<span class="font-label-lg text-label-lg text-error">01 Cụm (5 tin)</span>
+</div>
+<div class="flex items-center gap-2 px-space-md py-1.5 rounded-lg bg-surface-container-low">
+<span class="w-2.5 h-2.5 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Đang xử lý:</span>
+<span class="font-label-lg text-label-lg text-secondary">02 Cụm</span>
+</div>
+<div class="flex items-center gap-2 px-space-md py-1.5 rounded-lg bg-surface-container-low">
+<span class="w-2.5 h-2.5 rounded-full bg-primary-container"></span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">Đã giải quyết 24h:</span>
+<span class="font-label-lg text-label-lg text-primary">14 Vụ</span>
+</div>
+</div>
+</div>
+<!-- Main Command Layout: Left GIS (65%) | Right Inspector (35%) -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-space-md">
+<!-- LEFT COLUMN: INTERACTIVE GIS COMMAND VIEW (lg:col-span-8 approx 66%) -->
+<div class="lg:col-span-8 flex flex-col gap-space-sm">
+<!-- GIS Map Canvas Card -->
+<div class="bg-surface-container-lowest rounded-xl shadow-sm overflow-hidden flex flex-col relative h-[780px]">
+<!-- Map Floating Top Filter Bar -->
+<div class="absolute top-space-md left-space-md right-space-md z-30 flex flex-wrap items-center justify-between gap-space-sm bg-surface-container-lowest/90 backdrop-blur-md p-space-sm rounded-lg shadow-md">
+<!-- Radius Filter Switches -->
+<div class="flex items-center gap-1.5">
+<span class="font-label-sm text-label-sm text-on-surface-variant flex items-center gap-1 mr-1">
+<span class="material-symbols-outlined text-[16px] text-primary">radar</span> Bán kính gom:
+              </span>
+<button class="px-space-sm py-1 rounded font-label-sm text-label-sm bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">50m</button>
+<button class="px-space-sm py-1 rounded font-label-sm text-label-sm bg-primary text-on-primary shadow-sm font-semibold" type="button">75m (Tối ưu)</button>
+<button class="px-space-sm py-1 rounded font-label-sm text-label-sm bg-surface-container-high text-on-surface-variant hover:text-on-surface transition-colors" type="button">100m</button>
+</div>
+<!-- Categories and Time Filters -->
+<div class="flex items-center gap-space-xs flex-wrap">
+<div class="flex items-center gap-1 bg-surface-container-low px-space-sm py-1 rounded">
+<span class="material-symbols-outlined text-[15px] text-secondary">category</span>
+<select class="bg-transparent font-label-sm text-label-sm text-on-surface outline-none cursor-pointer">
+<option selected="">Hạ tầng đô thị &amp; Mặt đường</option>
+<option>Môi trường &amp; Rác thải</option>
+<option>Trật tự lòng lề đường</option>
+<option>Tất cả danh mục</option>
+</select>
+</div>
+<div class="flex items-center gap-1 bg-surface-container-low px-space-sm py-1 rounded">
+<span class="material-symbols-outlined text-[15px] text-on-surface-variant">calendar_today</span>
+<select class="bg-transparent font-label-sm text-label-sm text-on-surface outline-none cursor-pointer">
+<option selected="">Hôm nay (24h)</option>
+<option>3 ngày gần nhất</option>
+<option>Tuần này</option>
+</select>
+</div>
+<button class="p-1.5 rounded bg-surface-container hover:bg-surface-container-high text-primary flex items-center justify-center" title="Làm mới tọa độ">
+<span class="material-symbols-outlined text-[18px]">refresh</span>
+</button>
+</div>
+</div>
+<!-- Synthetic GIS Tactical Map Visual Layer -->
+<div class="relative w-full h-full bg-surface-container-low overflow-hidden cursor-crosshair">
+<!-- Real Satellite/Vector map base pipeline -->
+<div class="absolute inset-0 w-full h-full bg-cover bg-center filter saturate-[0.85] contrast-[1.05]" data-location="Võ Oanh, Phường 25, Bình Thạnh, Hồ Chí Minh" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAUUPmUcHMCWoDdnLQIKTO3BMyWHK8DUYNtvTB4FMJH-810K7ILfLVsCA9ExtdFldkhQsmIXCTMhJlhGYr9rEN_fegWuVVDvN0SyIAiaTx_xS44HsPHK-hJJCtsKurYt3s7sLi95S4FiVFEmqcTNOb4BzX_XRP-PlkMtx0SuHMKpC3x_QfZSLjacbGD1i_Fwu_IW5LuoiJrnLMLWhXHzSKUP2zl7enEkdeMviRgAvE')"></div>
+<!-- Vector Ward Grid & Road Overlays -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-80" fill="none" viewbox="0 0 900 750">
+<!-- Administrative boundary P.25 -->
+<polygon class="text-primary/30" fill="transparent" points="40,60 860,40 840,710 70,690" stroke="currentColor" stroke-dasharray="6 4" stroke-width="2"></polygon>
+<!-- Road network arteries -->
+<path class="text-surface-container-lowest" d="M 60 380 Q 420 370 850 420" stroke="currentColor" stroke-linecap="round" stroke-width="12"></path>
+<path class="text-on-surface-variant/40" d="M 60 380 Q 420 370 850 420" stroke="currentColor" stroke-linecap="round" stroke-width="8"></path>
+<!-- Dien Bien Phu Axis -->
+<path class="text-surface-container-lowest" d="M 120 70 L 680 720" stroke="currentColor" stroke-linecap="round" stroke-width="16"></path>
+<path class="text-on-surface-variant/30" d="M 120 70 L 680 720" stroke="currentColor" stroke-linecap="round" stroke-width="10"></path>
+<!-- Ung Van Khiem Route -->
+<path class="text-surface-container-lowest" d="M 700 80 Q 560 360 480 710" stroke="currentColor" stroke-linecap="round" stroke-width="10"></path>
+<path class="text-on-surface-variant/25" d="M 700 80 Q 560 360 480 710" stroke="currentColor" stroke-linecap="round" stroke-width="6"></path>
+<!-- Vo Oanh (D2 old) axis -->
+<path class="text-surface-container-lowest" d="M 330 200 L 460 620" stroke="currentColor" stroke-linecap="round" stroke-width="14"></path>
+<path class="text-primary/40" d="M 330 200 L 460 620" stroke="currentColor" stroke-linecap="round" stroke-width="8"></path>
+</svg>
+<!-- Map Geographic Labels -->
+<div class="absolute top-[28%] left-[16%] pointer-events-none select-none px-2 py-0.5 rounded bg-surface-container-lowest/80 text-on-surface font-label-sm text-[11px] tracking-wide font-bold shadow-sm">
+              ĐƯỜNG ĐIỆN BIÊN PHỦ
+            </div>
+<div class="absolute top-[62%] left-[45%] pointer-events-none select-none px-2 py-0.5 rounded bg-surface-container-lowest/80 text-primary font-label-sm text-[11px] tracking-wide font-bold shadow-sm">
+              ĐƯỜNG VÕ OANH (D2)
+            </div>
+<div class="absolute top-[22%] right-[22%] pointer-events-none select-none px-2 py-0.5 rounded bg-surface-container-lowest/80 text-on-surface font-label-sm text-[11px] tracking-wide font-bold shadow-sm">
+              UNG VĂN KHIÊM
+            </div>
+<div class="absolute bottom-[24%] left-[28%] pointer-events-none select-none px-2 py-0.5 rounded bg-surface-container-lowest/80 text-on-surface-variant font-label-sm text-[11px]">
+              ĐƯỜNG D1 (NGUYỄN GIA TRÍ)
+            </div>
+<!-- CLUSTER 1: CỤM ĐỎ (KHẨN CẤP / CHƯA XỬ LÝ) - ACTIVE STATE: Võ Oanh -->
+<div class="absolute top-[52%] left-[43%] -translate-x-1/2 -translate-y-1/2 group cursor-pointer">
+<!-- Spatial Cluster Radius Buffer R = 75m -->
+<div class="w-48 h-48 rounded-full bg-error/15 border-2 border-dashed border-error animate-pulse flex items-center justify-center relative">
+<!-- Inner acoustic shock wave -->
+<div class="w-32 h-32 rounded-full bg-error/20 absolute"></div>
+<!-- Central Tactical Pin -->
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-10 h-10 rounded-full bg-error text-on-error flex items-center justify-center shadow-lg ring-4 ring-surface-container-lowest font-headline-sm text-headline-sm">
+                    5
+                  </div>
+<!-- Floating Card Marker -->
+<div class="mt-1 px-space-sm py-1 rounded bg-surface-container-lowest shadow-md flex items-center gap-1.5 whitespace-nowrap">
+<span class="w-2 h-2 rounded-full bg-error"></span>
+<span class="font-label-sm text-label-sm text-error font-bold">Ổ gà ngập nước Võ Oanh [R=75m]</span>
+</div>
+</div>
+</div>
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full bg-error text-on-error font-label-sm text-[10px] uppercase font-bold tracking-wider">
+                ĐANG CHỌN
+              </div>
+</div>
+<!-- CLUSTER 2: CỤM VÀNG (ĐANG XỬ LÝ): Ung Văn Khiêm -->
+<div class="absolute top-[32%] right-[24%] -translate-x-1/2 -translate-y-1/2 group cursor-pointer transition-transform hover:scale-105">
+<!-- Spatial Cluster Buffer R=75m -->
+<div class="w-36 h-36 rounded-full bg-secondary/15 border border-secondary/50 flex items-center justify-center relative">
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-8 h-8 rounded-full bg-secondary text-on-secondary flex items-center justify-center shadow-md ring-2 ring-surface-container-lowest font-label-lg text-label-lg">
+                    3
+                  </div>
+<div class="mt-1 px-space-xs py-0.5 rounded bg-surface-container-lowest/90 shadow-sm flex items-center gap-1 whitespace-nowrap">
+<span class="w-1.5 h-1.5 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-secondary">Cành gãy Ung Văn Khiêm</span>
+</div>
+</div>
+</div>
+</div>
+<!-- CLUSTER 3: CỤM XANH LỤC (ĐÃ GIẢI QUYẾT XONG): Hẻm 48 Điện Biên Phủ -->
+<div class="absolute top-[26%] left-[26%] -translate-x-1/2 -translate-y-1/2 group cursor-pointer transition-transform hover:scale-105">
+<div class="w-28 h-28 rounded-full bg-primary-container/15 border border-primary/30 flex items-center justify-center relative">
+<div class="relative z-10 flex flex-col items-center">
+<div class="w-7 h-7 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-md ring-2 ring-surface-container-lowest font-label-md text-label-md">
+                    2
+                  </div>
+<div class="mt-1 px-space-xs py-0.5 rounded bg-surface-container-lowest/90 shadow-sm flex items-center gap-1 whitespace-nowrap">
+<span class="material-symbols-outlined text-[13px] text-primary">check_circle</span>
+<span class="font-label-sm text-label-sm text-on-surface">Đèn ngõ 48 ĐBP [Đã xong]</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Tactical Map Controls (Right-Bottom Corner) -->
+<div class="absolute bottom-space-md right-space-md z-30 flex flex-col gap-1.5 bg-surface-container-lowest p-1.5 rounded-lg shadow-md">
+<button class="w-8 h-8 flex items-center justify-center rounded text-on-surface hover:bg-surface-container-high transition-colors" title="Phóng to">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded text-on-surface hover:bg-surface-container-high transition-colors" title="Thu nhỏ">
+<span class="material-symbols-outlined text-[20px]">remove</span>
+</button>
+<div class="h-px bg-surface-container"></div>
+<button class="w-8 h-8 flex items-center justify-center rounded text-primary hover:bg-surface-container-high transition-colors" title="Định vị Trung tâm P.25">
+<span class="material-symbols-outlined text-[20px]">my_location</span>
+</button>
+<button class="w-8 h-8 flex items-center justify-center rounded text-on-surface hover:bg-surface-container-high transition-colors" title="Bật lớp ảnh vệ tinh">
+<span class="material-symbols-outlined text-[20px]">layers</span>
+</button>
+</div>
+<!-- Legend Overlay (Bottom Left) -->
+<div class="absolute bottom-space-md left-space-md z-30 bg-surface-container-lowest/95 backdrop-blur p-space-sm rounded-lg shadow-md flex items-center gap-space-md">
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded-full bg-error"></span>
+<span class="font-label-sm text-label-sm text-on-surface">Khẩn cấp (Chưa phân công)</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded-full bg-secondary"></span>
+<span class="font-label-sm text-label-sm text-on-surface">Đang xử lý</span>
+</div>
+<div class="flex items-center gap-1.5">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="font-label-sm text-label-sm text-on-surface">Hoàn tất</span>
+</div>
+<span class="text-on-surface-variant font-label-sm text-label-sm">| Buffer: R = 75m</span>
+</div>
+</div>
+</div>
+<!-- Quick Action Sub-bar below Map -->
+<div class="bg-surface-container-lowest p-space-sm rounded-xl shadow-sm flex items-center justify-between text-on-surface-variant">
+<div class="flex items-center gap-space-sm text-body-sm font-body-sm">
+<span class="material-symbols-outlined text-[18px] text-primary">info</span>
+<span>Hệ thống tự động đồng bộ phản ánh từ Cổng Dịch vụ công, Tổng đài 1022 và Zalo Mini App UBND P.25.</span>
+</div>
+<span class="font-label-sm text-label-sm text-primary font-semibold">Tần suất làm mới: 15s</span>
+</div>
+</div>
+<!-- RIGHT COLUMN: INCIDENT CLUSTER INSPECTOR DRAWER (lg:col-span-4 approx 34%) -->
+<div class="lg:col-span-4 flex flex-col gap-space-md">
+<div class="bg-surface-container-lowest rounded-xl shadow-sm p-space-md flex flex-col gap-space-md">
+<!-- Cluster Title & AI Matching Badge -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between gap-space-sm">
+<span class="px-space-xs py-0.5 rounded bg-error/10 text-error font-label-sm text-label-sm uppercase font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">warning</span>
+                Cụm sự cố #P25-0814
+              </span>
+<!-- Cosine Similarity Badge -->
+<span class="px-space-xs py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-label-sm text-label-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[13px]">neurology</span>
+                Cosine Similarity: 0.89
+              </span>
+</div>
+<h2 class="font-headline-sm text-headline-sm text-primary leading-snug">
+              Sự cố Hư hỏng mặt đường &amp; Ổ gà sâu trước số 15 - 21 Võ Oanh
+            </h2>
+<div class="flex items-center gap-1.5 text-on-surface-variant font-body-sm text-body-sm">
+<span class="material-symbols-outlined text-[16px] text-secondary">pin_drop</span>
+<span>Khu phố 3, Tuyến đường Võ Oanh, Phường 25 (Bán kính gộp 75m)</span>
+</div>
+</div>
+<!-- Multi-angle Gallery (5 citizens' photo perspectives) -->
+<div class="flex flex-col gap-1.5">
+<div class="flex items-center justify-between">
+<span class="font-label-sm text-label-sm font-bold uppercase tracking-wider text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-primary">view_carousel</span>
+                Multi-angle Evidence Gallery (5 Góc chụp)
+              </span>
+<span class="font-label-sm text-label-sm text-primary">5 tệp ảnh</span>
+</div>
+<!-- 5 Photo Micro Grid -->
+<div class="grid grid-cols-5 gap-1.5">
+<div class="relative group rounded overflow-hidden aspect-square bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Close up photograph of deep flooded pothole on Vo Oanh street in Ward 25 with muddy brown water and cracked asphalt edges during daylight" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlvU3X5lnAkUsUdXbc5N6XH-ouoXCconJ7x-ep0LJm7B_WEZkMQ_nak7BnAMr1TwKXYR113oUSF1ZmAGxfLE_FFdfegF7fDE_pWHzysLA2980X3hLqJoLq7QZN5MHFrOH8hVJehNTbk1lX6xqZwRln8KdsU1-NTfaccys-sHC_uNXhEIfWOdoJ2LDzQYMazrdlQk-DNU74LNW19e5neShFmuyhmfH7hBBhdKaaa84"/>
+<span class="absolute bottom-0 inset-x-0 bg-primary/70 text-on-primary font-label-sm text-[9px] text-center">Góc 1</span>
+</div>
+<div class="relative group rounded overflow-hidden aspect-square bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Wide angle street view of Vo Oanh street traffic swerving dangerously around a large crater in the pavement near house number 17" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXFJmhdShBVfVXZXQkXpZpMlTmpC-9UW44WEV4fzoZNUrrCEB-uqMed2RvrYE6fHxne2PspGJe-ThWzQL0rDbfMSCqjAteWfVnXcNBhvzbuuyjin8cOarZYBwQrJXPnqt4PD1ERh5wd0Lr4cGSynhYoUv-y4hJMH_pNf2O2ft-ImUK4lFS4f4WBpxC8IkSxsVyPtaWn_YUVblke4xnBoMndSSABazC8TB7JhI0Yy8"/>
+<span class="absolute bottom-0 inset-x-0 bg-primary/70 text-on-primary font-label-sm text-[9px] text-center">Góc 2</span>
+</div>
+<div class="relative group rounded overflow-hidden aspect-square bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Vertical mobile photograph showing scooter front wheel hitting a deep road cavity with splashed rain water on Vietnamese urban road" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBYWXlZc9qkgN7VMplKy857loAzEas5e6dxQkyc2RMXqoy-p7eDZlqjcTTS5lrY4tPl0yVTU_C19yEZa8_Cv-4I6Z03aFRNC4Uy5mpYAXRR-G5v2NQVffTlulfezpuFS6p1LMUxbxkYv3q5QWl_emJVu-UkW3ORlGaF4v_M5uR8iuxUor8EBJO-Eh593NlAHQx0v2lZfOP15yl4xwrDKigGOMGLsDJ8LUuzEGhthp4"/>
+<span class="absolute bottom-0 inset-x-0 bg-primary/70 text-on-primary font-label-sm text-[9px] text-center">Góc 3</span>
+</div>
+<div class="relative group rounded overflow-hidden aspect-square bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Pedestrian sidewalk perspective showing the 20 centimeter depth gauge marker of the pothole with street shop signs in background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmhASUsfW1LW8teqKNxymntn8KSCWY2eWVzzsZGXiSvJEw7dZxiFMtBDaupjjt44JxOqfm0HMLbmEK1hfYWpY1sWDqF-pyQtJSPLbNsgwbmSUu6mvqz6tUKkcztFhrswRoafRkVU-ybYM93TOF8Up6k6c42BAkGXRkdi8hOI9zN-BornHyeIeDFVn7UMpscd53OPwcolPSj-Uj4MziLZulTU0RWL1mT_b580OVH_0"/>
+<span class="absolute bottom-0 inset-x-0 bg-primary/70 text-on-primary font-label-sm text-[9px] text-center">Góc 4</span>
+</div>
+<div class="relative group rounded overflow-hidden aspect-square bg-surface-container">
+<img class="w-full h-full object-cover" data-alt="Opposite lane view showing standing water obstruction on asphalt surface during cloudy afternoon in Binh Thanh ward" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD1197RC0HmPj6SveiVzFpXWUWb-b_wjp4gB2YJThQWyra-_b7TvA7EHvsKtccOyCN2GRyBdUYT7EbyWExNQ4fSN0LGxRUbrhWQhbZ-vdozJP5jqahPUwqaG28ahIsspik518EH-il0cjk_gw37gq_oqi5l0I_DHTPqM8cVArTQdT-_FcH_hqRyavu8OyPoeedl-wOtsXSBZdzsn9vFCzM-pLKXnBxbUXpYIfkCsoc"/>
+<span class="absolute bottom-0 inset-x-0 bg-primary/70 text-on-primary font-label-sm text-[9px] text-center">Góc 5</span>
+</div>
+</div>
+</div>
+<!-- Aggregated Citizen Reports Stream -->
+<div class="flex flex-col gap-2">
+<span class="font-label-sm text-label-sm font-bold uppercase tracking-wider text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[15px] text-primary">groups</span>
+              Phản ánh thành viên gộp tự động (3/5 hiển thị)
+            </span>
+<div class="flex flex-col gap-1.5 max-h-[220px] overflow-y-auto pr-1">
+<!-- Report 1 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="w-6 h-6 rounded-full bg-primary/20 text-primary flex items-center justify-center font-label-sm text-label-sm font-bold">TM</span>
+<span class="font-label-sm text-label-sm font-semibold text-on-surface">Anh Trần Minh</span>
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant font-label-sm text-[10px]">VNeID Đã xác thực</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">08:15</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface italic">"Ổ gà sâu gần 20cm, xe máy qua lại rất dễ ngã lúc sáng sớm."</p>
+</div>
+<!-- Report 2 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="w-6 h-6 rounded-full bg-secondary/20 text-secondary flex items-center justify-center font-label-sm text-label-sm font-bold">LT</span>
+<span class="font-label-sm text-label-sm font-semibold text-on-surface">Chị Lê Thu</span>
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant font-label-sm text-[10px]">App Phường 25</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">08:42</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface italic">"Mặt đường lún sụt nghiêm trọng sau cơn mưa lớn đêm qua trước nhà 19."</p>
+</div>
+<!-- Report 3 -->
+<div class="p-space-sm rounded-lg bg-surface-container-low flex flex-col gap-1">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-1.5">
+<span class="w-6 h-6 rounded-full bg-primary-container/20 text-primary flex items-center justify-center font-label-sm text-label-sm font-bold">NT</span>
+<span class="font-label-sm text-label-sm font-semibold text-on-surface">Bác Nguyễn Thành</span>
+<span class="px-1 py-0.2 rounded bg-surface-container text-on-surface-variant font-label-sm text-[10px]">Tổng đài 1022</span>
+</div>
+<span class="font-label-sm text-label-sm text-on-surface-variant">09:05</span>
+</div>
+<p class="font-body-sm text-body-sm text-on-surface italic">"Nước đọng che khuất hố sâu cực kỳ nguy hiểm cho học sinh tan trường."</p>
+</div>
+</div>
+</div>
+<!-- Command & Dispatch Form Controls -->
+<div class="flex flex-col gap-space-sm bg-surface-container-low/70 p-space-sm rounded-lg">
+<span class="font-label-sm text-label-sm font-bold uppercase tracking-wider text-primary flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">assignment_turned_in</span>
+              Lệnh Điều Hành &amp; Phân Luồng Hiện Trường
+            </span>
+<!-- Assignment Select -->
+<div class="flex flex-col gap-1">
+<label class="font-label-sm text-label-sm text-on-surface-variant">Đơn vị tiếp nhận hiện trường:</label>
+<select class="w-full h-10 px-space-sm rounded bg-surface-container-lowest font-body-md text-body-md text-on-surface shadow-sm focus:outline-none">
+<option selected="">Tổ Quản lý Đô thị &amp; Công ích P.25 (Đội 1)</option>
+<option>Công ty Dịch vụ Công ích Quận Bình Thạnh</option>
+<option>Lực lượng Dân quân Tự vệ &amp; Đô thị P.25</option>
+<option>Chuyển Ban Quản lý Dự án Giao thông TP</option>
+</select>
+</div>
+<!-- Priority & SLA -->
+<div class="flex items-center justify-between">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Mức độ ưu tiên:</span>
+<span class="font-label-md text-label-md text-error font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">priority_high</span> Cấp độ 1 (Khẩn cấp 4h)
+                </span>
+</div>
+<div class="flex flex-col text-right">
+<span class="font-label-sm text-label-sm text-on-surface-variant">Thời hạn hoàn tất:</span>
+<span class="font-label-md text-label-md text-primary font-semibold">Trước 14:00 Hôm nay</span>
+</div>
+</div>
+<!-- Action Command Buttons -->
+<div class="flex flex-col gap-2 mt-1">
+<!-- Primary Action: Approve Dispatch Order -->
+<button class="w-full h-10 px-space-md rounded bg-primary-container text-on-primary hover:bg-primary transition-colors flex items-center justify-center gap-2 font-label-md text-label-md shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">send_and_archive</span>
+<span>Phê duyệt lệnh khắc phục hiện trường</span>
+</button>
+<!-- Secondary Action: Notify 5 Citizens via Zalo / VNeID -->
+<button class="w-full h-9 px-space-md rounded bg-surface-container-lowest text-secondary hover:bg-surface-container transition-colors flex items-center justify-center gap-2 font-label-md text-label-md shadow-sm" type="button">
+<span class="material-symbols-outlined text-[18px]">chat_bubble</span>
+<span>Thông báo tiến độ đến 5 công dân qua Zalo/VNeID</span>
+</button>
+<!-- Resolve / Close Incident Button -->
+<button class="w-full h-8 px-space-md rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant transition-colors flex items-center justify-center gap-1.5 font-label-sm text-label-sm" type="button">
+<span class="material-symbols-outlined text-[16px]">task_alt</span>
+<span>Đóng sự cố sau khi đội hoàn tất kiểm tra</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div></main></div></body></html>
