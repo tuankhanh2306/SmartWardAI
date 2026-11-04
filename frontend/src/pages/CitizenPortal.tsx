@@ -84,7 +84,10 @@ export const CitizenPortal: React.FC = () => {
 
   // Auto scroll to chat bottom
   useEffect(() => {
-    chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    const timer = setTimeout(() => {
+      chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+    return () => clearTimeout(timer);
   }, [messages, loading]);
 
   const handleAsk = async (questionText?: string) => {
@@ -539,7 +542,7 @@ export const CitizenPortal: React.FC = () => {
               </div>
             )}
 
-            <div ref={chatBottomRef} />
+            <div ref={chatBottomRef} className="h-6 shrink-0" />
           </div>
 
           {/* Quick Prompts Carousel Bar */}
