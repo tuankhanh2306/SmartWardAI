@@ -1,0 +1,4 @@
+method,precision,recall,f1_score,clusters,hard_acc
+Spatial-only (R=75m),24.27,91.67,38.38,16,100.0
+Semantic-only (tau=0.82),100.0,100.0,100.0,30,100.0
+"Proposed Two-Stage (R=75m, tau=0.82)",100.0,100.0,100.0,30,100.0

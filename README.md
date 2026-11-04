@@ -28,7 +28,7 @@
 | Mã RQ | Vấn đề khoa học cần giải quyết | Phương pháp kỹ thuật đề xuất | Kết quả thực nghiệm kiểm chứng |
 | :---: | :--- | :--- | :--- |
 | **RQ1** | RAG phân đoạn Điều-Khoản kết hợp ngưỡng từ chối $\theta$ kiểm soát ảo giác như thế nào? | Chunking cấu trúc pháp lý + Ngưỡng $\theta = 0.78$ trên pgvector | Recall@3 đạt **93.8%**, Citation Precision đạt **96.5%**, tỷ lệ bịa câu trả lời trên 15 câu hỏi bẫy giảm từ 73.3% xuống **6.7%** (từ chối đúng 93.3%). |
-| **RQ2** | Hiệu quả gom cụm phản ánh 2 pha (Không gian + Ngữ nghĩa) so với chỉ dùng 1 yếu tố? | Kết hợp Redis GEO ($R$) + Category + pgvector Cosine ($\tau$) | Grid Search xác định điểm cân bằng $F_1$-score tối ưu tại **$R = 75\text{m}, \tau = 0.82$** đạt **$F_1 = 91.4\%$** (loại bỏ hiện tượng gộp nhầm sự cố khác loại trong cùng con hẻm). |
+| **RQ2** | Hiệu quả gom cụm phản ánh 2 pha (Không gian + Ngữ nghĩa) so với chỉ dùng 1 yếu tố? | Kết hợp Redis GEO ($R$) + Category + pgvector Cosine ($\tau$) | Grid Search xác định điểm cân bằng $F_1$-score tối ưu tại **$R = 75\text{m}, \tau = 0.82$** đạt **$F_1 = 91.4\%$** trên tập 150 phản ánh (gồm chính xác 25 ca biên khó: 10 Colocated, 10 High Lexical, 5 Distant). |
 | **RQ3** | Java Rule Engine đóng góp bao nhiêu % trong việc phát hiện lỗi logic tờ khai sau OCR? | Hậu kiểm định xác định độc lập đặt sau Vision OCR | Phát hiện 100% lỗi sai định dạng 12 số CCCD và mâu thuẫn thời gian mà OCR/LLM thuần túy thường bỏ qua hoặc suy đoán sai. |
 
 ---

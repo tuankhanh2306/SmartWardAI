@@ -107,7 +107,7 @@
 
 ### 📌 TUẦN 8: XÂY DỰNG DATASET KIỂM THỬ & EVALUATION API
 - [x] **Task 8.1:** Xây dựng bộ 80 câu hỏi kiểm thử RAG (40 câu hỏi trực tiếp, 25 câu tình huống đời thực, 15 câu hỏi bẫy/ngoài phạm vi kiểm thử Abstention) tại `data-pipeline/rag-dataset/`.
-- [x] **Task 8.2:** Xây dựng tập 150 phản ánh hiện trường (30 sự cố gốc, 5 biến thể tự nhiên mỗi sự cố, thêm nhiễu GPS thực tế 10m-40m, phân loại Hard Cases) tại `data-pipeline/civic-reports/`.
+- [x] **Task 8.2:** Xây dựng tập 150 phản ánh hiện trường (30 sự cố gốc, 5 biến thể tự nhiên mỗi sự cố, thêm nhiễu GPS thực tế 10m-40m, cài cắm chính xác 25 ca biên khó: 10 Colocated, 10 High Lexical, 5 Distant) tại `data-pipeline/civic-reports/`.
 - [x] **Task 8.3:** Chuẩn bị tập 40 ảnh chụp tờ khai (20 bản in, 20 bản viết tay cài cắm các lỗi logic xác định, kèm file nhãn ground-truth `annotations.json`) tại `data-pipeline/form-dataset/`.
 - [ ] **Task 8.4:** Xây dựng `ExperimentRunnerService` trong backend tính toán tự động các chỉ số: Recall@3, MRR, Citation Precision, False Answer Rate.
 - [ ] **Task 8.5:** Xây dựng REST API `POST /api/v1/evaluation/run-benchmarks` xuất kết quả đo lường ra định dạng JSON/CSV.

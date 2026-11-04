@@ -1,0 +1,33 @@
+{
+  "evaluationDataset": {
+    "totalQuestions": 80,
+    "inScopeQuestions": 65,
+    "outOfScopeTrapQuestions": 15
+  },
+  "configurationsComparison": [
+    {
+      "configuration": "1. LLM Zero-shot (No Grounding)",
+      "recallAt3": "N/A",
+      "mrr": "N/A",
+      "citationPrecision": "32.5%",
+      "falseAnswerRateTrap": "73.3%",
+      "trueAbstentionRate": "26.7%"
+    },
+    {
+      "configuration": "2. Standard RAG (Fixed 500 tokens, No Guardrail)",
+      "recallAt3": "78.4%",
+      "mrr": "0.71",
+      "citationPrecision": "68.2%",
+      "falseAnswerRateTrap": "46.7%",
+      "trueAbstentionRate": "53.3%"
+    },
+    {
+      "configuration": "3. Proposed Legal RAG (Chapter Chunking + theta=0.78)",
+      "recallAt3": "84.6%",
+      "mrr": "0.77",
+      "citationPrecision": "0.0%",
+      "falseAnswerRateTrap": "0.0%",
+      "trueAbstentionRate": "100.0%"
+    }
+  ]
+}

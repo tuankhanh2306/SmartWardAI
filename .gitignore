@@ -48,5 +48,8 @@ data-pipeline/**/originals/
 data-pipeline/**/*.pdf
 data-pipeline/**/*.html
 data-pipeline/form-dataset/scans/
+
+# Agent metadata
+.agents/
 !data-pipeline/**/.gitkeep
 

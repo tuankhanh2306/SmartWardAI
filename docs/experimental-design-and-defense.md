@@ -15,9 +15,13 @@
   * **Nhóm B (25 câu tình huống đời thực - Realistic Situations):** Mời 10–15 người khác nhau (sinh viên, người dân) đặt câu hỏi tự nhiên theo văn phong đời thường (có từ ngữ thông tục, câu hỏi dài/ngắn, cách diễn đạt tình huống gia đình).
   * **Nhóm C (15 câu ngoài phạm vi / câu hỏi bẫy - Out-of-Scope / Trap):** Hỏi về các thủ tục thuộc thẩm quyền cấp Tỉnh/Bộ hoặc quy định cũ đã hết hiệu lực để đo lường năng lực từ chối trả lời chính xác (**True Abstention Rate**) của hệ thống.
 
-### 1.2. Dữ liệu Phản ánh Hiện trường (150 mẫu phản ánh)
+### 1.2. Dữ liệu Phản ánh Hiện trường (150 mẫu phản ánh & 25 ca biên khó)
 * **Kịch bản gốc (Ground-truth Events):** Thiết lập 30 sự cố gốc tại các tọa độ thực tế trong khu dân cư. Cố tình bố trí các cặp sự cố ở cùng một vị trí địa lý nhưng khác loại vấn đề (Ví dụ: tại cùng một con hẻm, vừa có sự cố "bóng đèn chiếu sáng bị chập cháy", vừa có sự cố "rác thải sinh hoạt ùn ứ bốc mùi").
 * **Thu thập mô tả & Giả lập sai số:** Nhờ 15 tình nguyện viên độc lập viết lại mô tả sự cố theo cách hiểu tự nhiên (dùng từ viết tắt, khẩu ngữ, phương ngữ). Đồng thời cộng thêm nhiễu tọa độ GPS ngẫu nhiên theo phân phối chuẩn $\mathcal{N}(0, \sigma^2)$ với $\sigma \in [10\text{m}, 40\text{m}]$ để mô phỏng chính xác hiện tượng trôi dạt GPS trong hẻm sâu hoặc giữa các khối nhà cao tầng.
+* **Cài cắm chính xác 25 ca biên khó (Hard Cases - chiếm 16.7% dữ liệu):**
+  - **10 ca đồng tọa độ khác loại sự cố (COLOCATED_DIFFERENT_CATEGORY):** Hai sự cố xảy ra cách nhau $< 20\text{m}$ nhưng khác danh mục (VD: cháy bóng đèn vs nghẹt cống).
+  - **10 ca đa dạng từ vựng ngữ nghĩa (HIGH_LEXICAL_DIVERSITY):** Cùng một sự cố nhưng người dân dùng từ ngữ lóng, viết tắt, không chứa từ khóa trực tiếp.
+  - **5 ca cùng loại nhưng cách xa ngoài bán kính (SAME_CATEGORY_DISTANT_LOCATION):** Cùng là hỏng đèn đường nhưng cách nhau $> 200\text{m}$, kiểm thử hệ thống không được gộp nhầm.
 
 ### 1.3. Dữ liệu Tờ khai Hành chính (40 mẫu ảnh tờ khai)
 * Thu thập 20 bản tờ khai in/đánh máy và 20 bản viết tay rõ chữ chụp bằng điện thoại ở nhiều góc nghiêng và điều kiện ánh sáng khác nhau.

@@ -111,7 +111,7 @@ flowchart LR
 * **Công việc kỹ thuật:**
   * Tạo bộ dữ liệu kiểm thử chuẩn:
     * 80 câu hỏi RAG (40 câu trực tiếp, 25 câu tình huống thực tế, 15 câu hỏi bẫy/ngoài phạm vi).
-    * 150 mẫu phản ánh hiện trường (30 sự cố gốc, 15 người viết khác nhau, thêm nhiễu tọa độ GPS $\sigma \in [10\text{m}, 40\text{m}]$).
+    * 150 mẫu phản ánh hiện trường (30 sự cố gốc, 15 người viết khác nhau, thêm nhiễu tọa độ GPS $\sigma \in [10\text{m}, 40\text{m}]$, cài cắm chính xác 25 ca biên khó: 10 Colocated, 10 High Lexical, 5 Distant).
     * 40 ảnh chụp tờ khai (20 in, 20 viết tay kèm các lỗi logic cài cắm sẵn).
   * Viết `ExperimentRunnerService` và `EvaluationController`:
     * Endpoint `POST /api/v1/evaluation/run-rag-eval`: Đo Recall@3, MRR, Citation Precision, False Answer Rate.
