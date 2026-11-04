@@ -171,3 +171,75 @@
 - [ ] **Task 12.5:** Đóng bìa cứng mạ vàng cuốn Báo cáo tốt nghiệp có chữ ký GVHD và dấu mộc xác nhận của Doanh nghiệp.
 - [ ] **Task 12.6:** Thuyết trình và bảo vệ đề tài trước Hội đồng Đồ án Tốt nghiệp Khoa CNTT - UTH.
 - [ ] **Task 12.7:** Viết Báo cáo tổng kết toàn khóa thực tập và đồ án tốt nghiệp.
+
+
+---
+
+## 3. GIAI DOAN MO RONG 8 TUAN (W13-W20) — SmartWard AI 2.0
+
+> Xem tai lieu day du tai: `docs/EXPANSION_ROADMAP.md`
+
+### TUAN 13: MULTI-WARD REGISTRY + ONBOARDING FLOW
+- [ ] Task 13.1: Migration V7__ward_registry.sql (ward_registry, ward_operating_hours, ward_service_catalog). Seed 10 phuong Binh Thanh.
+- [ ] Task 13.2: WardRegistryController + WardService - GET /api/v1/wards?province=&district=
+- [ ] Task 13.3: WardContext.tsx (React Context) - wardCode, wardInfo, setWard()
+- [ ] Task 13.4: Trang /onboarding - Province > District > Ward cascade dropdown, Ward Info Card, Leaflet GPS map
+- [ ] Task 13.5: localStorage luu wardCode + Axios interceptor X-Ward-Code header
+- [ ] Task 13.6: Ward Switcher trong Header
+
+### TUAN 14: WARD-SCOPED BACKEND MIDDLEWARE
+- [ ] Task 14.1: WardContextFilter (Spring OncePerRequestFilter) - doc X-Ward-Code, set ThreadLocal
+- [ ] Task 14.2: Migration V8__ward_scoped_columns.sql - them ward_code vao legal_chunks, issue_clusters
+- [ ] Task 14.3: Cap nhat RagService - WHERE ward_code = ?
+- [ ] Task 14.4: Cap nhat TriageService - ST_Within(point, ward_boundary_polygon)
+- [ ] Task 14.5: Cap nhat GisService - filter heatmap by ward boundary
+- [ ] Task 14.6: Redis key prefix: WARD:{wardCode}:*
+
+### TUAN 15: PER-WARD OFFICER DASHBOARD
+- [ ] Task 15.1: Route /officer/ward/:wardCode/dashboard
+- [ ] Task 15.2: KPI Row - Tong su co, Thoi gian xu ly TB, SLA %, Cho xu ly
+- [ ] Task 15.3: Per-ward GIS map - chi hien thi clusters trong dia ban xa
+- [ ] Task 15.4: Incident list table voi filter theo loai su co
+- [ ] Task 15.5: Officer Activity Log - deadline tracking
+- [ ] Task 15.6: Ward Alert Broadcasting UI
+
+### TUAN 16: DYNAMIC HEATMAP + QR TOKEN
+- [ ] Task 16.1: leaflet.heat plugin integration
+- [ ] Task 16.2: HeatmapController GET /api/v1/gis/heatmap
+- [ ] Task 16.3: Heatmap filter UI + playback animation
+- [ ] Task 16.4: Migration V9__qr_tokens.sql
+- [ ] Task 16.5: QrTokenController POST /api/v1/qr/generate (JWT RS256) + /api/v1/qr/checkin
+- [ ] Task 16.6: Frontend QR scan UI (jsqr + camera)
+
+### TUAN 17: VIETNAMESE BI-ENCODER FINE-TUNING
+- [ ] Task 17.1: Thu thap 1000 cap Q&A tu 40 TTHC + 500 negative pairs
+- [ ] Task 17.2: Training script ai-training/finetune_biencoder.py (Sentence Transformers)
+- [ ] Task 17.3: Fine-tune tren Google Colab T4, export ONNX
+- [ ] Task 17.4: Tich hop ONNX vao Spring Boot (Deep Java Library)
+- [ ] Task 17.5: Migration V10__ai_feedback.sql (HITL active learning queue)
+- [ ] Task 17.6: So sanh Recall@3/MRR truoc-sau fine-tune
+
+### TUAN 18: LOCAL SLM (OLLAMA) + VIETOCR
+- [ ] Task 18.1: Ollama service trong docker-compose (Qwen-2.5-3B GGUF 4-bit)
+- [ ] Task 18.2: OllamaAiClient thay DeterministicMockAiClient (prod profile)
+- [ ] Task 18.3: VietOCR Docker service + OcrController POST /api/v1/ocr/extract
+- [ ] Task 18.4: OCR tich hop vao Form Precheck UI - upload anh -> auto-fill
+- [ ] Task 18.5: Fine-tune VietOCR tren 500 anh to khai
+- [ ] Task 18.6: Human-in-the-Loop admin panel
+
+### TUAN 19: MOBILE APP FOUNDATION (EXPO SDK 51)
+- [ ] Task 19.1: Khoi tao Expo SDK 51 project (mobile/) TypeScript template
+- [ ] Task 19.2: Shared types: frontend/src/api/client.ts -> shared/types/api.ts
+- [ ] Task 19.3: Ward Onboarding screen (React Native Picker)
+- [ ] Task 19.4: WatermelonDB offline-first SQLite sync
+- [ ] Task 19.5: GPS voi expo-location
+- [ ] Task 19.6: Navigation: @react-navigation/native (Bottom Tab + Stack)
+
+### TUAN 20: MOBILE NFC + CAMERA + FCM + BETA SUBMIT
+- [ ] Task 20.1: NFC CCCD reader (react-native-nfc-manager, ICAO 9303)
+- [ ] Task 20.2: Camera + MLKit Document Scanner (expo-camera)
+- [ ] Task 20.3: Firebase FCM (@react-native-firebase/messaging) - 4 loai notification
+- [ ] Task 20.4: QR Check-in tren mobile
+- [ ] Task 20.5: E2E test tren Android emulator + iOS Simulator
+- [ ] Task 20.6: Google Play Internal Testing + Apple TestFlight submit
+- [ ] Task 20.7: Pilot deployment docs cho UBND phuong thuc te
