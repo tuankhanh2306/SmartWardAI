@@ -108,44 +108,77 @@ SmartWardAI/
 
 ---
 
-## 5. Hướng Dẫn Khởi Chạy Nhanh (Quickstart - 3 Bước)
+## 5. Hướng Dẫn Khởi Chạy Nhanh (Quickstart)
 
-Hệ thống được thiết kế để khởi chạy hoàn chỉnh chỉ với 3 bước đơn giản:
+Hệ thống hỗ trợ 2 chế độ khởi chạy: **Đóng gói Docker Toàn diện (Production All-in-One)** hoặc **Phát triển Cục bộ (Local Development)**.
 
-### Bước 1: Khởi động Hạ tầng Dữ liệu (Docker Compose)
+### Cách 1: Đóng gói Toàn diện Docker Compose (Khuyến nghị cho Trình diễn & Triển khai)
+Khởi chạy toàn bộ 5 dịch vụ (PostgreSQL pgvector, Redis, MinIO, Spring Boot Backend và Nginx Frontend PWA) chỉ với **1 câu lệnh duy nhất**:
 ```bash
-# Tạo file cấu hình từ template
+# 1. Tạo file cấu hình từ template
 cp .env.example .env
 
-# Khởi động PostgreSQL (pgvector), Redis và MinIO
-docker compose up -d
+# 2. Xây dựng và khởi động toàn bộ hệ thống
+docker compose up --build -d
 
-# Kiểm tra trạng thái các container (Postgres, Redis, MinIO phải healthy)
+# 3. Kiểm tra trạng thái sức khỏe các container
 docker compose ps
 ```
 
-### Bước 2: Khởi động Backend Spring Boot
+* 🌐 **Cổng Dịch Vụ Công Dân:** `http://localhost:3000/citizen`
+* 📝 **Tiền Kiểm Định Tờ Khai & Báo Sự Cố:** `http://localhost:3000/citizen/form`
+* 🗺️ **Trung Tâm Chỉ Huy Phân Luồng GIS:** `http://localhost:3000/officer/map`
+* 🛡️ **Bàn Sơ Duyệt Hồ Sơ Zero-Trust:** `http://localhost:3000/officer/audit`
+* 📑 **API Documentation (Swagger UI):** `http://localhost:8080/swagger-ui.html`
+* 💓 **Endpoint Kiểm tra Sức khỏe:** `http://localhost:8080/api/v1/health`
+
+### Cách 2: Chạy Từng Phân Hệ ở Môi Trường Cục Bộ (Local Development)
+
+#### Bước 1: Khởi động Hạ tầng CSDL (Docker Compose)
+```bash
+docker compose up -d postgres redis minio minio-init
+```
+
+#### Bước 2: Khởi động Backend Spring Boot (Chế độ Ngoại tuyến 0 VNĐ)
 ```bash
 cd backend
-
-# Biên dịch và chạy kiểm thử tự động (100% test pass)
-./mvnw clean test           # Trên Linux/macOS
+# Chạy 57/57 unit & integration tests tự động
 .\mvnw.cmd clean test       # Trên Windows
+./mvnw clean test           # Trên Linux/macOS
 
-# Khởi chạy ứng dụng Backend (Mặc định nạp profile dev với Mock AI offline 0 VNĐ)
-./mvnw spring-boot:run
+# Khởi chạy ứng dụng Backend với profile dev (tự động kích hoạt DeterministicMockAiClient)
+.\mvnw.cmd spring-boot:run
 ```
-* **API Swagger / OpenAPI:** `http://localhost:8080/swagger-ui.html`
-* **Kiểm tra sức khỏe hệ thống:** `GET http://localhost:8080/api/v1/health`
 
-### Bước 3: Khởi động Giao diện Web (Frontend)
+#### Bước 3: Khởi động Frontend Vite Dev Server
 ```bash
 cd frontend
 npm install
 npm run dev
 ```
-* **Cổng Công dân (Mobile-first):** `http://localhost:5173/citizen`
-* **Bàn làm việc Cán bộ:** `http://localhost:5173/officer`
+* **Frontend Hot-Reload URL:** `http://localhost:5173/citizen`
+
+---
+
+## 6. Phân Bổ Ngân Sách Tài Nguyên Zero-Cost ($\le 2.0\text{ GB}$ RAM)
+
+| Phân hệ / Container | Hình ảnh Docker | Giới hạn Cứng (`mem_limit`) | Mức Tiêu Thụ Thực Tế | Vai trò nghiệp vụ |
+| :--- | :--- | :---: | :---: | :--- |
+| **smartward-postgres** | `pgvector/pgvector:pg16` | 512 MB | ~110 MB | Lưu trữ quan hệ ACID & Chỉ mục HNSW 768 chiều |
+| **smartward-redis** | `redis:7-alpine` | 128 MB | ~18 MB | Bộ lọc GEO $R=75\text{m}$, Cache RAG & Single-Use Tokens |
+| **smartward-minio** | `minio/minio:latest` | 256 MB | ~65 MB | Kho lưu trữ tài liệu scan mã hóa AES-256-GCM |
+| **smartward-backend** | `eclipse-temurin:21-jre` | 768 MB | ~380 MB | Spring Boot 3.3, Java 21, JVM Heap `-Xmx512m` |
+| **smartward-frontend**| `nginx:1.27-alpine` | 64 MB | ~12 MB | Nginx phục vụ PWA tĩnh & Reverse Proxy API |
+| **TỔNG CỘNG** | **5 Container Hệ Thống** | **1,728 MB** | **~585 MB** | **Tuyệt đối $\le 2,048\text{ MB}$ ($< 2.0\text{ GB}$)** |
+
+---
+
+## 7. Chế Độ Vận Hành Ngoại Tuyến (100% Offline Resilience)
+
+Hệ thống được tích hợp sẵn lớp giả lập AI tất định `DeterministicMockAiClient` (`@Profile({"dev", "test"})`):
+- **Sinh vector nhúng 768 chiều tất định:** Sinh vector chuẩn hóa $L_2$ dựa trên mã băm SHA-256 của câu hỏi mà không cần kết nối mạng hay khóa API Google.
+- **Phản hồi OCR tờ khai mẫu:** Tự động nhận diện cấu trúc tờ khai CT01 và CCCD để phục vụ demo mọi lúc mọi nơi ngay cả khi phòng hội đồng bảo vệ bị mất mạng Internet.
+- **Dễ dàng chuyển đổi Production:** Chỉ cần đặt biến môi trường `SPRING_PROFILES_ACTIVE=prod` và cung cấp `GEMINI_API_KEY`, hệ thống sẽ tự động kích hoạt `GeminiAiClient` kết nối Google Generative Language API (Gemini 2.5 Flash & text-embedding-004).
 
 ---
 

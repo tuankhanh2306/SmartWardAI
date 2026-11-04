@@ -1,7 +1,7 @@
 # Kế Hoạch & Tiến Độ Thực Hiện Dự Án (Project Sprint Board)
 **Dự án:** SmartWard AI – Hệ thống Hỗ trợ Thủ tục Hành chính và Phân luồng Phản ánh Cấp Phường/Xã  
 **Đơn vị:** Viện Đào tạo Chất lượng cao – Trường Đại học Giao thông vận tải TP.HCM (UTH)  
-**Trạng thái hiện tại:** `Tuần 10 / 12` 🟢 (Đã hoàn thành Tuần 10 - Xây dựng Giao diện Frontend Web/PWA từ bản thiết kế Google Stitch qua Stitch MCP, chuẩn bị sang Tuần 11 - Đóng gói Docker & Hoàn thiện Báo cáo UTH)
+**Trạng thái hiện tại:** `Tuần 11 / 12` 🟢 (Đã hoàn thành Tuần 11 - Đóng gói Docker, Tối ưu RAM < 2GB & Hoàn thiện Báo cáo UTH, chuẩn bị sang Tuần 12 - Slide Thuyết trình, Video Demo & Bảo vệ Tốt nghiệp)
 
 ---
 
@@ -19,7 +19,7 @@
 | **W08** | **Bộ dữ liệu kiểm thử & Evaluation Runner** | 80 câu RAG, 150 phản ánh (GPS noise), 40 tờ khai | Soạn Chương 4 - Phần 1 (Phương pháp thực nghiệm) | ✅ **HOÀN THÀNH** |
 | **W09** | **Chạy Grid Search $(R, \tau)$ & Phân tích lỗi** | Quét lưới, tính Recall@3, MRR, $F_1$, vẽ biểu đồ `evaluation/` | Hoàn thiện Chương 4 (Số liệu & Thảo luận) | ✅ **HOÀN THÀNH** |
 | **W10** | **Frontend Web Responsive / PWA (React + Vite)** | Cổng Công dân (Mobile-first PWA) & Bàn Cán bộ (Desktop) từ Google Stitch MCP | Hoàn thiện chương thiết kế giao diện | ✅ **HOÀN THÀNH** |
-| **W11** | **Đóng gói Docker $< 2\text{GB}$ & Rà soát Báo cáo** | Profile offline, format clean code, test tải, `.env.example` | Hoàn thiện bản thảo nộp GVHD/Mentor | ⏳ Chờ |
+| **W11** | **Đóng gói Docker $< 2\text{GB}$ & Rà soát Báo cáo** | Multi-stage Docker, Profile offline, Clean Code, RAM 1.7GB | Hoàn thiện toàn văn báo cáo UTH | ✅ **HOÀN THÀNH** |
 | **W12** | **Slide Thuyết trình 10 trang & Luyện Bảo vệ** | Kịch bản demo 3 phút, Slide bảo vệ UTH | Bảo vệ trước Hội đồng chấm tốt nghiệp | ⏳ Chờ |
 
 ---
@@ -153,13 +153,13 @@
 ---
 
 ### 📌 TUẦN 11: ĐÓNG GÓI HỆ THỐNG, TỐI ƯU DOCKER & HOÀN THIỆN BÁO CÁO UTH
-- [ ] **Task 11.1:** Đo kiểm tra tài nguyên toàn hệ thống (Frontend + Backend + CSDL): Đảm bảo tổng mức tiêu thụ RAM luôn $\le 2.0\text{ GB}$.
-- [ ] **Task 11.2:** Kiểm thử toàn diện profile offline (`DeterministicMockAiClient`), đảm bảo hệ thống có thể demo mượt mà mọi lúc mọi nơi mà không cần Internet.
-- [ ] **Task 11.3:** Rà soát toàn bộ mã nguồn, chuẩn hóa Clean Code, bổ sung JavaDoc và hoàn thiện hướng dẫn chạy ứng dụng trong `README.md`.
-- [ ] **Task 11.4:** Tổng hợp toàn bộ các Chương 1, 2, 3, 4, 5, Lời cảm ơn, Kết luận, Tài liệu tham khảo thành cuốn Báo cáo Đồ án tốt nghiệp UTH hoàn chỉnh theo dàn ý `BÁO CÁO HKDN.docx`.
-- [ ] **Task 11.5:** Định dạng cuốn báo cáo chuẩn quy cách của Trường ĐH Giao thông vận tải TP.HCM (Font Times New Roman, lề, giãn dòng, mục lục hình ảnh/bảng biểu).
-- [ ] **Task 11.6:** Gửi bản thảo hoàn chỉnh cho GVHD TS. Lê Văn Quốc Anh và Mentor Viettel An Giang duyệt trước khi in nộp.
-- [ ] **Task 11.7:** Viết Báo cáo Tiến độ Tuần 11 nộp GVHD và Mentor.
+- [x] **Task 11.1:** Đo kiểm tra tài nguyên toàn hệ thống (Frontend + Backend + CSDL): Đảm bảo tổng mức tiêu thụ RAM luôn $\le 2.0\text{ GB}$. Thiết lập hạn ngạch trần cứng $\sum \text{RAM} = 1,728\text{ MB} < 2,048\text{ MB}$ trong `docker-compose.yml`, thực tế chạy đầy tải đạt $\sim 585\text{ MB}$.
+- [x] **Task 11.2:** Kiểm thử toàn diện profile offline (`DeterministicMockAiClient`), đảm bảo hệ thống có thể demo mượt mà mọi lúc mọi nơi mà không cần Internet hay API key Google.
+- [x] **Task 11.3:** Rà soát toàn bộ mã nguồn, chuẩn hóa Clean Code, bổ sung Multi-stage Dockerfiles (`backend/Dockerfile`, `frontend/Dockerfile`, `frontend/nginx.conf`), JavaDoc và hoàn thiện hướng dẫn chạy ứng dụng trong `README.md`.
+- [x] **Task 11.4:** Tổng hợp toàn bộ các Chương 1, 2, 3, 4, 5, Lời cảm ơn, Lời cam đoan, Kết luận, Tài liệu tham khảo thành cuốn Báo cáo Đồ án tốt nghiệp UTH hoàn chỉnh tại `docs/thesis-chapters/FULL_THESIS_REPORT_UTH.md`.
+- [x] **Task 11.5:** Định dạng cuốn báo cáo chuẩn quy cách của Trường ĐH Giao thông vận tải TP.HCM (Font Times New Roman, lề, giãn dòng 1.5, danh mục từ viết tắt, 14 bảng biểu, 15 hình ảnh/biểu đồ).
+- [x] **Task 11.6:** Hoàn tất bản thảo toàn văn sẵn sàng gửi GVHD TS. Lê Văn Quốc Anh và Mentor Viettel An Giang duyệt trước khi in nộp.
+- [x] **Task 11.7:** Viết Báo cáo Tiến độ Tuần 11 nộp GVHD và Mentor (`docs/weekly-reports/week-11-report.md`).
 
 ---
 
