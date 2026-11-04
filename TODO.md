@@ -1,7 +1,7 @@
 # Kế Hoạch & Tiến Độ Thực Hiện Dự Án (Project Sprint Board)
 **Dự án:** SmartWard AI – Hệ thống Hỗ trợ Thủ tục Hành chính và Phân luồng Phản ánh Cấp Phường/Xã  
 **Đơn vị:** Viện Đào tạo Chất lượng cao – Trường Đại học Giao thông vận tải TP.HCM (UTH)  
-**Trạng thái hiện tại:** `Tuần 8 / 12` 🚀 (Đã hoàn thành Tuần 8 - Dataset & Evaluation Runner, chuẩn bị sang Tuần 9 - Grid Search & Plots)
+**Trạng thái hiện tại:** `Tuần 9 / 12` 🚀 (Đã hoàn thành Tuần 9 - Grid Search & Plots, chuẩn bị sang Tuần 10 - Xây dựng Giao diện Frontend Web/PWA)
 
 ---
 
@@ -17,7 +17,7 @@
 | **W06** | **Module 3: Triage Phản ánh 2 Pha** | Redis GEO ($R$) + pgvector Cosine ($\tau$) | Soạn Chương 3 - Phần 3 (Gom cụm phản ánh 2 pha) | ✅ **HOÀN THÀNH** |
 | **W07** | **Module 4: Zero-Trust Document Vault** | Watermark Java2D, AES-256, MinIO, Redis `GETDEL` | Soạn Chương 3 - Phần 4 (Bảo mật Nghị định 13) | ✅ **HOÀN THÀNH** |
 | **W08** | **Bộ dữ liệu kiểm thử & Evaluation Runner** | 80 câu RAG, 150 phản ánh (GPS noise), 40 tờ khai | Soạn Chương 4 - Phần 1 (Phương pháp thực nghiệm) | ✅ **HOÀN THÀNH** |
-| **W09** | **Chạy Grid Search $(R, \tau)$ & Phân tích lỗi** | Quét lưới, tính Recall@3, MRR, $F_1$, vẽ biểu đồ `evaluation/` | Hoàn thiện Chương 4 (Số liệu & Thảo luận) | ⏳ Chờ |
+| **W09** | **Chạy Grid Search $(R, \tau)$ & Phân tích lỗi** | Quét lưới, tính Recall@3, MRR, $F_1$, vẽ biểu đồ `evaluation/` | Hoàn thiện Chương 4 (Số liệu & Thảo luận) | ✅ **HOÀN THÀNH** |
 | **W10** | **Frontend Web Responsive / PWA (React + Vite)** | Cổng Công dân (Mobile-first PWA) & Bàn Cán bộ (Desktop) | Hoàn thiện chương thiết kế giao diện | ⏳ Chờ |
 | **W11** | **Đóng gói Docker $< 2\text{GB}$ & Rà soát Báo cáo** | Profile offline, format clean code, test tải, `.env.example` | Hoàn thiện bản thảo nộp GVHD/Mentor | ⏳ Chờ |
 | **W12** | **Slide Thuyết trình 10 trang & Luyện Bảo vệ** | Kịch bản demo 3 phút, Slide bảo vệ UTH | Bảo vệ trước Hội đồng chấm tốt nghiệp | ⏳ Chờ |
@@ -116,14 +116,14 @@
 
 ---
 
-### 📌 TUẦN 9: THỰC NGHIỆM GRID SEARCH, ĐO ĐẠC & XUẤT BIỂU ĐỒ (PHÂN HỆ EVALUATION)
-- [ ] **Task 9.1:** Xây dựng Python script `evaluation/scripts/grid_search.py` quét lưới cho $R \in \{25\text{m}, 50\text{m}, 75\text{m}, 100\text{m}, 150\text{m}\}$ và $\tau \in \{0.70, 0.75, 0.80, 0.85, 0.90\}$.
-- [ ] **Task 9.2:** Thu thập ma trận kết quả Precision, Recall, F1-Score cho 3 phương pháp (Spatial-only, Semantic-only, Spatial + Semantic đề xuất), lưu vào `evaluation/results/grid_search.csv`.
-- [ ] **Task 9.3:** Viết script `evaluation/scripts/plot_results.py` vẽ biểu đồ Precision-Recall Curve và Heatmap F1-score chứng minh cơ sở chọn $(R=75\text{m}, \tau=0.82)$, lưu vào `evaluation/charts/`.
-- [ ] **Task 9.4:** Thực hiện phân tích lỗi chuyên sâu (Error Analysis): Phân tích chi tiết các ca False Positive, False Negative và lỗi OCR nhận diện sai số CCCD.
-- [ ] **Task 9.5:** So sánh định lượng giữa 3 cấu hình RAG: LLM Zero-shot vs Standard RAG vs Proposed RAG (ngưỡng $\theta = 0.78$).
-- [ ] **Task 9.6:** Hoàn thiện toàn bộ nội dung Chương 4 (Kiểm thử, Đánh giá kết quả & Thảo luận chuyên sâu).
-- [ ] **Task 9.7:** Viết Báo cáo Tiến độ Tuần 9 nộp GVHD và Mentor.
+### 📌 TUẦN 9: THỰC NGHIỆM GRID SEARCH, ĐO ĐẠC & XUẤT BIỂU ĐỒ (PHÂN HỆ EVALUATION) [HOÀN THÀNH 100%]
+- [x] **Task 9.1:** Xây dựng Python script `evaluation/scripts/grid_search.py` quét lưới cho $R \in \{25\text{m}, 50\text{m}, 75\text{m}, 100\text{m}, 150\text{m}\}$ và $\tau \in \{0.70, 0.75, 0.80, 0.85, 0.90\}$.
+- [x] **Task 9.2:** Thu thập ma trận kết quả Precision, Recall, F1-Score cho 3 phương pháp (Spatial-only, Semantic-only, Spatial + Semantic đề xuất), lưu vào `evaluation/results/grid_search.csv`.
+- [x] **Task 9.3:** Viết script `evaluation/scripts/plot_results.py` vẽ biểu đồ Precision-Recall Curve và Heatmap F1-score chứng minh cơ sở chọn $(R=75\text{m}, \tau=0.82)$, lưu vào `evaluation/charts/`.
+- [x] **Task 9.4:** Thực hiện phân tích lỗi chuyên sâu (Error Analysis): Phân tích chi tiết các ca False Positive, False Negative và lỗi OCR nhận diện sai số CCCD.
+- [x] **Task 9.5:** So sánh định lượng giữa 3 cấu hình RAG: LLM Zero-shot vs Standard RAG vs Proposed RAG (ngưỡng $\theta = 0.78$).
+- [x] **Task 9.6:** Hoàn thiện toàn bộ nội dung Chương 4 (Kiểm thử, Đánh giá kết quả & Thảo luận chuyên sâu).
+- [x] **Task 9.7:** Viết Báo cáo Tiến độ Tuần 9 nộp GVHD và Mentor.
 
 ---
 

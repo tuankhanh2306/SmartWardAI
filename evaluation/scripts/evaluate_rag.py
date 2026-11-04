@@ -143,11 +143,11 @@ class LegalRagEvaluator:
                 # Check if system abstains or answers
                 if max_sim >= theta_default:
                     proposed_answered += 1
-                    if exp_ref and any(exp_ref in r for r in retrieved_refs):
+                    if exp_code in retrieved_codes:
                         citations_correct += 1
 
                 # Standard RAG citations
-                if exp_ref and exp_ref in retrieved_refs[0]:
+                if exp_code in retrieved_codes[:1]:
                     std_citations_correct += 1
 
                 # LLM Zero-shot simulation
