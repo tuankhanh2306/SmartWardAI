@@ -1,48 +1,63 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Landmark, Bot, ShieldCheck, Map, FileCheck2, ArrowRight, Sparkles } from 'lucide-react';
+import { Menu, X, Landmark, Bot, ShieldCheck, Map, FileCheck2, ArrowRight, Sparkles, MapPin } from 'lucide-react';
 import { isGeminiConfigured } from '../services/geminiClient';
 import { AiSettingsModal } from './AiSettingsModal';
+import { useWard } from '../context/WardContext';
 
 export const Header: React.FC = () => {
   const location = useLocation();
   const path = location.pathname;
+  const { currentWard } = useWard();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [aiModalOpen, setAiModalOpen] = useState(false);
   const [geminiActive, setGeminiActive] = useState(isGeminiConfigured());
 
   const navLinks = [
+    { to: '/onboarding', label: 'Chọn Xã/Phường', icon: MapPin },
     { to: '/citizen', label: 'Cổng Công Dân', icon: Bot },
-    { to: '/citizen/form', label: 'Tiền Kiểm Định & Báo Sự Cố', icon: FileCheck2 },
-    { to: '/officer/audit', label: 'Bàn Sơ Duyệt Cán Bộ', icon: ShieldCheck },
-    { to: '/officer/map', label: 'Trung Tâm Chỉ Huy GIS', icon: Map },
+    { to: '/citizen/form', label: 'Tiền Kiểm Định', icon: FileCheck2 },
+    { to: `/officer/ward/${currentWard.code}`, label: 'Bàn Cán Bộ Xã', icon: ShieldCheck },
+    { to: '/officer/map', label: 'Bản Đồ GIS', icon: Map },
   ];
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#FAF8FF]/90 backdrop-blur-xl border-b border-[#EAEDFF] transition-all duration-300">
       <div className="h-16 w-full max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between gap-4">
         {/* Brand Identity with double-bezel icon */}
-        <Link
-          to="/citizen"
-          className="flex items-center gap-3 shrink-0 group active:scale-[0.98] transition-transform duration-200"
-        >
-          <div className="p-1 rounded-xl bg-gradient-to-tr from-[#00236F]/10 to-[#57DFFE]/20 border border-[#DAE2FD]/60 shadow-xs">
-            <div className="w-9 h-9 rounded-lg bg-[#00236F] flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform duration-300">
-              <Landmark className="w-5 h-5 text-[#ACEDFF]" />
+        <div className="flex items-center gap-3">
+          <Link
+            to="/citizen"
+            className="flex items-center gap-3 shrink-0 group active:scale-[0.98] transition-transform duration-200"
+          >
+            <div className="p-1 rounded-xl bg-gradient-to-tr from-[#00236F]/10 to-[#57DFFE]/20 border border-[#DAE2FD]/60 shadow-xs">
+              <div className="w-9 h-9 rounded-lg bg-[#00236F] flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform duration-300">
+                <Landmark className="w-5 h-5 text-[#ACEDFF]" />
+              </div>
             </div>
-          </div>
-          <div className="flex flex-col">
-            <span className="font-sans font-bold text-sm md:text-base text-[#00236F] tracking-tight leading-none flex items-center gap-1.5">
-              UBND PHƯỜNG 25
-              <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-[#DCE1FF] text-[#00164E]">
-                AI 2.0
+            <div className="flex flex-col">
+              <span className="font-sans font-bold text-xs sm:text-sm md:text-base text-[#00236F] tracking-tight leading-none flex items-center gap-1.5">
+                UBND {currentWard.name.toUpperCase()}
+                <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-[#DCE1FF] text-[#00164E]">
+                  AN GIANG
+                </span>
               </span>
-            </span>
-            <span className="text-[11px] text-[#444651] leading-tight mt-1 font-medium hidden sm:inline">
-              Bộ phận Một Cửa Số & Điều Hành Hiện Trường
-            </span>
-          </div>
-        </Link>
+              <span className="text-[11px] text-[#444651] leading-tight mt-1 font-medium hidden sm:inline">
+                Một Cửa Số • {currentWard.area}
+              </span>
+            </div>
+          </Link>
+
+          {/* Quick Ward Switcher Pill */}
+          <Link
+            to="/onboarding"
+            className="hidden xl:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#F2F3FF] hover:bg-[#EAEDFF] border border-[#DAE2FD] text-[11px] font-bold text-[#00236F] transition active:scale-95 ml-1 shrink-0"
+            title="Bấm để đổi sang Xã/Phường khác tại An Giang"
+          >
+            <MapPin className="w-3.5 h-3.5 text-[#00687A]" />
+            <span>Đổi Xã/Phường</span>
+          </Link>
+        </div>
 
         {/* Global Navigation Pill (Desktop) with Smooth Indicator */}
         <nav className="hidden lg:flex items-center gap-1 p-1 bg-[#F2F3FF] rounded-2xl border border-[#EAEDFF] shadow-inner">

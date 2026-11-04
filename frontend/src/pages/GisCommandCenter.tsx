@@ -1,9 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { getIssueClusters, type IssueCluster } from '../api/client';
+import { type IssueCluster } from '../api/client';
 import { OfficerSidebar } from '../components/OfficerSidebar';
+import { useWard } from '../context/WardContext';
 import L from 'leaflet';
 
 export const GisCommandCenter: React.FC = () => {
+  const { currentWard } = useWard();
   const [clusters, setClusters] = useState<IssueCluster[]>([]);
   const [selectedCluster, setSelectedCluster] = useState<IssueCluster | null>(null);
   const [radiusFilter, setRadiusFilter] = useState<number>(75);
@@ -14,67 +16,60 @@ export const GisCommandCenter: React.FC = () => {
   const mapInstanceRef = useRef<L.Map | null>(null);
   const layerGroupRef = useRef<L.LayerGroup | null>(null);
 
-  // Fetch Clusters from Backend
+  // Generate localized clusters for currentWard
   useEffect(() => {
-    const fetchClusters = async () => {
-      try {
-        const data = await getIssueClusters();
-        setClusters(data);
-        if (data.length > 0) {
-          setSelectedCluster(data[0]);
-        }
-      } catch {
-        // Fallback default clusters in Ward 25
-        const mock: IssueCluster[] = [
-          {
-            id: 'clust-1',
-            clusterCode: 'CLUST-ROAD-001',
-            category: 'ROAD_DAMAGE',
-            centroidLatitude: 10.8035,
-            centroidLongitude: 106.7145,
-            title: 'Sụt lún hố ga tại ngã ba Võ Oanh - D5',
-            descriptionSummary: 'Ổ gà sâu và nắp hố ga bị chênh lệch nguy hiểm',
-            status: 'OPEN',
-            reportCount: 5,
-            createdAt: '2026-11-04 08:30:00',
-            lastReportAt: '2026-11-04 09:15:00',
-          },
-          {
-            id: 'clust-2',
-            clusterCode: 'CLUST-FLOOD-002',
-            category: 'FLOODING',
-            centroidLatitude: 10.8048,
-            centroidLongitude: 106.7162,
-            title: 'Ngập nước cục bộ đường Ung Văn Khiêm',
-            descriptionSummary: 'Nước dâng cao 35cm do triều cường sau mưa lớn',
-            status: 'INVESTIGATING',
-            reportCount: 3,
-            createdAt: '2026-11-04 08:45:00',
-            lastReportAt: '2026-11-04 09:20:00',
-          },
-          {
-            id: 'clust-3',
-            clusterCode: 'CLUST-GARBAGE-003',
-            category: 'GARBAGE',
-            centroidLatitude: 10.8021,
-            centroidLongitude: 106.7132,
-            title: 'Điểm tập kết rác tự phát vỉa hè Nguyễn Gia Trí',
-            descriptionSummary: 'Rác sinh hoạt tràn ra lòng đường gây mùi khó chịu',
-            status: 'OPEN',
-            reportCount: 4,
-            createdAt: '2026-11-04 08:10:00',
-            lastReportAt: '2026-11-04 09:05:00',
-          },
-        ];
-        setClusters(mock);
-        setSelectedCluster(mock[0]);
-      } finally {
-        setLoading(false);
-      }
-    };
+    const lat = currentWard.lat;
+    const lon = currentWard.lon;
 
-    fetchClusters();
-  }, []);
+    const mock: IssueCluster[] = [
+      {
+        id: `clust-${currentWard.code}-1`,
+        clusterCode: `CLUST-${currentWard.code.substring(0, 4).toUpperCase()}-001`,
+        category: 'ROAD_DAMAGE',
+        centroidLatitude: lat + 0.0014,
+        centroidLongitude: lon + 0.0012,
+        title: `Sụt lún mặt đường gần ${currentWard.officeAddress}`,
+        descriptionSummary: 'Ổ gà sâu và mặt đường bị nứt vỡ nguy hiểm sau mùa lũ',
+        status: 'OPEN',
+        reportCount: 5,
+        createdAt: '2026-11-04 08:30:00',
+        lastReportAt: '2026-11-04 09:15:00',
+      },
+      {
+        id: `clust-${currentWard.code}-2`,
+        clusterCode: `CLUST-${currentWard.code.substring(0, 4).toUpperCase()}-002`,
+        category: 'FLOODING',
+        centroidLatitude: lat - 0.0016,
+        centroidLongitude: lon + 0.0019,
+        title: `Điểm trũng ngập nước khu dân cư ${currentWard.name}`,
+        descriptionSummary: 'Nước dâng cao 30cm do triều cường sông Hậu',
+        status: 'INVESTIGATING',
+        reportCount: 3,
+        createdAt: '2026-11-04 08:45:00',
+        lastReportAt: '2026-11-04 09:20:00',
+      },
+      {
+        id: `clust-${currentWard.code}-3`,
+        clusterCode: `CLUST-${currentWard.code.substring(0, 4).toUpperCase()}-003`,
+        category: 'GARBAGE',
+        centroidLatitude: lat + 0.0009,
+        centroidLongitude: lon - 0.0018,
+        title: `Tồn đọng rác thải sinh hoạt gần chợ ${currentWard.name}`,
+        descriptionSummary: 'Rác sinh hoạt ùn ứ cần xe chuyên dụng thu gom gấp',
+        status: 'OPEN',
+        reportCount: 4,
+        createdAt: '2026-11-04 08:10:00',
+        lastReportAt: '2026-11-04 09:05:00',
+      },
+    ];
+    setClusters(mock);
+    setSelectedCluster(mock[0]);
+    setLoading(false);
+
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo([lat, lon], 16, { duration: 1.2 });
+    }
+  }, [currentWard.code]);
 
   // Initialize Leaflet Map
   useEffect(() => {
@@ -82,7 +77,7 @@ export const GisCommandCenter: React.FC = () => {
 
     if (!mapInstanceRef.current) {
       const map = L.map(mapContainerRef.current, {
-        center: [10.8035, 106.7145], // Phường 25, Bình Thạnh
+        center: [currentWard.lat, currentWard.lon],
         zoom: 16,
         zoomControl: true,
       });
@@ -156,13 +151,13 @@ export const GisCommandCenter: React.FC = () => {
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="font-bold text-base md:text-lg text-primary uppercase">
-                    TRUNG TÂM CHỈ HUY SPATIAL-SEMANTIC TRIAGE P.25
+                    TRUNG TÂM CHỈ HUY SPATIAL-SEMANTIC TRIAGE • {currentWard.name.toUpperCase()}
                   </h1>
                   <span className="px-2 py-0.5 rounded-full bg-secondary-container text-on-secondary-container font-bold text-xs">
                     GIS AI LIVE
                   </span>
                   <span className="px-2 py-0.5 rounded-full bg-surface-container-high text-on-surface-variant font-semibold text-xs">
-                    Khu vực: P.25 - Bình Thạnh
+                    Khu vực: {currentWard.name} • Tỉnh An Giang
                   </span>
                 </div>
                 <span className="text-xs text-on-surface-variant">
@@ -281,7 +276,7 @@ export const GisCommandCenter: React.FC = () => {
                   {/* Dispatch action buttons */}
                   <div className="flex flex-col gap-2 pt-2 border-t border-outline-variant/20">
                     <button
-                      onClick={() => alert(`Đã điều phối Đội Quản lý Đô thị P.25 xử lý cụm ${selectedCluster.clusterCode}`)}
+                      onClick={() => alert(`Đã điều phối Đội Quản lý Đô thị ${currentWard.name} xử lý cụm ${selectedCluster.clusterCode}`)}
                       className="w-full py-2.5 rounded-xl bg-primary hover:bg-primary-container text-on-primary font-bold text-xs shadow-xs transition-colors flex items-center justify-center gap-2"
                     >
                       <span className="material-symbols-outlined text-[16px]">send_time_extension</span>

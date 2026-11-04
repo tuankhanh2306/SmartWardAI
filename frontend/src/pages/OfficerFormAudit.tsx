@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import OfficerSidebar from '../components/OfficerSidebar';
+import { useWard } from '../context/WardContext';
 import {
   FileText,
   CreditCard,
@@ -23,6 +24,7 @@ import {
 } from 'lucide-react';
 
 export default function OfficerFormAudit() {
+  const { currentWard } = useWard();
   // Viewer state
   const [zoom, setZoom] = useState<number>(100);
   const [rotate, setRotate] = useState<number>(0);
@@ -77,14 +79,14 @@ export default function OfficerFormAudit() {
           <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
             <div>
               <div className="flex items-center gap-2 text-xs text-[#444651] mb-1 font-medium">
-                <span>Hệ Thống Quản Trị Phường 25</span>
+                <span>Hệ Thống Quản Trị {currentWard.name}</span>
                 <span>/</span>
                 <span>Tiếp Nhận Sơ Duyệt Cư Trú</span>
                 <span>/</span>
                 <span className="text-[#00236F] font-bold">Hồ Sơ CT01-2026-0894</span>
               </div>
               <h1 className="text-xl font-bold text-[#00236F] flex items-center gap-2">
-                Bàn Sơ Duyệt Tờ Khai Cư Trú (Mẫu CT01)
+                Bàn Sơ Duyệt Tờ Khai Cư Trú (Mẫu CT01) • {currentWard.name}
                 <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#ACEDFF] text-[#004E5C]">
                   Đang Xử Lý
                 </span>
@@ -94,10 +96,10 @@ export default function OfficerFormAudit() {
                   Hồ sơ: <strong className="text-[#131B2E]">CT01-2026-0894</strong>
                 </span>
                 <span>
-                  Công dân: <strong className="text-[#131B2E]">Nguyễn Văn An (P.25)</strong>
+                  Công dân: <strong className="text-[#131B2E]">Nguyễn Văn An ({currentWard.name})</strong>
                 </span>
                 <span>
-                  Cán bộ thụ lý: <strong className="text-[#131B2E]">Trần Thị Hương (P.25)</strong>
+                  Cán bộ thụ lý: <strong className="text-[#131B2E]">Trần Thị Hương ({currentWard.name})</strong>
                 </span>
                 <span className="flex items-center gap-1 text-[#00687A]">
                   <Clock className="w-3.5 h-3.5" />
@@ -225,7 +227,7 @@ export default function OfficerFormAudit() {
                       key={idx}
                       className="-rotate-45 transform whitespace-nowrap text-[#BA1A1A] font-mono text-[10px] font-bold tracking-wider uppercase text-center py-3"
                     >
-                      CHỈ DÙNG ĐỂ SƠ DUYỆT TẠI UBND PHƯỜNG 25 - 04/11/2026 08:50 - CÁN BỘ: TRẦN THỊ HƯƠNG - KHÔNG CÓ GIÁ TRỊ THỰC THI PHÁP LÝ NGOÀI PHIÊN LÀM VIỆC
+                      CHỈ DÙNG ĐỂ SƠ DUYỆT TẠI UBND {currentWard.name.toUpperCase()} - 04/11/2026 08:50 - CÁN BỘ: TRẦN THỊ HƯƠNG - KHÔNG CÓ GIÁ TRỊ THỰC THI PHÁP LÝ NGOÀI PHIÊN LÀM VIỆC
                     </div>
                   ))}
                 </div>
@@ -252,7 +254,7 @@ export default function OfficerFormAudit() {
                   <div className="flex items-center">
                     <span className="font-semibold w-24">Kính gửi:</span>
                     <span className="flex-1 font-medium bg-[#EAEDFF]/60 px-1.5 py-0.5 rounded text-[11px]">
-                      Công an Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh
+                      Công an {currentWard.name}, Tỉnh An Giang
                     </span>
                   </div>
 
@@ -340,7 +342,7 @@ export default function OfficerFormAudit() {
                     </span>
                     <div className="flex items-baseline">
                       <span className="font-semibold w-28 text-[#444651]">6. Nơi thường trú:</span>
-                      <span className="font-bold text-[#131B2E]">Số 15 Võ Oanh, Phường 25, Bình Thạnh, TP.HCM</span>
+                      <span className="font-bold text-[#131B2E]">Số 12, {currentWard.officeAddress}</span>
                     </div>
                   </div>
 
@@ -464,7 +466,7 @@ export default function OfficerFormAudit() {
                       </span>
                     </div>
                     <p className="text-xs text-[#444651] mt-0.5">
-                      Được AI Rule Engine Phường 25 tự động đối chiếu chéo thời gian thực với CSDL Dân cư Quốc gia (Đề án 06/CP).
+                      Được AI Rule Engine {currentWard.name} tự động đối chiếu chéo thời gian thực với CSDL Dân cư Quốc gia (Đề án 06/CP).
                     </p>
                   </div>
                 </div>
@@ -637,11 +639,11 @@ export default function OfficerFormAudit() {
                         </div>
                         <div className="mt-1">
                           <span className="text-xs font-bold text-[#131B2E]">
-                            Số 15 Võ Oanh, Phường 25, Quận Bình Thạnh, TP.HCM
+                            Số 12, {currentWard.officeAddress}
                           </span>
                         </div>
                         <p className="text-[11px] text-[#444651] mt-0.5">
-                          Địa chỉ hợp lệ trong địa bàn hành chính Phường 25. Trùng khớp cơ sở dữ liệu số nhà địa chính.
+                          Địa chỉ hợp lệ trong địa bàn hành chính {currentWard.name}. Trùng khớp cơ sở dữ liệu số nhà địa chính.
                         </p>
                       </div>
                     </div>
@@ -687,7 +689,7 @@ export default function OfficerFormAudit() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-bold text-[#131B2E]">
-                      Mã Khóa Dữ Liệu Tự Động Phường 25
+                      Mã Khóa Dữ Liệu Tự Động {currentWard.name}
                     </span>
                     <span className="px-2 py-0.5 rounded bg-[#EAEDFF] text-[#00236F] font-mono font-bold text-[10px]">
                       AES-256-GCM Ephemeral
@@ -795,7 +797,7 @@ export default function OfficerFormAudit() {
 
             {/* Chuyển Lãnh Đạo Ký Số */}
             <button
-              onClick={() => alert('Đã chuyển hồ sơ lên Lãnh đạo UBND Phường 25 ký số!')}
+              onClick={() => alert(`Đã chuyển hồ sơ lên Lãnh đạo UBND ${currentWard.name} ký số!`)}
               className="h-9 px-3.5 bg-[#EAEDFF] text-[#00236F] hover:bg-[#DAE2FD] text-xs font-semibold rounded-lg transition flex items-center gap-1.5"
               type="button"
             >

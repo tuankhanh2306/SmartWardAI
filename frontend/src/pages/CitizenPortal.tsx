@@ -3,6 +3,7 @@ import { askLegalRag, type RagResponse } from '../api/client';
 import { isGeminiConfigured } from '../services/geminiClient';
 import { AiSettingsModal } from '../components/AiSettingsModal';
 import { useNavigate } from 'react-router-dom';
+import { useWard } from '../context/WardContext';
 import {
   Send,
   Sparkles,
@@ -20,7 +21,8 @@ import {
   Clock,
   ChevronRight,
   HelpCircle,
-  X
+  X,
+  MapPin
 } from 'lucide-react';
 
 interface ChatMessage {
@@ -33,6 +35,7 @@ interface ChatMessage {
 
 export const CitizenPortal: React.FC = () => {
   const navigate = useNavigate();
+  const { currentWard, isOfficeOpen } = useWard();
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
@@ -100,7 +103,10 @@ export const CitizenPortal: React.FC = () => {
     setLoading(true);
 
     try {
-      const resp = await askLegalRag(q);
+      const resp = await askLegalRag(q, 3, {
+        wardName: `${currentWard.name}, ${currentWard.province}`,
+        officeAddress: currentWard.officeAddress,
+      });
       const botMsg: ChatMessage = {
         id: `msg-${Date.now()}-bot`,
         sender: 'bot',
@@ -113,7 +119,7 @@ export const CitizenPortal: React.FC = () => {
       const errorMsg: ChatMessage = {
         id: `msg-${Date.now()}-err`,
         sender: 'bot',
-        text: 'Hệ thống đang bận hoặc câu hỏi cần liên hệ trực tiếp Bộ phận Một cửa để được hỗ trợ cụ thể.',
+        text: `Hệ thống đang bận hoặc câu hỏi cần liên hệ trực tiếp Bộ phận Một cửa ${currentWard.name} (${currentWard.phoneNumber}) để được hỗ trợ cụ thể.`,
         timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, errorMsg]);
@@ -130,16 +136,16 @@ export const CitizenPortal: React.FC = () => {
 
   const toggleMic = () => {
     setIsMicActive(true);
-    setQuery('Tôi muốn kiểm tra điều kiện đăng ký thường trú tại Phường 25...');
+    setQuery(`Tôi muốn kiểm tra điều kiện đăng ký thường trú tại ${currentWard.name}...`);
     setTimeout(() => {
       setIsMicActive(false);
     }, 1500);
   };
 
   const quickPrompts = [
-    { label: '👶 Khai sinh cần giấy tờ gì?', q: 'Tôi muốn làm thủ tục đăng ký khai sinh cho cháu mới sinh cần giấy tờ gì và mất bao lâu?' },
-    { label: '💍 Đăng ký kết hôn tại phường', q: 'Thủ tục đăng ký kết hôn tại UBND phường cần hai bên chuẩn bị hồ sơ gì và lệ phí bao nhiêu?' },
-    { label: '🏠 Hướng dẫn điền mẫu CT01', q: 'Hướng dẫn các bước làm thủ tục đăng ký thường trú theo mẫu tờ khai CT01 tại Phường 25?' },
+    { label: '👶 Khai sinh cần giấy tờ gì?', q: `Tôi muốn làm thủ tục đăng ký khai sinh cho cháu mới sinh tại ${currentWard.name} cần giấy tờ gì và mất bao lâu?` },
+    { label: '💍 Đăng ký kết hôn tại UBND', q: `Thủ tục đăng ký kết hôn tại UBND ${currentWard.name} cần hai bên chuẩn bị hồ sơ gì và lệ phí bao nhiêu?` },
+    { label: '🏠 Hướng dẫn điền mẫu CT01', q: `Hướng dẫn các bước làm thủ tục đăng ký thường trú theo mẫu tờ khai CT01 tại ${currentWard.name}?` },
     { label: '⚠️ Câu hỏi bẫy ngoài thẩm quyền', q: 'Thủ tục tranh chấp chia thừa kế quyền sử dụng đất nông nghiệp cấp tỉnh và giá vàng hôm nay?' },
   ];
 
@@ -151,7 +157,7 @@ export const CitizenPortal: React.FC = () => {
       time: '01 ngày làm việc',
       fee: 'Miễn phí đúng hạn',
       badge: 'Thường Gặp Nhất',
-      prompt: 'Thủ tục đăng ký khai sinh tại Phường 25 gồm những giấy tờ gì và giải quyết trong bao lâu?',
+      prompt: `Thủ tục đăng ký khai sinh tại ${currentWard.name} gồm những giấy tờ gì và giải quyết trong bao lâu?`,
     },
     {
       code: 'TTHC-HT-02',
@@ -160,7 +166,7 @@ export const CitizenPortal: React.FC = () => {
       time: 'Giải quyết trong ngày',
       fee: 'Miễn phí công dân',
       badge: 'Dịch Vụ Nhanh',
-      prompt: 'Hai bên nam nữ cần chuẩn bị gì khi đến UBND Phường 25 đăng ký kết hôn?',
+      prompt: `Hai bên nam nữ cần chuẩn bị gì khi đến UBND ${currentWard.name} đăng ký kết hôn?`,
     },
     {
       code: 'TTHC-CT-01',
@@ -169,7 +175,7 @@ export const CitizenPortal: React.FC = () => {
       time: '03 ngày làm việc',
       fee: 'Theo quy định Bộ CA',
       badge: 'Có Tiền Kiểm Định',
-      prompt: 'Hướng dẫn thủ tục nộp tờ khai CT01 và kiểm tra giấy tờ cư trú tại Phường 25?',
+      prompt: `Hướng dẫn thủ tục nộp tờ khai CT01 và kiểm tra giấy tờ cư trú tại ${currentWard.name}?`,
     },
     {
       code: 'TTHC-HT-03',
@@ -193,17 +199,31 @@ export const CitizenPortal: React.FC = () => {
           {/* Eyebrow & Status Bar */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white border border-[#DAE2FD] shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-[#00687A] animate-pulse" />
+              <span className={`w-2 h-2 rounded-full ${isOfficeOpen ? 'bg-[#10B981] animate-pulse' : 'bg-[#F59E0B]'}`} />
               <span className="text-xs font-bold text-[#00236F] uppercase tracking-wider">
-                Cổng Dịch Vụ Công Dân Thông Minh
+                UBND {currentWard.name.toUpperCase()}
               </span>
-              <span className="text-xs text-[#757682]">• Phường 25, Bình Thạnh</span>
+              <span className="text-xs text-[#757682]">• TỈNH AN GIANG</span>
+              <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${isOfficeOpen ? 'bg-[#ECFDF5] text-[#065F46]' : 'bg-[#FEF3C7] text-[#92400E]'}`}>
+                {isOfficeOpen ? 'Mở cửa tiếp dân' : 'Ngoài giờ (Trực tuyến 24/7)'}
+              </span>
+              <button
+                onClick={() => navigate('/onboarding')}
+                className="text-[11px] font-bold text-[#00236F] hover:text-[#1E3A8A] hover:underline flex items-center gap-1 border-l border-[#DAE2FD] pl-2 ml-1 cursor-pointer"
+                title="Chọn Xã/Phường khác tại An Giang"
+              >
+                <MapPin className="w-3 h-3 text-[#00687A]" />
+                <span>Đổi Xã/Phường</span>
+              </button>
             </div>
 
             <div className="flex items-center gap-2">
-              <span className="text-xs text-[#444651] font-medium hidden sm:inline">Tuân thủ:</span>
+              <span className="text-xs text-[#444651] font-medium hidden sm:inline">Đối tác Kỹ thuật:</span>
+              <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#EE0033]/10 text-[#EE0033] border border-[#EE0033]/20">
+                Viettel An Giang
+              </span>
               <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#DCE1FF] text-[#00164E]">
-                Nghị Định 13/2023/NĐ-CP
+                Nghị Định 13/2023
               </span>
               <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#ACEDFF] text-[#004E5C]">
                 Đề Án 06/CP
@@ -218,8 +238,8 @@ export const CitizenPortal: React.FC = () => {
                 Tư Vấn Thủ Tục Hành Chính & Phân Luồng Phản Ánh
               </h1>
               <p className="mt-2.5 text-sm md:text-base text-[#444651] leading-relaxed">
-                Trợ lý ảo pháp lý ứng dụng mô hình RAG phân cấp theo Điều – Khoản và chốt chặn chống ảo giác ($\theta = 0.78$). 
-                Hỗ trợ tra cứu tức thì 40 TTHC cấp xã/phường và tiền kiểm tra hồ sơ trước khi nộp.
+                Trợ lý ảo pháp lý ứng dụng mô hình RAG phân cấp và Google Gemini 2.5 Flash, chốt chặn chống ảo giác ($\theta = 0.78$), 
+                phối hợp công nghệ cùng Viettel An Giang. Hỗ trợ tra cứu tức thì 40 TTHC cấp xã/phường tại <strong>{currentWard.name}</strong> và tiền kiểm tra hồ sơ trước khi nộp.
               </p>
             </div>
 
@@ -300,8 +320,8 @@ export const CitizenPortal: React.FC = () => {
           <div className="p-4 rounded-2xl bg-[#EAEDFF]/50 border border-[#DAE2FD] flex items-start gap-3 mt-1">
             <HelpCircle className="w-5 h-5 text-[#00236F] shrink-0 mt-0.5" />
             <div className="text-xs text-[#444651] leading-relaxed">
-              <strong className="text-[#00236F] block mb-0.5">Cần nộp hồ sơ chính thức?</strong>
-              Sau khi kiểm tra tờ khai và hỏi đáp AI, bà con có thể nộp trực tiếp tại Bộ phận Một cửa UBND Phường 25 (Số 15 Võ Oanh, P.25, Bình Thạnh) từ 07:30 đến 17:00 các ngày làm việc.
+              <strong className="text-[#00236F] block mb-0.5">Cần nộp hồ sơ hoặc liên hệ trực tiếp?</strong>
+              Sau khi kiểm tra tờ khai và hỏi đáp AI, bà con có thể nộp trực tiếp tại Bộ phận Một cửa {currentWard.name} (Địa chỉ: {currentWard.officeAddress} • Hotline: {currentWard.phoneNumber}) trong giờ làm việc: {currentWard.workingHours}.
             </div>
           </div>
         </div>
@@ -385,7 +405,7 @@ export const CitizenPortal: React.FC = () => {
                 <Bot className="w-12 h-12 text-[#DAE2FD] mb-3" />
                 <p className="text-sm font-semibold text-[#131B2E]">Hộp thoại tư vấn pháp lý sẵn sàng</p>
                 <p className="text-xs text-[#757682] mt-1 max-w-sm">
-                  Hãy chọn một thủ tục phổ biến bên trái hoặc đặt bất kỳ câu hỏi nào về TTHC, biểu mẫu tại UBND Phường 25.
+                  Hãy chọn một thủ tục phổ biến bên trái hoặc đặt bất kỳ câu hỏi nào về TTHC, biểu mẫu tại UBND {currentWard.name}.
                 </p>
               </div>
             )}

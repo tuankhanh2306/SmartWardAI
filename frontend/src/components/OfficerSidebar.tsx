@@ -1,5 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useWard } from '../context/WardContext';
 
 interface OfficerSidebarProps {
   activeMenu?: 'audit' | 'map' | string;
@@ -7,18 +8,32 @@ interface OfficerSidebarProps {
 
 export const OfficerSidebar: React.FC<OfficerSidebarProps> = ({ activeMenu }) => {
   const location = useLocation();
+  const { currentWard } = useWard();
   const path = activeMenu ? `/officer/${activeMenu}` : location.pathname;
 
   return (
     <aside className="fixed left-0 top-16 bottom-0 w-64 bg-surface-container-lowest z-40 flex flex-col justify-between py-4 shadow-[0_1px_8px_rgba(0,0,0,0.04)] border-r border-outline-variant/20">
       <div className="flex flex-col gap-2">
-        <div className="px-4 py-2">
+        <div className="px-4 py-2 flex flex-col">
           <span className="text-[11px] uppercase tracking-wider text-on-surface-variant font-bold">
-            Nghiệp Vụ Cán Bộ Phường 25
+            Bàn Cán Bộ • {currentWard.name}
           </span>
+          <span className="text-[10px] text-primary font-semibold">Tỉnh An Giang</span>
         </div>
 
         <nav className="flex flex-col gap-1 px-3">
+          <Link
+            to={`/officer/ward/${currentWard.code}`}
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
+              path.includes('/officer/ward')
+                ? 'bg-primary-container text-on-primary shadow-sm'
+                : 'text-on-surface-variant hover:text-on-surface hover:bg-surface-container'
+            }`}
+          >
+            <span className="material-symbols-outlined text-[20px]">dashboard</span>
+            Điều Hành Xã/Phường
+          </Link>
+
           <Link
             to="/officer/audit"
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-colors ${
@@ -44,6 +59,14 @@ export const OfficerSidebar: React.FC<OfficerSidebarProps> = ({ activeMenu }) =>
           </Link>
 
           <Link
+            to="/onboarding"
+            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"
+          >
+            <span className="material-symbols-outlined text-[20px]">swap_horiz</span>
+            Đổi Xã/Phường Khác
+          </Link>
+
+          <Link
             to="/citizen"
             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-colors"
           >
@@ -64,7 +87,7 @@ export const OfficerSidebar: React.FC<OfficerSidebarProps> = ({ activeMenu }) =>
           </p>
         </div>
         <div className="text-[11px] text-on-surface-variant font-medium text-center">
-          © 2026 UBND Phường 25 • SmartWard AI
+          © 2026 UBND {currentWard.name} • SmartWard AI
         </div>
       </div>
     </aside>

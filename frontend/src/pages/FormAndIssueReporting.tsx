@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   precheckForm,
   reportIssue,
   type FormPrecheckResponse,
   type IssueReportResponse
 } from '../api/client';
+import { useWard } from '../context/WardContext';
 import {
   FileCheck2,
   AlertTriangle,
@@ -21,6 +22,8 @@ import {
 } from 'lucide-react';
 
 export const FormAndIssueReporting: React.FC = () => {
+  const { currentWard } = useWard();
+
   // Active Tab
   const [activeTab, setActiveTab] = useState<'form' | 'incident'>('form');
 
@@ -29,20 +32,29 @@ export const FormAndIssueReporting: React.FC = () => {
   const [cccd, setCccd] = useState('079095012345');
   const [dob, setDob] = useState('1995-08-15');
   const [issueDate, setIssueDate] = useState('2021-09-20');
-  const [address, setAddress] = useState('Số 15 Võ Oanh, Phường 25, Bình Thạnh, TP.HCM');
+  const [address, setAddress] = useState(`Số 12, ${currentWard.officeAddress}`);
   const [formLoading, setFormLoading] = useState(false);
   const [precheckResult, setPrecheckResult] = useState<FormPrecheckResponse | null>(null);
   const [isCameraActive, setIsCameraActive] = useState(false);
 
   // Civic Incident Reporting State
   const [category, setCategory] = useState('ROAD_DAMAGE');
-  const [description, setDescription] = useState('Ổ gà sâu khoảng 25cm tại ngã ba Võ Oanh - D5 gây nguy hiểm cho người đi xe máy.');
-  const [addressText, setAddressText] = useState('Gần số 15 Võ Oanh, Phường 25, Bình Thạnh, TP.HCM');
-  const [latitude, setLatitude] = useState(10.8035);
-  const [longitude, setLongitude] = useState(106.7145);
+  const [description, setDescription] = useState(`Đoạn đường trung tâm gần ${currentWard.officeAddress} bị sụt lún ổ gà sâu cần tu sửa khẩn cấp.`);
+  const [addressText, setAddressText] = useState(`Khu vực trung tâm ${currentWard.name}, Tỉnh An Giang`);
+  const [latitude, setLatitude] = useState(currentWard.lat);
+  const [longitude, setLongitude] = useState(currentWard.lon);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [reportLoading, setReportLoading] = useState(false);
   const [reportResult, setReportResult] = useState<IssueReportResponse | null>(null);
+
+  // Sync with currentWard if user switches ward
+  useEffect(() => {
+    setLatitude(currentWard.lat);
+    setLongitude(currentWard.lon);
+    setAddressText(`Khu vực trung tâm ${currentWard.name}, Tỉnh An Giang`);
+    setAddress(`Số 12, ${currentWard.officeAddress}`);
+    setDescription(`Đoạn đường trung tâm gần ${currentWard.officeAddress} bị sụt lún ổ gà sâu cần tu sửa khẩn cấp.`);
+  }, [currentWard.code]);
 
   // Handle Form Precheck
   const handlePrecheck = async () => {
@@ -104,6 +116,7 @@ export const FormAndIssueReporting: React.FC = () => {
         longitude,
         addressText,
         rawDescription: description,
+        wardName: currentWard.name,
       });
       setReportResult(res);
     } catch {
@@ -159,7 +172,7 @@ export const FormAndIssueReporting: React.FC = () => {
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-base md:text-lg font-bold text-[#00236F]">
-                    Tiền Kiểm Định Tờ Khai Cư Trú (Mẫu CT01)
+                    Tiền Kiểm Định Tờ Khai Cư Trú (Mẫu CT01) • {currentWard.name}
                   </h1>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#DCE1FF] text-[#00164E]">
                     Chống Sai Sót Hành Chính
@@ -419,10 +432,10 @@ export const FormAndIssueReporting: React.FC = () => {
               </div>
               <div>
                 <h2 className="text-base md:text-lg font-bold text-[#00236F]">
-                  Phản Ánh Sự Cố Đô Thị & An Ninh Trật Tự
+                  Phản Ánh Sự Cố Đô Thị & An Ninh Trật Tự • {currentWard.name}
                 </h2>
                 <p className="text-xs text-[#444651] mt-1 leading-relaxed">
-                  Ứng dụng thuật toán phân luồng 2 pha: Lọc bán kính địa lý R=75m (Redis GEO) và so khớp ngữ nghĩa vector τ=0.82 để tự động phát hiện và gộp các phản ánh trùng lặp.
+                  Ứng dụng thuật toán phân luồng 2 pha: Lọc bán kính địa lý R=75m (Redis GEO) và so khớp ngữ nghĩa vector τ=0.82 để tự động phát hiện và gộp các phản ánh trùng lặp trên địa bàn {currentWard.name}, Tỉnh An Giang.
                 </p>
               </div>
             </div>

@@ -32,21 +32,32 @@ export interface RagResponse {
   disclaimer: string;
 }
 
-export const askLegalRag = async (query: string, topK: number = 3): Promise<RagResponse> => {
+export const askLegalRag = async (
+  query: string,
+  topK: number = 3,
+  wardContext: { wardName?: string; officeAddress?: string } = {}
+): Promise<RagResponse> => {
   // 1. First, attempt to invoke Spring Boot Backend (/api/v1/rag/ask)
   try {
-    const resp = await api.post<RagResponse>('/rag/ask', { query, topK });
+    const resp = await api.post<RagResponse>('/rag/ask', {
+      query,
+      topK,
+      wardName: wardContext.wardName,
+    });
     return resp.data;
   } catch (backendError) {
     // 2. If Backend is offline or unavailable, check if Gemini Live RAG is configured
     if (isGeminiConfigured()) {
       try {
-        console.info('Invoking in-app Gemini Mini Live RAG Engine with Project Knowledge...');
-        return await askGeminiWithRAG(query);
+        console.info('Invoking in-app Gemini Flash Live RAG Engine with Project Knowledge...');
+        return await askGeminiWithRAG(query, wardContext);
       } catch (geminiError) {
         console.warn('Gemini Live API failed, falling back to local simulation:', geminiError);
       }
     }
+
+    const currentWardName = wardContext.wardName || 'UBND cấp Xã/Phường';
+    const currentAddress = wardContext.officeAddress || 'Bộ phận Một cửa';
 
     // 3. Intelligent Offline / Fallback Simulation (Guaranteed Demo Resilience)
     const lower = query.toLowerCase();
@@ -63,7 +74,7 @@ export const askLegalRag = async (query: string, topK: number = 3): Promise<RagR
     ) {
       return {
         answer:
-          'Hệ thống từ chối trả lời tự động nhằm bảo đảm an toàn pháp lý. Câu hỏi của bà con nằm ngoài phạm vi thẩm quyền của UBND cấp xã/phường hoặc độ tương đồng ngữ nghĩa dưới ngưỡng an toàn (θ = 0.78). Bà con vui lòng liên hệ trực tiếp Bộ phận Một cửa UBND Phường 25 để được cán bộ tư pháp hướng dẫn chi tiết.',
+          `Hệ thống từ chối trả lời tự động nhằm bảo đảm an toàn pháp lý. Câu hỏi của bà con nằm ngoài phạm vi thẩm quyền của UBND cấp xã/phường (hoặc độ tương đồng ngữ nghĩa dưới ngưỡng an toàn θ = 0.78). Bà con vui lòng liên hệ trực tiếp Bộ phận Một cửa ${currentWardName} (Địa chỉ: ${currentAddress}) để được cán bộ tư pháp hướng dẫn chi tiết.`,
         abstained: true,
         abstentionReason:
           'Độ tương đồng tài liệu cao nhất (0.612) thấp hơn ngưỡng an toàn tối thiểu (θ = 0.78). Áp dụng chốt chặn an toàn theo quy định.',
@@ -131,7 +142,7 @@ export const askLegalRag = async (query: string, topK: number = 3): Promise<RagR
     // Case D: Residence / CT01
     return {
       answer:
-        'Thủ tục đăng ký thường trú / tạm trú thực hiện theo Mẫu tờ khai CT01 ban hành kèm theo Thông tư 56/2021/TT-BCA. Thời hạn giải quyết: 03 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ. Công dân nộp bản scan hoặc bản gốc tờ khai kèm CCCD gắn chip và giấy tờ chứng minh chỗ ở hợp pháp (Hợp đồng thuê nhà hoặc Sổ hồng) tại Công an Phường 25 hoặc nộp trực tuyến qua Cổng Dịch vụ công Bộ Công an.',
+        `Thủ tục đăng ký thường trú / tạm trú thực hiện theo Mẫu tờ khai CT01 ban hành kèm theo Thông tư 56/2021/TT-BCA. Thời hạn giải quyết: 03 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ. Công dân nộp bản scan hoặc bản gốc tờ khai kèm CCCD gắn chip và giấy tờ chứng minh chỗ ở hợp pháp (Hợp đồng thuê nhà hoặc Sổ hồng) tại Công an ${currentWardName} (Địa bàn Tỉnh An Giang) hoặc nộp trực tuyến qua Cổng Dịch vụ công Bộ Công an.`,
       abstained: false,
       maxSimilarity: 0.895,
       appliedThreshold: 0.78,
@@ -332,14 +343,16 @@ export const reportIssue = async (data: {
   addressText: string;
   rawDescription: string;
   reporterPhone?: string;
+  wardName?: string;
 }): Promise<IssueReportResponse> => {
+  const currentWardLabel = data.wardName || 'UBND cấp Xã/Phường';
   try {
     const resp = await api.post<IssueReportResponse>('/issues/report', data);
     return resp.data;
   } catch {
-    // Calculate Haversine distance from centroid of Vo Oanh cluster (10.8035, 106.7145)
-    const centroidLat = 10.8035;
-    const centroidLon = 106.7145;
+    // Calculate Haversine distance from centroid
+    const centroidLat = data.latitude;
+    const centroidLon = data.longitude;
     const dLat = (data.latitude - centroidLat) * 111320;
     const dLon = (data.longitude - centroidLon) * 111320 * Math.cos((centroidLat * Math.PI) / 180);
     const distanceMeters = Math.sqrt(dLat * dLat + dLon * dLon);
@@ -354,9 +367,7 @@ export const reportIssue = async (data: {
         assignedAction: 'MERGED_INTO_EXISTING_CLUSTER',
         similarityWithClusterCentroid: 0.892,
         totalReportsInCluster: 6,
-        message: `Hệ thống AI Phường 25 tự động phát hiện phản ánh của bà con trùng khớp sự cố hiện trường tại ngã ba Võ Oanh (Khoảng cách: ${Math.round(
-          distanceMeters
-        )}m ≤ R=75m, Độ tương đồng ngữ nghĩa: 89.2% ≥ τ=0.82). Phản ánh đã được tự động gộp vào sự cố gốc và điều phối lực lượng xử lý.`,
+        message: `Hệ thống SmartWard AI tại ${currentWardLabel} tự động phát hiện phản ánh của bà con trùng khớp sự cố hiện trường gần khu vực (Độ tương đồng ngữ nghĩa: 89.2% ≥ τ=0.82). Phản ánh đã được tự động gộp vào cụm sự cố để tối ưu lực lượng xử lý.`,
       };
     }
 
@@ -370,7 +381,7 @@ export const reportIssue = async (data: {
       similarityWithClusterCentroid: 0.415,
       totalReportsInCluster: 1,
       message:
-        'Hệ thống đã tiếp nhận phản ánh mới và tự động định vị một điểm sự cố độc lập trên Bản đồ Số GIS Phường 25. Cán bộ trực ban sẽ rà soát và điều phối.',
+        `Hệ thống đã tiếp nhận phản ánh mới và tự động định vị một điểm sự cố độc lập trên Bản đồ Số GIS ${currentWardLabel}. Cán bộ phụ trách sẽ rà soát và điều phối giải quyết.`,
     };
   }
 };
