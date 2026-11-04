@@ -58,22 +58,31 @@ public class DeterministicMockAiClient implements AiModelClient {
         log.info("Mock AI generating chat response for user prompt: '{}'",
                 userPrompt.length() > 50 ? userPrompt.substring(0, 50) + "..." : userPrompt);
 
+        // Extract first chunk code from systemPrompt if available for realistic citation testing
+        String chunkPrefix = "";
+        if (systemPrompt != null) {
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\[MÃ:\\s*([A-Za-z0-9_\\-]+)\\]").matcher(systemPrompt);
+            if (m.find()) {
+                chunkPrefix = "[" + m.group(1) + "] ";
+            }
+        }
+
         // Deterministic answer based on keywords
         String lower = userPrompt.toLowerCase();
         if (lower.contains("khai sinh")) {
-            return "Thủ tục đăng ký khai sinh được giải quyết trong 01 ngày làm việc tại Ủy ban nhân dân cấp xã. " +
+            return chunkPrefix + "Thủ tục đăng ký khai sinh được giải quyết trong 01 ngày làm việc tại Ủy ban nhân dân cấp xã. " +
                     "Hồ sơ cần nộp bao gồm: Giấy chứng sinh (hoặc văn bản thay thế), Tờ khai đăng ký khai sinh, và xuất trình CCCD của cha mẹ. " +
                     "(Căn cứ: Luật Hộ tịch 2014 & Nghị định 123/2015/NĐ-CP).";
         } else if (lower.contains("kết hôn")) {
-            return "Thủ tục đăng ký kết hôn được giải quyết ngay trong ngày làm việc sau khi hai bên nam nữ có mặt và nộp đủ hồ sơ hợp lệ. " +
+            return chunkPrefix + "Thủ tục đăng ký kết hôn được giải quyết ngay trong ngày làm việc sau khi hai bên nam nữ có mặt và nộp đủ hồ sơ hợp lệ. " +
                     "Thủ tục hoàn toàn miễn phí khi đăng ký đúng hạn. (Căn cứ: Luật Hộ tịch 2014 & Nghị định 123/2015/NĐ-CP).";
         } else if (lower.contains("thường trú")) {
-            return "Thủ tục đăng ký thường trú được tiếp nhận tại Công an cấp xã/phường. " +
+            return chunkPrefix + "Thủ tục đăng ký thường trú được tiếp nhận tại Công an cấp xã/phường. " +
                     "Hồ sơ gồm Tờ khai thay đổi thông tin cư trú (Mẫu CT01) và giấy tờ chứng minh chỗ ở hợp pháp. " +
                     "Thời hạn giải quyết tối đa 07 ngày làm việc. (Căn cứ: Luật Cư trú 2020).";
         }
 
-        return "Theo quy định pháp luật hành chính hiện hành tại Ủy ban nhân dân cấp xã, thủ tục được tiếp nhận tại Bộ phận Một cửa. " +
+        return chunkPrefix + "Theo quy định pháp luật hành chính hiện hành tại Ủy ban nhân dân cấp xã, thủ tục được tiếp nhận tại Bộ phận Một cửa. " +
                 "Công dân vui lòng chuẩn bị đầy đủ hồ sơ theo hướng dẫn niêm yết.";
     }
 

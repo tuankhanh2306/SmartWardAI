@@ -61,6 +61,13 @@ public class RedisRateLimiter {
     }
 
     /**
+     * Alias for allowRequest.
+     */
+    public boolean isAllowed(String clientIp) {
+        return allowRequest(clientIp);
+    }
+
+    /**
      * Returns remaining requests allowed in the current minute window.
      */
     public long getRemainingRequests(String clientIp) {

@@ -23,13 +23,15 @@ public class ProcedureDataSeeder implements CommandLineRunner {
     private final AdminProcedureRepository procedureRepository;
     private final LegalChunkRepository chunkRepository;
     private final ObjectMapper objectMapper;
+    private final vn.edu.uth.smartward.ai.AiModelClient aiModelClient;
 
     @Override
     @Transactional
     public void run(String... args) {
         long currentCount = procedureRepository.count();
         if (currentCount >= 40) {
-            log.info("Database already contains {} procedures. Skipping seed.", currentCount);
+            log.info("Database already contains {} procedures. Checking unvectorized chunks...", currentCount);
+            backfillMissingEmbeddings();
             return;
         }
 
@@ -76,6 +78,8 @@ public class ProcedureDataSeeder implements CommandLineRunner {
                             String content = cNode.path("content").asText();
                             String legalRef = cNode.path("legalReference").asText();
 
+                            String embeddingStr = aiModelClient.toPgVectorString(aiModelClient.generateEmbedding(title + " " + content));
+
                             chunkList.add(LegalChunk.builder()
                                     .procedure(savedProc)
                                     .chunkCode(chunkCode)
@@ -83,6 +87,7 @@ public class ProcedureDataSeeder implements CommandLineRunner {
                                     .title(title)
                                     .content(content)
                                     .legalReference(legalRef)
+                                    .embedding(embeddingStr)
                                     .status("ACTIVE")
                                     .effectiveDate(LocalDate.now())
                                     .build());
@@ -103,6 +108,23 @@ public class ProcedureDataSeeder implements CommandLineRunner {
 
         } catch (Exception e) {
             log.warn("Could not load seed resources (normal during offline test environments): {}", e.getMessage());
+        }
+    }
+
+    private void backfillMissingEmbeddings() {
+        try {
+            List<LegalChunk> missing = chunkRepository.findByEmbeddingIsNull();
+            if (!missing.isEmpty()) {
+                log.info("Computing vector embeddings for {} unvectorized chunks...", missing.size());
+                for (LegalChunk c : missing) {
+                    float[] emb = aiModelClient.generateEmbedding(c.getTitle() + " " + c.getContent());
+                    c.setEmbedding(aiModelClient.toPgVectorString(emb));
+                }
+                chunkRepository.saveAll(missing);
+                log.info("Successfully backfilled embeddings for {} chunks.", missing.size());
+            }
+        } catch (Exception e) {
+            log.warn("Could not backfill embeddings: {}", e.getMessage());
         }
     }
 }

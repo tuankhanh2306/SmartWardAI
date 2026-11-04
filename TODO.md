@@ -1,7 +1,7 @@
 # Kế Hoạch & Tiến Độ Thực Hiện Dự Án (Project Sprint Board)
 **Dự án:** SmartWard AI – Hệ thống Hỗ trợ Thủ tục Hành chính và Phân luồng Phản ánh Cấp Phường/Xã  
 **Đơn vị:** Viện Đào tạo Chất lượng cao – Trường Đại học Giao thông vận tải TP.HCM (UTH)  
-**Trạng thái hiện tại:** `Tuần 2 / 12` 🚀
+**Trạng thái hiện tại:** `Tuần 4 / 12` 🚀 (Chuẩn bị sang Tuần 5)
 
 ---
 
@@ -12,8 +12,8 @@
 | **W01** | **Khởi tạo Docker Zero-cost & Khung Spring Boot** | `docker-compose.yml`, Spring Boot 3.3, Package UTH | Soạn Chương 1 (Bối cảnh, RQ1-3, Đóng góp) | ✅ **HOÀN THÀNH** |
 | **W02** | **Thu thập 40 TTHC & Thiết kế CSDL Flyway** | `V1__init_schema.sql`, HNSW index, LegalChunking, Seeder | Soạn Chương 2 (Kiến trúc & CSDL quan hệ + Vector) | ✅ **HOÀN THÀNH** |
 | **W03** | **Tích hợp Mock AI Client & Rate Limiter** | `DeterministicMockAiClient`, Redis Rate Limiter (5 req/phút) | Soạn Mục 2.3 (Quản trị tài nguyên & API limits) | ✅ **HOÀN THÀNH** |
-| **W04** | **Module 1: Legal RAG & Abstention Guardrail** | pgvector cosine, Ngưỡng $\theta=0.78$, API `/rag/ask` | Soạn Chương 3 - Phần 1 (RAG & Chống ảo giác) | 🔄 **ĐANG LÀM** |
-| **W05** | **Module 2: Form Rule Engine (CCCD & Date)** | Java Rule Engine 12 số CCCD, Date Logic, OCR Client | Soạn Chương 3 - Phần 2 (Hậu kiểm định biểu mẫu) | ⏳ Chờ |
+| **W04** | **Module 1: Legal RAG & Abstention Guardrail** | pgvector cosine, Ngưỡng $\theta=0.78$, API `/rag/ask` | Soạn Chương 3 - Phần 1 (RAG & Chống ảo giác) | ✅ **HOÀN THÀNH** |
+| **W05** | **Module 2: Form Rule Engine (CCCD & Date)** | Java Rule Engine 12 số CCCD, Date Logic, OCR Client | Soạn Chương 3 - Phần 2 (Hậu kiểm định biểu mẫu) | 🔄 **ĐANG LÀM** |
 | **W06** | **Module 3: Triage Phản ánh 2 Pha** | Redis GEO ($R$) + pgvector Cosine ($\tau$) | Soạn Chương 3 - Phần 3 (Gom cụm phản ánh 2 pha) | ⏳ Chờ |
 | **W07** | **Module 4: Zero-Trust Document Vault** | Watermark Java2D, AES-256, MinIO, Redis `GETDEL` | Soạn Chương 3 - Phần 4 (Bảo mật Nghị định 13) | ⏳ Chờ |
 | **W08** | **Bộ dữ liệu kiểm thử & Evaluation Runner** | 80 câu RAG, 150 phản ánh (GPS noise), 40 tờ khai | Soạn Chương 4 - Phần 1 (Phương pháp thực nghiệm) | ⏳ Chờ |
@@ -59,15 +59,15 @@
 
 ---
 
-### 📌 TUẦN 4: MODULE 1 – LEGAL RAG & ABSTENTION GUARDRAIL
-- [ ] **Task 4.1:** Xây dựng `RagQueryService`: Chuyển đổi câu hỏi công dân thành vector embedding 768 chiều.
-- [ ] **Task 4.2:** Truy vấn Top-K đoạn luật bằng Cosine Distance (`<=>`) trên pgvector với bộ lọc `status = 'ACTIVE' AND effective_date <= NOW()`.
-- [ ] **Task 4.3:** Cài đặt cơ chế chốt chặn **Abstention Guardrail**: Nếu điểm tương đồng cao nhất $S_{\max} < \theta$ (mặc định $\theta = 0.78$), hệ thống bắt buộc từ chối trả lời (`abstained = true`).
-- [ ] **Task 4.4:** Viết thuật toán hậu kiểm tra trích dẫn (Post-verification) đảm bảo căn cứ pháp lý trong câu trả lời nằm đúng trong Top-K đã truy xuất.
-- [ ] **Task 4.5:** Xây dựng REST API `POST /api/v1/rag/ask` trả về câu trả lời kèm mã trích dẫn, điểm tương đồng và tuyên bố miễn trừ trách nhiệm pháp lý.
-- [ ] **Task 4.6:** Viết Unit Test & Integration Test kiểm thử luồng RAG và luồng từ chối trả lời.
-- [ ] **Task 4.7:** Soạn thảo Chương 3 - Phần 1 (Giải thuật RAG Điều-Khoản và cơ chế chốt chặn chống ảo giác).
-- [ ] **Task 4.8:** Viết Báo cáo Tiến độ Tuần 4 nộp GVHD và Mentor.
+### 📌 TUẦN 4: MODULE 1 – LEGAL RAG & ABSTENTION GUARDRAIL [HOÀN THÀNH 100%]
+- [x] **Task 4.1:** Xây dựng `RagQueryService`: Chuyển đổi câu hỏi công dân thành vector embedding 768 chiều.
+- [x] **Task 4.2:** Truy vấn Top-K đoạn luật bằng Cosine Distance (`<=>`) trên pgvector với bộ lọc `status = 'ACTIVE' AND effective_date <= NOW()`.
+- [x] **Task 4.3:** Cài đặt cơ chế chốt chặn **Abstention Guardrail**: Nếu điểm tương đồng cao nhất $S_{\max} < \theta$ (mặc định $\theta = 0.78$), hệ thống bắt buộc từ chối trả lời (`abstained = true`).
+- [x] **Task 4.4:** Viết thuật toán hậu kiểm tra trích dẫn (Post-verification) đảm bảo căn cứ pháp lý trong câu trả lời nằm đúng trong Top-K đã truy xuất.
+- [x] **Task 4.5:** Xây dựng REST API `POST /api/v1/rag/ask` trả về câu trả lời kèm mã trích dẫn, điểm tương đồng và tuyên bố miễn trừ trách nhiệm pháp lý.
+- [x] **Task 4.6:** Viết Unit Test & Integration Test kiểm thử luồng RAG và luồng từ chối trả lời (Đạt 21/21 tests passed).
+- [x] **Task 4.7:** Soạn thảo Chương 3 - Phần 1 (Giải thuật RAG Điều-Khoản và cơ chế chốt chặn chống ảo giác) tại `docs/thesis-chapters/chapter-03.md`.
+- [x] **Task 4.8:** Viết Báo cáo Tiến độ Tuần 4 nộp GVHD và Mentor tại `docs/weekly-reports/week-04-report.md`.
 
 ---
 
