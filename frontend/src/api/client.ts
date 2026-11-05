@@ -47,23 +47,86 @@ export interface RagResponse {
   suggestions?: string[];
 }
 
+function mapProcedureCodeToName(code?: string): string | null {
+  if (!code) return null;
+  const clean = code.trim().toUpperCase();
+  switch (clean) {
+    case 'TTHC-HT-01':
+    case 'KS-01-DK':
+      return 'đăng ký khai sinh';
+    case 'TTHC-HT-02':
+    case 'HT-02-DK':
+      return 'đăng ký kết hôn';
+    case 'TTHC-HT-03':
+    case 'TTHC-HT-11':
+      return 'cấp giấy xác nhận tình trạng hôn nhân';
+    case 'TTHC-HT-04':
+      return 'cấp bản sao trích lục hộ tịch';
+    case 'TTHC-HT-05':
+      return 'đăng ký khai tử';
+    case 'TTHC-CR-01':
+    case 'CT-01':
+      return 'đăng ký thường trú (Mẫu CT01)';
+    case 'TTHC-CR-03':
+      return 'đăng ký tạm trú';
+    case 'TTHC-CR-08':
+      return 'xác nhận thông tin về cư trú (Mẫu CT07)';
+    case 'TTHC-CR-04':
+      return 'khai báo tạm vắng và thông báo lưu trú';
+    case 'TTHC-CT-01':
+      return 'chứng thực sao y bản sao';
+    case 'TTHC-BT-01':
+      return 'trợ cấp bảo trợ xã hội';
+    default:
+      return null;
+  }
+}
+
 function extractProcedureFromText(text: string): string | null {
   if (!text) return null;
-  const lower = text.toLowerCase();
-  if (lower.includes('kết hôn') || lower.includes('hôn nhân') || lower.includes('lấy vợ') || lower.includes('lấy chồng')) {
-    return 'đăng ký kết hôn';
+
+  // 1. Ignore safe refusal / clarification messages to avoid picking example procedures
+  if (
+    text.includes('hiện chưa nhận diện rõ') ||
+    text.includes('nằm ngoài thẩm quyền') ||
+    text.includes('chưa tìm thấy thông tin')
+  ) {
+    return null;
   }
-  if (lower.includes('khai sinh') || lower.includes('sinh con') || lower.includes('mới sinh')) {
+
+  // 2. Priority 1: Extract from structured bot response header
+  const headerMatch = text.match(/(?:1\.\s*TÓM\s*TẮT\s*THỦ\s*TỤC[:\s]*\n*Thủ\s*tục\s+)([^(\n]+)/i);
+  if (headerMatch && headerMatch[1]) {
+    const headerTitle = headerMatch[1].trim().toLowerCase();
+    if (headerTitle.includes('khai sinh')) return 'đăng ký khai sinh';
+    if (headerTitle.includes('kết hôn')) return 'đăng ký kết hôn';
+    if (headerTitle.includes('thường trú') || headerTitle.includes('cư trú')) return 'đăng ký thường trú (Mẫu CT01)';
+    if (headerTitle.includes('tạm trú')) return 'đăng ký tạm trú';
+    if (headerTitle.includes('khai tử')) return 'đăng ký khai tử';
+    if (headerTitle.includes('chứng thực') || headerTitle.includes('sao y')) return 'chứng thực sao y bản sao';
+    if (headerTitle.includes('hôn nhân') || headerTitle.includes('độc thân')) return 'cấp giấy xác nhận tình trạng hôn nhân';
+    if (headerTitle.includes('trích lục')) return 'cấp bản sao trích lục hộ tịch';
+    if (headerTitle.includes('bảo trợ') || headerTitle.includes('người cao tuổi')) return 'trợ cấp bảo trợ xã hội';
+  }
+
+  // 3. Raw text analysis (citizen inquiry): strip example parentheses and sanitize dossier keywords
+  const lower = text.toLowerCase().replace(/\(ví\s*dụ:[^)]*\)/gi, '');
+
+  // Check specialized procedures BEFORE marriage
+  if (lower.includes('khai sinh') || lower.includes('sinh con') || lower.includes('mới sinh') || lower.includes('khai sanh') || lower.includes('sanh con') || lower.includes('mới sanh')) {
     return 'đăng ký khai sinh';
-  }
-  if (lower.includes('thường trú') || lower.includes('ct01') || lower.includes('nhập khẩu') || lower.includes('hộ khẩu')) {
-    return 'đăng ký thường trú (Mẫu CT01)';
   }
   if (lower.includes('tạm trú')) {
     return 'đăng ký tạm trú';
   }
-  if (lower.includes('chứng thực') || lower.includes('sao y')) {
-    return 'chứng thực sao y bản sao';
+  if (
+    lower.includes('thường trú') ||
+    lower.includes('cư trú') ||
+    lower.includes('ct01') ||
+    lower.includes('nhập khẩu') ||
+    lower.includes('hộ khẩu')
+  ) {
+    return 'đăng ký thường trú (Mẫu CT01)';
   }
   if (lower.includes('khai tử') || lower.includes('chứng tử')) {
     return 'đăng ký khai tử';
@@ -77,12 +140,30 @@ function extractProcedureFromText(text: string): string | null {
   if (lower.includes('bảo trợ') || lower.includes('tiền già') || lower.includes('người cao tuổi')) {
     return 'trợ cấp bảo trợ xã hội';
   }
+  if (lower.includes('chứng thực') || lower.includes('sao y')) {
+    return 'chứng thực sao y bản sao';
+  }
+
+  // Sanitize "Giấy chứng nhận kết hôn của cha mẹ" in birth dossier
+  const sanitizedForMarriage = lower
+    .replace(/giấy\s+(?:chứng\s+nhận\s+)?kết\s+hôn/g, 'giay_to_khac')
+    .replace(/kết\s+hôn\s+của\s+cha\s+mẹ/g, 'giay_to_khac');
+
+  if (
+    sanitizedForMarriage.includes('kết hôn') ||
+    sanitizedForMarriage.includes('hôn nhân') ||
+    sanitizedForMarriage.includes('lấy vợ') ||
+    sanitizedForMarriage.includes('lấy chồng')
+  ) {
+    return 'đăng ký kết hôn';
+  }
+
   return null;
 }
 
 function isFollowUpQuestion(q: string): boolean {
   const lower = q.toLowerCase();
-  for (const kw of ['khai sinh', 'kết hôn', 'khai tử', 'thường trú', 'tạm trú', 'ct01', 'chứng thực', 'sao y', 'độc thân', 'trích lục', 'bảo trợ']) {
+  for (const kw of ['khai sinh', 'kết hôn', 'khai tử', 'thường trú', 'tạm trú', 'cư trú', 'ct01', 'chứng thực', 'sao y', 'độc thân', 'trích lục', 'bảo trợ']) {
     if (lower.includes(kw)) return false;
   }
   const patterns = [
@@ -246,7 +327,10 @@ export const askLegalRag = async (
   if (conversationHistory.length > 0 && isFollowUpQuestion(query)) {
     for (let i = conversationHistory.length - 1; i >= Math.max(0, conversationHistory.length - 5); i--) {
       const turn = conversationHistory[i];
-      const proc = extractProcedureFromText(turn.text);
+      let proc = mapProcedureCodeToName(turn.procedureCode);
+      if (!proc && turn.text) {
+        proc = extractProcedureFromText(turn.text);
+      }
       if (proc) {
         effectiveQuery = `[Thủ tục ${proc}] ${query}`;
         break;
@@ -284,9 +368,16 @@ export const askLegalRag = async (
 
     // 6. Local Intelligent Fallback Simulation (Unified Knowledge Base & Resilience)
     let normalizedQuery = effectiveQuery.toLowerCase();
+    if (normalizedQuery.includes('cư trú') && normalizedQuery.includes('tthc-ct-01')) {
+      normalizedQuery = normalizedQuery.replaceAll('tthc-ct-01', 'mẫu ct01');
+    }
     normalizedQuery = normalizedQuery
       .replaceAll('giấy khai sanh', 'giấy khai sinh')
+      .replaceAll('chứng sanh', 'chứng sinh')
       .replaceAll('khai sanh', 'khai sinh')
+      .replaceAll('sanh con', 'sinh con')
+      .replaceAll('mới sanh', 'mới sinh')
+      .replaceAll(/\bsanh\b/g, 'sinh')
       .replaceAll('mần giấy giá thú', 'đăng ký kết hôn')
       .replaceAll('giá thú', 'kết hôn')
       .replaceAll('hôn thư', 'kết hôn')

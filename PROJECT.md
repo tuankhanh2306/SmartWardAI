@@ -29,7 +29,7 @@
 ## Milestones
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
-| M1 | Production Chatbox & Citizen Portal Hardening | F1–F10 full implementation, testing, review, challenge, and forensic audit | none | IN_PROGRESS |
+| M1 | Production Chatbox & Citizen Portal Hardening | F1–F10 full implementation, testing, review, challenge, and forensic audit | none | DONE |
 
 ## Interface Contracts
 ### Client ↔ Backend (`POST /api/v1/rag/ask`)

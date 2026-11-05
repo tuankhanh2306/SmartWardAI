@@ -24,6 +24,8 @@ public final class VietnameseTextNormalizer {
     static {
         DIALECT_MAP.put("tui", "tôi");
         DIALECT_MAP.put("sanh", "sinh");
+        DIALECT_MAP.put("sanh con", "sinh con");
+        DIALECT_MAP.put("mới sanh", "mới sinh");
         DIALECT_MAP.put("khai sanh", "khai sinh");
         DIALECT_MAP.put("chứng sanh", "chứng sinh");
         DIALECT_MAP.put("mần", "làm");
@@ -72,6 +74,9 @@ public final class VietnameseTextNormalizer {
         TELEX_CORRECTIONS.put("xin chaof", "xin chào");
         TELEX_CORRECTIONS.put("xin chaogf", "xin chào");
         TELEX_CORRECTIONS.put("xin chaoo", "xin chào");
+        TELEX_CORRECTIONS.put("xinn chaof", "xin chào");
+        TELEX_CORRECTIONS.put("xinn chao", "xin chào");
+        TELEX_CORRECTIONS.put("xinn", "xin");
         TELEX_CORRECTIONS.put("helo", "hello");
         TELEX_CORRECTIONS.put("helllo", "hello");
 

@@ -56,6 +56,7 @@ data-pipeline/form-dataset/scans/
 # Graphify visualization outputs
 graph.html
 graphify-out/
+.archify/
 
 # Scratch & Temporary experiment scripts
 scratch/

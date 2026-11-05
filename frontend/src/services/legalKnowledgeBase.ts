@@ -31,7 +31,7 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
       'Tờ khai đăng ký khai sinh theo mẫu',
       'Bản chính Giấy chứng sinh do cơ sở khám chữa bệnh cấp (nếu không có: văn bản xác nhận của người làm chứng hoặc giấy cam đoan về việc sinh)',
       'Văn bản ủy quyền (nếu ủy quyền thực hiện; trường hợp là ông, bà, cha, mẹ, anh, chị, em ruột thì không cần chứng thực)',
-      'Xuất trình CCCD/Hộ chiếu của người đi đăng ký và Giấy chứng nhận kết hôn của cha mẹ (nếu đã kết hôn)',
+      'Xuất trình CCCD/Hộ chiếu của người đi đăng ký và văn bản chứng minh quan hệ hôn nhân của cha mẹ (nếu có)',
     ],
     keyRules: [
       'Thời hạn đi đăng ký khai sinh là trong vòng 60 ngày kể từ ngày trẻ chào đời.',
@@ -39,7 +39,7 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
       'Trường hợp trẻ bị bỏ rơi: Cán bộ tư pháp lập biên bản, niêm yết 7 ngày liên tục tại trụ sở UBND trước khi làm khai sinh.',
       'Trẻ sinh ra do mang thai hộ: Phải có văn bản xác nhận của cơ sở y tế đã thực hiện kỹ thuật hỗ trợ sinh sản.',
     ],
-    keywords: ['khai sinh', 'chứng sinh', 'mới sinh', 'sinh con', 'đẻ con', 'đặt tên cho con', 'giấy khai sinh', 'đăng ký sinh', 'khai sanh', 'mần giấy khai sanh', 'mới sanh', 'cho bé', 'cho cháu'],
+    keywords: ['khai sinh', 'chứng sinh', 'chứng sanh', 'mới sinh', 'sinh con', 'sanh con', 'đẻ con', 'đặt tên cho con', 'giấy khai sinh', 'đăng ký sinh', 'khai sanh', 'mần giấy khai sanh', 'mới sanh', 'cho bé', 'cho cháu'],
   },
   {
     code: 'TTHC-HT-02',
@@ -122,7 +122,10 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
       'Công dân có chỗ ở hợp pháp thuộc quyền sở hữu của mình thì được đăng ký thường trú tại chỗ ở hợp pháp đó.',
       'Công dân có thể nộp hồ sơ trực tuyến tiện lợi qua Cổng Dịch vụ công Bộ Công an hoặc Ứng dụng VNeID.',
     ],
-    keywords: ['thường trú', 'nhập hộ khẩu', 'đăng ký thường trú', 'mẫu ct01', 'chuyển hộ khẩu', 'sổ hộ khẩu', 'nhập khẩu'],
+    keywords: [
+      'thường trú', 'nhập hộ khẩu', 'đăng ký thường trú', 'mẫu ct01', 'chuyển hộ khẩu', 'sổ hộ khẩu', 'nhập khẩu',
+      'cư trú', 'đăng ký cư trú', 'thủ tục cư trú', 'thủ tục đăng ký cư trú', 'luật cư trú', 'tờ khai cư trú', 'tthc-cr-01', 'ct01', 'tthc-ct-01'
+    ],
   },
   {
     code: 'TTHC-CR-03',

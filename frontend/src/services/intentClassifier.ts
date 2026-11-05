@@ -20,7 +20,7 @@ export function removeVietnameseAccents(str: string): string {
 
 export const PROCEDURE_KEYWORDS = [
   'khai sinh', 'chứng sinh', 'mới sinh', 'sinh con', 'đẻ con', 'đặt tên cho con', 'giấy khai sinh',
-  'khai sanh', 'giấy khai sanh', 'làm giấy khai sanh', 'mần giấy khai sanh',
+  'khai sanh', 'giấy khai sanh', 'làm giấy khai sanh', 'mần giấy khai sanh', 'sanh con', 'mới sanh', 'chứng sanh',
   'kết hôn', 'lấy vợ', 'lấy chồng', 'hôn thú', 'đăng ký kết hôn', 'kết bạn đời',
   'giá thú', 'mần giấy giá thú', 'tờ giá thú', 'hôn thư',
   'khai tử', 'chứng tử', 'báo tử', 'người mất', 'qua đời', 'giấy chứng tử', 'mần giấy tử', 'mần giấy khai tử',
@@ -126,7 +126,7 @@ export function classifySmallTalk(query: string): { matched: boolean; type: Smal
   }
 
   if (q.length <= 40) {
-    const greetingRegex = /^(hi|hello|hey|alo|xin\s+chao|xin\s+chào|chao|chào|kinh\s+chao|kính\s+chào)(\s+.*)?$/i;
+    const greetingRegex = /^(hi+|hello+|hey+|alo+|xin+\s*chao[a-z]{0,3}|xin+\s*chào[a-z]{0,3}|chao[a-z]{0,3}|chào[a-z]{0,3}|kinh\s+chao|kính\s+chào)(\s+.*)?$/i;
     if (greetingRegex.test(q) || greetingRegex.test(qNoAccent)) {
       return { matched: true, type: 'GREETING' };
     }
@@ -135,13 +135,14 @@ export function classifySmallTalk(query: string): { matched: boolean; type: Smal
       return { matched: true, type: 'GREETING' };
     }
 
-    // Typo-tolerant greeting: "chaogf ban", "chaof", "xin chaoo", "helo", "hii"
+    // Typo-tolerant greeting: "chaogf ban", "chaof", "chaoof", "xin chaoo", "xinn chaof", "helo", "hii"
     const firstToken = qNoAccent.split(/\s+/)[0] || '';
-    const typoGreetingRoots = ['chao', 'xinchao', 'hello', 'helo', 'alo'];
+    const typoGreetingRoots = ['chao', 'xinchao', 'xinnchao', 'hello', 'helo', 'alo'];
     if (
       typoGreetingRoots.some((root) => firstToken.startsWith(root) && firstToken.length <= root.length + 2) ||
       /^hi+$/.test(firstToken) ||
-      /^xin\s*chao[a-z]{0,2}\b/.test(qNoAccent)
+      /^xin+\s*chao[a-z]{0,3}\b/i.test(qNoAccent) ||
+      /\b(chaof|chaoof|chaogf|xinn?\s*chao[a-z]{0,3})\b/i.test(qNoAccent)
     ) {
       return { matched: true, type: 'GREETING' };
     }

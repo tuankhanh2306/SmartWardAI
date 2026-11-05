@@ -369,9 +369,16 @@ export async function askGeminiWithRAG(
 
   // 5. Semantic Retrieval over SmartWard AI Legal Knowledge Base (with Southern dialect normalization)
   let normalizedSearchQuery = query.toLowerCase();
+  if (normalizedSearchQuery.includes('cư trú') && normalizedSearchQuery.includes('tthc-ct-01')) {
+    normalizedSearchQuery = normalizedSearchQuery.replaceAll('tthc-ct-01', 'mẫu ct01');
+  }
   normalizedSearchQuery = normalizedSearchQuery
     .replaceAll('giấy khai sanh', 'giấy khai sinh')
+    .replaceAll('chứng sanh', 'chứng sinh')
     .replaceAll('khai sanh', 'khai sinh')
+    .replaceAll('sanh con', 'sinh con')
+    .replaceAll('mới sanh', 'mới sinh')
+    .replaceAll(/\bsanh\b/g, 'sinh')
     .replaceAll('mần giấy giá thú', 'đăng ký kết hôn')
     .replaceAll('giá thú', 'kết hôn')
     .replaceAll('hôn thư', 'kết hôn')
