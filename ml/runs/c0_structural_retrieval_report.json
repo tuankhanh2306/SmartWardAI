@@ -1,0 +1,50 @@
+{
+  "strategy_a_subchunks": {
+    "proc_r1": 0.16666666666666666,
+    "proc_r3": 0.25,
+    "proc_mrr": 0.2714535921719329,
+    "chunk_r1": 0.10833333333333334,
+    "chunk_r3": 0.18333333333333332,
+    "chunk_mrr": 0.1895763345672539,
+    "accented_proc_r1": 0.225,
+    "accented_proc_r3": 0.3,
+    "unaccented_proc_r1": 0.05,
+    "unaccented_proc_r3": 0.15
+  },
+  "strategy_b_hierarchical": {
+    "proc_r1": 0.18333333333333332,
+    "proc_r3": 0.3416666666666667,
+    "proc_mrr": 0.31079576837301925,
+    "chunk_r1": 0.0,
+    "chunk_r3": 0.18333333333333332,
+    "chunk_mrr": 0.08623352620075765,
+    "accented_proc_r1": 0.25,
+    "accented_proc_r3": 0.4375,
+    "unaccented_proc_r1": 0.05,
+    "unaccented_proc_r3": 0.15
+  },
+  "strategy_c_hybrid_rrf": {
+    "proc_r1": 0.18333333333333332,
+    "proc_r3": 0.35,
+    "proc_mrr": 0.32053171346345616,
+    "chunk_r1": 0.0,
+    "chunk_r3": 0.18333333333333332,
+    "chunk_mrr": 0.08623352620075765,
+    "accented_proc_r1": 0.25,
+    "accented_proc_r3": 0.425,
+    "unaccented_proc_r1": 0.05,
+    "unaccented_proc_r3": 0.2
+  },
+  "strategy_d_dual_hybrid": {
+    "proc_r1": 0.20833333333333334,
+    "proc_r3": 0.425,
+    "proc_mrr": 0.35861450682894425,
+    "chunk_r1": 0.0,
+    "chunk_r3": 0.20833333333333334,
+    "chunk_mrr": 0.10700097572220334,
+    "accented_proc_r1": 0.25,
+    "accented_proc_r3": 0.4375,
+    "unaccented_proc_r1": 0.125,
+    "unaccented_proc_r3": 0.4
+  }
+}

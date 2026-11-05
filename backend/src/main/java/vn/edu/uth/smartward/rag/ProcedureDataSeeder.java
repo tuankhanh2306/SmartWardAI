@@ -78,7 +78,12 @@ public class ProcedureDataSeeder implements CommandLineRunner {
                             String content = cNode.path("content").asText();
                             String legalRef = cNode.path("legalReference").asText();
 
-                            String embeddingStr = aiModelClient.toPgVectorString(aiModelClient.generateEmbedding(title + " " + content));
+                            String embeddingStr;
+                            if (cNode.has("embedding") && !cNode.path("embedding").asText().isBlank()) {
+                                embeddingStr = cNode.path("embedding").asText();
+                            } else {
+                                embeddingStr = aiModelClient.toPgVectorString(aiModelClient.generateEmbedding(title + " " + content));
+                            }
 
                             chunkList.add(LegalChunk.builder()
                                     .procedure(savedProc)

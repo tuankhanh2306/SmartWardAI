@@ -1,0 +1,5 @@
+id,text,intent,procedure_code,author_id,style_tags,notes
+H_USER_001,lam khai sanh cho con can gi chu,PROCEDURE_INQUIRY,TTHC-HT-01,user_external_01,không_dấu|phương_ngữ,Ví dụ mẫu
+H_USER_002,đoi bang lai xe may o dau,OUT_OF_SCOPE,,user_external_02,không_dấu|ngoài_phạm_vi,Ví dụ mẫu
+H_USER_003,lam giay to het bao lau,AMBIGUOUS,,user_external_03,mơ_hồ,Ví dụ mẫu
+H_USER_004,ubnd xa minh may gio mo cua,COMMUNE_INFO,,user_external_01,không_dấu,Ví dụ mẫu

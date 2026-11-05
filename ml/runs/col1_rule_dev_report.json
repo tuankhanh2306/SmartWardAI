@@ -1,0 +1,266 @@
+{
+  "n_samples": 228,
+  "n_bootstrap": 1000,
+  "overall_accuracy": 0.5175,
+  "overall_accuracy_95ci": [
+    0.4474,
+    0.5833
+  ],
+  "macro_f1": 0.4735,
+  "macro_f1_95ci": [
+    0.3998,
+    0.536
+  ],
+  "procedure_match_accuracy": 0.275,
+  "procedure_match_95ci": [
+    0.1983,
+    0.3572
+  ],
+  "per_class": {
+    "GREETING": {
+      "precision": 1.0,
+      "recall": 0.4762,
+      "f1": 0.6452,
+      "support": 21
+    },
+    "PROCEDURE_CATALOG": {
+      "precision": 1.0,
+      "recall": 0.2381,
+      "f1": 0.3846,
+      "support": 21
+    },
+    "COMMUNE_INFO": {
+      "precision": 0.7619,
+      "recall": 0.7619,
+      "f1": 0.7619,
+      "support": 21
+    },
+    "OUT_OF_SCOPE": {
+      "precision": 1.0,
+      "recall": 0.0417,
+      "f1": 0.08,
+      "support": 24
+    },
+    "AMBIGUOUS": {
+      "precision": 0.1597,
+      "recall": 0.9048,
+      "f1": 0.2714,
+      "support": 21
+    },
+    "PROCEDURE_INQUIRY": {
+      "precision": 0.9306,
+      "recall": 0.5583,
+      "f1": 0.6979,
+      "support": 120
+    }
+  },
+  "confusion_matrix": {
+    "classes": [
+      "GREETING",
+      "PROCEDURE_CATALOG",
+      "COMMUNE_INFO",
+      "OUT_OF_SCOPE",
+      "AMBIGUOUS",
+      "PROCEDURE_INQUIRY"
+    ],
+    "matrix": [
+      [
+        10,
+        0,
+        0,
+        0,
+        11,
+        0
+      ],
+      [
+        0,
+        5,
+        0,
+        0,
+        14,
+        2
+      ],
+      [
+        0,
+        0,
+        16,
+        0,
+        5,
+        0
+      ],
+      [
+        0,
+        0,
+        2,
+        1,
+        20,
+        1
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        19,
+        2
+      ],
+      [
+        0,
+        0,
+        3,
+        0,
+        50,
+        67
+      ]
+    ]
+  },
+  "total_errors": 144,
+  "error_styles_distribution": {
+    "chuẩn": 71,
+    "quy_trình": 58,
+    "không_dấu": 49,
+    "dịch_vụ_công": 29,
+    "thiếu_ngữ_cảnh": 1,
+    "mơ_hồ": 2,
+    "thân_mật": 3,
+    "phương_ngữ": 1,
+    "teencode": 2,
+    "xác_nhận": 1,
+    "ngắn": 2,
+    "câu_ngắn": 1,
+    "ly_hôn": 1,
+    "tòa_án": 2,
+    "sở_hữu_trí_tuệ": 2,
+    "đăng_kiểm": 2,
+    "thất_nghiệp": 1,
+    "bảo_hiểm": 2,
+    "ngân_hàng": 2,
+    "quốc_tịch": 2,
+    "bộ_tư_pháp": 1,
+    "sở_y_tế": 2,
+    "giao_thông_thủy": 1,
+    "viết_tắt": 1
+  },
+  "errors_sample": [
+    {
+      "id": "dev_0007",
+      "text": "Trình tự các bước nộp hồ sơ cấp thẻ bảo hiểm y tế cho đối tượng bảo trợ tại UBND cấp xã",
+      "true_intent": "PROCEDURE_INQUIRY",
+      "pred_intent": "PROCEDURE_INQUIRY",
+      "true_proc": "TTHC-BT-03",
+      "pred_proc": "TTHC-CR-03",
+      "style_tags": [
+        "chuẩn",
+        "quy_trình"
+      ]
+    },
+    {
+      "id": "dev_0008",
+      "text": "quy trinh thuc hien cap the bao hiem y te cho doi tuong bao tro tai bo phan mot cua",
+      "true_intent": "PROCEDURE_INQUIRY",
+      "pred_intent": "PROCEDURE_INQUIRY",
+      "true_proc": "TTHC-BT-03",
+      "pred_proc": "TTHC-CR-03",
+      "style_tags": [
+        "không_dấu",
+        "quy_trình"
+      ]
+    },
+    {
+      "id": "dev_0009",
+      "text": "Các bước nộp hồ sơ trực tuyến đối với cấp thẻ bảo hiểm y tế cho đối tượng bảo trợ",
+      "true_intent": "PROCEDURE_INQUIRY",
+      "pred_intent": "PROCEDURE_INQUIRY",
+      "true_proc": "TTHC-BT-03",
+      "pred_proc": "TTHC-CR-03",
+      "style_tags": [
+        "chuẩn",
+        "dịch_vụ_công"
+      ]
+    },
+    {
+      "id": "dev_0010",
+      "text": "Trình tự các bước nộp hồ sơ trợ giúp xã hội khẩn cấp tại UBND cấp xã",
+      "true_intent": "PROCEDURE_INQUIRY",
+      "pred_intent": "PROCEDURE_INQUIRY",
+      "true_proc": "TTHC-BT-04",
+      "pred_proc": "TTHC-CR-03",
+      "style_tags": [
+        "chuẩn",
+        "quy_trình"
+      ]
+    },
+    {
+      "id": "dev_0011",
+      "text": "quy trinh thuc hien tro giup xa hoi khan cap tai bo phan mot cua",
+      "true_intent": "PROCEDURE_INQUIRY",
+      "pred_intent": "AMBIGUOUS",
+      "true_proc": "TTHC-BT-04",
+      "pred_proc": null,
+      "style_tags": [
+        "không_dấu",
+        "quy_trình"
+      ]
+    },
+    {
+      "id": "dev_0012",
+      "text": "Các bước nộp hồ sơ trực tuyến đối với trợ giúp xã hội khẩn cấp",
+      "true_intent": "PROCEDURE_INQUIRY",
+      "pred_intent": "AMBIGUOUS",
+      "true_proc": "TTHC-BT-04",
+      "pred_proc": null,
+      "style_tags": [
+        "chuẩn",
+        "dịch_vụ_công"
+      ]
+    },
+    {
+      "id": "dev_0013",
+      "text": "Trình tự các bước nộp hồ sơ thủ tục người có công và gia đình chính sách tại UBND cấp xã",
+      "true_intent": "PROCEDURE_INQUIRY",
+      "pred_intent": "AMBIGUOUS",
+      "true_proc": "TTHC-BT-05",
+      "pred_proc": null,
+      "style_tags": [
+        "chuẩn",
+        "quy_trình"
+      ]
+    },
+    {
+      "id": "dev_0014",
+      "text": "quy trinh thuc hien thu tuc nguoi co cong va gia dinh chinh sach tai bo phan mot cua",
+      "true_intent": "PROCEDURE_INQUIRY",
+      "pred_intent": "AMBIGUOUS",
+      "true_proc": "TTHC-BT-05",
+      "pred_proc": null,
+      "style_tags": [
+        "không_dấu",
+        "quy_trình"
+      ]
+    },
+    {
+      "id": "dev_0015",
+      "text": "Các bước nộp hồ sơ trực tuyến đối với thủ tục người có công và gia đình chính sách",
+      "true_intent": "PROCEDURE_INQUIRY",
+      "pred_intent": "AMBIGUOUS",
+      "true_proc": "TTHC-BT-05",
+      "pred_proc": null,
+      "style_tags": [
+        "chuẩn",
+        "dịch_vụ_công"
+      ]
+    },
+    {
+      "id": "dev_0016",
+      "text": "Trình tự các bước nộp hồ sơ tiếp nhận đối tượng vào cơ sở trợ giúp xã hội tại UBND cấp xã",
+      "true_intent": "PROCEDURE_INQUIRY",
+      "pred_intent": "COMMUNE_INFO",
+      "true_proc": "TTHC-BT-06",
+      "pred_proc": null,
+      "style_tags": [
+        "chuẩn",
+        "quy_trình"
+      ]
+    }
+  ]
+}

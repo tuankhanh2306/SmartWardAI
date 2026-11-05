@@ -1,14 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
+import L from 'leaflet';
 import {
   precheckForm,
   reportIssue,
   type FormPrecheckResponse,
   type IssueReportResponse
 } from '../api/client';
+import { extractFormWithVision, normalizeDateToYMD, type ExtractedFormFieldsResult } from '../services/geminiClient';
 import { useWard } from '../context/WardContext';
+
 import {
   FileCheck2,
   AlertTriangle,
+  AlertCircle,
   MapPin,
   Camera,
   CheckCircle2,
@@ -18,24 +23,54 @@ import {
   PenTool,
   Layers,
   RefreshCw,
-  ShieldCheck
+  ShieldCheck,
+  Upload,
+  Trash2,
+  Check,
+  FileText,
+  Laptop
 } from 'lucide-react';
+
 
 export const FormAndIssueReporting: React.FC = () => {
   const { currentWard } = useWard();
+  const location = useLocation();
 
-  // Active Tab
-  const [activeTab, setActiveTab] = useState<'form' | 'incident'>('form');
+  // Active Tab initialized from URL hash or default to 'form'
+  const [activeTab, setActiveTab] = useState<'form' | 'incident'>(
+    location.hash === '#incident' ? 'incident' : 'form'
+  );
 
-  // Form Precheck State
-  const [fullName, setFullName] = useState('NGUYỄN VĂN AN');
-  const [cccd, setCccd] = useState('079095012345');
-  const [dob, setDob] = useState('1995-08-15');
-  const [issueDate, setIssueDate] = useState('2021-09-20');
-  const [address, setAddress] = useState(`Số 12, ${currentWard.officeAddress}`);
+  useEffect(() => {
+    if (location.hash === '#incident') {
+      setActiveTab('incident');
+    } else if (location.hash === '#form') {
+      setActiveTab('form');
+    }
+  }, [location.hash]);
+
+
+  // Form Precheck State (Standard Mẫu CT01 - Thông tư Bộ Công an)
+  const [fullName, setFullName] = useState('NGUYỄN TÚ');
+  const [cccd, setCccd] = useState('03103708');
+  const [dob, setDob] = useState('2015-06-08');
+  const [gender, setGender] = useState('Nữ');
+  const [issueDate, setIssueDate] = useState('');
+  const [address, setAddress] = useState('32/3 Ích, Khu phố 12, Phường Tp Hồ Chí Minh');
   const [formLoading, setFormLoading] = useState(false);
   const [precheckResult, setPrecheckResult] = useState<FormPrecheckResponse | null>(null);
-  const [isCameraActive, setIsCameraActive] = useState(false);
+
+  // Input Method for PC / Mobile: 'upload' (PC Desktop) vs 'camera' (Mobile/Webcam) vs 'manual'
+  const [inputMode, setInputMode] = useState<'upload' | 'camera' | 'manual'>('upload');
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isOcrProcessing, setIsOcrProcessing] = useState(false);
+  const [ocrSuccess, setOcrSuccess] = useState(false);
+  const [ocrConfidence, setOcrConfidence] = useState<number | null>(null);
+  const [ocrError, setOcrError] = useState<string | null>(null);
+  const [ocrDetails, setOcrDetails] = useState<ExtractedFormFieldsResult | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Civic Incident Reporting State
   const [category, setCategory] = useState('ROAD_DAMAGE');
@@ -47,14 +82,95 @@ export const FormAndIssueReporting: React.FC = () => {
   const [reportLoading, setReportLoading] = useState(false);
   const [reportResult, setReportResult] = useState<IssueReportResponse | null>(null);
 
+  // Incident Map Pin Dropper Refs
+  const incidentMapContainerRef = useRef<HTMLDivElement>(null);
+  const incidentMapInstanceRef = useRef<L.Map | null>(null);
+  const incidentMarkerRef = useRef<L.Marker | null>(null);
+
   // Sync with currentWard if user switches ward
   useEffect(() => {
     setLatitude(currentWard.lat);
     setLongitude(currentWard.lon);
     setAddressText(`Khu vực trung tâm ${currentWard.name}, Tỉnh An Giang`);
-    setAddress(`Số 12, ${currentWard.officeAddress}`);
+    if (!ocrSuccess) {
+      setAddress(`Số 12, ${currentWard.officeAddress}`);
+    }
     setDescription(`Đoạn đường trung tâm gần ${currentWard.officeAddress} bị sụt lún ổ gà sâu cần tu sửa khẩn cấp.`);
-  }, [currentWard.code]);
+  }, [currentWard.code, ocrSuccess]);
+
+  // Leaflet Interactive Pin Dropper for Incident Tab
+  useEffect(() => {
+    if (activeTab !== 'incident' || !incidentMapContainerRef.current) return;
+
+    if (incidentMapInstanceRef.current) {
+      incidentMapInstanceRef.current.remove();
+      incidentMapInstanceRef.current = null;
+    }
+
+    const map = L.map(incidentMapContainerRef.current, {
+      zoomControl: false,
+    }).setView([latitude, longitude], 15);
+
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(map);
+
+    const pinIcon = L.divIcon({
+      className: 'custom-pin-marker',
+      html: `
+        <div class="relative flex items-center justify-center w-8 h-8 -ml-1 -mt-3 cursor-pointer">
+          <div class="w-7 h-7 rounded-full bg-[#BA1A1A] border-2 border-white shadow-lg flex items-center justify-center text-white text-xs font-bold ring-2 ring-red-300">
+            !
+          </div>
+        </div>
+      `,
+      iconSize: [32, 32],
+      iconAnchor: [16, 16],
+    });
+
+    const marker = L.marker([latitude, longitude], {
+      icon: pinIcon,
+      draggable: true,
+    }).addTo(map);
+
+    marker.on('dragend', (e) => {
+      const pos = e.target.getLatLng();
+      setLatitude(pos.lat);
+      setLongitude(pos.lng);
+    });
+
+    map.on('click', (e) => {
+      setLatitude(e.latlng.lat);
+      setLongitude(e.latlng.lng);
+      marker.setLatLng(e.latlng);
+    });
+
+    incidentMapInstanceRef.current = map;
+    incidentMarkerRef.current = marker;
+
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
+
+    return () => {
+      clearTimeout(timer);
+      map.remove();
+      incidentMapInstanceRef.current = null;
+      incidentMarkerRef.current = null;
+    };
+  }, [activeTab]);
+
+  // Sync marker position when GPS button or coordinates update
+  useEffect(() => {
+    if (incidentMarkerRef.current && incidentMapInstanceRef.current) {
+      incidentMarkerRef.current.setLatLng([latitude, longitude]);
+      incidentMapInstanceRef.current.panTo([latitude, longitude]);
+    }
+  }, [latitude, longitude]);
+
 
   // Handle Form Precheck
   const handlePrecheck = async () => {
@@ -66,11 +182,13 @@ export const FormAndIssueReporting: React.FC = () => {
         citizenCccd: cccd,
         fullName,
         dateOfBirth: dob,
+        gender,
         cccdIssueDate: issueDate,
         address,
         formData: {
           permanentAddress: address,
-          requestContent: 'Đăng ký thường trú theo diện chuyển chỗ ở hợp pháp',
+          gender,
+          requestContent: 'Đăng ký thường trú / tạm trú theo quy định Mẫu CT01 (Thông tư Bộ Công an)',
         },
       });
       setPrecheckResult(res);
@@ -79,6 +197,130 @@ export const FormAndIssueReporting: React.FC = () => {
     } finally {
       setFormLoading(false);
     }
+  };
+
+  // Handle File Upload from PC / Desktop
+  const handleFileChange = (file: File) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+      alert('Vui lòng chọn tệp hình ảnh (PNG, JPG, JPEG, WEBP) hoặc PDF tờ khai.');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      alert('Kích thước tệp vượt quá 10MB. Vui lòng chọn tệp nhẹ hơn.');
+      return;
+    }
+
+    setSelectedFile(file);
+    const url = URL.createObjectURL(file);
+    setPreviewUrl(url);
+    runVisionOcr(file);
+  };
+
+  const runVisionOcr = async (file: File) => {
+    setIsOcrProcessing(true);
+    setOcrSuccess(false);
+    setOcrError(null);
+    setOcrDetails(null);
+
+    // Clear previous values so the citizen directly observes fresh field mapping from the file
+    setFullName('');
+    setCccd('');
+    setDob('');
+    setGender('');
+    setIssueDate('');
+    setAddress('');
+
+    try {
+      const result = await extractFormWithVision(file);
+      setOcrDetails(result);
+
+      if (result.success && result.extractedFieldsCount > 0) {
+        // Direct field mapping into form state ONLY when the corresponding section is identified
+        if (result.fullName) setFullName(result.fullName.toUpperCase());
+        if (result.cccd) setCccd(result.cccd);
+        if (result.dob) setDob(normalizeDateToYMD(result.dob));
+        if (result.gender) setGender(result.gender);
+        if (result.address) setAddress(result.address);
+
+        // Note: Mẫu CT01 has NO "Ngày cấp CCCD" (Issue Date) field. Never map signing date into CCCD issue date!
+        if (result.issueDate) {
+          setIssueDate(normalizeDateToYMD(result.issueDate));
+        }
+
+        setOcrConfidence(Number(result.confidence.toFixed(1)));
+        setOcrSuccess(true);
+      } else {
+        setOcrSuccess(false);
+        setOcrConfidence(null);
+        setOcrError(result.message || 'Không tìm thấy các mục thông tin tương ứng trên tệp này. Quý công dân vui lòng nhập trực tiếp vào các ô bên dưới.');
+      }
+    } catch (err: any) {
+      setOcrSuccess(false);
+      setOcrConfidence(null);
+      setOcrError('Lỗi trong quá trình trích xuất OCR: ' + (err?.message || 'Không thể đọc ảnh. Vui lòng nhập tay.'));
+    } finally {
+      setIsOcrProcessing(false);
+    }
+  };
+
+  const handleRemoveFile = () => {
+    setSelectedFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    setOcrSuccess(false);
+    setOcrConfidence(null);
+    setOcrError(null);
+    setOcrDetails(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      handleFileChange(e.dataTransfer.files[0]);
+    }
+  };
+
+  // Helper to load sample CT01 form for instant test on PC
+  const handleLoadSample = () => {
+    setFullName('NGUYỄN TÚ');
+    setCccd('03103708');
+    setDob('2015-06-08');
+    setGender('Nữ');
+    setIssueDate('');
+    setAddress('32/3 Ích, Khu phố 12, Phường Tp Hồ Chí Minh');
+    setOcrConfidence(98.5);
+    setOcrSuccess(true);
+    setOcrError(null);
+    setOcrDetails({
+      success: true,
+      fullName: 'NGUYỄN TÚ',
+      cccd: '03103708',
+      dob: '2015-06-08',
+      gender: 'Nữ',
+      issueDate: '',
+      address: '32/3 Ích, Khu phố 12, Phường Tp Hồ Chí Minh',
+      confidence: 98.5,
+      detectedDocType: 'Tờ khai CT01 cư trú (Mẫu chuẩn Bộ Công an)',
+      message: 'Đã nạp bộ dữ liệu chuẩn theo Mẫu CT01 (Thông tư Bộ Công an)!',
+      extractedFieldsCount: 5,
+    });
   };
 
   // Handle HTML5 Geolocation API
@@ -179,7 +421,7 @@ export const FormAndIssueReporting: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-xs text-[#444651] mt-1 leading-relaxed max-w-3xl">
-                  <strong>Quy chuẩn bắt buộc:</strong> Hệ thống AI rà soát tính hợp lệ cấu trúc 12 số CCCD, đối chiếu mốc tuổi và ngày cấp. 
+                  <strong>Quy chuẩn bắt buộc:</strong> Hệ thống AI rà soát tính hợp lệ cấu trúc 12 số CCCD, đối chiếu mốc tuổi và tính hợp lệ logic của tờ khai. 
                   <span className="text-[#BA1A1A] font-semibold"> Hệ thống chỉ nhắc nhở người dân sửa trực tiếp bằng bút mực trên tờ khai giấy gốc</span>, tuyệt đối không can thiệp sửa đổi trực tiếp trên màn hình số để bảo đảm giá trị pháp lý.
                 </p>
               </div>
@@ -196,101 +438,407 @@ export const FormAndIssueReporting: React.FC = () => {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* LEFT: Input Form Card (7 Cols) */}
             <div className="lg:col-span-7 p-6 rounded-3xl bg-white border border-[#EAEDFF] shadow-sm flex flex-col gap-5">
-              <div className="flex items-center justify-between pb-3 border-b border-[#EAEDFF]">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#EAEDFF] gap-3">
                 <div className="flex items-center gap-2">
                   <FileCheck2 className="w-5 h-5 text-[#00236F]" />
                   <span className="text-sm font-bold text-[#131B2E]">Thông Tin Bản Khai Giấy Cần Rà Soát</span>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsCameraActive(!isCameraActive)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 ${
-                    isCameraActive
-                      ? 'bg-[#00236F] text-white shadow-xs'
-                      : 'bg-[#F2F3FF] hover:bg-[#EAEDFF] text-[#00236F] border border-[#DAE2FD]'
-                  }`}
-                >
-                  <Camera className="w-3.5 h-3.5" />
-                  <span>{isCameraActive ? 'Đóng Quét Ảnh' : 'Chụp Ảnh Scan Tờ Khai'}</span>
-                </button>
+
+                {/* Input Method Switcher: PC Upload vs Mobile Camera vs Manual */}
+                <div className="inline-flex p-1 bg-[#F2F3FF] rounded-xl border border-[#DAE2FD] self-start sm:self-auto">
+                  <button
+                    type="button"
+                    onClick={() => setInputMode('upload')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      inputMode === 'upload'
+                        ? 'bg-[#00236F] text-white shadow-xs'
+                        : 'text-[#444651] hover:text-[#00236F]'
+                    }`}
+                  >
+                    <Laptop className="w-3.5 h-3.5" />
+                    <span>Tải ảnh PC</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setInputMode('camera')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      inputMode === 'camera'
+                        ? 'bg-[#00236F] text-white shadow-xs'
+                        : 'text-[#444651] hover:text-[#00236F]'
+                    }`}
+                  >
+                    <Camera className="w-3.5 h-3.5" />
+                    <span>Camera</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setInputMode('manual')}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                      inputMode === 'manual'
+                        ? 'bg-[#00236F] text-white shadow-xs'
+                        : 'text-[#444651] hover:text-[#00236F]'
+                    }`}
+                  >
+                    <PenTool className="w-3.5 h-3.5" />
+                    <span>Nhập tay</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Simulated Camera Viewfinder with Dynamic Laser Scan Animation */}
-              {isCameraActive && (
-                <div className="relative w-full h-48 rounded-2xl bg-[#131B2E] overflow-hidden flex items-center justify-center border-2 border-dashed border-[#57DFFE]/80 shadow-inner">
+              {/* METHOD 1: PC IMAGE UPLOAD DROPZONE */}
+              {inputMode === 'upload' && (
+                <div className="flex flex-col gap-3">
+                  {!previewUrl ? (
+                    <div
+                      onDragOver={handleDragOver}
+                      onDragLeave={handleDragLeave}
+                      onDrop={handleDrop}
+                      onClick={() => fileInputRef.current?.click()}
+                      className={`relative p-6 sm:p-8 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-3 ${
+                        isDragging
+                          ? 'border-[#00236F] bg-[#EAEDFF]/60 scale-[1.01]'
+                          : 'border-[#DAE2FD] hover:border-[#00236F] bg-[#FAF8FF] hover:bg-[#F2F3FF]'
+                      }`}
+                    >
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg,image/webp,application/pdf"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleFileChange(e.target.files[0]);
+                          }
+                        }}
+                        className="hidden"
+                      />
+
+                      <div className="w-14 h-14 rounded-2xl bg-[#EAEDFF] text-[#00236F] flex items-center justify-center shadow-xs">
+                        <Upload className="w-7 h-7 text-[#00236F]" />
+                      </div>
+
+                      <div>
+                        <p className="text-sm font-bold text-[#131B2E]">
+                          Kéo thả ảnh chụp tờ khai CT01 hoặc CCCD vào đây
+                        </p>
+                        <p className="text-xs text-[#757682] mt-1">
+                          Hoặc <span className="text-[#00236F] font-bold underline">bấm để chọn tệp từ máy tính PC</span> (PNG, JPG, WEBP, PDF tối đa 10MB)
+                        </p>
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#DAE2FD] text-[11px] font-semibold text-[#00687A]">
+                          <Sparkles className="w-3 h-3 text-[#00687A]" />
+                          <span>AI Vision OCR trích xuất tự động</span>
+                        </span>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleLoadSample();
+                          }}
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#EAEDFF] hover:bg-[#DAE2FD] text-[11px] font-bold text-[#00236F] transition cursor-pointer"
+                        >
+                          <FileText className="w-3 h-3" />
+                          <span>Dùng ảnh mẫu CT01 (Test PC)</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* Uploaded Image Preview Card for PC */
+                    <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#EAEDFF] flex flex-col gap-3 shadow-xs">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-[#CBD5E1] bg-white shrink-0 shadow-xs">
+                            {selectedFile?.type.startsWith('image/') ? (
+                              <img src={previewUrl} alt="Bản scan tờ khai" className="w-full h-full object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center bg-[#EAEDFF] text-[#00236F]">
+                                <FileText className="w-7 h-7" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <span className="text-xs font-bold text-[#131B2E] truncate">
+                              {selectedFile?.name || 'to_khai_ct01_an_giang.jpg'}
+                            </span>
+                            <span className="text-[11px] text-[#757682]">
+                              {selectedFile ? (selectedFile.size / (1024 * 1024)).toFixed(2) + ' MB' : '2.14 MB'} • Đã nạp vào hệ thống
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => fileInputRef.current?.click()}
+                            className="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] bg-white hover:bg-[#F1F5F9] text-xs font-semibold text-[#334155] transition cursor-pointer"
+                          >
+                            Đổi ảnh
+                          </button>
+                          <button
+                            type="button"
+                            onClick={handleRemoveFile}
+                            className="p-1.5 rounded-lg border border-[#FCA5A5] bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] transition cursor-pointer"
+                            title="Xóa ảnh"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Hidden input for changing image */}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/png,image/jpeg,image/jpg,image/webp,application/pdf"
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            handleFileChange(e.target.files[0]);
+                          }
+                        }}
+                        className="hidden"
+                      />
+
+                      {/* OCR Status Banner */}
+                      {isOcrProcessing && (
+                        <div className="p-3.5 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center gap-3 text-xs text-[#1E40AF]">
+                          <RefreshCw className="w-5 h-5 animate-spin text-[#2563EB] shrink-0" />
+                          <div className="flex flex-col">
+                            <span className="font-bold">Hệ thống AI đang quét văn bản thực tế từ ảnh tờ khai...</span>
+                            <span className="text-[11px] text-[#3B82F6]">Đang nhận diện Họ tên, số CCCD, ngày sinh và địa chỉ cư trú</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {ocrSuccess && !isOcrProcessing && (
+                        <div className="p-3.5 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] flex flex-col gap-2 text-xs text-[#065F46]">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex items-center gap-2 font-bold">
+                              <Check className="w-4 h-4 text-[#10B981] shrink-0" />
+                              <span>{ocrDetails?.detectedDocType || 'Tài liệu hành chính'}: {ocrDetails?.message || 'Trích xuất thành công từ ảnh!'}</span>
+                            </div>
+                            {ocrConfidence !== null && (
+                              <span className="font-mono text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-white text-[#065F46] border border-[#A7F3D0] shadow-2xs">
+                                Độ tin cậy OCR: {ocrConfidence}%
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[11px] text-[#047857] flex flex-wrap gap-2 pt-1 border-t border-[#A7F3D0]/50">
+                            <span className="font-medium">Đã tự động điền:</span>
+                            {fullName && <span className="px-2 py-0.5 bg-white/90 rounded border border-[#A7F3D0] font-semibold text-[#065F46]">Mục 1 (Họ tên): {fullName}</span>}
+                            {cccd && <span className="px-2 py-0.5 bg-white/90 rounded border border-[#A7F3D0] font-semibold text-[#065F46]">Mục 4 (ĐDCN): {cccd}</span>}
+                            {dob && <span className="px-2 py-0.5 bg-white/90 rounded border border-[#A7F3D0] font-semibold text-[#065F46]">Mục 2 (Sinh): {dob}</span>}
+                            {gender && <span className="px-2 py-0.5 bg-white/90 rounded border border-[#A7F3D0] font-semibold text-[#065F46]">Mục 3 (Giới tính): {gender}</span>}
+                            {address && <span className="px-2 py-0.5 bg-white/90 rounded border border-[#A7F3D0] font-semibold text-[#065F46] max-w-xs truncate" title={address}>Mục 10 (Nơi cư trú): {address}</span>}
+                          </div>
+                        </div>
+                      )}
+
+                      {ocrError && !isOcrProcessing && (
+                        <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-start gap-2.5 text-xs text-[#991B1B]">
+                          <AlertCircle className="w-4 h-4 text-[#DC2626] shrink-0 mt-0.5" />
+                          <div className="flex flex-col gap-0.5">
+                            <span className="font-bold">Không thể tự động trích xuất thông tin từ tệp này</span>
+                            <span className="text-[11px] text-[#B91C1C]">{ocrError}</span>
+                            <span className="text-[11px] text-[#7F1D1D] mt-1 font-medium">👉 Quý công dân vui lòng nhập trực tiếp thông tin vào các ô bên dưới để tiếp tục sơ duyệt.</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* METHOD 2: CAMERA VIEWFINDER */}
+              {inputMode === 'camera' && (
+                <div className="relative w-full h-52 rounded-2xl bg-[#131B2E] overflow-hidden flex items-center justify-center border-2 border-dashed border-[#57DFFE]/80 shadow-inner">
                   {/* Moving Laser Scan Line */}
                   <div className="absolute left-0 right-0 h-0.5 bg-[#57DFFE] shadow-[0_0_12px_#57DFFE] animate-laser pointer-events-none" />
                   <div className="flex flex-col items-center gap-2 text-white/90 z-10 p-4 text-center">
                     <Camera className="w-8 h-8 text-[#57DFFE] animate-pulse" />
-                    <span className="text-xs font-semibold">Khung Nhận Diện OCR Thị Giác Máy Tính</span>
+                    <span className="text-xs font-semibold">Khung Nhận Diện OCR Qua Camera / Webcam</span>
                     <span className="text-[11px] text-white/70 max-w-xs">
-                      Hướng camera điện thoại vuông góc với tờ khai CT01 để trích xuất văn bản tự động.
+                      Hướng camera vuông góc với tờ khai CT01 hoặc CCCD để hệ thống tự động đọc thông tin.
                     </span>
+                    <button
+                      type="button"
+                      onClick={handleLoadSample}
+                      className="mt-2 px-3 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-semibold backdrop-blur-sm transition cursor-pointer"
+                    >
+                      Mô phỏng chụp mẫu thành công
+                    </button>
                   </div>
                 </div>
               )}
 
-              {/* Form Input Fields */}
+              {/* METHOD 3: MANUAL INPUT HINT */}
+              {inputMode === 'manual' && (
+                <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#64748B] flex items-center gap-2">
+                  <PenTool className="w-4 h-4 text-[#00236F] shrink-0" />
+                  <span>Chế độ nhập tay: Đối chiếu trực tiếp thông tin từ bản khai giấy của bạn vào các ô bên dưới.</span>
+                </div>
+              )}
+
+              {/* Form Input Fields - Strictly Aligned with Mẫu CT01 (Bộ Công an) */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Field 1: Họ, chữ đệm và tên khai sinh (Mục 1) */}
                 <div className="flex flex-col gap-1.5 sm:col-span-2">
-                  <label className="text-xs font-bold text-[#444651]">
-                    1. Họ và tên công dân (theo bản khai giấy):
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-[#444651]">
+                      1. Họ, chữ đệm và tên khai sinh (Mục 1 Mẫu CT01):
+                    </label>
+                    {ocrSuccess && fullName ? (
+                      <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                        <Check className="w-3 h-3 text-[#10B981]" /> Đã map đúng Mục 1
+                      </span>
+                    ) : ocrSuccess && !fullName ? (
+                      <span className="text-[10px] text-[#D97706] bg-[#FFFBEB] px-2 py-0.5 rounded-full font-semibold border border-[#FDE68A]">
+                        Chưa thấy mục 1 (Họ tên) - vui lòng điền tay
+                      </span>
+                    ) : null}
+                  </div>
                   <input
                     type="text"
                     value={fullName}
+                    placeholder="Ví dụ: NGUYỄN TÚ"
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full h-10 px-3.5 rounded-xl bg-[#FAF8FF] border border-[#EAEDFF] text-xs md:text-sm text-[#131B2E] focus:outline-none focus:border-[#00236F] focus:bg-white transition-all"
+                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#131B2E] focus:outline-none focus:border-[#00236F] focus:bg-white transition-all ${
+                      ocrSuccess && fullName ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-[#FAF8FF] border-[#EAEDFF]'
+                    }`}
                   />
                 </div>
 
+                {/* Field 2: Số định danh cá nhân (Mục 4) */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-[#444651]">
-                    2. Số CCCD gắn chip (12 chữ số):
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-[#444651]">
+                      2. Số định danh cá nhân (Mục 4 Mẫu CT01 - 12 chữ số):
+                    </label>
+                    {ocrSuccess && cccd ? (
+                      <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                        <Check className="w-3 h-3 text-[#10B981]" /> Đã map đúng Mục 4 ({cccd.length} số)
+                      </span>
+                    ) : ocrSuccess && !cccd ? (
+                      <span className="text-[10px] text-[#D97706] bg-[#FFFBEB] px-2 py-0.5 rounded-full font-semibold border border-[#FDE68A]">
+                        Chưa thấy mục 4 (Số ĐDCN)
+                      </span>
+                    ) : null}
+                  </div>
                   <input
                     type="text"
                     value={cccd}
                     maxLength={12}
+                    placeholder="12 chữ số định danh cá nhân"
                     onChange={(e) => setCccd(e.target.value)}
-                    className="w-full h-10 px-3.5 rounded-xl bg-[#FAF8FF] border border-[#EAEDFF] font-mono text-xs md:text-sm text-[#00236F] font-bold focus:outline-none focus:border-[#00236F] focus:bg-white transition-all tracking-wider"
+                    className={`w-full h-10 px-3.5 rounded-xl font-mono text-xs md:text-sm font-bold focus:outline-none focus:border-[#00236F] focus:bg-white transition-all tracking-wider ${
+                      ocrSuccess && cccd ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 text-[#00236F]' : 'bg-[#FAF8FF] border-[#EAEDFF] text-[#00236F]'
+                    }`}
                   />
                 </div>
 
+                {/* Field 3: Ngày, tháng, năm sinh (Mục 2) */}
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-[#444651]">
-                    3. Ngày sinh (DOB):
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-[#444651]">
+                      3. Ngày, tháng, năm sinh (Mục 2 Mẫu CT01):
+                    </label>
+                    {ocrSuccess && dob ? (
+                      <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                        <Check className="w-3 h-3 text-[#10B981]" /> Đã map đúng Mục 2 ({dob})
+                      </span>
+                    ) : ocrSuccess && !dob ? (
+                      <span className="text-[10px] text-[#D97706] bg-[#FFFBEB] px-2 py-0.5 rounded-full font-semibold border border-[#FDE68A]">
+                        Chưa thấy mục 2 (Ngày sinh)
+                      </span>
+                    ) : null}
+                  </div>
                   <input
                     type="date"
                     value={dob}
                     onChange={(e) => setDob(e.target.value)}
-                    className="w-full h-10 px-3.5 rounded-xl bg-[#FAF8FF] border border-[#EAEDFF] text-xs md:text-sm text-[#131B2E] focus:outline-none focus:border-[#00236F] focus:bg-white transition-all"
+                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#131B2E] focus:outline-none focus:border-[#00236F] focus:bg-white transition-all ${
+                      ocrSuccess && dob ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-[#FAF8FF] border-[#EAEDFF]'
+                    }`}
                   />
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-[#444651]">
-                    4. Ngày cấp thẻ CCCD:
-                  </label>
-                  <input
-                    type="date"
-                    value={issueDate}
-                    onChange={(e) => setIssueDate(e.target.value)}
-                    className="w-full h-10 px-3.5 rounded-xl bg-[#FAF8FF] border border-[#EAEDFF] text-xs md:text-sm text-[#131B2E] focus:outline-none focus:border-[#00236F] focus:bg-white transition-all"
-                  />
-                </div>
-
+                {/* Field 4: Giới tính (Mục 3) */}
                 <div className="flex flex-col gap-1.5 sm:col-span-2">
-                  <label className="text-xs font-bold text-[#444651]">
-                    5. Nơi thường trú đề nghị đăng ký:
-                  </label>
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-[#444651]">
+                      4. Giới tính (Mục 3 Mẫu CT01):
+                    </label>
+                    {ocrSuccess && gender ? (
+                      <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                        <Check className="w-3 h-3 text-[#10B981]" /> Đã map đúng Mục 3 ({gender})
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#131B2E]">
+                      <input
+                        type="radio"
+                        name="ct01_gender"
+                        value="Nam"
+                        checked={gender === 'Nam'}
+                        onChange={(e) => setGender(e.target.value)}
+                        className="text-[#00236F] focus:ring-[#00236F]"
+                      />
+                      <span>Nam</span>
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#131B2E]">
+                      <input
+                        type="radio"
+                        name="ct01_gender"
+                        value="Nữ"
+                        checked={gender === 'Nữ'}
+                        onChange={(e) => setGender(e.target.value)}
+                        className="text-[#00236F] focus:ring-[#00236F]"
+                      />
+                      <span>Nữ</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Field 5: Nơi đề nghị đăng ký thường trú / tạm trú (Mục 10) */}
+                <div className="flex flex-col gap-1.5 sm:col-span-2">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-[#444651]">
+                      5. Nơi đề nghị đăng ký thường trú / tạm trú (Mục 10 - Nội dung đề nghị):
+                    </label>
+                    {ocrSuccess && address ? (
+                      <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                        <Check className="w-3 h-3 text-[#10B981]" /> Đã map đúng Mục 10
+                      </span>
+                    ) : ocrSuccess && !address ? (
+                      <span className="text-[10px] text-[#D97706] bg-[#FFFBEB] px-2 py-0.5 rounded-full font-semibold border border-[#FDE68A]">
+                        Chưa thấy nội dung đề nghị cư trú
+                      </span>
+                    ) : null}
+                  </div>
                   <input
                     type="text"
                     value={address}
+                    placeholder="Ví dụ: 32/3 Ích, Khu phố 12, Phường..., TP. Hồ Chí Minh"
                     onChange={(e) => setAddress(e.target.value)}
-                    className="w-full h-10 px-3.5 rounded-xl bg-[#FAF8FF] border border-[#EAEDFF] text-xs md:text-sm text-[#131B2E] focus:outline-none focus:border-[#00236F] focus:bg-white transition-all"
+                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#131B2E] focus:outline-none focus:border-[#00236F] focus:bg-white transition-all ${
+                      ocrSuccess && address ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-[#FAF8FF] border-[#EAEDFF]'
+                    }`}
                   />
+                </div>
+
+                {/* Official Legal Specification Notice */}
+                <div className="sm:col-span-2 p-3 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] flex items-start gap-2.5 text-xs text-[#166534]">
+                  <FileText className="w-4 h-4 text-[#16A34A] shrink-0 mt-0.5" />
+                  <div className="flex flex-col gap-0.5">
+                    <span className="font-bold">Quy chuẩn Mẫu CT01 (Thông tư Bộ Công an):</span>
+                    <span className="text-[11px] text-[#15803D]">
+                      Tờ khai CT01 hoàn toàn không có trường "Ngày cấp CCCD" (chỉ có ngày làm đơn ở cuối tờ khai). Hệ thống chỉ quét đúng các mục cần nhập (Mục 1, 2, 3, 4, 10) và tuyệt đối không tự ý điền ngày cấp thẻ.
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -511,12 +1059,26 @@ export const FormAndIssueReporting: React.FC = () => {
                   type="text"
                   value={addressText}
                   onChange={(e) => setAddressText(e.target.value)}
-                  className="w-full h-10 px-3.5 rounded-xl bg-[#FAF8FF] border border-[#EAEDFF] text-xs md:text-sm text-[#131B2E] focus:outline-none focus:border-[#00236F] focus:bg-white"
+                  className="w-full h-10 px-3.5 rounded-xl bg-[#FAF8FF] border border-[#EAEDFF] text-xs md:text-sm text-[#131B2E] focus:outline-hidden focus:border-[#00236F] focus:bg-white"
                 />
 
                 <div className="flex items-center gap-4 text-xs font-mono text-[#757682] px-1">
-                  <span>Vĩ độ (Lat): <strong className="text-[#00236F]">{latitude.toFixed(4)}</strong></span>
-                  <span>Kinh độ (Lon): <strong className="text-[#00236F]">{longitude.toFixed(4)}</strong></span>
+                  <span>Vĩ độ (Lat): <strong className="text-[#00236F]">{latitude.toFixed(6)}</strong></span>
+                  <span>Kinh độ (Lon): <strong className="text-[#00236F]">{longitude.toFixed(6)}</strong></span>
+                </div>
+
+                {/* Interactive Mini-Map Pin Dropper */}
+                <div className="flex flex-col gap-1.5 mt-1">
+                  <div className="flex items-center justify-between text-[11px] text-[#757682]">
+                    <span className="flex items-center gap-1 font-semibold text-[#00236F]">
+                      <MapPin className="w-3.5 h-3.5 text-[#BA1A1A]" />
+                      Chấm điểm vị trí hiện trường trên bản đồ:
+                    </span>
+                    <span>Click hoặc kéo ghim để định vị</span>
+                  </div>
+                  <div className="w-full h-44 sm:h-52 rounded-2xl overflow-hidden border border-[#DAE2FD] relative z-1 shadow-inner bg-[#E5E7EB]">
+                    <div ref={incidentMapContainerRef} className="w-full h-full" />
+                  </div>
                 </div>
               </div>
 
@@ -526,7 +1088,7 @@ export const FormAndIssueReporting: React.FC = () => {
                   type="button"
                   onClick={handleReport}
                   disabled={reportLoading}
-                  className="px-6 py-2.5 bg-[#BA1A1A] hover:bg-[#BA1A1A]/90 text-white rounded-xl font-semibold text-xs shadow-md shadow-[#BA1A1A]/20 flex items-center gap-2 active:scale-95 transition-all duration-200"
+                  className="w-full sm:w-auto px-6 py-2.5 bg-[#BA1A1A] hover:bg-[#93000A] active:scale-[0.98] text-white rounded-xl font-bold text-xs shadow-md shadow-[#BA1A1A]/20 flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
                 >
                   {reportLoading ? (
                     <>
@@ -535,7 +1097,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <Send className="w-4 h-4" />
+                      <Send className="w-4 h-4 text-white" />
                       <span>Gửi Phản Ánh Hiện Trường</span>
                     </>
                   )}

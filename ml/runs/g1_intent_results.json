@@ -1,0 +1,233 @@
+{
+  "majority_class_baseline": {
+    "accuracy": 0.5263,
+    "macro_f1": 0.1149
+  },
+  "config_comparison": {
+    "uncalibrated_full_train": {
+      "accuracy": 0.8377,
+      "macro_f1": 0.7615
+    },
+    "calibrated_cv3": {
+      "accuracy": 0.7149,
+      "macro_f1": 0.5503
+    }
+  },
+  "per_class": {
+    "GREETING": {
+      "precision": 0.8824,
+      "recall": 0.7143,
+      "f1": 0.7895,
+      "support": 21
+    },
+    "PROCEDURE_CATALOG": {
+      "precision": 0.7143,
+      "recall": 0.7143,
+      "f1": 0.7143,
+      "support": 21
+    },
+    "COMMUNE_INFO": {
+      "precision": 0.8421,
+      "recall": 0.7619,
+      "f1": 0.8,
+      "support": 21
+    },
+    "OUT_OF_SCOPE": {
+      "precision": 0.5938,
+      "recall": 0.7917,
+      "f1": 0.6786,
+      "support": 24
+    },
+    "AMBIGUOUS": {
+      "precision": 0.75,
+      "recall": 0.5714,
+      "f1": 0.6486,
+      "support": 21
+    },
+    "PROCEDURE_INQUIRY": {
+      "precision": 0.9268,
+      "recall": 0.95,
+      "f1": 0.9383,
+      "support": 120
+    }
+  },
+  "confusion_matrix": {
+    "classes": [
+      "GREETING",
+      "PROCEDURE_CATALOG",
+      "COMMUNE_INFO",
+      "OUT_OF_SCOPE",
+      "AMBIGUOUS",
+      "PROCEDURE_INQUIRY"
+    ],
+    "matrix": [
+      [
+        15,
+        1,
+        2,
+        1,
+        2,
+        0
+      ],
+      [
+        1,
+        15,
+        0,
+        2,
+        2,
+        1
+      ],
+      [
+        0,
+        0,
+        16,
+        2,
+        0,
+        3
+      ],
+      [
+        1,
+        1,
+        0,
+        19,
+        0,
+        3
+      ],
+      [
+        0,
+        1,
+        1,
+        5,
+        12,
+        2
+      ],
+      [
+        0,
+        3,
+        0,
+        3,
+        0,
+        114
+      ]
+    ]
+  },
+  "tau_sweep": [
+    {
+      "tau": 0.1,
+      "coverage": 1.0,
+      "diverted": 0,
+      "accuracy": 0.8377,
+      "acc_95_ci": [
+        0.7762,
+        0.8947
+      ],
+      "macro_f1": 0.7615,
+      "f1_95_ci": [
+        0.6642,
+        0.8315
+      ]
+    },
+    {
+      "tau": 0.15,
+      "coverage": 1.0,
+      "diverted": 0,
+      "accuracy": 0.8377,
+      "acc_95_ci": [
+        0.7762,
+        0.8947
+      ],
+      "macro_f1": 0.7615,
+      "f1_95_ci": [
+        0.6642,
+        0.8315
+      ]
+    },
+    {
+      "tau": 0.2,
+      "coverage": 1.0,
+      "diverted": 0,
+      "accuracy": 0.8377,
+      "acc_95_ci": [
+        0.7762,
+        0.8947
+      ],
+      "macro_f1": 0.7615,
+      "f1_95_ci": [
+        0.6642,
+        0.8315
+      ]
+    },
+    {
+      "tau": 0.25,
+      "coverage": 0.9737,
+      "diverted": 6,
+      "accuracy": 0.8333,
+      "acc_95_ci": [
+        0.7675,
+        0.8904
+      ],
+      "macro_f1": 0.7512,
+      "f1_95_ci": [
+        0.6473,
+        0.8239
+      ]
+    },
+    {
+      "tau": 0.3,
+      "coverage": 0.886,
+      "diverted": 26,
+      "accuracy": 0.8202,
+      "acc_95_ci": [
+        0.75,
+        0.8816
+      ],
+      "macro_f1": 0.7377,
+      "f1_95_ci": [
+        0.6395,
+        0.8167
+      ]
+    },
+    {
+      "tau": 0.35,
+      "coverage": 0.7412,
+      "diverted": 59,
+      "accuracy": 0.7368,
+      "acc_95_ci": [
+        0.6579,
+        0.8159
+      ],
+      "macro_f1": 0.6415,
+      "f1_95_ci": [
+        0.5199,
+        0.7327
+      ]
+    },
+    {
+      "tau": 0.4,
+      "coverage": 0.6184,
+      "diverted": 87,
+      "accuracy": 0.6579,
+      "acc_95_ci": [
+        0.5746,
+        0.7412
+      ],
+      "macro_f1": 0.5885,
+      "f1_95_ci": [
+        0.4807,
+        0.6731
+      ]
+    }
+  ],
+  "no_tau": {
+    "accuracy": 0.8377,
+    "acc_95_ci": [
+      0.7762,
+      0.8947
+    ],
+    "macro_f1": 0.7615,
+    "f1_95_ci": [
+      0.6642,
+      0.8315
+    ]
+  }
+}

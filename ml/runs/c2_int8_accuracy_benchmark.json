@@ -1,0 +1,38 @@
+{
+  "fp32": {
+    "session_name": "FP32_ONNX",
+    "file_size_mb": 448.52,
+    "peak_ram_rss_mb": 1271.0,
+    "batch_inference_time_sec": 1.32,
+    "intent_accuracy": 0.7675,
+    "intent_macro_f1": 0.6397,
+    "proc_recall_at_1": 0.0833,
+    "proc_recall_at_3": 0.2417,
+    "proc_mrr": 0.15,
+    "chunk_recall_at_1": 0.025,
+    "chunk_recall_at_3": 0.0833,
+    "chunk_mrr": 0.0948
+  },
+  "int8": {
+    "session_name": "INT8_Dynamic_ONNX",
+    "file_size_mb": 112.7,
+    "peak_ram_rss_mb": 937.0,
+    "batch_inference_time_sec": 0.65,
+    "intent_accuracy": 0.7675,
+    "intent_macro_f1": 0.6312,
+    "proc_recall_at_1": 0.1,
+    "proc_recall_at_3": 0.2583,
+    "proc_mrr": 0.1694,
+    "chunk_recall_at_1": 0.0417,
+    "chunk_recall_at_3": 0.1,
+    "chunk_mrr": 0.1085
+  },
+  "delta": {
+    "intent_acc_diff_p": 0.0,
+    "intent_f1_diff_p": -0.85,
+    "proc_r1_diff_p": 1.67,
+    "proc_r3_diff_p": 1.66,
+    "size_reduction_pct": 74.87,
+    "ram_saved_mb": 334.0
+  }
+}

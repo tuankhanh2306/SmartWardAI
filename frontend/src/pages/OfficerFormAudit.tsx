@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import OfficerSidebar from '../components/OfficerSidebar';
 import { useWard } from '../context/WardContext';
+import Pagination from '../components/Pagination';
 import {
   FileText,
   CreditCard,
@@ -20,11 +21,147 @@ import {
   Send,
   Lock,
   Key,
-  Award
+  Award,
+  Layers
 } from 'lucide-react';
+
+interface DossierQueueItem {
+  id: string;
+  citizenName: string;
+  procedure: string;
+  formType: string;
+  submittedAt: string;
+  status: 'PROCESSING' | 'PENDING' | 'APPROVED' | 'SUPPLEMENT';
+  cccd: string;
+  dob: string;
+  gender: 'Nam' | 'Nữ';
+  address: string;
+  ocrScore: number;
+}
+
+const MOCK_DOSSIERS: DossierQueueItem[] = [
+  {
+    id: 'CT01-2026-0894',
+    citizenName: 'NGUYỄN VĂN AN',
+    procedure: 'Đăng ký tạm trú cá nhân',
+    formType: 'CT01',
+    submittedAt: '04/11/2026 08:50:14',
+    status: 'PROCESSING',
+    cccd: '079095012345',
+    dob: '15/08/1995',
+    gender: 'Nam',
+    address: 'Số 12, Đường Thoại Ngọc Hầu, Xã An Phú, Tỉnh An Giang',
+    ocrScore: 98.6,
+  },
+  {
+    id: 'CT01-2026-0895',
+    citizenName: 'TRẦN THỊ BÍCH NGỌC',
+    procedure: 'Đăng ký thường trú về nhà mới',
+    formType: 'CT01',
+    submittedAt: '04/11/2026 09:12:00',
+    status: 'PENDING',
+    cccd: '089198004562',
+    dob: '22/11/1998',
+    gender: 'Nữ',
+    address: 'Ấp An Thạnh, Xã An Phú, Huyện An Phú, Tỉnh An Giang',
+    ocrScore: 97.4,
+  },
+  {
+    id: 'KS-2026-0112',
+    citizenName: 'LÊ HOÀNG LONG',
+    procedure: 'Liên thông Đăng ký khai sinh & cấp thẻ BHYT',
+    formType: 'Khai sinh',
+    submittedAt: '04/11/2026 09:35:40',
+    status: 'PENDING',
+    cccd: '089026001239',
+    dob: '01/11/2026',
+    gender: 'Nam',
+    address: 'Khóm 2, Thị trấn An Phú, Tỉnh An Giang',
+    ocrScore: 99.0,
+  },
+  {
+    id: 'KH-2026-0043',
+    citizenName: 'PHẠM QUỐC DŨNG & VŨ MAI ANH',
+    procedure: 'Đăng ký kết hôn Một cửa điện tử',
+    formType: 'Kết hôn',
+    submittedAt: '04/11/2026 10:05:18',
+    status: 'SUPPLEMENT',
+    cccd: '079092014589',
+    dob: '10/04/1992',
+    gender: 'Nam',
+    address: 'Tổ 5, Ấp Phú Hưng, Xã An Phú, An Giang',
+    ocrScore: 91.2,
+  },
+  {
+    id: 'CT01-2026-0896',
+    citizenName: 'ĐẶNG QUÝ',
+    procedure: 'Gia hạn tạm trú cho người ở trọ thuê nhà',
+    formType: 'CT01',
+    submittedAt: '04/11/2026 10:20:00',
+    status: 'PENDING',
+    cccd: '082002018899',
+    dob: '05/09/1982',
+    gender: 'Nam',
+    address: 'Khu phố 12, Phường 3, Tp Hồ Chí Minh',
+    ocrScore: 94.8,
+  },
+  {
+    id: 'SY-2026-0210',
+    citizenName: 'HUỲNH THANH THẢO',
+    procedure: 'Chứng thực bản sao điện tử từ bản chính',
+    formType: 'Sao y',
+    submittedAt: '04/11/2026 10:45:15',
+    status: 'APPROVED',
+    cccd: '089195007812',
+    dob: '14/02/1995',
+    gender: 'Nữ',
+    address: 'Số 45, Tôn Đức Thắng, Xã An Phú, An Giang',
+    ocrScore: 99.5,
+  },
+  {
+    id: 'CT01-2026-0897',
+    citizenName: 'NGUYỄN TÚ',
+    procedure: 'Đăng ký tạm trú theo mẹ vào hộ người thân',
+    formType: 'CT01',
+    submittedAt: '04/11/2026 11:00:22',
+    status: 'PENDING',
+    cccd: '031037089123',
+    dob: '08/06/2015',
+    gender: 'Nữ',
+    address: '3 2/3 Ích, Khu phố 12, Tp Hồ Chí Minh',
+    ocrScore: 96.5,
+  },
+];
 
 export default function OfficerFormAudit() {
   const { currentWard } = useWard();
+  // Queue & pagination state
+  const [dossiers, setDossiers] = useState<DossierQueueItem[]>(MOCK_DOSSIERS);
+  const [selectedDossierId, setSelectedDossierId] = useState<string>('CT01-2026-0894');
+  const [queueFilter, setQueueFilter] = useState<'ALL' | 'PENDING' | 'PROCESSING' | 'SUPPLEMENT' | 'APPROVED'>('ALL');
+  const [queuePage, setQueuePage] = useState<number>(1);
+  const [queuePageSize, setQueuePageSize] = useState<number>(4);
+
+  const selectedDossier = useMemo(() => {
+    return dossiers.find((d) => d.id === selectedDossierId) || dossiers[0];
+  }, [dossiers, selectedDossierId]);
+
+  // Filtered queue items
+  const filteredDossiers = useMemo(() => {
+    if (queueFilter === 'ALL') return dossiers;
+    return dossiers.filter((d) => d.status === queueFilter);
+  }, [dossiers, queueFilter]);
+
+  const totalPages = Math.ceil(filteredDossiers.length / queuePageSize) || 1;
+  const pagedDossiers = useMemo(() => {
+    const start = (queuePage - 1) * queuePageSize;
+    return filteredDossiers.slice(start, start + queuePageSize);
+  }, [filteredDossiers, queuePage, queuePageSize]);
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setQueuePage(1);
+  }, [queueFilter]);
   // Viewer state
   const [zoom, setZoom] = useState<number>(100);
   const [rotate, setRotate] = useState<number>(0);
@@ -81,29 +218,48 @@ export default function OfficerFormAudit() {
               <div className="flex items-center gap-2 text-xs text-[#444651] mb-1 font-medium">
                 <span>Hệ Thống Quản Trị {currentWard.name}</span>
                 <span>/</span>
-                <span>Tiếp Nhận Sơ Duyệt Cư Trú</span>
+                <span>Tiếp Nhận Sơ Duyệt Cư Trú & Hộ Tịch</span>
                 <span>/</span>
-                <span className="text-[#00236F] font-bold">Hồ Sơ CT01-2026-0894</span>
+                <span className="text-[#00236F] font-bold">Hồ Sơ {selectedDossier.id}</span>
               </div>
               <h1 className="text-xl font-bold text-[#00236F] flex items-center gap-2">
-                Bàn Sơ Duyệt Tờ Khai Cư Trú (Mẫu CT01) • {currentWard.name}
-                <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-[#ACEDFF] text-[#004E5C]">
-                  Đang Xử Lý
+                Bàn Sơ Duyệt Tờ Khai ({selectedDossier.formType}) • {currentWard.name}
+                <span
+                  className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                    selectedDossier.status === 'PROCESSING'
+                      ? 'bg-[#ACEDFF] text-[#004E5C]'
+                      : selectedDossier.status === 'APPROVED'
+                      ? 'bg-[#D1E7DD] text-[#0F5132]'
+                      : selectedDossier.status === 'SUPPLEMENT'
+                      ? 'bg-[#F8D7DA] text-[#842029]'
+                      : 'bg-[#FFF3CD] text-[#664D03]'
+                  }`}
+                >
+                  {selectedDossier.status === 'PROCESSING'
+                    ? 'Đang Xử Lý'
+                    : selectedDossier.status === 'APPROVED'
+                    ? 'Đã Phê Duyệt'
+                    : selectedDossier.status === 'SUPPLEMENT'
+                    ? 'Yêu Cầu Bổ Sung'
+                    : 'Chờ Sơ Duyệt'}
                 </span>
               </h1>
               <div className="flex flex-wrap items-center gap-4 text-xs text-[#444651] mt-1.5">
                 <span>
-                  Hồ sơ: <strong className="text-[#131B2E]">CT01-2026-0894</strong>
+                  Hồ sơ: <strong className="text-[#131B2E]">{selectedDossier.id}</strong>
                 </span>
                 <span>
-                  Công dân: <strong className="text-[#131B2E]">Nguyễn Văn An ({currentWard.name})</strong>
+                  Thủ tục: <strong className="text-[#00236F]">{selectedDossier.procedure}</strong>
+                </span>
+                <span>
+                  Công dân: <strong className="text-[#131B2E]">{selectedDossier.citizenName}</strong>
                 </span>
                 <span>
                   Cán bộ thụ lý: <strong className="text-[#131B2E]">Trần Thị Hương ({currentWard.name})</strong>
                 </span>
                 <span className="flex items-center gap-1 text-[#00687A]">
                   <Clock className="w-3.5 h-3.5" />
-                  Khởi tạo: 04/11/2026 08:50:14
+                  Khởi tạo: {selectedDossier.submittedAt}
                 </span>
               </div>
             </div>
@@ -120,7 +276,7 @@ export default function OfficerFormAudit() {
                   </span>
                   <div className="flex items-center gap-1.5 text-xs text-[#131B2E]">
                     <span className="w-2 h-2 rounded-full bg-[#00687A] animate-pulse" />
-                    <span className="font-mono text-[11px]">GET /vault/view/tk_9a8f21cd7</span>
+                    <span className="font-mono text-[11px]">GET /vault/view/tk_{selectedDossier.id.toLowerCase().replace('-', '_')}</span>
                   </div>
                 </div>
               </div>
@@ -147,6 +303,141 @@ export default function OfficerFormAudit() {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* DOSSIER QUEUE STRIP & PAGINATION FOR OFFICERS */}
+        <section className="bg-[#F8F9FE] border-b border-[#EAEDFF] px-6 py-3">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-2.5">
+            <div className="flex items-center gap-2">
+              <Layers className="w-4 h-4 text-[#00236F]" />
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#00236F]">
+                Hàng Đợi Hồ Sơ Chờ Cán Bộ Sơ Duyệt ({filteredDossiers.length} hồ sơ)
+              </h2>
+            </div>
+
+            {/* Filter buttons */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0">
+              <button
+                onClick={() => setQueueFilter('ALL')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  queueFilter === 'ALL'
+                    ? 'bg-[#00236F] text-white shadow-sm'
+                    : 'bg-white text-[#444651] border border-[#DAE2FD] hover:bg-[#EAEDFF]'
+                }`}
+              >
+                Tất cả ({dossiers.length})
+              </button>
+              <button
+                onClick={() => setQueueFilter('PENDING')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  queueFilter === 'PENDING'
+                    ? 'bg-[#854D0E] text-white shadow-sm'
+                    : 'bg-white text-[#854D0E] border border-[#DAE2FD] hover:bg-[#FEF08A]'
+                }`}
+              >
+                Chờ sơ duyệt ({dossiers.filter((d) => d.status === 'PENDING').length})
+              </button>
+              <button
+                onClick={() => setQueueFilter('PROCESSING')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  queueFilter === 'PROCESSING'
+                    ? 'bg-[#004E5C] text-white shadow-sm'
+                    : 'bg-white text-[#004E5C] border border-[#DAE2FD] hover:bg-[#ACEDFF]'
+                }`}
+              >
+                Đang xử lý ({dossiers.filter((d) => d.status === 'PROCESSING').length})
+              </button>
+              <button
+                onClick={() => setQueueFilter('SUPPLEMENT')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  queueFilter === 'SUPPLEMENT'
+                    ? 'bg-[#991B1B] text-white shadow-sm'
+                    : 'bg-white text-[#991B1B] border border-[#DAE2FD] hover:bg-[#FEE2E2]'
+                }`}
+              >
+                Cần bổ sung ({dossiers.filter((d) => d.status === 'SUPPLEMENT').length})
+              </button>
+              <button
+                onClick={() => setQueueFilter('APPROVED')}
+                className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                  queueFilter === 'APPROVED'
+                    ? 'bg-[#166534] text-white shadow-sm'
+                    : 'bg-white text-[#166534] border border-[#DAE2FD] hover:bg-[#DCFCE7]'
+                }`}
+              >
+                Đã duyệt ({dossiers.filter((d) => d.status === 'APPROVED').length})
+              </button>
+            </div>
+          </div>
+
+          {/* Dossiers Grid for Current Page */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+            {pagedDossiers.map((item) => {
+              const isSelected = item.id === selectedDossier.id;
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => setSelectedDossierId(item.id)}
+                  className={`p-2.5 rounded-xl border text-left cursor-pointer transition-all flex flex-col justify-between ${
+                    isSelected
+                      ? 'bg-white border-[#00236F] shadow-md ring-2 ring-[#00236F]/20'
+                      : 'bg-white/80 border-[#EAEDFF] hover:bg-white hover:border-[#CBD5E1]'
+                  }`}
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-1 mb-1">
+                      <span className="font-mono text-[11px] font-bold text-[#00236F]">
+                        {item.id}
+                      </span>
+                      <span
+                        className={`text-[10px] font-semibold px-1.5 py-0.5 rounded ${
+                          item.status === 'PROCESSING'
+                            ? 'bg-[#ACEDFF] text-[#004E5C]'
+                            : item.status === 'APPROVED'
+                            ? 'bg-[#DCFCE7] text-[#166534]'
+                            : item.status === 'SUPPLEMENT'
+                            ? 'bg-[#FEE2E2] text-[#991B1B]'
+                            : 'bg-[#FEF08A] text-[#854D0E]'
+                        }`}
+                      >
+                        {item.status === 'PROCESSING'
+                          ? 'Đang xử lý'
+                          : item.status === 'APPROVED'
+                          ? 'Đã duyệt'
+                          : item.status === 'SUPPLEMENT'
+                          ? 'Cần bổ sung'
+                          : 'Chờ duyệt'}
+                      </span>
+                    </div>
+                    <div className="text-xs font-bold text-[#131B2E] truncate">
+                      {item.citizenName}
+                    </div>
+                    <div className="text-[11px] text-[#444651] truncate mt-0.5">
+                      {item.procedure}
+                    </div>
+                  </div>
+
+                  <div className="mt-2 pt-1.5 border-t border-[#F1F5F9] flex items-center justify-between text-[10px] text-[#64748B]">
+                    <span>{item.formType}</span>
+                    <span>{item.submittedAt.split(' ')[0]}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Pagination Controls for Queue */}
+          <div className="mt-2">
+            <Pagination
+              currentPage={queuePage}
+              totalPages={totalPages}
+              pageSize={queuePageSize}
+              totalItems={filteredDossiers.length}
+              onPageChange={setQueuePage}
+              onPageSizeChange={setQueuePageSize}
+              pageSizeOptions={[4, 8, 12]}
+            />
           </div>
         </section>
 
@@ -273,7 +564,7 @@ export default function OfficerFormAudit() {
                     </span>
                     <div className="flex items-baseline">
                       <span className="font-semibold w-28 text-[#444651]">1. Họ, chữ đệm và tên:</span>
-                      <span className="font-bold text-[#00236F] tracking-wide text-xs">NGUYỄN VĂN AN</span>
+                      <span className="font-bold text-[#00236F] tracking-wide text-xs">{selectedDossier.citizenName}</span>
                     </div>
                   </div>
 
@@ -293,11 +584,11 @@ export default function OfficerFormAudit() {
                     <div className="grid grid-cols-2">
                       <div className="flex items-baseline">
                         <span className="font-semibold w-20 text-[#444651]">2. Ngày sinh:</span>
-                        <span className="font-bold text-[#131B2E]">15/08/1995</span>
+                        <span className="font-bold text-[#131B2E]">{selectedDossier.dob}</span>
                       </div>
                       <div className="flex items-baseline">
                         <span className="font-semibold w-16 text-[#444651]">3. Giới tính:</span>
-                        <span className="font-bold text-[#131B2E]">Nam</span>
+                        <span className="font-bold text-[#131B2E]">{selectedDossier.gender}</span>
                       </div>
                     </div>
                   </div>
@@ -318,11 +609,11 @@ export default function OfficerFormAudit() {
                     <div className="grid grid-cols-2">
                       <div className="flex items-baseline">
                         <span className="font-semibold w-20 text-[#444651]">4. Số CCCD:</span>
-                        <span className="font-mono font-bold text-[#00236F]">079095012345</span>
+                        <span className="font-mono font-bold text-[#00236F]">{selectedDossier.cccd}</span>
                       </div>
                       <div className="flex items-baseline">
-                        <span className="font-semibold w-16 text-[#444651]">5. Ngày cấp:</span>
-                        <span className="font-bold text-[#131B2E]">20/09/2021</span>
+                        <span className="font-semibold w-16 text-[#444651]">5. Loại đơn:</span>
+                        <span className="font-bold text-[#131B2E]">{selectedDossier.formType}</span>
                       </div>
                     </div>
                   </div>
@@ -341,14 +632,14 @@ export default function OfficerFormAudit() {
                       OCR 93.4%
                     </span>
                     <div className="flex items-baseline">
-                      <span className="font-semibold w-28 text-[#444651]">6. Nơi thường trú:</span>
-                      <span className="font-bold text-[#131B2E]">Số 12, {currentWard.officeAddress}</span>
+                      <span className="font-semibold w-28 text-[#444651]">6. Nơi đề nghị:</span>
+                      <span className="font-bold text-[#131B2E]">{selectedDossier.address}</span>
                     </div>
                   </div>
 
                   <div className="flex items-baseline">
                     <span className="font-semibold w-28 text-[#444651]">7. Nội dung đề nghị:</span>
-                    <span className="font-medium text-[#131B2E]">Đăng ký thường trú theo diện chuyển chỗ ở hợp pháp</span>
+                    <span className="font-medium text-[#131B2E]">{selectedDossier.procedure}</span>
                   </div>
 
                   {/* Signatures */}
@@ -446,20 +737,20 @@ export default function OfficerFormAudit() {
                         d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                         fill="none"
                         stroke="currentColor"
-                        strokeDasharray="94.2, 100"
+                        strokeDasharray={`${selectedDossier.ocrScore}, 100`}
                         strokeLinecap="round"
                         strokeWidth="3.5"
                       />
                     </svg>
                     <div className="absolute inset-0 flex items-center justify-center text-sm font-bold text-[#00236F]">
-                      94.2%
+                      {selectedDossier.ocrScore}%
                     </div>
                   </div>
 
                   <div>
                     <div className="flex items-center gap-2">
                       <span className="text-base font-bold text-[#00236F]">
-                        Điểm Tin Cậy OCR: 94.2%
+                        Điểm Tin Cậy OCR: {selectedDossier.ocrScore}%
                       </span>
                       <span className="px-2 py-0.5 rounded-full bg-[#ACEDFF] text-[#004E5C] text-xs font-bold">
                         ĐẠT CHUẨN SƠ DUYỆT
@@ -516,7 +807,7 @@ export default function OfficerFormAudit() {
                           </span>
                         </div>
                         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                          <span className="text-sm font-bold text-[#00236F]">NGUYỄN VĂN AN</span>
+                          <span className="text-sm font-bold text-[#00236F]">{selectedDossier.citizenName}</span>
                           <span className="text-xs text-[#444651] flex items-center gap-1">
                             <CheckCircle className="w-3.5 h-3.5 text-[#00687A]" />
                             Khớp 100% CSDL Dân cư Quốc gia
@@ -552,22 +843,19 @@ export default function OfficerFormAudit() {
                         </div>
                         <div className="mt-1">
                           <span className="text-sm font-mono font-bold text-[#00236F] tracking-wider">
-                            079095012345
+                            {selectedDossier.cccd}
                           </span>
                         </div>
                         {/* Logic breakdown pills */}
                         <div className="mt-2 p-2 bg-[#F2F3FF] rounded-lg flex flex-wrap items-center gap-2 text-xs">
                           <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white font-mono text-[11px] border border-[#DAE2FD]">
-                            Mã tỉnh: <strong className="text-[#00236F]">079</strong> (TP.HCM)
+                            Mã tỉnh: <strong className="text-[#00236F]">{selectedDossier.cccd.substring(0, 3)}</strong>
                           </span>
                           <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white font-mono text-[11px] border border-[#DAE2FD]">
-                            Giới tính: <strong className="text-[#00236F]">0</strong> (Nam, TK 20)
+                            Giới tính: <strong className="text-[#00236F]">{selectedDossier.gender}</strong>
                           </span>
                           <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white font-mono text-[11px] border border-[#DAE2FD]">
-                            Năm sinh: <strong className="text-[#00236F]">95</strong> (1995)
-                          </span>
-                          <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white font-mono text-[11px] border border-[#DAE2FD]">
-                            Ngẫu nhiên: <strong className="text-[#00236F]">012345</strong>
+                            Năm sinh: <strong className="text-[#00236F]">{selectedDossier.dob.split('/')[2] || '1995'}</strong>
                           </span>
                         </div>
                       </div>
@@ -592,7 +880,7 @@ export default function OfficerFormAudit() {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-semibold text-[#444651] uppercase">
-                            3. Ngày sinh / Ngày cấp thẻ
+                            3. Ngày sinh / Giới tính
                           </span>
                           <span className="px-1.5 py-0.2 rounded bg-[#EAEDFF] font-mono text-[10px] text-[#131B2E] font-semibold">
                             96.0% conf.
@@ -600,13 +888,13 @@ export default function OfficerFormAudit() {
                         </div>
                         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
                           <span>
-                            Sinh: <strong className="text-[#131B2E]">15/08/1995</strong>
+                            Sinh: <strong className="text-[#131B2E]">{selectedDossier.dob}</strong>
                           </span>
                           <span>
-                            Cấp: <strong className="text-[#131B2E]">20/09/2021</strong>
+                            Giới tính: <strong className="text-[#131B2E]">{selectedDossier.gender}</strong>
                           </span>
                           <span className="text-[#444651]">
-                            (Tuổi cấp thẻ: <strong className="text-[#00236F]">26 tuổi</strong> - Đúng mốc quy định 25 tuổi, hợp lệ)
+                            (Hồ sơ hợp chuẩn Mẫu {selectedDossier.formType})
                           </span>
                         </div>
                       </div>
@@ -631,7 +919,7 @@ export default function OfficerFormAudit() {
                       <div>
                         <div className="flex items-center gap-2">
                           <span className="text-xs font-semibold text-[#444651] uppercase">
-                            4. Nơi thường trú đề nghị
+                            4. Nơi đề nghị cư trú / Địa chỉ
                           </span>
                           <span className="px-1.5 py-0.2 rounded bg-[#EAEDFF] font-mono text-[10px] text-[#131B2E] font-semibold">
                             93.4% conf.
@@ -639,11 +927,11 @@ export default function OfficerFormAudit() {
                         </div>
                         <div className="mt-1">
                           <span className="text-xs font-bold text-[#131B2E]">
-                            Số 12, {currentWard.officeAddress}
+                            {selectedDossier.address}
                           </span>
                         </div>
                         <p className="text-[11px] text-[#444651] mt-0.5">
-                          Địa chỉ hợp lệ trong địa bàn hành chính {currentWard.name}. Trùng khớp cơ sở dữ liệu số nhà địa chính.
+                          Địa chỉ hợp lệ trong hệ thống dữ liệu hành chính. Trùng khớp cơ sở dữ liệu số nhà địa chính.
                         </p>
                       </div>
                     </div>
@@ -783,6 +1071,9 @@ export default function OfficerFormAudit() {
 
                   <button
                     onClick={() => {
+                      setDossiers((prev) =>
+                        prev.map((d) => (d.id === selectedDossier.id ? { ...d, status: 'SUPPLEMENT' } : d))
+                      );
                       alert('Đã gửi thông báo yêu cầu bổ sung thành công qua VNeID & SMS!');
                       setIsSupplementOpen(false);
                     }}
@@ -807,7 +1098,12 @@ export default function OfficerFormAudit() {
 
             {/* Chấp thuận sơ duyệt */}
             <button
-              onClick={() => setIsApprovedOpen(true)}
+              onClick={() => {
+                setDossiers((prev) =>
+                  prev.map((d) => (d.id === selectedDossier.id ? { ...d, status: 'APPROVED' } : d))
+                );
+                setIsApprovedOpen(true);
+              }}
               className="h-9 px-4 bg-[#00236F] text-white hover:bg-[#1E3A8A] text-xs font-semibold rounded-lg shadow-sm flex items-center gap-2 transition"
               type="button"
             >
@@ -862,7 +1158,7 @@ export default function OfficerFormAudit() {
               Đã Chấp Thuận Sơ Duyệt Thành Công!
             </h3>
             <p className="text-xs text-[#444651] mt-2 leading-relaxed">
-              Hồ sơ CT01-2026-0894 của công dân <strong className="text-[#131B2E]">Nguyễn Văn An</strong> đã được
+              Hồ sơ <strong className="text-[#00236F]">{selectedDossier.id}</strong> ({selectedDossier.procedure}) của công dân <strong className="text-[#131B2E]">{selectedDossier.citizenName}</strong> đã được
               đánh dấu đủ điều kiện. Hệ thống đã tự động gửi mã hẹn và thông báo xác nhận qua ứng dụng VNeID và SMS.
             </p>
             <button

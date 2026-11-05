@@ -91,7 +91,26 @@ services:
       "
 
   # =====================================================================
-  # 5. Spring Boot 3.3 Backend API
+  # 5. Local AI Sidecar Microservice (FastAPI + PhoBERT INT8)
+  # Resource Limit: 384MB RAM
+  # =====================================================================
+  ai-sidecar:
+    build:
+      context: .
+      dockerfile: ml/sidecar/Dockerfile
+    container_name: smartward-ai-sidecar
+    restart: unless-stopped
+    mem_limit: 384m
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+  # =====================================================================
+  # 6. Spring Boot 3.3 Backend API
   # Resource Limit: 768MB RAM (JVM Heap Xmx: 512MB)
   # =====================================================================
   backend:
@@ -113,6 +132,8 @@ services:
       MINIO_ACCESS_KEY: minio_admin
       MINIO_SECRET_KEY: minio_secret_key
       GEMINI_API_KEY: mock-offline-mode
+      SIDECAR_URL: http://ai-sidecar:8000
+      SIDECAR_ENABLED: "true"
     ports:
       - "8080:8080"
     depends_on:
@@ -122,6 +143,8 @@ services:
         condition: service_healthy
       minio-init:
         condition: service_completed_successfully
+      ai-sidecar:
+        condition: service_started
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/api/v1/health"]
       interval: 15s
@@ -129,7 +152,7 @@ services:
       retries: 5
 
   # =====================================================================
-  # 6. React 18 + Vite Frontend PWA (Nginx Alpine)
+  # 7. React 18 + Vite Frontend PWA (Nginx Alpine)
   # Resource Limit: 64MB RAM (Static bundle + Reverse Proxy)
   # =====================================================================
   frontend:

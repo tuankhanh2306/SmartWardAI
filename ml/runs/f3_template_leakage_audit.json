@@ -1,0 +1,37 @@
+{
+  "majority_class_baseline": {
+    "majority_class": "PROCEDURE_INQUIRY",
+    "majority_count": 120,
+    "total_dev": 228,
+    "accuracy": 0.5263,
+    "macro_f1": 0.1149
+  },
+  "prefix_leakage_audit": {
+    "prefix_1_words": {
+      "unweighted_accuracy": 0.5044,
+      "unweighted_macro_f1": 0.4236,
+      "balanced_accuracy": 0.193,
+      "balanced_macro_f1": 0.3053
+    },
+    "prefix_2_words": {
+      "unweighted_accuracy": 0.1842,
+      "unweighted_macro_f1": 0.2605,
+      "balanced_accuracy": 0.2105,
+      "balanced_macro_f1": 0.2828
+    },
+    "prefix_3_words": {
+      "unweighted_accuracy": 0.4167,
+      "unweighted_macro_f1": 0.4332,
+      "balanced_accuracy": 0.2719,
+      "balanced_macro_f1": 0.337
+    }
+  },
+  "disjoint_template_experiment": {
+    "n_train_groups": 135,
+    "n_test_groups": 59,
+    "n_train_samples": 405,
+    "n_test_samples": 177,
+    "disjoint_accuracy": 0.8192,
+    "disjoint_macro_f1": 0.6609
+  }
+}

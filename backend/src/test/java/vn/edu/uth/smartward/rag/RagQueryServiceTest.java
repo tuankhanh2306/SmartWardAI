@@ -11,6 +11,7 @@ import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ErrorCode;
 import vn.edu.uth.smartward.common.QueryCacheService;
 import vn.edu.uth.smartward.common.RedisRateLimiter;
+import vn.edu.uth.smartward.rag.dto.ConversationTurnDto;
 import vn.edu.uth.smartward.rag.dto.LegalCitationDto;
 import vn.edu.uth.smartward.rag.dto.RagAskRequest;
 import vn.edu.uth.smartward.rag.dto.RagAskResponse;
@@ -245,6 +246,219 @@ class RagQueryServiceTest {
 
         assertEquals(1, verified.size(), "Hallucinated citation [BIA-DAT-99] must be stripped");
         assertEquals("KS-01-DK", verified.get(0).getChunkCode());
+    }
+
+    @Test
+    void testAskQuestion_whenGrayZone_shouldAbstainWithSuggestionAndHitlLog() {
+        when(redisRateLimiter.isAllowed(anyString())).thenReturn(true);
+        when(queryCacheService.getCachedResponse(anyString(), eq(RagAskResponse.class))).thenReturn(Optional.empty());
+
+        float[] mockVector = new float[768];
+        when(aiModelClient.generateEmbedding(anyString())).thenReturn(mockVector);
+        when(aiModelClient.toPgVectorString(any())).thenReturn("[0.1, 0.2]");
+
+        LegalChunkMatch match = createMockChunkMatch("HT-02-DK", "Đăng ký kết hôn", "Điều kiện", "Nam từ đủ 20 tuổi...", "Luật Hôn nhân", 0.46);
+        when(chunkRepository.findTopKSimilarChunksWithMetadata(anyString(), eq(3)))
+                .thenReturn(List.of(match));
+
+        ReflectionTestUtils.setField(ragQueryService, "defaultThreshold", 0.50);
+        ReflectionTestUtils.setField(ragQueryService, "defaultThetaLower", 0.42);
+
+        RagAskRequest request = RagAskRequest.builder()
+                .question("Muốn lấy vợ cần làm sao")
+                .build();
+
+        RagAskResponse response = ragQueryService.askQuestion(request, "127.0.0.1");
+
+        assertNotNull(response);
+        assertTrue(response.isAbstained(), "Gray zone queries must abstain safely");
+        assertTrue(response.getAbstentionReason().contains("Vùng xám nghi vấn"));
+        assertTrue(response.getAnswer().contains("Đăng ký kết hôn"));
+        assertTrue(response.getAnswer().contains("Gợi ý: Hệ thống nhận thấy câu hỏi có thể liên quan đến thủ tục"));
+        verify(aiModelClient, never()).generateChatResponse(anyString(), anyString());
+    }
+
+    @Test
+    void testAskQuestion_whenResidenceQuery_shouldRouteToCongAnXaAndVNeID() {
+        when(redisRateLimiter.isAllowed(anyString())).thenReturn(true);
+        when(queryCacheService.getCachedResponse(anyString(), eq(RagAskResponse.class))).thenReturn(Optional.empty());
+
+        float[] mockVector = new float[768];
+        when(aiModelClient.generateEmbedding(anyString())).thenReturn(mockVector);
+        when(aiModelClient.toPgVectorString(any())).thenReturn("[0.1, 0.2]");
+
+        // Below theta_lower, pure out-of-scope abstention
+        when(chunkRepository.findTopKSimilarChunksWithMetadata(anyString(), eq(3)))
+                .thenReturn(Collections.emptyList());
+
+        RagAskRequest request = RagAskRequest.builder()
+                .question("Tôi muốn làm thủ tục tạm trú thì đến đâu?")
+                .build();
+
+        RagAskResponse response = ragQueryService.askQuestion(request, "127.0.0.1");
+
+        assertNotNull(response);
+        assertTrue(response.isAbstained());
+        assertTrue(response.getAnswer().contains("Công an cấp xã"));
+        assertTrue(response.getAnswer().contains("VNeID"));
+    }
+
+    @Test
+    void testAskQuestion_whenAiFails_shouldUseStructuredFallbackAnswer() {
+        when(redisRateLimiter.isAllowed(anyString())).thenReturn(true);
+        when(queryCacheService.getCachedResponse(anyString(), eq(RagAskResponse.class))).thenReturn(Optional.empty());
+
+        float[] mockVector = new float[768];
+        when(aiModelClient.generateEmbedding(anyString())).thenReturn(mockVector);
+        when(aiModelClient.toPgVectorString(any())).thenReturn("[0.1, 0.2]");
+
+        LegalChunkMatch match = createMockChunkMatch("KS-01-DK", "Đăng ký khai sinh", "Hồ sơ khai sinh", "Bao gồm giấy chứng sinh và CCCD cha mẹ.", "Luật Hộ tịch", 0.90);
+        when(chunkRepository.findTopKSimilarChunksWithMetadata(anyString(), eq(3)))
+                .thenReturn(List.of(match));
+
+        // Simulate AI service failure (e.g. Gemini 429 quota exhausted or network error)
+        when(aiModelClient.generateChatResponse(anyString(), anyString()))
+                .thenThrow(new RuntimeException("Gemini 429 Resource Exhausted"));
+
+        RagAskRequest request = RagAskRequest.builder()
+                .question("Thủ tục làm khai sinh cho bé")
+                .wardName("UBND Xã Vĩnh Lộc")
+                .officeAddress("Số 1 Đường Liên Ấp")
+                .build();
+
+        RagAskResponse response = ragQueryService.askQuestion(request, "127.0.0.1");
+
+        assertNotNull(response);
+        assertFalse(response.isAbstained(), "Should gracefully answer via database extraction even when AI fails");
+        assertTrue(response.getAnswer().contains("1. TÓM TẮT THỦ TỤC:"));
+        assertTrue(response.getAnswer().contains("2. THÀNH PHẦN HỒ SƠ:"));
+        assertTrue(response.getAnswer().contains("3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:"));
+        assertTrue(response.getAnswer().contains("4. NƠI TIẾP NHẬN & XỬ LÝ:"));
+        assertTrue(response.getAnswer().contains("5. CĂN CỨ PHÁP LÝ & LƯU Ý:"));
+        assertTrue(response.getAnswer().contains("*(Ghi chú: Thông tin được trích xuất trực tiếp từ hồ sơ thủ tục hành chính chính thức)*"));
+    }
+
+    @Test
+    void testAskQuestion_whenTypoGreeting_shouldWelcomeWithChips() {
+        when(redisRateLimiter.isAllowed(anyString())).thenReturn(true);
+        when(queryCacheService.getCachedResponse(anyString(), eq(RagAskResponse.class))).thenReturn(Optional.empty());
+
+        RagAskRequest request = RagAskRequest.builder()
+                .question("chaogf ban")
+                .wardName("Xã An Phú, Tỉnh An Giang")
+                .build();
+
+        RagAskResponse response = ragQueryService.askQuestion(request, "127.0.0.1");
+
+        assertNotNull(response);
+        assertFalse(response.isAbstained(), "Typo greetings must NOT be abstained");
+        assertEquals(1.0, response.getMaxSimilarity());
+        assertTrue(response.getAnswer().contains("Trợ lý Pháp lý Một Cửa tại Xã An Phú, Tỉnh An Giang"));
+        assertNotNull(response.getSuggestions(), "Greetings must include quick suggestion chips");
+        assertFalse(response.getSuggestions().isEmpty());
+        assertTrue(response.getSuggestions().stream().anyMatch(s -> s.contains("khai sinh")));
+        verifyNoInteractions(aiModelClient);
+    }
+
+    @Test
+    void testAskQuestion_whenAmbiguousConsultation_shouldClarifyNeeds() {
+        when(redisRateLimiter.isAllowed(anyString())).thenReturn(true);
+        when(queryCacheService.getCachedResponse(anyString(), eq(RagAskResponse.class))).thenReturn(Optional.empty());
+
+        RagAskRequest request = RagAskRequest.builder()
+                .question("bạn có thể tư vấn cho tôi không")
+                .wardName("UBND Phường Mỹ Thới")
+                .build();
+
+        RagAskResponse response = ragQueryService.askQuestion(request, "127.0.0.1");
+
+        assertNotNull(response);
+        assertFalse(response.isAbstained(), "Ambiguous consultation requests must NOT be abstained");
+        assertEquals(1.0, response.getMaxSimilarity());
+        assertTrue(response.getAnswer().contains("UBND Phường Mỹ Thới"));
+        assertTrue(response.getAnswer().contains("Hộ tịch"));
+        assertTrue(response.getAnswer().contains("Cư trú"));
+        assertTrue(response.getAnswer().contains("Chứng thực"));
+        assertNotNull(response.getSuggestions(), "Must provide suggestion chips for civic domains");
+        assertFalse(response.getSuggestions().isEmpty());
+        verifyNoInteractions(aiModelClient);
+    }
+
+    @Test
+    void testAskQuestion_whenMultiTurnFollowUp_shouldResolveProcedureContext() {
+        when(redisRateLimiter.isAllowed(anyString())).thenReturn(true);
+        when(queryCacheService.getCachedResponse(anyString(), eq(RagAskResponse.class))).thenReturn(Optional.empty());
+
+        float[] mockVector = new float[768];
+        when(aiModelClient.generateEmbedding(anyString())).thenReturn(mockVector);
+        when(aiModelClient.toPgVectorString(any())).thenReturn("[0.1, 0.2]");
+
+        LegalChunkMatch feeChunk = createMockChunkMatch("HT-02-FEE", "Đăng ký kết hôn", "Lệ phí", "Miễn phí cho công dân Việt Nam cư trú trong nước.", "Luật Hôn nhân", 0.89);
+        when(chunkRepository.findTopKSimilarChunksWithMetadata(anyString(), eq(3)))
+                .thenReturn(List.of(feeChunk));
+
+        when(aiModelClient.generateChatResponse(anyString(), anyString()))
+                .thenReturn("1. TÓM TẮT THỦ TỤC: Đăng ký kết hôn hoàn toàn miễn phí.\n2. THÀNH PHẦN HỒ SƠ: CCCD và Giấy xác nhận độc thân.\n3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ: 01 ngày làm việc, Miễn phí.\n4. NƠI TIẾP NHẬN: Một cửa UBND xã.\n5. CĂN CỨ PHÁP LÝ & LƯU Ý: [HT-02-FEE] Căn cứ Luật Hôn nhân.");
+
+        List<ConversationTurnDto> history = List.of(
+                ConversationTurnDto.builder()
+                        .role("citizen")
+                        .content("Tôi muốn đăng ký kết hôn cần giấy tờ gì?")
+                        .procedureCode("TTHC-HT-02")
+                        .build(),
+                ConversationTurnDto.builder()
+                        .role("assistant")
+                        .content("Để đăng ký kết hôn bạn cần chuẩn bị tờ khai và giấy xác nhận tình trạng hôn nhân.")
+                        .procedureCode("TTHC-HT-02")
+                        .build()
+        );
+
+        RagAskRequest request = RagAskRequest.builder()
+                .question("còn lệ phí bao nhiêu?")
+                .history(history)
+                .build();
+
+        RagAskResponse response = ragQueryService.askQuestion(request, "127.0.0.1");
+
+        assertNotNull(response);
+        assertFalse(response.isAbstained(), "Multi-turn follow-up must be resolved and answered");
+        assertEquals(0.89, response.getMaxSimilarity());
+        assertTrue(response.getAnswer().contains("Đăng ký kết hôn"));
+        assertNotNull(response.getSuggestions(), "Must provide subsequent follow-up suggestions");
+        assertFalse(response.getSuggestions().isEmpty());
+
+        // Verify that the query vectorization received the contextual procedure prefix
+        verify(aiModelClient).generateEmbedding(argThat(query -> query.contains("Đăng ký kết hôn") && query.contains("còn lệ phí bao nhiêu?")));
+    }
+
+    @Test
+    void testAskQuestion_whenOutOfScope_shouldReturnConciseRefusalWithinTwoSentences() {
+        when(redisRateLimiter.isAllowed(anyString())).thenReturn(true);
+        when(queryCacheService.getCachedResponse(anyString(), eq(RagAskResponse.class))).thenReturn(Optional.empty());
+
+        float[] mockVector = new float[768];
+        when(aiModelClient.generateEmbedding(anyString())).thenReturn(mockVector);
+        when(aiModelClient.toPgVectorString(any())).thenReturn("[0.1, 0.2]");
+
+        when(chunkRepository.findTopKSimilarChunksWithMetadata(anyString(), eq(3)))
+                .thenReturn(Collections.emptyList());
+
+        RagAskRequest request = RagAskRequest.builder()
+                .question("làm hộ chiếu đi nước ngoài")
+                .wardName("Xã An Phú")
+                .build();
+
+        RagAskResponse response = ragQueryService.askQuestion(request, "127.0.0.1");
+
+        assertNotNull(response);
+        assertTrue(response.isAbstained(), "Out-of-scope query must be safely abstained");
+        assertTrue(response.getAnswer().contains("Cục Quản lý xuất nhập cảnh") || response.getAnswer().contains("Phòng Quản lý xuất nhập cảnh"));
+
+        // Sentence count verification: Must be strictly <= 2 sentences
+        String[] sentences = response.getAnswer().split("(?<=[.!?])\\s+");
+        assertTrue(sentences.length <= 2, "Safe refusal must be concise and not exceed 2 sentences (actual: " + sentences.length + ")");
+        assertNotNull(response.getSuggestions(), "Must include suggestion chips redirecting citizen to valid procedures");
+        assertFalse(response.getSuggestions().isEmpty());
     }
 
     private LegalChunkMatch createMockChunkMatch(String code, String procName, String title, String content, String legalRef, double score) {

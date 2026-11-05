@@ -74,6 +74,14 @@ export const WardOnboarding: React.FC = () => {
 
       mapInstanceRef.current = map;
       markerRef.current = marker;
+
+      const timer = setTimeout(() => {
+        map.invalidateSize();
+      }, 150);
+
+      return () => {
+        clearTimeout(timer);
+      };
     } else {
       // Smooth camera flight to selected ward
       const map = mapInstanceRef.current;
@@ -94,6 +102,17 @@ export const WardOnboarding: React.FC = () => {
       }
     }
   }, [selected]);
+
+  // Clean up Leaflet on component unmount to prevent container already initialized errors
+  useEffect(() => {
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
 
   const handleConfirm = () => {
     setWard(selected);
@@ -233,7 +252,7 @@ export const WardOnboarding: React.FC = () => {
             <div ref={mapContainerRef} className="w-full h-full" />
 
             {/* Floating Top Badge on Map */}
-            <div className="absolute top-3 left-3 z-[1000] px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border border-[#DAE2FD] shadow-md flex items-center gap-2 text-xs">
+            <div className="absolute top-3 left-3 z-20 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border border-[#DAE2FD] shadow-md flex items-center gap-2 text-xs">
               <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
               <span className="font-bold text-[#00236F]">UBND {selected.name}</span>
               <span className="text-[#757682]">({selected.lat.toFixed(4)}, {selected.lon.toFixed(4)})</span>

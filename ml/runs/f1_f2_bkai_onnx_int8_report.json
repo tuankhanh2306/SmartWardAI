@@ -1,0 +1,12 @@
+{
+  "model_architecture": "BKAI PhoBERT Vietnamese Bi-Encoder",
+  "embedding_dimension": 768,
+  "fp32_size_mb": 512.99,
+  "int8_size_mb": 128.99,
+  "size_reduction_pct": 74.86,
+  "model_standalone_ram_mb": 143.1,
+  "total_rss_ram_mb": 1201.7,
+  "single_query_latency_ms": 6.19,
+  "avg_cosine_parity_vs_pytorch": 0.859903,
+  "fits_under_250mb_goal": true
+}

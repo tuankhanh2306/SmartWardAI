@@ -1,0 +1,2282 @@
+[
+  {
+    "id": "dev_0001",
+    "text": "Trình tự các bước nộp hồ sơ trợ cấp xã hội hàng tháng cho người cao tuổi tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-BT-01",
+    "pred_proc": "TTHC-BT-01",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0002",
+    "text": "quy trinh thuc hien tro cap xa hoi hang thang cho nguoi cao tuoi tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-BT-01",
+    "pred_proc": "TTHC-BT-01",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0003",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với trợ cấp xã hội hàng tháng cho người cao tuổi",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-BT-01",
+    "pred_proc": "TTHC-BT-01",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0004",
+    "text": "Trình tự các bước nộp hồ sơ hỗ trợ chi phí mai táng đối tượng bảo trợ tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-BT-02",
+    "pred_proc": "TTHC-BT-02",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0005",
+    "text": "quy trinh thuc hien ho tro chi phi mai tang doi tuong bao tro tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-BT-02",
+    "pred_proc": "TTHC-BT-02",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0006",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với hỗ trợ chi phí mai táng đối tượng bảo trợ",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-BT-02",
+    "pred_proc": "TTHC-BT-02",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0007",
+    "text": "Trình tự các bước nộp hồ sơ cấp thẻ bảo hiểm y tế cho đối tượng bảo trợ tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-BT-03",
+    "pred_proc": "TTHC-CR-03",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0008",
+    "text": "quy trinh thuc hien cap the bao hiem y te cho doi tuong bao tro tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-BT-03",
+    "pred_proc": "TTHC-CR-03",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0009",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với cấp thẻ bảo hiểm y tế cho đối tượng bảo trợ",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-BT-03",
+    "pred_proc": "TTHC-CR-03",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0010",
+    "text": "Trình tự các bước nộp hồ sơ trợ giúp xã hội khẩn cấp tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-BT-04",
+    "pred_proc": "TTHC-CR-03",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0011",
+    "text": "quy trinh thuc hien tro giup xa hoi khan cap tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-BT-04",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0012",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với trợ giúp xã hội khẩn cấp",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-BT-04",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0013",
+    "text": "Trình tự các bước nộp hồ sơ thủ tục người có công và gia đình chính sách tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-BT-05",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0014",
+    "text": "quy trinh thuc hien thu tuc nguoi co cong va gia dinh chinh sach tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-BT-05",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0015",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với thủ tục người có công và gia đình chính sách",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-BT-05",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0016",
+    "text": "Trình tự các bước nộp hồ sơ tiếp nhận đối tượng vào cơ sở trợ giúp xã hội tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": "TTHC-BT-06",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0017",
+    "text": "quy trinh thuc hien tiep nhan doi tuong vao co so tro giup xa hoi tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": "TTHC-BT-06",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0018",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với tiếp nhận đối tượng vào cơ sở trợ giúp xã hội",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": "TTHC-BT-06",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0019",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký thường trú mẫu CT01 tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-01",
+    "pred_proc": "TTHC-CR-01",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0020",
+    "text": "quy trinh thuc hien dang ky thuong tru mau CT01 tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-01",
+    "pred_proc": "TTHC-CR-01",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0021",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký thường trú mẫu CT01",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-01",
+    "pred_proc": "TTHC-CR-01",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0022",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký tạm trú tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-02",
+    "pred_proc": "TTHC-CR-03",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0023",
+    "text": "quy trinh thuc hien dang ky tam tru tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-02",
+    "pred_proc": "TTHC-CR-03",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0024",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký tạm trú",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-02",
+    "pred_proc": "TTHC-CR-03",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0025",
+    "text": "Trình tự các bước nộp hồ sơ gia hạn tạm trú tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-03",
+    "pred_proc": "TTHC-CR-03",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0026",
+    "text": "quy trinh thuc hien gia han tam tru tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-03",
+    "pred_proc": "TTHC-CR-03",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0027",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với gia hạn tạm trú",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-03",
+    "pred_proc": "TTHC-CR-03",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0028",
+    "text": "Trình tự các bước nộp hồ sơ khai báo tạm vắng và thông báo lưu trú tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-04",
+    "pred_proc": "TTHC-CR-04",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0029",
+    "text": "quy trinh thuc hien khai bao tam vang va thong bao luu tru tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-04",
+    "pred_proc": "TTHC-CR-04",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0030",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với khai báo tạm vắng và thông báo lưu trú",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-04",
+    "pred_proc": "TTHC-CR-04",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0031",
+    "text": "Trình tự các bước nộp hồ sơ điều chỉnh thông tin cư trú trong CSDL tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CR-05",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0032",
+    "text": "quy trinh thuc hien dieu chinh thong tin cu tru trong CSDL tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CR-05",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0033",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với điều chỉnh thông tin cư trú trong CSDL",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CR-05",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0034",
+    "text": "Trình tự các bước nộp hồ sơ xác nhận thông tin cư trú CT07 tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-06",
+    "pred_proc": "TTHC-CR-08",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0035",
+    "text": "quy trinh thuc hien xac nhan thong tin cu tru CT07 tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-06",
+    "pred_proc": "TTHC-CR-08",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0036",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với xác nhận thông tin cư trú CT07",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-06",
+    "pred_proc": "TTHC-CR-08",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0037",
+    "text": "Trình tự các bước nộp hồ sơ tách hộ khẩu tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CR-07",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0038",
+    "text": "quy trinh thuc hien tach ho khau tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CR-07",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0039",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với tách hộ khẩu",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CR-07",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0040",
+    "text": "Trình tự các bước nộp hồ sơ xóa đăng ký thường trú tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-08",
+    "pred_proc": "TTHC-CR-01",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0041",
+    "text": "quy trinh thuc hien xoa dang ky thuong tru tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-08",
+    "pred_proc": "TTHC-CR-01",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0042",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với xóa đăng ký thường trú",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-08",
+    "pred_proc": "TTHC-CR-01",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0043",
+    "text": "Trình tự các bước nộp hồ sơ xóa đăng ký tạm trú tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-09",
+    "pred_proc": "TTHC-CR-03",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0044",
+    "text": "quy trinh thuc hien xoa dang ky tam tru tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-09",
+    "pred_proc": "TTHC-CR-03",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0045",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với xóa đăng ký tạm trú",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-09",
+    "pred_proc": "TTHC-CR-03",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0046",
+    "text": "Trình tự các bước nộp hồ sơ hủy bỏ kết quả đăng ký thường trú tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-10",
+    "pred_proc": "TTHC-CR-01",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0047",
+    "text": "quy trinh thuc hien huy bo ket qua dang ky thuong tru tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-10",
+    "pred_proc": "TTHC-CR-01",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0048",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với hủy bỏ kết quả đăng ký thường trú",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CR-10",
+    "pred_proc": "TTHC-CR-01",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0049",
+    "text": "Trình tự các bước nộp hồ sơ chứng thực bản sao từ bản chính tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CT-01",
+    "pred_proc": "TTHC-CT-01",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0050",
+    "text": "quy trinh thuc hien chung thuc ban sao tu ban chinh tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CT-01",
+    "pred_proc": "TTHC-CT-01",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0051",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với chứng thực bản sao từ bản chính",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CT-01",
+    "pred_proc": "TTHC-CT-01",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0052",
+    "text": "Trình tự các bước nộp hồ sơ chứng thực chữ ký trên giấy tờ tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CT-02",
+    "pred_proc": "TTHC-CT-02",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0053",
+    "text": "quy trinh thuc hien chung thuc chu ky tren giay to tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CT-02",
+    "pred_proc": "TTHC-CT-02",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0054",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với chứng thực chữ ký trên giấy tờ",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CT-02",
+    "pred_proc": "TTHC-CT-02",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0055",
+    "text": "Trình tự các bước nộp hồ sơ chứng thực chữ ký người dịch tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CT-03",
+    "pred_proc": "TTHC-CT-02",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0056",
+    "text": "quy trinh thuc hien chung thuc chu ky nguoi dich tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CT-03",
+    "pred_proc": "TTHC-CT-02",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0057",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với chứng thực chữ ký người dịch",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-CT-03",
+    "pred_proc": "TTHC-CT-02",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0058",
+    "text": "Trình tự các bước nộp hồ sơ chứng thực hợp đồng giao dịch tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CT-04",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0059",
+    "text": "quy trinh thuc hien chung thuc hop dong giao dich tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CT-04",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0060",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với chứng thực hợp đồng giao dịch",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CT-04",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0061",
+    "text": "Trình tự các bước nộp hồ sơ chứng thực di chúc tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CT-05",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0062",
+    "text": "quy trinh thuc hien chung thuc di chuc tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CT-05",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0063",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với chứng thực di chúc",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CT-05",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0064",
+    "text": "Trình tự các bước nộp hồ sơ chứng thực từ chối nhận di sản tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CT-06",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0065",
+    "text": "quy trinh thuc hien chung thuc tu choi nhan di san tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CT-06",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0066",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với chứng thực từ chối nhận di sản",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CT-06",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0067",
+    "text": "Trình tự các bước nộp hồ sơ sửa chữa sai sót chứng thực tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CT-07",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0068",
+    "text": "quy trinh thuc hien sua chua sai sot chung thuc tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CT-07",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0069",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với sửa chữa sai sót chứng thực",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CT-07",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0070",
+    "text": "Trình tự các bước nộp hồ sơ cấp bản sao hợp đồng đã chứng thực tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CT-08",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0071",
+    "text": "quy trinh thuc hien cap ban sao hop dong da chung thuc tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CT-08",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0072",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với cấp bản sao hợp đồng đã chứng thực",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-CT-08",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0073",
+    "text": "Trình tự các bước nộp hồ sơ chuyển nhượng quyền sử dụng đất nông nghiệp tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-DC-01",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0074",
+    "text": "quy trinh thuc hien chuyen nhuong quyen su dung dat nong nghiep tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-DC-01",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0075",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với chuyển nhượng quyền sử dụng đất nông nghiệp",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-DC-01",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0076",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký biến động đất đai tài sản gắn liền với đất tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-DC-02",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0077",
+    "text": "quy trinh thuc hien dang ky bien dong dat dai tai san gan lien voi dat tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-DC-02",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0078",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký biến động đất đai tài sản gắn liền với đất",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-DC-02",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0079",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký khai sinh tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-01",
+    "pred_proc": "TTHC-HT-01",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0080",
+    "text": "quy trinh thuc hien dang ky khai sinh tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-01",
+    "pred_proc": "TTHC-HT-01",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0081",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký khai sinh",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-01",
+    "pred_proc": "TTHC-HT-01",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0082",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký kết hôn tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-02",
+    "pred_proc": "TTHC-HT-02",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0083",
+    "text": "quy trinh thuc hien dang ky ket hon tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-02",
+    "pred_proc": "TTHC-HT-02",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0084",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký kết hôn",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-02",
+    "pred_proc": "TTHC-HT-02",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0085",
+    "text": "Trình tự các bước nộp hồ sơ cấp giấy xác nhận tình trạng hôn nhân tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-03",
+    "pred_proc": "TTHC-HT-11",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0086",
+    "text": "quy trinh thuc hien cap giay xac nhan tinh trang hon nhan tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-03",
+    "pred_proc": "TTHC-HT-11",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0087",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với cấp giấy xác nhận tình trạng hôn nhân",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-03",
+    "pred_proc": "TTHC-HT-11",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0088",
+    "text": "Trình tự các bước nộp hồ sơ cấp bản sao trích lục hộ tịch tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-04",
+    "pred_proc": "TTHC-HT-04",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0089",
+    "text": "quy trinh thuc hien cap ban sao trich luc ho tich tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-04",
+    "pred_proc": "TTHC-HT-04",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0090",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với cấp bản sao trích lục hộ tịch",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-04",
+    "pred_proc": "TTHC-HT-04",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0091",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký khai tử tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-05",
+    "pred_proc": "TTHC-HT-05",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0092",
+    "text": "quy trinh thuc hien dang ky khai tu tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-05",
+    "pred_proc": "TTHC-HT-05",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0093",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký khai tử",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-05",
+    "pred_proc": "TTHC-HT-05",
+    "correct_intent": true,
+    "correct_proc": true
+  },
+  {
+    "id": "dev_0094",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký nhận cha mẹ con tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-HT-06",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0095",
+    "text": "quy trinh thuc hien dang ky nhan cha me con tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-HT-06",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0096",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký nhận cha mẹ con",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-HT-06",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0097",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký giám hộ tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-HT-07",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0098",
+    "text": "quy trinh thuc hien dang ky giam ho tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-HT-07",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0099",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký giám hộ",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-HT-07",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0100",
+    "text": "Trình tự các bước nộp hồ sơ chấm dứt giám hộ tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-HT-08",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0101",
+    "text": "quy trinh thuc hien cham dut giam ho tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-HT-08",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0102",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với chấm dứt giám hộ",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-HT-08",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0103",
+    "text": "Trình tự các bước nộp hồ sơ thay đổi cải chính bổ sung hộ tịch tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-HT-09",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0104",
+    "text": "quy trinh thuc hien thay doi cai chinh bo sung ho tich tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-HT-09",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0105",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với thay đổi cải chính bổ sung hộ tịch",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-HT-09",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0106",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký khai sinh lưu động tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-10",
+    "pred_proc": "TTHC-HT-01",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0107",
+    "text": "quy trinh thuc hien dang ky khai sinh luu dong tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-10",
+    "pred_proc": "TTHC-HT-01",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0108",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký khai sinh lưu động",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-10",
+    "pred_proc": "TTHC-HT-01",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0109",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký kết hôn lưu động tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-11",
+    "pred_proc": "TTHC-HT-02",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0110",
+    "text": "quy trinh thuc hien dang ky ket hon luu dong tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-11",
+    "pred_proc": "TTHC-HT-02",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0111",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký kết hôn lưu động",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-11",
+    "pred_proc": "TTHC-HT-02",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0112",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký khai tử lưu động tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-12",
+    "pred_proc": "TTHC-HT-05",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0113",
+    "text": "quy trinh thuc hien dang ky khai tu luu dong tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-12",
+    "pred_proc": "TTHC-HT-05",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0114",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký khai tử lưu động",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": "TTHC-HT-12",
+    "pred_proc": "TTHC-HT-05",
+    "correct_intent": true,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0115",
+    "text": "Trình tự các bước nộp hồ sơ cấp giấy phép xây dựng nhà ở riêng lẻ tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-XD-01",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0116",
+    "text": "quy trinh thuc hien cap giay phep xay dung nha o rieng le tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-XD-01",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0117",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với cấp giấy phép xây dựng nhà ở riêng lẻ",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-XD-01",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0118",
+    "text": "Trình tự các bước nộp hồ sơ điều chỉnh giấy phép xây dựng nhà ở riêng lẻ tại UBND cấp xã",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-XD-02",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0119",
+    "text": "quy trinh thuc hien dieu chinh giay phep xay dung nha o rieng le tai bo phan mot cua",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-XD-02",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0120",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với điều chỉnh giấy phép xây dựng nhà ở riêng lẻ",
+    "true_intent": "PROCEDURE_INQUIRY",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": "TTHC-XD-02",
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": false
+  },
+  {
+    "id": "dev_0121",
+    "text": "Tôi muốn đăng ký thì phải bắt đầu từ đâu?",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0122",
+    "text": "toi muon dang ky",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0123",
+    "text": "Hướng dẫn tôi làm đơn với",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0124",
+    "text": "Giấy tờ có cần phải công chứng không?",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": null,
+    "pred_proc": "TTHC-CT-01",
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0125",
+    "text": "co can cong chung khong",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": null,
+    "pred_proc": "TTHC-CT-01",
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0126",
+    "text": "Bản photo hay bản chính vậy cán bộ?",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0127",
+    "text": "Nộp hồ sơ trực tuyến hay đến trực tiếp xã?",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0128",
+    "text": "nop online hay truc tiep",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0129",
+    "text": "Có nộp qua mạng được không?",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0130",
+    "text": "Lệ phí bao nhiêu",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0131",
+    "text": "le phi bao nhieu",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0132",
+    "text": "Đóng tiền ở đâu",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0133",
+    "text": "Mấy ngày thì xong giấy",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0134",
+    "text": "may ngay thi xong",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0135",
+    "text": "Có lấy liền trong ngày được không?",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0136",
+    "text": "Cần những giấy tờ gì",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0137",
+    "text": "can nhung giay to gi",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0138",
+    "text": "Giấy tờ gồm những gì",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0139",
+    "text": "Cho xin mẫu tờ khai",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0140",
+    "text": "xin mau to khai",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0141",
+    "text": "Tải mẫu đơn ở đâu",
+    "true_intent": "AMBIGUOUS",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0142",
+    "text": "Chủ nhật ủy ban xã có làm việc không?",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0143",
+    "text": "chu nhat xa co mo cua khong",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0144",
+    "text": "Ngày nghỉ lễ xã có nhận hồ sơ không?",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0145",
+    "text": "Khung giờ tiếp nhận và trả kết quả hồ sơ",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0146",
+    "text": "thoi gian tiep nhan va tra ket qua",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0147",
+    "text": "Lịch tiếp công dân tại ủy ban",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0148",
+    "text": "Làm sao để liên hệ trực tiếp bộ phận tư pháp?",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0149",
+    "text": "lien he bo phan tu phap ho tich",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0150",
+    "text": "Tổng đài một cửa của xã",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0151",
+    "text": "Ủy ban xã sáng mấy giờ làm việc?",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0152",
+    "text": "sang may gio ubnd xa lam viec",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0153",
+    "text": "Giờ mở cửa buổi sáng của xã",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0154",
+    "text": "UBND xã đóng cửa lúc mấy giờ?",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0155",
+    "text": "ubnd xa dong cua luc may gio",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0156",
+    "text": "Chiều mấy giờ hết nhận hồ sơ?",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0157",
+    "text": "Số hotline Một Cửa xã An Phú",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0158",
+    "text": "hotline mot cua xa",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0159",
+    "text": "Số điện thoại bàn của ủy ban xã",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0160",
+    "text": "Địa chỉ nộp hồ sơ trực tiếp tại xã",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0161",
+    "text": "dia chi nop ho so truc tiep",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0162",
+    "text": "Bộ phận tiếp nhận hồ sơ nằm ở tầng mấy?",
+    "true_intent": "COMMUNE_INFO",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0163",
+    "text": "Chúc buổi sáng tốt lành",
+    "true_intent": "GREETING",
+    "pred_intent": "GREETING",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0164",
+    "text": "chuc buoi sang tot lanh",
+    "true_intent": "GREETING",
+    "pred_intent": "GREETING",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0165",
+    "text": "Good morning",
+    "true_intent": "GREETING",
+    "pred_intent": "GREETING",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0166",
+    "text": "Cán bộ ơi cho tôi hỏi tí",
+    "true_intent": "GREETING",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0167",
+    "text": "can bo oi cho hoi chut",
+    "true_intent": "GREETING",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0168",
+    "text": "Ad ơi cho em hỏi xíu",
+    "true_intent": "GREETING",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0169",
+    "text": "Kính chào ủy ban nhân dân xã",
+    "true_intent": "GREETING",
+    "pred_intent": "GREETING",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0170",
+    "text": "kinh chao uy ban",
+    "true_intent": "GREETING",
+    "pred_intent": "GREETING",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0171",
+    "text": "Chào UBND xã",
+    "true_intent": "GREETING",
+    "pred_intent": "GREETING",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0172",
+    "text": "Ok cảm ơn bạn đã rõ",
+    "true_intent": "GREETING",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0173",
+    "text": "oke da ro cam on",
+    "true_intent": "GREETING",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0174",
+    "text": "Đã hiểu cảm ơn",
+    "true_intent": "GREETING",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0175",
+    "text": "Chào buổi chiều",
+    "true_intent": "GREETING",
+    "pred_intent": "GREETING",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0176",
+    "text": "chao buoi chieu",
+    "true_intent": "GREETING",
+    "pred_intent": "GREETING",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0177",
+    "text": "Good afternoon",
+    "true_intent": "GREETING",
+    "pred_intent": "GREETING",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0178",
+    "text": "Bắt đầu làm việc",
+    "true_intent": "GREETING",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0179",
+    "text": "bat dau",
+    "true_intent": "GREETING",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0180",
+    "text": "Start",
+    "true_intent": "GREETING",
+    "pred_intent": "GREETING",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0181",
+    "text": "Tôi muốn tìm hiểu thông tin",
+    "true_intent": "GREETING",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0182",
+    "text": "toi muon tim hieu thong tin",
+    "true_intent": "GREETING",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0183",
+    "text": "Cần hỏi một số việc",
+    "true_intent": "GREETING",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0184",
+    "text": "Thủ tục ly hôn đơn phương nộp ở đâu?",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0185",
+    "text": "nop don ly hon don phuong o dau",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "COMMUNE_INFO",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0186",
+    "text": "Án phí ly hôn thuận tình nộp ở tòa nào",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": null,
+    "pred_proc": "TTHC-HT-02",
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0187",
+    "text": "Đăng ký nhãn hiệu độc quyền thương hiệu",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0188",
+    "text": "dang ky nhan hieu o dau",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0189",
+    "text": "Bảo hộ quyền tác giả bài hát",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0190",
+    "text": "Đăng kiểm xe cơ giới ô tô ở đâu?",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0191",
+    "text": "dang kiem xe o to o dau",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0192",
+    "text": "Phí đăng kiểm xe ô tô 5 chỗ",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0193",
+    "text": "Thủ tục hưởng trợ cấp thất nghiệp",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0194",
+    "text": "huong bao hiem that nghiep o dau",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0195",
+    "text": "Nộp hồ sơ bảo hiểm thất nghiệp ở trung tâm nào",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0196",
+    "text": "Thủ tục mở tài khoản ngân hàng",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0197",
+    "text": "mo tai khoan ngan hang can gi",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0198",
+    "text": "Vay vốn ngân hàng chính sách ở đâu",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0199",
+    "text": "Thủ tục nhập quốc tịch Việt Nam",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0200",
+    "text": "xin nhap quoc tich viet nam o dau",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0201",
+    "text": "Thôi quốc tịch Việt Nam",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0202",
+    "text": "Cấp chứng chỉ hành nghề y dược tư nhân",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0203",
+    "text": "chung chi hanh nghe duoc xin o dau",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0204",
+    "text": "Giấy phép mở phòng khám bệnh",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0205",
+    "text": "Thủ tục thi bằng lái thuyền lái ca nô",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "OUT_OF_SCOPE",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0206",
+    "text": "thi bang lai thuyen o dau",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0207",
+    "text": "Đăng kiểm tàu thuyền đánh cá",
+    "true_intent": "OUT_OF_SCOPE",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0208",
+    "text": "Bảng tra cứu danh mục thủ tục",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "PROCEDURE_CATALOG",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0209",
+    "text": "bang tra cuu thu tuc",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0210",
+    "text": "Tra cứu dịch vụ công cấp xã",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "PROCEDURE_CATALOG",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0211",
+    "text": "Trợ lý hỗ trợ giải đáp thủ tục nào?",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": null,
+    "pred_proc": "TTHC-CR-03",
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0212",
+    "text": "ho tro nhung thu tuc nao",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "PROCEDURE_CATALOG",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0213",
+    "text": "Bạn hỗ trợ những việc gì",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "PROCEDURE_INQUIRY",
+    "true_proc": null,
+    "pred_proc": "TTHC-CR-03",
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0214",
+    "text": "Thông tin toàn bộ dịch vụ công xã",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0215",
+    "text": "dich vu cong cap xa co gi",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "PROCEDURE_CATALOG",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0216",
+    "text": "Các thủ tục một cửa tiếp nhận",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "PROCEDURE_CATALOG",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": true,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0217",
+    "text": "Cho xem danh mục hồ sơ hành chính",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0218",
+    "text": "xem danh muc ho so",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0219",
+    "text": "Danh bạ thủ tục công dân",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0220",
+    "text": "Ở phường giải quyết những việc gì",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0221",
+    "text": "o phuong giai quyet viec gi",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0222",
+    "text": "Phường có làm giấy tờ gì",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0223",
+    "text": "Muốn biết tất cả thủ tục tại xã",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0224",
+    "text": "tat ca thu tuc tai xa",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0225",
+    "text": "Liệt kê hết dịch vụ công",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0226",
+    "text": "Các dịch vụ hành chính công cấp cơ sở",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0227",
+    "text": "dich vu hanh chinh cong co so",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  },
+  {
+    "id": "dev_0228",
+    "text": "TTHC cấp cơ sở gồm những gì",
+    "true_intent": "PROCEDURE_CATALOG",
+    "pred_intent": "AMBIGUOUS",
+    "true_proc": null,
+    "pred_proc": null,
+    "correct_intent": false,
+    "correct_proc": null
+  }
+]

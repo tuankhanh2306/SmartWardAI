@@ -1,0 +1,170 @@
+{
+  "status": "TẠM THỜI (dev tổng hợp)",
+  "embedding_model_version": "bkai_pho_bert_ft_v1",
+  "baseline_without_tau": {
+    "accuracy": 0.7149,
+    "macro_f1": 0.5503
+  },
+  "tau_coverage_curve": [
+    {
+      "tau": 0.1,
+      "coverage": 1.0,
+      "accuracy": 0.7149,
+      "macro_f1": 0.5503,
+      "diverted_count": 0
+    },
+    {
+      "tau": 0.15,
+      "coverage": 1.0,
+      "accuracy": 0.7149,
+      "macro_f1": 0.5503,
+      "diverted_count": 0
+    },
+    {
+      "tau": 0.2,
+      "coverage": 1.0,
+      "accuracy": 0.7149,
+      "macro_f1": 0.5503,
+      "diverted_count": 0
+    },
+    {
+      "tau": 0.25,
+      "coverage": 0.9956,
+      "accuracy": 0.7193,
+      "macro_f1": 0.5641,
+      "diverted_count": 1
+    },
+    {
+      "tau": 0.3,
+      "coverage": 0.9912,
+      "accuracy": 0.7237,
+      "macro_f1": 0.5754,
+      "diverted_count": 2
+    },
+    {
+      "tau": 0.35,
+      "coverage": 0.9737,
+      "accuracy": 0.7281,
+      "macro_f1": 0.5864,
+      "diverted_count": 6
+    },
+    {
+      "tau": 0.4,
+      "coverage": 0.9386,
+      "accuracy": 0.7325,
+      "macro_f1": 0.5902,
+      "diverted_count": 14
+    },
+    {
+      "tau": 0.45,
+      "coverage": 0.886,
+      "accuracy": 0.7325,
+      "macro_f1": 0.584,
+      "diverted_count": 26
+    },
+    {
+      "tau": 0.5,
+      "coverage": 0.8202,
+      "accuracy": 0.7061,
+      "macro_f1": 0.5053,
+      "diverted_count": 41
+    }
+  ],
+  "theta_sweep": [
+    {
+      "theta": 0.3,
+      "false_rejection_rate": 0.0,
+      "false_rejection_ci": [
+        0.0,
+        0.0
+      ],
+      "auth_leaked": "10/24",
+      "irrel_leaked": "0/0"
+    },
+    {
+      "theta": 0.35,
+      "false_rejection_rate": 0.0083,
+      "false_rejection_ci": [
+        0.0,
+        0.025
+      ],
+      "auth_leaked": "6/24",
+      "irrel_leaked": "0/0"
+    },
+    {
+      "theta": 0.4,
+      "false_rejection_rate": 0.0333,
+      "false_rejection_ci": [
+        0.0083,
+        0.0667
+      ],
+      "auth_leaked": "6/24",
+      "irrel_leaked": "0/0"
+    },
+    {
+      "theta": 0.45,
+      "false_rejection_rate": 0.1417,
+      "false_rejection_ci": [
+        0.0833,
+        0.2
+      ],
+      "auth_leaked": "3/24",
+      "irrel_leaked": "0/0"
+    },
+    {
+      "theta": 0.5,
+      "false_rejection_rate": 0.3,
+      "false_rejection_ci": [
+        0.2333,
+        0.3669
+      ],
+      "auth_leaked": "1/24",
+      "irrel_leaked": "0/0"
+    },
+    {
+      "theta": 0.55,
+      "false_rejection_rate": 0.4,
+      "false_rejection_ci": [
+        0.3167,
+        0.4833
+      ],
+      "auth_leaked": "0/24",
+      "irrel_leaked": "0/0"
+    },
+    {
+      "theta": 0.6,
+      "false_rejection_rate": 0.55,
+      "false_rejection_ci": [
+        0.4667,
+        0.6417
+      ],
+      "auth_leaked": "0/24",
+      "irrel_leaked": "0/0"
+    },
+    {
+      "theta": 0.65,
+      "false_rejection_rate": 0.7333,
+      "false_rejection_ci": [
+        0.6498,
+        0.8167
+      ],
+      "auth_leaked": "0/24",
+      "irrel_leaked": "0/0"
+    },
+    {
+      "theta": 0.7,
+      "false_rejection_rate": 0.9167,
+      "false_rejection_ci": [
+        0.85,
+        0.9667
+      ],
+      "auth_leaked": "0/24",
+      "irrel_leaked": "0/0"
+    }
+  ],
+  "recommendation": {
+    "tau_recommendation": "BỎ QUA TAU (giữ thuần 6 lớp) vì lớp AMBIGUOUS đã học phân loại trực tiếp tốt hơn cắt xác suất",
+    "theta_calibrated": 0.4,
+    "theta_lower": 0.3
+  }
+}

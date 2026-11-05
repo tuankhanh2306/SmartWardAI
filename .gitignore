@@ -57,3 +57,13 @@ data-pipeline/form-dataset/scans/
 graph.html
 graphify-out/
 
+# Scratch & Temporary experiment scripts
+scratch/
+
+# Large ML Model binaries (exceeds GitHub 100MB limit)
+ml/models/*.onnx
+ml/models/**/*.safetensors
+ml/models/**/*.bin
+ml/models/**/*.pt
+ml/models/**/*.pth
+

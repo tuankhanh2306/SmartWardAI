@@ -1,0 +1,137 @@
+{
+  "model_name": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "n_dev_samples": 228,
+  "n_dev_inquiry_samples": 120,
+  "retrieval_procedure_level": {
+    "recall_at_1": 0.1,
+    "recall_at_1_95ci": [
+      0.0417,
+      0.1583
+    ],
+    "recall_at_3": 0.15,
+    "recall_at_3_95ci": [
+      0.0917,
+      0.2167
+    ],
+    "mrr": 0.1689,
+    "mrr_95ci": [
+      0.1151,
+      0.2247
+    ]
+  },
+  "retrieval_chunk_level": {
+    "recall_at_1": 0.05,
+    "recall_at_3": 0.075,
+    "mrr": 0.1039
+  },
+  "intent_classification": {
+    "accuracy": 0.7675,
+    "accuracy_95ci": [
+      0.7105,
+      0.8202
+    ],
+    "macro_f1": 0.6397,
+    "macro_f1_95ci": [
+      0.5516,
+      0.7104
+    ],
+    "per_class": {
+      "GREETING": {
+        "precision": 0.5909,
+        "recall": 0.619,
+        "f1": 0.6047,
+        "support": 21
+      },
+      "PROCEDURE_CATALOG": {
+        "precision": 0.6,
+        "recall": 0.7143,
+        "f1": 0.6522,
+        "support": 21
+      },
+      "COMMUNE_INFO": {
+        "precision": 0.5833,
+        "recall": 0.6667,
+        "f1": 0.6222,
+        "support": 21
+      },
+      "OUT_OF_SCOPE": {
+        "precision": 0.7083,
+        "recall": 0.7083,
+        "f1": 0.7083,
+        "support": 24
+      },
+      "AMBIGUOUS": {
+        "precision": 0.625,
+        "recall": 0.2381,
+        "f1": 0.3448,
+        "support": 21
+      },
+      "PROCEDURE_INQUIRY": {
+        "precision": 0.888,
+        "recall": 0.925,
+        "f1": 0.9061,
+        "support": 120
+      }
+    },
+    "confusion_matrix": {
+      "classes": [
+        "GREETING",
+        "PROCEDURE_CATALOG",
+        "COMMUNE_INFO",
+        "OUT_OF_SCOPE",
+        "AMBIGUOUS",
+        "PROCEDURE_INQUIRY"
+      ],
+      "matrix": [
+        [
+          13,
+          3,
+          1,
+          0,
+          3,
+          1
+        ],
+        [
+          1,
+          15,
+          0,
+          1,
+          0,
+          4
+        ],
+        [
+          1,
+          1,
+          14,
+          2,
+          0,
+          3
+        ],
+        [
+          1,
+          0,
+          2,
+          17,
+          0,
+          4
+        ],
+        [
+          6,
+          2,
+          3,
+          3,
+          5,
+          2
+        ],
+        [
+          0,
+          4,
+          4,
+          1,
+          0,
+          111
+        ]
+      ]
+    }
+  }
+}

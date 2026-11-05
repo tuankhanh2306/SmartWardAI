@@ -1,0 +1,5780 @@
+[
+  {
+    "id": "train_0001",
+    "text": "Thực hiện thủ tục trợ cấp xã hội hàng tháng cho người cao tuổi cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-01",
+    "gold_chunk_ids": [
+      "TTHC-BT-01_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0002",
+    "text": "lam tro cap xa hoi hang thang cho nguoi cao tuoi can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-01",
+    "gold_chunk_ids": [
+      "TTHC-BT-01_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0003",
+    "text": "Thành phần hồ sơ bắt buộc của trợ cấp xã hội hàng tháng cho người cao tuổi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-01",
+    "gold_chunk_ids": [
+      "TTHC-BT-01_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0004",
+    "text": "Mức lệ phí và thời hạn giải quyết trợ cấp xã hội hàng tháng cho người cao tuổi là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-01",
+    "gold_chunk_ids": [
+      "TTHC-BT-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0005",
+    "text": "le phi tro cap xa hoi hang thang cho nguoi cao tuoi het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-01",
+    "gold_chunk_ids": [
+      "TTHC-BT-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0006",
+    "text": "Làm trợ cấp xã hội hàng tháng cho người cao tuổi có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-01",
+    "gold_chunk_ids": [
+      "TTHC-BT-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0007",
+    "text": "Thực hiện thủ tục hỗ trợ chi phí mai táng đối tượng bảo trợ cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-02",
+    "gold_chunk_ids": [
+      "TTHC-BT-02_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0008",
+    "text": "lam ho tro chi phi mai tang doi tuong bao tro can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-02",
+    "gold_chunk_ids": [
+      "TTHC-BT-02_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0009",
+    "text": "Thành phần hồ sơ bắt buộc của hỗ trợ chi phí mai táng đối tượng bảo trợ",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-02",
+    "gold_chunk_ids": [
+      "TTHC-BT-02_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0010",
+    "text": "Mức lệ phí và thời hạn giải quyết hỗ trợ chi phí mai táng đối tượng bảo trợ là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-02",
+    "gold_chunk_ids": [
+      "TTHC-BT-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0011",
+    "text": "le phi ho tro chi phi mai tang doi tuong bao tro het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-02",
+    "gold_chunk_ids": [
+      "TTHC-BT-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0012",
+    "text": "Làm hỗ trợ chi phí mai táng đối tượng bảo trợ có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-02",
+    "gold_chunk_ids": [
+      "TTHC-BT-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0013",
+    "text": "Thực hiện thủ tục cấp thẻ bảo hiểm y tế cho đối tượng bảo trợ cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-03",
+    "gold_chunk_ids": [
+      "TTHC-BT-03_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-03_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0014",
+    "text": "lam cap the bao hiem y te cho doi tuong bao tro can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-03",
+    "gold_chunk_ids": [
+      "TTHC-BT-03_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-03_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0015",
+    "text": "Thành phần hồ sơ bắt buộc của cấp thẻ bảo hiểm y tế cho đối tượng bảo trợ",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-03",
+    "gold_chunk_ids": [
+      "TTHC-BT-03_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-03_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0016",
+    "text": "Mức lệ phí và thời hạn giải quyết cấp thẻ bảo hiểm y tế cho đối tượng bảo trợ là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-03",
+    "gold_chunk_ids": [
+      "TTHC-BT-03_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-03_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0017",
+    "text": "le phi cap the bao hiem y te cho doi tuong bao tro het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-03",
+    "gold_chunk_ids": [
+      "TTHC-BT-03_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-03_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0018",
+    "text": "Làm cấp thẻ bảo hiểm y tế cho đối tượng bảo trợ có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-03",
+    "gold_chunk_ids": [
+      "TTHC-BT-03_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-03_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0019",
+    "text": "Thực hiện thủ tục trợ giúp xã hội khẩn cấp cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-04",
+    "gold_chunk_ids": [
+      "TTHC-BT-04_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-04_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0020",
+    "text": "lam tro giup xa hoi khan cap can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-04",
+    "gold_chunk_ids": [
+      "TTHC-BT-04_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-04_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0021",
+    "text": "Thành phần hồ sơ bắt buộc của trợ giúp xã hội khẩn cấp",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-04",
+    "gold_chunk_ids": [
+      "TTHC-BT-04_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-04_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0022",
+    "text": "Mức lệ phí và thời hạn giải quyết trợ giúp xã hội khẩn cấp là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-04",
+    "gold_chunk_ids": [
+      "TTHC-BT-04_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-04_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0023",
+    "text": "le phi tro giup xa hoi khan cap het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-04",
+    "gold_chunk_ids": [
+      "TTHC-BT-04_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-04_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0024",
+    "text": "Làm trợ giúp xã hội khẩn cấp có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-04",
+    "gold_chunk_ids": [
+      "TTHC-BT-04_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-04_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0025",
+    "text": "Thực hiện thủ tục thủ tục người có công và gia đình chính sách cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-05",
+    "gold_chunk_ids": [
+      "TTHC-BT-05_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-05_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0026",
+    "text": "lam thu tuc nguoi co cong va gia dinh chinh sach can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-05",
+    "gold_chunk_ids": [
+      "TTHC-BT-05_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-05_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0027",
+    "text": "Thành phần hồ sơ bắt buộc của thủ tục người có công và gia đình chính sách",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-05",
+    "gold_chunk_ids": [
+      "TTHC-BT-05_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-05_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0028",
+    "text": "Mức lệ phí và thời hạn giải quyết thủ tục người có công và gia đình chính sách là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-05",
+    "gold_chunk_ids": [
+      "TTHC-BT-05_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-05_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0029",
+    "text": "le phi thu tuc nguoi co cong va gia dinh chinh sach het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-05",
+    "gold_chunk_ids": [
+      "TTHC-BT-05_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-05_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0030",
+    "text": "Làm thủ tục người có công và gia đình chính sách có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-05",
+    "gold_chunk_ids": [
+      "TTHC-BT-05_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-05_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0031",
+    "text": "Thực hiện thủ tục tiếp nhận đối tượng vào cơ sở trợ giúp xã hội cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-06",
+    "gold_chunk_ids": [
+      "TTHC-BT-06_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-06_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0032",
+    "text": "lam tiep nhan doi tuong vao co so tro giup xa hoi can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-06",
+    "gold_chunk_ids": [
+      "TTHC-BT-06_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-06_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0033",
+    "text": "Thành phần hồ sơ bắt buộc của tiếp nhận đối tượng vào cơ sở trợ giúp xã hội",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-BT-06",
+    "gold_chunk_ids": [
+      "TTHC-BT-06_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-06_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0034",
+    "text": "Mức lệ phí và thời hạn giải quyết tiếp nhận đối tượng vào cơ sở trợ giúp xã hội là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-06",
+    "gold_chunk_ids": [
+      "TTHC-BT-06_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-06_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0035",
+    "text": "le phi tiep nhan doi tuong vao co so tro giup xa hoi het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-06",
+    "gold_chunk_ids": [
+      "TTHC-BT-06_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-06_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0036",
+    "text": "Làm tiếp nhận đối tượng vào cơ sở trợ giúp xã hội có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-BT-06",
+    "gold_chunk_ids": [
+      "TTHC-BT-06_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-06_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0037",
+    "text": "Thực hiện thủ tục đăng ký thường trú mẫu CT01 cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-01",
+    "gold_chunk_ids": [
+      "TTHC-CR-01_CHUNK_005"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0038",
+    "text": "lam dang ky thuong tru mau CT01 can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-01",
+    "gold_chunk_ids": [
+      "TTHC-CR-01_CHUNK_005"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0039",
+    "text": "Thành phần hồ sơ bắt buộc của đăng ký thường trú mẫu CT01",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-01",
+    "gold_chunk_ids": [
+      "TTHC-CR-01_CHUNK_005"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0040",
+    "text": "Mức lệ phí và thời hạn giải quyết đăng ký thường trú mẫu CT01 là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-01",
+    "gold_chunk_ids": [
+      "TTHC-CR-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0041",
+    "text": "le phi dang ky thuong tru mau CT01 het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-01",
+    "gold_chunk_ids": [
+      "TTHC-CR-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0042",
+    "text": "Làm đăng ký thường trú mẫu CT01 có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-01",
+    "gold_chunk_ids": [
+      "TTHC-CR-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0043",
+    "text": "Thực hiện thủ tục đăng ký tạm trú cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-02",
+    "gold_chunk_ids": [
+      "TTHC-CR-02_CHUNK_006"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0044",
+    "text": "lam dang ky tam tru can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-02",
+    "gold_chunk_ids": [
+      "TTHC-CR-02_CHUNK_006"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0045",
+    "text": "Thành phần hồ sơ bắt buộc của đăng ký tạm trú",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-02",
+    "gold_chunk_ids": [
+      "TTHC-CR-02_CHUNK_006"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0046",
+    "text": "Mức lệ phí và thời hạn giải quyết đăng ký tạm trú là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-02",
+    "gold_chunk_ids": [
+      "TTHC-CR-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0047",
+    "text": "le phi dang ky tam tru het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-02",
+    "gold_chunk_ids": [
+      "TTHC-CR-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0048",
+    "text": "Làm đăng ký tạm trú có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-02",
+    "gold_chunk_ids": [
+      "TTHC-CR-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0049",
+    "text": "Thực hiện thủ tục gia hạn tạm trú cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-03",
+    "gold_chunk_ids": [
+      "TTHC-CR-03_CHUNK_005"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-03_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0050",
+    "text": "lam gia han tam tru can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-03",
+    "gold_chunk_ids": [
+      "TTHC-CR-03_CHUNK_005"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-03_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0051",
+    "text": "Thành phần hồ sơ bắt buộc của gia hạn tạm trú",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-03",
+    "gold_chunk_ids": [
+      "TTHC-CR-03_CHUNK_005"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-03_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0052",
+    "text": "Mức lệ phí và thời hạn giải quyết gia hạn tạm trú là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-03",
+    "gold_chunk_ids": [
+      "TTHC-CR-03_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-03_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0053",
+    "text": "le phi gia han tam tru het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-03",
+    "gold_chunk_ids": [
+      "TTHC-CR-03_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-03_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0054",
+    "text": "Làm gia hạn tạm trú có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-03",
+    "gold_chunk_ids": [
+      "TTHC-CR-03_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-03_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0055",
+    "text": "Thực hiện thủ tục khai báo tạm vắng và thông báo lưu trú cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-04",
+    "gold_chunk_ids": [
+      "TTHC-CR-04_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-04_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0056",
+    "text": "lam khai bao tam vang va thong bao luu tru can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-04",
+    "gold_chunk_ids": [
+      "TTHC-CR-04_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-04_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0057",
+    "text": "Thành phần hồ sơ bắt buộc của khai báo tạm vắng và thông báo lưu trú",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-04",
+    "gold_chunk_ids": [
+      "TTHC-CR-04_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-04_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0058",
+    "text": "Mức lệ phí và thời hạn giải quyết khai báo tạm vắng và thông báo lưu trú là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-04",
+    "gold_chunk_ids": [
+      "TTHC-CR-04_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-04_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0059",
+    "text": "le phi khai bao tam vang va thong bao luu tru het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-04",
+    "gold_chunk_ids": [
+      "TTHC-CR-04_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-04_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0060",
+    "text": "Làm khai báo tạm vắng và thông báo lưu trú có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-04",
+    "gold_chunk_ids": [
+      "TTHC-CR-04_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-04_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0061",
+    "text": "Thực hiện thủ tục điều chỉnh thông tin cư trú trong CSDL cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-05",
+    "gold_chunk_ids": [
+      "TTHC-CR-05_CHUNK_006"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-05_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0062",
+    "text": "lam dieu chinh thong tin cu tru trong CSDL can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-05",
+    "gold_chunk_ids": [
+      "TTHC-CR-05_CHUNK_006"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-05_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0063",
+    "text": "Thành phần hồ sơ bắt buộc của điều chỉnh thông tin cư trú trong CSDL",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-05",
+    "gold_chunk_ids": [
+      "TTHC-CR-05_CHUNK_006"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-05_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0064",
+    "text": "Mức lệ phí và thời hạn giải quyết điều chỉnh thông tin cư trú trong CSDL là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-05",
+    "gold_chunk_ids": [
+      "TTHC-CR-05_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-05_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0065",
+    "text": "le phi dieu chinh thong tin cu tru trong CSDL het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-05",
+    "gold_chunk_ids": [
+      "TTHC-CR-05_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-05_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0066",
+    "text": "Làm điều chỉnh thông tin cư trú trong CSDL có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-05",
+    "gold_chunk_ids": [
+      "TTHC-CR-05_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-05_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0067",
+    "text": "Thực hiện thủ tục xác nhận thông tin cư trú CT07 cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-06",
+    "gold_chunk_ids": [
+      "TTHC-CR-06_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-06_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0068",
+    "text": "lam xac nhan thong tin cu tru CT07 can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-06",
+    "gold_chunk_ids": [
+      "TTHC-CR-06_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-06_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0069",
+    "text": "Thành phần hồ sơ bắt buộc của xác nhận thông tin cư trú CT07",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-06",
+    "gold_chunk_ids": [
+      "TTHC-CR-06_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-06_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0070",
+    "text": "Mức lệ phí và thời hạn giải quyết xác nhận thông tin cư trú CT07 là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-06",
+    "gold_chunk_ids": [
+      "TTHC-CR-06_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-06_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0071",
+    "text": "le phi xac nhan thong tin cu tru CT07 het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-06",
+    "gold_chunk_ids": [
+      "TTHC-CR-06_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-06_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0072",
+    "text": "Làm xác nhận thông tin cư trú CT07 có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-06",
+    "gold_chunk_ids": [
+      "TTHC-CR-06_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-06_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0073",
+    "text": "Thực hiện thủ tục tách hộ khẩu cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-07",
+    "gold_chunk_ids": [
+      "TTHC-CR-07_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-07_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0074",
+    "text": "lam tach ho khau can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-07",
+    "gold_chunk_ids": [
+      "TTHC-CR-07_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-07_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0075",
+    "text": "Thành phần hồ sơ bắt buộc của tách hộ khẩu",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-07",
+    "gold_chunk_ids": [
+      "TTHC-CR-07_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-07_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0076",
+    "text": "Mức lệ phí và thời hạn giải quyết tách hộ khẩu là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-07",
+    "gold_chunk_ids": [
+      "TTHC-CR-07_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-07_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0077",
+    "text": "le phi tach ho khau het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-07",
+    "gold_chunk_ids": [
+      "TTHC-CR-07_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-07_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0078",
+    "text": "Làm tách hộ khẩu có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-07",
+    "gold_chunk_ids": [
+      "TTHC-CR-07_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-07_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0079",
+    "text": "Thực hiện thủ tục xóa đăng ký thường trú cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-08",
+    "gold_chunk_ids": [
+      "TTHC-CR-08_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-08_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0080",
+    "text": "lam xoa dang ky thuong tru can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-08",
+    "gold_chunk_ids": [
+      "TTHC-CR-08_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-08_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0081",
+    "text": "Thành phần hồ sơ bắt buộc của xóa đăng ký thường trú",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-08",
+    "gold_chunk_ids": [
+      "TTHC-CR-08_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-08_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0082",
+    "text": "Mức lệ phí và thời hạn giải quyết xóa đăng ký thường trú là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-08",
+    "gold_chunk_ids": [
+      "TTHC-CR-08_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-08_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0083",
+    "text": "le phi xoa dang ky thuong tru het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-08",
+    "gold_chunk_ids": [
+      "TTHC-CR-08_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-08_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0084",
+    "text": "Làm xóa đăng ký thường trú có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-08",
+    "gold_chunk_ids": [
+      "TTHC-CR-08_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-08_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0085",
+    "text": "Thực hiện thủ tục xóa đăng ký tạm trú cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-09",
+    "gold_chunk_ids": [
+      "TTHC-CR-09_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-09_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0086",
+    "text": "lam xoa dang ky tam tru can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-09",
+    "gold_chunk_ids": [
+      "TTHC-CR-09_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-09_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0087",
+    "text": "Thành phần hồ sơ bắt buộc của xóa đăng ký tạm trú",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-09",
+    "gold_chunk_ids": [
+      "TTHC-CR-09_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-09_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0088",
+    "text": "Mức lệ phí và thời hạn giải quyết xóa đăng ký tạm trú là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-09",
+    "gold_chunk_ids": [
+      "TTHC-CR-09_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-09_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0089",
+    "text": "le phi xoa dang ky tam tru het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-09",
+    "gold_chunk_ids": [
+      "TTHC-CR-09_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-09_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0090",
+    "text": "Làm xóa đăng ký tạm trú có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-09",
+    "gold_chunk_ids": [
+      "TTHC-CR-09_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-09_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0091",
+    "text": "Thực hiện thủ tục hủy bỏ kết quả đăng ký thường trú cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-10",
+    "gold_chunk_ids": [
+      "TTHC-CR-10_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-10_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0092",
+    "text": "lam huy bo ket qua dang ky thuong tru can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-10",
+    "gold_chunk_ids": [
+      "TTHC-CR-10_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-10_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0093",
+    "text": "Thành phần hồ sơ bắt buộc của hủy bỏ kết quả đăng ký thường trú",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CR-10",
+    "gold_chunk_ids": [
+      "TTHC-CR-10_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-10_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0094",
+    "text": "Mức lệ phí và thời hạn giải quyết hủy bỏ kết quả đăng ký thường trú là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-10",
+    "gold_chunk_ids": [
+      "TTHC-CR-10_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-10_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0095",
+    "text": "le phi huy bo ket qua dang ky thuong tru het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-10",
+    "gold_chunk_ids": [
+      "TTHC-CR-10_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-10_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0096",
+    "text": "Làm hủy bỏ kết quả đăng ký thường trú có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CR-10",
+    "gold_chunk_ids": [
+      "TTHC-CR-10_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-10_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0097",
+    "text": "Thực hiện thủ tục chứng thực bản sao từ bản chính cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-01",
+    "gold_chunk_ids": [
+      "TTHC-CT-01_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0098",
+    "text": "lam chung thuc ban sao tu ban chinh can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-01",
+    "gold_chunk_ids": [
+      "TTHC-CT-01_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0099",
+    "text": "Thành phần hồ sơ bắt buộc của chứng thực bản sao từ bản chính",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-01",
+    "gold_chunk_ids": [
+      "TTHC-CT-01_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0100",
+    "text": "Mức lệ phí và thời hạn giải quyết chứng thực bản sao từ bản chính là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-01",
+    "gold_chunk_ids": [
+      "TTHC-CT-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0101",
+    "text": "le phi chung thuc ban sao tu ban chinh het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-01",
+    "gold_chunk_ids": [
+      "TTHC-CT-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0102",
+    "text": "Làm chứng thực bản sao từ bản chính có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-01",
+    "gold_chunk_ids": [
+      "TTHC-CT-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0103",
+    "text": "Thực hiện thủ tục chứng thực chữ ký trên giấy tờ cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-02",
+    "gold_chunk_ids": [
+      "TTHC-CT-02_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0104",
+    "text": "lam chung thuc chu ky tren giay to can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-02",
+    "gold_chunk_ids": [
+      "TTHC-CT-02_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0105",
+    "text": "Thành phần hồ sơ bắt buộc của chứng thực chữ ký trên giấy tờ",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-02",
+    "gold_chunk_ids": [
+      "TTHC-CT-02_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0106",
+    "text": "Mức lệ phí và thời hạn giải quyết chứng thực chữ ký trên giấy tờ là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-02",
+    "gold_chunk_ids": [
+      "TTHC-CT-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0107",
+    "text": "le phi chung thuc chu ky tren giay to het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-02",
+    "gold_chunk_ids": [
+      "TTHC-CT-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0108",
+    "text": "Làm chứng thực chữ ký trên giấy tờ có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-02",
+    "gold_chunk_ids": [
+      "TTHC-CT-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0109",
+    "text": "Thực hiện thủ tục chứng thực chữ ký người dịch cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-03",
+    "gold_chunk_ids": [
+      "TTHC-CT-03_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-03_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0110",
+    "text": "lam chung thuc chu ky nguoi dich can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-03",
+    "gold_chunk_ids": [
+      "TTHC-CT-03_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-03_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0111",
+    "text": "Thành phần hồ sơ bắt buộc của chứng thực chữ ký người dịch",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-03",
+    "gold_chunk_ids": [
+      "TTHC-CT-03_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-03_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0112",
+    "text": "Mức lệ phí và thời hạn giải quyết chứng thực chữ ký người dịch là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-03",
+    "gold_chunk_ids": [
+      "TTHC-CT-03_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-03_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0113",
+    "text": "le phi chung thuc chu ky nguoi dich het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-03",
+    "gold_chunk_ids": [
+      "TTHC-CT-03_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-03_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0114",
+    "text": "Làm chứng thực chữ ký người dịch có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-03",
+    "gold_chunk_ids": [
+      "TTHC-CT-03_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-03_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0115",
+    "text": "Thực hiện thủ tục chứng thực hợp đồng giao dịch cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-04",
+    "gold_chunk_ids": [
+      "TTHC-CT-04_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-04_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0116",
+    "text": "lam chung thuc hop dong giao dich can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-04",
+    "gold_chunk_ids": [
+      "TTHC-CT-04_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-04_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0117",
+    "text": "Thành phần hồ sơ bắt buộc của chứng thực hợp đồng giao dịch",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-04",
+    "gold_chunk_ids": [
+      "TTHC-CT-04_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-04_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0118",
+    "text": "Mức lệ phí và thời hạn giải quyết chứng thực hợp đồng giao dịch là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-04",
+    "gold_chunk_ids": [
+      "TTHC-CT-04_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-04_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0119",
+    "text": "le phi chung thuc hop dong giao dich het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-04",
+    "gold_chunk_ids": [
+      "TTHC-CT-04_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-04_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0120",
+    "text": "Làm chứng thực hợp đồng giao dịch có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-04",
+    "gold_chunk_ids": [
+      "TTHC-CT-04_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-04_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0121",
+    "text": "Thực hiện thủ tục chứng thực di chúc cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-05",
+    "gold_chunk_ids": [
+      "TTHC-CT-05_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-05_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0122",
+    "text": "lam chung thuc di chuc can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-05",
+    "gold_chunk_ids": [
+      "TTHC-CT-05_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-05_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0123",
+    "text": "Thành phần hồ sơ bắt buộc của chứng thực di chúc",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-05",
+    "gold_chunk_ids": [
+      "TTHC-CT-05_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-05_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0124",
+    "text": "Mức lệ phí và thời hạn giải quyết chứng thực di chúc là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-05",
+    "gold_chunk_ids": [
+      "TTHC-CT-05_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-05_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0125",
+    "text": "le phi chung thuc di chuc het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-05",
+    "gold_chunk_ids": [
+      "TTHC-CT-05_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-05_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0126",
+    "text": "Làm chứng thực di chúc có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-05",
+    "gold_chunk_ids": [
+      "TTHC-CT-05_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-05_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0127",
+    "text": "Thực hiện thủ tục chứng thực từ chối nhận di sản cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-06",
+    "gold_chunk_ids": [
+      "TTHC-CT-06_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-06_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0128",
+    "text": "lam chung thuc tu choi nhan di san can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-06",
+    "gold_chunk_ids": [
+      "TTHC-CT-06_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-06_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0129",
+    "text": "Thành phần hồ sơ bắt buộc của chứng thực từ chối nhận di sản",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-06",
+    "gold_chunk_ids": [
+      "TTHC-CT-06_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-06_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0130",
+    "text": "Mức lệ phí và thời hạn giải quyết chứng thực từ chối nhận di sản là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-06",
+    "gold_chunk_ids": [
+      "TTHC-CT-06_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-06_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0131",
+    "text": "le phi chung thuc tu choi nhan di san het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-06",
+    "gold_chunk_ids": [
+      "TTHC-CT-06_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-06_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0132",
+    "text": "Làm chứng thực từ chối nhận di sản có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-06",
+    "gold_chunk_ids": [
+      "TTHC-CT-06_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-06_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0133",
+    "text": "Thực hiện thủ tục sửa chữa sai sót chứng thực cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-07",
+    "gold_chunk_ids": [
+      "TTHC-CT-07_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-07_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0134",
+    "text": "lam sua chua sai sot chung thuc can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-07",
+    "gold_chunk_ids": [
+      "TTHC-CT-07_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-07_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0135",
+    "text": "Thành phần hồ sơ bắt buộc của sửa chữa sai sót chứng thực",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-07",
+    "gold_chunk_ids": [
+      "TTHC-CT-07_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-07_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0136",
+    "text": "Mức lệ phí và thời hạn giải quyết sửa chữa sai sót chứng thực là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-07",
+    "gold_chunk_ids": [
+      "TTHC-CT-07_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-07_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0137",
+    "text": "le phi sua chua sai sot chung thuc het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-07",
+    "gold_chunk_ids": [
+      "TTHC-CT-07_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-07_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0138",
+    "text": "Làm sửa chữa sai sót chứng thực có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-07",
+    "gold_chunk_ids": [
+      "TTHC-CT-07_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-07_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0139",
+    "text": "Thực hiện thủ tục cấp bản sao hợp đồng đã chứng thực cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-08",
+    "gold_chunk_ids": [
+      "TTHC-CT-08_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-08_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0140",
+    "text": "lam cap ban sao hop dong da chung thuc can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-08",
+    "gold_chunk_ids": [
+      "TTHC-CT-08_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-08_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0141",
+    "text": "Thành phần hồ sơ bắt buộc của cấp bản sao hợp đồng đã chứng thực",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-CT-08",
+    "gold_chunk_ids": [
+      "TTHC-CT-08_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-08_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0142",
+    "text": "Mức lệ phí và thời hạn giải quyết cấp bản sao hợp đồng đã chứng thực là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-08",
+    "gold_chunk_ids": [
+      "TTHC-CT-08_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-08_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0143",
+    "text": "le phi cap ban sao hop dong da chung thuc het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-08",
+    "gold_chunk_ids": [
+      "TTHC-CT-08_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-08_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0144",
+    "text": "Làm cấp bản sao hợp đồng đã chứng thực có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-CT-08",
+    "gold_chunk_ids": [
+      "TTHC-CT-08_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-08_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0145",
+    "text": "Thực hiện thủ tục chuyển nhượng quyền sử dụng đất nông nghiệp cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-DC-01",
+    "gold_chunk_ids": [
+      "TTHC-DC-01_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0146",
+    "text": "lam chuyen nhuong quyen su dung dat nong nghiep can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-DC-01",
+    "gold_chunk_ids": [
+      "TTHC-DC-01_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0147",
+    "text": "Thành phần hồ sơ bắt buộc của chuyển nhượng quyền sử dụng đất nông nghiệp",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-DC-01",
+    "gold_chunk_ids": [
+      "TTHC-DC-01_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0148",
+    "text": "Mức lệ phí và thời hạn giải quyết chuyển nhượng quyền sử dụng đất nông nghiệp là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-DC-01",
+    "gold_chunk_ids": [
+      "TTHC-DC-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0149",
+    "text": "le phi chuyen nhuong quyen su dung dat nong nghiep het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-DC-01",
+    "gold_chunk_ids": [
+      "TTHC-DC-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0150",
+    "text": "Làm chuyển nhượng quyền sử dụng đất nông nghiệp có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-DC-01",
+    "gold_chunk_ids": [
+      "TTHC-DC-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0151",
+    "text": "Thực hiện thủ tục đăng ký biến động đất đai tài sản gắn liền với đất cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-DC-02",
+    "gold_chunk_ids": [
+      "TTHC-DC-02_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0152",
+    "text": "lam dang ky bien dong dat dai tai san gan lien voi dat can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-DC-02",
+    "gold_chunk_ids": [
+      "TTHC-DC-02_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0153",
+    "text": "Thành phần hồ sơ bắt buộc của đăng ký biến động đất đai tài sản gắn liền với đất",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-DC-02",
+    "gold_chunk_ids": [
+      "TTHC-DC-02_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0154",
+    "text": "Mức lệ phí và thời hạn giải quyết đăng ký biến động đất đai tài sản gắn liền với đất là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-DC-02",
+    "gold_chunk_ids": [
+      "TTHC-DC-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0155",
+    "text": "le phi dang ky bien dong dat dai tai san gan lien voi dat het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-DC-02",
+    "gold_chunk_ids": [
+      "TTHC-DC-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0156",
+    "text": "Làm đăng ký biến động đất đai tài sản gắn liền với đất có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-DC-02",
+    "gold_chunk_ids": [
+      "TTHC-DC-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0157",
+    "text": "Thực hiện thủ tục đăng ký khai sinh cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-01",
+    "gold_chunk_ids": [
+      "TTHC-HT-01_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0158",
+    "text": "lam dang ky khai sinh can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-01",
+    "gold_chunk_ids": [
+      "TTHC-HT-01_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0159",
+    "text": "Thành phần hồ sơ bắt buộc của đăng ký khai sinh",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-01",
+    "gold_chunk_ids": [
+      "TTHC-HT-01_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0160",
+    "text": "Mức lệ phí và thời hạn giải quyết đăng ký khai sinh là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-01",
+    "gold_chunk_ids": [
+      "TTHC-HT-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0161",
+    "text": "le phi dang ky khai sinh het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-01",
+    "gold_chunk_ids": [
+      "TTHC-HT-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0162",
+    "text": "Làm đăng ký khai sinh có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-01",
+    "gold_chunk_ids": [
+      "TTHC-HT-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0163",
+    "text": "Thực hiện thủ tục đăng ký kết hôn cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-02",
+    "gold_chunk_ids": [
+      "TTHC-HT-02_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0164",
+    "text": "lam dang ky ket hon can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-02",
+    "gold_chunk_ids": [
+      "TTHC-HT-02_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0165",
+    "text": "Thành phần hồ sơ bắt buộc của đăng ký kết hôn",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-02",
+    "gold_chunk_ids": [
+      "TTHC-HT-02_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0166",
+    "text": "Mức lệ phí và thời hạn giải quyết đăng ký kết hôn là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-02",
+    "gold_chunk_ids": [
+      "TTHC-HT-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0167",
+    "text": "le phi dang ky ket hon het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-02",
+    "gold_chunk_ids": [
+      "TTHC-HT-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0168",
+    "text": "Làm đăng ký kết hôn có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-02",
+    "gold_chunk_ids": [
+      "TTHC-HT-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0169",
+    "text": "Thực hiện thủ tục cấp giấy xác nhận tình trạng hôn nhân cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-03",
+    "gold_chunk_ids": [
+      "TTHC-HT-03_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-03_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0170",
+    "text": "lam cap giay xac nhan tinh trang hon nhan can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-03",
+    "gold_chunk_ids": [
+      "TTHC-HT-03_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-03_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0171",
+    "text": "Thành phần hồ sơ bắt buộc của cấp giấy xác nhận tình trạng hôn nhân",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-03",
+    "gold_chunk_ids": [
+      "TTHC-HT-03_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-03_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0172",
+    "text": "Mức lệ phí và thời hạn giải quyết cấp giấy xác nhận tình trạng hôn nhân là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-03",
+    "gold_chunk_ids": [
+      "TTHC-HT-03_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-03_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0173",
+    "text": "le phi cap giay xac nhan tinh trang hon nhan het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-03",
+    "gold_chunk_ids": [
+      "TTHC-HT-03_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-03_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0174",
+    "text": "Làm cấp giấy xác nhận tình trạng hôn nhân có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-03",
+    "gold_chunk_ids": [
+      "TTHC-HT-03_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-03_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0175",
+    "text": "Thực hiện thủ tục cấp bản sao trích lục hộ tịch cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-04",
+    "gold_chunk_ids": [
+      "TTHC-HT-04_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-04_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0176",
+    "text": "lam cap ban sao trich luc ho tich can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-04",
+    "gold_chunk_ids": [
+      "TTHC-HT-04_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-04_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0177",
+    "text": "Thành phần hồ sơ bắt buộc của cấp bản sao trích lục hộ tịch",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-04",
+    "gold_chunk_ids": [
+      "TTHC-HT-04_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-04_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0178",
+    "text": "Mức lệ phí và thời hạn giải quyết cấp bản sao trích lục hộ tịch là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-04",
+    "gold_chunk_ids": [
+      "TTHC-HT-04_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-04_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0179",
+    "text": "le phi cap ban sao trich luc ho tich het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-04",
+    "gold_chunk_ids": [
+      "TTHC-HT-04_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-04_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0180",
+    "text": "Làm cấp bản sao trích lục hộ tịch có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-04",
+    "gold_chunk_ids": [
+      "TTHC-HT-04_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-04_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0181",
+    "text": "Thực hiện thủ tục đăng ký khai tử cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-05",
+    "gold_chunk_ids": [
+      "TTHC-HT-05_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-05_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0182",
+    "text": "lam dang ky khai tu can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-05",
+    "gold_chunk_ids": [
+      "TTHC-HT-05_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-05_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0183",
+    "text": "Thành phần hồ sơ bắt buộc của đăng ký khai tử",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-05",
+    "gold_chunk_ids": [
+      "TTHC-HT-05_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-05_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0184",
+    "text": "Mức lệ phí và thời hạn giải quyết đăng ký khai tử là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-05",
+    "gold_chunk_ids": [
+      "TTHC-HT-05_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-05_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0185",
+    "text": "le phi dang ky khai tu het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-05",
+    "gold_chunk_ids": [
+      "TTHC-HT-05_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-05_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0186",
+    "text": "Làm đăng ký khai tử có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-05",
+    "gold_chunk_ids": [
+      "TTHC-HT-05_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-05_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0187",
+    "text": "Thực hiện thủ tục đăng ký nhận cha mẹ con cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-06",
+    "gold_chunk_ids": [
+      "TTHC-HT-06_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-06_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0188",
+    "text": "lam dang ky nhan cha me con can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-06",
+    "gold_chunk_ids": [
+      "TTHC-HT-06_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-06_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0189",
+    "text": "Thành phần hồ sơ bắt buộc của đăng ký nhận cha mẹ con",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-06",
+    "gold_chunk_ids": [
+      "TTHC-HT-06_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-06_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0190",
+    "text": "Mức lệ phí và thời hạn giải quyết đăng ký nhận cha mẹ con là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-06",
+    "gold_chunk_ids": [
+      "TTHC-HT-06_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-06_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0191",
+    "text": "le phi dang ky nhan cha me con het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-06",
+    "gold_chunk_ids": [
+      "TTHC-HT-06_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-06_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0192",
+    "text": "Làm đăng ký nhận cha mẹ con có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-06",
+    "gold_chunk_ids": [
+      "TTHC-HT-06_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-06_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0193",
+    "text": "Thực hiện thủ tục đăng ký giám hộ cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-07",
+    "gold_chunk_ids": [
+      "TTHC-HT-07_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-07_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0194",
+    "text": "lam dang ky giam ho can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-07",
+    "gold_chunk_ids": [
+      "TTHC-HT-07_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-07_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0195",
+    "text": "Thành phần hồ sơ bắt buộc của đăng ký giám hộ",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-07",
+    "gold_chunk_ids": [
+      "TTHC-HT-07_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-07_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0196",
+    "text": "Mức lệ phí và thời hạn giải quyết đăng ký giám hộ là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-07",
+    "gold_chunk_ids": [
+      "TTHC-HT-07_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-07_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0197",
+    "text": "le phi dang ky giam ho het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-07",
+    "gold_chunk_ids": [
+      "TTHC-HT-07_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-07_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0198",
+    "text": "Làm đăng ký giám hộ có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-07",
+    "gold_chunk_ids": [
+      "TTHC-HT-07_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-07_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0199",
+    "text": "Thực hiện thủ tục chấm dứt giám hộ cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-08",
+    "gold_chunk_ids": [
+      "TTHC-HT-08_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-08_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0200",
+    "text": "lam cham dut giam ho can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-08",
+    "gold_chunk_ids": [
+      "TTHC-HT-08_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-08_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0201",
+    "text": "Thành phần hồ sơ bắt buộc của chấm dứt giám hộ",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-08",
+    "gold_chunk_ids": [
+      "TTHC-HT-08_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-08_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0202",
+    "text": "Mức lệ phí và thời hạn giải quyết chấm dứt giám hộ là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-08",
+    "gold_chunk_ids": [
+      "TTHC-HT-08_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-08_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0203",
+    "text": "le phi cham dut giam ho het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-08",
+    "gold_chunk_ids": [
+      "TTHC-HT-08_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-08_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0204",
+    "text": "Làm chấm dứt giám hộ có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-08",
+    "gold_chunk_ids": [
+      "TTHC-HT-08_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-08_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0205",
+    "text": "Thực hiện thủ tục thay đổi cải chính bổ sung hộ tịch cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-09",
+    "gold_chunk_ids": [
+      "TTHC-HT-09_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-09_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0206",
+    "text": "lam thay doi cai chinh bo sung ho tich can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-09",
+    "gold_chunk_ids": [
+      "TTHC-HT-09_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-09_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0207",
+    "text": "Thành phần hồ sơ bắt buộc của thay đổi cải chính bổ sung hộ tịch",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-09",
+    "gold_chunk_ids": [
+      "TTHC-HT-09_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-09_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0208",
+    "text": "Mức lệ phí và thời hạn giải quyết thay đổi cải chính bổ sung hộ tịch là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-09",
+    "gold_chunk_ids": [
+      "TTHC-HT-09_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-09_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0209",
+    "text": "le phi thay doi cai chinh bo sung ho tich het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-09",
+    "gold_chunk_ids": [
+      "TTHC-HT-09_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-09_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0210",
+    "text": "Làm thay đổi cải chính bổ sung hộ tịch có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-09",
+    "gold_chunk_ids": [
+      "TTHC-HT-09_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-09_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0211",
+    "text": "Thực hiện thủ tục đăng ký khai sinh lưu động cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-10",
+    "gold_chunk_ids": [
+      "TTHC-HT-10_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-10_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0212",
+    "text": "lam dang ky khai sinh luu dong can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-10",
+    "gold_chunk_ids": [
+      "TTHC-HT-10_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-10_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0213",
+    "text": "Thành phần hồ sơ bắt buộc của đăng ký khai sinh lưu động",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-10",
+    "gold_chunk_ids": [
+      "TTHC-HT-10_CHUNK_004"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-10_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0214",
+    "text": "Mức lệ phí và thời hạn giải quyết đăng ký khai sinh lưu động là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-10",
+    "gold_chunk_ids": [
+      "TTHC-HT-10_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-10_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0215",
+    "text": "le phi dang ky khai sinh luu dong het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-10",
+    "gold_chunk_ids": [
+      "TTHC-HT-10_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-10_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0216",
+    "text": "Làm đăng ký khai sinh lưu động có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-10",
+    "gold_chunk_ids": [
+      "TTHC-HT-10_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-10_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0217",
+    "text": "Thực hiện thủ tục đăng ký kết hôn lưu động cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-11",
+    "gold_chunk_ids": [
+      "TTHC-HT-11_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-11_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0218",
+    "text": "lam dang ky ket hon luu dong can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-11",
+    "gold_chunk_ids": [
+      "TTHC-HT-11_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-11_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0219",
+    "text": "Thành phần hồ sơ bắt buộc của đăng ký kết hôn lưu động",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-11",
+    "gold_chunk_ids": [
+      "TTHC-HT-11_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-11_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0220",
+    "text": "Mức lệ phí và thời hạn giải quyết đăng ký kết hôn lưu động là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-11",
+    "gold_chunk_ids": [
+      "TTHC-HT-11_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-11_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0221",
+    "text": "le phi dang ky ket hon luu dong het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-11",
+    "gold_chunk_ids": [
+      "TTHC-HT-11_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-11_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0222",
+    "text": "Làm đăng ký kết hôn lưu động có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-11",
+    "gold_chunk_ids": [
+      "TTHC-HT-11_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-11_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0223",
+    "text": "Thực hiện thủ tục đăng ký khai tử lưu động cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-12",
+    "gold_chunk_ids": [
+      "TTHC-HT-12_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-12_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0224",
+    "text": "lam dang ky khai tu luu dong can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-12",
+    "gold_chunk_ids": [
+      "TTHC-HT-12_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-12_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0225",
+    "text": "Thành phần hồ sơ bắt buộc của đăng ký khai tử lưu động",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-HT-12",
+    "gold_chunk_ids": [
+      "TTHC-HT-12_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-12_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0226",
+    "text": "Mức lệ phí và thời hạn giải quyết đăng ký khai tử lưu động là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-12",
+    "gold_chunk_ids": [
+      "TTHC-HT-12_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-12_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0227",
+    "text": "le phi dang ky khai tu luu dong het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-12",
+    "gold_chunk_ids": [
+      "TTHC-HT-12_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-12_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0228",
+    "text": "Làm đăng ký khai tử lưu động có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-HT-12",
+    "gold_chunk_ids": [
+      "TTHC-HT-12_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-12_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0229",
+    "text": "Thực hiện thủ tục cấp giấy phép xây dựng nhà ở riêng lẻ cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-XD-01",
+    "gold_chunk_ids": [
+      "TTHC-XD-01_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0230",
+    "text": "lam cap giay phep xay dung nha o rieng le can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-XD-01",
+    "gold_chunk_ids": [
+      "TTHC-XD-01_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0231",
+    "text": "Thành phần hồ sơ bắt buộc của cấp giấy phép xây dựng nhà ở riêng lẻ",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-XD-01",
+    "gold_chunk_ids": [
+      "TTHC-XD-01_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-01_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0232",
+    "text": "Mức lệ phí và thời hạn giải quyết cấp giấy phép xây dựng nhà ở riêng lẻ là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-XD-01",
+    "gold_chunk_ids": [
+      "TTHC-XD-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0233",
+    "text": "le phi cap giay phep xay dung nha o rieng le het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-XD-01",
+    "gold_chunk_ids": [
+      "TTHC-XD-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0234",
+    "text": "Làm cấp giấy phép xây dựng nhà ở riêng lẻ có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-XD-01",
+    "gold_chunk_ids": [
+      "TTHC-XD-01_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-01_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0235",
+    "text": "Thực hiện thủ tục điều chỉnh giấy phép xây dựng nhà ở riêng lẻ cần chuẩn bị những hồ sơ, giấy tờ gì?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-XD-02",
+    "gold_chunk_ids": [
+      "TTHC-XD-02_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0236",
+    "text": "lam dieu chinh giay phep xay dung nha o rieng le can ho so giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-XD-02",
+    "gold_chunk_ids": [
+      "TTHC-XD-02_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0237",
+    "text": "Thành phần hồ sơ bắt buộc của điều chỉnh giấy phép xây dựng nhà ở riêng lẻ",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_DOCUMENTS",
+    "procedure_code": "TTHC-XD-02",
+    "gold_chunk_ids": [
+      "TTHC-XD-02_CHUNK_003"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-02_DOCS",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "hồ_sơ"
+    ]
+  },
+  {
+    "id": "train_0238",
+    "text": "Mức lệ phí và thời hạn giải quyết điều chỉnh giấy phép xây dựng nhà ở riêng lẻ là bao lâu?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-XD-02",
+    "gold_chunk_ids": [
+      "TTHC-XD-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0239",
+    "text": "le phi dieu chinh giay phep xay dung nha o rieng le het bao nhieu va mat may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-XD-02",
+    "gold_chunk_ids": [
+      "TTHC-XD-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "thời_hạn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0240",
+    "text": "Làm điều chỉnh giấy phép xây dựng nhà ở riêng lẻ có mất tiền lệ phí không?",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_FEE_TIME",
+    "procedure_code": "TTHC-XD-02",
+    "gold_chunk_ids": [
+      "TTHC-XD-02_CHUNK_001"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-02_FEE_TIME",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "lệ_phí"
+    ]
+  },
+  {
+    "id": "train_0241",
+    "text": "Làm giấy tờ cho con cần mang theo gì?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_01",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "train_0242",
+    "text": "lam giay to cho con can gi",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_01",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "train_0243",
+    "text": "Muốn làm giấy cho cháu nhỏ thì phải làm sao?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_01",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "mơ_hồ",
+      "phương_ngữ"
+    ]
+  },
+  {
+    "id": "train_0244",
+    "text": "Hết bao nhiêu tiền vậy cán bộ?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_02",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thiếu_chủ_ngữ",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "train_0245",
+    "text": "het bao nhieu tien",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_02",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "câu_ngắn"
+    ]
+  },
+  {
+    "id": "train_0246",
+    "text": "Mức phí là bao nhiêu?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_02",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thiếu_thủ_tục"
+    ]
+  },
+  {
+    "id": "train_0247",
+    "text": "Mất bao lâu mới lấy được kết quả?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_03",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thiếu_chủ_ngữ",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "train_0248",
+    "text": "mat bao lau moi co",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_03",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "train_0249",
+    "text": "Khi nào có giấy?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_03",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "câu_ngắn",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "train_0250",
+    "text": "Hồ sơ cần chuẩn bị những gì?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_04",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thiếu_thủ_tục",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "train_0251",
+    "text": "ho so can nhung gi",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_04",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "train_0252",
+    "text": "Cần nộp những giấy tờ nào?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_04",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "train_0253",
+    "text": "Cho tôi hỏi về chế độ trợ cấp",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_05",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "train_0254",
+    "text": "cho hoi ve che do",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_05",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "train_0255",
+    "text": "Tôi có được nhận tiền không?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_05",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thiếu_thông_tin"
+    ]
+  },
+  {
+    "id": "train_0256",
+    "text": "Thủ tục này làm thế nào vậy?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_06",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "mơ_hồ",
+      "đại_từ"
+    ]
+  },
+  {
+    "id": "train_0257",
+    "text": "thu tuc nay lam the nao",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_06",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "train_0258",
+    "text": "Cách thức nộp hồ sơ ra sao?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_06",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "train_0259",
+    "text": "Giấy này có giá trị trong bao lâu?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_07",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "mơ_hồ",
+      "đại_từ"
+    ]
+  },
+  {
+    "id": "train_0260",
+    "text": "giay nay co han bao lau",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_07",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "train_0261",
+    "text": "Thời hạn sử dụng là mấy tháng?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_07",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "train_0262",
+    "text": "Địa chỉ trụ sở UBND xã ở đâu?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_01",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0263",
+    "text": "dia chi ubnd xa o dau",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_01",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0264",
+    "text": "Trụ sở Ủy ban nhân dân xã nằm ở đâu?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_01",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0265",
+    "text": "Bộ phận Một Cửa xã nằm ở đâu?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_02",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0266",
+    "text": "bo phan mot cua o dau",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_02",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0267",
+    "text": "Chỗ nộp hồ sơ Một Cửa ở đâu?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_02",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thân_mật"
+    ]
+  },
+  {
+    "id": "train_0268",
+    "text": "Giờ làm việc tiếp nhận hồ sơ của xã?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_03",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0269",
+    "text": "gio lam viec cua ubnd xa",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_03",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0270",
+    "text": "Mấy giờ xã mở cửa tiếp dân buổi sáng?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_03",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thân_mật"
+    ]
+  },
+  {
+    "id": "train_0271",
+    "text": "Buổi chiều mấy giờ xã đóng cửa?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_04",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0272",
+    "text": "chieu may gio dong cua",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_04",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0273",
+    "text": "Khung giờ làm việc buổi chiều của xã",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_04",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0274",
+    "text": "Thứ 7 UBND xã có làm việc không?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_05",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0275",
+    "text": "thu 7 xa co lam viec khong",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_05",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0276",
+    "text": "Thứ bảy ủy ban có tiếp dân không?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_05",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thân_mật"
+    ]
+  },
+  {
+    "id": "train_0277",
+    "text": "Số điện thoại đường dây nóng của UBND xã",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_06",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0278",
+    "text": "so dien thoai hotline cua xa",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_06",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0279",
+    "text": "SĐT Một Cửa xã để gọi hỏi hồ sơ",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_06",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "viết_tắt"
+    ]
+  },
+  {
+    "id": "train_0280",
+    "text": "Chỉ đường đi tới trụ sở UBND xã An Phú",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_07",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "địa_phương"
+    ]
+  },
+  {
+    "id": "train_0281",
+    "text": "duong di toi uy ban xa",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_07",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0282",
+    "text": "UBND xã nằm ở ấp nào đường nào?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_07",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "hỏi_địa_điểm"
+    ]
+  },
+  {
+    "id": "train_0283",
+    "text": "Xin chào cán bộ",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_01",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0284",
+    "text": "xin chao can bo",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_01",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0285",
+    "text": "Chào cán bộ Một Cửa ạ",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_01",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "lịch_sự"
+    ]
+  },
+  {
+    "id": "train_0286",
+    "text": "Chào bạn",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_02",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "câu_ngắn"
+    ]
+  },
+  {
+    "id": "train_0287",
+    "text": "chao ban",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_02",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "câu_ngắn"
+    ]
+  },
+  {
+    "id": "train_0288",
+    "text": "Hello",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_02",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "tiếng_anh"
+    ]
+  },
+  {
+    "id": "train_0289",
+    "text": "Hôm nay thế nào bạn?",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_03",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "xã_giao"
+    ]
+  },
+  {
+    "id": "train_0290",
+    "text": "hom nay the nao",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_03",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0291",
+    "text": "Dạo này khỏe không?",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_03",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thân_mật"
+    ]
+  },
+  {
+    "id": "train_0292",
+    "text": "Cảm ơn cán bộ nhiều nhé",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_04",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "cảm_ơn"
+    ]
+  },
+  {
+    "id": "train_0293",
+    "text": "cam on can bo",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_04",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "cảm_ơn"
+    ]
+  },
+  {
+    "id": "train_0294",
+    "text": "Thanks bạn nhiều",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_04",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "tiếng_anh"
+    ]
+  },
+  {
+    "id": "train_0295",
+    "text": "Tạm biệt cán bộ",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_05",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "tạm_biệt"
+    ]
+  },
+  {
+    "id": "train_0296",
+    "text": "tam biet nha",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_05",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "tạm_biệt"
+    ]
+  },
+  {
+    "id": "train_0297",
+    "text": "Bye bye",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_05",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "tiếng_anh"
+    ]
+  },
+  {
+    "id": "train_0298",
+    "text": "Bạn là ai?",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_06",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "hỏi_danh_tính"
+    ]
+  },
+  {
+    "id": "train_0299",
+    "text": "ban la ai",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_06",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0300",
+    "text": "Trợ lý này có chức năng gì?",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_06",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "hỏi_chức_năng"
+    ]
+  },
+  {
+    "id": "train_0301",
+    "text": "Alo có ai trực không?",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_07",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thân_mật"
+    ]
+  },
+  {
+    "id": "train_0302",
+    "text": "alo co ai truc khong",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_07",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0303",
+    "text": "Có ai online không",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_07",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thân_mật"
+    ]
+  },
+  {
+    "id": "train_0304",
+    "text": "Làm hộ chiếu phổ thông đi nước ngoài ở đâu?",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_01",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "hộ_chiếu"
+    ]
+  },
+  {
+    "id": "train_0305",
+    "text": "lam ho chieu di du lich o dau",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_01",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0306",
+    "text": "Xin cấp passport ở đâu?",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_01",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "từ_mượn"
+    ]
+  },
+  {
+    "id": "train_0307",
+    "text": "Đổi bằng lái xe ô tô hạng B2 ở đâu?",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_02",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "bằng_lái"
+    ]
+  },
+  {
+    "id": "train_0308",
+    "text": "doi bang lai xe b2 o dau",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_02",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0309",
+    "text": "Cấp lại giấy phép lái xe máy bị mất",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_02",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "bằng_lái"
+    ]
+  },
+  {
+    "id": "train_0310",
+    "text": "Thủ tục rút bảo hiểm xã hội 1 lần",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_03",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "bhxh",
+      "viết_số"
+    ]
+  },
+  {
+    "id": "train_0311",
+    "text": "rut bao hiem xa hoi mot lan o dau",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_03",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0312",
+    "text": "Rút sổ BHXH một lần cần gì",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_03",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "viết_tắt"
+    ]
+  },
+  {
+    "id": "train_0313",
+    "text": "Cấp Phiếu lý lịch tư pháp số 1 ở đâu?",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_04",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "lltp"
+    ]
+  },
+  {
+    "id": "train_0314",
+    "text": "xin phieu ly lich tu phap so 1 o dau",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_04",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0315",
+    "text": "Làm lý lịch tư pháp số 2 đi nước ngoài",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_04",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "lltp"
+    ]
+  },
+  {
+    "id": "train_0316",
+    "text": "Đăng ký biển số xe máy mới mua ở đâu?",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_05",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "xe_máy"
+    ]
+  },
+  {
+    "id": "train_0317",
+    "text": "dang ky bien so xe may o dau",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_05",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0318",
+    "text": "Bấm biển số xe ô tô ở công an nào?",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_05",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "ô_tô"
+    ]
+  },
+  {
+    "id": "train_0319",
+    "text": "Làm thẻ Căn cước công dân gắn chip ở đâu?",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_06",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "cccd"
+    ]
+  },
+  {
+    "id": "train_0320",
+    "text": "lam cccd gan chip o dau",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_06",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "viết_tắt"
+    ]
+  },
+  {
+    "id": "train_0321",
+    "text": "Cấp đổi thẻ căn cước công dân",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_06",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "cccd"
+    ]
+  },
+  {
+    "id": "train_0322",
+    "text": "Khởi kiện tranh chấp chia thừa kế tại Tòa án",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_07",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "tòa_án"
+    ]
+  },
+  {
+    "id": "train_0323",
+    "text": "khoi kien tranh chap thua ke tai toa",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_07",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0324",
+    "text": "Án phí kiện tranh chấp đất đai tại Tòa",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_07",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "tòa_án"
+    ]
+  },
+  {
+    "id": "train_0325",
+    "text": "Quyết toán thuế thu nhập cá nhân ở đâu?",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_08",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thuế"
+    ]
+  },
+  {
+    "id": "train_0326",
+    "text": "quyet toan thue tncn o dau",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_08",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "viết_tắt"
+    ]
+  },
+  {
+    "id": "train_0327",
+    "text": "Đăng ký mã số thuế cá nhân",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_08",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thuế"
+    ]
+  },
+  {
+    "id": "train_0328",
+    "text": "Thành lập công ty TNHH một thành viên",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_09",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "doanh_nghiệp"
+    ]
+  },
+  {
+    "id": "train_0329",
+    "text": "thanh lap cong ty tnhh o dau",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_09",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "viết_tắt"
+    ]
+  },
+  {
+    "id": "train_0330",
+    "text": "Xin giấy phép kinh doanh công ty",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_09",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "doanh_nghiệp"
+    ]
+  },
+  {
+    "id": "train_0331",
+    "text": "Thủ tục xin visa đi du lịch Mỹ",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_10",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thị_thực"
+    ]
+  },
+  {
+    "id": "train_0332",
+    "text": "xin visa my o dau",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_10",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0333",
+    "text": "Lệ phí xin thị thực nhập cảnh",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_10",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0334",
+    "text": "Nêu 40 thủ tục hành chính cấp xã",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_01",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0335",
+    "text": "neu 40 thu tuc",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_01",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0336",
+    "text": "Liệt kê 40 thủ tục của xã",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_01",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0337",
+    "text": "Danh sách thủ tục cấp xã",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_02",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0338",
+    "text": "danh sach thu tuc cap xa",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_02",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0339",
+    "text": "Danh mục TTHC một cửa xã",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_02",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "viết_tắt"
+    ]
+  },
+  {
+    "id": "train_0340",
+    "text": "UBND xã làm được những thủ tục gì?",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_03",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0341",
+    "text": "uy ban xa lam duoc nhung thu tuc gi",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_03",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0342",
+    "text": "Xã hỗ trợ thủ tục nào",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_03",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "ngắn"
+    ]
+  },
+  {
+    "id": "train_0343",
+    "text": "Hiện tại ở xã có bao nhiêu thủ tục?",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_04",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0344",
+    "text": "co bao nhieu thu tuc tai xa",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_04",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0345",
+    "text": "Tổng số dịch vụ công của xã",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_04",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0346",
+    "text": "5 nhóm thủ tục hành chính cấp xã",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_05",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0347",
+    "text": "5 nhom thu tuc gom nhung gi",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_05",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0348",
+    "text": "Các nhóm thủ tục ở một cửa",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_05",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0349",
+    "text": "Kể tên các thủ tục hành chính",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_06",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0350",
+    "text": "ke ten cac thu tuc",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_06",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0351",
+    "text": "Xem toàn bộ danh mục",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_06",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0352",
+    "text": "Những giấy tờ nào làm ở xã?",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_07",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "train_0353",
+    "text": "nhung giay to nao lam o xa",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_07",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "train_0354",
+    "text": "Xã làm những giấy tờ gì",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_07",
+    "author_id": "author_engineer_01",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thân_mật"
+    ]
+  }
+]

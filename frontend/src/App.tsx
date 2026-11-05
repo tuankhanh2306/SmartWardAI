@@ -1,7 +1,9 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { WardProvider } from './context/WardContext';
+import { RoleProvider } from './context/RoleContext';
 import Header from './components/Header';
+import OfficerGuard from './components/OfficerGuard';
 import CitizenPortal from './pages/CitizenPortal';
 import FormAndIssueReporting from './pages/FormAndIssueReporting';
 import GisCommandCenter from './pages/GisCommandCenter';
@@ -13,31 +15,54 @@ export const App: React.FC = () => {
   return (
     <BrowserRouter>
       <WardProvider>
-        <div className="min-h-screen bg-background font-sans text-on-surface antialiased flex flex-col selection:bg-primary-fixed selection:text-on-primary-fixed">
-          {/* Global Administrative Header */}
-          <Header />
+        <RoleProvider>
+          <div className="min-h-screen bg-background font-sans text-on-surface antialiased flex flex-col selection:bg-primary-fixed selection:text-on-primary-fixed">
+            {/* Global Administrative Header with Role-Based Navigation */}
+            <Header />
 
-          {/* Content Viewport with top offset for fixed header */}
-          <div className="pt-16 flex-1 flex flex-col">
-            <Routes>
-              {/* Ward Onboarding & Selector */}
-              <Route path="/onboarding" element={<WardOnboarding />} />
+            {/* Content Viewport with top offset for fixed header */}
+            <div className="pt-16 flex-1 flex flex-col">
+              <Routes>
+                {/* Common / Geographic Routes */}
+                <Route path="/onboarding" element={<WardOnboarding />} />
 
-              {/* Citizen Facing Routes */}
-              <Route path="/" element={<Navigate to="/citizen" replace />} />
-              <Route path="/citizen" element={<CitizenPortal />} />
-              <Route path="/citizen/form" element={<FormAndIssueReporting />} />
+                {/* Citizen Dedicated Routes */}
+                <Route path="/" element={<Navigate to="/citizen" replace />} />
+                <Route path="/citizen" element={<CitizenPortal />} />
+                <Route path="/citizen/form" element={<FormAndIssueReporting />} />
 
-              {/* Officer Administrative Routes */}
-              <Route path="/officer/audit" element={<OfficerFormAudit />} />
-              <Route path="/officer/map" element={<GisCommandCenter />} />
-              <Route path="/officer/ward/:wardCode" element={<PerWardDashboard />} />
+                {/* Officer Protected Routes (RBAC Guard) */}
+                <Route
+                  path="/officer/audit"
+                  element={
+                    <OfficerGuard>
+                      <OfficerFormAudit />
+                    </OfficerGuard>
+                  }
+                />
+                <Route
+                  path="/officer/map"
+                  element={
+                    <OfficerGuard>
+                      <GisCommandCenter />
+                    </OfficerGuard>
+                  }
+                />
+                <Route
+                  path="/officer/ward/:wardCode"
+                  element={
+                    <OfficerGuard>
+                      <PerWardDashboard />
+                    </OfficerGuard>
+                  }
+                />
 
-              {/* Fallback */}
-              <Route path="*" element={<Navigate to="/citizen" replace />} />
-            </Routes>
+                {/* Fallback */}
+                <Route path="*" element={<Navigate to="/citizen" replace />} />
+              </Routes>
+            </div>
           </div>
-        </div>
+        </RoleProvider>
       </WardProvider>
     </BrowserRouter>
   );

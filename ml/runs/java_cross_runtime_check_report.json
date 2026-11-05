@@ -1,0 +1,8 @@
+{
+  "avg_cosine_similarity" : 1.0000000190555633,
+  "avg_mse" : 1.415816954814248E-15,
+  "mismatched_token_ids" : 0,
+  "exact_token_id_matches" : 105,
+  "total_sentences_tested" : 105,
+  "status_passed" : true
+}

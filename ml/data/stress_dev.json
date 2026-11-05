@@ -1,0 +1,1132 @@
+[
+  {
+    "id": "S001",
+    "text": "con tui mới sanh, đi khai sanh ở xã cần giấy tờ gì vậy",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-HT-01",
+    "gold_chunk_ids": [
+      "TTHC-HT-01_CHUNK_003"
+    ],
+    "group_id": "G-S001",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "phuong_ngu",
+      "persona_nong_dan"
+    ],
+    "hint": "HINT:khai_sinh",
+    "mapping_status": "MAPPED",
+    "question_type": "Hồ sơ (Required Documents)",
+    "rationale": "Khai sinh thông thường cấp xã, hỏi thành phần giấy tờ cần nộp -> REQUIRED_DOCUMENTS."
+  },
+  {
+    "id": "S003",
+    "text": "Em sinh bé ở bệnh viện tỉnh, về xã đăng ký khai sinh mất mấy ngày, tốn bao nhiêu tiền?",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-HT-01",
+    "gold_chunk_ids": [
+      "TTHC-HT-01_CHUNK_001"
+    ],
+    "group_id": "G-S003",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "chuan",
+      "hoi_phi_thoi_han"
+    ],
+    "hint": "HINT:khai_sinh",
+    "mapping_status": "MAPPED",
+    "question_type": "Phí / Lệ phí & Thời hạn",
+    "rationale": "Hỏi thời hạn giải quyết (mấy ngày) và mức lệ phí (bao nhiêu tiền) -> OVERVIEW."
+  },
+  {
+    "id": "S005",
+    "text": "xin hoi lam giay khai sinh tre qua han 1 nam can ho so gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-HT-01",
+    "gold_chunk_ids": [
+      "TTHC-HT-01_CHUNK_003"
+    ],
+    "group_id": "G-S005",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "khong_dau",
+      "qua_han"
+    ],
+    "hint": "HINT:khai_sinh",
+    "mapping_status": "MAPPED",
+    "question_type": "Hồ sơ (Required Documents)",
+    "rationale": "Hỏi hồ sơ khai sinh khi quá hạn 1 năm -> REQUIRED_DOCUMENTS."
+  },
+  {
+    "id": "S008",
+    "text": "vợ chồng tui ở khác xã muốn đăng ký kết hôn thì nộp ở xã nào",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-HT-02",
+    "gold_chunk_ids": [
+      "TTHC-HT-02_CHUNK_001"
+    ],
+    "group_id": "G-S008",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "phuong_ngu",
+      "hoi_noi_nop"
+    ],
+    "hint": "HINT:ket_hon",
+    "mapping_status": "MAPPED",
+    "question_type": "Quy trình / Thẩm quyền nơi nộp",
+    "rationale": "Vợ chồng khác xã, hỏi thẩm quyền nơi tiếp nhận hồ sơ -> OVERVIEW."
+  },
+  {
+    "id": "S009",
+    "text": "co can giay xac nhan doc than truoc khi dang ky ket hon khong",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-HT-02",
+    "gold_chunk_ids": [
+      "TTHC-HT-02_CHUNK_003"
+    ],
+    "group_id": "G-S009",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "khong_dau",
+      "hoi_ho_so"
+    ],
+    "hint": "HINT:ket_hon",
+    "mapping_status": "MAPPED",
+    "question_type": "Hồ sơ (Required Documents)",
+    "rationale": "Hỏi giấy xác nhận độc thân trong thành phần hồ sơ kết hôn -> REQUIRED_DOCUMENTS."
+  },
+  {
+    "id": "S010",
+    "text": "chị ơi cho em hỏi đăng ký kết hôn có mất phí hông",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-HT-02",
+    "gold_chunk_ids": [
+      "TTHC-HT-02_CHUNK_001"
+    ],
+    "group_id": "G-S010",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "phuong_ngu",
+      "hoi_phi"
+    ],
+    "hint": "HINT:ket_hon",
+    "mapping_status": "MAPPED",
+    "question_type": "Phí / Lệ phí",
+    "rationale": "Hỏi mức lệ phí đăng ký kết hôn -> OVERVIEW."
+  },
+  {
+    "id": "S012",
+    "text": "em can giay doc than de lam ho so, mat may ngay xin duoc",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-HT-11",
+    "gold_chunk_ids": [
+      "TTHC-HT-11_CHUNK_001"
+    ],
+    "group_id": "G-S012",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "khong_dau",
+      "hoi_thoi_han"
+    ],
+    "hint": "HINT:doc_than",
+    "mapping_status": "MAPPED",
+    "question_type": "Thời hạn giải quyết",
+    "rationale": "Thời hạn cấp giấy xác nhận tình trạng hôn nhân (mất mấy ngày) -> OVERVIEW."
+  },
+  {
+    "id": "S016",
+    "text": "ông nội mất ở nhà, không có giấy báo tử bệnh viện thì khai tử sao",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "UNMAPPED",
+    "gold_chunk_ids": [],
+    "group_id": "G-S016",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "chuan",
+      "tinh_huong_dac_biet"
+    ],
+    "hint": "HINT:khai_tu",
+    "mapping_status": "UNMAPPED",
+    "question_type": "Quy trình / Không giấy báo tử (Khai tử không có trong 40 TTHC)",
+    "rationale": "Không có thủ tục khai tử thông thường trong kho 40 TTHC. Không đoán -> UNMAPPED."
+  },
+  {
+    "id": "S019",
+    "text": "tui muốn chứng thực chữ ký trên hợp đồng, cần mang gì",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-CT-02",
+    "gold_chunk_ids": [
+      "TTHC-CT-02_CHUNK_003"
+    ],
+    "group_id": "G-S019",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "phuong_ngu",
+      "hoi_ho_so"
+    ],
+    "hint": "HINT:chung_thuc",
+    "mapping_status": "MAPPED",
+    "question_type": "Hồ sơ (Required Documents)",
+    "rationale": "Chứng thực chữ ký trong giấy tờ, văn bản: hỏi giấy tờ cần mang -> REQUIRED_DOCUMENTS."
+  },
+  {
+    "id": "S021",
+    "text": "chuyen nha sang xa khac, dang ky thuong tru can giay gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "OUT_OF_SCOPE",
+    "procedure_code": "TTHC-CR-01",
+    "gold_chunk_ids": [
+      "TTHC-CR-01_CHUNK_005"
+    ],
+    "group_id": "G-S021",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "khong_dau",
+      "hoi_ho_so"
+    ],
+    "hint": "HINT:cu_tru",
+    "mapping_status": "MAPPED",
+    "question_type": "Hồ sơ (Đăng ký thường trú)",
+    "rationale": "Thường trú có mã TTHC-CR-01 (hồ sơ chunk 005), nhưng cơ quan giải quyết là Bộ Công an/Công an xã, ngoài thẩm quyền Một cửa cấp xã -> Đề xuất OUT_OF_SCOPE."
+  },
+  {
+    "id": "S024",
+    "text": "tách hộ ra riêng cần điều kiện gì vậy",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "OUT_OF_SCOPE",
+    "procedure_code": "UNMAPPED",
+    "gold_chunk_ids": [],
+    "group_id": "G-S024",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "phuong_ngu",
+      "tu_cu_ho_khau"
+    ],
+    "hint": "HINT:cu_tru",
+    "mapping_status": "UNMAPPED",
+    "question_type": "Điều kiện (Tách hộ không có trong 40 TTHC)",
+    "rationale": "Thủ tục 'Tách hộ' HOÀN TOÀN KHÔNG CÓ trong 40 TTHC; thuộc thẩm quyền Công an cấp xã -> UNMAPPED và Đề xuất OUT_OF_SCOPE."
+  },
+  {
+    "id": "S026",
+    "text": "thừa kế đất đai ở xã, ba mất không để lại di chúc, làm sao",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-DC-01",
+    "gold_chunk_ids": [
+      "TTHC-DC-01_CHUNK_002"
+    ],
+    "group_id": "G-S026",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "chuan",
+      "tinh_huong_dac_biet"
+    ],
+    "hint": "HINT:dat_dai",
+    "mapping_status": "MAPPED",
+    "question_type": "Quy trình (Process Step)",
+    "rationale": "Thừa kế đất đai không có di chúc: trình tự các bước thực hiện đăng ký biến động -> PROCESS_STEP (CHUNK_002)."
+  },
+  {
+    "id": "S028",
+    "text": "mình muốn tách thửa đất để chia cho anh em, thủ tục thế nào",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "UNMAPPED",
+    "gold_chunk_ids": [],
+    "group_id": "G-S028",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "chuan"
+    ],
+    "hint": "HINT:dat_dai",
+    "mapping_status": "UNMAPPED",
+    "question_type": "Quy trình (Tách thửa đất không có trong 40 TTHC)",
+    "rationale": "40 TTHC không có thủ tục tách thửa đất (chỉ có biến động DC-01 và cấp lần đầu DC-02). Không đoán -> UNMAPPED."
+  },
+  {
+    "id": "S030",
+    "text": "chuyển nhượng đất nông nghiệp cho người khác phải làm ở đâu, mất bao lâu",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-DC-01",
+    "gold_chunk_ids": [
+      "TTHC-DC-01_CHUNK_001"
+    ],
+    "group_id": "G-S030",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "chuan",
+      "hoi_noi_nop",
+      "hoi_thoi_han"
+    ],
+    "hint": "HINT:dat_dai",
+    "mapping_status": "MAPPED",
+    "question_type": "Thời hạn & Nơi nộp",
+    "rationale": "Chuyển nhượng đất nông nghiệp làm ở đâu, mất bao lâu -> OVERVIEW."
+  },
+  {
+    "id": "S032",
+    "text": "gia dinh ngheo muon lam ho so xin tro cap bao tro xa hoi can gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-BT-01",
+    "gold_chunk_ids": [
+      "TTHC-BT-01_CHUNK_003"
+    ],
+    "group_id": "G-S032",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "khong_dau",
+      "hoi_ho_so"
+    ],
+    "hint": "HINT:bao_tro",
+    "mapping_status": "MAPPED",
+    "question_type": "Hồ sơ (Required Documents)",
+    "rationale": "Hồ sơ xin trợ cấp bảo trợ xã hội hộ nghèo -> REQUIRED_DOCUMENTS."
+  },
+  {
+    "id": "S034",
+    "text": "bé mồ côi cha mẹ thì xin trợ cấp thế nào ạ",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-BT-01",
+    "gold_chunk_ids": [
+      "TTHC-BT-01_CHUNK_002"
+    ],
+    "group_id": "G-S034",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "chuan",
+      "tinh_huong_dac_biet"
+    ],
+    "hint": "HINT:bao_tro",
+    "mapping_status": "MAPPED",
+    "question_type": "Quy trình (Process Step)",
+    "rationale": "Trình tự xin trợ cấp cho trẻ mồ côi cha mẹ -> PROCESS_STEP (CHUNK_002)."
+  },
+  {
+    "id": "S036",
+    "text": "sua sai ngay sinh tren giay khai sinh phai lam sao",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "UNMAPPED",
+    "gold_chunk_ids": [],
+    "group_id": "G-S036",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "khong_dau"
+    ],
+    "hint": "HINT:ho_tich_khac",
+    "mapping_status": "UNMAPPED",
+    "question_type": "Quy trình (Sửa ngày sinh trong nước không có trong 40 TTHC)",
+    "rationale": "40 TTHC không có cải chính ngày sinh trong nước (chỉ có HT-12 yếu tố nước ngoài). Không đoán -> UNMAPPED."
+  },
+  {
+    "id": "S037",
+    "text": "xin trích lục khai sinh bản sao ở xã mất bao nhiêu",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-HT-04",
+    "gold_chunk_ids": [
+      "TTHC-HT-04_CHUNK_001"
+    ],
+    "group_id": "G-S037",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "chuan",
+      "hoi_phi"
+    ],
+    "hint": "HINT:ho_tich_khac",
+    "mapping_status": "MAPPED",
+    "question_type": "Phí / Lệ phí",
+    "rationale": "Cấp bản sao trích lục khai sinh ở xã mất bao nhiêu tiền -> OVERVIEW."
+  },
+  {
+    "id": "S041",
+    "text": "xin chào, mình ở xã khác muốn làm giấy xác nhận độc thân thì sao",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-HT-11",
+    "gold_chunk_ids": [
+      "TTHC-HT-11_CHUNK_001"
+    ],
+    "group_id": "G-S041",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "da_y",
+      "chao_kem_hoi"
+    ],
+    "hint": "HINT:doc_than",
+    "mapping_status": "MAPPED",
+    "question_type": "Quy trình / Thẩm quyền nơi nộp",
+    "rationale": "Chào kèm hỏi ở xã khác làm giấy độc thân nộp ở đâu -> OVERVIEW."
+  },
+  {
+    "id": "S042",
+    "text": "alo cho hỏi chứng thực chữ ký mất bao nhiêu tiền, cảm ơn",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-CT-02",
+    "gold_chunk_ids": [
+      "TTHC-CT-02_CHUNK_001"
+    ],
+    "group_id": "G-S042",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "da_y",
+      "hoi_phi"
+    ],
+    "hint": "HINT:chung_thuc",
+    "mapping_status": "MAPPED",
+    "question_type": "Phí / Lệ phí",
+    "rationale": "Hỏi mức phí chứng thực chữ ký -> OVERVIEW."
+  },
+  {
+    "id": "S043",
+    "text": "hi, xin hoi khai tu can giay to gi",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "UNMAPPED",
+    "gold_chunk_ids": [],
+    "group_id": "G-S043",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "da_y",
+      "khong_dau",
+      "chao_kem_hoi"
+    ],
+    "hint": "HINT:khai_tu",
+    "mapping_status": "UNMAPPED",
+    "question_type": "Hồ sơ (Khai tử không có trong 40 TTHC)",
+    "rationale": "Chào hỏi giấy tờ khai tử: không có thủ tục khai tử thông thường trong 40 TTHC. Không đoán -> UNMAPPED."
+  },
+  {
+    "id": "S045",
+    "text": "ket hon",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-HT-02",
+    "gold_chunk_ids": [
+      "TTHC-HT-02_CHUNK_001"
+    ],
+    "group_id": "G-S045",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "cau_coc_loc",
+      "khong_dau",
+      "CAN_CHU_DU_AN_QUYET_NHAN"
+    ],
+    "hint": "HINT:ket_hon",
+    "mapping_status": "MAPPED",
+    "question_type": "Tổng quan (Câu cộc lốc)",
+    "rationale": "Câu cộc lốc 'ket hon': ánh xạ về tổng quan thủ tục đăng ký kết hôn -> OVERVIEW."
+  },
+  {
+    "id": "S046",
+    "text": "đăng ký tạm trú",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "OUT_OF_SCOPE",
+    "procedure_code": "TTHC-CR-03",
+    "gold_chunk_ids": [
+      "TTHC-CR-03_CHUNK_001"
+    ],
+    "group_id": "G-S046",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "cau_coc_loc",
+      "CAN_CHU_DU_AN_QUYET_NHAN"
+    ],
+    "hint": "HINT:cu_tru",
+    "mapping_status": "MAPPED",
+    "question_type": "Tổng quan (Câu cộc lốc cư trú)",
+    "rationale": "Câu cộc lốc 'đăng ký tạm trú': mã TTHC-CR-03 chunk 001, nhưng thuộc thẩm quyền Công an xã -> Đề xuất OUT_OF_SCOPE."
+  },
+  {
+    "id": "S047",
+    "text": "sao y",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-CT-01",
+    "gold_chunk_ids": [
+      "TTHC-CT-01_CHUNK_001"
+    ],
+    "group_id": "G-S047",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "cau_coc_loc",
+      "viet_tat",
+      "CAN_CHU_DU_AN_QUYET_NHAN"
+    ],
+    "hint": "HINT:chung_thuc",
+    "mapping_status": "MAPPED",
+    "question_type": "Tổng quan (Câu cộc lốc)",
+    "rationale": "Câu cộc lốc 'sao y': ánh xạ về chứng thực bản sao từ bản chính -> OVERVIEW."
+  },
+  {
+    "id": "S049",
+    "text": "khai sinh het bao nhieu tien va may ngay",
+    "intent": "PROCEDURE_INQUIRY",
+    "proposed_intent": "PROCEDURE_INQUIRY",
+    "procedure_code": "TTHC-HT-01",
+    "gold_chunk_ids": [
+      "TTHC-HT-01_CHUNK_001"
+    ],
+    "group_id": "G-S049",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "khong_dau",
+      "hoi_phi_thoi_han"
+    ],
+    "hint": "HINT:khai_sinh",
+    "mapping_status": "MAPPED",
+    "question_type": "Phí / Lệ phí & Thời hạn",
+    "rationale": "Hỏi chi phí và thời gian làm khai sinh -> OVERVIEW."
+  },
+  {
+    "id": "S051",
+    "text": "làm hộ chiếu ở xã được không",
+    "intent": "OUT_OF_SCOPE",
+    "proposed_intent": "OUT_OF_SCOPE",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S051",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "oos_authority"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S053",
+    "text": "dang kiem xe oto o xa duoc khong",
+    "intent": "OUT_OF_SCOPE",
+    "proposed_intent": "OUT_OF_SCOPE",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S053",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "oos_authority",
+      "khong_dau"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S054",
+    "text": "mình muốn quyết toán thuế thu nhập cá nhân thì làm sao",
+    "intent": "OUT_OF_SCOPE",
+    "proposed_intent": "OUT_OF_SCOPE",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S054",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "oos_authority"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S058",
+    "text": "bị tai nạn xe muốn đòi bồi thường thì kiện ở đâu",
+    "intent": "OUT_OF_SCOPE",
+    "proposed_intent": "OUT_OF_SCOPE",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S058",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "oos_authority",
+      "tranh_chap"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S059",
+    "text": "thanh lap cong ty TNHH dang ky o dau",
+    "intent": "OUT_OF_SCOPE",
+    "proposed_intent": "OUT_OF_SCOPE",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S059",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "oos_authority",
+      "khong_dau"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S061",
+    "text": "chủ nhà không trả tiền cọc, tôi kiện được không",
+    "intent": "OUT_OF_SCOPE",
+    "proposed_intent": "OUT_OF_SCOPE",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S061",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "oos_authority",
+      "tranh_chap"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S063",
+    "text": "hôm nay trời có mưa không",
+    "intent": "OUT_OF_SCOPE",
+    "proposed_intent": "OUT_OF_SCOPE",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S063",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "oos_irrelevant"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S066",
+    "text": "kể cho tôi nghe chuyện cười đi",
+    "intent": "OUT_OF_SCOPE",
+    "proposed_intent": "OUT_OF_SCOPE",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S066",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "oos_irrelevant"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S067",
+    "text": "làm sao để nấu phở ngon",
+    "intent": "OUT_OF_SCOPE",
+    "proposed_intent": "OUT_OF_SCOPE",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S067",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "oos_irrelevant"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S069",
+    "text": "1+1 bằng mấy",
+    "intent": "OUT_OF_SCOPE",
+    "proposed_intent": "OUT_OF_SCOPE",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S069",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "oos_irrelevant",
+      "cau_ngan"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S073",
+    "text": "cần giấy tờ gì",
+    "intent": "AMBIGUOUS",
+    "proposed_intent": "AMBIGUOUS",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S073",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "thieu_chu_ngu",
+      "hoi_ho_so"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S076",
+    "text": "tôi muốn hỏi thủ tục",
+    "intent": "AMBIGUOUS",
+    "proposed_intent": "AMBIGUOUS",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S076",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "thieu_chu_ngu"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S077",
+    "text": "giay to",
+    "intent": "AMBIGUOUS",
+    "proposed_intent": "AMBIGUOUS",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S077",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "cau_coc_loc",
+      "khong_dau"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S078",
+    "text": "xin hoi them",
+    "intent": "AMBIGUOUS",
+    "proposed_intent": "AMBIGUOUS",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S078",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "thieu_chu_ngu",
+      "khong_dau"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S079",
+    "text": "bao lau",
+    "intent": "AMBIGUOUS",
+    "proposed_intent": "AMBIGUOUS",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S079",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "cau_coc_loc",
+      "khong_dau"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S083",
+    "text": "can mang theo gi",
+    "intent": "AMBIGUOUS",
+    "proposed_intent": "AMBIGUOUS",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S083",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "thieu_chu_ngu",
+      "khong_dau"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S084",
+    "text": "co mat phi k",
+    "intent": "AMBIGUOUS",
+    "proposed_intent": "AMBIGUOUS",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S084",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "viet_tat",
+      "khong_dau",
+      "hoi_phi"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S085",
+    "text": "làm giấy xác nhận",
+    "intent": "AMBIGUOUS",
+    "proposed_intent": "AMBIGUOUS",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S085",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "thieu_loai_giay",
+      "CAN_CHU_DU_AN_QUYET_NHAN"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S086",
+    "text": "xin chào",
+    "intent": "GREETING",
+    "proposed_intent": "GREETING",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S086",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "chuan"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S087",
+    "text": "chào bạn",
+    "intent": "GREETING",
+    "proposed_intent": "GREETING",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S087",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "chuan"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S088",
+    "text": "hello",
+    "intent": "GREETING",
+    "proposed_intent": "GREETING",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S088",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "tieng_anh"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S091",
+    "text": "hi bot",
+    "intent": "GREETING",
+    "proposed_intent": "GREETING",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S091",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "viet_tat"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S095",
+    "text": "bạn là ai vậy",
+    "intent": "GREETING",
+    "proposed_intent": "GREETING",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S095",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "hoi_danh_tinh",
+      "CAN_CHU_DU_AN_QUYET_NHAN"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S098",
+    "text": "cho mình xin số điện thoại bộ phận một cửa",
+    "intent": "COMMUNE_INFO",
+    "proposed_intent": "COMMUNE_INFO",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S098",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "chuan",
+      "hoi_lien_he"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S099",
+    "text": "dia chi ubnd xa o dau",
+    "intent": "COMMUNE_INFO",
+    "proposed_intent": "COMMUNE_INFO",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S099",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "khong_dau",
+      "hoi_dia_chi"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S100",
+    "text": "trưa có nghỉ không bạn",
+    "intent": "COMMUNE_INFO",
+    "proposed_intent": "COMMUNE_INFO",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S100",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "phuong_ngu",
+      "hoi_gio"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S101",
+    "text": "giờ làm việc của ủy ban",
+    "intent": "COMMUNE_INFO",
+    "proposed_intent": "COMMUNE_INFO",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S101",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "chuan",
+      "hoi_gio"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S104",
+    "text": "trụ sở xã nằm ở đâu, đi đường nào",
+    "intent": "COMMUNE_INFO",
+    "proposed_intent": "COMMUNE_INFO",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S104",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "chuan",
+      "hoi_dia_chi"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S106",
+    "text": "xã làm được những giấy tờ gì",
+    "intent": "PROCEDURE_CATALOG",
+    "proposed_intent": "PROCEDURE_CATALOG",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S106",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "chuan"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S108",
+    "text": "co nhung thu tuc nao o cap xa",
+    "intent": "PROCEDURE_CATALOG",
+    "proposed_intent": "PROCEDURE_CATALOG",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S108",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "khong_dau"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S109",
+    "text": "ở xã làm được những việc gì vậy",
+    "intent": "PROCEDURE_CATALOG",
+    "proposed_intent": "PROCEDURE_CATALOG",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S109",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "phuong_ngu"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S112",
+    "text": "chatbot hỗ trợ được thủ tục nào",
+    "intent": "PROCEDURE_CATALOG",
+    "proposed_intent": "PROCEDURE_CATALOG",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S112",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "hoi_chuc_nang"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  },
+  {
+    "id": "S113",
+    "text": "xã giải quyết những nhóm thủ tục nào",
+    "intent": "PROCEDURE_CATALOG",
+    "proposed_intent": "PROCEDURE_CATALOG",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "G-S113",
+    "author_id": "claude_stress",
+    "source": "synthetic_llm_stress",
+    "style_tags": [
+      "chuan"
+    ],
+    "hint": null,
+    "mapping_status": "NON_INQUIRY",
+    "question_type": null,
+    "rationale": null
+  }
+]

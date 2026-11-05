@@ -1,0 +1,10 @@
+{
+  "fp32_size_mb": 448.52,
+  "int8_size_mb": 112.7,
+  "size_reduction_pct": 74.87,
+  "ram_fp32_mb": 460.99,
+  "ram_int8_mb": 121.6,
+  "avg_cosine_parity": 0.987070095539093,
+  "avg_mse_parity": 6.734325434081257e-05,
+  "fits_under_250mb_goal": true
+}

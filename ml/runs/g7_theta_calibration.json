@@ -1,0 +1,137 @@
+{
+  "status": "TẠM THỜI (dev tổng hợp, kiểm tra pipeline)",
+  "embedding_model_version": "bkai_pho_bert_ft_v1",
+  "model_file": "ml/models/bkai_finetuned.onnx",
+  "in_domain_stats": {
+    "n": 120,
+    "mean": 0.5711,
+    "std": 0.1008,
+    "median": 0.5849,
+    "min": 0.3147,
+    "max": 0.7954
+  },
+  "oos_auth_stats": {
+    "n": 24,
+    "mean": 0.3173,
+    "std": 0.0906,
+    "median": 0.2919,
+    "min": 0.1707,
+    "max": 0.5228
+  },
+  "sweep_table": [
+    {
+      "theta": 0.35,
+      "frr_valid": 0.0083,
+      "frr_95_ci": [
+        0.0,
+        0.025
+      ],
+      "far_auth_vector_only": 0.25,
+      "far_irrel_vector_only": 0.0,
+      "leakage_two_stage_auth": 0.0833,
+      "leakage_two_stage_irrel": 0.0
+    },
+    {
+      "theta": 0.4,
+      "frr_valid": 0.0333,
+      "frr_95_ci": [
+        0.0083,
+        0.0667
+      ],
+      "far_auth_vector_only": 0.25,
+      "far_irrel_vector_only": 0.0,
+      "leakage_two_stage_auth": 0.0833,
+      "leakage_two_stage_irrel": 0.0
+    },
+    {
+      "theta": 0.45,
+      "frr_valid": 0.1417,
+      "frr_95_ci": [
+        0.0833,
+        0.2
+      ],
+      "far_auth_vector_only": 0.125,
+      "far_irrel_vector_only": 0.0,
+      "leakage_two_stage_auth": 0.0833,
+      "leakage_two_stage_irrel": 0.0
+    },
+    {
+      "theta": 0.5,
+      "frr_valid": 0.3,
+      "frr_95_ci": [
+        0.2333,
+        0.3669
+      ],
+      "far_auth_vector_only": 0.0417,
+      "far_irrel_vector_only": 0.0,
+      "leakage_two_stage_auth": 0.0,
+      "leakage_two_stage_irrel": 0.0
+    },
+    {
+      "theta": 0.52,
+      "frr_valid": 0.3333,
+      "frr_95_ci": [
+        0.2667,
+        0.4083
+      ],
+      "far_auth_vector_only": 0.0417,
+      "far_irrel_vector_only": 0.0,
+      "leakage_two_stage_auth": 0.0,
+      "leakage_two_stage_irrel": 0.0
+    },
+    {
+      "theta": 0.55,
+      "frr_valid": 0.4,
+      "frr_95_ci": [
+        0.3167,
+        0.4833
+      ],
+      "far_auth_vector_only": 0.0,
+      "far_irrel_vector_only": 0.0,
+      "leakage_two_stage_auth": 0.0,
+      "leakage_two_stage_irrel": 0.0
+    },
+    {
+      "theta": 0.58,
+      "frr_valid": 0.4833,
+      "frr_95_ci": [
+        0.3833,
+        0.5752
+      ],
+      "far_auth_vector_only": 0.0,
+      "far_irrel_vector_only": 0.0,
+      "leakage_two_stage_auth": 0.0,
+      "leakage_two_stage_irrel": 0.0
+    },
+    {
+      "theta": 0.6,
+      "frr_valid": 0.55,
+      "frr_95_ci": [
+        0.4667,
+        0.6417
+      ],
+      "far_auth_vector_only": 0.0,
+      "far_irrel_vector_only": 0.0,
+      "leakage_two_stage_auth": 0.0,
+      "leakage_two_stage_irrel": 0.0
+    },
+    {
+      "theta": 0.65,
+      "frr_valid": 0.7333,
+      "frr_95_ci": [
+        0.6498,
+        0.8167
+      ],
+      "far_auth_vector_only": 0.0,
+      "far_irrel_vector_only": 0.0,
+      "leakage_two_stage_auth": 0.0,
+      "leakage_two_stage_irrel": 0.0
+    }
+  ],
+  "recommended_thresholds": {
+    "theta": 0.5,
+    "theta_lower": 0.42,
+    "frr_at_theta": 0.3,
+    "two_stage_auth_leakage": 0.0
+  }
+}

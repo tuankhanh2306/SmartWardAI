@@ -1,0 +1,72 @@
+{
+  "dataset_sizes": {
+    "train": 354,
+    "dev": 228,
+    "heldout": 228,
+    "total": 810
+  },
+  "intent_distribution": {
+    "train": {
+      "PROCEDURE_INQUIRY": 240,
+      "AMBIGUOUS": 21,
+      "COMMUNE_INFO": 21,
+      "GREETING": 21,
+      "OUT_OF_SCOPE": 30,
+      "PROCEDURE_CATALOG": 21
+    },
+    "dev": {
+      "PROCEDURE_INQUIRY": 120,
+      "AMBIGUOUS": 21,
+      "COMMUNE_INFO": 21,
+      "GREETING": 21,
+      "OUT_OF_SCOPE": 24,
+      "PROCEDURE_CATALOG": 21
+    },
+    "heldout": {
+      "PROCEDURE_INQUIRY": 120,
+      "AMBIGUOUS": 21,
+      "COMMUNE_INFO": 21,
+      "GREETING": 21,
+      "OUT_OF_SCOPE": 24,
+      "PROCEDURE_CATALOG": 21
+    }
+  },
+  "sub_intent_distribution": {
+    "train": {
+      "INQUIRY_DOCUMENTS": 120,
+      "INQUIRY_FEE_TIME": 120,
+      "AMBIGUOUS_UNDERSPECIFIED": 21,
+      "COMMUNE_SCHEDULE_CONTACT": 21,
+      "GREETING_STANDARD": 21,
+      "OOS_COMPETENT_AUTHORITY": 30,
+      "CATALOG_FULL": 21
+    },
+    "dev": {
+      "INQUIRY_PROCESS": 120,
+      "AMBIGUOUS_UNDERSPECIFIED": 21,
+      "COMMUNE_SCHEDULE_CONTACT": 21,
+      "GREETING_STANDARD": 21,
+      "OOS_COMPETENT_AUTHORITY": 24,
+      "CATALOG_FULL": 21
+    },
+    "heldout": {
+      "INQUIRY_PRACTICAL": 120,
+      "AMBIGUOUS_UNDERSPECIFIED": 21,
+      "COMMUNE_SCHEDULE_CONTACT": 21,
+      "GREETING_STANDARD": 21,
+      "OOS_COMPETENT_AUTHORITY": 6,
+      "OOS_IRRELEVANT": 9,
+      "OOS_INJECTION_SAFETY": 9,
+      "CATALOG_FULL": 21
+    }
+  },
+  "leakage_audit": {
+    "exact_leak_heldout_train": 0,
+    "exact_leak_heldout_dev": 0,
+    "gid_leak_heldout_train": 0,
+    "gid_leak_heldout_dev": 0,
+    "near_dup_jaccard_count": 0,
+    "semantic_high_sim_pairs_count": 2
+  },
+  "gold_chunk_audit_30_pass_rate": "30/30"
+}

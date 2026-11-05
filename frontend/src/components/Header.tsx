@@ -1,34 +1,47 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Landmark, Bot, ShieldCheck, Map, FileCheck2, ArrowRight, Sparkles, MapPin } from 'lucide-react';
-import { isGeminiConfigured } from '../services/geminiClient';
-import { AiSettingsModal } from './AiSettingsModal';
+import { Menu, X, Landmark, Bot, ShieldCheck, Map, FileCheck2, ArrowRight, MapPin, LogOut } from 'lucide-react';
 import { useWard } from '../context/WardContext';
+import { useRole } from '../context/RoleContext';
+import OfficerAuthModal from './OfficerAuthModal';
 
 export const Header: React.FC = () => {
   const location = useLocation();
   const path = location.pathname;
   const { currentWard } = useWard();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [aiModalOpen, setAiModalOpen] = useState(false);
-  const [geminiActive, setGeminiActive] = useState(isGeminiConfigured());
+  const { isOfficer, officerProfile, logoutToCitizen, authModalOpen, setAuthModalOpen } = useRole();
 
-  const navLinks = [
-    { to: '/onboarding', label: 'Chọn Xã/Phường', icon: MapPin },
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Role-Based Navigation Partitioning (Phân quyền phân trang chuyên biệt)
+  const citizenNavLinks = [
     { to: '/citizen', label: 'Cổng Công Dân', icon: Bot },
-    { to: '/citizen/form', label: 'Tiền Kiểm Định', icon: FileCheck2 },
-    { to: `/officer/ward/${currentWard.code}`, label: 'Bàn Cán Bộ Xã', icon: ShieldCheck },
-    { to: '/officer/map', label: 'Bản Đồ GIS', icon: Map },
+    { to: '/citizen/form', label: 'Tiền Kiểm Định Tờ Khai', icon: FileCheck2 },
   ];
+
+  const officerNavLinks = [
+    { to: `/officer/ward/${currentWard.code}`, label: 'Bàn Điều Hành Xã', icon: ShieldCheck },
+    { to: '/officer/audit', label: 'Sơ Duyệt Tờ Khai', icon: FileCheck2 },
+    { to: '/officer/map', label: 'Phân Luồng GIS', icon: Map },
+  ];
+
+  const activeNavLinks = isOfficer ? officerNavLinks : citizenNavLinks;
+
+  const mobileNavLinks = [
+    { to: '/onboarding', label: 'Đổi Xã/Phường', icon: MapPin },
+    ...activeNavLinks,
+  ];
+
+  const isOnboarding = path === '/onboarding';
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[#FAF8FF]/90 backdrop-blur-xl border-b border-[#EAEDFF] transition-all duration-300">
       <div className="h-16 w-full max-w-7xl mx-auto px-4 md:px-6 flex items-center justify-between gap-4">
-        {/* Brand Identity with double-bezel icon */}
-        <div className="flex items-center gap-3">
+        {/* Brand Identity & Commune Context Switcher */}
+        <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
           <Link
-            to="/citizen"
-            className="flex items-center gap-3 shrink-0 group active:scale-[0.98] transition-transform duration-200"
+            to={isOfficer ? `/officer/ward/${currentWard.code}` : '/citizen'}
+            className="flex items-center gap-2.5 sm:gap-3 shrink-0 group active:scale-[0.98] transition-transform duration-200"
           >
             <div className="p-1 rounded-xl bg-gradient-to-tr from-[#00236F]/10 to-[#57DFFE]/20 border border-[#DAE2FD]/60 shadow-xs">
               <div className="w-9 h-9 rounded-lg bg-[#00236F] flex items-center justify-center text-white shadow-sm group-hover:scale-105 transition-transform duration-300">
@@ -38,9 +51,18 @@ export const Header: React.FC = () => {
             <div className="flex flex-col">
               <span className="font-sans font-bold text-xs sm:text-sm md:text-base text-[#00236F] tracking-tight leading-none flex items-center gap-1.5">
                 UBND {currentWard.name.toUpperCase()}
-                <span className="px-1.5 py-0.2 rounded text-[10px] font-mono font-bold bg-[#DCE1FF] text-[#00164E]">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-[#DCE1FF] text-[#00164E]">
                   AN GIANG
                 </span>
+                {isOfficer ? (
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-[#00236F] text-[#57DFFE] border border-[#57DFFE]/30">
+                    Cán Bộ
+                  </span>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full text-[9px] font-extrabold uppercase bg-[#EBFDF3] text-[#166534] border border-[#86EFAC]">
+                    Công Dân
+                  </span>
+                )}
               </span>
               <span className="text-[11px] text-[#444651] leading-tight mt-1 font-medium hidden sm:inline">
                 Một Cửa Số • {currentWard.area}
@@ -51,17 +73,21 @@ export const Header: React.FC = () => {
           {/* Quick Ward Switcher Pill */}
           <Link
             to="/onboarding"
-            className="hidden xl:flex items-center gap-1 px-2.5 py-1 rounded-xl bg-[#F2F3FF] hover:bg-[#EAEDFF] border border-[#DAE2FD] text-[11px] font-bold text-[#00236F] transition active:scale-95 ml-1 shrink-0"
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border text-[11px] font-bold transition active:scale-95 shrink-0 ${
+              isOnboarding
+                ? 'bg-[#00236F] text-white border-[#00236F] shadow-xs'
+                : 'bg-[#F2F3FF] hover:bg-[#EAEDFF] border-[#DAE2FD] text-[#00236F]'
+            }`}
             title="Bấm để đổi sang Xã/Phường khác tại An Giang"
           >
-            <MapPin className="w-3.5 h-3.5 text-[#00687A]" />
+            <MapPin className={`w-3.5 h-3.5 ${isOnboarding ? 'text-[#57DFFE]' : 'text-[#00687A]'}`} />
             <span>Đổi Xã/Phường</span>
           </Link>
         </div>
 
         {/* Global Navigation Pill (Desktop) with Smooth Indicator */}
-        <nav className="hidden lg:flex items-center gap-1 p-1 bg-[#F2F3FF] rounded-2xl border border-[#EAEDFF] shadow-inner">
-          {navLinks.map((item) => {
+        <nav className="hidden lg:flex items-center gap-1 p-1 bg-[#F2F3FF] rounded-2xl border border-[#EAEDFF] shadow-inner shrink-0">
+          {activeNavLinks.map((item) => {
             const Icon = item.icon;
             const isActive = path === item.to || (item.to !== '/citizen' && path.startsWith(item.to));
             return (
@@ -81,48 +107,45 @@ export const Header: React.FC = () => {
           })}
         </nav>
 
-        {/* Live System Status & Officer Profile */}
-        <div className="flex items-center gap-3 shrink-0">
-          <button
-            onClick={() => setAiModalOpen(true)}
-            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border shadow-xs transition-all active:scale-95 cursor-pointer ${
-              geminiActive
-                ? 'bg-[#EBFDF3] border-[#86EFAC] text-[#166534] hover:bg-[#DCFCE7]'
-                : 'bg-[#FFFBEB] border-[#FDE68A] text-[#92400E] hover:bg-[#FEF3C7]'
-            }`}
-            title="Nhấn để cấu hình Trí tuệ nhân tạo Gemini Mini"
-          >
-            {geminiActive ? (
-              <>
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#16A34A] opacity-75" />
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#16A34A]" />
-                </span>
-                <span className="text-xs font-bold tracking-tight flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-[#16A34A]" />
-                  Gemini Flash (Có tư duy)
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="h-2 w-2 rounded-full bg-[#D97706]" />
-                <span className="text-xs font-bold tracking-tight flex items-center gap-1">
-                  <Sparkles className="w-3.5 h-3.5 text-[#D97706]" />
-                  Bật Gemini Flash
-                </span>
-              </>
-            )}
-          </button>
+        {/* Role-Based Action: Switcher between Citizen & Officer */}
+        <div className="flex items-center gap-2.5 shrink-0">
+          {isOfficer ? (
+            <div className="flex items-center gap-2 pl-2 border-l border-[#DAE2FD]">
+              <div className="hidden md:flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-[#00236F] text-[#57DFFE] flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-[#ACEDFF]/60">
+                  {officerProfile.avatarText}
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="text-xs font-bold text-[#131B2E] leading-none">{officerProfile.name}</span>
+                  <span className="text-[10px] text-[#00687A] font-medium leading-tight mt-0.5">
+                    {officerProfile.badgeId} • Cán Bộ
+                  </span>
+                </div>
+              </div>
 
-          <div className="hidden md:flex items-center gap-2.5 pl-2 border-l border-[#DAE2FD]">
-            <div className="w-8 h-8 rounded-full bg-[#00687A] text-white flex items-center justify-center font-bold text-xs shadow-xs ring-2 ring-[#ACEDFF]/60">
-              TH
+              <button
+                type="button"
+                onClick={logoutToCitizen}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-[#F2F3FF] hover:bg-[#EAEDFF] text-[#444651] hover:text-[#00236F] text-xs font-bold border border-[#DAE2FD] transition active:scale-95 cursor-pointer"
+                title="Đăng xuất khỏi bàn cán bộ, quay lại Cổng Công Dân"
+              >
+                <LogOut className="w-3.5 h-3.5 text-[#00687A]" />
+                <span className="hidden xl:inline">Về Cổng Dân</span>
+              </button>
             </div>
-            <div className="flex flex-col text-left">
-              <span className="text-xs font-bold text-[#131B2E] leading-none">Trần Thị Hương</span>
-              <span className="text-[10px] text-[#444651] leading-tight mt-0.5">Cán bộ P.25</span>
+          ) : (
+            <div className="flex items-center gap-2 pl-2 border-l border-[#DAE2FD]">
+              <button
+                type="button"
+                onClick={() => setAuthModalOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#00236F] hover:bg-[#1E3A8A] text-white text-xs font-bold shadow-xs transition active:scale-95 cursor-pointer"
+                title="Bấm để đăng nhập bằng Thẻ công chức Một Cửa"
+              >
+                <ShieldCheck className="w-3.5 h-3.5 text-[#57DFFE]" />
+                <span>Bàn Cán Bộ</span>
+              </button>
             </div>
-          </div>
+          )}
 
           {/* Mobile Hamburger Toggle Button */}
           <button
@@ -135,10 +158,17 @@ export const Header: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer Navigation with Slide-Down Animation */}
+      {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
         <div className="lg:hidden border-t border-[#EAEDFF] bg-white/95 backdrop-blur-xl px-4 py-3 shadow-xl flex flex-col gap-1.5 animate-fadeIn">
-          {navLinks.map((item) => {
+          <div className="p-2 mb-1 rounded-xl bg-[#F8FAFC] border border-[#EAEDFF] flex items-center justify-between">
+            <span className="text-xs text-[#757682]">Vai trò hiện tại:</span>
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${isOfficer ? 'bg-[#00236F] text-[#57DFFE]' : 'bg-[#EBFDF3] text-[#166534]'}`}>
+              {isOfficer ? '🛡️ Cán Bộ Xã' : '👤 Công Dân'}
+            </span>
+          </div>
+
+          {mobileNavLinks.map((item) => {
             const Icon = item.icon;
             const isActive = path === item.to || (item.to !== '/citizen' && path.startsWith(item.to));
             return (
@@ -160,17 +190,45 @@ export const Header: React.FC = () => {
               </Link>
             );
           })}
+
+          <div className="pt-2 border-t border-[#EAEDFF]">
+            {isOfficer ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  logoutToCitizen();
+                }}
+                className="w-full py-2.5 px-3 rounded-xl bg-[#FEF2F2] text-[#DC2626] font-bold text-xs flex items-center justify-center gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                <span>Rời Bàn Cán Bộ (Về Cổng Dân)</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  setAuthModalOpen(true);
+                }}
+                className="w-full py-2.5 px-3 rounded-xl bg-[#00236F] text-white font-bold text-xs flex items-center justify-center gap-2"
+              >
+                <ShieldCheck className="w-4 h-4 text-[#57DFFE]" />
+                <span>Đăng Nhập Bàn Cán Bộ Xã</span>
+              </button>
+            )}
+          </div>
         </div>
       )}
 
-      {/* Gemini AI Engine Configuration Modal */}
-      <AiSettingsModal
-        isOpen={aiModalOpen}
-        onClose={() => setAiModalOpen(false)}
-        onSaved={() => setGeminiActive(isGeminiConfigured())}
+      {/* Officer Authentication Modal */}
+      <OfficerAuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
       />
     </header>
   );
 };
 
 export default Header;
+

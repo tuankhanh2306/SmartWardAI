@@ -1,0 +1,287 @@
+{
+  "prefix_classifier_leakage": {
+    "first_1_words": {
+      "accuracy": 0.193,
+      "macro_f1": 0.3053
+    },
+    "first_2_words": {
+      "accuracy": 0.2105,
+      "macro_f1": 0.2828
+    },
+    "first_3_words": {
+      "accuracy": 0.2719,
+      "macro_f1": 0.337
+    }
+  },
+  "full_text_bow": {
+    "accuracy": 0.3553,
+    "macro_f1": 0.4249
+  },
+  "heldout_train_overlap": {
+    "total_heldout": 228,
+    "near_clones_count": 0,
+    "near_clones_pct": 0.0,
+    "top_closest_pairs": [
+      {
+        "heldout_id": "heldout_0078",
+        "heldout_text": "lam dang ky bien dong dat dai tai san gan lien voi dat can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-DC-02",
+        "nearest_train_id": "train_0152",
+        "nearest_train_text": "lam dang ky bien dong dat dai tai san gan lien voi dat can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-DC-02",
+        "tfidf_similarity": 0.8624,
+        "jaccard_similarity": 0.6667,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0018",
+        "heldout_text": "lam tiep nhan doi tuong vao co so tro giup xa hoi can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-BT-06",
+        "nearest_train_id": "train_0032",
+        "nearest_train_text": "lam tiep nhan doi tuong vao co so tro giup xa hoi can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-BT-06",
+        "tfidf_similarity": 0.8508,
+        "jaccard_similarity": 0.7,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0015",
+        "heldout_text": "lam thu tuc nguoi co cong va gia dinh chinh sach can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-BT-05",
+        "nearest_train_id": "train_0026",
+        "nearest_train_text": "lam thu tuc nguoi co cong va gia dinh chinh sach can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-BT-05",
+        "tfidf_similarity": 0.8392,
+        "jaccard_similarity": 0.65,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0009",
+        "heldout_text": "lam cap the bao hiem y te cho doi tuong bao tro can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-BT-03",
+        "nearest_train_id": "train_0014",
+        "nearest_train_text": "lam cap the bao hiem y te cho doi tuong bao tro can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-BT-03",
+        "tfidf_similarity": 0.8372,
+        "jaccard_similarity": 0.6842,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0030",
+        "heldout_text": "lam khai bao tam vang va thong bao luu tru can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-CR-04",
+        "nearest_train_id": "train_0056",
+        "nearest_train_text": "lam khai bao tam vang va thong bao luu tru can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-CR-04",
+        "tfidf_similarity": 0.836,
+        "jaccard_similarity": 0.6471,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0075",
+        "heldout_text": "lam chuyen nhuong quyen su dung dat nong nghiep can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-DC-01",
+        "nearest_train_id": "train_0146",
+        "nearest_train_text": "lam chuyen nhuong quyen su dung dat nong nghiep can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-DC-01",
+        "tfidf_similarity": 0.8277,
+        "jaccard_similarity": 0.6111,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0105",
+        "heldout_text": "lam thay doi cai chinh bo sung ho tich can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-HT-09",
+        "nearest_train_id": "train_0206",
+        "nearest_train_text": "lam thay doi cai chinh bo sung ho tich can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-HT-09",
+        "tfidf_similarity": 0.8203,
+        "jaccard_similarity": 0.6471,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0120",
+        "heldout_text": "lam dieu chinh giay phep xay dung nha o rieng le can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-XD-02",
+        "nearest_train_id": "train_0236",
+        "nearest_train_text": "lam dieu chinh giay phep xay dung nha o rieng le can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-XD-02",
+        "tfidf_similarity": 0.8199,
+        "jaccard_similarity": 0.6842,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0048",
+        "heldout_text": "lam huy bo ket qua dang ky thuong tru can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-CR-10",
+        "nearest_train_id": "train_0092",
+        "nearest_train_text": "lam huy bo ket qua dang ky thuong tru can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-CR-10",
+        "tfidf_similarity": 0.8103,
+        "jaccard_similarity": 0.6111,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0033",
+        "heldout_text": "lam dieu chinh thong tin cu tru trong CSDL can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-CR-05",
+        "nearest_train_id": "train_0062",
+        "nearest_train_text": "lam dieu chinh thong tin cu tru trong CSDL can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-CR-05",
+        "tfidf_similarity": 0.8044,
+        "jaccard_similarity": 0.6111,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0072",
+        "heldout_text": "lam cap ban sao hop dong da chung thuc can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-CT-08",
+        "nearest_train_id": "train_0140",
+        "nearest_train_text": "lam cap ban sao hop dong da chung thuc can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-CT-08",
+        "tfidf_similarity": 0.8016,
+        "jaccard_similarity": 0.6111,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0117",
+        "heldout_text": "lam cap giay phep xay dung nha o rieng le can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-XD-01",
+        "nearest_train_id": "train_0230",
+        "nearest_train_text": "lam cap giay phep xay dung nha o rieng le can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-XD-01",
+        "tfidf_similarity": 0.7995,
+        "jaccard_similarity": 0.6667,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0036",
+        "heldout_text": "lam xac nhan thong tin cu tru CT07 can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-CR-06",
+        "nearest_train_id": "train_0068",
+        "nearest_train_text": "lam xac nhan thong tin cu tru CT07 can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-CR-06",
+        "tfidf_similarity": 0.7884,
+        "jaccard_similarity": 0.5882,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0066",
+        "heldout_text": "lam chung thuc tu choi nhan di san can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-CT-06",
+        "nearest_train_id": "train_0128",
+        "nearest_train_text": "lam chung thuc tu choi nhan di san can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-CT-06",
+        "tfidf_similarity": 0.7848,
+        "jaccard_similarity": 0.5882,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0069",
+        "heldout_text": "lam sua chua sai sot chung thuc can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-CT-07",
+        "nearest_train_id": "train_0134",
+        "nearest_train_text": "lam sua chua sai sot chung thuc can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-CT-07",
+        "tfidf_similarity": 0.7787,
+        "jaccard_similarity": 0.5625,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0060",
+        "heldout_text": "lam chung thuc hop dong giao dich can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-CT-04",
+        "nearest_train_id": "train_0116",
+        "nearest_train_text": "lam chung thuc hop dong giao dich can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-CT-04",
+        "tfidf_similarity": 0.7604,
+        "jaccard_similarity": 0.5625,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0012",
+        "heldout_text": "lam tro giup xa hoi khan cap can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-BT-04",
+        "nearest_train_id": "train_0020",
+        "nearest_train_text": "lam tro giup xa hoi khan cap can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-BT-04",
+        "tfidf_similarity": 0.7584,
+        "jaccard_similarity": 0.5625,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0057",
+        "heldout_text": "lam chung thuc chu ky nguoi dich can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-CT-03",
+        "nearest_train_id": "train_0110",
+        "nearest_train_text": "lam chung thuc chu ky nguoi dich can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-CT-03",
+        "tfidf_similarity": 0.7541,
+        "jaccard_similarity": 0.5625,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0096",
+        "heldout_text": "lam dang ky nhan cha me con can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-HT-06",
+        "nearest_train_id": "train_0188",
+        "nearest_train_text": "lam dang ky nhan cha me con can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-HT-06",
+        "tfidf_similarity": 0.7522,
+        "jaccard_similarity": 0.5625,
+        "is_near_clone": false
+      },
+      {
+        "heldout_id": "heldout_0111",
+        "heldout_text": "lam dang ky ket hon luu dong can luu y gi khong",
+        "heldout_intent": "PROCEDURE_INQUIRY",
+        "heldout_proc": "TTHC-HT-11",
+        "nearest_train_id": "train_0218",
+        "nearest_train_text": "lam dang ky ket hon luu dong can ho so giay to gi",
+        "nearest_train_intent": "PROCEDURE_INQUIRY",
+        "nearest_train_proc": "TTHC-HT-11",
+        "tfidf_similarity": 0.7437,
+        "jaccard_similarity": 0.6,
+        "is_near_clone": false
+      }
+    ]
+  }
+}

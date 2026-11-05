@@ -1,0 +1,20 @@
+{
+  "model": "Fine-Tuned BKAI Bi-Encoder (MNRL)",
+  "train_time_sec": 422.78,
+  "intent_classification": {
+    "accuracy": 0.8377,
+    "macro_f1": 0.7615
+  },
+  "retrieval": {
+    "procedure_level": {
+      "r1": 0.525,
+      "r3": 0.85,
+      "mrr": 0.675
+    },
+    "chunk_level": {
+      "r1": 0.2833,
+      "r3": 0.5833,
+      "mrr": 0.4735
+    }
+  }
+}

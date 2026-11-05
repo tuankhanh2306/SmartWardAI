@@ -1,0 +1,242 @@
+[
+  {
+    "sample_id": "dev_0082",
+    "query": "Trình tự các bước nộp hồ sơ đăng ký kết hôn tại UBND cấp xã",
+    "procedure_code": "TTHC-HT-02",
+    "gold_chunk_id": "TTHC-HT-02_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0015",
+    "query": "Các bước nộp hồ sơ trực tuyến đối với thủ tục người có công và gia đình chính sách",
+    "procedure_code": "TTHC-BT-05",
+    "gold_chunk_id": "TTHC-BT-05_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0004",
+    "query": "Trình tự các bước nộp hồ sơ hỗ trợ chi phí mai táng đối tượng bảo trợ tại UBND cấp xã",
+    "procedure_code": "TTHC-BT-02",
+    "gold_chunk_id": "TTHC-BT-02_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0095",
+    "query": "quy trinh thuc hien dang ky nhan cha me con tai bo phan mot cua",
+    "procedure_code": "TTHC-HT-06",
+    "gold_chunk_id": "TTHC-HT-06_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0036",
+    "query": "Các bước nộp hồ sơ trực tuyến đối với xác nhận thông tin cư trú CT07",
+    "procedure_code": "TTHC-CR-06",
+    "gold_chunk_id": "TTHC-CR-06_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0032",
+    "query": "quy trinh thuc hien dieu chinh thong tin cu tru trong CSDL tai bo phan mot cua",
+    "procedure_code": "TTHC-CR-05",
+    "gold_chunk_id": "TTHC-CR-05_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0029",
+    "query": "quy trinh thuc hien khai bao tam vang va thong bao luu tru tai bo phan mot cua",
+    "procedure_code": "TTHC-CR-04",
+    "gold_chunk_id": "TTHC-CR-04_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0018",
+    "query": "Các bước nộp hồ sơ trực tuyến đối với tiếp nhận đối tượng vào cơ sở trợ giúp xã hội",
+    "procedure_code": "TTHC-BT-06",
+    "gold_chunk_id": "TTHC-BT-06_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0117",
+    "query": "Các bước nộp hồ sơ trực tuyến đối với cấp giấy phép xây dựng nhà ở riêng lẻ",
+    "procedure_code": "TTHC-XD-01",
+    "gold_chunk_id": "TTHC-XD-01_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0014",
+    "query": "quy trinh thuc hien thu tuc nguoi co cong va gia dinh chinh sach tai bo phan mot cua",
+    "procedure_code": "TTHC-BT-05",
+    "gold_chunk_id": "TTHC-BT-05_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0087",
+    "query": "Các bước nộp hồ sơ trực tuyến đối với cấp giấy xác nhận tình trạng hôn nhân",
+    "procedure_code": "TTHC-HT-03",
+    "gold_chunk_id": "TTHC-HT-03_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0112",
+    "query": "Trình tự các bước nộp hồ sơ đăng ký khai tử lưu động tại UBND cấp xã",
+    "procedure_code": "TTHC-HT-12",
+    "gold_chunk_id": "TTHC-HT-12_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0070",
+    "query": "Trình tự các bước nộp hồ sơ cấp bản sao hợp đồng đã chứng thực tại UBND cấp xã",
+    "procedure_code": "TTHC-CT-08",
+    "gold_chunk_id": "TTHC-CT-08_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0012",
+    "query": "Các bước nộp hồ sơ trực tuyến đối với trợ giúp xã hội khẩn cấp",
+    "procedure_code": "TTHC-BT-04",
+    "gold_chunk_id": "TTHC-BT-04_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0076",
+    "query": "Trình tự các bước nộp hồ sơ đăng ký biến động đất đai tài sản gắn liền với đất tại UBND cấp xã",
+    "procedure_code": "TTHC-DC-02",
+    "gold_chunk_id": "TTHC-DC-02_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0055",
+    "query": "Trình tự các bước nộp hồ sơ chứng thực chữ ký người dịch tại UBND cấp xã",
+    "procedure_code": "TTHC-CT-03",
+    "gold_chunk_id": "TTHC-CT-03_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0005",
+    "query": "quy trinh thuc hien ho tro chi phi mai tang doi tuong bao tro tai bo phan mot cua",
+    "procedure_code": "TTHC-BT-02",
+    "gold_chunk_id": "TTHC-BT-02_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0118",
+    "query": "Trình tự các bước nộp hồ sơ điều chỉnh giấy phép xây dựng nhà ở riêng lẻ tại UBND cấp xã",
+    "procedure_code": "TTHC-XD-02",
+    "gold_chunk_id": "TTHC-XD-02_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0107",
+    "query": "quy trinh thuc hien dang ky khai sinh luu dong tai bo phan mot cua",
+    "procedure_code": "TTHC-HT-10",
+    "gold_chunk_id": "TTHC-HT-10_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0028",
+    "query": "Trình tự các bước nộp hồ sơ khai báo tạm vắng và thông báo lưu trú tại UBND cấp xã",
+    "procedure_code": "TTHC-CR-04",
+    "gold_chunk_id": "TTHC-CR-04_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0030",
+    "query": "Các bước nộp hồ sơ trực tuyến đối với khai báo tạm vắng và thông báo lưu trú",
+    "procedure_code": "TTHC-CR-04",
+    "gold_chunk_id": "TTHC-CR-04_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0065",
+    "query": "quy trinh thuc hien chung thuc tu choi nhan di san tai bo phan mot cua",
+    "procedure_code": "TTHC-CT-06",
+    "gold_chunk_id": "TTHC-CT-06_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0078",
+    "query": "Các bước nộp hồ sơ trực tuyến đối với đăng ký biến động đất đai tài sản gắn liền với đất",
+    "procedure_code": "TTHC-DC-02",
+    "gold_chunk_id": "TTHC-DC-02_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0103",
+    "query": "Trình tự các bước nộp hồ sơ thay đổi cải chính bổ sung hộ tịch tại UBND cấp xã",
+    "procedure_code": "TTHC-HT-09",
+    "gold_chunk_id": "TTHC-HT-09_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0072",
+    "query": "Các bước nộp hồ sơ trực tuyến đối với cấp bản sao hợp đồng đã chứng thực",
+    "procedure_code": "TTHC-CT-08",
+    "gold_chunk_id": "TTHC-CT-08_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0026",
+    "query": "quy trinh thuc hien gia han tam tru tai bo phan mot cua",
+    "procedure_code": "TTHC-CR-03",
+    "gold_chunk_id": "TTHC-CR-03_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0092",
+    "query": "quy trinh thuc hien dang ky khai tu tai bo phan mot cua",
+    "procedure_code": "TTHC-HT-05",
+    "gold_chunk_id": "TTHC-HT-05_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0084",
+    "query": "Các bước nộp hồ sơ trực tuyến đối với đăng ký kết hôn",
+    "procedure_code": "TTHC-HT-02",
+    "gold_chunk_id": "TTHC-HT-02_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0090",
+    "query": "Các bước nộp hồ sơ trực tuyến đối với cấp bản sao trích lục hộ tịch",
+    "procedure_code": "TTHC-HT-04",
+    "gold_chunk_id": "TTHC-HT-04_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  },
+  {
+    "sample_id": "dev_0108",
+    "query": "Các bước nộp hồ sơ trực tuyến đối với đăng ký khai sinh lưu động",
+    "procedure_code": "TTHC-HT-10",
+    "gold_chunk_id": "TTHC-HT-10_CHUNK_002",
+    "chunk_type": "PROCESS_STEP",
+    "is_valid_ground_truth": true
+  }
+]

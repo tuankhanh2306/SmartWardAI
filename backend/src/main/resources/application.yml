@@ -23,15 +23,20 @@ smartward:
   ai:
     gemini:
       api-key: ${GEMINI_API_KEY:mock-key-for-local-testing}
-      model: gemini-2.5-flash
+      model: ${GEMINI_MODEL:gemini-3-flash-preview}
       embedding-model: text-embedding-004
       embedding-dim: 768
       max-output-tokens: ${GEMINI_MAX_OUTPUT_TOKENS:8192}
       timeout-seconds: 25
       thinking-budget: ${GEMINI_THINKING_BUDGET:0}
     rag:
-      default-threshold: 0.78
+      default-threshold: 0.50
+      theta-lower: 0.42
       top-k: 3
+    sidecar:
+      enabled: ${SIDECAR_ENABLED:true}
+      url: ${SIDECAR_URL:http://localhost:8000}
+      timeout-ms: ${SIDECAR_TIMEOUT_MS:2000}
     triage:
       default-radius-meters: 75.0
       default-similarity-threshold: 0.82

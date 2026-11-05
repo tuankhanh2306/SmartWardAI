@@ -1,0 +1,18 @@
+{
+  "model_name": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "onnx_path": "ml/models\\biencoder_base.onnx",
+  "onnx_size_mb": 448.52,
+  "tokenizer_dir": "ml/models\\tokenizer",
+  "tokenizer_stats": {
+    "total_test_sentences": 105,
+    "total_tokens": 1946,
+    "unk_count": 0,
+    "unk_rate": 0.0,
+    "nfd_mismatches": 78
+  },
+  "parity_check": {
+    "avg_cosine_similarity": 0.9999999046325684,
+    "avg_mse": 1.3635020753593086e-15,
+    "parity_passed": true
+  }
+}

@@ -1,0 +1,3574 @@
+[
+  {
+    "id": "dev_0001",
+    "text": "Trình tự các bước nộp hồ sơ trợ cấp xã hội hàng tháng cho người cao tuổi tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-01",
+    "gold_chunk_ids": [
+      "TTHC-BT-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0002",
+    "text": "quy trinh thuc hien tro cap xa hoi hang thang cho nguoi cao tuoi tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-01",
+    "gold_chunk_ids": [
+      "TTHC-BT-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0003",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với trợ cấp xã hội hàng tháng cho người cao tuổi",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-01",
+    "gold_chunk_ids": [
+      "TTHC-BT-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0004",
+    "text": "Trình tự các bước nộp hồ sơ hỗ trợ chi phí mai táng đối tượng bảo trợ tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-02",
+    "gold_chunk_ids": [
+      "TTHC-BT-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0005",
+    "text": "quy trinh thuc hien ho tro chi phi mai tang doi tuong bao tro tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-02",
+    "gold_chunk_ids": [
+      "TTHC-BT-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0006",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với hỗ trợ chi phí mai táng đối tượng bảo trợ",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-02",
+    "gold_chunk_ids": [
+      "TTHC-BT-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0007",
+    "text": "Trình tự các bước nộp hồ sơ cấp thẻ bảo hiểm y tế cho đối tượng bảo trợ tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-03",
+    "gold_chunk_ids": [
+      "TTHC-BT-03_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-03_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0008",
+    "text": "quy trinh thuc hien cap the bao hiem y te cho doi tuong bao tro tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-03",
+    "gold_chunk_ids": [
+      "TTHC-BT-03_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-03_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0009",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với cấp thẻ bảo hiểm y tế cho đối tượng bảo trợ",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-03",
+    "gold_chunk_ids": [
+      "TTHC-BT-03_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-03_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0010",
+    "text": "Trình tự các bước nộp hồ sơ trợ giúp xã hội khẩn cấp tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-04",
+    "gold_chunk_ids": [
+      "TTHC-BT-04_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-04_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0011",
+    "text": "quy trinh thuc hien tro giup xa hoi khan cap tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-04",
+    "gold_chunk_ids": [
+      "TTHC-BT-04_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-04_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0012",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với trợ giúp xã hội khẩn cấp",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-04",
+    "gold_chunk_ids": [
+      "TTHC-BT-04_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-04_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0013",
+    "text": "Trình tự các bước nộp hồ sơ thủ tục người có công và gia đình chính sách tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-05",
+    "gold_chunk_ids": [
+      "TTHC-BT-05_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-05_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0014",
+    "text": "quy trinh thuc hien thu tuc nguoi co cong va gia dinh chinh sach tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-05",
+    "gold_chunk_ids": [
+      "TTHC-BT-05_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-05_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0015",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với thủ tục người có công và gia đình chính sách",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-05",
+    "gold_chunk_ids": [
+      "TTHC-BT-05_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-05_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0016",
+    "text": "Trình tự các bước nộp hồ sơ tiếp nhận đối tượng vào cơ sở trợ giúp xã hội tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-06",
+    "gold_chunk_ids": [
+      "TTHC-BT-06_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-06_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0017",
+    "text": "quy trinh thuc hien tiep nhan doi tuong vao co so tro giup xa hoi tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-06",
+    "gold_chunk_ids": [
+      "TTHC-BT-06_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-06_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0018",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với tiếp nhận đối tượng vào cơ sở trợ giúp xã hội",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-BT-06",
+    "gold_chunk_ids": [
+      "TTHC-BT-06_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-BT-06_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0019",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký thường trú mẫu CT01 tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-01",
+    "gold_chunk_ids": [
+      "TTHC-CR-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0020",
+    "text": "quy trinh thuc hien dang ky thuong tru mau CT01 tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-01",
+    "gold_chunk_ids": [
+      "TTHC-CR-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0021",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký thường trú mẫu CT01",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-01",
+    "gold_chunk_ids": [
+      "TTHC-CR-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0022",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký tạm trú tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-02",
+    "gold_chunk_ids": [
+      "TTHC-CR-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0023",
+    "text": "quy trinh thuc hien dang ky tam tru tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-02",
+    "gold_chunk_ids": [
+      "TTHC-CR-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0024",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký tạm trú",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-02",
+    "gold_chunk_ids": [
+      "TTHC-CR-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0025",
+    "text": "Trình tự các bước nộp hồ sơ gia hạn tạm trú tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-03",
+    "gold_chunk_ids": [
+      "TTHC-CR-03_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-03_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0026",
+    "text": "quy trinh thuc hien gia han tam tru tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-03",
+    "gold_chunk_ids": [
+      "TTHC-CR-03_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-03_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0027",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với gia hạn tạm trú",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-03",
+    "gold_chunk_ids": [
+      "TTHC-CR-03_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-03_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0028",
+    "text": "Trình tự các bước nộp hồ sơ khai báo tạm vắng và thông báo lưu trú tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-04",
+    "gold_chunk_ids": [
+      "TTHC-CR-04_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-04_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0029",
+    "text": "quy trinh thuc hien khai bao tam vang va thong bao luu tru tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-04",
+    "gold_chunk_ids": [
+      "TTHC-CR-04_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-04_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0030",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với khai báo tạm vắng và thông báo lưu trú",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-04",
+    "gold_chunk_ids": [
+      "TTHC-CR-04_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-04_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0031",
+    "text": "Trình tự các bước nộp hồ sơ điều chỉnh thông tin cư trú trong CSDL tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-05",
+    "gold_chunk_ids": [
+      "TTHC-CR-05_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-05_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0032",
+    "text": "quy trinh thuc hien dieu chinh thong tin cu tru trong CSDL tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-05",
+    "gold_chunk_ids": [
+      "TTHC-CR-05_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-05_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0033",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với điều chỉnh thông tin cư trú trong CSDL",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-05",
+    "gold_chunk_ids": [
+      "TTHC-CR-05_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-05_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0034",
+    "text": "Trình tự các bước nộp hồ sơ xác nhận thông tin cư trú CT07 tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-06",
+    "gold_chunk_ids": [
+      "TTHC-CR-06_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-06_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0035",
+    "text": "quy trinh thuc hien xac nhan thong tin cu tru CT07 tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-06",
+    "gold_chunk_ids": [
+      "TTHC-CR-06_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-06_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0036",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với xác nhận thông tin cư trú CT07",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-06",
+    "gold_chunk_ids": [
+      "TTHC-CR-06_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-06_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0037",
+    "text": "Trình tự các bước nộp hồ sơ tách hộ khẩu tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-07",
+    "gold_chunk_ids": [
+      "TTHC-CR-07_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-07_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0038",
+    "text": "quy trinh thuc hien tach ho khau tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-07",
+    "gold_chunk_ids": [
+      "TTHC-CR-07_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-07_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0039",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với tách hộ khẩu",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-07",
+    "gold_chunk_ids": [
+      "TTHC-CR-07_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-07_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0040",
+    "text": "Trình tự các bước nộp hồ sơ xóa đăng ký thường trú tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-08",
+    "gold_chunk_ids": [
+      "TTHC-CR-08_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-08_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0041",
+    "text": "quy trinh thuc hien xoa dang ky thuong tru tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-08",
+    "gold_chunk_ids": [
+      "TTHC-CR-08_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-08_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0042",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với xóa đăng ký thường trú",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-08",
+    "gold_chunk_ids": [
+      "TTHC-CR-08_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-08_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0043",
+    "text": "Trình tự các bước nộp hồ sơ xóa đăng ký tạm trú tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-09",
+    "gold_chunk_ids": [
+      "TTHC-CR-09_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-09_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0044",
+    "text": "quy trinh thuc hien xoa dang ky tam tru tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-09",
+    "gold_chunk_ids": [
+      "TTHC-CR-09_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-09_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0045",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với xóa đăng ký tạm trú",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-09",
+    "gold_chunk_ids": [
+      "TTHC-CR-09_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-09_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0046",
+    "text": "Trình tự các bước nộp hồ sơ hủy bỏ kết quả đăng ký thường trú tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-10",
+    "gold_chunk_ids": [
+      "TTHC-CR-10_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-10_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0047",
+    "text": "quy trinh thuc hien huy bo ket qua dang ky thuong tru tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-10",
+    "gold_chunk_ids": [
+      "TTHC-CR-10_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-10_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0048",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với hủy bỏ kết quả đăng ký thường trú",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CR-10",
+    "gold_chunk_ids": [
+      "TTHC-CR-10_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CR-10_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0049",
+    "text": "Trình tự các bước nộp hồ sơ chứng thực bản sao từ bản chính tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-01",
+    "gold_chunk_ids": [
+      "TTHC-CT-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0050",
+    "text": "quy trinh thuc hien chung thuc ban sao tu ban chinh tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-01",
+    "gold_chunk_ids": [
+      "TTHC-CT-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0051",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với chứng thực bản sao từ bản chính",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-01",
+    "gold_chunk_ids": [
+      "TTHC-CT-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0052",
+    "text": "Trình tự các bước nộp hồ sơ chứng thực chữ ký trên giấy tờ tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-02",
+    "gold_chunk_ids": [
+      "TTHC-CT-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0053",
+    "text": "quy trinh thuc hien chung thuc chu ky tren giay to tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-02",
+    "gold_chunk_ids": [
+      "TTHC-CT-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0054",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với chứng thực chữ ký trên giấy tờ",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-02",
+    "gold_chunk_ids": [
+      "TTHC-CT-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0055",
+    "text": "Trình tự các bước nộp hồ sơ chứng thực chữ ký người dịch tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-03",
+    "gold_chunk_ids": [
+      "TTHC-CT-03_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-03_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0056",
+    "text": "quy trinh thuc hien chung thuc chu ky nguoi dich tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-03",
+    "gold_chunk_ids": [
+      "TTHC-CT-03_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-03_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0057",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với chứng thực chữ ký người dịch",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-03",
+    "gold_chunk_ids": [
+      "TTHC-CT-03_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-03_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0058",
+    "text": "Trình tự các bước nộp hồ sơ chứng thực hợp đồng giao dịch tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-04",
+    "gold_chunk_ids": [
+      "TTHC-CT-04_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-04_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0059",
+    "text": "quy trinh thuc hien chung thuc hop dong giao dich tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-04",
+    "gold_chunk_ids": [
+      "TTHC-CT-04_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-04_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0060",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với chứng thực hợp đồng giao dịch",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-04",
+    "gold_chunk_ids": [
+      "TTHC-CT-04_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-04_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0061",
+    "text": "Trình tự các bước nộp hồ sơ chứng thực di chúc tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-05",
+    "gold_chunk_ids": [
+      "TTHC-CT-05_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-05_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0062",
+    "text": "quy trinh thuc hien chung thuc di chuc tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-05",
+    "gold_chunk_ids": [
+      "TTHC-CT-05_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-05_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0063",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với chứng thực di chúc",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-05",
+    "gold_chunk_ids": [
+      "TTHC-CT-05_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-05_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0064",
+    "text": "Trình tự các bước nộp hồ sơ chứng thực từ chối nhận di sản tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-06",
+    "gold_chunk_ids": [
+      "TTHC-CT-06_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-06_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0065",
+    "text": "quy trinh thuc hien chung thuc tu choi nhan di san tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-06",
+    "gold_chunk_ids": [
+      "TTHC-CT-06_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-06_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0066",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với chứng thực từ chối nhận di sản",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-06",
+    "gold_chunk_ids": [
+      "TTHC-CT-06_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-06_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0067",
+    "text": "Trình tự các bước nộp hồ sơ sửa chữa sai sót chứng thực tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-07",
+    "gold_chunk_ids": [
+      "TTHC-CT-07_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-07_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0068",
+    "text": "quy trinh thuc hien sua chua sai sot chung thuc tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-07",
+    "gold_chunk_ids": [
+      "TTHC-CT-07_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-07_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0069",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với sửa chữa sai sót chứng thực",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-07",
+    "gold_chunk_ids": [
+      "TTHC-CT-07_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-07_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0070",
+    "text": "Trình tự các bước nộp hồ sơ cấp bản sao hợp đồng đã chứng thực tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-08",
+    "gold_chunk_ids": [
+      "TTHC-CT-08_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-08_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0071",
+    "text": "quy trinh thuc hien cap ban sao hop dong da chung thuc tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-08",
+    "gold_chunk_ids": [
+      "TTHC-CT-08_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-08_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0072",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với cấp bản sao hợp đồng đã chứng thực",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-CT-08",
+    "gold_chunk_ids": [
+      "TTHC-CT-08_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-CT-08_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0073",
+    "text": "Trình tự các bước nộp hồ sơ chuyển nhượng quyền sử dụng đất nông nghiệp tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-DC-01",
+    "gold_chunk_ids": [
+      "TTHC-DC-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0074",
+    "text": "quy trinh thuc hien chuyen nhuong quyen su dung dat nong nghiep tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-DC-01",
+    "gold_chunk_ids": [
+      "TTHC-DC-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0075",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với chuyển nhượng quyền sử dụng đất nông nghiệp",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-DC-01",
+    "gold_chunk_ids": [
+      "TTHC-DC-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0076",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký biến động đất đai tài sản gắn liền với đất tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-DC-02",
+    "gold_chunk_ids": [
+      "TTHC-DC-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0077",
+    "text": "quy trinh thuc hien dang ky bien dong dat dai tai san gan lien voi dat tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-DC-02",
+    "gold_chunk_ids": [
+      "TTHC-DC-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0078",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký biến động đất đai tài sản gắn liền với đất",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-DC-02",
+    "gold_chunk_ids": [
+      "TTHC-DC-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-DC-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0079",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký khai sinh tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-01",
+    "gold_chunk_ids": [
+      "TTHC-HT-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0080",
+    "text": "quy trinh thuc hien dang ky khai sinh tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-01",
+    "gold_chunk_ids": [
+      "TTHC-HT-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0081",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký khai sinh",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-01",
+    "gold_chunk_ids": [
+      "TTHC-HT-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0082",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký kết hôn tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-02",
+    "gold_chunk_ids": [
+      "TTHC-HT-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0083",
+    "text": "quy trinh thuc hien dang ky ket hon tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-02",
+    "gold_chunk_ids": [
+      "TTHC-HT-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0084",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký kết hôn",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-02",
+    "gold_chunk_ids": [
+      "TTHC-HT-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0085",
+    "text": "Trình tự các bước nộp hồ sơ cấp giấy xác nhận tình trạng hôn nhân tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-03",
+    "gold_chunk_ids": [
+      "TTHC-HT-03_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-03_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0086",
+    "text": "quy trinh thuc hien cap giay xac nhan tinh trang hon nhan tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-03",
+    "gold_chunk_ids": [
+      "TTHC-HT-03_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-03_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0087",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với cấp giấy xác nhận tình trạng hôn nhân",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-03",
+    "gold_chunk_ids": [
+      "TTHC-HT-03_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-03_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0088",
+    "text": "Trình tự các bước nộp hồ sơ cấp bản sao trích lục hộ tịch tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-04",
+    "gold_chunk_ids": [
+      "TTHC-HT-04_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-04_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0089",
+    "text": "quy trinh thuc hien cap ban sao trich luc ho tich tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-04",
+    "gold_chunk_ids": [
+      "TTHC-HT-04_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-04_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0090",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với cấp bản sao trích lục hộ tịch",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-04",
+    "gold_chunk_ids": [
+      "TTHC-HT-04_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-04_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0091",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký khai tử tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-05",
+    "gold_chunk_ids": [
+      "TTHC-HT-05_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-05_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0092",
+    "text": "quy trinh thuc hien dang ky khai tu tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-05",
+    "gold_chunk_ids": [
+      "TTHC-HT-05_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-05_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0093",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký khai tử",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-05",
+    "gold_chunk_ids": [
+      "TTHC-HT-05_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-05_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0094",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký nhận cha mẹ con tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-06",
+    "gold_chunk_ids": [
+      "TTHC-HT-06_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-06_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0095",
+    "text": "quy trinh thuc hien dang ky nhan cha me con tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-06",
+    "gold_chunk_ids": [
+      "TTHC-HT-06_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-06_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0096",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký nhận cha mẹ con",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-06",
+    "gold_chunk_ids": [
+      "TTHC-HT-06_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-06_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0097",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký giám hộ tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-07",
+    "gold_chunk_ids": [
+      "TTHC-HT-07_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-07_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0098",
+    "text": "quy trinh thuc hien dang ky giam ho tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-07",
+    "gold_chunk_ids": [
+      "TTHC-HT-07_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-07_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0099",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký giám hộ",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-07",
+    "gold_chunk_ids": [
+      "TTHC-HT-07_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-07_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0100",
+    "text": "Trình tự các bước nộp hồ sơ chấm dứt giám hộ tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-08",
+    "gold_chunk_ids": [
+      "TTHC-HT-08_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-08_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0101",
+    "text": "quy trinh thuc hien cham dut giam ho tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-08",
+    "gold_chunk_ids": [
+      "TTHC-HT-08_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-08_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0102",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với chấm dứt giám hộ",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-08",
+    "gold_chunk_ids": [
+      "TTHC-HT-08_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-08_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0103",
+    "text": "Trình tự các bước nộp hồ sơ thay đổi cải chính bổ sung hộ tịch tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-09",
+    "gold_chunk_ids": [
+      "TTHC-HT-09_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-09_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0104",
+    "text": "quy trinh thuc hien thay doi cai chinh bo sung ho tich tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-09",
+    "gold_chunk_ids": [
+      "TTHC-HT-09_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-09_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0105",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với thay đổi cải chính bổ sung hộ tịch",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-09",
+    "gold_chunk_ids": [
+      "TTHC-HT-09_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-09_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0106",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký khai sinh lưu động tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-10",
+    "gold_chunk_ids": [
+      "TTHC-HT-10_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-10_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0107",
+    "text": "quy trinh thuc hien dang ky khai sinh luu dong tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-10",
+    "gold_chunk_ids": [
+      "TTHC-HT-10_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-10_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0108",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký khai sinh lưu động",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-10",
+    "gold_chunk_ids": [
+      "TTHC-HT-10_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-10_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0109",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký kết hôn lưu động tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-11",
+    "gold_chunk_ids": [
+      "TTHC-HT-11_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-11_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0110",
+    "text": "quy trinh thuc hien dang ky ket hon luu dong tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-11",
+    "gold_chunk_ids": [
+      "TTHC-HT-11_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-11_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0111",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký kết hôn lưu động",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-11",
+    "gold_chunk_ids": [
+      "TTHC-HT-11_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-11_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0112",
+    "text": "Trình tự các bước nộp hồ sơ đăng ký khai tử lưu động tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-12",
+    "gold_chunk_ids": [
+      "TTHC-HT-12_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-12_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0113",
+    "text": "quy trinh thuc hien dang ky khai tu luu dong tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-12",
+    "gold_chunk_ids": [
+      "TTHC-HT-12_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-12_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0114",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với đăng ký khai tử lưu động",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-HT-12",
+    "gold_chunk_ids": [
+      "TTHC-HT-12_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-HT-12_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0115",
+    "text": "Trình tự các bước nộp hồ sơ cấp giấy phép xây dựng nhà ở riêng lẻ tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-XD-01",
+    "gold_chunk_ids": [
+      "TTHC-XD-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0116",
+    "text": "quy trinh thuc hien cap giay phep xay dung nha o rieng le tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-XD-01",
+    "gold_chunk_ids": [
+      "TTHC-XD-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0117",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với cấp giấy phép xây dựng nhà ở riêng lẻ",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-XD-01",
+    "gold_chunk_ids": [
+      "TTHC-XD-01_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-01_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0118",
+    "text": "Trình tự các bước nộp hồ sơ điều chỉnh giấy phép xây dựng nhà ở riêng lẻ tại UBND cấp xã",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-XD-02",
+    "gold_chunk_ids": [
+      "TTHC-XD-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0119",
+    "text": "quy trinh thuc hien dieu chinh giay phep xay dung nha o rieng le tai bo phan mot cua",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-XD-02",
+    "gold_chunk_ids": [
+      "TTHC-XD-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "quy_trình"
+    ]
+  },
+  {
+    "id": "dev_0120",
+    "text": "Các bước nộp hồ sơ trực tuyến đối với điều chỉnh giấy phép xây dựng nhà ở riêng lẻ",
+    "intent": "PROCEDURE_INQUIRY",
+    "sub_intent": "INQUIRY_PROCESS",
+    "procedure_code": "TTHC-XD-02",
+    "gold_chunk_ids": [
+      "TTHC-XD-02_CHUNK_002"
+    ],
+    "group_id": "GRP_INQ_TTHC-XD-02_PROCESS",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn",
+      "dịch_vụ_công"
+    ]
+  },
+  {
+    "id": "dev_0121",
+    "text": "Tôi muốn đăng ký thì phải bắt đầu từ đâu?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_08",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "dev_0122",
+    "text": "toi muon dang ky",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_08",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "câu_ngắn"
+    ]
+  },
+  {
+    "id": "dev_0123",
+    "text": "Hướng dẫn tôi làm đơn với",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_08",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "dev_0124",
+    "text": "Giấy tờ có cần phải công chứng không?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_09",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thiếu_ngữ_cảnh",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "dev_0125",
+    "text": "co can cong chung khong",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_09",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "dev_0126",
+    "text": "Bản photo hay bản chính vậy cán bộ?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_09",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "dev_0127",
+    "text": "Nộp hồ sơ trực tuyến hay đến trực tiếp xã?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_10",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thiếu_thủ_tục",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "dev_0128",
+    "text": "nop online hay truc tiep",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_10",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "dev_0129",
+    "text": "Có nộp qua mạng được không?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_10",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "dev_0130",
+    "text": "Lệ phí bao nhiêu",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_11",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "câu_ngắn",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "dev_0131",
+    "text": "le phi bao nhieu",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_11",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "câu_ngắn"
+    ]
+  },
+  {
+    "id": "dev_0132",
+    "text": "Đóng tiền ở đâu",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_11",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "dev_0133",
+    "text": "Mấy ngày thì xong giấy",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_12",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thân_mật",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "dev_0134",
+    "text": "may ngay thi xong",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_12",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "câu_ngắn"
+    ]
+  },
+  {
+    "id": "dev_0135",
+    "text": "Có lấy liền trong ngày được không?",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_12",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "dev_0136",
+    "text": "Cần những giấy tờ gì",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_13",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "câu_ngắn",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "dev_0137",
+    "text": "can nhung giay to gi",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_13",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "câu_ngắn"
+    ]
+  },
+  {
+    "id": "dev_0138",
+    "text": "Giấy tờ gồm những gì",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_13",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "dev_0139",
+    "text": "Cho xin mẫu tờ khai",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_14",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thiếu_thủ_tục",
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "dev_0140",
+    "text": "xin mau to khai",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_14",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "câu_ngắn"
+    ]
+  },
+  {
+    "id": "dev_0141",
+    "text": "Tải mẫu đơn ở đâu",
+    "intent": "AMBIGUOUS",
+    "sub_intent": "AMBIGUOUS_UNDERSPECIFIED",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_AMB_14",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "mơ_hồ"
+    ]
+  },
+  {
+    "id": "dev_0142",
+    "text": "Chủ nhật ủy ban xã có làm việc không?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_08",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0143",
+    "text": "chu nhat xa co mo cua khong",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_08",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0144",
+    "text": "Ngày nghỉ lễ xã có nhận hồ sơ không?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_08",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0145",
+    "text": "Khung giờ tiếp nhận và trả kết quả hồ sơ",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_09",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0146",
+    "text": "thoi gian tiep nhan va tra ket qua",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_09",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0147",
+    "text": "Lịch tiếp công dân tại ủy ban",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_09",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0148",
+    "text": "Làm sao để liên hệ trực tiếp bộ phận tư pháp?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_10",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0149",
+    "text": "lien he bo phan tu phap ho tich",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_10",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0150",
+    "text": "Tổng đài một cửa của xã",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_10",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0151",
+    "text": "Ủy ban xã sáng mấy giờ làm việc?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_11",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0152",
+    "text": "sang may gio ubnd xa lam viec",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_11",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0153",
+    "text": "Giờ mở cửa buổi sáng của xã",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_11",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0154",
+    "text": "UBND xã đóng cửa lúc mấy giờ?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_12",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0155",
+    "text": "ubnd xa dong cua luc may gio",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_12",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0156",
+    "text": "Chiều mấy giờ hết nhận hồ sơ?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_12",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thân_mật"
+    ]
+  },
+  {
+    "id": "dev_0157",
+    "text": "Số hotline Một Cửa xã An Phú",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_13",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "viết_tắt"
+    ]
+  },
+  {
+    "id": "dev_0158",
+    "text": "hotline mot cua xa",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_13",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "viết_tắt"
+    ]
+  },
+  {
+    "id": "dev_0159",
+    "text": "Số điện thoại bàn của ủy ban xã",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_13",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0160",
+    "text": "Địa chỉ nộp hồ sơ trực tiếp tại xã",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_14",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0161",
+    "text": "dia chi nop ho so truc tiep",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_14",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0162",
+    "text": "Bộ phận tiếp nhận hồ sơ nằm ở tầng mấy?",
+    "intent": "COMMUNE_INFO",
+    "sub_intent": "COMMUNE_SCHEDULE_CONTACT",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_INFO_14",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "hỏi_địa_điểm"
+    ]
+  },
+  {
+    "id": "dev_0163",
+    "text": "Chúc buổi sáng tốt lành",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_08",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "lịch_sự"
+    ]
+  },
+  {
+    "id": "dev_0164",
+    "text": "chuc buoi sang tot lanh",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_08",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0165",
+    "text": "Good morning",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_08",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "tiếng_anh"
+    ]
+  },
+  {
+    "id": "dev_0166",
+    "text": "Cán bộ ơi cho tôi hỏi tí",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_09",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thân_mật"
+    ]
+  },
+  {
+    "id": "dev_0167",
+    "text": "can bo oi cho hoi chut",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_09",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "phương_ngữ"
+    ]
+  },
+  {
+    "id": "dev_0168",
+    "text": "Ad ơi cho em hỏi xíu",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_09",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "teencode"
+    ]
+  },
+  {
+    "id": "dev_0169",
+    "text": "Kính chào ủy ban nhân dân xã",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_10",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "kính_ngữ"
+    ]
+  },
+  {
+    "id": "dev_0170",
+    "text": "kinh chao uy ban",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_10",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0171",
+    "text": "Chào UBND xã",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_10",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "viết_tắt"
+    ]
+  },
+  {
+    "id": "dev_0172",
+    "text": "Ok cảm ơn bạn đã rõ",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_11",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "xác_nhận"
+    ]
+  },
+  {
+    "id": "dev_0173",
+    "text": "oke da ro cam on",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_11",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "teencode"
+    ]
+  },
+  {
+    "id": "dev_0174",
+    "text": "Đã hiểu cảm ơn",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_11",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "ngắn"
+    ]
+  },
+  {
+    "id": "dev_0175",
+    "text": "Chào buổi chiều",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_12",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0176",
+    "text": "chao buoi chieu",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_12",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0177",
+    "text": "Good afternoon",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_12",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "tiếng_anh"
+    ]
+  },
+  {
+    "id": "dev_0178",
+    "text": "Bắt đầu làm việc",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_13",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0179",
+    "text": "bat dau",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_13",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu",
+      "câu_ngắn"
+    ]
+  },
+  {
+    "id": "dev_0180",
+    "text": "Start",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_13",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "tiếng_anh"
+    ]
+  },
+  {
+    "id": "dev_0181",
+    "text": "Tôi muốn tìm hiểu thông tin",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_14",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0182",
+    "text": "toi muon tim hieu thong tin",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_14",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0183",
+    "text": "Cần hỏi một số việc",
+    "intent": "GREETING",
+    "sub_intent": "GREETING_STANDARD",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_GR_14",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "ngắn"
+    ]
+  },
+  {
+    "id": "dev_0184",
+    "text": "Thủ tục ly hôn đơn phương nộp ở đâu?",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_11",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "ly_hôn",
+      "tòa_án"
+    ]
+  },
+  {
+    "id": "dev_0185",
+    "text": "nop don ly hon don phuong o dau",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_11",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0186",
+    "text": "Án phí ly hôn thuận tình nộp ở tòa nào",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_11",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "tòa_án"
+    ]
+  },
+  {
+    "id": "dev_0187",
+    "text": "Đăng ký nhãn hiệu độc quyền thương hiệu",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_12",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "sở_hữu_trí_tuệ"
+    ]
+  },
+  {
+    "id": "dev_0188",
+    "text": "dang ky nhan hieu o dau",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_12",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0189",
+    "text": "Bảo hộ quyền tác giả bài hát",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_12",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "sở_hữu_trí_tuệ"
+    ]
+  },
+  {
+    "id": "dev_0190",
+    "text": "Đăng kiểm xe cơ giới ô tô ở đâu?",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_13",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "đăng_kiểm"
+    ]
+  },
+  {
+    "id": "dev_0191",
+    "text": "dang kiem xe o to o dau",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_13",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0192",
+    "text": "Phí đăng kiểm xe ô tô 5 chỗ",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_13",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "đăng_kiểm"
+    ]
+  },
+  {
+    "id": "dev_0193",
+    "text": "Thủ tục hưởng trợ cấp thất nghiệp",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_14",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thất_nghiệp",
+      "bảo_hiểm"
+    ]
+  },
+  {
+    "id": "dev_0194",
+    "text": "huong bao hiem that nghiep o dau",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_14",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0195",
+    "text": "Nộp hồ sơ bảo hiểm thất nghiệp ở trung tâm nào",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_14",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "bảo_hiểm"
+    ]
+  },
+  {
+    "id": "dev_0196",
+    "text": "Thủ tục mở tài khoản ngân hàng",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_15",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "ngân_hàng"
+    ]
+  },
+  {
+    "id": "dev_0197",
+    "text": "mo tai khoan ngan hang can gi",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_15",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0198",
+    "text": "Vay vốn ngân hàng chính sách ở đâu",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_15",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "ngân_hàng"
+    ]
+  },
+  {
+    "id": "dev_0199",
+    "text": "Thủ tục nhập quốc tịch Việt Nam",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_16",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "quốc_tịch",
+      "bộ_tư_pháp"
+    ]
+  },
+  {
+    "id": "dev_0200",
+    "text": "xin nhap quoc tich viet nam o dau",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_16",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0201",
+    "text": "Thôi quốc tịch Việt Nam",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_16",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "quốc_tịch"
+    ]
+  },
+  {
+    "id": "dev_0202",
+    "text": "Cấp chứng chỉ hành nghề y dược tư nhân",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_17",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "sở_y_tế"
+    ]
+  },
+  {
+    "id": "dev_0203",
+    "text": "chung chi hanh nghe duoc xin o dau",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_17",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0204",
+    "text": "Giấy phép mở phòng khám bệnh",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_17",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "sở_y_tế"
+    ]
+  },
+  {
+    "id": "dev_0205",
+    "text": "Thủ tục thi bằng lái thuyền lái ca nô",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_18",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "giao_thông_thủy"
+    ]
+  },
+  {
+    "id": "dev_0206",
+    "text": "thi bang lai thuyen o dau",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_18",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0207",
+    "text": "Đăng kiểm tàu thuyền đánh cá",
+    "intent": "OUT_OF_SCOPE",
+    "sub_intent": "OOS_COMPETENT_AUTHORITY",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_OOS_18",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "giao_thông_thủy"
+    ]
+  },
+  {
+    "id": "dev_0208",
+    "text": "Bảng tra cứu danh mục thủ tục",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_08",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0209",
+    "text": "bang tra cuu thu tuc",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_08",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0210",
+    "text": "Tra cứu dịch vụ công cấp xã",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_08",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0211",
+    "text": "Trợ lý hỗ trợ giải đáp thủ tục nào?",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_09",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0212",
+    "text": "ho tro nhung thu tuc nao",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_09",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0213",
+    "text": "Bạn hỗ trợ những việc gì",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_09",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thân_mật"
+    ]
+  },
+  {
+    "id": "dev_0214",
+    "text": "Thông tin toàn bộ dịch vụ công xã",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_10",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0215",
+    "text": "dich vu cong cap xa co gi",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_10",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0216",
+    "text": "Các thủ tục một cửa tiếp nhận",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_10",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0217",
+    "text": "Cho xem danh mục hồ sơ hành chính",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_11",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0218",
+    "text": "xem danh muc ho so",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_11",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0219",
+    "text": "Danh bạ thủ tục công dân",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_11",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0220",
+    "text": "Ở phường giải quyết những việc gì",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_12",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0221",
+    "text": "o phuong giai quyet viec gi",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_12",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0222",
+    "text": "Phường có làm giấy tờ gì",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_12",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "thân_mật"
+    ]
+  },
+  {
+    "id": "dev_0223",
+    "text": "Muốn biết tất cả thủ tục tại xã",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_13",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0224",
+    "text": "tat ca thu tuc tai xa",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_13",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0225",
+    "text": "Liệt kê hết dịch vụ công",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_13",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0226",
+    "text": "Các dịch vụ hành chính công cấp cơ sở",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_14",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "chuẩn"
+    ]
+  },
+  {
+    "id": "dev_0227",
+    "text": "dich vu hanh chinh cong co so",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_14",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "không_dấu"
+    ]
+  },
+  {
+    "id": "dev_0228",
+    "text": "TTHC cấp cơ sở gồm những gì",
+    "intent": "PROCEDURE_CATALOG",
+    "sub_intent": "CATALOG_FULL",
+    "procedure_code": null,
+    "gold_chunk_ids": [],
+    "group_id": "GRP_CAT_14",
+    "author_id": "author_engineer_02",
+    "source": "synthetic_template",
+    "style_tags": [
+      "viết_tắt"
+    ]
+  }
+]

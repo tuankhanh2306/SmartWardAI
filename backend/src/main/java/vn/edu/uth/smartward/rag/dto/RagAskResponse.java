@@ -42,4 +42,7 @@ public class RagAskResponse {
 
     @Schema(description = "Tuyên bố miễn trừ trách nhiệm pháp lý")
     private String disclaimer;
+
+    @Schema(description = "Danh sách nút gợi ý nhanh liên quan (quick suggestion chips)")
+    private List<String> suggestions;
 }

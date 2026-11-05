@@ -65,7 +65,7 @@ export function isProcedureListQuery(query: string): boolean {
   });
 }
 
-export type SmallTalkType = 'GREETING' | 'WELLBEING' | 'THANKS' | 'GOODBYE' | 'NONE';
+export type SmallTalkType = 'GREETING' | 'WELLBEING' | 'THANKS' | 'GOODBYE' | 'HELP' | 'NONE';
 
 /**
  * Classifies conversational small talk or greetings
@@ -133,6 +133,29 @@ export function classifySmallTalk(query: string): { matched: boolean; type: Smal
     const identityRegex = /^(bạn|bot|tro\s+ly|trợ\s+lý)\s+(là\s+ai|có\s+thể\s+làm\s+gì|giúp\s+gì|giúp\s+được\s+gì|giup\s+duoc\s+gi|giup\s+gi|làm\s+việc\s+thế\s+nào|chức\s+năng)/i;
     if (identityRegex.test(q) || identityRegex.test(qNoAccent) || qNoAccent.includes('giup duoc gi') || qNoAccent.includes('giup gi cho toi')) {
       return { matched: true, type: 'GREETING' };
+    }
+
+    // Typo-tolerant greeting: "chaogf ban", "chaof", "xin chaoo", "helo", "hii"
+    const firstToken = qNoAccent.split(/\s+/)[0] || '';
+    const typoGreetingRoots = ['chao', 'xinchao', 'hello', 'helo', 'alo'];
+    if (
+      typoGreetingRoots.some((root) => firstToken.startsWith(root) && firstToken.length <= root.length + 2) ||
+      /^hi+$/.test(firstToken) ||
+      /^xin\s*chao[a-z]{0,2}\b/.test(qNoAccent)
+    ) {
+      return { matched: true, type: 'GREETING' };
+    }
+  }
+
+  // 5. Generic help request without a specific procedure ("bạn có thể tư vấn cho tôi không", "cho tôi hỏi chút")
+  if (q.length <= 80) {
+    const helpPatterns = [
+      'tu van', 'tuw van', 'giup toi', 'giupf toi', 'giups toi', 'giup minh', 'giup em', 'giup voi', 'giupf', 'giups', 'ho tro toi', 'ho tro minh',
+      'cho toi hoi', 'cho minh hoi', 'cho em hoi', 'hoi chut', 'hoi xiu', 'hoi ti', 'muon hoi',
+      'can giup', 'can ho tro', 'can tu van', 'nho ban', 'lam on', 'co the tu van', 'co the giup'
+    ];
+    if (helpPatterns.some((p) => qNoAccent.includes(p)) && !checkOutOfScopeQuery(query).isOutOfScope) {
+      return { matched: true, type: 'HELP' };
     }
   }
 

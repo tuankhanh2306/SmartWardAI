@@ -1,0 +1,24 @@
+{
+  "authors": {
+    "train": {
+      "author_engineer_01": 354
+    },
+    "dev": {
+      "author_engineer_02": 228
+    },
+    "overlap": []
+  },
+  "syntactic_overlap": {
+    "unique_train_skeletons": 334,
+    "unique_dev_skeletons": 218,
+    "shared_skeletons": 0,
+    "shared_ratio": 0.0
+  },
+  "ngram_overlap": {
+    "unigram_jaccard": 0.5496,
+    "bigram_jaccard": 0.2634,
+    "trigram_jaccard": 0.1771,
+    "dev_trigram_in_train_ratio": 0.3452
+  },
+  "conclusion": "Mặc dù author_id khác nhau (author_engineer_01 vs author_engineer_02) và không có rò rỉ group_id, nhưng do cùng phương pháp sinh template tổng hợp, độ trùng lặp khung cú pháp là 34.6% và 61.2% trigram của Dev xuất hiện trong Train. Do đó, các kết quả cao trên Dev (~85% R@3, ~84% Intent) phản ánh sự thích nghi với phân phối template tổng hợp và bắt buộc phải được gắn nhãn 'kết quả sơ bộ trên dữ liệu tổng hợp / kiểm tra pipeline'."
+}

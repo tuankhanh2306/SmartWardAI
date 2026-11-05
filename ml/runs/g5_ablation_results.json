@@ -1,0 +1,252 @@
+{
+  "1_dense_raw": {
+    "ALL": {
+      "proc_r1": 0.525,
+      "proc_r3": 0.8583,
+      "proc_r3_95_ci": [
+        0.775,
+        0.925
+      ],
+      "proc_mrr": 0.7052,
+      "chunk_r1": 0.2833,
+      "chunk_r3": 0.5833,
+      "chunk_mrr": 0.4735,
+      "chunk_mrr_95_ci": [
+        0.3962,
+        0.5547
+      ]
+    },
+    "ACC": {
+      "proc_r1": 0.5875,
+      "proc_r3": 0.9,
+      "proc_r3_95_ci": [
+        0.8125,
+        0.975
+      ],
+      "proc_mrr": 0.7498,
+      "chunk_r1": 0.3875,
+      "chunk_r3": 0.7,
+      "chunk_mrr": 0.5818,
+      "chunk_mrr_95_ci": [
+        0.477,
+        0.6876
+      ]
+    },
+    "UNACC": {
+      "proc_r1": 0.4,
+      "proc_r3": 0.775,
+      "proc_r3_95_ci": [
+        0.625,
+        0.9
+      ],
+      "proc_mrr": 0.616,
+      "chunk_r1": 0.075,
+      "chunk_r3": 0.35,
+      "chunk_mrr": 0.2569,
+      "chunk_mrr_95_ci": [
+        0.187,
+        0.338
+      ]
+    }
+  },
+  "2_dense_subchunks": {
+    "ALL": {
+      "proc_r1": 0.4583,
+      "proc_r3": 0.7833,
+      "proc_r3_95_ci": [
+        0.6917,
+        0.8667
+      ],
+      "proc_mrr": 0.6439,
+      "chunk_r1": 0.175,
+      "chunk_r3": 0.4583,
+      "chunk_mrr": 0.3796,
+      "chunk_mrr_95_ci": [
+        0.3138,
+        0.4535
+      ]
+    },
+    "ACC": {
+      "proc_r1": 0.5,
+      "proc_r3": 0.8125,
+      "proc_r3_95_ci": [
+        0.7,
+        0.9125
+      ],
+      "proc_mrr": 0.6795,
+      "chunk_r1": 0.2375,
+      "chunk_r3": 0.5625,
+      "chunk_mrr": 0.4483,
+      "chunk_mrr_95_ci": [
+        0.3515,
+        0.5536
+      ]
+    },
+    "UNACC": {
+      "proc_r1": 0.375,
+      "proc_r3": 0.725,
+      "proc_r3_95_ci": [
+        0.575,
+        0.85
+      ],
+      "proc_mrr": 0.5728,
+      "chunk_r1": 0.05,
+      "chunk_r3": 0.25,
+      "chunk_mrr": 0.2421,
+      "chunk_mrr_95_ci": [
+        0.1797,
+        0.3108
+      ]
+    }
+  },
+  "3_hybrid_rrf": {
+    "ALL": {
+      "proc_r1": 0.3333,
+      "proc_r3": 0.575,
+      "proc_r3_95_ci": [
+        0.4417,
+        0.7002
+      ],
+      "proc_mrr": 0.5092,
+      "chunk_r1": 0.1583,
+      "chunk_r3": 0.3833,
+      "chunk_mrr": 0.323,
+      "chunk_mrr_95_ci": [
+        0.249,
+        0.405
+      ]
+    },
+    "ACC": {
+      "proc_r1": 0.325,
+      "proc_r3": 0.5625,
+      "proc_r3_95_ci": [
+        0.425,
+        0.7
+      ],
+      "proc_mrr": 0.5055,
+      "chunk_r1": 0.2,
+      "chunk_r3": 0.4375,
+      "chunk_mrr": 0.3634,
+      "chunk_mrr_95_ci": [
+        0.2749,
+        0.4666
+      ]
+    },
+    "UNACC": {
+      "proc_r1": 0.35,
+      "proc_r3": 0.6,
+      "proc_r3_95_ci": [
+        0.45,
+        0.7256
+      ],
+      "proc_mrr": 0.5166,
+      "chunk_r1": 0.075,
+      "chunk_r3": 0.275,
+      "chunk_mrr": 0.2423,
+      "chunk_mrr_95_ci": [
+        0.1619,
+        0.3269
+      ]
+    }
+  },
+  "4_dual_unaccented": {
+    "ALL": {
+      "proc_r1": 0.35,
+      "proc_r3": 0.5333,
+      "proc_r3_95_ci": [
+        0.4,
+        0.6667
+      ],
+      "proc_mrr": 0.5008,
+      "chunk_r1": 0.2,
+      "chunk_r3": 0.3417,
+      "chunk_mrr": 0.3236,
+      "chunk_mrr_95_ci": [
+        0.2354,
+        0.4197
+      ]
+    },
+    "ACC": {
+      "proc_r1": 0.3625,
+      "proc_r3": 0.525,
+      "proc_r3_95_ci": [
+        0.3875,
+        0.6625
+      ],
+      "proc_mrr": 0.5033,
+      "chunk_r1": 0.2375,
+      "chunk_r3": 0.375,
+      "chunk_mrr": 0.3652,
+      "chunk_mrr_95_ci": [
+        0.2686,
+        0.4728
+      ]
+    },
+    "UNACC": {
+      "proc_r1": 0.325,
+      "proc_r3": 0.55,
+      "proc_r3_95_ci": [
+        0.4,
+        0.7
+      ],
+      "proc_mrr": 0.4959,
+      "chunk_r1": 0.125,
+      "chunk_r3": 0.275,
+      "chunk_mrr": 0.2405,
+      "chunk_mrr_95_ci": [
+        0.1581,
+        0.3396
+      ]
+    }
+  },
+  "5_layer2_rules": {
+    "ALL": {
+      "proc_r1": 0.3417,
+      "proc_r3": 0.575,
+      "proc_r3_95_ci": [
+        0.4333,
+        0.7083
+      ],
+      "proc_mrr": 0.5054,
+      "chunk_r1": 0.0417,
+      "chunk_r3": 0.0917,
+      "chunk_mrr": 0.1151,
+      "chunk_mrr_95_ci": [
+        0.0855,
+        0.15
+      ]
+    },
+    "ACC": {
+      "proc_r1": 0.35,
+      "proc_r3": 0.5875,
+      "proc_r3_95_ci": [
+        0.45,
+        0.725
+      ],
+      "proc_mrr": 0.5102,
+      "chunk_r1": 0.0,
+      "chunk_r3": 0.0,
+      "chunk_mrr": 0.0525,
+      "chunk_mrr_95_ci": [
+        0.0445,
+        0.063
+      ]
+    },
+    "UNACC": {
+      "proc_r1": 0.325,
+      "proc_r3": 0.55,
+      "proc_r3_95_ci": [
+        0.4,
+        0.7
+      ],
+      "proc_mrr": 0.4959,
+      "chunk_r1": 0.125,
+      "chunk_r3": 0.275,
+      "chunk_mrr": 0.2405,
+      "chunk_mrr_95_ci": [
+        0.1581,
+        0.3396
+      ]
+    }
+  }
+}

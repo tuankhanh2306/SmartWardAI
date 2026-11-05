@@ -1,0 +1,454 @@
+{
+  "dataset_statistics": {
+    "train": {
+      "n_samples": 354,
+      "n_groups": 118,
+      "intents": {
+        "PROCEDURE_INQUIRY": 240,
+        "AMBIGUOUS": 21,
+        "COMMUNE_INFO": 21,
+        "GREETING": 21,
+        "OUT_OF_SCOPE": 30,
+        "PROCEDURE_CATALOG": 21
+      },
+      "sub_intents": {
+        "INQUIRY_DOCUMENTS": 120,
+        "INQUIRY_FEE_TIME": 120,
+        "AMBIGUOUS_UNDERSPECIFIED": 21,
+        "COMMUNE_SCHEDULE_CONTACT": 21,
+        "GREETING_STANDARD": 21,
+        "OOS_COMPETENT_AUTHORITY": 30,
+        "CATALOG_FULL": 21
+      },
+      "sources": {
+        "synthetic_template": 354
+      },
+      "styles": {
+        "chuẩn": 182,
+        "hồ_sơ": 120,
+        "không_dấu": 118,
+        "thời_hạn": 80,
+        "lệ_phí": 120,
+        "mơ_hồ": 18,
+        "phương_ngữ": 1,
+        "thiếu_chủ_ngữ": 2,
+        "câu_ngắn": 4,
+        "thiếu_thủ_tục": 2,
+        "thiếu_thông_tin": 1,
+        "đại_từ": 2,
+        "thân_mật": 7,
+        "viết_tắt": 6,
+        "địa_phương": 1,
+        "hỏi_địa_điểm": 1,
+        "lịch_sự": 1,
+        "tiếng_anh": 3,
+        "xã_giao": 1,
+        "cảm_ơn": 2,
+        "tạm_biệt": 2,
+        "hỏi_danh_tính": 1,
+        "hỏi_chức_năng": 1,
+        "hộ_chiếu": 1,
+        "từ_mượn": 1,
+        "bằng_lái": 2,
+        "bhxh": 1,
+        "viết_số": 1,
+        "lltp": 2,
+        "xe_máy": 1,
+        "ô_tô": 1,
+        "cccd": 2,
+        "tòa_án": 2,
+        "thuế": 2,
+        "doanh_nghiệp": 2,
+        "thị_thực": 1,
+        "ngắn": 1
+      }
+    },
+    "dev": {
+      "n_samples": 228,
+      "n_groups": 76,
+      "intents": {
+        "PROCEDURE_INQUIRY": 120,
+        "AMBIGUOUS": 21,
+        "COMMUNE_INFO": 21,
+        "GREETING": 21,
+        "OUT_OF_SCOPE": 24,
+        "PROCEDURE_CATALOG": 21
+      },
+      "sub_intents": {
+        "INQUIRY_PROCESS": 120,
+        "AMBIGUOUS_UNDERSPECIFIED": 21,
+        "COMMUNE_SCHEDULE_CONTACT": 21,
+        "GREETING_STANDARD": 21,
+        "OOS_COMPETENT_AUTHORITY": 24,
+        "CATALOG_FULL": 21
+      },
+      "sources": {
+        "synthetic_template": 228
+      },
+      "styles": {
+        "chuẩn": 105,
+        "quy_trình": 80,
+        "không_dấu": 76,
+        "dịch_vụ_công": 40,
+        "mơ_hồ": 16,
+        "câu_ngắn": 8,
+        "thiếu_ngữ_cảnh": 1,
+        "thiếu_thủ_tục": 2,
+        "thân_mật": 5,
+        "viết_tắt": 4,
+        "hỏi_địa_điểm": 1,
+        "lịch_sự": 1,
+        "tiếng_anh": 3,
+        "phương_ngữ": 1,
+        "teencode": 2,
+        "kính_ngữ": 1,
+        "xác_nhận": 1,
+        "ngắn": 2,
+        "ly_hôn": 1,
+        "tòa_án": 2,
+        "sở_hữu_trí_tuệ": 2,
+        "đăng_kiểm": 2,
+        "thất_nghiệp": 1,
+        "bảo_hiểm": 2,
+        "ngân_hàng": 2,
+        "quốc_tịch": 2,
+        "bộ_tư_pháp": 1,
+        "sở_y_tế": 2,
+        "giao_thông_thủy": 2
+      }
+    },
+    "heldout": {
+      "n_samples": 228,
+      "n_groups": 76,
+      "intents": {
+        "PROCEDURE_INQUIRY": 120,
+        "AMBIGUOUS": 21,
+        "COMMUNE_INFO": 21,
+        "GREETING": 21,
+        "OUT_OF_SCOPE": 24,
+        "PROCEDURE_CATALOG": 21
+      },
+      "sub_intents": {
+        "INQUIRY_PRACTICAL": 120,
+        "AMBIGUOUS_UNDERSPECIFIED": 21,
+        "COMMUNE_SCHEDULE_CONTACT": 21,
+        "GREETING_STANDARD": 21,
+        "OOS_COMPETENT_AUTHORITY": 6,
+        "OOS_IRRELEVANT": 9,
+        "OOS_INJECTION_SAFETY": 9,
+        "CATALOG_FULL": 21
+      },
+      "sources": {
+        "heldout_provisional": 228
+      },
+      "styles": {
+        "phương_ngữ": 7,
+        "đời_thường": 4,
+        "không_dấu": 106,
+        "chuẩn": 67,
+        "lệ_phí": 3,
+        "bảo_trợ": 1,
+        "thực_tế": 33,
+        "lưu_ý": 29,
+        "viết_tắt": 4,
+        "biểu_mẫu": 1,
+        "từ_dân_gian": 1,
+        "quy_định": 2,
+        "ngắn": 2,
+        "câu_bẫy": 1,
+        "dân_gian": 1,
+        "mục_đích_thực": 2,
+        "thời_hạn": 2,
+        "phân_biệt_trích_lục": 2,
+        "từ_đồng_nghĩa": 1,
+        "mơ_hồ": 17,
+        "câu_ngắn": 4,
+        "thân_mật": 3,
+        "lịch_sự": 4,
+        "xã_giao": 2,
+        "kính_ngữ": 1,
+        "tiếng_anh": 4,
+        "khen_ngợi": 2,
+        "an_toàn_thực_phẩm": 1,
+        "sở_xây_dựng": 1,
+        "pccc": 1,
+        "bẫy_ngoài_lề": 7,
+        "prompt_injection": 3,
+        "jailbreak": 3,
+        "đóng_vai": 1,
+        "code_injection": 2,
+        "sql_injection": 1,
+        "từ_mượn": 1
+      }
+    }
+  },
+  "group_id_leakage": {
+    "train_dev_overlap": 0,
+    "train_heldout_overlap": 0,
+    "dev_heldout_overlap": 0
+  },
+  "similarity_audit": {
+    "Train_vs_Dev": {
+      "n_flagged_tfidf": 0,
+      "flagged_tfidf_samples": [],
+      "n_flagged_emb": 1786,
+      "flagged_emb_samples": [
+        {
+          "score": 0.9156,
+          "item_a": {
+            "id": "train_0001",
+            "text": "Thực hiện thủ tục trợ cấp xã hội hàng tháng cho người cao tuổi cần chuẩn bị những hồ sơ, giấy tờ gì?",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          },
+          "item_b": {
+            "id": "dev_0001",
+            "text": "Trình tự các bước nộp hồ sơ trợ cấp xã hội hàng tháng cho người cao tuổi tại UBND cấp xã",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          }
+        },
+        {
+          "score": 0.8833,
+          "item_a": {
+            "id": "train_0001",
+            "text": "Thực hiện thủ tục trợ cấp xã hội hàng tháng cho người cao tuổi cần chuẩn bị những hồ sơ, giấy tờ gì?",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          },
+          "item_b": {
+            "id": "dev_0003",
+            "text": "Các bước nộp hồ sơ trực tuyến đối với trợ cấp xã hội hàng tháng cho người cao tuổi",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          }
+        },
+        {
+          "score": 0.9418,
+          "item_a": {
+            "id": "train_0002",
+            "text": "lam tro cap xa hoi hang thang cho nguoi cao tuoi can ho so giay to gi",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          },
+          "item_b": {
+            "id": "dev_0002",
+            "text": "quy trinh thuc hien tro cap xa hoi hang thang cho nguoi cao tuoi tai bo phan mot cua",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          }
+        },
+        {
+          "score": 0.9,
+          "item_a": {
+            "id": "train_0002",
+            "text": "lam tro cap xa hoi hang thang cho nguoi cao tuoi can ho so giay to gi",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          },
+          "item_b": {
+            "id": "dev_0005",
+            "text": "quy trinh thuc hien ho tro chi phi mai tang doi tuong bao tro tai bo phan mot cua",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-02"
+          }
+        },
+        {
+          "score": 0.9161,
+          "item_a": {
+            "id": "train_0002",
+            "text": "lam tro cap xa hoi hang thang cho nguoi cao tuoi can ho so giay to gi",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          },
+          "item_b": {
+            "id": "dev_0008",
+            "text": "quy trinh thuc hien cap the bao hiem y te cho doi tuong bao tro tai bo phan mot cua",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-03"
+          }
+        }
+      ]
+    },
+    "Train_vs_Heldout": {
+      "n_flagged_tfidf": 1,
+      "flagged_tfidf_samples": [
+        {
+          "score": 0.8522,
+          "item_a": {
+            "id": "train_0152",
+            "text": "lam dang ky bien dong dat dai tai san gan lien voi dat can ho so giay to gi",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-DC-02"
+          },
+          "item_b": {
+            "id": "heldout_0078",
+            "text": "lam dang ky bien dong dat dai tai san gan lien voi dat can luu y gi khong",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-DC-02"
+          }
+        }
+      ],
+      "n_flagged_emb": 2362,
+      "flagged_emb_samples": [
+        {
+          "score": 0.9368,
+          "item_a": {
+            "id": "train_0002",
+            "text": "lam tro cap xa hoi hang thang cho nguoi cao tuoi can ho so giay to gi",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          },
+          "item_b": {
+            "id": "heldout_0002",
+            "text": "thu tuc huong tro cap xa hoi nguoi cao tuoi",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          }
+        },
+        {
+          "score": 0.8926,
+          "item_a": {
+            "id": "train_0002",
+            "text": "lam tro cap xa hoi hang thang cho nguoi cao tuoi can ho so giay to gi",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          },
+          "item_b": {
+            "id": "heldout_0005",
+            "text": "ho tro chi phi mai tang nguoi cao tuoi mat bao lau nhan duoc",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-02"
+          }
+        },
+        {
+          "score": 0.9285,
+          "item_a": {
+            "id": "train_0002",
+            "text": "lam tro cap xa hoi hang thang cho nguoi cao tuoi can ho so giay to gi",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          },
+          "item_b": {
+            "id": "heldout_0007",
+            "text": "cho hoi ve thu tuc cap the bao hiem y te cho doi tuong bao tro tai xa minh",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-03"
+          }
+        },
+        {
+          "score": 0.9323,
+          "item_a": {
+            "id": "train_0002",
+            "text": "lam tro cap xa hoi hang thang cho nguoi cao tuoi can ho so giay to gi",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          },
+          "item_b": {
+            "id": "heldout_0009",
+            "text": "lam cap the bao hiem y te cho doi tuong bao tro can luu y gi khong",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-03"
+          }
+        },
+        {
+          "score": 0.8846,
+          "item_a": {
+            "id": "train_0002",
+            "text": "lam tro cap xa hoi hang thang cho nguoi cao tuoi can ho so giay to gi",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          },
+          "item_b": {
+            "id": "heldout_0012",
+            "text": "lam tro giup xa hoi khan cap can luu y gi khong",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-04"
+          }
+        }
+      ]
+    },
+    "Dev_vs_Heldout": {
+      "n_flagged_tfidf": 0,
+      "flagged_tfidf_samples": [],
+      "n_flagged_emb": 2039,
+      "flagged_emb_samples": [
+        {
+          "score": 0.9565,
+          "item_a": {
+            "id": "dev_0002",
+            "text": "quy trinh thuc hien tro cap xa hoi hang thang cho nguoi cao tuoi tai bo phan mot cua",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          },
+          "item_b": {
+            "id": "heldout_0002",
+            "text": "thu tuc huong tro cap xa hoi nguoi cao tuoi",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          }
+        },
+        {
+          "score": 0.9108,
+          "item_a": {
+            "id": "dev_0002",
+            "text": "quy trinh thuc hien tro cap xa hoi hang thang cho nguoi cao tuoi tai bo phan mot cua",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          },
+          "item_b": {
+            "id": "heldout_0005",
+            "text": "ho tro chi phi mai tang nguoi cao tuoi mat bao lau nhan duoc",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-02"
+          }
+        },
+        {
+          "score": 0.9163,
+          "item_a": {
+            "id": "dev_0002",
+            "text": "quy trinh thuc hien tro cap xa hoi hang thang cho nguoi cao tuoi tai bo phan mot cua",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          },
+          "item_b": {
+            "id": "heldout_0007",
+            "text": "cho hoi ve thu tuc cap the bao hiem y te cho doi tuong bao tro tai xa minh",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-03"
+          }
+        },
+        {
+          "score": 0.8796,
+          "item_a": {
+            "id": "dev_0002",
+            "text": "quy trinh thuc hien tro cap xa hoi hang thang cho nguoi cao tuoi tai bo phan mot cua",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          },
+          "item_b": {
+            "id": "heldout_0009",
+            "text": "lam cap the bao hiem y te cho doi tuong bao tro can luu y gi khong",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-03"
+          }
+        },
+        {
+          "score": 0.9314,
+          "item_a": {
+            "id": "dev_0002",
+            "text": "quy trinh thuc hien tro cap xa hoi hang thang cho nguoi cao tuoi tai bo phan mot cua",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-01"
+          },
+          "item_b": {
+            "id": "heldout_0013",
+            "text": "cho hoi ve thu tuc thu tuc nguoi co cong va gia dinh chinh sach tai xa minh",
+            "intent": "PROCEDURE_INQUIRY",
+            "proc": "TTHC-BT-05"
+          }
+        }
+      ]
+    }
+  }
+}

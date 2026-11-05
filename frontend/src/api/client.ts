@@ -28,6 +28,12 @@ export interface LegalCitation {
   relevanceScore: number;
 }
 
+export interface ConversationTurn {
+  sender: 'citizen' | 'bot' | 'user' | 'assistant';
+  text: string;
+  procedureCode?: string;
+}
+
 export interface RagResponse {
   answer: string;
   abstained: boolean;
@@ -38,6 +44,72 @@ export interface RagResponse {
   cached: boolean;
   responseTimeMs: number;
   disclaimer: string;
+  suggestions?: string[];
+}
+
+function extractProcedureFromText(text: string): string | null {
+  if (!text) return null;
+  const lower = text.toLowerCase();
+  if (lower.includes('kết hôn') || lower.includes('hôn nhân') || lower.includes('lấy vợ') || lower.includes('lấy chồng')) {
+    return 'đăng ký kết hôn';
+  }
+  if (lower.includes('khai sinh') || lower.includes('sinh con') || lower.includes('mới sinh')) {
+    return 'đăng ký khai sinh';
+  }
+  if (lower.includes('thường trú') || lower.includes('ct01') || lower.includes('nhập khẩu') || lower.includes('hộ khẩu')) {
+    return 'đăng ký thường trú (Mẫu CT01)';
+  }
+  if (lower.includes('tạm trú')) {
+    return 'đăng ký tạm trú';
+  }
+  if (lower.includes('chứng thực') || lower.includes('sao y')) {
+    return 'chứng thực sao y bản sao';
+  }
+  if (lower.includes('khai tử') || lower.includes('chứng tử')) {
+    return 'đăng ký khai tử';
+  }
+  if (lower.includes('độc thân') || lower.includes('tình trạng hôn nhân')) {
+    return 'cấp giấy xác nhận tình trạng hôn nhân';
+  }
+  if (lower.includes('trích lục')) {
+    return 'cấp bản sao trích lục hộ tịch';
+  }
+  if (lower.includes('bảo trợ') || lower.includes('tiền già') || lower.includes('người cao tuổi')) {
+    return 'trợ cấp bảo trợ xã hội';
+  }
+  return null;
+}
+
+function isFollowUpQuestion(q: string): boolean {
+  const lower = q.toLowerCase();
+  for (const kw of ['khai sinh', 'kết hôn', 'khai tử', 'thường trú', 'tạm trú', 'ct01', 'chứng thực', 'sao y', 'độc thân', 'trích lục', 'bảo trợ']) {
+    if (lower.includes(kw)) return false;
+  }
+  const patterns = [
+    'lệ phí', 'chi phí', 'bao nhiêu tiền', 'hết bao nhiêu', 'mất tiền', 'mất phí', 'có mất tiền không',
+    'bao lâu', 'mấy ngày', 'thời hạn', 'thời gian', 'khi nào có',
+    'hồ sơ', 'giấy tờ', 'cần gì', 'chuẩn bị gì', 'mang theo gì',
+    'nộp ở đâu', 'ở đâu', 'đến đâu', 'nơi nộp', 'ai nộp',
+    'còn', 'thế còn', 'vậy còn'
+  ];
+  return patterns.some(p => lower.includes(p));
+}
+
+function getProcedureSuggestions(procName: string): string[] {
+  const lower = procName.toLowerCase();
+  if (lower.includes('kết hôn')) {
+    return ['Hồ sơ kết hôn cần gì?', 'Lệ phí kết hôn bao nhiêu?', 'Nơi nộp hồ sơ kết hôn ở đâu?', 'Thời hạn giải quyết bao lâu?'];
+  }
+  if (lower.includes('khai sinh')) {
+    return ['Hồ sơ khai sinh cần gì?', 'Lệ phí khai sinh bao nhiêu?', 'Nơi nộp hồ sơ khai sinh ở đâu?', 'Thời hạn giải quyết bao lâu?'];
+  }
+  if (lower.includes('thường trú') || lower.includes('cư trú')) {
+    return ['Hồ sơ thường trú gồm những gì?', 'Thời hạn đăng ký thường trú?', 'Nơi nộp hồ sơ thường trú?', 'Hướng dẫn điền CT01'];
+  }
+  if (lower.includes('chứng thực')) {
+    return ['Lệ phí chứng thực bản sao?', 'Giấy tờ cần xuất trình khi chứng thực?', 'Thời hạn trả kết quả chứng thực?'];
+  }
+  return ['Hồ sơ cần những gì?', 'Lệ phí bao nhiêu?', 'Nơi nộp hồ sơ ở đâu?', 'Thời hạn giải quyết bao lâu?'];
 }
 
 export const askLegalRag = async (
@@ -48,7 +120,8 @@ export const askLegalRag = async (
     officeAddress?: string;
     phoneNumber?: string;
     workingHours?: string;
-  } = {}
+  } = {},
+  conversationHistory: ConversationTurn[] = []
 ): Promise<RagResponse> => {
   const currentWardName = wardContext.wardName || 'UBND cấp Xã/Phường';
   const currentAddress = wardContext.officeAddress || 'Bộ phận Một cửa';
@@ -63,11 +136,12 @@ export const askLegalRag = async (
       answer: buildProcedureCatalogResponse(currentWardName),
       abstained: false,
       maxSimilarity: 1.0,
-      appliedThreshold: 0.78,
+      appliedThreshold: 0.50,
       responseTimeMs: 6.0,
       cached: false,
       disclaimer: 'Danh mục 40 TTHC cấp xã chuẩn hóa theo Nghị định 13/2023 và Đề án 06.',
       citations: [],
+      suggestions: ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📄 Chứng thực sao y', '🤝 Trợ cấp bảo trợ xã hội'],
     };
   }
 
@@ -75,6 +149,8 @@ export const askLegalRag = async (
   const smallTalk = classifySmallTalk(query);
   if (smallTalk.matched) {
     let reply = '';
+    let suggestions = ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📋 Xem 40 thủ tục'];
+
     if (smallTalk.type === 'WELLBEING') {
       reply =
         `Dạ chào bà con! Hôm nay tôi vẫn hoạt động bình thường 24/7 và luôn sẵn sàng hỗ trợ giải đáp mọi thủ tục hành chính công tại UBND ${currentWardName}.\n\n` +
@@ -87,6 +163,16 @@ export const askLegalRag = async (
       reply =
         `Tạm biệt bà con! Chúc bà con một ngày vui vẻ và làm việc hiệu quả.\n\n` +
         `Bất cứ khi nào cần tra cứu thủ tục hành chính hoặc hỏi đáp biểu mẫu tại UBND ${currentWardName}, bà con có thể quay lại trò chuyện cùng tôi bất cứ lúc nào!`;
+    } else if (smallTalk.type === 'HELP') {
+      reply =
+        `Dạ được chứ ạ! Tôi có thể tư vấn cho bà con các thủ tục hành chính tại UBND ${currentWardName}.\n\n` +
+        `Bà con cho tôi biết đang cần làm việc gì nhé, ví dụ:\n` +
+        `• "Con tôi mới sinh, làm khai sinh cần gì?"\n` +
+        `• "Tôi thuê trọ, đăng ký tạm trú thế nào?"\n` +
+        `• "Xin giấy xác nhận độc thân ở đâu?"\n` +
+        `• "Chứng thực sao y mất bao lâu?"\n\n` +
+        `Hoặc gõ "nêu 40 thủ tục" để xem toàn bộ danh mục.`;
+      suggestions = ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📄 Chứng thực sao y', '📋 Xem 40 thủ tục'];
     } else {
       reply =
         `Xin chào! Tôi là Trợ lý Pháp lý Một Cửa tại UBND ${currentWardName}.\n\n` +
@@ -103,35 +189,34 @@ export const askLegalRag = async (
       answer: reply,
       abstained: false,
       maxSimilarity: 1.0,
-      appliedThreshold: 0.78,
+      appliedThreshold: 0.50,
       responseTimeMs: 5.0,
       cached: false,
       disclaimer: 'Trợ lý Pháp lý Một Cửa SmartWard AI sẵn sàng phục vụ nhân dân.',
       citations: [],
+      suggestions,
     };
   }
 
-  // 2. Pre-filter: Out-of-scope inquiry (Priority over ward office to prevent delegation hijacking)
+  // 2. Pre-filter: Out-of-scope inquiry (Strictly <= 2 concise sentences with direct guidance)
   const outOfScopeCheck = checkOutOfScopeQuery(query);
   if (outOfScopeCheck.isOutOfScope) {
-    let msg =
-      `Yêu cầu này nằm ngoài phạm vi dữ liệu thủ tục hành chính cấp xã hoặc vượt thẩm quyền giải quyết của UBND xã/phường theo quy định. ` +
-      `Nhằm tuân thủ nguyên tắc Không Ảo Giác và Nghị định 13/2023/NĐ-CP, hệ thống chỉ hỗ trợ các thủ tục hành chính cấp xã (Hộ tịch, Cư trú, Chứng thực, Bảo trợ xã hội, Đất đai cơ bản).\n\n`;
-    if (outOfScopeCheck.authority) {
-      msg += `👉 Thẩm quyền giải quyết: Quý công dân vui lòng liên hệ ${outOfScopeCheck.authority} để được hỗ trợ chính xác.\n\n`;
-    }
-    msg += `Quý công dân cũng có thể liên hệ Bộ phận Một cửa ${currentWardName} (Địa chỉ: ${currentAddress} • Hotline: ${currentPhone}) hoặc Tổng đài Dịch vụ công Quốc gia 18001096 để được tư vấn thêm.`;
+    const authority = outOfScopeCheck.authority;
+    const answer = authority
+      ? `Yêu cầu này nằm ngoài thẩm quyền của UBND cấp xã và thuộc thẩm quyền giải quyết của ${authority}. Quý công dân vui lòng liên hệ cơ quan trên hoặc tham khảo các thủ tục hành chính cấp xã dưới đây để được hỗ trợ.`
+      : `Hệ thống SmartWard AI hiện chưa tìm thấy thông tin thủ tục tương ứng với câu hỏi của bà con trong thẩm quyền cấp xã. Bà con vui lòng liên hệ trực tiếp Bộ phận Một cửa ${currentWardName} hoặc Tổng đài 18001096 để được hỗ trợ.`;
 
     return {
-      answer: msg,
+      answer,
       abstained: true,
       abstentionReason: outOfScopeCheck.reason || 'Yêu cầu không thuộc thẩm quyền cấp xã.',
       maxSimilarity: 0.45,
-      appliedThreshold: 0.78,
+      appliedThreshold: 0.50,
       responseTimeMs: 8.0,
       cached: false,
       disclaimer: mandatoryDisclaimer,
       citations: [],
+      suggestions: ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📋 Xem 40 thủ tục'],
     };
   }
 
@@ -147,22 +232,42 @@ export const askLegalRag = async (
         `Bà con có thể đến trực tiếp trong khung giờ làm việc trên hoặc gửi câu hỏi về thủ tục hành chính để tôi hướng dẫn chuẩn bị đầy đủ hồ sơ trước khi đến nộp.`,
       abstained: false,
       maxSimilarity: 1.0,
-      appliedThreshold: 0.78,
+      appliedThreshold: 0.50,
       responseTimeMs: 6.0,
       cached: false,
       disclaimer: 'Thông tin chính thức từ Danh bạ hành chính UBND cấp xã/phường.',
       citations: [],
+      suggestions: ['📋 Xem 40 thủ tục', '👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)'],
     };
+  }
+
+  // 3.1. Contextual Query Rewriting for Follow-up Inquiries
+  let effectiveQuery = query;
+  if (conversationHistory.length > 0 && isFollowUpQuestion(query)) {
+    for (let i = conversationHistory.length - 1; i >= Math.max(0, conversationHistory.length - 5); i--) {
+      const turn = conversationHistory[i];
+      const proc = extractProcedureFromText(turn.text);
+      if (proc) {
+        effectiveQuery = `[Thủ tục ${proc}] ${query}`;
+        break;
+      }
+    }
   }
 
   // 4. Attempt to invoke Spring Boot Backend (/api/v1/rag/ask)
   try {
+    const historyPayload = conversationHistory.slice(-5).map(h => ({
+      role: h.sender === 'citizen' || h.sender === 'user' ? 'citizen' : 'assistant',
+      content: h.text,
+      procedureCode: h.procedureCode
+    }));
     const resp = await api.post<any>('/rag/ask', {
-      question: query,
-      query,
+      question: effectiveQuery,
+      query: effectiveQuery,
       topK,
       wardName: wardContext.wardName,
       officeAddress: wardContext.officeAddress,
+      history: historyPayload
     });
     const result = resp.data?.data ? resp.data.data : resp.data;
     return result as RagResponse;
@@ -171,14 +276,14 @@ export const askLegalRag = async (
     if (isGeminiConfigured()) {
       try {
         console.info('Invoking in-app Gemini Flash Live RAG Engine with Project Knowledge...');
-        return await askGeminiWithRAG(query, wardContext);
+        return await askGeminiWithRAG(effectiveQuery, wardContext);
       } catch (geminiError) {
         console.warn('Gemini Live API failed, falling back to local simulation:', geminiError);
       }
     }
 
     // 6. Local Intelligent Fallback Simulation (Unified Knowledge Base & Resilience)
-    let normalizedQuery = query.toLowerCase();
+    let normalizedQuery = effectiveQuery.toLowerCase();
     normalizedQuery = normalizedQuery
       .replaceAll('giấy khai sanh', 'giấy khai sinh')
       .replaceAll('khai sanh', 'khai sinh')
@@ -212,32 +317,35 @@ export const askLegalRag = async (
         relevanceScore: searchResult.maxScore,
       }));
 
+      const suggestions = getProcedureSuggestions(primaryItem.name);
+
       return {
         answer,
         abstained: false,
         maxSimilarity: searchResult.maxScore,
-        appliedThreshold: 0.78,
+        appliedThreshold: 0.50,
         responseTimeMs: 15.0,
         cached: true,
         disclaimer: mandatoryDisclaimer,
         citations,
+        suggestions,
       };
     }
 
-    // Unmatched General Inquiry - Polite prompt without guessing
+    // Unmatched General Inquiry - Polite prompt without guessing (strictly <= 2 concise sentences)
     return {
       answer:
-        `Hệ thống SmartWard AI hiện chưa nhận diện rõ thủ tục hành chính mà bà con đang cần tìm hiểu.\n\n` +
-        `Để tôi có thể tra cứu chính xác căn cứ pháp lý, hồ sơ và thời hạn giải quyết, bà con vui lòng nhập rõ tên thủ tục (ví dụ: "đăng ký khai sinh", "đăng ký kết hôn", "hướng dẫn nộp mẫu CT01", "cấp giấy xác nhận độc thân", "chứng thực sao y", hoặc gõ "nêu 40 thủ tục" để xem toàn bộ danh mục).\n\n` +
-        `Bà con cũng có thể liên hệ trực tiếp Bộ phận Một cửa ${currentWardName} (Địa chỉ: ${currentAddress} • Hotline: ${currentPhone}) để được cán bộ tiếp nhận hướng dẫn cụ thể.`,
+        `Hệ thống SmartWard AI hiện chưa nhận diện rõ thủ tục hành chính mà bà con đang cần tìm hiểu. ` +
+        `Bà con vui lòng nhập rõ tên thủ tục (ví dụ: "đăng ký khai sinh", "đăng ký kết hôn", "hướng dẫn nộp mẫu CT01", hoặc gõ "nêu 40 thủ tục" để xem danh mục) hoặc liên hệ Một cửa ${currentWardName} để được hướng dẫn chi tiết.`,
       abstained: true,
       abstentionReason: 'Câu hỏi chưa chỉ định rõ tên thủ tục hành chính cụ thể trong phạm vi cấp xã.',
       maxSimilarity: searchResult.maxScore,
-      appliedThreshold: 0.78,
+      appliedThreshold: 0.50,
       responseTimeMs: 10.0,
       cached: false,
       disclaimer: mandatoryDisclaimer,
       citations: [],
+      suggestions: ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📋 Xem 40 thủ tục'],
     };
   }
 };
@@ -268,7 +376,8 @@ export const precheckForm = async (data: {
   citizenCccd: string;
   fullName: string;
   dateOfBirth: string;
-  cccdIssueDate: string;
+  gender?: string;
+  cccdIssueDate?: string;
   address: string;
   formData: Record<string, string>;
 }): Promise<FormPrecheckResponse> => {
@@ -280,10 +389,10 @@ export const precheckForm = async (data: {
     const fieldValidations: FieldValidation[] = [];
     const warnings: string[] = [];
 
-    // Rule 1: Full name validation
+    // Rule 1: Full name validation (Mục 1 Mẫu CT01)
     const nameValid = data.fullName.trim().length >= 4 && data.fullName.trim().includes(' ');
     fieldValidations.push({
-      fieldName: 'Họ và tên',
+      fieldName: 'Họ và tên (Mục 1)',
       providedValue: data.fullName,
       valid: nameValid,
       errorCode: nameValid ? undefined : 'INVALID_FULL_NAME',
@@ -291,14 +400,18 @@ export const precheckForm = async (data: {
       confidenceScore: nameValid ? 0.99 : 0.65,
     });
 
-    // Rule 2: 12-digit CCCD structural decoding
+    // Rule 2: 12-digit CCCD structural decoding (Mục 4 Mẫu CT01)
     const cccdClean = data.citizenCccd.trim();
     const cccdPattern = /^\d{12}$/;
     let cccdValid = cccdPattern.test(cccdClean);
     let cccdError: string | undefined;
 
     if (!cccdValid) {
-      cccdError = 'Số CCCD phải bao gồm đúng 12 chữ số theo quy định của Bộ Công an.';
+      if (cccdClean.length > 0 && cccdClean.length < 12) {
+        cccdError = `Số ĐDCN mới có ${cccdClean.length}/12 chữ số theo quy định Mẫu CT01.`;
+      } else {
+        cccdError = 'Số định danh cá nhân / CCCD phải bao gồm đúng 12 chữ số theo quy định của Bộ Công an.';
+      }
     } else {
       const provinceCode = cccdClean.substring(0, 3);
       if (provinceCode === '000') {
@@ -308,7 +421,7 @@ export const precheckForm = async (data: {
     }
 
     fieldValidations.push({
-      fieldName: 'Số CCCD',
+      fieldName: 'Số định danh cá nhân (Mục 4)',
       providedValue: data.citizenCccd,
       valid: cccdValid,
       errorCode: cccdValid ? undefined : 'INVALID_CCCD_FORMAT',
@@ -316,61 +429,64 @@ export const precheckForm = async (data: {
       confidenceScore: cccdValid ? 0.987 : 0.45,
     });
 
-    // Rule 3: Date Chronology (Issue Date vs Date of Birth)
-    let dobValid = Boolean(data.dateOfBirth);
-    let issueValid = Boolean(data.cccdIssueDate);
-    let chronologyValid = true;
-
-    if (data.dateOfBirth && data.cccdIssueDate) {
-      const birthTime = new Date(data.dateOfBirth).getTime();
-      const issueTime = new Date(data.cccdIssueDate).getTime();
-      if (issueTime <= birthTime) {
-        chronologyValid = false;
-        issueValid = false;
-        fieldValidations.push({
-          fieldName: 'Logic thời gian',
-          providedValue: `Sinh: ${data.dateOfBirth} - Cấp: ${data.cccdIssueDate}`,
-          valid: false,
-          errorCode: 'CHRONOLOGY_VIOLATION',
-          errorMessage: 'Mâu thuẫn logic: Ngày cấp thẻ căn cước không thể diễn ra trước hoặc trùng ngày sinh!',
-          confidenceScore: 0.99,
-        });
-      }
-    }
-
+    // Rule 3: Date of Birth (Mục 2 Mẫu CT01)
+    const dobValid = Boolean(data.dateOfBirth);
     fieldValidations.push({
-      fieldName: 'Ngày sinh',
+      fieldName: 'Ngày tháng năm sinh (Mục 2)',
       providedValue: data.dateOfBirth,
       valid: dobValid,
-      confidenceScore: 0.96,
+      errorCode: dobValid ? undefined : 'MISSING_DOB',
+      errorMessage: dobValid ? undefined : 'Ngày sinh là trường bắt buộc theo Mục 2 Mẫu CT01.',
+      confidenceScore: dobValid ? 0.96 : 0.4,
     });
 
-    fieldValidations.push({
-      fieldName: 'Ngày cấp CCCD',
-      providedValue: data.cccdIssueDate,
-      valid: issueValid,
-      confidenceScore: 0.97,
-    });
+    // Rule 4: Gender (Mục 3 Mẫu CT01)
+    if (data.gender) {
+      const genderValid = ['Nam', 'Nữ', 'nam', 'nữ'].includes(data.gender.trim());
+      fieldValidations.push({
+        fieldName: 'Giới tính (Mục 3)',
+        providedValue: data.gender,
+        valid: genderValid,
+        confidenceScore: 0.98,
+      });
+    }
 
-    // Rule 4: Address
-    const addressValid = data.address.trim().length >= 10;
+    // Rule 5: Address / Requested Residence (Mục 10 Mẫu CT01)
+    const addressValid = data.address.trim().length >= 8;
     fieldValidations.push({
-      fieldName: 'Nơi thường trú',
+      fieldName: 'Nơi đề nghị cư trú (Mục 10)',
       providedValue: data.address,
       valid: addressValid,
       errorCode: addressValid ? undefined : 'INSUFFICIENT_ADDRESS',
-      errorMessage: addressValid ? undefined : 'Địa chỉ cư trú phải ghi rõ số nhà, tên đường, tổ/khu phố.',
+      errorMessage: addressValid ? undefined : 'Địa chỉ cư trú đề nghị phải ghi rõ số nhà, tên đường hoặc thôn/ấp, xã/phường.',
       confidenceScore: addressValid ? 0.94 : 0.55,
     });
 
-    // Check age milestone rule (14, 25, 40, 60)
-    if (data.dateOfBirth && data.cccdIssueDate && chronologyValid) {
-      const birthYear = new Date(data.dateOfBirth).getFullYear();
-      const issueYear = new Date(data.cccdIssueDate).getFullYear();
-      const ageAtIssue = issueYear - birthYear;
-      if (ageAtIssue < 14) {
-        warnings.push(`Cảnh báo: Công dân cấp thẻ lúc ${ageAtIssue} tuổi (dưới mốc 14 tuổi quy định cấp CCCD lần đầu).`);
+    // Note: Mẫu CT01 has NO "Ngày cấp CCCD" (Issue Date) field. Only check if specifically provided for CCCD card audit
+    if (data.formType !== 'CT01' && data.cccdIssueDate) {
+      let issueValid = Boolean(data.cccdIssueDate);
+      if (data.dateOfBirth && data.cccdIssueDate) {
+        const birthTime = new Date(data.dateOfBirth).getTime();
+        const issueTime = new Date(data.cccdIssueDate).getTime();
+        if (issueTime <= birthTime) {
+          issueValid = false;
+          fieldValidations.push({
+            fieldName: 'Logic thời gian',
+            providedValue: `Sinh: ${data.dateOfBirth} - Cấp: ${data.cccdIssueDate}`,
+            valid: false,
+            errorCode: 'CHRONOLOGY_VIOLATION',
+            errorMessage: 'Mâu thuẫn logic: Ngày cấp thẻ căn cước không thể diễn ra trước hoặc trùng ngày sinh!',
+            confidenceScore: 0.99,
+          });
+        }
       }
+
+      fieldValidations.push({
+        fieldName: 'Ngày cấp CCCD (Thẻ căn cước)',
+        providedValue: data.cccdIssueDate,
+        valid: issueValid,
+        confidenceScore: 0.97,
+      });
     }
 
     const overallValid = fieldValidations.every((f) => f.valid);

@@ -1,0 +1,228 @@
+{
+  "Candidate_A_MiniLM": {
+    "candidate_id": "Candidate_A_MiniLM",
+    "model_name": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+    "embedding_dimension": 384,
+    "max_seq_length": 128,
+    "ram_model_mb": 714.82,
+    "independent_inquiry_groups": 40,
+    "independent_dev_groups": 76,
+    "retrieval": {
+      "procedure_level": {
+        "r1": 0.0833,
+        "r1_95ci": [
+          0.025,
+          0.15
+        ],
+        "r3": 0.2417,
+        "r3_95ci": [
+          0.15,
+          0.3333
+        ],
+        "mrr": 0.15,
+        "mrr_95ci": [
+          0.0875,
+          0.2181
+        ]
+      },
+      "chunk_level": {
+        "r1": 0.025,
+        "r1_95ci": [
+          0.0,
+          0.0667
+        ],
+        "r3": 0.0833,
+        "r3_95ci": [
+          0.025,
+          0.1583
+        ],
+        "mrr": 0.0948,
+        "mrr_95ci": [
+          0.0562,
+          0.1429
+        ]
+      },
+      "subgroups": {
+        "accented": {
+          "n": 80,
+          "proc_r1": 0.1125,
+          "proc_r3": 0.325,
+          "proc_mrr": 0.2042,
+          "chunk_r1": 0.0375,
+          "chunk_r3": 0.125
+        },
+        "unaccented": {
+          "n": 40,
+          "proc_r1": 0.025,
+          "proc_r3": 0.075,
+          "proc_mrr": 0.0417,
+          "chunk_r1": 0.0,
+          "chunk_r3": 0.0
+        }
+      }
+    },
+    "intent_classification": {
+      "accuracy": 0.7675,
+      "accuracy_95ci": [
+        0.706,
+        0.8247
+      ],
+      "macro_f1": 0.6397,
+      "macro_f1_95ci": [
+        0.5462,
+        0.7079
+      ],
+      "per_class": {
+        "GREETING": {
+          "precision": 0.5909,
+          "recall": 0.619,
+          "f1": 0.6047,
+          "support": 21
+        },
+        "PROCEDURE_CATALOG": {
+          "precision": 0.6,
+          "recall": 0.7143,
+          "f1": 0.6522,
+          "support": 21
+        },
+        "COMMUNE_INFO": {
+          "precision": 0.5833,
+          "recall": 0.6667,
+          "f1": 0.6222,
+          "support": 21
+        },
+        "OUT_OF_SCOPE": {
+          "precision": 0.7083,
+          "recall": 0.7083,
+          "f1": 0.7083,
+          "support": 24
+        },
+        "AMBIGUOUS": {
+          "precision": 0.625,
+          "recall": 0.2381,
+          "f1": 0.3448,
+          "support": 21
+        },
+        "PROCEDURE_INQUIRY": {
+          "precision": 0.888,
+          "recall": 0.925,
+          "f1": 0.9061,
+          "support": 120
+        }
+      }
+    }
+  },
+  "Candidate_B_BKAI": {
+    "candidate_id": "Candidate_B_BKAI",
+    "model_name": "bkai-foundation-models/vietnamese-bi-encoder",
+    "embedding_dimension": 768,
+    "max_seq_length": 256,
+    "ram_model_mb": 541.66,
+    "independent_inquiry_groups": 40,
+    "independent_dev_groups": 76,
+    "retrieval": {
+      "procedure_level": {
+        "r1": 0.1167,
+        "r1_95ci": [
+          0.0498,
+          0.2
+        ],
+        "r3": 0.2,
+        "r3_95ci": [
+          0.1081,
+          0.3
+        ],
+        "mrr": 0.1542,
+        "mrr_95ci": [
+          0.075,
+          0.2375
+        ]
+      },
+      "chunk_level": {
+        "r1": 0.0917,
+        "r1_95ci": [
+          0.0333,
+          0.1502
+        ],
+        "r3": 0.1583,
+        "r3_95ci": [
+          0.075,
+          0.2417
+        ],
+        "mrr": 0.1661,
+        "mrr_95ci": [
+          0.1065,
+          0.2338
+        ]
+      },
+      "subgroups": {
+        "accented": {
+          "n": 80,
+          "proc_r1": 0.1625,
+          "proc_r3": 0.2625,
+          "proc_mrr": 0.2062,
+          "chunk_r1": 0.1375,
+          "chunk_r3": 0.225
+        },
+        "unaccented": {
+          "n": 40,
+          "proc_r1": 0.025,
+          "proc_r3": 0.075,
+          "proc_mrr": 0.05,
+          "chunk_r1": 0.0,
+          "chunk_r3": 0.025
+        }
+      }
+    },
+    "intent_classification": {
+      "accuracy": 0.8026,
+      "accuracy_95ci": [
+        0.7325,
+        0.8641
+      ],
+      "macro_f1": 0.7144,
+      "macro_f1_95ci": [
+        0.6096,
+        0.787
+      ],
+      "per_class": {
+        "GREETING": {
+          "precision": 0.8889,
+          "recall": 0.7619,
+          "f1": 0.8205,
+          "support": 21
+        },
+        "PROCEDURE_CATALOG": {
+          "precision": 0.6111,
+          "recall": 0.5238,
+          "f1": 0.5641,
+          "support": 21
+        },
+        "COMMUNE_INFO": {
+          "precision": 0.7083,
+          "recall": 0.8095,
+          "f1": 0.7556,
+          "support": 21
+        },
+        "OUT_OF_SCOPE": {
+          "precision": 0.5882,
+          "recall": 0.8333,
+          "f1": 0.6897,
+          "support": 24
+        },
+        "AMBIGUOUS": {
+          "precision": 0.625,
+          "recall": 0.4762,
+          "f1": 0.5405,
+          "support": 21
+        },
+        "PROCEDURE_INQUIRY": {
+          "precision": 0.9237,
+          "recall": 0.9083,
+          "f1": 0.916,
+          "support": 120
+        }
+      }
+    }
+  }
+}

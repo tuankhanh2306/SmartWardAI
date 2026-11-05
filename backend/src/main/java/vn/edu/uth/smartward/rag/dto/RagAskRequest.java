@@ -8,6 +8,8 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.util.List;
+
 /**
  * Request payload for citizen legal inquiry via RAG.
  */
@@ -43,4 +45,7 @@ public class RagAskRequest {
     @Schema(description = "Ngưỡng chốt chặn từ chối trả lời (Abstention Threshold theta)", defaultValue = "0.78")
     @Builder.Default
     private Double similarityThreshold = 0.78;
+
+    @Schema(description = "Lịch sử hội thoại 3-5 lượt gần nhất phục vụ trả lời câu hỏi nối tiếp")
+    private List<ConversationTurnDto> history;
 }

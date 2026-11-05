@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useWard } from '../context/WardContext';
 import { AN_GIANG_WARDS, type WardItem } from '../data/anGiangWards';
+import Pagination from '../components/Pagination';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
@@ -37,6 +38,10 @@ export const PerWardDashboard: React.FC = () => {
     AN_GIANG_WARDS.find((w) => w.code === wardCode) || currentWard;
 
   const [activeTab, setActiveTab] = useState<'INCIDENTS' | 'MAP' | 'OFFICERS'>('INCIDENTS');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'IN_PROGRESS' | 'RESOLVED'>('ALL');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(5);
+
   const [incidents, setIncidents] = useState<LocalIncident[]>([
     {
       id: 'INC-AG-001',
@@ -74,53 +79,158 @@ export const PerWardDashboard: React.FC = () => {
       urgency: 'LOW',
       duplicatesMerged: 2,
     },
+    {
+      id: 'INC-AG-004',
+      category: 'Cơ sở hạ tầng',
+      title: 'Cầu gỗ dân sinh bắc qua mương rạch bị nứt gãy ván lót',
+      address: `Tổ 4, Ấp An Hòa, ${ward.name}, ${ward.province}`,
+      lat: ward.lat + 0.004,
+      lon: ward.lon - 0.001,
+      reportedTime: '2 ngày trước',
+      status: 'IN_PROGRESS',
+      urgency: 'HIGH',
+      duplicatesMerged: 4,
+    },
+    {
+      id: 'INC-AG-005',
+      category: 'An ninh trật tự',
+      title: 'Tụ tập hát karaoke loa kéo công suất lớn quá giờ quy định',
+      address: `Khu dân cư kênh mới, ${ward.name}, ${ward.province}`,
+      lat: ward.lat - 0.003,
+      lon: ward.lon - 0.002,
+      reportedTime: '3 ngày trước',
+      status: 'RESOLVED',
+      urgency: 'MEDIUM',
+      duplicatesMerged: 2,
+    },
+    {
+      id: 'INC-AG-006',
+      category: 'Môi trường & Rác thải',
+      title: 'Cống thoát nước trục lộ liên xã bị tắc nghẽn lục bình',
+      address: `Ngay cống Ba Răng, ${ward.name}, ${ward.province}`,
+      lat: ward.lat + 0.002,
+      lon: ward.lon + 0.003,
+      reportedTime: '3 ngày trước',
+      status: 'RESOLVED',
+      urgency: 'LOW',
+      duplicatesMerged: 1,
+    },
+    {
+      id: 'INC-AG-007',
+      category: 'Cơ sở hạ tầng',
+      title: 'Biển báo giao thông cua dốc nguy hiểm bị cây cối che khuất',
+      address: `Đoạn dốc cầu Kênh Ranh, ${ward.name}, ${ward.province}`,
+      lat: ward.lat - 0.001,
+      lon: ward.lon + 0.001,
+      reportedTime: '4 ngày trước',
+      status: 'PENDING',
+      urgency: 'MEDIUM',
+      duplicatesMerged: 1,
+    },
+    {
+      id: 'INC-AG-008',
+      category: 'Chiếu sáng đô thị',
+      title: 'Đèn đường chiếu sáng khu vực nhà sinh hoạt cộng đồng bị cháy',
+      address: `Nhà văn hóa ấp Trung, ${ward.name}, ${ward.province}`,
+      lat: ward.lat + 0.005,
+      lon: ward.lon - 0.004,
+      reportedTime: '5 ngày trước',
+      status: 'RESOLVED',
+      urgency: 'LOW',
+      duplicatesMerged: 2,
+    },
   ]);
+
+  // Filtered incidents based on status
+  const filteredIncidents = useMemo(() => {
+    if (statusFilter === 'ALL') return incidents;
+    return incidents.filter((item) => item.status === statusFilter);
+  }, [incidents, statusFilter]);
+
+  // Paginated slice
+  const totalPages = Math.max(1, Math.ceil(filteredIncidents.length / pageSize));
+  const paginatedIncidents = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredIncidents.slice(start, start + pageSize);
+  }, [filteredIncidents, currentPage, pageSize]);
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [statusFilter, pageSize]);
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
 
-  // Initialize Leaflet map for ward incidents
+  // Initialize Leaflet map for ward incidents with proper lifecycle
   useEffect(() => {
     if (activeTab !== 'MAP' || !mapContainerRef.current) return;
 
-    if (!mapInstanceRef.current) {
-      const map = L.map(mapContainerRef.current).setView([ward.lat, ward.lon], 15);
-
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-      }).addTo(map);
-
-      // Add headquarters marker
-      const hqIcon = L.divIcon({
-        className: 'custom-hq-marker',
-        html: `<div class="p-1 rounded-lg bg-[#00236F] text-white border-2 border-white shadow-md text-[10px] font-bold text-center">UBND ${ward.name}</div>`,
-        iconSize: [80, 24],
-      });
-      L.marker([ward.lat, ward.lon], { icon: hqIcon }).addTo(map);
-
-      // Add incident markers
-      incidents.forEach((inc) => {
-        const markerColor = inc.urgency === 'HIGH' ? '#BA1A1A' : inc.urgency === 'MEDIUM' ? '#D97706' : '#00687A';
-        const incIcon = L.divIcon({
-          className: 'custom-inc-marker',
-          html: `<div style="background-color: ${markerColor}" class="w-6 h-6 rounded-full border-2 border-white shadow-md flex items-center justify-center text-white text-[10px] font-bold">!</div>`,
-          iconSize: [24, 24],
-        });
-
-        L.marker([inc.lat, inc.lon], { icon: incIcon })
-          .addTo(map)
-          .bindPopup(
-            `<div class="p-2 text-xs">
-              <b class="text-[#00236F] block mb-1">${inc.title}</b>
-              <span class="text-[#757682] block mb-1">${inc.address}</span>
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold text-white" style="background:${markerColor}">${inc.urgency}</span>
-            </div>`
-          );
-      });
-
-      mapInstanceRef.current = map;
+    // Clean up any existing map instance to prevent "Map container is already initialized"
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.remove();
+      mapInstanceRef.current = null;
     }
+
+    const map = L.map(mapContainerRef.current, {
+      zoomControl: false,
+    }).setView([ward.lat, ward.lon], 15);
+
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19,
+    }).addTo(map);
+
+    // Add headquarters marker
+    const hqIcon = L.divIcon({
+      className: 'custom-hq-marker',
+      html: `<div class="px-2.5 py-1 rounded-xl bg-[#00236F] text-white border-2 border-white shadow-md text-[10px] font-bold text-center whitespace-nowrap">UBND ${ward.name}</div>`,
+      iconSize: [110, 26],
+      iconAnchor: [55, 13],
+    });
+    L.marker([ward.lat, ward.lon], { icon: hqIcon }).addTo(map);
+
+    // Add incident markers
+    incidents.forEach((inc) => {
+      const markerColor =
+        inc.urgency === 'HIGH' ? '#BA1A1A' : inc.urgency === 'MEDIUM' ? '#D97706' : '#00687A';
+      const incIcon = L.divIcon({
+        className: 'custom-inc-marker',
+        html: `<div style="background-color: ${markerColor}" class="w-7 h-7 rounded-full border-2 border-white shadow-md flex items-center justify-center text-white text-xs font-bold cursor-pointer hover:scale-110 transition-transform">!</div>`,
+        iconSize: [28, 28],
+        iconAnchor: [14, 14],
+      });
+
+      L.marker([inc.lat, inc.lon], { icon: incIcon })
+        .addTo(map)
+        .bindPopup(
+          `<div class="p-2 text-xs font-sans">
+            <b class="text-[#00236F] block mb-1">${inc.title}</b>
+            <span class="text-[#757682] block mb-1">${inc.address}</span>
+            <div class="flex items-center gap-2 mt-1">
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold text-white" style="background:${markerColor}">${inc.urgency}</span>
+              <span class="text-[10px] text-[#444651] font-semibold">+${inc.duplicatesMerged} trùng</span>
+            </div>
+          </div>`
+        );
+    });
+
+    mapInstanceRef.current = map;
+
+    // Invalidate size to eliminate grey tiles after tab switch
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 150);
+
+    return () => {
+      clearTimeout(timer);
+      map.remove();
+      mapInstanceRef.current = null;
+    };
   }, [activeTab, ward, incidents]);
+
 
   const updateIncidentStatus = (id: string, newStatus: 'PENDING' | 'IN_PROGRESS' | 'RESOLVED') => {
     setIncidents((prev) =>
@@ -227,43 +337,85 @@ export const PerWardDashboard: React.FC = () => {
 
       {/* Main Workspace Area */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-6 w-full flex flex-col gap-5">
-        {/* Tab Controls */}
-        <div className="flex items-center gap-2 border-b border-[#EAEDFF] pb-2 text-xs font-bold">
+        {/* Modern Segmented Tab Controls */}
+        <div className="flex items-center gap-1.5 p-1.5 bg-white rounded-2xl border border-[#EAEDFF] shadow-xs w-fit">
           <button
+            type="button"
             onClick={() => setActiveTab('INCIDENTS')}
-            className={`px-4 py-2 rounded-xl transition ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-2 ${
               activeTab === 'INCIDENTS'
                 ? 'bg-[#00236F] text-white shadow-xs'
-                : 'text-[#444651] hover:bg-[#F2F3FF]'
+                : 'text-[#444651] hover:text-[#00236F] hover:bg-[#F2F3FF]'
             }`}
           >
-            📋 Danh Sách Phản Ánh ({incidents.length})
+            <span>📋 Danh Sách Phản Ánh</span>
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                activeTab === 'INCIDENTS'
+                  ? 'bg-white/20 text-white'
+                  : 'bg-[#F2F3FF] text-[#00236F]'
+              }`}
+            >
+              {incidents.length}
+            </span>
           </button>
           <button
+            type="button"
             onClick={() => setActiveTab('MAP')}
-            className={`px-4 py-2 rounded-xl transition ${
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-2 ${
               activeTab === 'MAP'
                 ? 'bg-[#00236F] text-white shadow-xs'
-                : 'text-[#444651] hover:bg-[#F2F3FF]'
+                : 'text-[#444651] hover:text-[#00236F] hover:bg-[#F2F3FF]'
             }`}
           >
-            🗺️ Bản Đồ Sự Cố Địa Bàn
+            <span>🗺️ Bản Đồ Sự Cố Hiện Trường</span>
+            <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
           </button>
         </div>
 
         {/* Tab 1: Incidents List */}
         {activeTab === 'INCIDENTS' && (
-          <div className="bg-white rounded-3xl border border-[#EAEDFF] shadow-xs overflow-hidden">
-            <div className="p-4 border-b border-[#EAEDFF] flex items-center justify-between">
-              <h2 className="text-sm font-bold text-[#00236F]">
-                Sự Cố Hiện Trường Phát Sinh Tại {ward.name}
-              </h2>
-              <span className="text-xs text-[#757682]">Dữ liệu cô lập độc lập theo địa bàn</span>
+          <div className="bg-white rounded-3xl border border-[#EAEDFF] shadow-xs overflow-hidden flex flex-col">
+            <div className="p-4 sm:p-5 border-b border-[#EAEDFF] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm sm:text-base font-bold text-[#00236F]">
+                  Sự Cố Hiện Trường Phát Sinh Tại {ward.name}
+                </h2>
+                <span className="text-xs text-[#757682] mt-0.5 block">
+                  Phân luồng độc lập theo địa bàn • Tự động gộp tin báo trùng lặp
+                </span>
+              </div>
+
+              {/* Status Filter Buttons */}
+              <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[#F2F3FF] rounded-xl border border-[#EAEDFF] text-xs">
+                {(
+                  [
+                    { key: 'ALL', label: 'Tất cả', count: incidents.length },
+                    { key: 'PENDING', label: 'Chờ duyệt', count: incidents.filter((i) => i.status === 'PENDING').length },
+                    { key: 'IN_PROGRESS', label: 'Đang xử lý', count: incidents.filter((i) => i.status === 'IN_PROGRESS').length },
+                    { key: 'RESOLVED', label: 'Đã xong', count: incidents.filter((i) => i.status === 'RESOLVED').length },
+                  ] as const
+                ).map((tab) => (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    onClick={() => setStatusFilter(tab.key)}
+                    className={`px-2.5 py-1 rounded-lg font-bold text-xs transition active:scale-95 cursor-pointer flex items-center gap-1 ${
+                      statusFilter === tab.key
+                        ? 'bg-[#00236F] text-white shadow-2xs'
+                        : 'text-[#444651] hover:text-[#00236F]'
+                    }`}
+                  >
+                    <span>{tab.label}</span>
+                    <span className="text-[10px] opacity-80 font-mono">({tab.count})</span>
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs text-[#131B2E]">
-                <thead className="bg-[#FAF8FF] border-b border-[#EAEDFF] text-[11px] font-bold text-[#757682] uppercase">
+                <thead className="bg-[#FAF8FF] border-b border-[#EAEDFF] text-[11px] font-bold text-[#757682] uppercase tracking-wider">
                   <tr>
                     <th className="p-4">Mã & Thời Gian</th>
                     <th className="p-4">Loại Sự Cố</th>
@@ -274,85 +426,125 @@ export const PerWardDashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#EAEDFF]">
-                  {incidents.map((inc) => (
-                    <tr key={inc.id} className="hover:bg-[#F2F3FF]/30 transition-colors">
-                      <td className="p-4 font-mono font-bold text-[#00236F]">
-                        {inc.id}
-                        <span className="block text-[10px] font-sans text-[#757682] mt-0.5">
-                          {inc.reportedTime}
-                        </span>
-                      </td>
-                      <td className="p-4 font-semibold text-[#00687A]">
-                        {inc.category}
-                      </td>
-                      <td className="p-4 max-w-sm">
-                        <span className="font-bold block text-[#131B2E]">{inc.title}</span>
-                        <span className="text-[11px] text-[#757682] flex items-center gap-1 mt-0.5">
-                          <MapPin className="w-3 h-3 text-[#00236F]" />
-                          {inc.address}
-                        </span>
-                      </td>
-                      <td className="p-4 text-center">
-                        <span className="px-2 py-0.5 rounded-md font-bold text-[10px] bg-[#DCE1FF] text-[#00164E]">
-                          +{inc.duplicatesMerged} phản ánh
-                        </span>
-                      </td>
-                      <td className="p-4 text-center">
-                        <span
-                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                            inc.status === 'RESOLVED'
-                              ? 'bg-[#EBFDF3] text-[#166534]'
-                              : inc.status === 'IN_PROGRESS'
-                              ? 'bg-[#EFF6FF] text-[#1D4ED8]'
-                              : 'bg-[#FFFBEB] text-[#B45309]'
-                          }`}
-                        >
-                          {inc.status === 'RESOLVED'
-                            ? '✓ Đã xong'
-                            : inc.status === 'IN_PROGRESS'
-                            ? 'Đang xử lý'
-                            : 'Chờ tiếp nhận'}
-                        </span>
-                      </td>
-                      <td className="p-4 text-right">
-                        <div className="flex items-center justify-end gap-1.5">
-                          {inc.status !== 'IN_PROGRESS' && inc.status !== 'RESOLVED' && (
-                            <button
-                              onClick={() => updateIncidentStatus(inc.id, 'IN_PROGRESS')}
-                              className="px-2.5 py-1 rounded-lg bg-[#00236F] text-white text-[11px] font-bold hover:bg-[#1E3A8A] transition"
-                            >
-                              Tiếp Nhận
-                            </button>
-                          )}
-                          {inc.status === 'IN_PROGRESS' && (
-                            <button
-                              onClick={() => updateIncidentStatus(inc.id, 'RESOLVED')}
-                              className="px-2.5 py-1 rounded-lg bg-[#16A34A] text-white text-[11px] font-bold hover:bg-[#15803D] transition"
-                            >
-                              Hoàn Thành
-                            </button>
-                          )}
-                        </div>
+                  {paginatedIncidents.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-[#757682]">
+                        Không có sự cố nào thuộc trạng thái này.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    paginatedIncidents.map((inc) => (
+                      <tr key={inc.id} className="hover:bg-[#F2F3FF]/40 transition-colors">
+                        <td className="p-4 font-mono font-bold text-[#00236F]">
+                          {inc.id}
+                          <span className="block text-[10px] font-sans text-[#757682] mt-0.5">
+                            {inc.reportedTime}
+                          </span>
+                        </td>
+                        <td className="p-4 font-semibold text-[#00687A]">
+                          {inc.category}
+                        </td>
+                        <td className="p-4 max-w-sm">
+                          <span className="font-bold block text-[#131B2E]">{inc.title}</span>
+                          <span className="text-[11px] text-[#757682] flex items-center gap-1 mt-0.5">
+                            <MapPin className="w-3.5 h-3.5 text-[#00236F] shrink-0" />
+                            <span>{inc.address}</span>
+                          </span>
+                        </td>
+                        <td className="p-4 text-center">
+                          <span className="px-2 py-0.5 rounded-lg font-bold text-[10px] bg-[#EAEDFF] text-[#00236F] border border-[#DAE2FD]">
+                            +{inc.duplicatesMerged} phản ánh
+                          </span>
+                        </td>
+                        <td className="p-4 text-center">
+                          <span
+                            className={`inline-block px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                              inc.status === 'RESOLVED'
+                                ? 'bg-[#EBFDF3] text-[#166534] border border-[#86EFAC]'
+                                : inc.status === 'IN_PROGRESS'
+                                ? 'bg-[#ACEDFF]/40 text-[#004E5C] border border-[#57DFFE]/40'
+                                : 'bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A]'
+                            }`}
+                          >
+                            {inc.status === 'RESOLVED'
+                              ? '✓ Đã hoàn tất'
+                              : inc.status === 'IN_PROGRESS'
+                              ? 'Đang xử lý'
+                              : 'Chờ tiếp nhận'}
+                          </span>
+                        </td>
+                        <td className="p-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {inc.status !== 'IN_PROGRESS' && inc.status !== 'RESOLVED' && (
+                              <button
+                                type="button"
+                                onClick={() => updateIncidentStatus(inc.id, 'IN_PROGRESS')}
+                                className="px-3 py-1.5 rounded-xl bg-[#00236F] hover:bg-[#0A328F] active:scale-95 text-white text-[11px] font-bold shadow-xs transition-all cursor-pointer"
+                              >
+                                Tiếp Nhận
+                              </button>
+                            )}
+                            {inc.status === 'IN_PROGRESS' && (
+                              <button
+                                type="button"
+                                onClick={() => updateIncidentStatus(inc.id, 'RESOLVED')}
+                                className="px-3 py-1.5 rounded-xl bg-[#00687A] hover:bg-[#004E5C] active:scale-95 text-white text-[11px] font-bold shadow-xs transition-all cursor-pointer"
+                              >
+                                Hoàn Thành
+                              </button>
+                            )}
+                            {inc.status === 'RESOLVED' && (
+                              <span className="text-[11px] text-[#757682] font-semibold italic">
+                                Lưu trữ hồ sơ
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
+
+            {/* Phân Trang (Pagination) */}
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={filteredIncidents.length}
+              pageSize={pageSize}
+              onPageChange={setCurrentPage}
+              onPageSizeChange={setPageSize}
+              pageSizeOptions={[3, 5, 10]}
+              labelSingular="sự cố"
+              labelPlural="sự cố"
+            />
           </div>
         )}
 
         {/* Tab 2: Leaflet Local GIS Map */}
         {activeTab === 'MAP' && (
-          <div className="bg-white rounded-3xl border border-[#EAEDFF] shadow-xs p-4 flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-[#00236F] flex items-center gap-1.5">
-                <Radio className="w-4 h-4 text-[#BA1A1A] animate-pulse" />
+          <div className="bg-white rounded-3xl border border-[#EAEDFF] shadow-xs p-5 flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#EAEDFF]">
+              <span className="text-xs sm:text-sm font-bold text-[#00236F] flex items-center gap-2">
+                <Radio className="w-4 h-4 text-[#BA1A1A] animate-pulse shrink-0" />
                 Vị Trí Các Điểm Nóng Sự Cố Tại {ward.name} (Tọa độ: {ward.lat.toFixed(4)}, {ward.lon.toFixed(4)})
               </span>
-              <span className="text-[11px] text-[#757682]">Ghim đỏ: Nguy cấp • Ghim vàng: Trung bình</span>
+              <div className="flex items-center gap-3 text-[11px] text-[#757682]">
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#BA1A1A]" /> Khẩn cấp
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#D97706]" /> Trung bình
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#00687A]" /> Đã xử lý
+                </span>
+              </div>
             </div>
-            <div ref={mapContainerRef} className="w-full h-[520px] rounded-2xl overflow-hidden border border-[#DAE2FD]" />
+            <div className="w-full h-[520px] rounded-2xl overflow-hidden border border-[#DAE2FD] relative z-1 shadow-inner bg-[#E5E7EB]">
+              <div ref={mapContainerRef} className="w-full h-full" />
+            </div>
           </div>
         )}
       </div>
