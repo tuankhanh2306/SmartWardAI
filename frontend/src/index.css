@@ -18,6 +18,19 @@
   }
 }
 
+/* Accessibility & Inclusive All-Ages Scaling (Phù hợp mọi lứa tuổi & người lớn tuổi) */
+html.scale-text-large {
+  font-size: 112.5%;
+}
+
+html.scale-text-huge {
+  font-size: 125%;
+}
+
+html.high-contrast-mode {
+  filter: contrast(1.12);
+}
+
 /* Custom fluid cubic-bezier utilities for Apple/Linear-grade motion */
 .ease-spring {
   transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);

@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Landmark, Bot, ShieldCheck, Map, FileCheck2, ArrowRight, MapPin, LogOut } from 'lucide-react';
 import { useWard } from '../context/WardContext';
 import { useRole } from '../context/RoleContext';
+import { useAccessibility } from '../context/AccessibilityContext';
 import OfficerAuthModal from './OfficerAuthModal';
 
 export const Header: React.FC = () => {
@@ -10,6 +11,7 @@ export const Header: React.FC = () => {
   const path = location.pathname;
   const { currentWard } = useWard();
   const { isOfficer, officerProfile, logoutToCitizen, authModalOpen, setAuthModalOpen } = useRole();
+  const { textScale, setTextScale } = useAccessibility();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -107,8 +109,31 @@ export const Header: React.FC = () => {
           })}
         </nav>
 
-        {/* Role-Based Action: Switcher between Citizen & Officer */}
-        <div className="flex items-center gap-2.5 shrink-0">
+        {/* Role-Based Action: Switcher between Citizen & Officer & Accessibility */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Universal Accessibility Font Scale for all ages (Người già, thanh niên) */}
+          <button
+            type="button"
+            onClick={() => {
+              if (textScale === 'normal') setTextScale('large');
+              else if (textScale === 'large') setTextScale('huge');
+              else setTextScale('normal');
+            }}
+            className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl border transition active:scale-95 cursor-pointer ${
+              textScale !== 'normal'
+                ? 'bg-[#00236F] text-white border-[#00236F] shadow-xs'
+                : 'bg-white hover:bg-[#EAEDFF] text-[#00236F] border-[#DAE2FD]'
+            }`}
+            title="Nhấn để đổi cỡ chữ to rõ: Chuẩn -> Chữ lớn -> Rất lớn (Dễ đọc cho người cao tuổi)"
+          >
+            <span className="font-serif font-black tracking-tight text-xs sm:text-sm">
+              A{textScale === 'large' ? '+' : textScale === 'huge' ? '++' : ''}
+            </span>
+            <span className="hidden sm:inline text-[11px] font-semibold">
+              {textScale === 'normal' ? 'Cỡ chữ' : textScale === 'large' ? 'Chữ to' : 'Chữ rất to'}
+            </span>
+          </button>
+
           {isOfficer ? (
             <div className="flex items-center gap-2 pl-2 border-l border-[#DAE2FD]">
               <div className="hidden md:flex items-center gap-2">

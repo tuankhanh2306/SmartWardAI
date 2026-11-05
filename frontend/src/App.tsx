@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { WardProvider } from './context/WardContext';
 import { RoleProvider } from './context/RoleContext';
+import { AccessibilityProvider } from './context/AccessibilityContext';
 import Header from './components/Header';
 import OfficerGuard from './components/OfficerGuard';
 import CitizenPortal from './pages/CitizenPortal';
@@ -16,7 +17,8 @@ export const App: React.FC = () => {
     <BrowserRouter>
       <WardProvider>
         <RoleProvider>
-          <div className="min-h-screen bg-background font-sans text-on-surface antialiased flex flex-col selection:bg-primary-fixed selection:text-on-primary-fixed">
+          <AccessibilityProvider>
+            <div className="min-h-screen bg-background font-sans text-on-surface antialiased flex flex-col selection:bg-primary-fixed selection:text-on-primary-fixed">
             {/* Global Administrative Header with Role-Based Navigation */}
             <Header />
 
@@ -62,9 +64,10 @@ export const App: React.FC = () => {
               </Routes>
             </div>
           </div>
-        </RoleProvider>
-      </WardProvider>
-    </BrowserRouter>
+        </AccessibilityProvider>
+      </RoleProvider>
+    </WardProvider>
+  </BrowserRouter>
   );
 };
 
