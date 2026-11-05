@@ -11,11 +11,15 @@ import vn.edu.uth.smartward.common.ErrorCode;
 import vn.edu.uth.smartward.common.QueryCacheService;
 import vn.edu.uth.smartward.common.RedisRateLimiter;
 import vn.edu.uth.smartward.rag.dto.ConversationTurnDto;
+import vn.edu.uth.smartward.rag.dto.HitlGrayZoneItemDto;
 import vn.edu.uth.smartward.rag.dto.LegalCitationDto;
 import vn.edu.uth.smartward.rag.dto.RagAskRequest;
 import vn.edu.uth.smartward.rag.dto.RagAskResponse;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,6 +56,50 @@ public class RagQueryService {
             "*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*";
 
     private static final Pattern CITATION_PATTERN = Pattern.compile("\\[([A-Za-z0-9_\\-]+)\\]");
+
+    private final List<HitlGrayZoneItemDto> hitlQueue = new CopyOnWriteArrayList<>(defaultSeedHitlItems());
+
+    private static List<HitlGrayZoneItemDto> defaultSeedHitlItems() {
+        return List.of(
+                HitlGrayZoneItemDto.builder()
+                        .id("HITL-AG-001")
+                        .query("Ba tôi già yếu đi lại khó khăn thì xã có cử người xuống tận nhà lăn tay chứng thực chữ ký được không?")
+                        .wardName("Phường Mỹ Bình")
+                        .similarityScore(0.612)
+                        .candidateChunkCode("TTHC-CT-03-DIEU24")
+                        .candidateProcedureName("Chứng thực chữ ký trong các giấy tờ, văn bản")
+                        .legalReference("Khoản 2 Điều 10 & Điều 24 Nghị định 23/2015/NĐ-CP")
+                        .suggestedAnswer("1. TÓM TẮT THỦ TỤC:\nNgười yêu cầu chứng thực già yếu, không thể đi lại được phép yêu cầu UBND cấp xã thực hiện chứng thực chữ ký ngoài trụ sở (tại nhà riêng).\n\n2. THÀNH PHẦN HỒ SƠ:\n- Bản chính CCCD của người yêu cầu chứng thực.\n- Văn bản, giấy tờ cần chứng thực chữ ký (điểm chỉ).\n\n3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n- Giải quyết trong ngày nhận yêu cầu.\n- Miễn thu chi phí đi lại ngoài trụ sở đối với người già yếu không thể đi lại theo quy định.\n\n4. NƠI TIẾP NHẬN & XỬ LÝ:\n- Bộ phận Một cửa UBND xã/phường tiếp nhận thông tin và cử công chức Tư pháp - Hộ tịch đến xác minh trực tiếp.\n\n5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n- Khoản 2 Điều 10 và Điều 24 Nghị định 23/2015/NĐ-CP [TTHC-CT-03-DIEU24].")
+                        .status("PENDING")
+                        .createdAt("2026-11-05 08:40")
+                        .build(),
+                HitlGrayZoneItemDto.builder()
+                        .id("HITL-AG-002")
+                        .query("Vợ chồng tôi làm mất giấy đăng ký kết hôn bản gốc từ năm 1998 ở xã cũ trước khi sáp nhập thì xin trích lục hay đăng ký lại?")
+                        .wardName("Phường Long Xuyên")
+                        .similarityScore(0.568)
+                        .candidateChunkCode("TTHC-HT-05-DIEU24")
+                        .candidateProcedureName("Đăng ký lại kết hôn / Cấp bản sao trích lục hộ tịch")
+                        .legalReference("Điều 24 Nghị định 123/2015/NĐ-CP")
+                        .suggestedAnswer("1. TÓM TẮT THỦ TỤC:\n- Nếu Sổ đăng ký kết hôn năm 1998 tại UBND xã vẫn còn lưu trữ: Thực hiện thủ tục Cấp bản sao trích lục kết hôn.\n- Nếu cả bản chính Giấy chứng nhận kết hôn và Sổ hộ tịch gốc đều bị mất/hư hỏng: Thực hiện thủ tục Đăng ký lại kết hôn.\n\n2. THÀNH PHẦN HỒ SƠ:\n- Tờ khai theo mẫu quy định.\n- Bản sao giấy tờ, tài liệu chứng minh quan hệ vợ chồng (nếu đăng ký lại).\n\n3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n- Trích lục bản sao: Giải quyết ngay trong ngày.\n- Đăng ký lại kết hôn: 05 ngày làm việc.\n\n4. NƠI TIẾP NHẬN & XỬ LÝ:\n- Bộ phận Một cửa UBND xã/phường nơi đã đăng ký trước đây hoặc nơi thường trú hiện tại.\n\n5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n- Điều 24 Nghị định 123/2015/NĐ-CP [TTHC-HT-05-DIEU24].")
+                        .status("PENDING")
+                        .createdAt("2026-11-05 09:15")
+                        .build(),
+                HitlGrayZoneItemDto.builder()
+                        .id("HITL-AG-003")
+                        .query("Cháu ngoại về ở nhà ông bà ngoại để đi học cấp 2 thì khai báo tạm trú hay nhập hộ khẩu thường trú?")
+                        .wardName("Xã An Phú")
+                        .similarityScore(0.645)
+                        .candidateChunkCode("TTHC-CR-01-DIEU20")
+                        .candidateProcedureName("Đăng ký thường trú / Đăng ký tạm trú (Mẫu CT01)")
+                        .legalReference("Khoản 2 Điều 20 Luật Cư trú 2020")
+                        .suggestedAnswer("1. TÓM TẮT THỦ TỤC:\nNgười chưa thành niên được đăng ký thường trú hoặc tạm trú tại chỗ ở hợp pháp của ông bà ngoại nếu được cha, mẹ hoặc người giám hộ và chủ hộ (ông bà ngoại) đồng ý.\n\n2. THÀNH PHẦN HỒ SƠ:\n- Tờ khai thay đổi thông tin cư trú (Mẫu CT01) có ý kiến đồng ý của cha mẹ và chủ hộ.\n- Giấy tờ chứng minh mối quan hệ nhân thân với chủ hộ (Giấy khai sinh của mẹ và của cháu).\n\n3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n- Thường trú: 07 ngày làm việc; Tạm trú: 03 ngày làm việc.\n\n4. NƠI TIẾP NHẬN & XỬ LÝ:\n- Công an cấp xã hoặc Cổng Dịch vụ công Bộ Công an / ứng dụng VNeID.\n\n5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n- Khoản 2 Điều 20 Luật Cư trú 2020 [TTHC-CR-01-DIEU20].")
+                        .status("APPROVED")
+                        .createdAt("2026-11-05 07:50")
+                        .resolvedBy("Cán bộ Trần Thị Hương")
+                        .build()
+        );
+    }
 
     /**
      * Executes citizen legal inquiry with rate limit, caching, HNSW search, abstention guardrail, and citation verification.
@@ -135,13 +183,14 @@ public class RagQueryService {
             String abstentionAnswer;
 
             if (isGrayZone) {
-                log.warn("[HITL_QUEUE] Gray-zone query detected: '{}' (S_max={:.4f} in [theta_lower={:.2f}, theta={:.2f})). Flagged for human officer review.",
-                        rawQuery, maxSimilarity, defaultThetaLower, threshold);
+                log.warn("[HITL_QUEUE] Gray-zone query detected: '{}' (S_max={} in [theta_lower={}, theta={})). Flagged for human officer review.",
+                        rawQuery, String.format(Locale.US, "%.4f", maxSimilarity), defaultThetaLower, threshold);
                 LegalChunkMatch topCandidate = candidateChunks.get(0);
                 reason = String.format(Locale.US,
                         "Vùng xám nghi vấn (%.3f trong khoảng [%.2f, %.2f)): Cần công dân làm rõ thêm hoặc cán bộ Một cửa hỗ trợ.",
                         maxSimilarity, defaultThetaLower, threshold);
                 abstentionAnswer = resolveGrayZoneMessage(rawQuery, topCandidate, request.getWardName(), request.getOfficeAddress());
+                enqueueGrayZoneItem(rawQuery, request.getWardName(), maxSimilarity, topCandidate, abstentionAnswer);
             } else {
                 reason = String.format(Locale.US,
                         "Điểm tương đồng cao nhất (%.3f) thấp hơn ngưỡng an toàn pháp lý (%.2f).",
@@ -1016,6 +1065,95 @@ public class RagQueryService {
             return List.of("Lệ phí chứng thực bản sao?", "Giấy tờ cần xuất trình khi chứng thực?", "Thời hạn trả kết quả chứng thực?");
         }
         return List.of("Hồ sơ cần những gì?", "Lệ phí bao nhiêu?", "Nơi nộp hồ sơ ở đâu?", "Thời hạn giải quyết bao lâu?");
+    }
+
+    private void enqueueGrayZoneItem(String query, String wardName, double similarityScore,
+                                     LegalChunkMatch topCandidate, String draftGuidance) {
+        if (query == null || query.isBlank()) return;
+        boolean alreadyExists = hitlQueue.stream()
+                .anyMatch(item -> query.equalsIgnoreCase(item.getQuery()));
+        if (alreadyExists) return;
+
+        String id = "HITL-AG-" + String.format(Locale.US, "%03d", hitlQueue.size() + 1);
+        HitlGrayZoneItemDto newItem = HitlGrayZoneItemDto.builder()
+                .id(id)
+                .query(query)
+                .wardName(wardName != null && !wardName.isBlank() ? wardName : "Phường Mỹ Bình")
+                .similarityScore(Math.round(similarityScore * 1000.0) / 1000.0)
+                .candidateChunkCode(topCandidate != null ? topCandidate.getChunkCode() : "UNKNOWN")
+                .candidateProcedureName(topCandidate != null ? topCandidate.getProcedureName() : "Thủ tục hành chính cấp xã")
+                .legalReference(topCandidate != null ? topCandidate.getLegalReference() : "Đang rà soát")
+                .suggestedAnswer(draftGuidance)
+                .status("PENDING")
+                .createdAt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
+                .build();
+
+        hitlQueue.add(0, newItem);
+        if (hitlQueue.size() > 50) {
+            hitlQueue.remove(hitlQueue.size() - 1);
+        }
+    }
+
+    /**
+     * Returns the current Human-in-the-Loop (HITL) Gray-Zone review queue.
+     */
+    public List<HitlGrayZoneItemDto> getHitlQueue() {
+        return Collections.unmodifiableList(hitlQueue);
+    }
+
+    /**
+     * Approves a Gray-Zone query with an officer-verified response and caches it into QueryCacheService
+     * so future identical citizen queries immediately receive the verified answer.
+     */
+    public HitlGrayZoneItemDto resolveHitlItem(String id, String approvedAnswer, String officerName) {
+        for (int i = 0; i < hitlQueue.size(); i++) {
+            HitlGrayZoneItemDto item = hitlQueue.get(i);
+            if (item.getId().equalsIgnoreCase(id)) {
+                String effectiveOfficer = (officerName != null && !officerName.isBlank())
+                        ? officerName.trim() : "Cán bộ Một cửa";
+                HitlGrayZoneItemDto updated = HitlGrayZoneItemDto.builder()
+                        .id(item.getId())
+                        .query(item.getQuery())
+                        .wardName(item.getWardName())
+                        .similarityScore(item.getSimilarityScore())
+                        .candidateChunkCode(item.getCandidateChunkCode())
+                        .candidateProcedureName(item.getCandidateProcedureName())
+                        .legalReference(item.getLegalReference())
+                        .suggestedAnswer(approvedAnswer.trim())
+                        .status("APPROVED")
+                        .createdAt(item.getCreatedAt())
+                        .resolvedBy(effectiveOfficer)
+                        .build();
+
+                hitlQueue.set(i, updated);
+
+                // Immediately cache the officer-verified response for 24 hours (86400s)
+                LegalCitationDto citation = LegalCitationDto.builder()
+                        .chunkCode(updated.getCandidateChunkCode())
+                        .procedureName(updated.getCandidateProcedureName())
+                        .legalReference(updated.getLegalReference())
+                        .similarityScore(updated.getSimilarityScore())
+                        .build();
+
+                RagAskResponse verifiedResponse = RagAskResponse.builder()
+                        .answer(updated.getSuggestedAnswer())
+                        .abstained(false)
+                        .maxSimilarity(updated.getSimilarityScore())
+                        .appliedThreshold(defaultThreshold)
+                        .citations(List.of(citation))
+                        .cached(true)
+                        .suggestions(List.of("👶 Đăng ký khai sinh", "💍 Đăng ký kết hôn", "🏠 Đăng ký thường trú (CT01)", "📋 Xem 40 thủ tục"))
+                        .responseTimeMs(5)
+                        .disclaimer(LEGAL_DISCLAIMER)
+                        .build();
+
+                queryCacheService.putResponse(updated.getQuery(), verifiedResponse, 86400);
+                log.info("[HITL_RESOLVED] Item {} approved by '{}' and cached for query: '{}'",
+                        id, effectiveOfficer, truncate(updated.getQuery(), 40));
+                return updated;
+            }
+        }
+        throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Không tìm thấy yêu cầu vùng xám với mã: " + id);
     }
 
     private String truncate(String text, int maxLen) {

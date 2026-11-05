@@ -3,6 +3,8 @@ package vn.edu.uth.smartward.triage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.uth.smartward.ai.AiModelClient;
@@ -245,6 +247,49 @@ public class TwoStageTriageService {
                 .lastReportedAt(c.getLastReportedAt())
                 .build()
         ).toList();
+    }
+
+    /**
+     * Automatically warms up and synchronizes Redis GEO spatial index from PostgreSQL
+     * upon application startup (or manual trigger) to ensure fault tolerance after Redis restarts.
+     *
+     * @return number of active clusters indexed into Redis GEO
+     */
+    @EventListener(ApplicationReadyEvent.class)
+    public int warmUpSpatialIndexFromDatabase() {
+        try {
+            int window = activeWindowHours > 0 ? activeWindowHours : 72;
+            OffsetDateTime cutoffTime = OffsetDateTime.now().minusHours(window);
+
+            List<IssueCluster> activeClusters = new ArrayList<>();
+            List<IssueCluster> openClusters = clusterRepository.findByStatus("OPEN");
+            if (openClusters != null) activeClusters.addAll(openClusters);
+
+            List<IssueCluster> inProgressClusters = clusterRepository.findByStatus("IN_PROGRESS");
+            if (inProgressClusters != null) activeClusters.addAll(inProgressClusters);
+
+            int indexedCount = 0;
+            for (IssueCluster cluster : activeClusters) {
+                if (cluster.getCenterLatitude() == null || cluster.getCenterLongitude() == null) {
+                    continue;
+                }
+                if (cluster.getLastReportedAt() != null && cluster.getLastReportedAt().isBefore(cutoffTime)) {
+                    continue;
+                }
+                spatialIndexService.addClusterLocation(
+                        cluster.getClusterCode(),
+                        cluster.getCenterLongitude().doubleValue(),
+                        cluster.getCenterLatitude().doubleValue()
+                );
+                indexedCount++;
+            }
+
+            log.info("[REDIS_GEO_WARMUP] Synchronized {} active clusters from PostgreSQL into Redis GEO index.", indexedCount);
+            return indexedCount;
+        } catch (Exception e) {
+            log.warn("[REDIS_GEO_WARMUP] Failed to warm up Redis GEO index from database: {}", e.getMessage());
+            return 0;
+        }
     }
 
     private double computeCosineSimilarity(float[] v1, float[] v2) {

@@ -8,6 +8,8 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import vn.edu.uth.smartward.formcheck.dto.ExtractedFormFields;
 import vn.edu.uth.smartward.formcheck.dto.FormPrecheckReport;
+import vn.edu.uth.smartward.formcheck.dto.StructuredFormPrecheckRequest;
+import vn.edu.uth.smartward.formcheck.dto.StructuredFormPrecheckResponse;
 
 import java.util.Map;
 
@@ -117,5 +119,81 @@ class FormPrecheckServiceTest {
         assertTrue(report.isValid(), "Warnings do not invalidate the form by themselves");
         assertTrue(report.getIssues().stream().anyMatch(i ->
                 "MANUAL_REVIEW_REQUIRED".equals(i.getErrorType()) && "WARNING".equals(i.getSeverity())));
+    }
+
+    @Test
+    void testPrecheckStructuredForm_birthRegistration_shouldDetectMismatchAndUnmarriedFatherRule() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-HT-01")
+                .formType("TK-KS")
+                .fullName("TRẦN GIA BẢO")
+                .dateOfBirth("2026-10-18")
+                .gender("Nam")
+                .citizenCccd("089195001234")
+                .address("Phường Mỹ Xuyên, An Giang")
+                .formData(Map.of(
+                        "hospitalBirthDate", "2026-10-15",
+                        "motherName", "LÊ THỊ MỸ LINH",
+                        "hospitalMotherName", "LÊ THỊ MỸ LINH",
+                        "fatherName", "TRẦN VĂN HÙNG",
+                        "parentsMarried", "NO"
+                ))
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertFalse(resp.isOverallValid(), "Must fail when birth date mismatches hospital cert and unmarried parents write father name");
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f -> "BIRTH_CERT_DATE_MISMATCH".equals(f.getErrorCode())));
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f -> "UNMARRIED_PARENTS_PATERNITY_REQUIRED".equals(f.getErrorCode())));
+    }
+
+    @Test
+    void testPrecheckStructuredForm_marriageAndSingleStatus_shouldDetectUnderageAndVaguePurpose() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-HT-02")
+                .formType("TK-KH")
+                .fullName("NGUYỄN THỊ NGỌC TRÂM")
+                .dateOfBirth("2010-05-10") // Under 18
+                .gender("Nữ")
+                .citizenCccd("089310004567")
+                .address("Xã An Phú, An Giang")
+                .formData(Map.of(
+                        "partnerName", "PHẠM VĂN MINH",
+                        "partnerDob", "2001-03-10",
+                        "partnerGender", "Nam",
+                        "maritalCertPurpose", "Bổ sung hồ sơ",
+                        "previousMaritalStatus", "DIVORCED"
+                ))
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertFalse(resp.isOverallValid());
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f -> "UNDERAGE_MARRIAGE".equals(f.getErrorCode())));
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f -> "VAGUE_MARITAL_PURPOSE".equals(f.getErrorCode())));
+    }
+
+    @Test
+    void testPrecheckStructuredForm_socialProtection_shouldValidate80YearsAndBankAccount() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-BT-01")
+                .formType("TK-BTXH")
+                .fullName("LÊ VĂN BẢY")
+                .dateOfBirth("1940-04-10") // > 80 years old
+                .gender("Nam")
+                .citizenCccd("089040001122")
+                .address("Phường Châu Phú A, An Giang")
+                .formData(Map.of(
+                        "disabilityLevel", "NONE",
+                        "bankAccount", "70110000889912 - VietinBank An Giang"
+                ))
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertTrue(resp.isOverallValid(), "80+ citizen with valid 12-digit CCCD and bank account must pass");
     }
 }

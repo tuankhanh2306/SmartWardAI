@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vn.edu.uth.smartward.common.ApiResponse;
 import vn.edu.uth.smartward.formcheck.dto.FormPrecheckReport;
+import vn.edu.uth.smartward.formcheck.dto.StructuredFormPrecheckRequest;
+import vn.edu.uth.smartward.formcheck.dto.StructuredFormPrecheckResponse;
 
 /**
  * REST Controller for Administrative Declaration Form Precheck.
@@ -52,5 +54,19 @@ public class FormCheckController {
 
         FormPrecheckReport report = formPrecheckService.precheckForm(file, formType);
         return ResponseEntity.ok(ApiResponse.ok(report));
+    }
+
+    @PostMapping(value = "/precheck", consumes = MediaType.APPLICATION_JSON_VALUE)
+    @Operation(
+            summary = "Tiền kiểm định đa biểu mẫu hành chính cấp xã (Mẫu CT01, Khai sinh TK-KS, Kết hôn & Độc thân TK-KH, Bảo trợ xã hội TK-BTXH)",
+            description = "Đối chiếu chéo thông tin Tờ khai khai sinh với Giấy chứng sinh, kiểm tra mốc tuổi kết hôn hợp pháp (Nam >= 20, Nữ >= 18), " +
+                          "kiểm tra mục đích xác nhận tình trạng hôn nhân, và kiểm tra điều kiện 80 tuổi trợ cấp xã hội."
+    )
+    public ResponseEntity<StructuredFormPrecheckResponse> precheckStructuredForm(
+            @RequestBody StructuredFormPrecheckRequest request) {
+        log.info("Received structured form precheck request for formType: '{}', procedureCode: '{}'",
+                request.getFormType(), request.getProcedureCode());
+        StructuredFormPrecheckResponse response = formPrecheckService.precheckStructuredForm(request);
+        return ResponseEntity.ok(response);
     }
 }

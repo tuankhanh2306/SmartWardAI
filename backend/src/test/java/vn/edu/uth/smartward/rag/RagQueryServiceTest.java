@@ -461,6 +461,24 @@ class RagQueryServiceTest {
         assertFalse(response.getSuggestions().isEmpty());
     }
 
+    @Test
+    void testResolveHitlItem_shouldApproveItemAndCacheVerifiedResponseFor24Hours() {
+        var queue = ragQueryService.getHitlQueue();
+        assertFalse(queue.isEmpty(), "HITL queue must be seeded with initial gray-zone items");
+
+        String targetId = queue.get(0).getId();
+        String targetQuery = queue.get(0).getQuery();
+        String approvedText = "Hướng dẫn chính thức đã được cán bộ Tư pháp phê duyệt cho trường hợp mất giấy chứng sinh.";
+
+        var resolved = ragQueryService.resolveHitlItem(targetId, approvedText, "Đ/c Nguyễn Văn Hòa");
+
+        assertNotNull(resolved);
+        assertEquals("APPROVED", resolved.getStatus());
+        assertEquals("Đ/c Nguyễn Văn Hòa", resolved.getResolvedBy());
+        assertEquals(approvedText, resolved.getSuggestedAnswer());
+        verify(queryCacheService).putResponse(eq(targetQuery), any(RagAskResponse.class), eq(86400L));
+    }
+
     private LegalChunkMatch createMockChunkMatch(String code, String procName, String title, String content, String legalRef, double score) {
         return new LegalChunkMatch() {
             @Override public Long getId() { return 1L; }

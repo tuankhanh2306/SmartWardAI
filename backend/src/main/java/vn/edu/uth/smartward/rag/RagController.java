@@ -10,8 +10,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.uth.smartward.common.ApiResponse;
+import vn.edu.uth.smartward.rag.dto.HitlGrayZoneItemDto;
+import vn.edu.uth.smartward.rag.dto.HitlResolveRequest;
 import vn.edu.uth.smartward.rag.dto.RagAskRequest;
 import vn.edu.uth.smartward.rag.dto.RagAskResponse;
+
+import java.util.List;
 
 /**
  * REST Controller for Citizen Legal Inquiries via Legal RAG.
@@ -45,6 +49,32 @@ public class RagController {
 
         RagAskResponse response = ragQueryService.askQuestion(request, clientIp);
         return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
+    @GetMapping("/hitl-queue")
+    @Operation(
+            summary = "Danh sách câu hỏi vùng xám (0.42 <= S_max < 0.78) chờ cán bộ Tư pháp - Hộ tịch duyệt (Human-in-the-Loop)",
+            description = "Lấy hàng đợi các câu hỏi có điểm tương đồng nằm trong vùng xám để cán bộ chỉnh sửa hoặc phê duyệt nạp vào bộ nhớ đệm Redis."
+    )
+    public ResponseEntity<ApiResponse<List<HitlGrayZoneItemDto>>> getHitlQueue() {
+        return ResponseEntity.ok(ApiResponse.ok(ragQueryService.getHitlQueue()));
+    }
+
+    @PostMapping("/hitl-queue/{id}/resolve")
+    @Operation(
+            summary = "Cán bộ phê duyệt câu trả lời vùng xám và nạp trực tiếp vào bộ nhớ đệm Redis RAG",
+            description = "Cập nhật trạng thái APPROVED cho câu hỏi vùng xám và lưu câu trả lời chính thống vào Redis QueryCacheService (TTL 24 giờ)."
+    )
+    public ResponseEntity<ApiResponse<HitlGrayZoneItemDto>> resolveHitlItem(
+            @PathVariable("id") String id,
+            @Valid @RequestBody HitlResolveRequest request) {
+        log.info("Officer '{}' resolving HITL gray-zone item '{}'", request.getOfficerName(), id);
+        HitlGrayZoneItemDto resolved = ragQueryService.resolveHitlItem(
+                id,
+                request.getApprovedAnswer(),
+                request.getOfficerName()
+        );
+        return ResponseEntity.ok(ApiResponse.ok(resolved));
     }
 
     private String extractClientIp(HttpServletRequest request) {

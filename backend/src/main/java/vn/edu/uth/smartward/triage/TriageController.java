@@ -65,4 +65,18 @@ public class TriageController {
         List<IssueClusterDto> clusters = triageService.getActiveClusters(status, category);
         return ResponseEntity.ok(ApiResponse.ok(clusters));
     }
+
+    @PostMapping("/clusters/rebuild-index")
+    @Operation(
+            summary = "Đồng bộ và phục hồi chỉ mục không gian Redis GEO từ PostgreSQL",
+            description = "Nạp lại toàn bộ tọa độ các cụm sự cố đang hoạt động (OPEN, IN_PROGRESS) trong 72 giờ gần nhất từ PostgreSQL lên Redis GEO " +
+                          "nhằm đảm bảo khả năng chịu lỗi (Fault Tolerance) khi Redis khởi động lại."
+    )
+    public ResponseEntity<ApiResponse<java.util.Map<String, Object>>> rebuildSpatialIndex() {
+        int count = triageService.warmUpSpatialIndexFromDatabase();
+        return ResponseEntity.ok(ApiResponse.ok(java.util.Map.of(
+                "reindexedClusters", count,
+                "status", "SYNCHRONIZED"
+        )));
+    }
 }

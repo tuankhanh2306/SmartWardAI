@@ -3,6 +3,12 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useWard } from '../context/WardContext';
 import { AN_GIANG_WARDS, type WardItem } from '../data/anGiangWards';
 import Pagination from '../components/Pagination';
+import {
+  getHitlQueue,
+  resolveHitlItem,
+  rebuildSpatialIndex,
+  type HitlGrayZoneItem,
+} from '../api/client';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import {
@@ -12,7 +18,12 @@ import {
   TrendingUp,
   Users,
   ArrowLeft,
-  Radio
+  Radio,
+  BrainCircuit,
+  CheckCircle2,
+  RefreshCw,
+  BookOpen,
+  Sparkles,
 } from 'lucide-react';
 
 interface LocalIncident {
@@ -37,10 +48,66 @@ export const PerWardDashboard: React.FC = () => {
   const ward: WardItem =
     AN_GIANG_WARDS.find((w) => w.code === wardCode) || currentWard;
 
-  const [activeTab, setActiveTab] = useState<'INCIDENTS' | 'MAP' | 'OFFICERS'>('INCIDENTS');
+  const [activeTab, setActiveTab] = useState<'INCIDENTS' | 'MAP' | 'HITL'>('INCIDENTS');
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'IN_PROGRESS' | 'RESOLVED'>('ALL');
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(5);
+
+  // HITL Gray-Zone Queue State & Spatial Warm-up State
+  const [hitlItems, setHitlItems] = useState<HitlGrayZoneItem[]>([]);
+  const [draftAnswers, setDraftAnswers] = useState<Record<string, string>>({});
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const [geoSyncing, setGeoSyncing] = useState<boolean>(false);
+  const [toastBanner, setToastBanner] = useState<string | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    getHitlQueue().then((items) => {
+      if (!mounted) return;
+      setHitlItems(items);
+      const initialDrafts: Record<string, string> = {};
+      items.forEach((it) => {
+        initialDrafts[it.id] = it.suggestedAnswer;
+      });
+      setDraftAnswers(initialDrafts);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  const handleApproveHitl = async (item: HitlGrayZoneItem) => {
+    const editedAnswer = (draftAnswers[item.id] ?? item.suggestedAnswer).trim();
+    if (!editedAnswer) return;
+    setResolvingId(item.id);
+    try {
+      const updated = await resolveHitlItem(
+        item.id,
+        editedAnswer,
+        `Công chức Tư pháp - Hộ tịch (${ward.name})`
+      );
+      setHitlItems((prev) =>
+        prev.map((it) => (it.id === item.id ? { ...it, ...updated, status: 'APPROVED' } : it))
+      );
+      setToastBanner(
+        `Đã phê duyệt hồ sơ vùng xám ${item.id} và nạp trực tiếp vào bộ nhớ đệm Redis RAG (TTL 24 giờ).`
+      );
+      setTimeout(() => setToastBanner(null), 5000);
+    } finally {
+      setResolvingId(null);
+    }
+  };
+
+  const handleRebuildGeoIndex = async () => {
+    setGeoSyncing(true);
+    try {
+      const res = await rebuildSpatialIndex();
+      setToastBanner(`${res.message} (${res.syncedClustersCount} cụm đang hoạt động).`);
+      setTimeout(() => setToastBanner(null), 5000);
+    } finally {
+      setGeoSyncing(false);
+    }
+  };
 
   const [incidents, setIncidents] = useState<LocalIncident[]>([
     {
@@ -338,39 +405,69 @@ export const PerWardDashboard: React.FC = () => {
       {/* Main Workspace Area */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-6 w-full flex flex-col gap-5">
         {/* Modern Segmented Tab Controls */}
-        <div className="flex items-center gap-1.5 p-1.5 bg-white rounded-2xl border border-[#EAEDFF] shadow-xs w-fit">
-          <button
-            type="button"
-            onClick={() => setActiveTab('INCIDENTS')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-2 ${
-              activeTab === 'INCIDENTS'
-                ? 'bg-[#00236F] text-white shadow-xs'
-                : 'text-[#444651] hover:text-[#00236F] hover:bg-[#F2F3FF]'
-            }`}
-          >
-            <span>📋 Danh Sách Phản Ánh</span>
-            <span
-              className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-1.5 p-1.5 bg-white rounded-2xl border border-[#EAEDFF] shadow-xs w-fit">
+            <button
+              type="button"
+              onClick={() => setActiveTab('INCIDENTS')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-2 ${
                 activeTab === 'INCIDENTS'
-                  ? 'bg-white/20 text-white'
-                  : 'bg-[#F2F3FF] text-[#00236F]'
+                  ? 'bg-[#00236F] text-white shadow-xs'
+                  : 'text-[#444651] hover:text-[#00236F] hover:bg-[#F2F3FF]'
               }`}
             >
-              {incidents.length}
-            </span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('MAP')}
-            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-2 ${
-              activeTab === 'MAP'
-                ? 'bg-[#00236F] text-white shadow-xs'
-                : 'text-[#444651] hover:text-[#00236F] hover:bg-[#F2F3FF]'
-            }`}
-          >
-            <span>🗺️ Bản Đồ Sự Cố Hiện Trường</span>
-            <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
-          </button>
+              <span>📋 Danh Sách Phản Ánh</span>
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                  activeTab === 'INCIDENTS'
+                    ? 'bg-white/20 text-white'
+                    : 'bg-[#F2F3FF] text-[#00236F]'
+                }`}
+              >
+                {incidents.length}
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('MAP')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-2 ${
+                activeTab === 'MAP'
+                  ? 'bg-[#00236F] text-white shadow-xs'
+                  : 'text-[#444651] hover:text-[#00236F] hover:bg-[#F2F3FF]'
+              }`}
+            >
+              <span>🗺️ Bản Đồ Sự Cố Hiện Trường</span>
+              <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('HITL')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer flex items-center gap-2 ${
+                activeTab === 'HITL'
+                  ? 'bg-[#00236F] text-white shadow-xs'
+                  : 'text-[#444651] hover:text-[#00236F] hover:bg-[#F2F3FF]'
+              }`}
+            >
+              <BrainCircuit className="w-3.5 h-3.5" />
+              <span>Duyệt Vùng Xám AI (HITL)</span>
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                  activeTab === 'HITL'
+                    ? 'bg-[#57DFFE] text-[#00236F]'
+                    : 'bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A]'
+                }`}
+              >
+                {hitlItems.filter((i) => i.status === 'PENDING').length}
+              </span>
+            </button>
+          </div>
+
+          {toastBanner && (
+            <div className="px-4 py-2 rounded-xl bg-[#EBFDF3] border border-[#86EFAC] text-[#166534] text-xs font-bold flex items-center gap-2 shadow-xs">
+              <CheckCircle2 className="w-4 h-4 shrink-0 text-[#16A34A]" />
+              <span>{toastBanner}</span>
+            </div>
+          )}
         </div>
 
         {/* Tab 1: Incidents List */}
@@ -530,7 +627,7 @@ export const PerWardDashboard: React.FC = () => {
                 <Radio className="w-4 h-4 text-[#BA1A1A] animate-pulse shrink-0" />
                 Vị Trí Các Điểm Nóng Sự Cố Tại {ward.name} (Tọa độ: {ward.lat.toFixed(4)}, {ward.lon.toFixed(4)})
               </span>
-              <div className="flex items-center gap-3 text-[11px] text-[#757682]">
+              <div className="flex flex-wrap items-center gap-3 text-[11px] text-[#757682]">
                 <span className="flex items-center gap-1">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#BA1A1A]" /> Khẩn cấp
                 </span>
@@ -540,10 +637,153 @@ export const PerWardDashboard: React.FC = () => {
                 <span className="flex items-center gap-1">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#00687A]" /> Đã xử lý
                 </span>
+                <button
+                  type="button"
+                  onClick={handleRebuildGeoIndex}
+                  disabled={geoSyncing}
+                  className="btn-secondary !py-1.5 !px-3 !text-[11px]"
+                  title="Đồng bộ lại chỉ mục không gian Redis GEO từ cơ sở dữ liệu PostgreSQL (Self-Healing)"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${geoSyncing ? 'animate-spin' : ''}`} />
+                  <span>{geoSyncing ? 'Đang đồng bộ...' : 'Đồng Bộ Redis GEO'}</span>
+                </button>
               </div>
             </div>
             <div className="w-full h-[520px] rounded-2xl overflow-hidden border border-[#DAE2FD] relative z-1 shadow-inner bg-[#E5E7EB]">
               <div ref={mapContainerRef} className="w-full h-full" />
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: Human-in-the-Loop (HITL) Gray-Zone Review Queue */}
+        {activeTab === 'HITL' && (
+          <div className="bg-white rounded-3xl border border-[#EAEDFF] shadow-xs p-5 sm:p-6 flex flex-col gap-5">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-[#EAEDFF]">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A]">
+                    NGƯỠNG VÙNG XÁM: 0.42 ≤ S_max &lt; 0.78
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-[#EBFDF3] text-[#166534] border border-[#86EFAC]">
+                    SELF-IMPROVING RAG CACHE
+                  </span>
+                </div>
+                <h2 className="text-base sm:text-lg font-extrabold text-[#00236F] mt-1.5">
+                  Hàng Đợi Phê Duyệt Câu Hỏi Vùng Xám (Human-in-the-Loop)
+                </h2>
+                <p className="text-xs text-[#757682] mt-0.5">
+                  Các câu hỏi phương ngữ hoặc tình huống hồ sơ đặc thù có điểm tương đồng nằm trong vùng xám được chuyển về đây để công chức Tư pháp – Hộ tịch hiệu đính và nạp thẳng vào bộ nhớ đệm Redis (TTL 24 giờ).
+                </p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 gap-4">
+              {hitlItems.map((item) => {
+                const isApproved = item.status === 'APPROVED';
+                return (
+                  <div
+                    key={item.id}
+                    className={`p-5 rounded-2xl border transition-all ${
+                      isApproved
+                        ? 'bg-[#FAF8FF] border-[#86EFAC]'
+                        : 'bg-white border-[#DAE2FD] shadow-2xs'
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-mono text-xs font-extrabold text-[#00236F] bg-[#F2F3FF] px-2.5 py-1 rounded-lg border border-[#DAE2FD]">
+                          {item.id}
+                        </span>
+                        <span className="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] font-mono">
+                          S_max = {item.similarityScore.toFixed(3)}
+                        </span>
+                        <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-[#00687A]/10 text-[#00687A] flex items-center gap-1">
+                          <BookOpen className="w-3.5 h-3.5" />
+                          {item.candidateProcedureName} ({item.candidateChunkCode})
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-[#757682]">{item.createdAt}</span>
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
+                            isApproved
+                              ? 'bg-[#EBFDF3] text-[#166534] border border-[#86EFAC]'
+                              : 'bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A]'
+                          }`}
+                        >
+                          {isApproved ? '✓ Đã nạp Cache Redis (24h)' : '⏳ Chờ cán bộ duyệt'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl bg-[#F2F3FF]/70 border border-[#EAEDFF] mb-3">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#757682] block mb-1">
+                        Câu hỏi gốc của công dân ({item.wardName}):
+                      </span>
+                      <p className="text-xs sm:text-sm font-bold text-[#131B2E]">
+                        “{item.query}”
+                      </p>
+                      <span className="text-[11px] text-[#00687A] font-semibold mt-1 block">
+                        ⚖️ Căn cứ pháp lý gợi ý: {item.legalReference}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-col gap-2">
+                      <label className="text-[11px] font-bold text-[#00236F] flex items-center justify-between">
+                        <span className="flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-[#00687A]" />
+                          Nội dung phản hồi chuẩn hóa (Cán bộ có thể chỉnh sửa trước khi duyệt):
+                        </span>
+                        {item.resolvedBy && (
+                          <span className="text-[11px] text-[#166534] font-semibold">
+                            Người duyệt: {item.resolvedBy}
+                          </span>
+                        )}
+                      </label>
+                      <textarea
+                        rows={4}
+                        value={draftAnswers[item.id] ?? item.suggestedAnswer}
+                        disabled={isApproved}
+                        onChange={(e) =>
+                          setDraftAnswers((prev) => ({ ...prev, [item.id]: e.target.value }))
+                        }
+                        className="w-full rounded-xl border border-[#C5C5D3] bg-white p-3 text-xs text-[#131B2E] leading-relaxed focus:outline-none focus:ring-2 focus:ring-[#00236F] disabled:bg-[#F8FAFC] disabled:text-[#444651]"
+                      />
+                    </div>
+
+                    {!isApproved && (
+                      <div className="flex items-center justify-end gap-2 mt-3">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setDraftAnswers((prev) => ({
+                              ...prev,
+                              [item.id]: item.suggestedAnswer,
+                            }))
+                          }
+                          className="btn-secondary !py-2 !px-3.5 !text-xs"
+                        >
+                          Khôi phục bản nháp AI
+                        </button>
+                        <button
+                          type="button"
+                          disabled={resolvingId === item.id}
+                          onClick={() => handleApproveHitl(item)}
+                          className="btn-primary !py-2 !px-4 !text-xs"
+                        >
+                          <CheckCircle2 className="w-4 h-4" />
+                          <span>
+                            {resolvingId === item.id
+                              ? 'Đang nạp Redis Cache...'
+                              : 'Phê Duyệt & Nạp Cache RAG (24h)'}
+                          </span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

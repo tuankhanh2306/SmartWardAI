@@ -188,4 +188,36 @@ class TwoStageTriageServiceTest {
         assertEquals("FLOODING", response.getCategory());
         assertNotEquals("CLUST_ROAD_01", response.getClusterCode());
     }
+
+    @Test
+    void testWarmUpSpatialIndexFromDatabase_shouldSyncActiveClustersWithinWindow() {
+        IssueCluster activeCluster = IssueCluster.builder()
+                .clusterCode("CLUST_ACTIVE_01")
+                .category("ROAD_DAMAGE")
+                .centerLatitude(BigDecimal.valueOf(10.8035600))
+                .centerLongitude(BigDecimal.valueOf(106.7142160))
+                .status("OPEN")
+                .lastReportedAt(OffsetDateTime.now().minusHours(12))
+                .build();
+
+        IssueCluster expiredCluster = IssueCluster.builder()
+                .clusterCode("CLUST_EXPIRED_02")
+                .category("FLOODING")
+                .centerLatitude(BigDecimal.valueOf(10.8040000))
+                .centerLongitude(BigDecimal.valueOf(106.7150000))
+                .status("IN_PROGRESS")
+                .lastReportedAt(OffsetDateTime.now().minusHours(100)) // Older than 72h window
+                .build();
+
+        when(clusterRepository.findByStatus("OPEN"))
+                .thenReturn(List.of(activeCluster));
+        when(clusterRepository.findByStatus("IN_PROGRESS"))
+                .thenReturn(List.of(expiredCluster));
+
+        int syncedCount = triageService.warmUpSpatialIndexFromDatabase();
+
+        assertEquals(1, syncedCount, "Should only sync active clusters within the 72h window");
+        verify(spatialIndexService, times(1)).addClusterLocation(eq("CLUST_ACTIVE_01"), eq(106.7142160), eq(10.8035600));
+        verify(spatialIndexService, never()).addClusterLocation(eq("CLUST_EXPIRED_02"), anyDouble(), anyDouble());
+    }
 }
