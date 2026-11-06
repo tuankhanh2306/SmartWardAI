@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useLocation, useSearchParams } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import L from 'leaflet';
 import {
   precheckForm,
@@ -9,6 +9,12 @@ import {
 } from '../api/client';
 import { extractFormWithVision, normalizeDateToYMD, type ExtractedFormFieldsResult } from '../services/geminiClient';
 import { useWard } from '../context/WardContext';
+import {
+  AN_GIANG_WARDS,
+  findNearestWardByCoords,
+  resolveWardFromLocationBox,
+  type WardItem,
+} from '../data/anGiangWards';
 
 import {
   FileCheck2,
@@ -28,13 +34,18 @@ import {
   Trash2,
   Check,
   FileText,
-  Laptop
+  Laptop,
+  PhoneCall,
+  Navigation,
+  Radio,
+  ArrowRight
 } from 'lucide-react';
 
 
 export const FormAndIssueReporting: React.FC = () => {
-  const { currentWard } = useWard();
+  const { currentWard, setWard } = useWard();
   const location = useLocation();
+  const navigate = useNavigate();
 
   // Active Tab initialized from URL hash or default to 'form'
   const [activeTab, setActiveTab] = useState<'form' | 'incident'>(
@@ -108,35 +119,146 @@ export const FormAndIssueReporting: React.FC = () => {
 
   // Civic Incident Reporting State
   const [category, setCategory] = useState('ROAD_DAMAGE');
-  const [description, setDescription] = useState(`Đoạn đường trung tâm gần ${currentWard.officeAddress} bị sụt lún ổ gà sâu cần tu sửa khẩn cấp.`);
-  const [addressText, setAddressText] = useState(`Khu vực trung tâm ${currentWard.name}, Tỉnh An Giang`);
+  const [urgency, setUrgency] = useState<'HIGH' | 'MEDIUM' | 'LOW'>('HIGH');
+  const [reporterPhone, setReporterPhone] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('smartward_citizen_phone') || '';
+    }
+    return '';
+  });
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [description, setDescription] = useState(
+    `[Tại: Khu vực trung tâm ${currentWard.name}, Tỉnh An Giang] Đoạn đường gần ${currentWard.officeAddress} bị sụt lún ổ gà sâu gây nguy hiểm cho người đi đường, cần cán bộ giám sát kiểm tra xử lý khẩn cấp.`
+  );
+  const [addressText, setAddressText] = useState(`${currentWard.officeAddress}`);
   const [latitude, setLatitude] = useState(currentWard.lat);
   const [longitude, setLongitude] = useState(currentWard.lon);
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(8);
+  const [gpsScanBanner, setGpsScanBanner] = useState<string | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [reportLoading, setReportLoading] = useState(false);
   const [reportResult, setReportResult] = useState<IssueReportResponse | null>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
 
   // Incident Map Pin Dropper Refs
   const incidentMapContainerRef = useRef<HTMLDivElement>(null);
   const incidentMapInstanceRef = useRef<L.Map | null>(null);
   const incidentMarkerRef = useRef<L.Marker | null>(null);
+  const incidentRadiusCircleRef = useRef<L.Circle | null>(null);
 
-  // Sync with currentWard if user switches ward without wiping out customized citizen input
+  // Helper to map scanned/selected location into BOTH the Location Box (addressText) and Content Box (description)
+  const mapLocationToBoxes = useCallback((newAddress: string) => {
+    setAddressText(newAddress);
+    setDescription((prev) => {
+      const stripped = prev
+        .replace(/^\[(?:Tại|Vị trí|Vị trí hiện trường):[^\]]*\]\s*/i, '')
+        .trim();
+      const body =
+        stripped ||
+        'Phát hiện sự cố hư hỏng hạ tầng gây mất an toàn giao thông, đề nghị cán bộ giám sát kiểm tra xử lý khẩn cấp.';
+      return `[Tại: ${newAddress}] ${body}`;
+    });
+  }, []);
+
+  // Resolve target receiving Ward/Commune dynamically from the Location Box & Content Box first, then GPS coords
+  const resolvedJurisdiction = useMemo(() => {
+    return resolveWardFromLocationBox(addressText, description, latitude, longitude);
+  }, [addressText, description, latitude, longitude]);
+
+  // If citizen manually types a different ward name in the box (e.g. "Phường Châu Đốc"), pan GPS coords to that ward if far away
+  useEffect(() => {
+    if (
+      resolvedJurisdiction.matchedBy === 'TEXT_BOX' &&
+      resolvedJurisdiction.distanceMeters > 3500
+    ) {
+      setLatitude(resolvedJurisdiction.ward.lat);
+      setLongitude(resolvedJurisdiction.ward.lon);
+    }
+  }, [resolvedJurisdiction]);
+
+  // Reverse geocode coordinates and map into boxes
+  const reverseGeocodeAndMap = useCallback(
+    async (lat: number, lon: number, accuracyMeters: number = 8, presetAddress?: string) => {
+      setLatitude(lat);
+      setLongitude(lon);
+      setGpsAccuracy(Math.max(3, Math.round(accuracyMeters)));
+
+      const nearest = findNearestWardByCoords(lat, lon);
+      const fallbackAddress =
+        presetAddress ||
+        `Gần ${nearest.ward.officeAddress} (Tọa độ: ${lat.toFixed(5)}, ${lon.toFixed(5)})`;
+
+      // Immediately map fallback/preset address so UI responds in 0ms
+      mapLocationToBoxes(fallbackAddress);
+
+      if (presetAddress) {
+        setGpsScanBanner(
+          `Đã quét tọa độ GPS chuẩn (bán kính hẹp R=25m, sai số ±${Math.round(accuracyMeters)}m) và tự động điền vị trí tại ${nearest.ward.name} vào ô nội dung.`
+        );
+        return;
+      }
+
+      try {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), 3000);
+        const resp = await fetch(
+          `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&accept-language=vi`,
+          { signal: controller.signal }
+        );
+        clearTimeout(timer);
+        if (resp.ok) {
+          const data = await resp.json();
+          const addrObj = data?.address || {};
+          const road =
+            addrObj.road ||
+            addrObj.pedestrian ||
+            addrObj.suburb ||
+            addrObj.quarter ||
+            addrObj.hamlet ||
+            addrObj.village ||
+            '';
+          // If GPS is within An Giang (< 60km from nearest An Giang ward), attach the resolved An Giang ward name
+          const resolvedAddr =
+            nearest.distanceMeters <= 60000
+              ? road
+                ? `${road}, ${nearest.ward.name}, Tỉnh An Giang`
+                : `${nearest.ward.officeAddress}`
+              : data?.display_name
+              ? `${road ? road + ', ' : ''}${nearest.ward.name}, Tỉnh An Giang (GPS thực tế)`
+              : fallbackAddress;
+
+          mapLocationToBoxes(resolvedAddr);
+          setGpsScanBanner(
+            `Đã quét tọa độ GPS chuẩn (bán kính R=25m, sai số ±${Math.round(accuracyMeters)}m) và cập nhật vị trí "${resolvedAddr}" vào ô nội dung.`
+          );
+          return;
+        }
+      } catch {
+        // Fallback already applied
+      }
+
+      setGpsScanBanner(
+        `Đã quét vị trí GPS chuẩn (bán kính R=25m, sai số ±${Math.round(accuracyMeters)}m) tại ${nearest.ward.name} và cập nhật vào ô nội dung.`
+      );
+    },
+    [mapLocationToBoxes]
+  );
+
+  // Sync with currentWard if user switches ward in Header
   const prevWardRef = useRef(currentWard.code);
   useEffect(() => {
     if (prevWardRef.current !== currentWard.code) {
       prevWardRef.current = currentWard.code;
       setLatitude(currentWard.lat);
       setLongitude(currentWard.lon);
-      setAddressText((prev) => (prev.startsWith('Khu vực trung tâm') || !prev ? `Khu vực trung tâm ${currentWard.name}, Tỉnh An Giang` : prev));
+      mapLocationToBoxes(currentWard.officeAddress);
       if (!ocrSuccess) {
         setAddress((prev) => (prev.startsWith('Số 12,') || !prev ? `Số 12, ${currentWard.officeAddress}` : prev));
       }
-      setDescription((prev) => (prev.startsWith('Đoạn đường trung tâm') || !prev ? `Đoạn đường trung tâm gần ${currentWard.officeAddress} bị sụt lún ổ gà sâu cần tu sửa khẩn cấp.` : prev));
     }
-  }, [currentWard.code, currentWard.lat, currentWard.lon, currentWard.name, currentWard.officeAddress, ocrSuccess]);
+  }, [currentWard.code, currentWard.lat, currentWard.lon, currentWard.name, currentWard.officeAddress, ocrSuccess, mapLocationToBoxes]);
 
-  // Leaflet Interactive Pin Dropper for Incident Tab
+  // Leaflet Interactive Pin Dropper for Incident Tab (with tight R=25m spatial circle)
   useEffect(() => {
     if (activeTab !== 'incident' || !incidentMapContainerRef.current) return;
 
@@ -147,7 +269,7 @@ export const FormAndIssueReporting: React.FC = () => {
 
     const map = L.map(incidentMapContainerRef.current, {
       zoomControl: false,
-    }).setView([latitude, longitude], 15);
+    }).setView([latitude, longitude], 17);
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
@@ -174,20 +296,29 @@ export const FormAndIssueReporting: React.FC = () => {
       draggable: true,
     }).addTo(map);
 
+    // Tight R = 25m spatial precision circle
+    const radiusCircle = L.circle([latitude, longitude], {
+      radius: 25,
+      color: '#00687A',
+      weight: 2,
+      fillColor: '#57DFFE',
+      fillOpacity: 0.25,
+    }).addTo(map);
+
     marker.on('dragend', (e) => {
       const pos = e.target.getLatLng();
-      setLatitude(pos.lat);
-      setLongitude(pos.lng);
+      reverseGeocodeAndMap(pos.lat, pos.lng, 5);
     });
 
     map.on('click', (e) => {
-      setLatitude(e.latlng.lat);
-      setLongitude(e.latlng.lng);
       marker.setLatLng(e.latlng);
+      radiusCircle.setLatLng(e.latlng);
+      reverseGeocodeAndMap(e.latlng.lat, e.latlng.lng, 5);
     });
 
     incidentMapInstanceRef.current = map;
     incidentMarkerRef.current = marker;
+    incidentRadiusCircleRef.current = radiusCircle;
 
     const timer = setTimeout(() => {
       map.invalidateSize();
@@ -198,13 +329,17 @@ export const FormAndIssueReporting: React.FC = () => {
       map.remove();
       incidentMapInstanceRef.current = null;
       incidentMarkerRef.current = null;
+      incidentRadiusCircleRef.current = null;
     };
   }, [activeTab]);
 
-  // Sync marker position when GPS button or coordinates update
+  // Sync marker & 25m precision circle position when GPS button or coordinates update
   useEffect(() => {
     if (incidentMarkerRef.current && incidentMapInstanceRef.current) {
       incidentMarkerRef.current.setLatLng([latitude, longitude]);
+      if (incidentRadiusCircleRef.current) {
+        incidentRadiusCircleRef.current.setLatLng([latitude, longitude]);
+      }
       incidentMapInstanceRef.current.panTo([latitude, longitude]);
     }
   }, [latitude, longitude]);
@@ -466,42 +601,116 @@ export const FormAndIssueReporting: React.FC = () => {
     });
   };
 
-  // Handle HTML5 Geolocation API
-  const handleGetLocation = () => {
-    if (!navigator.geolocation) {
-      alert('Trình duyệt của bạn không hỗ trợ định vị GPS.');
-      return;
+  // Handle High-Accuracy HTML5 Geolocation API (R=25m) and auto-map into boxes
+  const handleGetLocation = useCallback(
+    (isAutoScan: boolean = false) => {
+      if (!navigator.geolocation) {
+        if (!isAutoScan) {
+          alert('Trình duyệt của bạn không hỗ trợ định vị GPS. Bạn có thể nhập hoặc chỉnh địa chỉ trực tiếp tại ô vị trí.');
+        } else {
+          reverseGeocodeAndMap(latitude, longitude, 8, currentWard.officeAddress);
+        }
+        return;
+      }
+      setGpsLoading(true);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude: lat, longitude: lon, accuracy } = pos.coords;
+          const nearest = findNearestWardByCoords(lat, lon);
+          // If auto-scanning on a desktop PC far outside An Giang (> 80km), keep current ward coords unless user clicked manual GPS scan
+          if (isAutoScan && nearest.distanceMeters > 80000) {
+            reverseGeocodeAndMap(currentWard.lat, currentWard.lon, 8, currentWard.officeAddress);
+          } else {
+            reverseGeocodeAndMap(lat, lon, accuracy || 8);
+          }
+          setGpsLoading(false);
+        },
+        () => {
+          reverseGeocodeAndMap(latitude, longitude, 10, addressText || currentWard.officeAddress);
+          setGpsLoading(false);
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 0,
+          timeout: 8000,
+        }
+      );
+    },
+    [reverseGeocodeAndMap, latitude, longitude, currentWard.lat, currentWard.lon, currentWard.officeAddress, addressText]
+  );
+
+  // Auto-scan GPS first whenever citizen opens the "Báo Sự Cố Hiện Trường" tab
+  const hasAutoScannedRef = useRef(false);
+  useEffect(() => {
+    if (activeTab === 'incident' && !hasAutoScannedRef.current) {
+      hasAutoScannedRef.current = true;
+      handleGetLocation(true);
+    } else if (activeTab !== 'incident') {
+      hasAutoScannedRef.current = false;
     }
+  }, [activeTab, handleGetLocation]);
+
+  // Simulate moving across wards (e.g., Citizen from Xã An Phú traveling through Phường Châu Đốc)
+  const handleSimulateCrossWardGps = (targetWardCode: string, streetLandmark: string) => {
+    const target = AN_GIANG_WARDS.find((w) => w.code === targetWardCode);
+    if (!target) return;
     setGpsLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLatitude(pos.coords.latitude);
-        setLongitude(pos.coords.longitude);
-        setGpsLoading(false);
-      },
-      () => {
-        alert('Không thể lấy tọa độ GPS tự động. Vui lòng nhập địa chỉ cụ thể bằng tay.');
-        setGpsLoading(false);
-      },
-      { timeout: 10000 }
-    );
+    setReportResult(null);
+    setTimeout(() => {
+      const simLat = Number((target.lat + 0.00035).toFixed(6));
+      const simLon = Number((target.lon + 0.00025).toFixed(6));
+      const fullAddr = `${streetLandmark}, ${target.name}, Tỉnh An Giang`;
+      reverseGeocodeAndMap(simLat, simLon, 5, fullAddr);
+      setGpsLoading(false);
+    }, 250);
   };
 
-  // Handle Incident Report
+  // Validate Vietnamese phone number
+  const isValidPhone = (phone: string): boolean => {
+    const clean = phone.replace(/[\s.\-()]/g, '');
+    return /^(0|\+84)(3|5|7|8|9|2)[0-9]{8,9}$/.test(clean);
+  };
+
+  // Handle Incident Report (Routes dynamically based on the Location Box!)
   const handleReport = async () => {
+    const cleanPhone = reporterPhone.replace(/[\s.\-()]/g, '');
+    if (!cleanPhone || !isValidPhone(cleanPhone)) {
+      setPhoneError(
+        'Khi báo tin khẩn, bắt buộc phải kèm Số điện thoại hợp lệ (10 số, VD: 0918123456) để người giám sát địa bàn liên hệ xác minh!'
+      );
+      phoneInputRef.current?.focus();
+      return;
+    }
+    setPhoneError(null);
+
+    if (!addressText.trim()) {
+      alert('Vui lòng quét GPS hoặc nhập vị trí hiện trường sự cố.');
+      return;
+    }
     if (!description.trim()) {
       alert('Vui lòng nhập mô tả sự cố hiện trường.');
       return;
     }
+
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('smartward_citizen_phone', cleanPhone);
+    }
+
+    const targetWard: WardItem = resolvedJurisdiction.ward;
+
     setReportLoading(true);
     try {
       const res = await reportIssue({
         category,
         latitude,
         longitude,
-        addressText,
-        rawDescription: description,
-        wardName: currentWard.name,
+        addressText: addressText.trim(),
+        rawDescription: description.trim(),
+        reporterPhone: cleanPhone,
+        wardCode: targetWard.code,
+        wardName: targetWard.name,
+        reporterHomeWardName: currentWard.name,
+        urgency,
       });
       setReportResult(res);
     } catch {
@@ -1504,132 +1713,309 @@ export const FormAndIssueReporting: React.FC = () => {
       {activeTab === 'incident' && (
         <section className="flex flex-col gap-6 animate-fadeIn">
           {/* Header Banner */}
-          <div className="p-5 rounded-2xl bg-gradient-to-r from-[#EAEDFF]/80 via-white to-[#F2F3FF] border border-[#DAE2FD] shadow-xs flex items-center justify-between gap-4">
+          <div className="p-5 rounded-2xl bg-gradient-to-r from-[#EAEDFF]/80 via-white to-[#F2F3FF] border border-[#DAE2FD] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3.5">
               <div className="w-11 h-11 rounded-xl bg-[#BA1A1A] text-white flex items-center justify-center shrink-0 shadow-sm">
                 <AlertTriangle className="w-5 h-5 text-white" />
               </div>
               <div>
                 <h2 className="text-base md:text-lg font-bold text-[#00236F]">
-                  Phản Ánh Sự Cố Đô Thị & An Ninh Trật Tự • {currentWard.name}
+                  Báo Tin Khẩn & Sự Cố Hiện Trường Liên Địa Bàn • Định Vị Chuẩn GPS (R=25m)
                 </h2>
                 <p className="text-xs text-[#444651] mt-1 leading-relaxed">
-                  Ứng dụng thuật toán phân luồng 2 pha: Lọc bán kính địa lý R=75m (Redis GEO) và so khớp ngữ nghĩa vector τ=0.82 để tự động phát hiện và gộp các phản ánh trùng lặp trên địa bàn {currentWard.name}, Tỉnh An Giang.
+                  <strong>Quy trình tự động 3 bước:</strong> (1) Quét tọa độ GPS chuẩn xác cao (bán kính hẹp <strong>R=25m</strong>) và tự động điền vào ô vị trí &amp; nội dung (cho phép chỉnh tay nếu lệch) ➔ (2) Kèm <strong>Số điện thoại liên hệ</strong> để người giám sát địa bàn gọi xác minh ➔ (3) Tự động gửi về đúng <strong>UBND Xã/Phường nơi xảy ra sự cố</strong> dựa trên vị trí trong ô.
                 </p>
               </div>
             </div>
 
-            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#DAE2FD] text-[11px] font-semibold text-[#BA1A1A]">
+            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-[#DAE2FD] text-[11px] font-semibold text-[#BA1A1A] shrink-0">
               <span className="w-2 h-2 rounded-full bg-[#BA1A1A] animate-pulse" />
-              <span>Tiếp Nhận 24/7</span>
+              <span>Trực Ban 24/7 • R=25m</span>
             </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Incident Input Form (7 Cols) */}
-            <div className="lg:col-span-7 p-6 rounded-3xl bg-white border border-[#EAEDFF] shadow-sm flex flex-col gap-4">
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-[#444651]">
-                  Phân loại lĩnh vực phản ánh:
-                </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {[
-                    { id: 'ROAD_DAMAGE', label: 'Hạ Tầng Đường' },
-                    { id: 'FLOODING', label: 'Ngập Nước' },
-                    { id: 'ENVIRONMENT', label: 'Môi Trường' },
-                    { id: 'LIGHTING', label: 'Chiếu Sáng' },
-                  ].map((cat) => (
-                    <button
-                      key={cat.id}
-                      type="button"
-                      onClick={() => setCategory(cat.id)}
-                      className={`py-2 px-3 rounded-xl text-xs font-semibold border transition active:scale-95 ${
-                        category === cat.id
-                          ? 'bg-[#00236F] text-white border-[#00236F] shadow-xs'
-                          : 'bg-[#FAF8FF] hover:bg-[#EAEDFF] text-[#444651] border-[#EAEDFF]'
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Description */}
-              <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-[#444651]">
-                  Mô tả chi tiết sự cố tại hiện trường:
-                </label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                  className="w-full p-3 rounded-xl bg-[#FAF8FF] border border-[#EAEDFF] text-xs md:text-sm text-[#131B2E] focus:outline-none focus:border-[#00236F] focus:bg-white resize-none transition-all"
-                  placeholder="Mô tả mức độ nguy hiểm, kích thước, ảnh hưởng đến người đi đường..."
-                />
-              </div>
-
-              {/* Address & GPS Coordinates */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center justify-between">
-                  <label className="text-xs font-bold text-[#444651]">
-                    Vị trí hiện trường sự cố:
+            <div className="lg:col-span-7 p-6 rounded-3xl bg-white border border-[#EAEDFF] shadow-sm flex flex-col gap-5">
+              {/* STEP 1: GPS SCAN FIRST & MAP TO LOCATION BOX */}
+              <div className="flex flex-col gap-2.5 p-4 rounded-2xl bg-[#F8FAFC] border border-[#DAE2FD]">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label className="text-xs sm:text-sm font-extrabold text-[#00236F] flex items-center gap-1.5">
+                    <Navigation className="w-4 h-4 text-[#BA1A1A]" />
+                    <span>Bước 1: Quét Vị Trí GPS Chuẩn (R=25m) &amp; Ô Vị Trí Hiện Trường</span>
                   </label>
                   <button
                     type="button"
-                    onClick={handleGetLocation}
+                    onClick={() => handleGetLocation(false)}
                     disabled={gpsLoading}
-                    className="text-xs font-semibold text-[#00687A] hover:underline flex items-center gap-1 active:scale-95"
+                    className="px-3 py-1.5 rounded-xl bg-[#00687A] hover:bg-[#004E5C] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition active:scale-95 cursor-pointer disabled:opacity-60"
                   >
                     <MapPin className="w-3.5 h-3.5" />
-                    <span>{gpsLoading ? 'Đang Bắt Sóng GPS...' : 'Lấy Vị Trí GPS Tự Động'}</span>
+                    <span>{gpsLoading ? 'Đang Quét Vệ Tinh GPS...' : 'Quét Lại Vị Trí GPS Thực Tế'}</span>
                   </button>
                 </div>
 
-                <input
-                  type="text"
-                  value={addressText}
-                  onChange={(e) => setAddressText(e.target.value)}
-                  className="w-full h-10 px-3.5 rounded-xl bg-[#FAF8FF] border border-[#EAEDFF] text-xs md:text-sm text-[#131B2E] focus:outline-hidden focus:border-[#00236F] focus:bg-white"
-                />
-
-                <div className="flex items-center gap-4 text-xs font-mono text-[#757682] px-1">
-                  <span>Vĩ độ (Lat): <strong className="text-[#00236F]">{latitude.toFixed(6)}</strong></span>
-                  <span>Kinh độ (Lon): <strong className="text-[#00236F]">{longitude.toFixed(6)}</strong></span>
+                {/* Quick Cross-Ward GPS Simulation Bar for Testing */}
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="text-[11px] font-bold text-[#64748B] mr-1">
+                    Giả lập công dân di chuyển qua địa bàn khác:
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleSimulateCrossWardGps('AG_P_CHAUDOC', 'Số 18 Đường Phan Văn Vàng')
+                    }
+                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#EAEDFF] text-[#00236F] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer"
+                  >
+                    🚗 Đi qua Phường Châu Đốc
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleSimulateCrossWardGps('AG_P_LONGXUYEN', 'Số 05 Đường Lê Triệu Kiết')
+                    }
+                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#EAEDFF] text-[#00236F] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer"
+                  >
+                    🚗 Đi qua Phường Long Xuyên
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      handleSimulateCrossWardGps('AG_X_ANPHU', 'Đường Thoại Ngọc Hầu')
+                    }
+                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#EAEDFF] text-[#00236F] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer"
+                  >
+                    🏠 Tại Xã An Phú
+                  </button>
                 </div>
 
-                {/* Interactive Mini-Map Pin Dropper */}
-                <div className="flex flex-col gap-1.5 mt-1">
-                  <div className="flex items-center justify-between text-[11px] text-[#757682]">
-                    <span className="flex items-center gap-1 font-semibold text-[#00236F]">
-                      <MapPin className="w-3.5 h-3.5 text-[#BA1A1A]" />
-                      Chấm điểm vị trí hiện trường trên bản đồ:
+                {/* Live GPS Status Banner */}
+                {gpsScanBanner && (
+                  <div className="p-2.5 rounded-xl bg-[#ECFDF5] border border-[#86EFAC] text-[11px] text-[#166534] font-medium flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-[#16A34A] shrink-0" />
+                    <span>{gpsScanBanner}</span>
+                  </div>
+                )}
+
+                {/* Editable Location Input Box */}
+                <div className="flex flex-col gap-1 mt-1">
+                  <div className="flex items-center justify-between text-[11px] text-[#475569]">
+                    <span className="font-semibold">
+                      Ô vị trí sự cố (Đã tự động điền từ GPS — Bà con có thể sửa tay nếu lệch):
                     </span>
-                    <span>Click hoặc kéo ghim để định vị</span>
+                    <span className="font-mono text-[#00687A] font-bold">
+                      Sai số GPS: ±{gpsAccuracy ?? 8}m • Phạm vi gom cụm: R=25m
+                    </span>
                   </div>
-                  <div className="w-full h-44 sm:h-52 rounded-2xl overflow-hidden border border-[#DAE2FD] relative z-1 shadow-inner bg-[#E5E7EB]">
-                    <div ref={incidentMapContainerRef} className="w-full h-full" />
+                  <input
+                    type="text"
+                    value={addressText}
+                    onChange={(e) => setAddressText(e.target.value)}
+                    placeholder="Nhập địa chỉ cụ thể kèm tên Xã/Phường (VD: Đường Phan Văn Vàng, Phường Châu Đốc)..."
+                    className="w-full h-10 px-3.5 rounded-xl bg-white border-2 border-[#00236F]/30 text-xs md:text-sm font-semibold text-[#131B2E] focus:outline-none focus:border-[#00236F] shadow-2xs"
+                  />
+                </div>
+
+                {/* Dynamic Jurisdiction Routing Indicator based on Location Box */}
+                <div
+                  className={`p-3 rounded-xl border text-xs flex flex-col gap-1 transition-all ${
+                    resolvedJurisdiction.ward.code !== currentWard.code
+                      ? 'bg-[#FFFBEB] border-[#FDE68A] text-[#92400E]'
+                      : 'bg-[#EFF6FF] border-[#BFDBFE] text-[#1E40AF]'
+                  }`}
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <span className="font-bold flex items-center gap-1.5">
+                      <Radio className="w-3.5 h-3.5 text-[#DC2626] animate-pulse shrink-0" />
+                      <span>
+                        Đơn vị nhận tin theo ô vị trí:{' '}
+                        <strong className="underline text-[#00236F]">
+                          UBND {resolvedJurisdiction.ward.name}
+                        </strong>
+                      </span>
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white border border-current/20">
+                      {resolvedJurisdiction.matchedBy === 'TEXT_BOX'
+                        ? 'Khớp theo chữ trên ô vị trí'
+                        : 'Khớp theo tọa độ GPS'}
+                    </span>
                   </div>
+                  {resolvedJurisdiction.ward.code !== currentWard.code ? (
+                    <p className="text-[11px] leading-relaxed mt-0.5">
+                      🔄 <strong>Phát hiện báo sự cố liên địa bàn:</strong> Cổng hiện tại của bạn là{' '}
+                      <strong>{currentWard.name}</strong>, nhưng vị trí sự cố trên ô thuộc{' '}
+                      <strong>{resolvedJurisdiction.ward.name}</strong>. Khi bấm gửi, hệ thống sẽ định tuyến hồ sơ thẳng về{' '}
+                      <strong>Ban Giám Sát UBND {resolvedJurisdiction.ward.name}</strong> (Trực ban:{' '}
+                      {resolvedJurisdiction.ward.phoneNumber}) để xử lý đúng phạm vi phụ trách!
+                    </p>
+                  ) : (
+                    <p className="text-[11px] opacity-90">
+                      Tin báo sẽ được chuyển trực tiếp đến Ban Giám Sát UBND {resolvedJurisdiction.ward.name} (Hotline trực ban: {resolvedJurisdiction.ward.phoneNumber}).
+                    </p>
+                  )}
+                </div>
+
+                {/* Coordinates & Interactive Mini-Map with tight R=25m Circle */}
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-[#757682] px-1 pt-1">
+                  <span>
+                    Vĩ độ (Lat): <strong className="text-[#00236F]">{latitude.toFixed(6)}</strong>
+                  </span>
+                  <span>
+                    Kinh độ (Lon): <strong className="text-[#00236F]">{longitude.toFixed(6)}</strong>
+                  </span>
+                  <span className="text-[11px] font-sans text-[#00687A] font-semibold">
+                    💡 Click hoặc kéo ghim đỏ để chỉnh vị trí (Vòng xanh R=25m)
+                  </span>
+                </div>
+
+                <div className="w-full h-44 sm:h-52 rounded-2xl overflow-hidden border border-[#DAE2FD] relative z-1 shadow-inner bg-[#E5E7EB]">
+                  <div ref={incidentMapContainerRef} className="w-full h-full" />
+                </div>
+              </div>
+
+              {/* STEP 2: MANDATORY PHONE NUMBER FOR SUPERVISOR CONTACT */}
+              <div className="flex flex-col gap-2.5 p-4 rounded-2xl bg-[#FEF2F2]/60 border border-[#FECACA]">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label className="text-xs sm:text-sm font-extrabold text-[#991B1B] flex items-center gap-1.5">
+                    <PhoneCall className="w-4 h-4 text-[#DC2626]" />
+                    <span>
+                      Bước 2: Số Điện Thoại Liên Hệ Khẩn Cấp <span className="text-[#DC2626]">* (Bắt buộc)</span>
+                    </span>
+                  </label>
+                  <span className="text-[11px] font-semibold text-[#7F1D1D]">
+                    Để người giám sát địa bàn liên hệ xác minh hiện trường
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                  <div className="sm:col-span-7 relative">
+                    <input
+                      ref={phoneInputRef}
+                      type="tel"
+                      value={reporterPhone}
+                      onChange={(e) => {
+                        setReporterPhone(e.target.value);
+                        if (phoneError) setPhoneError(null);
+                      }}
+                      placeholder="Nhập SĐT của bạn (VD: 0918234567)..."
+                      className={`w-full h-10 px-3.5 rounded-xl bg-white border-2 text-xs md:text-sm font-mono font-bold text-[#131B2E] focus:outline-none ${
+                        phoneError
+                          ? 'border-[#DC2626] ring-2 ring-[#FECACA]'
+                          : isValidPhone(reporterPhone)
+                          ? 'border-[#16A34A]'
+                          : 'border-[#FCA5A5] focus:border-[#00236F]'
+                      }`}
+                    />
+                  </div>
+
+                  {/* Urgency Level Selector */}
+                  <div className="sm:col-span-5 flex items-center gap-1.5">
+                    {([
+                      { id: 'HIGH', label: '🚨 Tin Khẩn' },
+                      { id: 'MEDIUM', label: '⚠️ Cần Sớm' },
+                      { id: 'LOW', label: '📌 Thường' },
+                    ] as const).map((u) => (
+                      <button
+                        key={u.id}
+                        type="button"
+                        onClick={() => setUrgency(u.id)}
+                        className={`flex-1 py-2 px-2 rounded-xl text-[11px] font-bold border transition cursor-pointer ${
+                          urgency === u.id
+                            ? 'bg-[#BA1A1A] text-white border-[#BA1A1A] shadow-xs'
+                            : 'bg-white text-[#475569] border-[#CBD5E1] hover:bg-[#F8FAFC]'
+                        }`}
+                      >
+                        {u.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {phoneError ? (
+                  <p className="text-xs font-bold text-[#DC2626] flex items-center gap-1.5 mt-0.5">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{phoneError}</span>
+                  </p>
+                ) : isValidPhone(reporterPhone) ? (
+                  <p className="text-[11px] font-semibold text-[#166534] flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5 text-[#16A34A]" />
+                    <span>
+                      SĐT hợp lệ ({reporterPhone.trim()}) — Cán bộ giám sát tại UBND {resolvedJurisdiction.ward.name} sẽ liên hệ qua số này.
+                    </span>
+                  </p>
+                ) : (
+                  <p className="text-[11px] text-[#7F1D1D]">
+                    Vui lòng nhập số điện thoại di động 10 số để cán bộ trực ban liên hệ khi xuống hiện trường.
+                  </p>
+                )}
+              </div>
+
+              {/* STEP 3: CATEGORY & CONTENT BOX (MAPPED FROM GPS, EDITABLE BY HAND) */}
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-[#444651]">
+                    Bước 3: Chọn lĩnh vực &amp; kiểm tra Ô nội dung mô tả (Đã tự động map vị trí từ GPS):
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[
+                      { id: 'ROAD_DAMAGE', label: 'Hạ Tầng Đường' },
+                      { id: 'FLOODING', label: 'Ngập Nước' },
+                      { id: 'ENVIRONMENT', label: 'Môi Trường' },
+                      { id: 'LIGHTING', label: 'Chiếu Sáng' },
+                    ].map((cat) => (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => setCategory(cat.id)}
+                        className={`py-2 px-3 rounded-xl text-xs font-semibold border transition active:scale-95 cursor-pointer ${
+                          category === cat.id
+                            ? 'bg-[#00236F] text-white border-[#00236F] shadow-xs'
+                            : 'bg-[#FAF8FF] hover:bg-[#EAEDFF] text-[#444651] border-[#EAEDFF]'
+                        }`}
+                      >
+                        {cat.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Description Content Box */}
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-bold text-[#444651]">
+                      Ô nội dung chi tiết sự cố (Vị trí quét được đã map vào đây, bà con có thể chỉnh tay):
+                    </label>
+                  </div>
+                  <textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
+                    className="w-full p-3 rounded-xl bg-[#FAF8FF] border border-[#EAEDFF] text-xs md:text-sm text-[#131B2E] focus:outline-none focus:border-[#00236F] focus:bg-white resize-none transition-all"
+                    placeholder="Mô tả mức độ nguy hiểm, kích thước, ảnh hưởng đến người đi đường..."
+                  />
                 </div>
               </div>
 
               {/* Submit Button */}
-              <div className="pt-2 flex justify-end">
+              <div className="pt-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <span className="text-[11px] text-[#64748B] font-medium">
+                  📍 Nơi nhận hồ sơ: <strong className="text-[#00236F]">UBND {resolvedJurisdiction.ward.name}</strong>
+                </span>
                 <button
                   type="button"
                   onClick={handleReport}
                   disabled={reportLoading}
-                  className="w-full sm:w-auto px-6 py-2.5 bg-[#BA1A1A] hover:bg-[#93000A] active:scale-[0.98] text-white rounded-xl font-bold text-xs shadow-md shadow-[#BA1A1A]/20 flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+                  className="w-full sm:w-auto px-6 py-3 bg-[#BA1A1A] hover:bg-[#93000A] active:scale-[0.98] text-white rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-[#BA1A1A]/20 flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
                 >
                   {reportLoading ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Đang Phân Luồng...</span>
+                      <span>Đang Định Tuyến Về {resolvedJurisdiction.ward.name}...</span>
                     </>
                   ) : (
                     <>
                       <Send className="w-4 h-4 text-white" />
-                      <span>Gửi Phản Ánh Hiện Trường</span>
+                      <span>Gửi Báo Cáo Về UBND {resolvedJurisdiction.ward.name}</span>
                     </>
                   )}
                 </button>
@@ -1644,46 +2030,96 @@ export const FormAndIssueReporting: React.FC = () => {
                     className={`p-4 rounded-2xl flex items-start gap-3 ${
                       reportResult.assignedAction === 'MERGED_INTO_EXISTING_CLUSTER'
                         ? 'bg-[#E0F7FA] border border-[#80DEEA] text-[#006064]'
-                        : 'bg-[#FFF3E0] border border-[#FFE082] text-[#E65100]'
+                        : 'bg-[#ECFDF5] border border-[#86EFAC] text-[#166534]'
                     }`}
                   >
                     <Layers className="w-6 h-6 shrink-0 mt-0.5" />
                     <div>
                       <h3 className="font-bold text-sm">
                         {reportResult.assignedAction === 'MERGED_INTO_EXISTING_CLUSTER'
-                          ? 'Đã Tự Động Gom Cụm Với Sự Cố Gốc'
-                          : 'Khởi Tạo Cụm Sự Cố Mới Trên Bản Đồ'}
+                          ? 'Đã Tự Động Gom Cụm Sự Cố Trong Bán Kính R=25m'
+                          : `Đã Định Tuyến Thành Công Về UBND ${reportResult.targetWardName || resolvedJurisdiction.ward.name}`}
                       </h3>
                       <p className="text-xs mt-1 leading-relaxed">{reportResult.message}</p>
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-2 p-3 bg-[#FAF8FF] border border-[#EAEDFF] rounded-2xl text-xs">
+                  <div className="flex flex-col gap-2.5 p-4 bg-[#FAF8FF] border border-[#EAEDFF] rounded-2xl text-xs">
+                    <div className="flex items-center justify-between pb-2 border-b border-[#EAEDFF]">
+                      <span className="text-[#757682]">Đơn vị tiếp nhận (Theo ô vị trí):</span>
+                      <strong className="text-[#00236F] font-extrabold">
+                        UBND {reportResult.targetWardName || resolvedJurisdiction.ward.name}
+                      </strong>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#757682]">SĐT người báo (Giám sát liên hệ):</span>
+                      <strong className="font-mono text-[#DC2626] bg-[#FEF2F2] px-2 py-0.5 rounded border border-[#FECACA]">
+                        📞 {reportResult.reporterPhone || reporterPhone}
+                      </strong>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#757682]">Vị trí hiện trường ghi nhận:</span>
+                      <span className="font-semibold text-[#131B2E] text-right max-w-[220px] truncate">
+                        {reportResult.addressText || addressText}
+                      </span>
+                    </div>
                     <div className="flex items-center justify-between">
                       <span className="text-[#757682]">Mã cụm sự cố:</span>
                       <strong className="font-mono text-[#00236F]">{reportResult.clusterCode}</strong>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-[#757682]">Tổng số người báo:</span>
-                      <span className="font-bold text-[#00687A]">{reportResult.totalReportsInCluster} người dân</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[#757682]">Độ tương đồng ngữ nghĩa:</span>
-                      <span className="font-bold text-[#00236F]">
-                        {(reportResult.similarityWithClusterCentroid * 100).toFixed(1)}% (ngưỡng τ = 82%)
+                      <span className="text-[#757682]">Bán kính gom cụm chuẩn GPS:</span>
+                      <span className="font-bold text-[#00687A]">
+                        R = {reportResult.appliedRadiusMeters ?? 25}m (Độ chính xác cao)
                       </span>
                     </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#757682]">Tổng số người báo tại điểm này:</span>
+                      <span className="font-bold text-[#00687A]">{reportResult.totalReportsInCluster} người dân</span>
+                    </div>
                   </div>
+
+                  {/* Quick button to inspect on the Target Ward's Officer Dashboard */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const targetW =
+                        AN_GIANG_WARDS.find((w) => w.code === reportResult.targetWardCode) ||
+                        resolvedJurisdiction.ward;
+                      setWard(targetW);
+                      navigate(`/officer/ward/${targetW.code}?tab=INCIDENTS`);
+                    }}
+                    className="w-full py-2.5 px-4 rounded-xl bg-[#00236F] hover:bg-[#1E3A8A] text-white text-xs font-bold flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer shadow-xs"
+                  >
+                    <span>Kiểm Tra Trên Bàn Giám Sát UBND {reportResult.targetWardName || resolvedJurisdiction.ward.name}</span>
+                    <ArrowRight className="w-4 h-4 text-[#57DFFE]" />
+                  </button>
                 </div>
               ) : (
-                <div className="p-8 rounded-3xl bg-white border border-[#EAEDFF] shadow-sm flex flex-col items-center justify-center text-center text-[#757682] gap-3">
-                  <div className="w-14 h-14 rounded-2xl bg-[#F2F3FF] flex items-center justify-center text-[#BA1A1A]">
-                    <Layers className="w-7 h-7" />
+                <div className="p-6 rounded-3xl bg-white border border-[#EAEDFF] shadow-sm flex flex-col gap-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-2xl bg-[#F2F3FF] flex items-center justify-center text-[#BA1A1A] shrink-0">
+                      <Layers className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-sm text-[#131B2E]">
+                        Định Tuyến Liên Xã/Phường &amp; Gom Cụm R=25m
+                      </h3>
+                      <p className="text-xs text-[#757682] mt-0.5">
+                         Tự động nhận diện đúng địa bàn theo vị trí trên ô
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-sm text-[#131B2E]">Thuật Toán Phân Luồng Tự Động</h3>
-                    <p className="text-xs text-[#757682] mt-1 max-w-xs leading-relaxed">
-                      Khi gửi phản ánh, hệ thống sẽ tự động quét bán kính R=75m trên Redis GEO và đo Cosine để phân luồng tức thì.
+
+                  <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#334155] space-y-2 leading-relaxed">
+                    <p>
+                      <strong>1. Quét GPS &amp; Map vào ô trước:</strong> Ngay khi mở tab Báo sự cố, hệ thống quét GPS chuẩn (bán kính hẹp <strong>R=25m</strong>) và điền thẳng địa chỉ vào ô vị trí &amp; ô nội dung.
+                    </p>
+                    <p>
+                      <strong>2. Chỉnh tay linh hoạt:</strong> Nếu sóng GPS lệch, bà con có thể gõ chỉnh lại địa chỉ/tên phường xã trên ô.
+                    </p>
+                    <p>
+                      <strong>3. Gửi đúng xã/phường nơi xảy ra sự cố:</strong> Ví dụ bà con ở <em>Xã An Phú</em> nhưng đi qua <em>Phường Châu Đốc</em> thấy đường hư, hệ thống sẽ dựa vào vị trí <em>Phường Châu Đốc</em> trên ô để gửi thẳng cho <strong>UBND Phường Châu Đốc</strong> kèm SĐT để người giám sát liên hệ ngay.
                     </p>
                   </div>
                 </div>

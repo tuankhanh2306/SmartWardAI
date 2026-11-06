@@ -1513,3 +1513,116 @@ export function searchAnGiangWards(
       norm(w.code).includes(q)
   );
 }
+
+
+/**
+ * Calculates Haversine distance in meters between two WGS84 coordinates.
+ */
+export function calculateHaversineMeters(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+): number {
+  const R = 6371000; // Earth radius in meters
+  const toRad = (deg: number) => (deg * Math.PI) / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLon = toRad(lon2 - lon1);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+/**
+ * Finds the nearest administrative ward/commune in An Giang from GPS coordinates.
+ */
+export function findNearestWardByCoords(
+  lat: number,
+  lon: number
+): { ward: WardItem; distanceMeters: number } {
+  let bestWard = DEFAULT_WARD;
+  let minDistance = Number.POSITIVE_INFINITY;
+
+  for (const w of AN_GIANG_WARDS) {
+    const dist = calculateHaversineMeters(lat, lon, w.lat, w.lon);
+    if (dist < minDistance) {
+      minDistance = dist;
+      bestWard = w;
+    }
+  }
+
+  return { ward: bestWard, distanceMeters: Math.round(minDistance) };
+}
+
+/**
+ * Resolves the target receiving Ward/Commune based on the Citizen's Location Box (addressText)
+ * and Description Box first (allowing manual override if GPS drifted), falling back to GPS coordinates.
+ */
+export function resolveWardFromLocationBox(
+  addressText: string,
+  descriptionText: string,
+  lat: number,
+  lon: number
+): {
+  ward: WardItem;
+  matchedBy: 'TEXT_BOX' | 'GPS_COORDS';
+  distanceMeters: number;
+} {
+  const norm = (s: string) =>
+    (s || '')
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/đ/g, 'd')
+      .trim();
+
+  const normAddr = norm(addressText);
+  const normDesc = norm(descriptionText);
+
+  // Sort wards by name length descending so more specific names match first
+  const sortedWards = [...AN_GIANG_WARDS].sort((a, b) => b.name.length - a.name.length);
+
+  // 1. Check full administrative name in addressText (e.g. "phuong chau doc", "xa an phu")
+  if (normAddr) {
+    for (const w of sortedWards) {
+      const fullNorm = norm(w.name);
+      if (fullNorm && normAddr.includes(fullNorm)) {
+        const dist = calculateHaversineMeters(lat, lon, w.lat, w.lon);
+        return { ward: w, matchedBy: 'TEXT_BOX', distanceMeters: Math.round(dist) };
+      }
+    }
+
+    // 2. Check core place name without prefix ("phuong ", "xa ", "thi tran ", "dac khu ") in addressText
+    for (const w of sortedWards) {
+      const coreName = norm(w.name).replace(/^(phuong|xa|thi tran|dac khu)\s+/i, '').trim();
+      if (coreName.length >= 4) {
+        const regex = new RegExp(`(^|[^a-z0-9])${coreName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}([^a-z0-9]|$)`, 'i');
+        if (regex.test(normAddr)) {
+          const dist = calculateHaversineMeters(lat, lon, w.lat, w.lon);
+          return { ward: w, matchedBy: 'TEXT_BOX', distanceMeters: Math.round(dist) };
+        }
+      }
+    }
+  }
+
+  // 3. Check if descriptionText explicitly mentions a full ward name (e.g. "đi qua phường Châu Đốc")
+  if (normDesc) {
+    for (const w of sortedWards) {
+      const fullNorm = norm(w.name);
+      if (fullNorm && normDesc.includes(fullNorm)) {
+        const dist = calculateHaversineMeters(lat, lon, w.lat, w.lon);
+        return { ward: w, matchedBy: 'TEXT_BOX', distanceMeters: Math.round(dist) };
+      }
+    }
+  }
+
+  // 4. Fallback to GPS nearest ward
+  const nearest = findNearestWardByCoords(lat, lon);
+  return {
+    ward: nearest.ward,
+    matchedBy: 'GPS_COORDS',
+    distanceMeters: nearest.distanceMeters,
+  };
+}

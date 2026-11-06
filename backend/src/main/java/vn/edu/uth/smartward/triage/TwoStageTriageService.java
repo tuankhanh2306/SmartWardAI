@@ -36,7 +36,7 @@ public class TwoStageTriageService {
     private final CivicReportRepository reportRepository;
     private final AiModelClient aiModelClient;
 
-    @Value("${smartward.triage.default-radius-meters:75.0}")
+    @Value("${smartward.triage.default-radius-meters:25.0}")
     private double defaultRadiusMeters;
 
     @Value("${smartward.triage.default-similarity-threshold:0.82}")
@@ -164,6 +164,9 @@ public class TwoStageTriageService {
                     .clusterReportCount(newCount)
                     .distanceToCenterMeters(bestDistance)
                     .similarityScore(bestSimilarity)
+                    .reporterPhone(request.getReporterPhone())
+                    .addressText(request.getAddressText())
+                    .targetWardName(request.getWardName())
                     .message(String.format("Phản ánh đã được tự động gộp vào cụm sự cố hiện có (%s). Cán bộ phường đã ghi nhận %d lượt phản ánh tại khu vực này.",
                             bestCluster.getClusterCode(), newCount))
                     .build();
@@ -217,6 +220,9 @@ public class TwoStageTriageService {
                     .clusterReportCount(1)
                     .distanceToCenterMeters(0.0)
                     .similarityScore(1.0)
+                    .reporterPhone(request.getReporterPhone())
+                    .addressText(request.getAddressText())
+                    .targetWardName(request.getWardName())
                     .message(String.format("Đã khởi tạo cụm sự cố mới (%s). Hệ thống đang phân luồng tới đơn vị phụ trách lĩnh vực %s.",
                             clusterCode, request.getCategory()))
                     .build();

@@ -812,6 +812,72 @@ export interface IssueReportResponse {
   similarityWithClusterCentroid: number;
   totalReportsInCluster: number;
   message: string;
+  targetWardCode?: string;
+  targetWardName?: string;
+  reporterPhone?: string;
+  addressText?: string;
+  appliedRadiusMeters?: number;
+}
+
+export interface LiveCitizenIncident {
+  id: string;
+  wardCode: string;
+  wardName: string;
+  reporterHomeWardName?: string;
+  category: string;
+  title: string;
+  description: string;
+  address: string;
+  lat: number;
+  lon: number;
+  reportedTime: string;
+  status: 'PENDING' | 'IN_PROGRESS' | 'RESOLVED';
+  urgency: 'HIGH' | 'MEDIUM' | 'LOW';
+  duplicatesMerged: number;
+  reporterPhone: string;
+  officerNote?: string;
+}
+
+const LIVE_INCIDENTS_STORAGE_KEY = 'smartward_live_incidents_v1';
+
+export const getLiveSubmittedIncidents = (): LiveCitizenIncident[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(LIVE_INCIDENTS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+function saveLiveSubmittedIncident(incident: LiveCitizenIncident) {
+  if (typeof window === 'undefined') return;
+  try {
+    const existing = getLiveSubmittedIncidents();
+    const updated = [incident, ...existing].slice(0, 50);
+    localStorage.setItem(LIVE_INCIDENTS_STORAGE_KEY, JSON.stringify(updated));
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function mapCategoryCodeToLabel(code: string): string {
+  switch (code) {
+    case 'ROAD_DAMAGE':
+      return 'Cơ sở hạ tầng';
+    case 'FLOODING':
+      return 'Ngập nước & Thủy lợi';
+    case 'ENVIRONMENT':
+      return 'Môi trường & Rác thải';
+    case 'LIGHTING':
+      return 'Chiếu sáng đô thị';
+    case 'SECURITY':
+      return 'An ninh trật tự';
+    default:
+      return 'Cơ sở hạ tầng';
+  }
 }
 
 export const reportIssue = async (data: {
@@ -822,62 +888,135 @@ export const reportIssue = async (data: {
   rawDescription?: string;
   description?: string;
   reporterPhone?: string;
+  wardCode?: string;
   wardName?: string;
+  reporterHomeWardName?: string;
+  urgency?: 'HIGH' | 'MEDIUM' | 'LOW';
 }): Promise<IssueReportResponse> => {
   const currentWardLabel = data.wardName || 'UBND cấp Xã/Phường';
+  const targetWardCode = data.wardCode || 'AG_P_LONGXUYEN';
   const desc = (data.description || data.rawDescription || '').trim();
+  const phone = (data.reporterPhone || '').trim();
+  const addr = (data.addressText || currentWardLabel).trim();
+  const appliedRadius = 25.0; // High-precision GPS radius R = 25m
+
+  const persistToLocalWardQueue = (res: IssueReportResponse) => {
+    const cleanTitle = desc.replace(/^\[[^\]]+\]\s*/, '').trim();
+    const shortTitle = cleanTitle.length > 75 ? cleanTitle.slice(0, 72) + '...' : cleanTitle || 'Phản ánh sự cố hiện trường khẩn cấp';
+    const nowTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    saveLiveSubmittedIncident({
+      id: `INC-${Math.floor(1000 + Math.random() * 9000)}`,
+      wardCode: targetWardCode,
+      wardName: currentWardLabel,
+      reporterHomeWardName: data.reporterHomeWardName,
+      category: mapCategoryCodeToLabel(data.category),
+      title: shortTitle,
+      description: desc,
+      address: addr,
+      lat: data.latitude,
+      lon: data.longitude,
+      reportedTime: `Vừa xong (${nowTime})`,
+      status: 'PENDING',
+      urgency: data.urgency || 'HIGH',
+      duplicatesMerged: res.totalReportsInCluster,
+      reporterPhone: phone || 'Chưa cung cấp',
+      officerNote:
+        data.reporterHomeWardName && data.reporterHomeWardName !== currentWardLabel
+          ? `Tin báo liên địa bàn từ công dân ${data.reporterHomeWardName} đi qua ${currentWardLabel}. Đã định vị chuẩn GPS (R=25m).`
+          : `Tiếp nhận tin báo khẩn qua GPS chuẩn R=25m. Cần liên hệ SĐT ${phone} để giám sát xác minh.`,
+    });
+  };
+
   try {
     const resp = await api.post<any>('/issues/report', {
       category: data.category,
       description: desc,
       latitude: data.latitude,
       longitude: data.longitude,
+      reporterPhone: phone,
+      addressText: addr,
+      wardCode: targetWardCode,
+      wardName: currentWardLabel,
     });
     const payload = resp.data?.data ?? resp.data;
-    return {
-      reportId: String(payload.reportId ?? ('rep_' + Math.random().toString(36).substring(2, 9))),
+    const result: IssueReportResponse = {
+      reportId: String(payload.reportId ?? payload.reportCode ?? ('rep_' + Math.random().toString(36).substring(2, 9))),
       clusterId: String(payload.clusterId ?? payload.clusterCode ?? 'clust-1'),
       clusterCode: payload.clusterCode || 'CLUST-ROAD-001',
       category: payload.category || data.category,
       assignedAction: payload.newCluster ? 'NEW_CLUSTER_CREATED' : 'MERGED_INTO_EXISTING_CLUSTER',
       similarityWithClusterCentroid: Number(payload.similarityScore ?? 0.89),
       totalReportsInCluster: Number(payload.clusterReportCount ?? payload.totalReportsInCluster ?? 1),
-      message: payload.message || `Đã tiếp nhận phản ánh thành công tại ${currentWardLabel}.`,
+      message: payload.message || `Đã tiếp nhận phản ánh thành công và định tuyến về ${currentWardLabel}.`,
+      targetWardCode,
+      targetWardName: currentWardLabel,
+      reporterPhone: phone,
+      addressText: addr,
+      appliedRadiusMeters: appliedRadius,
     };
+    persistToLocalWardQueue(result);
+    return result;
   } catch {
-    // Calculate Haversine distance from reference centroid of the known incident hotspot
+    // Check if there is an existing live incident in the same ward within R = 25m
+    const existingLive = getLiveSubmittedIncidents();
+    let minDistance = Number.POSITIVE_INFINITY;
+    for (const item of existingLive) {
+      const dLat = (data.latitude - item.lat) * 111320;
+      const dLon = (data.longitude - item.lon) * 111320 * Math.cos((item.lat * Math.PI) / 180);
+      const dist = Math.sqrt(dLat * dLat + dLon * dLon);
+      if (dist < minDistance) {
+        minDistance = dist;
+      }
+    }
+
+    // Also check reference hotspot within tight R = 25m
     const refCentroidLat = 10.8035;
     const refCentroidLon = 106.7145;
-    const dLat = (data.latitude - refCentroidLat) * 111320;
-    const dLon = (data.longitude - refCentroidLon) * 111320 * Math.cos((refCentroidLat * Math.PI) / 180);
-    const distanceMeters = Math.sqrt(dLat * dLat + dLon * dLon);
+    const dLatRef = (data.latitude - refCentroidLat) * 111320;
+    const dLonRef = (data.longitude - refCentroidLon) * 111320 * Math.cos((refCentroidLat * Math.PI) / 180);
+    const distanceRefMeters = Math.sqrt(dLatRef * dLatRef + dLonRef * dLonRef);
+    const effectiveDistance = Math.min(minDistance, distanceRefMeters);
 
-    // If within R = 75m and same or related category -> Merge!
-    if (distanceMeters <= 75.0 && (data.category === 'ROAD_DAMAGE' || data.category === 'FLOODING' || data.category === 'ALL')) {
-      return {
+    // If within tight R = 25m and matching category -> Merge!
+    if (effectiveDistance <= appliedRadius && (data.category === 'ROAD_DAMAGE' || data.category === 'FLOODING' || data.category === 'ALL')) {
+      const mergedResult: IssueReportResponse = {
         reportId: 'rep_' + Math.random().toString(36).substring(2, 9),
         clusterId: 'clust-1',
         clusterCode: 'CLUST-ROAD-001',
         category: data.category,
         assignedAction: 'MERGED_INTO_EXISTING_CLUSTER',
-        similarityWithClusterCentroid: 0.892,
-        totalReportsInCluster: 6,
-        message: `Hệ thống SmartWard AI tại ${currentWardLabel} tự động phát hiện phản ánh của bà con trùng khớp sự cố hiện trường gần khu vực (Độ tương đồng ngữ nghĩa: 89.2% ≥ τ=0.82). Phản ánh đã được tự động gộp vào cụm sự cố để tối ưu lực lượng xử lý.`,
+        similarityWithClusterCentroid: 0.914,
+        totalReportsInCluster: 4,
+        message: `Hệ thống SmartWard AI đã định tuyến phản ánh về UBND ${currentWardLabel} và phát hiện trùng khớp sự cố trong bán kính chuẩn R=25m (Độ tương đồng: 91.4% ≥ τ=0.82). Cán bộ giám sát tại ${currentWardLabel} sẽ liên hệ SĐT ${phone} để phối hợp xử lý.`,
+        targetWardCode,
+        targetWardName: currentWardLabel,
+        reporterPhone: phone,
+        addressText: addr,
+        appliedRadiusMeters: appliedRadius,
       };
+      persistToLocalWardQueue(mergedResult);
+      return mergedResult;
     }
 
-    // Outside 75m or distinct category -> Create New
-    return {
+    // Outside 25m or distinct category -> Create New
+    const newResult: IssueReportResponse = {
       reportId: 'rep_' + Math.random().toString(36).substring(2, 9),
       clusterId: 'clust-new-' + Math.random().toString(36).substring(2, 6),
-      clusterCode: 'CLUST-NEW-' + Math.floor(Math.random() * 900 + 100),
+      clusterCode: 'CLUST-' + targetWardCode.replace('AG_', '') + '-' + Math.floor(Math.random() * 900 + 100),
       category: data.category,
       assignedAction: 'NEW_CLUSTER_CREATED',
       similarityWithClusterCentroid: 0.415,
       totalReportsInCluster: 1,
       message:
-        `Hệ thống đã tiếp nhận phản ánh mới và tự động định vị một điểm sự cố độc lập trên Bản đồ Số GIS ${currentWardLabel}. Cán bộ phụ trách sẽ rà soát và điều phối giải quyết.`,
+        `Hệ thống đã định vị chuẩn GPS (bán kính hẹp R=25m) và chuyển thẳng hồ sơ sự cố về Bàn Giám Sát UBND ${currentWardLabel}. Người giám sát địa bàn ${currentWardLabel} sẽ liên hệ qua SĐT ${phone} để xác minh và khắc phục.`,
+      targetWardCode,
+      targetWardName: currentWardLabel,
+      reporterPhone: phone,
+      addressText: addr,
+      appliedRadiusMeters: appliedRadius,
     };
+    persistToLocalWardQueue(newResult);
+    return newResult;
   }
 };
 

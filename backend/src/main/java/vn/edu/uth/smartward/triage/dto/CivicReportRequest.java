@@ -40,4 +40,16 @@ public class CivicReportRequest {
 
     @Schema(description = "Đường dẫn hình ảnh chụp hiện trường (tùy chọn)", example = "https://minio.smartward.vn/photos/pothole.jpg")
     private String imageUrl;
+
+    @Schema(description = "Số điện thoại người dân báo tin khẩn để người giám sát liên hệ", example = "0918234567")
+    private String reporterPhone;
+
+    @Schema(description = "Địa chỉ hiện trường từ ô vị trí (sau khi quét GPS và chỉnh sửa tay)", example = "Số 18 Đường Phan Văn Vàng, Phường Châu Đốc, Tỉnh An Giang")
+    private String addressText;
+
+    @Schema(description = "Mã đơn vị hành chính cấp xã/phường tiếp nhận theo vị trí", example = "AG_P_CHAUDOC")
+    private String wardCode;
+
+    @Schema(description = "Tên đơn vị hành chính cấp xã/phường tiếp nhận theo vị trí", example = "Phường Châu Đốc")
+    private String wardName;
 }

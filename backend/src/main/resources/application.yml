@@ -38,7 +38,7 @@ smartward:
       url: ${SIDECAR_URL:http://localhost:8000}
       timeout-ms: ${SIDECAR_TIMEOUT_MS:2000}
     triage:
-      default-radius-meters: 75.0
+      default-radius-meters: 25.0
       default-similarity-threshold: 0.82
       active-window-hours: 72
   vault:

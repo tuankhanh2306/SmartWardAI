@@ -37,4 +37,13 @@ public class CivicReportResponse {
 
     @Schema(description = "Thông báo kết quả phân luồng cho công dân")
     private String message;
+
+    @Schema(description = "Số điện thoại liên hệ của người dân báo tin khẩn")
+    private String reporterPhone;
+
+    @Schema(description = "Địa chỉ hiện trường đã ghi nhận")
+    private String addressText;
+
+    @Schema(description = "Đơn vị xã/phường nhận bàn giao theo vị trí trên ô")
+    private String targetWardName;
 }
