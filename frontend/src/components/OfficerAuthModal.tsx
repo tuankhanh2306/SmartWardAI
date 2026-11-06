@@ -46,10 +46,10 @@ export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onCl
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn"
+      className="fixed inset-0 z-[9999] overflow-y-auto flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn"
       style={{ margin: 0 }}
     >
-      <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl bg-white border border-[#EAEDFF] shadow-2xl p-6">
+      <div className="relative w-full max-w-md my-auto rounded-3xl bg-white border border-[#EAEDFF] shadow-2xl p-5 sm:p-6 overflow-hidden">
         {/* Top Header Badge */}
         <div className="flex items-center justify-between pb-4 border-b border-[#EAEDFF]">
           <div className="flex items-center gap-3">

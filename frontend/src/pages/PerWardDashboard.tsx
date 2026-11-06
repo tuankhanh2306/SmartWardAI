@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useWard } from '../context/WardContext';
 import { AN_GIANG_WARDS, type WardItem } from '../data/anGiangWards';
 import Pagination from '../components/Pagination';
@@ -9,6 +9,7 @@ import {
   rebuildSpatialIndex,
   getIssueClusters,
   updateClusterStatus,
+  getRecentFormSubmissions,
   type HitlGrayZoneItem,
 } from '../api/client';
 import L from 'leaflet';
@@ -30,7 +31,8 @@ import {
   PhoneCall,
   Check,
   FileCheck2,
-  ArrowLeft
+  ArrowLeft,
+  UserCheck,
 } from 'lucide-react';
 
 interface LocalIncident {
@@ -58,6 +60,13 @@ interface QuickDossierItem {
   status: 'PENDING' | 'VALID' | 'HAS_ERRORS';
   cccd: string;
   errorCount: number;
+  details?: {
+    dob?: string;
+    gender?: string;
+    address?: string;
+    confidence?: number;
+    issues?: string[];
+  };
 }
 
 export const PerWardDashboard: React.FC = () => {
@@ -76,8 +85,28 @@ export const PerWardDashboard: React.FC = () => {
     }
   }, [wardCode, ward, currentWard.code, setWard]);
 
-  // Main Workspace Tab (Decoupled modules)
-  const [activeTab, setActiveTab] = useState<'INCIDENTS' | 'HITL' | 'FORMS' | 'MAP'>('INCIDENTS');
+  // Tab sync with URL search params (Enforce 1 unified Dashboard workspace)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlTab = searchParams.get('tab')?.toUpperCase();
+  const initialTab =
+    urlTab === 'FORMS' || urlTab === 'MAP' || urlTab === 'HITL' || urlTab === 'INCIDENTS'
+      ? (urlTab as 'INCIDENTS' | 'HITL' | 'FORMS' | 'MAP')
+      : 'FORMS';
+
+  const [activeTab, setActiveTab] = useState<'INCIDENTS' | 'HITL' | 'FORMS' | 'MAP'>(initialTab);
+
+  const handleTabChange = (tab: 'INCIDENTS' | 'HITL' | 'FORMS' | 'MAP') => {
+    setActiveTab(tab);
+    setSearchParams({ tab });
+  };
+
+  useEffect(() => {
+    if (urlTab && (urlTab === 'FORMS' || urlTab === 'MAP' || urlTab === 'HITL' || urlTab === 'INCIDENTS')) {
+      if (urlTab !== activeTab) {
+        setActiveTab(urlTab as 'INCIDENTS' | 'HITL' | 'FORMS' | 'MAP');
+      }
+    }
+  }, [urlTab]);
 
   // Search & Filter States
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'PENDING' | 'IN_PROGRESS' | 'RESOLVED'>('ALL');
@@ -88,6 +117,11 @@ export const PerWardDashboard: React.FC = () => {
   // Progressive Disclosure: Drawer / Modal States (Only open when needed!)
   const [selectedIncident, setSelectedIncident] = useState<LocalIncident | null>(null);
   const [selectedHitlItem, setSelectedHitlItem] = useState<HitlGrayZoneItem | null>(null);
+  const [selectedDossier, setSelectedDossier] = useState<QuickDossierItem | null>(null);
+
+  // Dossier Tab Filter & Search
+  const [dossierFilter, setDossierFilter] = useState<'ALL' | 'VALID' | 'HAS_ERRORS' | 'PENDING'>('ALL');
+  const [dossierSearch, setDossierSearch] = useState<string>('');
 
   // HITL Gray-Zone Queue State & Spatial Warm-up State
   const [hitlItems, setHitlItems] = useState<HitlGrayZoneItem[]>([]);
@@ -267,10 +301,10 @@ export const PerWardDashboard: React.FC = () => {
     },
   ]);
 
-  // Mock Dossiers for Quick Audit Tab Preview
-  const quickDossiers: QuickDossierItem[] = [
+  // Dossiers Dataset with Rich Context for In-Place Audit
+  const [dossiers, setDossiers] = useState<QuickDossierItem[]>([
     {
-      id: 'HS-2026-0894',
+      id: 'CT01-2026-0894',
       citizenName: 'NGUYỄN VĂN AN',
       procedure: 'Đăng ký tạm trú cá nhân',
       formType: 'CT01',
@@ -278,9 +312,16 @@ export const PerWardDashboard: React.FC = () => {
       status: 'VALID',
       cccd: '079095012345',
       errorCount: 0,
+      details: {
+        dob: '15/08/1995',
+        gender: 'Nam',
+        address: `Số 12, Đường Thoại Ngọc Hầu, ${ward.name}, Tỉnh An Giang`,
+        confidence: 98.6,
+        issues: [],
+      },
     },
     {
-      id: 'HS-2026-0895',
+      id: 'CT01-2026-0895',
       citizenName: 'TRẦN THỊ BÍCH NGỌC',
       procedure: 'Đăng ký thường trú về nhà mới',
       formType: 'CT01',
@@ -288,28 +329,119 @@ export const PerWardDashboard: React.FC = () => {
       status: 'HAS_ERRORS',
       cccd: '089198004562',
       errorCount: 1,
+      details: {
+        dob: '22/11/1998',
+        gender: 'Nữ',
+        address: `Ấp An Thạnh, ${ward.name}, Tỉnh An Giang`,
+        confidence: 97.4,
+        issues: ['Mục 11: Chưa có xác nhận chữ ký của chủ hộ hợp pháp'],
+      },
     },
     {
-      id: 'HS-2026-0112',
+      id: 'KS-2026-0112',
       citizenName: 'LÊ HOÀNG LONG',
-      procedure: 'Đăng ký khai sinh cho trẻ mới sinh',
+      procedure: 'Liên thông Đăng ký khai sinh & cấp thẻ BHYT',
       formType: 'Khai sinh',
       submittedAt: '09:35 Hôm nay',
       status: 'PENDING',
       cccd: '089026001239',
       errorCount: 0,
+      details: {
+        dob: '01/11/2026',
+        gender: 'Nam',
+        address: `Khóm 2, ${ward.name}, Tỉnh An Giang`,
+        confidence: 99.0,
+        issues: [],
+      },
     },
     {
-      id: 'HS-2026-0043',
-      citizenName: 'PHẠM QUỐC DŨNG',
-      procedure: 'Đăng ký kết hôn Một cửa',
+      id: 'KH-2026-0043',
+      citizenName: 'PHẠM QUỐC DŨNG & VŨ MAI ANH',
+      procedure: 'Đăng ký kết hôn Một cửa điện tử',
       formType: 'Kết hôn',
       submittedAt: '10:05 Hôm nay',
       status: 'HAS_ERRORS',
       cccd: '079092014589',
       errorCount: 2,
+      details: {
+        dob: '10/04/1992',
+        gender: 'Nam',
+        address: `Tổ 5, Ấp Phú Hưng, ${ward.name}, An Giang`,
+        confidence: 91.2,
+        issues: [
+          'Đối tác nữ chưa đủ 18 tuổi tròn tính theo ngày sinh CCCD',
+          'Thiếu Giấy xác nhận tình trạng hôn nhân của bên cư trú ngoài xã',
+        ],
+      },
     },
-  ];
+  ]);
+
+  // Sync recent form submissions from API into dossiers
+  useEffect(() => {
+    let mounted = true;
+    getRecentFormSubmissions()
+      .then((liveSubmissions) => {
+        if (!mounted || !liveSubmissions || liveSubmissions.length === 0) return;
+        const mapped: QuickDossierItem[] = liveSubmissions.map((s: any) => ({
+          id: s.id || `HS-${Date.now().toString().slice(-4)}`,
+          citizenName: s.citizenName || s.fullName || 'Công dân nộp hồ sơ',
+          procedure: s.procedure || s.formType || 'Đăng ký tờ khai hành chính',
+          formType: s.formType || 'CT01',
+          submittedAt: s.submittedAt || 'Vừa nộp',
+          status: s.hasErrors ? 'HAS_ERRORS' : 'VALID',
+          cccd: s.cccd || '089098001234',
+          errorCount: s.errorCount || (s.hasErrors ? 1 : 0),
+          details: {
+            dob: s.dob || '01/01/1990',
+            gender: s.gender || 'Nam',
+            address: s.address || `${ward.name}, An Giang`,
+            confidence: s.confidence || 98.5,
+            issues: s.issues || [],
+          },
+        }));
+        setDossiers((prev) => {
+          const existingIds = new Set(prev.map((d) => d.id));
+          const newOnes = mapped.filter((m) => !existingIds.has(m.id));
+          return [...newOnes, ...prev];
+        });
+      })
+      .catch(() => {});
+    return () => {
+      mounted = false;
+    };
+  }, [ward.name]);
+
+  // Filtered dossiers based on status & search
+  const filteredDossiers = useMemo(() => {
+    return dossiers.filter((d) => {
+      const matchStatus = dossierFilter === 'ALL' || d.status === dossierFilter;
+      const matchSearch =
+        !dossierSearch.trim() ||
+        d.citizenName.toLowerCase().includes(dossierSearch.toLowerCase()) ||
+        d.cccd.includes(dossierSearch.trim()) ||
+        d.id.toLowerCase().includes(dossierSearch.toLowerCase()) ||
+        d.procedure.toLowerCase().includes(dossierSearch.toLowerCase());
+      return matchStatus && matchSearch;
+    });
+  }, [dossiers, dossierFilter, dossierSearch]);
+
+  const handleApproveDossier = (dossierId: string) => {
+    setDossiers((prev) =>
+      prev.map((d) => (d.id === dossierId ? { ...d, status: 'VALID', errorCount: 0 } : d))
+    );
+    setToastBanner(`Đã phê duyệt tiếp nhận hồ sơ ${dossierId} vào hệ thống Một Cửa điện tử.`);
+    setTimeout(() => setToastBanner(null), 4000);
+    setSelectedDossier(null);
+  };
+
+  const handleRequestSupplement = (dossierId: string) => {
+    setDossiers((prev) =>
+      prev.map((d) => (d.id === dossierId ? { ...d, status: 'HAS_ERRORS' } : d))
+    );
+    setToastBanner(`Đã gửi thông báo yêu cầu công dân bổ sung hồ sơ ${dossierId}.`);
+    setTimeout(() => setToastBanner(null), 4000);
+    setSelectedDossier(null);
+  };
 
   // Filtered incidents based on status & search
   const filteredIncidents = useMemo(() => {
@@ -616,7 +748,7 @@ export const PerWardDashboard: React.FC = () => {
 
         {/* KPI 2: Vùng xám AI */}
         <div
-          onClick={() => setActiveTab('HITL')}
+          onClick={() => handleTabChange('HITL')}
           className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-between cursor-pointer hover:border-[#00236F] transition-all"
         >
           <div>
@@ -636,13 +768,13 @@ export const PerWardDashboard: React.FC = () => {
 
         {/* KPI 3: Hồ sơ chờ sơ duyệt */}
         <div
-          onClick={() => setActiveTab('FORMS')}
+          onClick={() => handleTabChange('FORMS')}
           className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-between cursor-pointer hover:border-[#00236F] transition-all"
         >
           <div>
             <span className="text-xs font-bold text-[#64748B] uppercase">Hồ sơ chờ duyệt</span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-extrabold text-[#00687A]">{quickDossiers.length}</span>
+              <span className="text-2xl font-extrabold text-[#00687A]">{dossiers.length}</span>
               <span className="text-xs text-[#64748B]">tờ khai</span>
             </div>
             <span className="text-[11px] text-[#16A34A] font-semibold block">
@@ -700,7 +832,7 @@ export const PerWardDashboard: React.FC = () => {
             {/* Tab 1 */}
             <button
               type="button"
-              onClick={() => setActiveTab('INCIDENTS')}
+              onClick={() => handleTabChange('INCIDENTS')}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'INCIDENTS'
                   ? 'bg-[#00236F] text-white shadow-xs'
@@ -722,7 +854,7 @@ export const PerWardDashboard: React.FC = () => {
             {/* Tab 2 */}
             <button
               type="button"
-              onClick={() => setActiveTab('HITL')}
+              onClick={() => handleTabChange('HITL')}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'HITL'
                   ? 'bg-[#00236F] text-white shadow-xs'
@@ -741,7 +873,7 @@ export const PerWardDashboard: React.FC = () => {
             {/* Tab 3 */}
             <button
               type="button"
-              onClick={() => setActiveTab('FORMS')}
+              onClick={() => handleTabChange('FORMS')}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'FORMS'
                   ? 'bg-[#00236F] text-white shadow-xs'
@@ -751,14 +883,14 @@ export const PerWardDashboard: React.FC = () => {
               <FileCheck2 className="w-4 h-4" />
               <span>Sơ Duyệt Tờ Khai</span>
               <span className="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-[#E2E8F0] text-[#00687A]">
-                {quickDossiers.length}
+                {dossiers.length}
               </span>
             </button>
 
             {/* Tab 4 */}
             <button
               type="button"
-              onClick={() => setActiveTab('MAP')}
+              onClick={() => handleTabChange('MAP')}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'MAP'
                   ? 'bg-[#00236F] text-white shadow-xs'
@@ -1026,29 +1158,68 @@ export const PerWardDashboard: React.FC = () => {
         )}
 
         {/* ========================================================================= */}
-        {/* MODULE 3: QUICK DOSSIERS AUDIT OVERVIEW                                   */}
+        {/* MODULE 3: UNIFIED DOSSIER AUDIT WORKSPACE (SƠ DUYỆT TẬP TRUNG TẠI CHỖ)    */}
         {/* ========================================================================= */}
         {activeTab === 'FORMS' && (
           <div className="bg-white rounded-3xl border border-[#CBD5E1] shadow-xs p-5 sm:p-6 flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
               <div>
-                <h2 className="text-base sm:text-lg font-extrabold text-[#00236F]">
-                  Hồ Sơ Tờ Khai Chờ Thẩm Định Tại {ward.name}
+                <h2 className="text-base sm:text-lg font-extrabold text-[#00236F] flex items-center gap-2">
+                  <FileCheck2 className="w-5 h-5 text-[#00687A]" />
+                  <span>Sơ Duyệt Hồ Sơ Một Cửa • {ward.name}</span>
                 </h2>
                 <p className="text-xs text-[#64748B] mt-0.5">
-                  Tổng hợp các hồ sơ CT01, Khai sinh, Kết hôn vừa được công dân tiền kiểm tra.
+                  Thẩm định trực tiếp các tờ khai CT01, Khai sinh, Kết hôn đã tiền kiểm tra theo Đề án 06/CP.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => navigate('/officer/audit')}
-                className="px-4 py-2 bg-[#00236F] hover:bg-[#1E3A8A] text-white rounded-xl text-xs font-bold shadow-xs transition active:scale-95 cursor-pointer flex items-center gap-1.5 self-start sm:self-auto"
-              >
-                <span>Chuyển sang Bàn Sơ Duyệt Chuyên Sâu</span>
-                <ChevronRight className="w-4 h-4" />
-              </button>
+
+              {/* Status Filter Pills */}
+              <div className="flex flex-wrap items-center gap-1.5">
+                {(['ALL', 'VALID', 'HAS_ERRORS', 'PENDING'] as const).map((st) => (
+                  <button
+                    key={st}
+                    type="button"
+                    onClick={() => setDossierFilter(st)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                      dossierFilter === st
+                        ? 'bg-[#00236F] text-white shadow-xs'
+                        : 'bg-[#F1F5F9] text-[#475569] hover:bg-[#E2E8F0]'
+                    }`}
+                  >
+                    {st === 'ALL'
+                      ? `Tất cả (${dossiers.length})`
+                      : st === 'VALID'
+                      ? `Hợp lệ (${dossiers.filter((d) => d.status === 'VALID').length})`
+                      : st === 'HAS_ERRORS'
+                      ? `Có lỗi (${dossiers.filter((d) => d.status === 'HAS_ERRORS').length})`
+                      : `Chờ duyệt (${dossiers.filter((d) => d.status === 'PENDING').length})`}
+                  </button>
+                ))}
+              </div>
             </div>
 
+            {/* Search Bar */}
+            <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-2xl px-3.5 py-2">
+              <Search className="w-4 h-4 text-[#64748B] shrink-0" />
+              <input
+                type="text"
+                value={dossierSearch}
+                onChange={(e) => setDossierSearch(e.target.value)}
+                placeholder="Tìm nhanh theo Họ tên công dân, số CCCD, Mã hồ sơ hoặc loại thủ tục..."
+                className="w-full bg-transparent text-xs sm:text-sm text-[#0F172A] focus:outline-none"
+              />
+              {dossierSearch && (
+                <button
+                  type="button"
+                  onClick={() => setDossierSearch('')}
+                  className="text-xs text-[#64748B] hover:text-[#0F172A] cursor-pointer"
+                >
+                  Xóa
+                </button>
+              )}
+            </div>
+
+            {/* Dossiers Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs sm:text-sm text-[#0F172A]">
                 <thead className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-xs font-bold text-[#64748B] uppercase tracking-wider">
@@ -1062,8 +1233,12 @@ export const PerWardDashboard: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#E2E8F0]">
-                  {quickDossiers.map((d) => (
-                    <tr key={d.id} className="hover:bg-[#F8FAFC] transition">
+                  {filteredDossiers.map((d) => (
+                    <tr
+                      key={d.id}
+                      onClick={() => setSelectedDossier(d)}
+                      className="hover:bg-[#F8FAFC] transition cursor-pointer"
+                    >
                       <td className="p-3.5 font-mono font-bold text-[#00236F]">
                         {d.id}
                         <span className="block text-[11px] font-sans text-[#64748B] font-normal">{d.submittedAt}</span>
@@ -1083,23 +1258,39 @@ export const PerWardDashboard: React.FC = () => {
                           <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#ECFDF5] text-[#166534] border border-[#86EFAC] inline-flex items-center gap-1">
                             <Check className="w-3.5 h-3.5 text-[#16A34A]" /> Hợp lệ
                           </span>
-                        ) : (
+                        ) : d.status === 'HAS_ERRORS' ? (
                           <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#FEF2F2] text-[#DC2626] border border-[#FCA5A5] inline-flex items-center gap-1">
                             <AlertTriangle className="w-3.5 h-3.5 text-[#DC2626]" /> {d.errorCount} lỗi cần sửa
+                          </span>
+                        ) : (
+                          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] inline-flex items-center gap-1">
+                            ⏳ Chờ rà soát
                           </span>
                         )}
                       </td>
                       <td className="p-3.5 text-right">
                         <button
                           type="button"
-                          onClick={() => navigate('/officer/audit')}
-                          className="px-3 py-1.5 rounded-lg bg-[#EAEDFF] hover:bg-[#DAE2FD] text-[#00236F] text-xs font-bold transition cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedDossier(d);
+                          }}
+                          className="px-3.5 py-1.5 rounded-xl bg-[#00236F] hover:bg-[#1E3A8A] text-white text-xs font-bold transition active:scale-95 cursor-pointer flex items-center gap-1 ml-auto shadow-xs"
                         >
-                          Mở hồ sơ
+                          <span>Sơ duyệt</span>
+                          <ChevronRight className="w-3.5 h-3.5" />
                         </button>
                       </td>
                     </tr>
                   ))}
+
+                  {filteredDossiers.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="p-8 text-center text-[#64748B] text-xs">
+                        Không tìm thấy hồ sơ nào khớp với bộ lọc hiện tại.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -1401,6 +1592,192 @@ export const PerWardDashboard: React.FC = () => {
                   </span>
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 7. PROGRESSIVE DISCLOSURE DRAWER: SLIDE-OVER FOR SELECTED DOSSIER         */}
+      {/* ========================================================================= */}
+      {selectedDossier && (
+        <div className="fixed inset-0 z-50 flex justify-end bg-black/40 backdrop-blur-xs animate-fadeIn">
+          {/* Backdrop click to close */}
+          <div
+            className="flex-1"
+            onClick={() => setSelectedDossier(null)}
+          />
+
+          {/* Drawer Body */}
+          <div className="w-full sm:w-[500px] md:w-[560px] bg-white h-full shadow-2xl flex flex-col justify-between border-l border-[#CBD5E1] animate-slideLeft z-10">
+            {/* Drawer Header */}
+            <div className="p-5 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC]">
+              <div className="flex items-center gap-2.5">
+                <span className="p-2 rounded-xl bg-[#00236F] text-white">
+                  <FileCheck2 className="w-5 h-5 text-[#57DFFE]" />
+                </span>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-sm text-[#00236F]">
+                      {selectedDossier.id}
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                        selectedDossier.status === 'VALID'
+                          ? 'bg-[#ECFDF5] text-[#166534] border border-[#86EFAC]'
+                          : selectedDossier.status === 'HAS_ERRORS'
+                          ? 'bg-[#FEF2F2] text-[#DC2626] border border-[#FCA5A5]'
+                          : 'bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A]'
+                      }`}
+                    >
+                      {selectedDossier.status === 'VALID'
+                        ? 'Hợp lệ'
+                        : selectedDossier.status === 'HAS_ERRORS'
+                        ? `${selectedDossier.errorCount} lỗi cần sửa`
+                        : 'Chờ sơ duyệt'}
+                    </span>
+                  </div>
+                  <span className="text-xs text-[#64748B] block mt-0.5">
+                    Thời gian tiếp nhận: {selectedDossier.submittedAt}
+                  </span>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedDossier(null)}
+                className="p-2 rounded-xl text-[#64748B] hover:text-[#0F172A] hover:bg-[#E2E8F0] cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Drawer Content */}
+            <div className="p-6 overflow-y-auto flex-1 flex flex-col gap-5">
+              {/* Procedure & Form Title */}
+              <div>
+                <span className="text-xs font-bold text-[#00687A] uppercase tracking-wider block mb-1">
+                  Mẫu Biểu: {selectedDossier.formType}
+                </span>
+                <h3 className="text-base sm:text-lg font-bold text-[#0F172A] leading-snug">
+                  {selectedDossier.procedure}
+                </h3>
+              </div>
+
+              {/* Citizen Identity Card */}
+              <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col gap-2.5">
+                <span className="text-xs font-bold text-[#00236F] uppercase tracking-wider flex items-center gap-1.5">
+                  <UserCheck className="w-4 h-4 text-[#00687A]" />
+                  Thông Tin Định Danh Công Dân (Đề án 06/CP)
+                </span>
+                <div className="grid grid-cols-2 gap-3 text-xs pt-1">
+                  <div>
+                    <span className="text-[#64748B] block">Họ và tên:</span>
+                    <span className="font-bold text-[#0F172A] text-sm uppercase">
+                      {selectedDossier.citizenName}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[#64748B] block">Số định danh (CCCD 12 số):</span>
+                    <span className="font-mono font-bold text-[#00236F]">
+                      {selectedDossier.cccd}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[#64748B] block">Ngày tháng năm sinh:</span>
+                    <span className="font-semibold text-[#0F172A]">
+                      {selectedDossier.details?.dob || 'Chưa cung cấp'}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-[#64748B] block">Giới tính:</span>
+                    <span className="font-semibold text-[#0F172A]">
+                      {selectedDossier.details?.gender || 'Chưa xác định'}
+                    </span>
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-[#E2E8F0] text-xs">
+                  <span className="text-[#64748B] block">Địa chỉ thường trú / tạm trú kê khai:</span>
+                  <span className="font-semibold text-[#0F172A] mt-0.5 block">
+                    {selectedDossier.details?.address || `Xã ${ward.name}, An Giang`}
+                  </span>
+                </div>
+              </div>
+
+              {/* AI Precheck Results */}
+              <div className="flex flex-col gap-2">
+                <span className="text-xs font-bold text-[#475569] flex items-center justify-between">
+                  <span>Kết Quả Tiền Kiểm Tra AI:</span>
+                  <span className="text-[#00687A] font-mono">
+                    Độ khớp OCR: {selectedDossier.details?.confidence ?? 98.5}%
+                  </span>
+                </span>
+
+                {selectedDossier.status === 'VALID' || selectedDossier.errorCount === 0 ? (
+                  <div className="p-4 rounded-2xl bg-[#ECFDF5] border border-[#86EFAC] text-xs text-[#166534] flex items-start gap-2.5">
+                    <CheckCircle2 className="w-5 h-5 text-[#16A34A] shrink-0 mt-0.5" />
+                    <div>
+                      <span className="font-bold block">Tờ khai hợp lệ 100% chuẩn quy định</span>
+                      <p className="text-[11px] text-[#15803D] mt-0.5 leading-relaxed">
+                        Các trường thông tin bắt buộc (CCCD 12 số, ngày sinh, địa chỉ, quan hệ nhân thân) đã khớp với Cơ sở dữ liệu quốc gia về dân cư. Đủ điều kiện tiếp nhận và cấp số hẹn trả kết quả.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-2xl bg-[#FEF2F2] border border-[#FCA5A5] text-xs text-[#DC2626] flex flex-col gap-2">
+                    <div className="flex items-center gap-2 font-bold">
+                      <AlertTriangle className="w-4 h-4 text-[#DC2626] shrink-0" />
+                      <span>Phát hiện {selectedDossier.errorCount} điểm không phù hợp cần điều chỉnh:</span>
+                    </div>
+                    <ul className="list-disc pl-5 space-y-1 text-[11px] text-[#B91C1C]">
+                      {(selectedDossier.details?.issues && selectedDossier.details.issues.length > 0) ? (
+                        selectedDossier.details.issues.map((err, idx) => (
+                          <li key={idx}>{err}</li>
+                        ))
+                      ) : (
+                        <li>Thiếu tài liệu đính kèm hoặc sai lệch thông tin kê khai so với căn cước công dân.</li>
+                      )}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* Legal Reference Note */}
+              <div className="p-3.5 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] text-xs text-[#0F766E] flex items-center gap-2">
+                <BookOpen className="w-4 h-4 text-[#0D9488] shrink-0" />
+                <span>Căn cứ pháp lý: Nghị định 13/2023/NĐ-CP &amp; Thông tư liên tịch Một Cửa điện tử.</span>
+              </div>
+            </div>
+
+            {/* Drawer Footer / Officer Actions */}
+            <div className="p-5 border-t border-[#E2E8F0] bg-[#F8FAFC] flex flex-col gap-2.5">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleApproveDossier(selectedDossier.id)}
+                  className="flex-1 py-2.5 rounded-xl bg-[#16A34A] hover:bg-[#15803D] text-white text-xs font-bold transition active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Phê Duyệt Tiếp Nhận</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleRequestSupplement(selectedDossier.id)}
+                  className="flex-1 py-2.5 rounded-xl bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs font-bold transition active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
+                >
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>Yêu Cầu Bổ Sung</span>
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setSelectedDossier(null)}
+                className="w-full py-2 rounded-xl border border-[#CBD5E1] bg-white text-[#475569] text-xs font-bold hover:bg-[#F1F5F9] cursor-pointer"
+              >
+                Đóng ngăn thẩm định
+              </button>
             </div>
           </div>
         </div>

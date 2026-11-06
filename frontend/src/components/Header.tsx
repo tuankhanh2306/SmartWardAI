@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, Landmark, Bot, ShieldCheck, Map, FileCheck2, ArrowRight, MapPin, LogOut } from 'lucide-react';
+import { Menu, X, Landmark, Bot, ShieldCheck, FileCheck2, ArrowRight, MapPin, LogOut } from 'lucide-react';
 import { useWard } from '../context/WardContext';
 import { useRole } from '../context/RoleContext';
 import { useAccessibility } from '../context/AccessibilityContext';
@@ -15,16 +15,14 @@ export const Header: React.FC = () => {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  // Role-Based Navigation Partitioning (Phân quyền phân trang chuyên biệt)
+  // Role-Based Navigation Partitioning (Phân quyền chức năng theo đúng vai trò)
   const citizenNavLinks = [
-    { to: '/citizen', label: 'Cổng Công Dân', icon: Bot },
+    { to: '/citizen', label: 'Cổng Công Dân (Hỏi Đáp AI)', icon: Bot },
     { to: '/citizen/form', label: 'Tiền Kiểm Định Tờ Khai', icon: FileCheck2 },
   ];
 
   const officerNavLinks = [
-    { to: `/officer/ward/${currentWard.code}`, label: 'Bàn Điều Hành Xã', icon: ShieldCheck },
-    { to: '/officer/audit', label: 'Sơ Duyệt Tờ Khai', icon: FileCheck2 },
-    { to: '/officer/map', label: 'Phân Luồng GIS', icon: Map },
+    { to: `/officer/ward/${currentWard.code}`, label: 'Bàn Điều Hành Xã (Dashboard Tập Trung)', icon: ShieldCheck },
   ];
 
   const activeNavLinks = isOfficer ? officerNavLinks : citizenNavLinks;

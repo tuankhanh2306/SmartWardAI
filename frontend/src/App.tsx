@@ -7,8 +7,6 @@ import Header from './components/Header';
 import OfficerGuard from './components/OfficerGuard';
 import CitizenPortal from './pages/CitizenPortal';
 import FormAndIssueReporting from './pages/FormAndIssueReporting';
-import GisCommandCenter from './pages/GisCommandCenter';
-import OfficerFormAudit from './pages/OfficerFormAudit';
 import WardOnboarding from './pages/WardOnboarding';
 import PerWardDashboard from './pages/PerWardDashboard';
 
@@ -33,23 +31,10 @@ export const App: React.FC = () => {
                 <Route path="/citizen" element={<CitizenPortal />} />
                 <Route path="/citizen/form" element={<FormAndIssueReporting />} />
 
-                {/* Officer Protected Routes (RBAC Guard) */}
-                <Route
-                  path="/officer/audit"
-                  element={
-                    <OfficerGuard>
-                      <OfficerFormAudit />
-                    </OfficerGuard>
-                  }
-                />
-                <Route
-                  path="/officer/map"
-                  element={
-                    <OfficerGuard>
-                      <GisCommandCenter />
-                    </OfficerGuard>
-                  }
-                />
+                {/* Officer Protected Unified Workspace (1 Dashboard Duy Nhất Cho Mọi Nghiệp Vụ) */}
+                <Route path="/officer" element={<Navigate to="/officer/ward/AP-AG" replace />} />
+                <Route path="/officer/audit" element={<Navigate to="/officer/ward/AP-AG?tab=FORMS" replace />} />
+                <Route path="/officer/map" element={<Navigate to="/officer/ward/AP-AG?tab=MAP" replace />} />
                 <Route
                   path="/officer/ward/:wardCode"
                   element={
