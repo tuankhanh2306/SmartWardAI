@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useRole } from '../context/RoleContext';
 import { useWard } from '../context/WardContext';
 import { ShieldCheck, Lock, KeyRound, X, Check, ArrowRight, UserCheck } from 'lucide-react';
@@ -16,8 +17,6 @@ export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onCl
   const [badgeId, setBadgeId] = useState(officerProfile.badgeId);
   const [pin, setPin] = useState('8942');
   const [error, setError] = useState<string | null>(null);
-
-  if (!isOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -40,9 +39,17 @@ export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onCl
     onClose();
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-      <div className="relative w-full max-w-md rounded-3xl bg-white border border-[#EAEDFF] shadow-2xl p-6 overflow-hidden">
+  if (!isOpen) return null;
+
+  const modalContent = (
+    <div
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn"
+      style={{ margin: 0 }}
+    >
+      <div className="relative w-full max-w-md max-h-[90vh] overflow-y-auto rounded-3xl bg-white border border-[#EAEDFF] shadow-2xl p-6">
         {/* Top Header Badge */}
         <div className="flex items-center justify-between pb-4 border-b border-[#EAEDFF]">
           <div className="flex items-center gap-3">
@@ -57,7 +64,7 @@ export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onCl
           <button
             type="button"
             onClick={onClose}
-            className="p-1.5 rounded-xl hover:bg-[#F2F3FF] text-[#757682] hover:text-[#131B2E] transition"
+            className="p-1.5 rounded-xl hover:bg-[#F2F3FF] text-[#757682] hover:text-[#131B2E] transition cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -125,7 +132,7 @@ export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onCl
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 rounded-xl text-xs font-bold text-[#757682] hover:bg-[#F2F3FF] transition"
+              className="px-4 py-2 rounded-xl text-xs font-bold text-[#757682] hover:bg-[#F2F3FF] transition cursor-pointer"
             >
               Hủy
             </button>
@@ -141,6 +148,10 @@ export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onCl
       </div>
     </div>
   );
+
+  return typeof document !== 'undefined'
+    ? createPortal(modalContent, document.body)
+    : modalContent;
 };
 
 export default OfficerAuthModal;
