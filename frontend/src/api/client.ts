@@ -17,6 +17,14 @@ const api = axios.create({
   timeout: 30000,
 });
 
+api.interceptors.request.use((config) => {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('smartward_officer_token') : null;
+  if (token) {
+    config.headers['X-Officer-Token'] = token;
+  }
+  return config;
+});
+
 // 1. Legal RAG Types & API
 export interface LegalCitation {
   chunkCode: string;
@@ -810,21 +818,38 @@ export const reportIssue = async (data: {
   category: string;
   latitude: number;
   longitude: number;
-  addressText: string;
-  rawDescription: string;
+  addressText?: string;
+  rawDescription?: string;
+  description?: string;
   reporterPhone?: string;
   wardName?: string;
 }): Promise<IssueReportResponse> => {
   const currentWardLabel = data.wardName || 'UBND cấp Xã/Phường';
+  const desc = (data.description || data.rawDescription || '').trim();
   try {
-    const resp = await api.post<IssueReportResponse>('/issues/report', data);
-    return resp.data;
+    const resp = await api.post<any>('/issues/report', {
+      category: data.category,
+      description: desc,
+      latitude: data.latitude,
+      longitude: data.longitude,
+    });
+    const payload = resp.data?.data ?? resp.data;
+    return {
+      reportId: String(payload.reportId ?? ('rep_' + Math.random().toString(36).substring(2, 9))),
+      clusterId: String(payload.clusterId ?? payload.clusterCode ?? 'clust-1'),
+      clusterCode: payload.clusterCode || 'CLUST-ROAD-001',
+      category: payload.category || data.category,
+      assignedAction: payload.newCluster ? 'NEW_CLUSTER_CREATED' : 'MERGED_INTO_EXISTING_CLUSTER',
+      similarityWithClusterCentroid: Number(payload.similarityScore ?? 0.89),
+      totalReportsInCluster: Number(payload.clusterReportCount ?? payload.totalReportsInCluster ?? 1),
+      message: payload.message || `Đã tiếp nhận phản ánh thành công tại ${currentWardLabel}.`,
+    };
   } catch {
-    // Calculate Haversine distance from centroid
-    const centroidLat = data.latitude;
-    const centroidLon = data.longitude;
-    const dLat = (data.latitude - centroidLat) * 111320;
-    const dLon = (data.longitude - centroidLon) * 111320 * Math.cos((centroidLat * Math.PI) / 180);
+    // Calculate Haversine distance from reference centroid of the known incident hotspot
+    const refCentroidLat = 10.8035;
+    const refCentroidLon = 106.7145;
+    const dLat = (data.latitude - refCentroidLat) * 111320;
+    const dLon = (data.longitude - refCentroidLon) * 111320 * Math.cos((refCentroidLat * Math.PI) / 180);
     const distanceMeters = Math.sqrt(dLat * dLat + dLon * dLon);
 
     // If within R = 75m and same or related category -> Merge!
@@ -858,8 +883,24 @@ export const reportIssue = async (data: {
 
 export const getIssueClusters = async (): Promise<IssueCluster[]> => {
   try {
-    const resp = await api.get<IssueCluster[]>('/issues/clusters');
-    return resp.data;
+    const resp = await api.get<any>('/issues/clusters');
+    const rawList: any[] = resp.data?.data ?? resp.data;
+    if (Array.isArray(rawList)) {
+      return rawList.map((item) => ({
+        id: String(item.id ?? item.clusterCode),
+        clusterCode: item.clusterCode,
+        category: item.category,
+        centroidLatitude: Number(item.centerLatitude ?? item.centroidLatitude ?? 10.8035),
+        centroidLongitude: Number(item.centerLongitude ?? item.centroidLongitude ?? 106.7145),
+        title: item.title || 'Sự cố hiện trường',
+        descriptionSummary: item.descriptionSummary || item.title || '',
+        status: item.status || 'OPEN',
+        reportCount: item.reportCount ?? 1,
+        createdAt: item.firstReportedAt || item.createdAt || new Date().toISOString(),
+        lastReportAt: item.lastReportedAt || item.createdAt || new Date().toISOString(),
+      }));
+    }
+    return [];
   } catch {
     return [
       {
@@ -918,21 +959,76 @@ export const getIssueClusters = async (): Promise<IssueCluster[]> => {
   }
 };
 
+export const updateClusterStatus = async (clusterCode: string, status: string): Promise<IssueCluster> => {
+  try {
+    const resp = await api.patch<any>(`/issues/clusters/${clusterCode}/status`, { status });
+    const item = resp.data?.data ?? resp.data;
+    return {
+      id: String(item.id ?? item.clusterCode),
+      clusterCode: item.clusterCode,
+      category: item.category,
+      centroidLatitude: Number(item.centerLatitude ?? item.centroidLatitude ?? 10.8035),
+      centroidLongitude: Number(item.centerLongitude ?? item.centroidLongitude ?? 106.7145),
+      title: item.title || 'Sự cố hiện trường',
+      descriptionSummary: item.descriptionSummary || item.title || '',
+      status: item.status || status,
+      reportCount: item.reportCount ?? 1,
+      createdAt: item.firstReportedAt || item.createdAt || new Date().toISOString(),
+      lastReportAt: item.lastReportedAt || item.createdAt || new Date().toISOString(),
+    };
+  } catch {
+    return {
+      id: clusterCode,
+      clusterCode,
+      category: 'GENERAL',
+      centroidLatitude: 10.8035,
+      centroidLongitude: 106.7145,
+      title: 'Sự cố hiện trường',
+      descriptionSummary: 'Cập nhật ngoại tuyến',
+      status,
+      reportCount: 1,
+      createdAt: new Date().toISOString(),
+      lastReportAt: new Date().toISOString(),
+    };
+  }
+};
+
+export const getRecentFormSubmissions = async (): Promise<any[]> => {
+  try {
+    const resp = await api.get<any>('/forms/submissions');
+    return resp.data?.data ?? resp.data ?? [];
+  } catch {
+    return [];
+  }
+};
+
 // 4. Zero-Trust Document Vault Types & API
 export interface VaultUploadResponse {
   documentId: string;
+  documentCode?: string;
   oneTimeToken: string;
   viewUrl: string;
   tokenExpiresInSeconds: number;
-  watermarkText: string;
+  watermarkText?: string;
+  watermarkApplied?: boolean;
   message: string;
 }
 
 export const uploadVaultDocument = async (formData: FormData): Promise<VaultUploadResponse> => {
-  const resp = await api.post<VaultUploadResponse>('/vault/upload', formData, {
+  const resp = await api.post<any>('/vault/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
-  return resp.data;
+  const data = resp.data?.data ?? resp.data;
+  return {
+    documentId: data.documentCode || data.documentId || ('doc_' + Date.now()),
+    documentCode: data.documentCode,
+    oneTimeToken: data.oneTimeToken || '',
+    viewUrl: data.viewUrl || '',
+    tokenExpiresInSeconds: data.tokenExpiresInSeconds || 86400,
+    watermarkText: data.watermarkText || 'UBND XÃ - SMARTWARD ZERO-TRUST',
+    watermarkApplied: data.watermarkApplied ?? true,
+    message: data.message || 'Tải lên thành công',
+  };
 };
 
 export const viewVaultDocument = async (token: string): Promise<Blob> => {

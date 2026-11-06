@@ -14,4 +14,6 @@ public interface FormSubmissionRepository extends JpaRepository<FormSubmission, 
     List<FormSubmission> findByFormType(String formType);
 
     List<FormSubmission> findByIsValid(Boolean isValid);
+
+    List<FormSubmission> findTop30ByOrderBySubmittedAtDesc();
 }

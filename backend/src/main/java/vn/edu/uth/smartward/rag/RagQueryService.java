@@ -118,8 +118,19 @@ public class RagQueryService {
 
         String rawQuery = request.getQuestion().trim();
 
-        // 2. Redis Distributed Query Cache Check
-        Optional<RagAskResponse> cachedOpt = queryCacheService.getCachedResponse(rawQuery, RagAskResponse.class);
+        // 2. Multi-turn Context Resolution (Query Rewriting for Follow-up Inquiries)
+        // Must be resolved BEFORE cache check to prevent cross-context cache poisoning
+        String effectiveQuery = resolveEffectiveQuery(rawQuery, request.getHistory());
+        if (!effectiveQuery.equals(rawQuery)) {
+            log.info("Contextual follow-up resolved: '{}' -> '{}'", rawQuery, effectiveQuery);
+        }
+
+        // Build scoped cache key based on effectiveQuery + wardName to prevent cross-ward and cross-procedure cache poisoning
+        String safeWard = (request.getWardName() != null && !request.getWardName().isBlank()) ? request.getWardName().trim() : "";
+        String cacheKey = safeWard.isEmpty() ? effectiveQuery : (effectiveQuery + "::" + safeWard);
+
+        // 3. Redis Distributed Query Cache Check
+        Optional<RagAskResponse> cachedOpt = queryCacheService.getCachedResponse(cacheKey, RagAskResponse.class);
         if (cachedOpt.isPresent()) {
             RagAskResponse cached = cachedOpt.get();
             cached.setCached(true);
@@ -128,33 +139,27 @@ public class RagQueryService {
             return cached;
         }
 
-        // 3. Procedure Catalog Request ("nêu 40 thủ tục", "danh sách thủ tục"...)
+        // 4. Procedure Catalog Request ("nêu 40 thủ tục", "danh sách thủ tục"...)
         if (isProcedureListQuery(rawQuery)) {
             return buildProcedureCatalogResponse(request.getWardName(), startTime);
         }
 
-        // 4. Conversational Intent Check: Small talk, Wellbeing, Gratitude, Greeting (including typo greetings)
+        // 5. Conversational Intent Check: Small talk, Wellbeing, Gratitude, Greeting (including typo greetings)
         if (isGreetingOrSmallTalk(rawQuery)) {
             return buildSmallTalkResponse(rawQuery, request.getWardName(), startTime);
         }
 
-        // 4.1. Ambiguous / Open Consultation Request ("bạn có thể tư vấn cho tôi không", "tư vấn giúp tôi"...)
+        // 5.1. Ambiguous / Open Consultation Request ("bạn có thể tư vấn cho tôi không", "tư vấn giúp tôi"...)
         if (isAmbiguousConsultation(rawQuery)) {
             return buildAmbiguousConsultationResponse(request.getWardName(), startTime);
         }
 
-        // 5. Ward Office Info Check (Address, working hours, hotline)
+        // 6. Ward Office Info Check (Address, working hours, hotline)
         if (isWardOfficeQuery(rawQuery)) {
             return buildWardOfficeResponse(request.getWardName(), request.getOfficeAddress(), startTime);
         }
 
-        // 5.1. Multi-turn Context Resolution (Query Rewriting for Follow-up Inquiries)
-        String effectiveQuery = resolveEffectiveQuery(rawQuery, request.getHistory());
-        if (!effectiveQuery.equals(rawQuery)) {
-            log.info("Contextual follow-up resolved: '{}' -> '{}'", rawQuery, effectiveQuery);
-        }
-
-        // 6. Query Vectorization (768-dim) using effectiveQuery
+        // 7. Query Vectorization (768-dim) using effectiveQuery
         float[] queryEmbedding = aiModelClient.generateEmbedding(effectiveQuery);
         String pgVectorString = aiModelClient.toPgVectorString(queryEmbedding);
 
@@ -219,7 +224,7 @@ public class RagQueryService {
                     .build();
 
             // Cache abstention for 30 minutes to conserve LLM quota on repetitive invalid queries
-            queryCacheService.putResponse(rawQuery, abstainedResponse, 1800);
+            queryCacheService.putResponse(cacheKey, abstainedResponse, 1800);
             return abstainedResponse;
         }
 
@@ -291,7 +296,7 @@ public class RagQueryService {
         );
 
         if (!isTruncated) {
-            queryCacheService.putResponse(rawQuery, response);
+            queryCacheService.putResponse(cacheKey, response);
         } else {
             log.warn("Response truncated, skipping caching in Redis for query: '{}'", truncate(rawQuery, 40));
         }
@@ -1067,8 +1072,8 @@ public class RagQueryService {
         return List.of("Hồ sơ cần những gì?", "Lệ phí bao nhiêu?", "Nơi nộp hồ sơ ở đâu?", "Thời hạn giải quyết bao lâu?");
     }
 
-    private void enqueueGrayZoneItem(String query, String wardName, double similarityScore,
-                                     LegalChunkMatch topCandidate, String draftGuidance) {
+    private synchronized void enqueueGrayZoneItem(String query, String wardName, double similarityScore,
+                                                  LegalChunkMatch topCandidate, String draftGuidance) {
         if (query == null || query.isBlank()) return;
         boolean alreadyExists = hitlQueue.stream()
                 .anyMatch(item -> query.equalsIgnoreCase(item.getQuery()));
@@ -1089,7 +1094,7 @@ public class RagQueryService {
                 .build();
 
         hitlQueue.add(0, newItem);
-        if (hitlQueue.size() > 50) {
+        while (hitlQueue.size() > 50) {
             hitlQueue.remove(hitlQueue.size() - 1);
         }
     }
@@ -1147,9 +1152,13 @@ public class RagQueryService {
                         .disclaimer(LEGAL_DISCLAIMER)
                         .build();
 
+                String ward = updated.getWardName() != null ? updated.getWardName().trim() : "";
                 queryCacheService.putResponse(updated.getQuery(), verifiedResponse, 86400);
-                log.info("[HITL_RESOLVED] Item {} approved by '{}' and cached for query: '{}'",
-                        id, effectiveOfficer, truncate(updated.getQuery(), 40));
+                if (!ward.isEmpty()) {
+                    queryCacheService.putResponse(updated.getQuery() + "::" + ward, verifiedResponse, 86400);
+                }
+                log.info("[HITL_RESOLVED] Item {} approved by '{}' and cached for query: '{}' (ward: '{}')",
+                        id, effectiveOfficer, truncate(updated.getQuery(), 40), ward);
                 return updated;
             }
         }

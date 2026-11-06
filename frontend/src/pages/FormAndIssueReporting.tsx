@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import L from 'leaflet';
 import {
   precheckForm,
@@ -51,7 +51,21 @@ export const FormAndIssueReporting: React.FC = () => {
 
 
   // Form Precheck State (Supports 4 Core Administrative Forms: CT01, TK-KS, TK-KH, TK-BTXH)
-  const [selectedFormType, setSelectedFormType] = useState<'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH'>('CT01');
+  const [searchParams] = useSearchParams();
+  const urlType = searchParams.get('type')?.toUpperCase();
+  const initialType: 'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH' =
+    urlType === 'TK-KS' || urlType === 'TK-KH' || urlType === 'TK-BTXH' || urlType === 'CT01'
+      ? (urlType as any)
+      : 'CT01';
+
+  const [selectedFormType, setSelectedFormType] = useState<'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH'>(initialType);
+
+  useEffect(() => {
+    const type = searchParams.get('type')?.toUpperCase();
+    if (type === 'TK-KS' || type === 'TK-KH' || type === 'TK-BTXH' || type === 'CT01') {
+      setSelectedFormType(type as any);
+    }
+  }, [searchParams]);
   const [fullName, setFullName] = useState('NGUYỄN TÚ');
   const [cccd, setCccd] = useState('03103708');
   const [dob, setDob] = useState('2015-06-08');
@@ -107,16 +121,20 @@ export const FormAndIssueReporting: React.FC = () => {
   const incidentMapInstanceRef = useRef<L.Map | null>(null);
   const incidentMarkerRef = useRef<L.Marker | null>(null);
 
-  // Sync with currentWard if user switches ward
+  // Sync with currentWard if user switches ward without wiping out customized citizen input
+  const prevWardRef = useRef(currentWard.code);
   useEffect(() => {
-    setLatitude(currentWard.lat);
-    setLongitude(currentWard.lon);
-    setAddressText(`Khu vực trung tâm ${currentWard.name}, Tỉnh An Giang`);
-    if (!ocrSuccess) {
-      setAddress(`Số 12, ${currentWard.officeAddress}`);
+    if (prevWardRef.current !== currentWard.code) {
+      prevWardRef.current = currentWard.code;
+      setLatitude(currentWard.lat);
+      setLongitude(currentWard.lon);
+      setAddressText((prev) => (prev.startsWith('Khu vực trung tâm') || !prev ? `Khu vực trung tâm ${currentWard.name}, Tỉnh An Giang` : prev));
+      if (!ocrSuccess) {
+        setAddress((prev) => (prev.startsWith('Số 12,') || !prev ? `Số 12, ${currentWard.officeAddress}` : prev));
+      }
+      setDescription((prev) => (prev.startsWith('Đoạn đường trung tâm') || !prev ? `Đoạn đường trung tâm gần ${currentWard.officeAddress} bị sụt lún ổ gà sâu cần tu sửa khẩn cấp.` : prev));
     }
-    setDescription(`Đoạn đường trung tâm gần ${currentWard.officeAddress} bị sụt lún ổ gà sâu cần tu sửa khẩn cấp.`);
-  }, [currentWard.code, ocrSuccess]);
+  }, [currentWard.code, currentWard.lat, currentWard.lon, currentWard.name, currentWard.officeAddress, ocrSuccess]);
 
   // Leaflet Interactive Pin Dropper for Incident Tab
   useEffect(() => {

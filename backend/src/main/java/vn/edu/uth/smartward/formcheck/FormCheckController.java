@@ -14,8 +14,11 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vn.edu.uth.smartward.common.ApiResponse;
 import vn.edu.uth.smartward.formcheck.dto.FormPrecheckReport;
+import vn.edu.uth.smartward.formcheck.dto.FormSubmissionDto;
 import vn.edu.uth.smartward.formcheck.dto.StructuredFormPrecheckRequest;
 import vn.edu.uth.smartward.formcheck.dto.StructuredFormPrecheckResponse;
+
+import java.util.List;
 
 /**
  * REST Controller for Administrative Declaration Form Precheck.
@@ -68,5 +71,16 @@ public class FormCheckController {
                 request.getFormType(), request.getProcedureCode());
         StructuredFormPrecheckResponse response = formPrecheckService.precheckStructuredForm(request);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/submissions")
+    @Operation(
+            summary = "Lấy danh sách các bản khai sơ duyệt gần đây phục vụ cán bộ Một cửa",
+            description = "Truy xuất danh sách hồ sơ sơ duyệt đa biểu mẫu (CT01, Khai sinh, Kết hôn, BTXH) phục vụ đối chiếu và kiểm tra chéo."
+    )
+    public ResponseEntity<ApiResponse<List<FormSubmissionDto>>> getRecentSubmissions(
+            @RequestParam(value = "limit", defaultValue = "20") int limit) {
+        List<FormSubmissionDto> submissions = formPrecheckService.getRecentSubmissions(limit);
+        return ResponseEntity.ok(ApiResponse.ok(submissions));
     }
 }

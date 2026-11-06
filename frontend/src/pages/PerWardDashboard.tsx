@@ -7,6 +7,8 @@ import {
   getHitlQueue,
   resolveHitlItem,
   rebuildSpatialIndex,
+  getIssueClusters,
+  updateClusterStatus,
   type HitlGrayZoneItem,
 } from '../api/client';
 import L from 'leaflet';
@@ -404,13 +406,90 @@ export const PerWardDashboard: React.FC = () => {
     };
   }, [activeTab, ward, incidents]);
 
+  // Sync incidents from localStorage and Backend Clusters API
+  useEffect(() => {
+    let mounted = true;
+    const storageKey = `smartward_incidents_${ward.code}`;
+    const saved = localStorage.getItem(storageKey);
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          setIncidents(parsed);
+        }
+      } catch {
+        // ignore
+      }
+    }
+
+    getIssueClusters().then((clusters) => {
+      if (!mounted || !clusters || clusters.length === 0) return;
+      const mappedClusters: LocalIncident[] = clusters.map((c) => {
+        const catMap: Record<string, LocalIncident['category']> = {
+          ROAD_DAMAGE: 'Cơ sở hạ tầng',
+          FLOODING: 'Cơ sở hạ tầng',
+          ENVIRONMENT: 'Môi trường & Rác thải',
+          GARBAGE: 'Môi trường & Rác thải',
+          LIGHTING: 'Chiếu sáng đô thị',
+          ORDER_SECURITY: 'An ninh trật tự',
+        };
+        const statusMap: Record<string, LocalIncident['status']> = {
+          OPEN: 'PENDING',
+          IN_PROGRESS: 'IN_PROGRESS',
+          RESOLVED: 'RESOLVED',
+        };
+        return {
+          id: c.clusterCode,
+          category: catMap[c.category] || 'Cơ sở hạ tầng',
+          title: c.title,
+          description: c.descriptionSummary || c.title,
+          address: `${ward.name}, ${ward.province}`,
+          lat: c.centroidLatitude,
+          lon: c.centroidLongitude,
+          reportedTime: 'Vừa cập nhật',
+          status: statusMap[c.status] || 'PENDING',
+          urgency: c.reportCount >= 4 ? 'HIGH' : c.reportCount >= 2 ? 'MEDIUM' : 'LOW',
+          duplicatesMerged: c.reportCount,
+          reporterPhone: '0988.***.012',
+          officerNote: `Hệ thống phân luồng tự động 2 pha (R=75m, tau=0.82).`,
+        };
+      });
+
+      setIncidents((prev) => {
+        const existingIds = new Set(prev.map((p) => p.id));
+        const newClusters = mappedClusters.filter((mc) => !existingIds.has(mc.id));
+        const merged = [...newClusters, ...prev];
+        try {
+          localStorage.setItem(storageKey, JSON.stringify(merged));
+        } catch {
+          // ignore
+        }
+        return merged;
+      });
+    }).catch(() => {});
+
+    return () => {
+      mounted = false;
+    };
+  }, [ward.code, ward.name, ward.province]);
+
   const updateIncidentStatus = (id: string, newStatus: 'PENDING' | 'IN_PROGRESS' | 'RESOLVED') => {
-    setIncidents((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item))
-    );
+    setIncidents((prev) => {
+      const updated = prev.map((item) => (item.id === id ? { ...item, status: newStatus } : item));
+      try {
+        localStorage.setItem(`smartward_incidents_${ward.code}`, JSON.stringify(updated));
+      } catch {
+        // ignore
+      }
+      return updated;
+    });
     if (selectedIncident && selectedIncident.id === id) {
       setSelectedIncident((prev) => (prev ? { ...prev, status: newStatus } : null));
     }
+
+    // Call backend status update API asynchronously
+    updateClusterStatus(id, newStatus).catch(() => {});
+
     setToastBanner(`Đã cập nhật sự cố ${id} sang trạng thái: ${newStatus === 'RESOLVED' ? 'Đã hoàn thành' : newStatus === 'IN_PROGRESS' ? 'Đang xử lý' : 'Chờ tiếp nhận'}`);
     setTimeout(() => setToastBanner(null), 4000);
   };

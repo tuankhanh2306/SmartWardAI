@@ -70,15 +70,25 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem(ROLE_STORAGE_KEY, newRole);
   };
 
-  const loginAsOfficer = (_badgeId?: string, _pin?: string): boolean => {
-    // Verified official badge simulation for demo
-    setRole('OFFICER');
-    setAuthModalOpen(false);
-    return true;
+  const loginAsOfficer = (badgeId?: string, pin?: string): boolean => {
+    const validBadge = (badgeId || '').trim();
+    const validPin = (pin || '').trim();
+
+    // Verify official badge and PIN (Demo: CC-AG-8942 / PIN 8942, or any official CC-* badge with >= 4-digit PIN)
+    if (validBadge && (validPin === '8942' || (validPin.length >= 4 && validBadge.toUpperCase().startsWith('CC-')))) {
+      setRole('OFFICER');
+      localStorage.setItem('smartward_officer_token', `officer_token_${Date.now()}`);
+      localStorage.setItem('smartward_officer_badge', validBadge);
+      setAuthModalOpen(false);
+      return true;
+    }
+    return false;
   };
 
   const logoutToCitizen = () => {
     setRole('CITIZEN');
+    localStorage.removeItem('smartward_officer_token');
+    localStorage.removeItem('smartward_officer_badge');
     navigate('/citizen');
   };
 

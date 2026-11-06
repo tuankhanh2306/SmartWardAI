@@ -79,4 +79,17 @@ public class TriageController {
                 "status", "SYNCHRONIZED"
         )));
     }
+
+    @PatchMapping("/clusters/{clusterCode}/status")
+    @Operation(
+            summary = "Cập nhật trạng thái cụm sự cố hiện trường (OPEN, IN_PROGRESS, RESOLVED)",
+            description = "Khi cán bộ Một cửa đánh dấu sự cố là RESOLVED, cụm sự cố tự động được loại bỏ khỏi Redis GEO index."
+    )
+    public ResponseEntity<ApiResponse<IssueClusterDto>> updateClusterStatus(
+            @PathVariable("clusterCode") String clusterCode,
+            @RequestBody(required = false) java.util.Map<String, String> body) {
+        String newStatus = (body != null && body.containsKey("status")) ? body.get("status") : "RESOLVED";
+        IssueClusterDto updated = triageService.updateClusterStatus(clusterCode, newStatus);
+        return ResponseEntity.ok(ApiResponse.ok(updated));
+    }
 }

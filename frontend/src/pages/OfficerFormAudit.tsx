@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import OfficerSidebar from '../components/OfficerSidebar';
 import { useWard } from '../context/WardContext';
 import Pagination from '../components/Pagination';
+import { getRecentFormSubmissions } from '../api/client';
 import {
   FileText,
   CreditCard,
@@ -137,6 +138,57 @@ export default function OfficerFormAudit() {
   const { currentWard } = useWard();
   // Queue & pagination state
   const [dossiers, setDossiers] = useState<DossierQueueItem[]>(MOCK_DOSSIERS);
+
+  // Sync real submissions from FormPrecheckService backend
+  useEffect(() => {
+    let mounted = true;
+    getRecentFormSubmissions().then((submissions) => {
+      if (!mounted || !submissions || submissions.length === 0) return;
+      const mapped: DossierQueueItem[] = submissions.map((s: any) => {
+        let name = 'NGUYỄN VĂN AN';
+        let dob = '15/08/1995';
+        let cccd = '079095012345';
+        let address = `${currentWard.name}, Tỉnh An Giang`;
+        const formTypeLabel = s.formType === 'TK-KS' ? 'Khai sinh' : s.formType === 'TK-KH' ? 'Kết hôn' : s.formType === 'TK-BTXH' ? 'Bảo trợ' : 'CT01';
+
+        try {
+          if (s.ocrRawResult) {
+            const raw = typeof s.ocrRawResult === 'string' ? JSON.parse(s.ocrRawResult) : s.ocrRawResult;
+            if (raw.fullName) name = raw.fullName;
+            if (raw.citizenCccd) cccd = raw.citizenCccd;
+            if (raw.dateOfBirth) dob = raw.dateOfBirth;
+            if (raw.address) address = raw.address;
+          }
+        } catch {
+          // ignore
+        }
+
+        return {
+          id: s.submissionCode,
+          citizenName: name.toUpperCase(),
+          procedure: formTypeLabel === 'Khai sinh' ? 'Đăng ký khai sinh' : formTypeLabel === 'Kết hôn' ? 'Đăng ký kết hôn' : formTypeLabel === 'Bảo trợ' ? 'Trợ cấp bảo trợ xã hội' : 'Đăng ký cư trú CT01',
+          formType: formTypeLabel,
+          submittedAt: s.submittedAt ? new Date(s.submittedAt).toLocaleString('vi-VN') : 'Vừa gửi',
+          status: s.isValid ? 'APPROVED' : 'SUPPLEMENT',
+          cccd,
+          dob,
+          gender: 'Nam',
+          address,
+          ocrScore: s.confidenceScore ? Math.round(Number(s.confidenceScore) * 1000) / 10 : 98.5,
+        };
+      });
+
+      setDossiers((prev) => {
+        const existingCodes = new Set(prev.map((p) => p.id));
+        const newOnes = mapped.filter((m) => !existingCodes.has(m.id));
+        return [...newOnes, ...prev];
+      });
+    }).catch(() => {});
+
+    return () => {
+      mounted = false;
+    };
+  }, [currentWard.name]);
   const [selectedDossierId, setSelectedDossierId] = useState<string>('CT01-2026-0894');
   const [queueFilter, setQueueFilter] = useState<'ALL' | 'PENDING' | 'PROCESSING' | 'SUPPLEMENT' | 'APPROVED'>('ALL');
   const [queuePage, setQueuePage] = useState<number>(1);

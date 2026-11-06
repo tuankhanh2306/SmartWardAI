@@ -52,6 +52,7 @@ export const CitizenPortal: React.FC = () => {
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [activeCitation, setActiveCitation] = useState<LegalCitation | null>(null);
   const [isMicActive, setIsMicActive] = useState(false);
+  const recognitionRef = useRef<any>(null);
 
   // Mobile tab switcher ('chat' vs 'catalog') for small screens
   const [mobileTab, setMobileTab] = useState<'chat' | 'catalog'>('chat');
@@ -234,11 +235,59 @@ export const CitizenPortal: React.FC = () => {
   };
 
   const toggleMic = () => {
-    setIsMicActive(true);
-    setQuery(`Tôi muốn làm thủ tục đăng ký khai sinh cho con tại ${currentWard.name}...`);
-    setTimeout(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      // Graceful fallback simulation if browser does not support Web Speech API
+      setIsMicActive(true);
+      setQuery(`Tôi muốn làm thủ tục đăng ký khai sinh cho con tại ${currentWard.name}`);
+      setTimeout(() => {
+        setIsMicActive(false);
+      }, 1500);
+      return;
+    }
+
+    if (isMicActive) {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.stop();
+        } catch {
+          // ignore
+        }
+      }
       setIsMicActive(false);
-    }, 1500);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.lang = 'vi-VN';
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      recognition.onstart = () => {
+        setIsMicActive(true);
+      };
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results?.[0]?.[0]?.transcript;
+        if (transcript) {
+          setQuery((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        }
+      };
+
+      recognition.onerror = () => {
+        setIsMicActive(false);
+      };
+
+      recognition.onend = () => {
+        setIsMicActive(false);
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch {
+      setIsMicActive(false);
+    }
   };
 
   const quickPrompts = [
@@ -483,7 +532,7 @@ export const CitizenPortal: React.FC = () => {
                 className="group px-4 py-2.5 bg-[#00236F] hover:bg-[#1E3A8A] text-white rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-[#00236F]/20 active:scale-[0.97] transition-all flex items-center gap-2 cursor-pointer"
               >
                 <FileCheck2 className="w-4 h-4 text-[#57DFFE]" />
-                <span>Kiểm Tra Tờ Khai CT01</span>
+                <span>Tiền Kiểm Định Tờ Khai (4 Mẫu)</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </button>
 
@@ -885,13 +934,28 @@ export const CitizenPortal: React.FC = () => {
 
                       {/* EMBEDDED ACTION PILLS */}
                       <div className="flex flex-wrap items-center gap-2 pt-1">
-                        {/* Action 1: Form Precheck Navigation */}
+                        {/* Action 1: Smart Form Precheck Navigation matching inquiry context */}
                         <button
-                          onClick={() => navigate('/citizen/form')}
+                          onClick={() => {
+                            const fullCtx = (msg.text + ' ' + (msg.suggestions?.join(' ') || '')).toLowerCase();
+                            let formType = 'CT01';
+                            if (fullCtx.includes('khai sinh')) formType = 'TK-KS';
+                            else if (fullCtx.includes('kết hôn') || fullCtx.includes('độc thân')) formType = 'TK-KH';
+                            else if (fullCtx.includes('bảo trợ') || fullCtx.includes('trợ cấp') || fullCtx.includes('người cao tuổi')) formType = 'TK-BTXH';
+                            navigate(`/citizen/form?type=${formType}`);
+                          }}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EAEDFF] hover:bg-[#DAE2FD] text-[#00236F] text-xs font-bold transition active:scale-95 cursor-pointer shadow-2xs"
                         >
                           <FileCheck2 className="w-3.5 h-3.5 text-[#00687A]" />
-                          <span>Kiểm tra tờ khai CT01</span>
+                          <span>Kiểm tra tờ khai ({
+                            (() => {
+                              const fullCtx = (msg.text + ' ' + (msg.suggestions?.join(' ') || '')).toLowerCase();
+                              if (fullCtx.includes('khai sinh')) return 'Khai sinh';
+                              if (fullCtx.includes('kết hôn') || fullCtx.includes('độc thân')) return 'Kết hôn';
+                              if (fullCtx.includes('bảo trợ') || fullCtx.includes('trợ cấp') || fullCtx.includes('người cao tuổi')) return 'Bảo trợ XH';
+                              return 'CT01';
+                            })()
+                          })</span>
                           <ChevronRight className="w-3.5 h-3.5 opacity-60" />
                         </button>
 

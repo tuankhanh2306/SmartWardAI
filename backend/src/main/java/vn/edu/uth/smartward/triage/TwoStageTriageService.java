@@ -8,6 +8,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.uth.smartward.ai.AiModelClient;
+import vn.edu.uth.smartward.common.BusinessException;
+import vn.edu.uth.smartward.common.ErrorCode;
 import vn.edu.uth.smartward.triage.dto.CivicReportRequest;
 import vn.edu.uth.smartward.triage.dto.CivicReportResponse;
 import vn.edu.uth.smartward.triage.dto.IssueClusterDto;
@@ -247,6 +249,42 @@ public class TwoStageTriageService {
                 .lastReportedAt(c.getLastReportedAt())
                 .build()
         ).toList();
+    }
+
+    /**
+     * Updates an incident cluster status (OPEN, IN_PROGRESS, RESOLVED).
+     * If RESOLVED, the cluster is automatically expunged from the Redis GEO index.
+     */
+    @Transactional
+    public IssueClusterDto updateClusterStatus(String clusterCode, String newStatus) {
+        IssueCluster cluster = clusterRepository.findByClusterCode(clusterCode)
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Không tìm thấy cụm sự cố: " + clusterCode));
+
+        String upperStatus = (newStatus != null && !newStatus.isBlank()) ? newStatus.trim().toUpperCase() : "RESOLVED";
+        cluster.setStatus(upperStatus);
+        cluster.setLastReportedAt(OffsetDateTime.now());
+        IssueCluster saved = clusterRepository.save(cluster);
+
+        if ("RESOLVED".equals(upperStatus)) {
+            spatialIndexService.removeClusterLocation(clusterCode);
+            log.info("Cluster {} marked as RESOLVED and removed from Redis GEO index", clusterCode);
+        } else {
+            spatialIndexService.addClusterLocation(clusterCode, saved.getCenterLongitude().doubleValue(), saved.getCenterLatitude().doubleValue());
+            log.info("Cluster {} updated to status {} in DB and Redis GEO", clusterCode, upperStatus);
+        }
+
+        return IssueClusterDto.builder()
+                .id(saved.getId())
+                .clusterCode(saved.getClusterCode())
+                .category(saved.getCategory())
+                .title(saved.getTitle())
+                .centerLatitude(saved.getCenterLatitude())
+                .centerLongitude(saved.getCenterLongitude())
+                .reportCount(saved.getReportCount())
+                .status(saved.getStatus())
+                .firstReportedAt(saved.getFirstReportedAt())
+                .lastReportedAt(saved.getLastReportedAt())
+                .build();
     }
 
     /**

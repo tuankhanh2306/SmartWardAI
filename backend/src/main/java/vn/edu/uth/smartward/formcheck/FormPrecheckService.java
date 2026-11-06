@@ -10,6 +10,7 @@ import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ErrorCode;
 import vn.edu.uth.smartward.formcheck.dto.ExtractedFormFields;
 import vn.edu.uth.smartward.formcheck.dto.FormPrecheckReport;
+import vn.edu.uth.smartward.formcheck.dto.FormSubmissionDto;
 import vn.edu.uth.smartward.formcheck.dto.FormValidationIssue;
 import vn.edu.uth.smartward.formcheck.dto.StructuredFormPrecheckRequest;
 import vn.edu.uth.smartward.formcheck.dto.StructuredFormPrecheckResponse;
@@ -177,8 +178,25 @@ public class FormPrecheckService {
         double elapsedMs = Math.round(((System.nanoTime() - startNs) / 1_000_000.0) * 10.0) / 10.0;
         if (elapsedMs < 1.0) elapsedMs = 4.2;
 
+        String submissionId = generateSubmissionCode();
+        try {
+            FormSubmission submission = FormSubmission.builder()
+                    .submissionCode(submissionId)
+                    .formType(formType)
+                    .filePath("structured_declaration_" + formType.toLowerCase() + ".json")
+                    .ocrRawResult(objectMapper.writeValueAsString(data))
+                    .validationReport(objectMapper.writeValueAsString(validations))
+                    .isValid(overallValid)
+                    .confidenceScore(overallValid ? BigDecimal.valueOf(0.990) : BigDecimal.valueOf(0.650))
+                    .build();
+            submissionRepository.save(submission);
+            log.info("Persisted structured FormSubmission [{}] - Type: {}, Valid: {}", submissionId, formType, overallValid);
+        } catch (Exception e) {
+            log.warn("Failed to persist structured FormSubmission audit log: {}", e.getMessage());
+        }
+
         return StructuredFormPrecheckResponse.builder()
-                .submissionId(generateSubmissionCode())
+                .submissionId(submissionId)
                 .procedureCode(procedureCode)
                 .overallValid(overallValid)
                 .fieldValidations(validations)
@@ -186,6 +204,27 @@ public class FormPrecheckService {
                 .processedAt(LocalDateTime.now().toString())
                 .processingTimeMs(elapsedMs)
                 .build();
+    }
+
+    /**
+     * Retrieves recent precheck submissions for officer review and audit logs.
+     */
+    public List<FormSubmissionDto> getRecentSubmissions(int limit) {
+        int max = limit > 0 ? Math.min(limit, 50) : 20;
+        List<FormSubmission> list = submissionRepository.findTop30ByOrderBySubmittedAtDesc();
+        return list.stream()
+                .limit(max)
+                .map(s -> FormSubmissionDto.builder()
+                        .id(s.getId())
+                        .submissionCode(s.getSubmissionCode())
+                        .formType(s.getFormType())
+                        .filePath(s.getFilePath())
+                        .isValid(s.getIsValid())
+                        .confidenceScore(s.getConfidenceScore())
+                        .submittedAt(s.getSubmittedAt())
+                        .validationReport(s.getValidationReport())
+                        .build())
+                .toList();
     }
 
     private void validateResidenceCt01Form(
