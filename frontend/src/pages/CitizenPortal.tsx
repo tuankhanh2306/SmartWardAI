@@ -872,135 +872,70 @@ export const CitizenPortal: React.FC = () => {
 
                   {/* Bot Interactive Action Dock & Citations */}
                   {msg.sender === 'bot' && (
-                    <div className="mt-3.5 pt-3 border-t border-[#E2E8F0] flex flex-col gap-2.5">
-                      {/* Meta Tags & Action Buttons */}
-                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#64748B]">
-                        <span className="flex items-center gap-1.5 font-mono">
-                          <Clock className="w-3.5 h-3.5 text-[#00687A]" />
-                          {msg.timestamp}
-                          {msg.ragData && (
-                            <>
-                              <span>•</span>
-                              <span>Độ khớp: {(msg.ragData.maxSimilarity * 100).toFixed(1)}%</span>
-                              <span>•</span>
-                              <span>{msg.ragData.responseTimeMs}ms</span>
-                            </>
-                          )}
-                        </span>
+                    <div className="mt-2.5 pt-2 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2 text-xs text-[#64748B]">
+                      {/* Clean Timestamp */}
+                      <span className="flex items-center gap-1.5 font-mono text-[11px] text-[#64748B]">
+                        <Clock className="w-3.5 h-3.5 text-[#00687A]" />
+                        {msg.timestamp}
+                      </span>
 
-                        <div className="flex items-center gap-3">
-                          {/* Text-To-Speech Button (Prominent for Seniors) */}
-                          <button
-                            onClick={() => toggleSpeech(msg.text, msg.id)}
-                            className={`flex items-center gap-1.5 font-bold text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                              speakingId === msg.id
-                                ? 'bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5]'
-                                : 'bg-[#F1F5F9] text-[#00236F] hover:bg-[#E2E8F0] border border-[#CBD5E1]'
-                            }`}
-                            title={speakingId === msg.id ? 'Dừng đọc âm thanh' : 'Bấm để nghe đọc bằng giọng nói tiếng Việt'}
-                          >
-                            {speakingId === msg.id ? (
-                              <>
-                                <VolumeX className="w-3.5 h-3.5 text-[#DC2626]" />
-                                <span>Dừng đọc</span>
-                              </>
-                            ) : (
-                              <>
-                                <Volume2 className="w-3.5 h-3.5 text-[#00236F]" />
-                                <span>🔊 Nghe đọc to</span>
-                              </>
-                            )}
-                          </button>
-
-                          {/* Copy to clipboard */}
-                          <button
-                            onClick={() => copyToClipboard(msg.text, msg.id)}
-                            className="hover:text-[#00236F] flex items-center gap-1 active:scale-90 transition font-medium cursor-pointer"
-                          >
-                            {copiedId === msg.id ? (
-                              <>
-                                <Check className="w-3.5 h-3.5 text-[#10B981]" />
-                                <span className="text-[#10B981] font-bold">Đã chép</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-3.5 h-3.5" />
-                                <span>Sao chép</span>
-                              </>
-                            )}
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* EMBEDDED ACTION PILLS */}
-                      <div className="flex flex-wrap items-center gap-2 pt-1">
-                        {/* Action 1: Smart Form Precheck Navigation matching inquiry context */}
-                        <button
-                          onClick={() => {
-                            const fullCtx = (msg.text + ' ' + (msg.suggestions?.join(' ') || '')).toLowerCase();
-                            let formType = 'CT01';
-                            if (fullCtx.includes('khai sinh')) formType = 'TK-KS';
-                            else if (fullCtx.includes('kết hôn') || fullCtx.includes('độc thân')) formType = 'TK-KH';
-                            else if (fullCtx.includes('bảo trợ') || fullCtx.includes('trợ cấp') || fullCtx.includes('người cao tuổi')) formType = 'TK-BTXH';
-                            navigate(`/citizen/form?type=${formType}`);
-                          }}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#EAEDFF] hover:bg-[#DAE2FD] text-[#00236F] text-xs font-bold transition active:scale-95 cursor-pointer shadow-2xs"
-                        >
-                          <FileCheck2 className="w-3.5 h-3.5 text-[#00687A]" />
-                          <span>Kiểm tra tờ khai ({
-                            (() => {
-                              const fullCtx = (msg.text + ' ' + (msg.suggestions?.join(' ') || '')).toLowerCase();
-                              if (fullCtx.includes('khai sinh')) return 'Khai sinh';
-                              if (fullCtx.includes('kết hôn') || fullCtx.includes('độc thân')) return 'Kết hôn';
-                              if (fullCtx.includes('bảo trợ') || fullCtx.includes('trợ cấp') || fullCtx.includes('người cao tuổi')) return 'Bảo trợ XH';
-                              return 'CT01';
-                            })()
-                          })</span>
-                          <ChevronRight className="w-3.5 h-3.5 opacity-60" />
-                        </button>
-
-                        {/* Action 2: View Legal Citations Drawer */}
+                      {/* Action Buttons: Citations (if present), TTS & Copy */}
+                      <div className="flex items-center gap-2">
+                        {/* Legal Citations Drawer Button */}
                         {msg.ragData?.citations && msg.ragData.citations.length > 0 && (
                           <button
+                            type="button"
                             onClick={() => setActiveCitation(msg.ragData!.citations[0])}
-                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#00687A] text-xs font-bold transition active:scale-95 cursor-pointer shadow-2xs"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#00687A] text-xs font-semibold transition active:scale-95 cursor-pointer shadow-2xs"
                           >
                             <BookOpen className="w-3.5 h-3.5" />
                             <span>Căn cứ pháp lý ({msg.ragData.citations.length})</span>
                           </button>
                         )}
 
-                        {/* Action 3: Incident Report Anchor */}
+                        {/* Text-To-Speech Button (Prominent for Seniors) */}
                         <button
-                          onClick={() => navigate('/citizen/form#incident')}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] text-xs font-bold transition active:scale-95 cursor-pointer shadow-2xs"
+                          type="button"
+                          onClick={() => toggleSpeech(msg.text, msg.id)}
+                          className={`flex items-center gap-1.5 font-bold text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                            speakingId === msg.id
+                              ? 'bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5]'
+                              : 'bg-[#F1F5F9] text-[#00236F] hover:bg-[#E2E8F0] border border-[#CBD5E1]'
+                          }`}
+                          title={speakingId === msg.id ? 'Dừng đọc âm thanh' : 'Bấm để nghe đọc bằng giọng nói tiếng Việt'}
                         >
-                          <AlertTriangle className="w-3.5 h-3.5" />
-                          <span>Báo sự cố tại chỗ</span>
+                          {speakingId === msg.id ? (
+                            <>
+                              <VolumeX className="w-3.5 h-3.5 text-[#DC2626]" />
+                              <span>Dừng đọc</span>
+                            </>
+                          ) : (
+                            <>
+                              <Volume2 className="w-3.5 h-3.5 text-[#00236F]" />
+                              <span>🔊 Nghe đọc to</span>
+                            </>
+                          )}
+                        </button>
+
+                        {/* Copy to clipboard */}
+                        <button
+                          type="button"
+                          onClick={() => copyToClipboard(msg.text, msg.id)}
+                          className="hover:text-[#00236F] flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-[#F1F5F9] active:scale-90 transition font-medium cursor-pointer"
+                        >
+                          {copiedId === msg.id ? (
+                            <>
+                              <Check className="w-3.5 h-3.5 text-[#10B981]" />
+                              <span className="text-[#10B981] font-bold">Đã chép</span>
+                            </>
+                          ) : (
+                            <>
+                              <Copy className="w-3.5 h-3.5" />
+                              <span>Sao chép</span>
+                            </>
+                          )}
                         </button>
                       </div>
-
-                      {/* QUICK SUGGESTION CHIPS DIRECTLY UNDER ASSISTANT MESSAGE */}
-                      {msg.suggestions && msg.suggestions.length > 0 && (
-                        <div className="mt-2.5 pt-2.5 border-t border-[#E2E8F0] flex flex-col gap-1.5">
-                          <span className="text-xs font-bold text-[#64748B] flex items-center gap-1">
-                            💡 Gợi ý câu hỏi tiếp theo cho bà con:
-                          </span>
-                          <div className="flex flex-wrap items-center gap-2">
-                            {msg.suggestions.map((chip, cIdx) => (
-                              <button
-                                key={cIdx}
-                                type="button"
-                                disabled={loading}
-                                onClick={() => handleAsk(chip)}
-                                className="px-3 py-1.5 rounded-full bg-[#F8FAFC] hover:bg-[#00236F] hover:text-white text-[#00236F] text-xs font-semibold border border-[#CBD5E1] transition-all duration-200 active:scale-95 shadow-2xs cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                              >
-                                {chip}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   )}
                 </div>
