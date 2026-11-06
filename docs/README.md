@@ -49,9 +49,23 @@ docs/
 │   ├── BASELINE_ROADMAP_12W.md                  # 📅 Lịch trình 12 tuần cơ sở của dự án (W01 – W12)
 │   └── BUSINESS_AND_RESEARCH_PLAN.md            # 💡 Kế hoạch sản phẩm & Đề tài NCKH
 │
+├── 🎨 designs/                                  # THIẾT KẾ GIAO DIỆN & TRỰC QUAN HÓA 3D
+│   ├── README.md                                # 🎨 Tổng quan hồ sơ thiết kế
+│   ├── agent_3d_topology.html                   # 🌐 Trực quan hóa mô hình Multi-Agent 3D không gian làm việc
+│   └── prototypes/                              # 🖼️ 4 bản mẫu HTML nguyên mẫu giao diện chuẩn hóa
+│       ├── citizen_portal.html                  # Cổng dịch vụ công dân sinh
+│       ├── form_and_issue_reporting.html        # Tiền kiểm định tờ khai & Báo sự cố
+│       ├── gis_command_center.html              # Trung tâm chỉ huy bản đồ GIS
+│       └── officer_form_audit.html              # Bàn làm việc số cán bộ Một cửa
+│
+├── 🧪 testing/                                  # TÀI LIỆU KIỂM THỬ & BẢO ĐẢM CHẤT LƯỢNG
+│   ├── README.md                                # 🧪 Hướng dẫn chạy 8 bộ kiểm thử tự động
+│   └── TEST_READY.md                            # 📋 Bản cam kết sẵn sàng kiểm thử E2E & 8 kịch bản bắt buộc
+│
 └── 📅 weekly-reports/                           # NHẬT KÝ & BÁO CÁO TIẾN ĐỘ THỰC TẬP
     ├── week-01-report.md đến week-11-report.md  # 📝 Báo cáo chi tiết từng tuần
-    ├── chapter1-bao-cao-hkdn.md                 # 🏢 Báo cáo thực tập doanh nghiệp (Viettel An Giang)
+    ├── BAO_CAO_HKDN.docx                        # 🏢 Báo cáo thực tập doanh nghiệp (Viettel An Giang)
+    ├── chapter1-bao-cao-hkdn.md                 # 📄 Chương 1 Báo cáo thực tập học kỳ DN
     └── TEMPLATE.md                              # 📋 Biểu mẫu báo cáo tiến độ tuần
 ```
 
