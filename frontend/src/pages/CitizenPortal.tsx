@@ -534,20 +534,20 @@ export const CitizenPortal: React.FC = () => {
           <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
             <div className="max-w-3xl">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#00236F] tracking-tight leading-tight">
-                Cổng Hỗ Trợ Dân Sinh & Thủ Tục Hành Chính Điện Tử
+                Trợ Lý Hành Chính Công UBND {currentWard.name}
               </h1>
-              <p className="mt-2.5 text-sm md:text-base text-[#334155] leading-relaxed font-normal">
-                Kính chào bà con và quý công dân! Hệ thống hỗ trợ giải đáp <strong>40 thủ tục hành chính</strong> thuộc thẩm quyền giải quyết của UBND {currentWard.name}, hướng dẫn hồ sơ giấy tờ cần mang theo, lệ phí, thời hạn và kiểm tra tờ khai trước khi đến nộp.
+              <p className="mt-2 text-sm md:text-base text-[#334155] leading-relaxed font-normal">
+                Tra cứu nhanh <strong>40 thủ tục cấp xã</strong>, kiểm tra tờ khai trước khi nộp và gửi phản ánh hiện trường trực tiếp.
               </p>
               <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#64748B]">
                 <span className="flex items-center gap-1">
                   <PhoneCall className="w-3.5 h-3.5 text-[#00687A]" />
-                  Đường dây nóng: <strong>{currentWard.phoneNumber}</strong>
+                  Hotline: <strong>{currentWard.phoneNumber}</strong>
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5 text-[#00687A]" />
-                  Giờ làm việc: <strong>{currentWard.workingHours}</strong>
+                  Giờ tiếp dân: <strong>{currentWard.workingHours}</strong>
                 </span>
               </div>
             </div>
@@ -559,7 +559,7 @@ export const CitizenPortal: React.FC = () => {
                 className="group px-4 py-2.5 bg-[#00236F] hover:bg-[#1E3A8A] text-white rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-[#00236F]/20 active:scale-[0.97] transition-all flex items-center gap-2 cursor-pointer"
               >
                 <FileCheck2 className="w-4 h-4 text-[#57DFFE]" />
-                <span>Tiền Kiểm Định Tờ Khai (4 Mẫu)</span>
+                <span>Kiểm Tra Tờ Khai (4 Mẫu)</span>
                 <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </button>
 
@@ -568,7 +568,7 @@ export const CitizenPortal: React.FC = () => {
                 className="px-4 py-2.5 bg-white text-[#00236F] border border-[#CBD5E1] rounded-xl font-bold text-xs sm:text-sm hover:bg-[#F1F5F9] active:scale-[0.97] transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
               >
                 <AlertTriangle className="w-4 h-4 text-[#D97706]" />
-                <span>Báo Sự Cố Dân Sinh</span>
+                <span>Báo Sự Cố (GPS)</span>
               </button>
             </div>
           </div>

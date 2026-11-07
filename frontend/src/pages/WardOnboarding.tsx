@@ -167,10 +167,10 @@ export const WardOnboarding: React.FC = () => {
               </span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-[#00236F] tracking-tight">
-              Định Vị Địa Bàn Thường Trú & Điểm Tiếp Dân Một Cửa
+              Chọn Xã / Phường / Đặc Khu (Tỉnh An Giang)
             </h1>
             <p className="mt-1.5 text-xs sm:text-sm text-[#444651] max-w-2xl leading-relaxed">
-              Hệ thống 96 đơn vị hành chính trực thuộc Tỉnh An Giang (14 Phường • 79 Xã • 3 Đặc khu) phẳng hóa hoàn toàn, kết nối hạ tầng số cùng Viettel An Giang. Toàn bộ thủ tục hành chính, trợ lý AI tư vấn và phản ánh thực địa liên kết trực tiếp với UBND địa phương tương ứng.
+              Kết nối trực tiếp 96 đơn vị hành chính cấp cơ sở (14 Phường • 79 Xã • 3 Đặc khu) với Trợ lý AI Một cửa và Bản đồ điều hành sự cố.
             </p>
           </div>
 

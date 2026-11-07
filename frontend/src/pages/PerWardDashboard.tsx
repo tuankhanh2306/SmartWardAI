@@ -1036,7 +1036,7 @@ export const PerWardDashboard: React.FC = () => {
                   : 'text-[#475569] hover:text-[#00236F] hover:bg-white'
               }`}
             >
-              <span>📋 Phản Ánh Dân Sinh</span>
+              <span>📋 Sự Cố</span>
               <span
                 className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
                   activeTab === 'INCIDENTS'
@@ -1059,7 +1059,7 @@ export const PerWardDashboard: React.FC = () => {
               }`}
             >
               <BrainCircuit className="w-4 h-4" />
-              <span>Duyệt Vùng Xám AI</span>
+              <span>Vùng Xám AI</span>
               {pendingHitlCount > 0 && (
                 <span className="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-[#F59E0B] text-white">
                   {pendingHitlCount}
@@ -1078,7 +1078,7 @@ export const PerWardDashboard: React.FC = () => {
               }`}
             >
               <FileCheck2 className="w-4 h-4" />
-              <span>Sơ Duyệt Tờ Khai</span>
+              <span>Duyệt Tờ Khai</span>
               <span className="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-[#E2E8F0] text-[#00687A]">
                 {dossiers.length}
               </span>
@@ -1095,12 +1095,12 @@ export const PerWardDashboard: React.FC = () => {
               }`}
             >
               <Radio className="w-4 h-4 text-[#DC2626] animate-pulse" />
-              <span>Bản Đồ GIS Địa Bàn</span>
+              <span>Bản Đồ GIS</span>
             </button>
           </div>
 
           <span className="text-xs text-[#64748B] font-medium hidden md:inline">
-            💡 Bấm vào từng dòng để mở ngăn chi tiết khi cần xử lý
+            💡 Bấm vào dòng để xem chi tiết
           </span>
         </div>
 

@@ -17,12 +17,12 @@ export const Header: React.FC = () => {
 
   // Role-Based Navigation Partitioning (Phân quyền chức năng theo đúng vai trò)
   const citizenNavLinks = [
-    { to: '/citizen', label: 'Cổng Công Dân (Hỏi Đáp AI)', icon: Bot },
-    { to: '/citizen/form', label: 'Tiền Kiểm Định Tờ Khai', icon: FileCheck2 },
+    { to: '/citizen', label: 'Hỏi Đáp Thủ Tục', icon: Bot },
+    { to: '/citizen/form', label: 'Kiểm Tra Tờ Khai & Báo Sự Cố', icon: FileCheck2 },
   ];
 
   const officerNavLinks = [
-    { to: `/officer/ward/${currentWard.code}`, label: 'Bàn Điều Hành Xã (Dashboard Tập Trung)', icon: ShieldCheck },
+    { to: `/officer/ward/${currentWard.code}`, label: 'Bàn Điều Hành Xã', icon: ShieldCheck },
   ];
 
   const activeNavLinks = isOfficer ? officerNavLinks : citizenNavLinks;

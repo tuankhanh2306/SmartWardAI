@@ -766,7 +766,7 @@ export const FormAndIssueReporting: React.FC = () => {
             }`}
           >
             <FileCheck2 className={`w-4 h-4 ${activeTab === 'form' ? 'text-[#57DFFE]' : 'text-[#757682]'}`} />
-            <span>Tiền Kiểm Định Đa Tờ Khai (CT01, Khai Sinh, Kết Hôn, BTXH)</span>
+            <span>Kiểm Tra Tờ Khai (4 Mẫu)</span>
           </button>
 
           <button
@@ -779,7 +779,7 @@ export const FormAndIssueReporting: React.FC = () => {
             }`}
           >
             <AlertTriangle className={`w-4 h-4 ${activeTab === 'incident' ? 'text-[#57DFFE]' : 'text-[#757682]'}`} />
-            <span>Báo Sự Cố Hiện Trường (GPS & AI Triage)</span>
+            <span>Báo Sự Cố Hiện Trường (GPS)</span>
           </button>
         </div>
       </div>
@@ -790,23 +790,22 @@ export const FormAndIssueReporting: React.FC = () => {
       {activeTab === 'form' && (
         <section className="flex flex-col gap-6 animate-fadeIn">
           {/* Administrative Protocol Alert Card */}
-          <div className="p-5 rounded-2xl bg-gradient-to-r from-[#EAEDFF]/80 via-white to-[#F2F3FF] border border-[#DAE2FD] shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#EAEDFF]/80 via-white to-[#F2F3FF] border border-[#DAE2FD] shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div className="flex items-start gap-3.5">
-              <div className="w-11 h-11 rounded-xl bg-[#00236F] text-white flex items-center justify-center shrink-0 shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-[#00236F] text-white flex items-center justify-center shrink-0 shadow-sm">
                 <PenTool className="w-5 h-5 text-[#57DFFE]" />
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
                   <h1 className="text-base md:text-lg font-bold text-[#00236F]">
-                    Hệ Thống Tiền Kiểm Định 4 Nhóm Tờ Khai Hành Chính Cốt Lõi • {currentWard.name}
+                    Kiểm Tra 4 Mẫu Tờ Khai Trước Khi Nộp • {currentWard.name}
                   </h1>
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#DCE1FF] text-[#00164E]">
-                    Chống Trả Hồ Sơ Tại Một Cửa
+                    Chuẩn Một Cửa
                   </span>
                 </div>
                 <p className="text-xs text-[#444651] mt-1 leading-relaxed max-w-3xl">
-                  <strong>Quy chuẩn bắt buộc:</strong> Hệ thống AI rà soát 12 số CCCD, đối chiếu chéo Tờ khai khai sinh với Giấy chứng sinh, kiểm tra mốc tuổi kết hôn hợp pháp (Nam ≥ 20, Nữ ≥ 18) và điều kiện trợ cấp bảo trợ xã hội.
-                  <span className="text-[#BA1A1A] font-semibold"> Hệ thống chỉ nhắc nhở người dân sửa trực tiếp trên tờ khai giấy trước khi nộp</span>, bảo đảm tính pháp lý theo Nghị định 13/2023/NĐ-CP.
+                  Rà soát tự động 12 số CCCD, Giấy chứng sinh, tuổi kết hôn và điều kiện bảo trợ. <span className="text-[#BA1A1A] font-semibold">Chỉ báo lỗi để bà con tự sửa trên bản giấy</span> trước khi đến quầy.
                 </p>
               </div>
             </div>
@@ -814,7 +813,7 @@ export const FormAndIssueReporting: React.FC = () => {
             {/* Stepper Status Pill */}
             <div className="flex items-center gap-1.5 shrink-0 px-3 py-1.5 rounded-xl bg-white border border-[#DAE2FD] text-[11px] font-semibold text-[#00687A]">
               <span className="w-2 h-2 rounded-full bg-[#00687A] animate-pulse" />
-              <span>Đề Án 06/CP Verified</span>
+              <span>Đề Án 06/CP</span>
             </div>
           </div>
 
@@ -823,27 +822,27 @@ export const FormAndIssueReporting: React.FC = () => {
             {[
               {
                 id: 'CT01' as const,
-                badge: 'Bộ Công an',
-                title: '1. Tờ Khai Cư Trú (Mẫu CT01)',
-                desc: 'Rà soát 12 số ĐDCN, mã tỉnh, thế kỷ/giới tính & địa chỉ thường trú/tạm trú.',
+                badge: 'Cư trú',
+                title: '1. Mẫu CT01 Cư Trú',
+                desc: 'Kiểm tra 12 số CCCD, ngày sinh & địa chỉ cư trú.',
               },
               {
                 id: 'TK-KS' as const,
-                badge: 'Ưu tiên 1 • Hộ tịch',
-                title: '2. Đăng Ký Khai Sinh + GCS',
-                desc: 'Đối chiếu chéo Tờ khai vs Giấy chứng sinh & kiểm tra tình trạng kết hôn cha mẹ.',
+                badge: 'Hộ tịch',
+                title: '2. Đăng Ký Khai Sinh',
+                desc: 'Đối chiếu Tờ khai với Giấy chứng sinh bệnh viện.',
               },
               {
                 id: 'TK-KH' as const,
-                badge: 'Ưu tiên 2 • Tư pháp',
-                title: '3. Kết Hôn & Xác Nhận Độc Thân',
-                desc: 'Kiểm tra độ tuổi hợp pháp (Nam ≥ 20, Nữ ≥ 18) & mục đích xác nhận độc thân.',
+                badge: 'Tư pháp',
+                title: '3. Kết Hôn & Độc Thân',
+                desc: 'Kiểm tra tuổi kết hôn (Nam ≥ 20, Nữ ≥ 18) & mục đích.',
               },
               {
                 id: 'TK-BTXH' as const,
-                badge: 'Ưu tiên 3 • An sinh',
-                title: '4. Trợ Cấp Bảo Trợ Xã Hội',
-                desc: 'Mẫu 01 NĐ 20/2021: Kiểm tra mốc tuổi ≥ 80, mức độ khuyết tật & tài khoản ngân hàng.',
+                badge: 'An sinh',
+                title: '4. Trợ Cấp Bảo Trợ',
+                desc: 'Kiểm tra tuổi ≥ 80, mức khuyết tật & số tài khoản.',
               },
             ].map((item) => {
               const active = selectedFormType === item.id;
@@ -1779,17 +1778,17 @@ export const FormAndIssueReporting: React.FC = () => {
       {activeTab === 'incident' && (
         <section className="flex flex-col gap-6 animate-fadeIn">
           {/* Header Banner */}
-          <div className="p-5 rounded-2xl bg-gradient-to-r from-[#EAEDFF]/80 via-white to-[#F2F3FF] border border-[#DAE2FD] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-[#EAEDFF]/80 via-white to-[#F2F3FF] border border-[#DAE2FD] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-start gap-3.5">
-              <div className="w-11 h-11 rounded-xl bg-[#BA1A1A] text-white flex items-center justify-center shrink-0 shadow-sm">
+              <div className="w-10 h-10 rounded-xl bg-[#BA1A1A] text-white flex items-center justify-center shrink-0 shadow-sm">
                 <AlertTriangle className="w-5 h-5 text-white" />
               </div>
               <div>
                 <h2 className="text-base md:text-lg font-bold text-[#00236F]">
-                  Báo Tin Khẩn & Sự Cố Hiện Trường Liên Địa Bàn • Định Vị Chuẩn GPS (R=25m)
+                  Báo Sự Cố Hiện Trường • Định Vị GPS (R=25m)
                 </h2>
                 <p className="text-xs text-[#444651] mt-1 leading-relaxed">
-                  <strong>Quy trình tự động 3 bước:</strong> (1) Quét tọa độ GPS chuẩn xác cao (bán kính hẹp <strong>R=25m</strong>) và tự động điền vào ô vị trí &amp; nội dung (cho phép chỉnh tay nếu lệch) ➔ (2) Kèm <strong>Số điện thoại liên hệ</strong> để người giám sát địa bàn gọi xác minh ➔ (3) Tự động gửi về đúng <strong>UBND Xã/Phường nơi xảy ra sự cố</strong> dựa trên vị trí trong ô.
+                  <strong>3 bước nhanh:</strong> (1) Tự động quét GPS điền vào ô vị trí (sửa tay nếu lệch) ➔ (2) Nhập SĐT liên hệ ➔ (3) Tự động gửi về đúng <strong>UBND Xã/Phường nơi xảy ra sự cố</strong>.
                 </p>
               </div>
             </div>
@@ -1808,7 +1807,7 @@ export const FormAndIssueReporting: React.FC = () => {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <label className="text-xs sm:text-sm font-extrabold text-[#00236F] flex items-center gap-1.5">
                     <Navigation className="w-4 h-4 text-[#BA1A1A]" />
-                    <span>Bước 1: Quét Vị Trí GPS Chuẩn (R=25m) &amp; Ô Vị Trí Hiện Trường</span>
+                    <span>1. Vị Trí Sự Cố (GPS R=25m)</span>
                   </label>
                   <button
                     type="button"
@@ -1817,14 +1816,14 @@ export const FormAndIssueReporting: React.FC = () => {
                     className="px-3 py-1.5 rounded-xl bg-[#00687A] hover:bg-[#004E5C] text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition active:scale-95 cursor-pointer disabled:opacity-60"
                   >
                     <MapPin className="w-3.5 h-3.5" />
-                    <span>{gpsLoading ? 'Đang Quét Vệ Tinh GPS...' : 'Quét Lại Vị Trí GPS Thực Tế'}</span>
+                    <span>{gpsLoading ? 'Đang quét GPS...' : 'Quét Lại GPS'}</span>
                   </button>
                 </div>
 
                 {/* Quick Cross-Ward GPS Simulation Bar for Testing */}
                 <div className="flex flex-wrap items-center gap-1.5 pt-1">
                   <span className="text-[11px] font-bold text-[#64748B] mr-1">
-                    Giả lập công dân di chuyển qua địa bàn khác:
+                    Thử nhanh vị trí:
                   </span>
                   <button
                     type="button"
@@ -1833,7 +1832,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     }
                     className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#EAEDFF] text-[#00236F] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer"
                   >
-                    🚗 Đi qua Phường Châu Đốc
+                    🚗 Phường Châu Đốc
                   </button>
                   <button
                     type="button"
@@ -1842,7 +1841,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     }
                     className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#EAEDFF] text-[#00236F] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer"
                   >
-                    🚗 Đi qua Phường Long Xuyên
+                    🚗 Phường Long Xuyên
                   </button>
                   <button
                     type="button"
@@ -1851,7 +1850,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     }
                     className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#EAEDFF] text-[#00236F] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer"
                   >
-                    🏠 Tại Xã An Phú
+                    🏠 Xã An Phú
                   </button>
                 </div>
 
@@ -1867,10 +1866,10 @@ export const FormAndIssueReporting: React.FC = () => {
                 <div className="flex flex-col gap-1 mt-1">
                   <div className="flex items-center justify-between text-[11px] text-[#475569]">
                     <span className="font-semibold">
-                      Ô vị trí sự cố (Đã tự động điền từ GPS — Bà con có thể sửa tay nếu lệch):
+                      Địa chỉ sự cố (Tự động từ GPS — có thể sửa tay):
                     </span>
                     <span className="font-mono text-[#00687A] font-bold">
-                      Sai số GPS: ±{gpsAccuracy ?? 8}m • Phạm vi gom cụm: R=25m
+                      ±{gpsAccuracy ?? 8}m • R=25m
                     </span>
                   </div>
                   <input
