@@ -28,17 +28,17 @@ Trong quy mô đồ án tốt nghiệp và giai đoạn thực tập 3 tháng do
 ```mermaid
 graph TD
     subgraph "Tầng Giao diện (Frontend - React/Vite + TailwindCSS)"
-        Citizen_UI["Cổng Công dân (Mobile-first PWA)<br/>(HTML5 Camera, GPS Geolocation, Chat RAG)"]
-        Officer_UI["Bàn làm việc Cán bộ (Desktop Dashboard)<br/>(Bản đồ Leaflet GIS, Sơ duyệt tờ khai, Vault)"]
+        Citizen_UI["Cổng Công dân (Mobile-first PWA: /citizen, /citizen/form)<br/>(Hỏi đáp AI RAG, Tiền kiểm 4 tờ khai, GPS R=25m liên xã)"]
+        Officer_UI["Bàn Điều hành Cán bộ 1-Dashboard (/officer/ward/:code)<br/>(Slide-Over Drawer, Gọi xác minh SĐT, Bản đồ GIS, Vault NĐ13)"]
     end
 
     subgraph "Tầng Ứng dụng (Spring Boot 3.3 Modular Monolith)"
         API_Layer["REST Controllers & Security Filter"]
         
         subgraph "Core Modules (Phần tự phát triển)"
-            RAG_Mod["1. Legal RAG & Guardrail Module<br/>(Legal Chunking, Hybrid Retrieval, Abstention Check)"]
-            Form_Mod["2. Form Validation Engine<br/>(CCCD Checksum/Structure, Date Logic, Mandatory Fields)"]
-            Triage_Mod["3. Spatial-Semantic Triage Module<br/>(2-Stage Deduplication & Category Routing)"]
+            RAG_Mod["1. Legal RAG & Guardrail Module<br/>(Legal Chunking, Hybrid Retrieval, Abstention θ=0.78)"]
+            Form_Mod["2. Multi-Form Validation Engine<br/>(4 nhóm: CT01, TK-KS, TK-KH, TK-BTXH + CCCD 12 số)"]
+            Triage_Mod["3. Spatial-Semantic Triage Module<br/>(GPS R=25m, SĐT khẩn, Định tuyến liên xã & 2-Stage Deduplication)"]
             Vault_Mod["4. Zero-Trust Document Vault<br/>(Dynamic Watermark, AES-256, One-Time Token)"]
         end
     end
@@ -113,46 +113,46 @@ sequenceDiagram
     participant LLM as Embedding/Classifier
     participant DB as PostgreSQL (pgvector)
 
-    User->>API: Gửi phản ánh (Ảnh, Mô tả văn bản T, Tọa độ GPS lat/lng)
+    User->>API: Gửi phản ánh (Mô tả T, Tọa độ GPS lat/lng, SĐT liên hệ reporterPhone, Ô vị trí addressText, Xã/Phường đích wardCode)
     API->>LLM: Trích xuất danh mục sự cố (Category C) & Tạo Vector ngữ nghĩa V(T)
-    API->>Redis: Pha 1: GEOSEARCH tìm các cụm sự cố (Cluster) đang mở trong bán kính R mét
-    Redis-->>API: Danh sách Cluster_ID ứng viên trong bán kính R
+    API->>Redis: Pha 1: GEOSEARCH tìm các cụm sự cố (Cluster) đang mở trong bán kính chính xác R = 25m
+    Redis-->>API: Danh sách Cluster_ID ứng viên trong bán kính R = 25m
 
-    alt Không có Cluster nào trong bán kính R
-        API->>DB: Tạo Cluster sự cố mới (Master Issue) + Lưu phản ánh đầu tiên
+    alt Không có Cluster nào trong bán kính R = 25m
+        API->>DB: Tạo Cluster sự cố mới (Master Issue) + Lưu phản ánh kèm SĐT & Xã/Phường đích
         API->>Redis: GEOADD tọa độ Cluster mới vào Redis
-    else Có danh sách Cluster ứng viên trong bán kính R
+    else Có danh sách Cluster ứng viên trong bán kính R = 25m
         API->>DB: Pha 2: Tính Cosine Similarity giữa V(T) và Vector tâm của các Cluster ứng viên CÙNG danh mục C
         DB-->>API: Trả về Cluster có độ tương đồng cao nhất (Sim_max)
-        alt Nếu cùng danh mục C VÀ Sim_max >= Ngưỡng ngữ nghĩa τ
+        alt Nếu cùng danh mục C VÀ Sim_max >= Ngưỡng ngữ nghĩa τ (0.82)
             API->>DB: Gộp phản ánh vào Cluster sẵn có + Tăng biến đếm report_count (+1) + Cập nhật mức độ ưu tiên
         else Khác danh mục C (VD: Ổ gà vs Cháy đèn đường) HOẶC Sim_max < τ
             API->>DB: Tạo Cluster sự cố mới độc lập (Tránh gộp nhầm sự cố khác loại cùng hẻm)
             API->>Redis: GEOADD tọa độ Cluster mới vào Redis
         end
     end
-    API-->>User: Trả về mã theo dõi phản ánh & Trạng thái gom nhóm
+    API-->>User: Trả về mã theo dõi phản ánh, Trạng thái gom nhóm (R=25m) & Đơn vị UBND Xã/Phường tiếp nhận
 ```
 
 ---
 
-### Luồng 3: Kiểm tra Sơ bộ Tờ khai Hành chính (OCR + Deterministic Rule Engine)
+### Luồng 3: Tiền Kiểm Định Đa Biểu Mẫu Hành Chính (OCR + 4-Form Deterministic Rule Engine)
 
 ```mermaid
 sequenceDiagram
     autonumber
     actor User as Người dân
-    participant API as FormCheckService
+    participant API as FormPrecheckService
     participant Vault as ZeroTrustVaultService
-    participant OCR as Vision OCR Model
-    participant Rules as Java Rule Engine
+    participant OCR as Vision OCR / QR Scanner
+    participant Rules as Multi-Form Java Rule Engine
 
-    User->>API: Tải ảnh chụp tờ khai + Chọn loại thủ tục (VD: Đăng ký khai sinh / Tạm trú)
-    API->>OCR: Gửi ảnh để trích xuất các trường văn bản sang cấu trúc JSON
+    User->>API: Chọn 1 trong 4 nhóm tờ khai (CT01, TK-KS, TK-KH, TK-BTXH) + Tải ảnh / Quét QR CCCD / Nhập liệu
+    API->>OCR: Trích xuất các trường văn bản từ tờ khai hoặc chuỗi QR CCCD sang cấu trúc JSON
     OCR-->>API: JSON các trường đã nhận diện + Điểm độ tin cậy nhận diện (Confidence Score)
-    API->>Rules: Chạy bộ quy tắc kiểm tra logic độc lập (Deterministic Rules):
-    Note right of Rules: 1. Kiểm tra trường bắt buộc bị bỏ trống<br/>2. Kiểm tra cấu trúc 12 số CCCD (Mã tỉnh, thế kỷ/giới tính, năm sinh)<br/>3. Kiểm tra logic ngày tháng (Ngày sinh < Ngày cấp < Hiện tại)<br/>4. Cảnh báo vùng ảnh mờ có OCR Confidence < 0.70
-    Rules-->>API: Danh sách lỗi phát hiện (Error List) & Cảnh báo (Warnings)
+    API->>Rules: Chạy bộ quy tắc kiểm tra logic tất định theo từng biểu mẫu:
+    Note right of Rules: 1. CT01: Cấu trúc 12 số CCCD (Mã tỉnh, thế kỷ/giới tính, năm sinh) & ý kiến chủ hộ<br/>2. TK-KS: Đối chiếu chéo Tờ khai vs Giấy chứng sinh (Ngày sinh trẻ, Họ tên mẹ) & tình trạng hôn nhân cha mẹ<br/>3. TK-KH: Tuổi kết hôn hợp pháp tính đến từng ngày (Nam >= 20, Nữ >= 18) & chặn mục đích xác nhận độc thân chung chung<br/>4. TK-BTXH: Tuổi người cao tuổi >= 80 / mức độ khuyết tật & số tài khoản ngân hàng nhận trợ cấp Đề án 06
+    Rules-->>API: Danh sách lỗi phát hiện (ValidationIssues) & Hướng dẫn sửa chi tiết
     
     opt Nếu người dân chọn gửi kèm giấy tờ để cán bộ xem trước
         API->>Vault: Đóng dấu mờ (Watermark) + Mã hóa AES-256 lưu vào MinIO + Tạo One-Time Token trên Redis

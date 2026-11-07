@@ -16,14 +16,14 @@ Tùy theo tác vụ phát triển hoặc khi cần tra cứu đặc tả, hãy m
 ├─────────────────────────┬─────────────────────────────────────────────────┬────────────────────────────┤
 │ Tác vụ cần làm          │ Mở tài liệu nào?                                │ Nội dung chính             │
 ├─────────────────────────┼─────────────────────────────────────────────────┼────────────────────────────┤
-│ 💻 LẬP TRÌNH & PHÁT     │ • docs/architecture/SYSTEM_SPECIFICATION.md     │ • Đặc tả 7 REST APIs       │
-│    TRIỂN HỆ THỐNG       │ • docs/architecture/ARCHITECTURE_AND_FLOWS.md   │ • Schema CSDL Flyway V1-V6 │
-│    (Code Backend/Front) │ • docs/architecture/PROJECT_CONSTRAINTS.md      │ • Ràng buộc RAM ≤ 2.0GB    │
-│                         │ • docs/architecture/GIT_WORKFLOW.md             │ • Quy chuẩn Git commit     │
-├─────────────────────────┼─────────────────────────────────────────────────┼────────────────────────────┤
-│ 🚀 LỘ TRÌNH MỞ RỘNG     │ • docs/roadmap/EXPANSION_ROADMAP_2.0.md         │ • Multi-Ward Onboarding    │
-│    (SmartWard AI 2.0    │ • docs/roadmap/BASELINE_ROADMAP_12W.md          │ • Quét QR CCCD thay vì NFC │
-│    Giai đoạn 8 tuần)    │ • docs/roadmap/BUSINESS_AND_RESEARCH_PLAN.md    │ • Fine-tune Bi-Encoder T4  │
+│ 💻 LẬP TRÌNH & PHÁT     │ • docs/architecture/SYSTEM_SPECIFICATION.md     │ • Đặc tả 7 REST APIs & 4 Tờ khai│
+│    TRIỂN HỆ THỐNG       │ • docs/architecture/ARCHITECTURE_AND_FLOWS.md   │ • Luồng GPS 25m & Định tuyến xã │
+│    (Code Backend/Front) │ • docs/architecture/PROJECT_CONSTRAINTS.md      │ • Ràng buộc RAM ≤ 2.0GB         │
+│                         │ • docs/architecture/GIT_WORKFLOW.md             │ • Quy chuẩn Git commit          │
+├─────────────────────────┼─────────────────────────────────────────────────┼─────────────────────────────────┤
+│ 🚀 LỘ TRÌNH MỞ RỘNG     │ • docs/roadmap/EXPANSION_ROADMAP_2.0.md         │ • Multi-Ward 96 Xã/Phường       │
+│    (SmartWard AI 2.0    │ • docs/roadmap/BASELINE_ROADMAP_12W.md          │ • Quét QR CCCD thay vì NFC      │
+│    Giai đoạn 8 tuần)    │ • docs/roadmap/BUSINESS_AND_RESEARCH_PLAN.md    │ • Fine-tune Bi-Encoder T4       │
 ├─────────────────────────┼─────────────────────────────────────────────────┼────────────────────────────┤
 │ 📅 BÁO CÁO TIẾN ĐỘ      │ • docs/weekly-reports/week-01 đến 11-report.md  │ • Nhật ký tiến độ 11 tuần  │
 │    (Nhật ký thực tập)   │ • docs/weekly-reports/chapter1-bao-cao-hkdn.md  │ • Báo cáo học kỳ DN        │
