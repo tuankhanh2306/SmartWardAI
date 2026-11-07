@@ -8,6 +8,7 @@ import {
   isIncidentReportQuery,
   classifySmallTalk,
   buildProcedureCatalogResponse,
+  getRealTimeScheduleContext,
 } from '../services/intentClassifier';
 
 const api = axios.create({
@@ -258,11 +259,25 @@ export const askLegalRag = async (
   if (smallTalk.matched) {
     let reply = '';
     let suggestions = ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📋 Xem 40 thủ tục'];
+    const rt = getRealTimeScheduleContext();
 
     if (smallTalk.type === 'WELLBEING') {
-      reply =
-        `Dạ chào bà con! Hôm nay tôi vẫn hoạt động bình thường 24/7 và luôn sẵn sàng hỗ trợ giải đáp mọi thủ tục hành chính công tại UBND ${currentWardName}.\n\n` +
-        `Hôm nay bà con đang cần làm giấy tờ gì hoặc có vướng mắc về thủ tục nào (như khai sinh, kết hôn, cư trú CT01, chứng thực, xác nhận độc thân...) để tôi hướng dẫn cụ thể nhé!`;
+      if (rt.isWeekend) {
+        reply =
+          `Dạ chào bà con! Thời gian hiện tại là **${rt.timeStr} (${rt.sessionName} ${rt.dayName}, ngày ${rt.dateStr})**.\n\n` +
+          `• **Tại trụ sở UBND ${currentWardName}:** Hôm nay là **${rt.dayName} (ngày nghỉ cuối tuần)** nên Bộ phận Một cửa **tạm nghỉ tiếp nhận hồ sơ giấy trực tiếp** tại quầy (sẽ mở cửa lại vào **${rt.nextOpenText}**).\n` +
+          `• **Hỗ trợ trực tuyến 24/7:** Riêng Trợ lý Pháp lý AI và công cụ Tiền kiểm định tờ khai vẫn hoạt động xuyên suốt ngày nghỉ để hướng dẫn bà con chuẩn bị sẵn giấy tờ (khai sinh, kết hôn, cư trú CT01, chứng thực...) trước khi đến nộp vào đầu tuần!`;
+      } else if (rt.isOpen) {
+        reply =
+          `Dạ chào bà con! Thời gian hiện tại là **${rt.timeStr} (${rt.sessionName} ${rt.dayName}, ngày ${rt.dateStr})**.\n\n` +
+          `• **Tại trụ sở UBND ${currentWardName}:** ${rt.statusHeadline} (${currentWorkingHours}).\n` +
+          `• **Hỗ trợ trực tuyến 24/7:** Bà con đang cần làm giấy tờ gì hoặc có vướng mắc về thủ tục nào (như khai sinh, kết hôn, cư trú CT01, chứng thực...) cứ nhắn để tôi hướng dẫn chuẩn bị trước khi đến quầy nhé!`;
+      } else {
+        reply =
+          `Dạ chào bà con! Thời gian hiện tại là **${rt.timeStr} (${rt.sessionName} ${rt.dayName}, ngày ${rt.dateStr})**.\n\n` +
+          `• **Tại trụ sở UBND ${currentWardName}:** Hiện tại đang ngoài giờ tiếp dân trực tiếp (${rt.statusHeadline}). Thời gian mở cửa tiếp theo: **${rt.nextOpenText}**.\n` +
+          `• **Hỗ trợ trực tuyến 24/7:** Trợ lý Pháp lý AI vẫn trực 24/7 để hướng dẫn bà con chuẩn bị hồ sơ hoặc tiền kiểm định tờ khai ngay lúc này!`;
+      }
     } else if (smallTalk.type === 'THANKS') {
       reply =
         `Dạ không có gì ạ! Rất vui được hỗ trợ bà con. Chúc bà con giải quyết công việc hành chính thật nhanh chóng và thuận lợi.\n\n` +
@@ -283,14 +298,14 @@ export const askLegalRag = async (
       suggestions = ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📄 Chứng thực sao y', '📋 Xem 40 thủ tục'];
     } else {
       reply =
-        `Xin chào! Tôi là Trợ lý Pháp lý Một Cửa tại UBND ${currentWardName}.\n\n` +
+        `Xin chào! Tôi là Trợ lý Pháp lý Một Cửa tại UBND ${currentWardName} (Hiện tại: ${rt.timeStr} • ${rt.dayName}, ${rt.dateStr}).\n\n` +
         `Tôi sẵn sàng giải đáp, tra cứu và hướng dẫn bà con chuẩn bị hồ sơ đầy đủ, đúng quy định cho các thủ tục hành chính cấp xã/phường như:\n` +
         `• Đăng ký khai sinh, kết hôn, khai tử, trích lục hộ tịch\n` +
         `• Đăng ký thường trú, tạm trú, thông tin cư trú (Mẫu CT01)\n` +
         `• Chứng thực chữ ký, chứng thực bản sao từ bản chính\n` +
         `• Cấp giấy xác nhận tình trạng hôn nhân (giấy độc thân)\n` +
         `• Các chế độ chính sách bảo trợ xã hội và tiền kiểm tra hồ sơ\n\n` +
-        `Bà con đang cần tìm hiểu hoặc chuẩn bị làm thủ tục nào? Hãy nhập câu hỏi để tôi hướng dẫn chi tiết từng bước nhé!`;
+        `${rt.isWeekend ? `📌 *Lưu ý: Hôm nay là ${rt.dayName} (nghỉ cuối tuần), trụ sở Một cửa mở cửa lại lúc ${rt.nextOpenText}, nhưng tôi vẫn trực 24/7 để hỗ trợ bà con chuẩn bị sẵn hồ sơ ngay hôm nay!*` : `Bà con đang cần tìm hiểu hoặc chuẩn bị làm thủ tục nào? Hãy nhập câu hỏi để tôi hướng dẫn chi tiết từng bước nhé!`}`;
     }
 
     return {
@@ -328,22 +343,26 @@ export const askLegalRag = async (
     };
   }
 
-  // 3. Pre-filter: Ward Office Information
+  // 3. Pre-filter: Ward Office Information & Real-Time Working Hours / Weekend Check
   if (isWardOfficeQuery(query)) {
+    const rt = getRealTimeScheduleContext();
     return {
       answer:
-        `Thông tin liên hệ và thời gian làm việc của Bộ phận Tiếp nhận và Trả kết quả (Một Cửa) thuộc UBND ${currentWardName}:\n\n` +
-        `• Trụ sở / Địa chỉ Một cửa: ${currentAddress}\n` +
-        `• Số điện thoại / Hotline: ${currentPhone}\n` +
-        `• Giờ tiếp nhận và trả kết quả: ${currentWorkingHours}\n` +
-        `• Cổng Dịch vụ công Quốc gia: Nộp hồ sơ trực tuyến 24/7 tại dichvucong.gov.vn\n\n` +
-        `Bà con có thể đến trực tiếp trong khung giờ làm việc trên hoặc gửi câu hỏi về thủ tục hành chính để tôi hướng dẫn chuẩn bị đầy đủ hồ sơ trước khi đến nộp.`,
+        `Dạ, thời gian hệ thống ghi nhận hiện tại là **${rt.timeStr} (${rt.sessionName} ${rt.dayName}, ngày ${rt.dateStr})**.\n\n` +
+        `📌 **1. TRẠNG THÁI HOẠT ĐỘNG HIỆN TẠI CỦA BỘ PHẬN MỘT CỬA — UBND ${currentWardName.toUpperCase()}:**\n` +
+        `• **Trạng thái lúc này:** **${rt.statusHeadline}**.\n` +
+        `• **Thời gian tiếp nhận trực tiếp gần nhất:** **${rt.nextOpenText}**.\n` +
+        `• **Khung giờ hành chính quy định:** ${currentWorkingHours} *(Thứ Bảy, Chủ Nhật và ngày Lễ nghỉ theo quy định)*.\n` +
+        `• **Địa chỉ trụ sở Một cửa:** ${currentAddress}\n` +
+        `• **Số điện thoại / Đường dây nóng:** ${currentPhone}\n\n` +
+        `🌐 **2. DỊCH VỤ HỖ TRỢ TRỰC TUYẾN 24/7 (KỂ CẢ THỨ BẢY & CHỦ NHẬT):**\n` +
+        `• Dù đang ngoài giờ hành chính hay cuối tuần, bà con vẫn có thể **hỏi đáp thủ tục với Trợ lý AI**, dùng công cụ **Tiền Kiểm Định Tờ Khai (4 mẫu)** để rà soát lỗi trước ở nhà, **Báo Sự Cố Hiện Trường (GPS)** hoặc nộp hồ sơ trực tuyến trên Cổng DVC Quốc gia tại \`dichvucong.gov.vn\`.`,
       abstained: false,
       maxSimilarity: 1.0,
       appliedThreshold: 0.50,
       responseTimeMs: 6.0,
       cached: false,
-      disclaimer: 'Thông tin chính thức từ Danh bạ hành chính UBND cấp xã/phường.',
+      disclaimer: 'Thông tin lịch làm việc thời gian thực và Danh bạ hành chính UBND cấp xã/phường.',
       citations: [],
       suggestions: ['📋 Xem 40 thủ tục', '👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)'],
     };

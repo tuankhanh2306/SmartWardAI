@@ -43,7 +43,7 @@ interface ChatMessage {
 
 export const CitizenPortal: React.FC = () => {
   const navigate = useNavigate();
-  const { currentWard, isOfficeOpen } = useWard();
+  const { currentWard, isOfficeOpen, officeStatusLabel } = useWard();
   const { isAudioAutoPlay, setIsAudioAutoPlay } = useAccessibility();
   const chatBottomRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
@@ -62,18 +62,23 @@ export const CitizenPortal: React.FC = () => {
   const [catalogCategory, setCatalogCategory] = useState<string>('ALL');
   const [catalogSearch, setCatalogSearch] = useState<string>('');
 
+  const initialTimeStr = useMemo(
+    () => new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+    []
+  );
+
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'msg-0',
       sender: 'citizen',
       text: 'Tôi muốn làm thủ tục đăng ký khai sinh cho cháu mới sinh cần giấy tờ gì và mất bao lâu?',
-      timestamp: '08:45',
+      timestamp: initialTimeStr,
     },
     {
       id: 'msg-1',
       sender: 'bot',
       text: `1. TÓM TẮT THỦ TỤC:\nThủ tục Đăng ký khai sinh cho trẻ mới sinh được tiếp nhận và giải quyết tại UBND ${currentWard.name} nơi cư trú của cha hoặc mẹ.\n\n2. THÀNH PHẦN HỒ SƠ:\n• [TTHC-HT-01_CHUNK_003] Tờ khai đăng ký khai sinh theo mẫu quy định.\n• [TTHC-HT-01_CHUNK_003] Bản chính Giấy chứng sinh do cơ sở khám bệnh, chữa bệnh cấp (hoặc văn bản xác nhận của người làm chứng/giấy cam đoan).\n• Xuất trình CCCD/Hộ chiếu còn hiệu lực của cha mẹ và Giấy chứng nhận kết hôn (nếu có).\n\n3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n• Thời hạn: Giải quyết ngay trong 01 ngày làm việc (trường hợp cần xác minh thì không quá 05 ngày làm việc).\n• Lệ phí: Miễn phí hoàn toàn khi đăng ký đúng hạn trong vòng 60 ngày kể từ ngày sinh.\n\n4. NƠI TIẾP NHẬN & XỬ LÝ:\nBộ phận Tiếp nhận và Trả kết quả (Một cửa) thuộc UBND ${currentWard.name} (${currentWard.officeAddress}).\n\n5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n[TTHC-HT-01_CHUNK_004] Căn cứ Luật Hộ tịch 2014 & Nghị định 123/2015/NĐ-CP.\n\n*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*`,
-      timestamp: '08:45',
+      timestamp: initialTimeStr,
       suggestions: [
         'Hồ sơ đăng ký khai sinh cần gì?',
         'Lệ phí khai sinh bao nhiêu?',
@@ -398,7 +403,7 @@ export const CitizenPortal: React.FC = () => {
     ];
 
     const renderTextWithCitations = (lineStr: string) => {
-      const parts = lineStr.split(/(\[[A-Za-z0-9_\-]+\])/g);
+      const parts = lineStr.split(/(\[[A-Za-z0-9_\-]+\]|\*\*[^*]+\*\*)/g);
       return parts.map((part, pIdx) => {
         const match = part.match(/^\[([A-Za-z0-9_\-]+)\]$/);
         if (match) {
@@ -422,6 +427,14 @@ export const CitizenPortal: React.FC = () => {
             >
               📖 {part}
             </button>
+          );
+        }
+        const boldMatch = part.match(/^\*\*([^*]+)\*\*$/);
+        if (boldMatch) {
+          return (
+            <strong key={pIdx} className="font-bold text-[#00236F]">
+              {boldMatch[1]}
+            </strong>
           );
         }
         return <span key={pIdx}>{part}</span>;
@@ -480,7 +493,7 @@ export const CitizenPortal: React.FC = () => {
               </span>
               <span className="text-xs text-[#64748B] font-semibold">• TỈNH AN GIANG</span>
               <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${isOfficeOpen ? 'bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0]' : 'bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]'}`}>
-                {isOfficeOpen ? 'Đang mở cửa tiếp dân' : 'Ngoài giờ hành chính (Tư vấn 24/7)'}
+                {officeStatusLabel}
               </span>
               <button
                 onClick={() => navigate('/onboarding')}

@@ -7,6 +7,7 @@ interface WardContextType {
   allWards: WardItem[];
   searchWards: (keyword: string, filterType?: 'ALL' | 'Phường' | 'Xã' | 'Thị trấn' | 'Đặc khu') => WardItem[];
   isOfficeOpen: boolean;
+  officeStatusLabel: string;
 }
 
 const WARD_STORAGE_KEY = 'smartward_selected_ward_code';
@@ -23,7 +24,8 @@ export const WardProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return DEFAULT_WARD;
   });
 
-  const [isOfficeOpen, setIsOfficeOpen] = useState(true);
+  const [isOfficeOpen, setIsOfficeOpen] = useState(false);
+  const [officeStatusLabel, setOfficeStatusLabel] = useState('Đang kiểm tra giờ hành chính...');
 
   // Calculate if the government office is currently open (Vietnam Working Hours: 7-11h & 13-17h, Mon-Fri)
   useEffect(() => {
@@ -33,26 +35,38 @@ export const WardProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const hour = now.getHours();
       const minute = now.getMinutes();
       const timeInMinutes = hour * 60 + minute;
+      const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+      const dayName = dayNames[day];
 
       // Monday to Friday
       if (day >= 1 && day <= 5) {
         const morningOpen = 7 * 60; // 07:00
-        const morningClose = 11 * 60; // 11:00
+        const morningClose = 11 * 60 + 30; // 11:30
         const afternoonOpen = 13 * 60; // 13:00
         const afternoonClose = 17 * 60; // 17:00
 
-        const isOpen =
-          (timeInMinutes >= morningOpen && timeInMinutes <= morningClose) ||
-          (timeInMinutes >= afternoonOpen && timeInMinutes <= afternoonClose);
-        setIsOfficeOpen(isOpen);
+        if (timeInMinutes >= morningOpen && timeInMinutes <= morningClose) {
+          setIsOfficeOpen(true);
+          setOfficeStatusLabel(`Đang mở cửa tiếp dân (Ca sáng ${dayName})`);
+        } else if (timeInMinutes >= afternoonOpen && timeInMinutes <= afternoonClose) {
+          setIsOfficeOpen(true);
+          setOfficeStatusLabel(`Đang mở cửa tiếp dân (Ca chiều ${dayName})`);
+        } else if (timeInMinutes > morningClose && timeInMinutes < afternoonOpen) {
+          setIsOfficeOpen(false);
+          setOfficeStatusLabel(`Đang nghỉ trưa (${dayName} • Mở lại 13:00)`);
+        } else {
+          setIsOfficeOpen(false);
+          setOfficeStatusLabel(`Ngoài giờ hành chính (${dayName} • AI trực 24/7)`);
+        }
       } else {
         // Saturday / Sunday closed
         setIsOfficeOpen(false);
+        setOfficeStatusLabel(`Nghỉ cuối tuần (${dayName} • Tư vấn AI 24/7)`);
       }
     };
 
     checkOfficeHours();
-    const timer = setInterval(checkOfficeHours, 60000);
+    const timer = setInterval(checkOfficeHours, 30000);
     return () => clearInterval(timer);
   }, []);
 
@@ -69,6 +83,7 @@ export const WardProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         allWards: AN_GIANG_WARDS,
         searchWards: searchAnGiangWards,
         isOfficeOpen,
+        officeStatusLabel,
       }}
     >
       {children}

@@ -233,7 +233,7 @@ export function isWardOfficeQuery(query: string): boolean {
     return true;
   }
 
-  // Working hours and contact checks
+  // Working hours, real-time clock, day-of-week, weekend status, and contact checks
   const isHoursOrContact =
     qNoAccent.includes('gio lam viec') ||
     qNoAccent.includes('may gio') ||
@@ -247,6 +247,15 @@ export function isWardOfficeQuery(query: string): boolean {
     qNoAccent.includes('thu 7') ||
     qNoAccent.includes('thu bay') ||
     qNoAccent.includes('chu nhat') ||
+    qNoAccent.includes('cuoi tuan') ||
+    qNoAccent.includes('ngay nghi') ||
+    qNoAccent.includes('co lam viec khong') ||
+    qNoAccent.includes('co lam khong') ||
+    qNoAccent.includes('lam viec khong') ||
+    qNoAccent.includes('hom nay thu may') ||
+    qNoAccent.includes('nay thu may') ||
+    qNoAccent.includes('hom nay ngay may') ||
+    qNoAccent.includes('bay gio la may gio') ||
     qNoAccent.includes('so dien thoai') ||
     qNoAccent.includes('sdt') ||
     qNoAccent.includes('hotline') ||
@@ -258,6 +267,119 @@ export function isWardOfficeQuery(query: string): boolean {
   }
 
   return false;
+}
+
+export interface RealTimeScheduleContext {
+  dayName: string;
+  dateStr: string;
+  timeStr: string;
+  sessionName: string;
+  isWeekend: boolean;
+  isOpen: boolean;
+  statusHeadline: string;
+  nextOpenText: string;
+}
+
+/**
+ * Computes real-time Vietnamese date, day of week, clock time, and whether the Ward UBND One-Stop Office is currently open
+ */
+export function getRealTimeScheduleContext(): RealTimeScheduleContext {
+  const now = new Date();
+  const day = now.getDay(); // 0 = Sunday, 6 = Saturday
+  const hour = now.getHours();
+  const minute = now.getMinutes();
+  const timeInMinutes = hour * 60 + minute;
+
+  const dayNames = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
+  const dayName = dayNames[day];
+  const dateStr = now.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+  const timeStr = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+
+  const sessionName =
+    hour < 11 ? 'buổi sáng' : hour < 13 ? 'buổi trưa' : hour < 18 ? 'buổi chiều' : 'buổi tối';
+
+  const isWeekend = day === 0 || day === 6;
+
+  if (isWeekend) {
+    return {
+      dayName,
+      dateStr,
+      timeStr,
+      sessionName,
+      isWeekend: true,
+      isOpen: false,
+      statusHeadline: `Đang nghỉ cuối tuần (${dayName}, ngày ${dateStr}) — Trụ sở Bộ phận Một cửa không tiếp nhận hồ sơ giấy trực tiếp hôm nay`,
+      nextOpenText: '07:00 sáng Thứ Hai tuần tới',
+    };
+  }
+
+  const morningOpen = 7 * 60; // 07:00
+  const morningClose = 11 * 60 + 30; // 11:30
+  const afternoonOpen = 13 * 60; // 13:00
+  const afternoonClose = 17 * 60; // 17:00
+
+  if (timeInMinutes >= morningOpen && timeInMinutes <= morningClose) {
+    return {
+      dayName,
+      dateStr,
+      timeStr,
+      sessionName,
+      isWeekend: false,
+      isOpen: true,
+      statusHeadline: `Đang trong giờ hành chính ca sáng (${dayName}, ngày ${dateStr}) — Bộ phận Một cửa đang mở cửa tiếp dân trực tiếp`,
+      nextOpenText: 'Đang mở cửa tiếp nhận ngay lúc này (Ca sáng đến 11:00–11:30)',
+    };
+  }
+
+  if (timeInMinutes > morningClose && timeInMinutes < afternoonOpen) {
+    return {
+      dayName,
+      dateStr,
+      timeStr,
+      sessionName,
+      isWeekend: false,
+      isOpen: false,
+      statusHeadline: `Đang trong khung giờ nghỉ trưa (${dayName}, ngày ${dateStr}) — Bộ phận Một cửa tạm nghỉ giữa ca`,
+      nextOpenText: '13:00 chiều hôm nay',
+    };
+  }
+
+  if (timeInMinutes >= afternoonOpen && timeInMinutes <= afternoonClose) {
+    return {
+      dayName,
+      dateStr,
+      timeStr,
+      sessionName,
+      isWeekend: false,
+      isOpen: true,
+      statusHeadline: `Đang trong giờ hành chính ca chiều (${dayName}, ngày ${dateStr}) — Bộ phận Một cửa đang mở cửa tiếp dân trực tiếp`,
+      nextOpenText: 'Đang mở cửa tiếp nhận ngay lúc này (Ca chiều đến 17:00)',
+    };
+  }
+
+  if (timeInMinutes < morningOpen) {
+    return {
+      dayName,
+      dateStr,
+      timeStr,
+      sessionName,
+      isWeekend: false,
+      isOpen: false,
+      statusHeadline: `Chưa đến giờ mở cửa hành chính (${dayName}, ngày ${dateStr})`,
+      nextOpenText: '07:00 sáng hôm nay',
+    };
+  }
+
+  return {
+    dayName,
+    dateStr,
+    timeStr,
+    sessionName,
+    isWeekend: false,
+    isOpen: false,
+    statusHeadline: `Đã hết giờ hành chính trong ngày (${dayName}, ngày ${dateStr})`,
+    nextOpenText: day === 5 ? '07:00 sáng Thứ Hai tuần tới' : '07:00 sáng ngày mai',
+  };
 }
 
 export interface OutOfScopeResult {
