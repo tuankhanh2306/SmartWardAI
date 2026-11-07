@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useWard } from '../context/WardContext';
+import { useRole } from '../context/RoleContext';
 import { AN_GIANG_WARDS, type WardItem } from '../data/anGiangWards';
 import Pagination from '../components/Pagination';
 import {
@@ -11,6 +12,7 @@ import {
   updateClusterStatus,
   getRecentFormSubmissions,
   getLiveSubmittedIncidents,
+  getLiveSubmittedDossiers,
   type HitlGrayZoneItem,
 } from '../api/client';
 import L from 'leaflet';
@@ -75,6 +77,7 @@ export const PerWardDashboard: React.FC = () => {
   const { wardCode } = useParams<{ wardCode: string }>();
   const navigate = useNavigate();
   const { currentWard, setWard } = useWard();
+  const { logoutToCitizen } = useRole();
 
   // Find ward from param or context
   const ward: WardItem =
@@ -120,6 +123,8 @@ export const PerWardDashboard: React.FC = () => {
   const [selectedIncident, setSelectedIncident] = useState<LocalIncident | null>(null);
   const [selectedHitlItem, setSelectedHitlItem] = useState<HitlGrayZoneItem | null>(null);
   const [selectedDossier, setSelectedDossier] = useState<QuickDossierItem | null>(null);
+  const [showVaultScan, setShowVaultScan] = useState<boolean>(false);
+  const [vaultTokenConsumed, setVaultTokenConsumed] = useState<boolean>(false);
 
   // Dossier Tab Filter & Search
   const [dossierFilter, setDossierFilter] = useState<'ALL' | 'VALID' | 'HAS_ERRORS' | 'PENDING'>('ALL');
@@ -413,19 +418,28 @@ export const PerWardDashboard: React.FC = () => {
     },
   ]);
 
-  // Sync recent form submissions from API into dossiers
+  // Sync live citizen-checked dossiers from localStorage and API into dossiers
   useEffect(() => {
     let mounted = true;
+    const localDossiers = getLiveSubmittedDossiers();
+    if (localDossiers.length > 0) {
+      setDossiers((prev) => {
+        const existingIds = new Set(prev.map((d) => d.id));
+        const newLocal = localDossiers.filter((m) => !existingIds.has(m.id));
+        return [...newLocal, ...prev];
+      });
+    }
+
     getRecentFormSubmissions()
       .then((liveSubmissions) => {
         if (!mounted || !liveSubmissions || liveSubmissions.length === 0) return;
         const mapped: QuickDossierItem[] = liveSubmissions.map((s: any) => ({
-          id: s.id || `HS-${Date.now().toString().slice(-4)}`,
+          id: s.id || s.submissionCode || `HS-${Date.now().toString().slice(-4)}`,
           citizenName: s.citizenName || s.fullName || 'Công dân nộp hồ sơ',
           procedure: s.procedure || s.formType || 'Đăng ký tờ khai hành chính',
-          formType: s.formType || 'CT01',
+          formType: s.formType === 'TK-KS' ? 'Khai sinh' : s.formType === 'TK-KH' ? 'Kết hôn' : s.formType === 'TK-BTXH' ? 'Bảo trợ' : 'CT01',
           submittedAt: s.submittedAt || 'Vừa nộp',
-          status: s.hasErrors ? 'HAS_ERRORS' : 'VALID',
+          status: s.hasErrors || s.isValid === false ? 'HAS_ERRORS' : 'VALID',
           cccd: s.cccd || '089098001234',
           errorCount: s.errorCount || (s.hasErrors ? 1 : 0),
           details: {
@@ -620,7 +634,7 @@ export const PerWardDashboard: React.FC = () => {
           urgency: c.reportCount >= 4 ? 'HIGH' : c.reportCount >= 2 ? 'MEDIUM' : 'LOW',
           duplicatesMerged: c.reportCount,
           reporterPhone: '0988.***.012',
-          officerNote: `Hệ thống phân luồng tự động 2 pha (R=75m, tau=0.82).`,
+          officerNote: `Hệ thống phân luồng tự động 2 pha (R=25m, tau=0.82).`,
         };
       });
 
@@ -741,19 +755,20 @@ export const PerWardDashboard: React.FC = () => {
             <button
               onClick={() => {
                 setWard(ward);
-                navigate('/citizen');
+                logoutToCitizen();
               }}
               className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold border border-white/20 transition active:scale-95 cursor-pointer flex items-center gap-1.5"
+              title="Đăng xuất khỏi Bàn Cán Bộ và chuyển sang Cổng Công Dân"
             >
               <ExternalLink className="w-3.5 h-3.5 text-[#57DFFE]" />
               <span>Giao Diện Dân Sinh</span>
             </button>
             <button
-              onClick={() => navigate('/officer/audit')}
+              onClick={() => handleTabChange('FORMS')}
               className="px-3.5 py-2 bg-[#57DFFE] hover:bg-[#38BDF8] text-[#00236F] rounded-xl text-xs font-bold shadow-md transition active:scale-95 cursor-pointer flex items-center gap-1.5"
             >
               <FileCheck2 className="w-3.5 h-3.5" />
-              <span>Bàn Sơ Duyệt Tờ Khai ❯</span>
+              <span>Sơ Duyệt Tờ Khai ({dossiers.length}) ❯</span>
             </button>
           </div>
         </div>
@@ -1446,7 +1461,7 @@ export const PerWardDashboard: React.FC = () => {
               <div className="p-3.5 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] text-xs text-[#1E40AF] flex items-center gap-2.5">
                 <Check className="w-4 h-4 text-[#2563EB] shrink-0" />
                 <span>
-                  Hệ thống AI tự động phát hiện và gộp <strong>{selectedIncident.duplicatesMerged} phản ánh trùng lặp</strong> từ công dân trong cùng bán kính 500m.
+                  Hệ thống AI tự động phát hiện và gộp <strong>{selectedIncident.duplicatesMerged} phản ánh trùng lặp</strong> từ công dân trong cùng bán kính chuẩn <strong>R = 25m</strong> (Độ tương đồng ngữ nghĩa τ ≥ 0.82).
                 </span>
               </div>
 
@@ -1805,10 +1820,80 @@ export const PerWardDashboard: React.FC = () => {
                 )}
               </div>
 
-              {/* Legal Reference Note */}
-              <div className="p-3.5 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] text-xs text-[#0F766E] flex items-center gap-2">
-                <BookOpen className="w-4 h-4 text-[#0D9488] shrink-0" />
-                <span>Căn cứ pháp lý: Nghị định 13/2023/NĐ-CP &amp; Thông tư liên tịch Một Cửa điện tử.</span>
+              {/* Legal Reference Note & Zero-Trust Vault One-Time Preview (Progressive Disclosure) */}
+              <div className="flex flex-col gap-2.5">
+                <div className="p-3.5 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] text-xs text-[#0F766E] flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 text-[#0D9488] shrink-0" />
+                    <span>Zero-Trust Vault (NĐ 13/2023/NĐ-CP • AES-256)</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!showVaultScan) {
+                        setShowVaultScan(true);
+                      } else {
+                        setShowVaultScan(false);
+                        setVaultTokenConsumed(true);
+                      }
+                    }}
+                    className="px-3 py-1 rounded-lg bg-[#00236F] hover:bg-[#1E3A8A] text-white text-[11px] font-bold transition cursor-pointer shrink-0"
+                  >
+                    {showVaultScan
+                      ? 'Đóng & Hủy Token (GETDEL)'
+                      : vaultTokenConsumed
+                      ? 'Mở Cấp Lại Token 1 Lần'
+                      : '🔍 Xem Bản Scan Watermark'}
+                  </button>
+                </div>
+
+                {showVaultScan && (
+                  <div className="relative p-4 rounded-2xl bg-white border-2 border-[#00236F]/30 shadow-inner overflow-hidden select-none animate-fadeIn">
+                    {/* Diagonal Dynamic Watermark Overlay */}
+                    <div className="absolute inset-0 pointer-events-none z-20 flex flex-col justify-around overflow-hidden opacity-25">
+                      {[1, 2, 3].map((idx) => (
+                        <div
+                          key={idx}
+                          className="-rotate-12 transform whitespace-nowrap text-[#DC2626] font-mono text-[10px] font-extrabold uppercase text-center py-2"
+                        >
+                          CHỈ DÙNG SƠ DUYỆT TẠI UBND {ward.name.toUpperCase()} • CÁN BỘ: TRẦN THỊ HƯƠNG (CC-AG-8942) • ONE-TIME TOKEN
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="relative z-10 text-[11px] text-[#0F172A] space-y-1.5 font-sans">
+                      <div className="text-center border-b border-[#E2E8F0] pb-2">
+                        <strong className="block text-xs text-[#00236F]">
+                          BẢN SCAN TỜ KHAI ({selectedDossier.formType}) — ĐÃ ĐÓNG DẤU MỜ BẢO MẬT
+                        </strong>
+                        <span className="text-[10px] text-[#64748B] font-mono">
+                          MinIO AES-256-GCM • Redis GETDEL One-Time Token • Tự hủy sau 07 ngày
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 pt-1">
+                        <div>
+                          <span className="text-[#64748B]">Họ tên:</span>{' '}
+                          <strong>{selectedDossier.citizenName}</strong>
+                        </div>
+                        <div>
+                          <span className="text-[#64748B]">Số ĐDCN:</span>{' '}
+                          <strong className="font-mono text-[#00236F]">{selectedDossier.cccd}</strong>
+                        </div>
+                        <div>
+                          <span className="text-[#64748B]">Ngày sinh:</span>{' '}
+                          <strong>{selectedDossier.details?.dob}</strong>
+                        </div>
+                        <div>
+                          <span className="text-[#64748B]">Mã hồ sơ:</span>{' '}
+                          <strong className="font-mono">{selectedDossier.id}</strong>
+                        </div>
+                      </div>
+                      <div className="pt-1 text-[10px] text-[#166534] font-semibold">
+                        ✓ Chữ ký số &amp; dấu mờ chống chụp màn hình rò rỉ dữ liệu cá nhân theo Điều 19 Nghị định 13/2023/NĐ-CP.
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

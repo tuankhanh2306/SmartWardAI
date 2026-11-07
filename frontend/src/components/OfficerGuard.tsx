@@ -3,14 +3,13 @@ import { useRole } from '../context/RoleContext';
 import { useWard } from '../context/WardContext';
 import { useNavigate } from 'react-router-dom';
 import { ShieldAlert, ArrowLeft, KeyRound, CheckCircle2 } from 'lucide-react';
-import OfficerAuthModal from './OfficerAuthModal';
 
 interface OfficerGuardProps {
   children: React.ReactNode;
 }
 
 export const OfficerGuard: React.FC<OfficerGuardProps> = ({ children }) => {
-  const { isOfficer, authModalOpen, setAuthModalOpen, loginAsOfficer } = useRole();
+  const { isOfficer, setAuthModalOpen } = useRole();
   const { currentWard } = useWard();
   const navigate = useNavigate();
 
@@ -65,7 +64,7 @@ export const OfficerGuard: React.FC<OfficerGuardProps> = ({ children }) => {
           <button
             type="button"
             onClick={() => {
-              loginAsOfficer();
+              setAuthModalOpen(true);
             }}
             className="w-full sm:w-1/2 py-2.5 px-4 rounded-xl bg-[#00236F] hover:bg-[#1E3A8A] text-white text-xs font-bold shadow-md shadow-[#00236F]/20 flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer"
           >
@@ -74,11 +73,6 @@ export const OfficerGuard: React.FC<OfficerGuardProps> = ({ children }) => {
           </button>
         </div>
       </div>
-
-      <OfficerAuthModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-      />
     </div>
   );
 };

@@ -27,7 +27,7 @@ html.scale-text-huge {
   font-size: 125%;
 }
 
-html.high-contrast-mode {
+html.high-contrast-mode #root {
   filter: contrast(1.12);
 }
 

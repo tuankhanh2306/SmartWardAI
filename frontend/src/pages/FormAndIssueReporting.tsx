@@ -1095,12 +1095,36 @@ export const FormAndIssueReporting: React.FC = () => {
                 </div>
               )}
 
-              {/* Quick Test Preset Bar for Active Form Type */}
+              {/* Quick Test Preset Bar for Active Form Type + CCCD QR Scanner */}
               <div className="p-3 rounded-xl bg-[#F2F3FF] border border-[#DAE2FD] flex flex-wrap items-center justify-between gap-2 text-xs">
                 <span className="font-bold text-[#00236F]">
-                  Bộ dữ liệu mẫu kiểm thử ({selectedFormType}):
+                  Bộ dữ liệu mẫu &amp; Quét QR CCCD ({selectedFormType}):
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const sampleQrRaw = `089205023490|251234567|NGUYỄN MINH TUẤN KHANH|23062005|Nam|Số 18 Đường Trần Hưng Đạo, ${currentWard.name}, Tỉnh An Giang|15082022`;
+                      const parts = sampleQrRaw.split('|');
+                      if (parts.length >= 6) {
+                        setCccd(parts[0]);
+                        setFullName(parts[2]);
+                        const d = parts[3];
+                        if (d.length === 8) {
+                          setDob(`${d.slice(4, 8)}-${d.slice(2, 4)}-${d.slice(0, 2)}`);
+                        }
+                        setGender(parts[4] === 'Nữ' ? 'Nữ' : 'Nam');
+                        setAddress(parts[5]);
+                        setOcrSuccess(true);
+                        setOcrConfidence(100);
+                        setPrecheckResult(null);
+                      }
+                    }}
+                    className="px-3 py-1.5 rounded-lg bg-[#00236F] hover:bg-[#1E3A8A] text-white font-bold text-[11px] transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                    title="Quét chuỗi QR mặt trước thẻ CCCD gắn chip (phân cách bằng dấu |)"
+                  >
+                    <span>📱 Quét QR Mặt Trước CCCD (0.5s)</span>
+                  </button>
                   <button
                     type="button"
                     onClick={() => handleSelectFormType(selectedFormType, 'ERROR_DEMO')}
@@ -1569,10 +1593,20 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
                   )}
 
-                  {/* Footer Meta */}
-                  <div className="pt-2 border-t border-[#EAEDFF] flex items-center justify-between text-[10px] text-[#757682] font-mono">
-                    <span>Mã tra cứu: {precheckResult.submissionId}</span>
-                    <span>Xử lý: {precheckResult.processingTimeMs}ms</span>
+                  {/* Footer Meta & Quick Officer Desk Link */}
+                  <div className="pt-2 border-t border-[#EAEDFF] flex flex-col gap-2">
+                    <div className="flex items-center justify-between text-[10px] text-[#757682] font-mono">
+                      <span>Mã tra cứu: {precheckResult.submissionId}</span>
+                      <span>Xử lý: {precheckResult.processingTimeMs}ms</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/officer/ward/${currentWard.code}?tab=FORMS`)}
+                      className="w-full py-2 px-3 rounded-xl bg-[#F2F3FF] hover:bg-[#EAEDFF] text-[#00236F] border border-[#DAE2FD] text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                    >
+                      <span>Xem Hồ Sơ Vừa Kiểm Tra Trên Bàn Cán Bộ ({currentWard.name})</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               ) : (

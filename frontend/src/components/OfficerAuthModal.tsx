@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useRole } from '../context/RoleContext';
 import { useWard } from '../context/WardContext';
 import { ShieldCheck, Lock, KeyRound, X, Check, ArrowRight, UserCheck } from 'lucide-react';
@@ -13,10 +14,18 @@ interface OfficerAuthModalProps {
 export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { officerProfile, loginAsOfficer } = useRole();
   const { currentWard } = useWard();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [badgeId, setBadgeId] = useState(officerProfile.badgeId);
   const [pin, setPin] = useState('8942');
   const [error, setError] = useState<string | null>(null);
+
+  const navigateToOfficerDeskIfNeeded = () => {
+    if (!location.pathname.startsWith('/officer/ward/')) {
+      navigate(`/officer/ward/${currentWard.code}`);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,6 +37,7 @@ export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onCl
     if (success) {
       if (onSuccess) onSuccess();
       onClose();
+      navigateToOfficerDeskIfNeeded();
     } else {
       setError('Mã thẻ hoặc mã PIN không hợp lệ.');
     }
@@ -37,6 +47,7 @@ export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onCl
     loginAsOfficer('CC-AG-8942', '8942');
     if (onSuccess) onSuccess();
     onClose();
+    navigateToOfficerDeskIfNeeded();
   };
 
   if (!isOpen) return null;
@@ -46,7 +57,7 @@ export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onCl
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
-      className="fixed inset-0 z-[9999] overflow-y-auto flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn"
+      className="fixed top-0 left-0 w-screen h-screen z-[9999] overflow-y-auto flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-fadeIn"
       style={{ margin: 0 }}
     >
       <div className="relative w-full max-w-md my-auto rounded-3xl bg-white border border-[#EAEDFF] shadow-2xl p-5 sm:p-6 overflow-hidden">

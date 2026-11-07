@@ -68,12 +68,44 @@ export function isProcedureListQuery(query: string): boolean {
 export type SmallTalkType = 'GREETING' | 'WELLBEING' | 'THANKS' | 'GOODBYE' | 'HELP' | 'NONE';
 
 /**
+ * Checks if the citizen is reporting or asking to report a field/infrastructure incident
+ * (e.g., "chỗ tôi hư đường", "sạt lở", "ngập nước", "bạn có thể giúp tôi báo lên cán bộ không")
+ */
+export function isIncidentReportQuery(query: string): boolean {
+  const q = query.trim().toLowerCase().replace(/[!?.,;:]+$/, '');
+  if (!q) return false;
+  const qNoAccent = removeVietnameseAccents(q);
+
+  for (const kw of PROCEDURE_KEYWORDS) {
+    if (q.includes(kw) || qNoAccent.includes(removeVietnameseAccents(kw))) {
+      return false;
+    }
+  }
+
+  const incidentPatterns = [
+    'hư đường', 'hu duong', 'ổ gà', 'o ga', 'sụp cống', 'sup cong', 'bể ống nước', 'be ong nuoc',
+    'sạt lở', 'sat lo', 'ngập nước', 'ngap nuoc', 'triều cường', 'trieu cuong',
+    'đứt dây điện', 'dut day dien', 'cháy đèn đường', 'chay den duong', 'mất đèn đường',
+    'cây ngã', 'cay nga', 'cây đổ', 'cay do', 'rác thải', 'rac thai', 'ô nhiễm', 'o nhiem',
+    'báo sự cố', 'bao su co', 'báo tin khẩn', 'bao tin khan', 'phản ánh hiện trường', 'phan anh hien truong',
+    'báo lên cán bộ', 'bao len can bo', 'báo cán bộ', 'bao can bo', 'báo cho xã', 'bao cho xa', 'báo công an xã'
+  ];
+
+  return incidentPatterns.some((p) => q.includes(p) || qNoAccent.includes(removeVietnameseAccents(p)));
+}
+
+/**
  * Classifies conversational small talk or greetings
  */
 export function classifySmallTalk(query: string): { matched: boolean; type: SmallTalkType } {
   const q = query.trim().toLowerCase().replace(/[!?.,;:]+$/, '');
   if (!q) return { matched: false, type: 'NONE' };
   const qNoAccent = removeVietnameseAccents(q);
+
+  // Do not classify field incident reports as generic small talk / help
+  if (isIncidentReportQuery(query)) {
+    return { matched: false, type: 'NONE' };
+  }
 
   // If query explicitly contains specific procedure keywords, it is a PROCEDURE query!
   for (const kw of PROCEDURE_KEYWORDS) {
