@@ -267,16 +267,36 @@ export const FormAndIssueReporting: React.FC = () => {
       incidentMapInstanceRef.current = null;
     }
 
-    const map = L.map(incidentMapContainerRef.current, {
+    const container = incidentMapContainerRef.current;
+    const map = L.map(container, {
       zoomControl: false,
+      preferCanvas: true,
     }).setView([latitude, longitude], 17);
 
     L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
       maxZoom: 19,
-    }).addTo(map);
+      keepBuffer: 4,
+    });
+
+    tileLayer.on('tileerror', (err: any) => {
+      const tile = err?.tile as HTMLImageElement | undefined;
+      if (tile && !tile.dataset.retried) {
+        tile.dataset.retried = '1';
+        setTimeout(() => {
+          const currentSrc = tile.src;
+          if (currentSrc) {
+            tile.src = currentSrc.includes('?')
+              ? `${currentSrc}&retry=${Date.now()}`
+              : `${currentSrc}?retry=${Date.now()}`;
+          }
+        }, 400);
+      }
+    });
+
+    tileLayer.addTo(map);
 
     const pinIcon = L.divIcon({
       className: 'custom-pin-marker',
@@ -320,12 +340,29 @@ export const FormAndIssueReporting: React.FC = () => {
     incidentMarkerRef.current = marker;
     incidentRadiusCircleRef.current = radiusCircle;
 
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-    }, 150);
+    const rafId = requestAnimationFrame(() => map.invalidateSize({ animate: false }));
+    const t1 = setTimeout(() => map.invalidateSize({ animate: false }), 100);
+    const t2 = setTimeout(() => map.invalidateSize({ animate: false }), 350);
+    const t3 = setTimeout(() => map.invalidateSize({ animate: false }), 700);
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        if (incidentMapInstanceRef.current) {
+          incidentMapInstanceRef.current.invalidateSize({ animate: false });
+        }
+      });
+      resizeObserver.observe(container);
+    }
 
     return () => {
-      clearTimeout(timer);
+      cancelAnimationFrame(rafId);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
       map.remove();
       incidentMapInstanceRef.current = null;
       incidentMarkerRef.current = null;

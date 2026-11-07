@@ -188,16 +188,16 @@ export const PerWardDashboard: React.FC = () => {
     }
   };
 
-  // Incidents Dataset with Rich Context for Progressive Disclosure
-  const [incidents, setIncidents] = useState<LocalIncident[]>([
+  // Build ward-scoped default incidents around the selected ward's coordinates
+  const buildDefaultWardIncidents = (targetWard: WardItem): LocalIncident[] => [
     {
-      id: 'INC-AG-001',
+      id: `INC-${targetWard.code}-001`,
       category: 'Cơ sở hạ tầng',
       title: 'Đường sạt lở mé sông, xuất hiện ổ gà lớn sau mưa lớn',
       description: 'Đoạn đường ven mé sông sạt lở ăn sâu vào lòng đường khoảng 1.2m, tiềm ẩn nguy cơ tai nạn giao thông vào ban đêm. Đã có 3 người dân cùng phản ánh trong sáng nay.',
-      address: `Gần cầu ngã ba, ${ward.name}, ${ward.province}`,
-      lat: ward.lat + 0.003,
-      lon: ward.lon + 0.002,
+      address: `Gần cầu ngã ba, ${targetWard.name}, ${targetWard.province}`,
+      lat: targetWard.lat + 0.0022,
+      lon: targetWard.lon + 0.0018,
       reportedTime: '08:15 Sáng nay',
       status: 'IN_PROGRESS',
       urgency: 'HIGH',
@@ -206,13 +206,13 @@ export const PerWardDashboard: React.FC = () => {
       officerNote: 'Đã cử cán bộ Địa chính - Xây dựng xuống khảo sát, căng dây cảnh báo nguy hiểm.',
     },
     {
-      id: 'INC-AG-002',
+      id: `INC-${targetWard.code}-002`,
       category: 'Chiếu sáng đô thị',
       title: 'Hệ thống đèn đường chập chờn đoạn trước trường học',
       description: 'Trụ đèn số 04 trước cổng trường tiểu học bị chập chớp tắt liên tục, học sinh tan học buổi tối gặp khó khăn khi qua đường.',
-      address: `Trục đường chính, ${ward.name}, ${ward.province}`,
-      lat: ward.lat - 0.002,
-      lon: ward.lon + 0.004,
+      address: `Trục đường chính, ${targetWard.name}, ${targetWard.province}`,
+      lat: targetWard.lat - 0.0018,
+      lon: targetWard.lon + 0.0028,
       reportedTime: 'Hôm qua, 18:30',
       status: 'PENDING',
       urgency: 'MEDIUM',
@@ -220,13 +220,13 @@ export const PerWardDashboard: React.FC = () => {
       reporterPhone: '0903.***.882',
     },
     {
-      id: 'INC-AG-003',
+      id: `INC-${targetWard.code}-003`,
       category: 'Môi trường & Rác thải',
       title: 'Ùn ứ rác sinh hoạt tại khu vực chợ dân sinh',
       description: 'Điểm tập kết rác tạm sau phiên chợ chiều chưa được xe thu gom chuyển đi, gây mùi khó chịu.',
-      address: `Cổng chợ địa phương, ${ward.name}, ${ward.province}`,
-      lat: ward.lat + 0.001,
-      lon: ward.lon - 0.003,
+      address: `Cổng chợ địa phương, ${targetWard.name}, ${targetWard.province}`,
+      lat: targetWard.lat + 0.0012,
+      lon: targetWard.lon - 0.0024,
       reportedTime: 'Hôm qua, 09:00',
       status: 'RESOLVED',
       urgency: 'LOW',
@@ -235,43 +235,43 @@ export const PerWardDashboard: React.FC = () => {
       officerNote: 'Đội vệ sinh môi trường đã hoàn tất thu dọn và phun tiêu độc khử trùng lúc 10h30.',
     },
     {
-      id: 'INC-AG-004',
+      id: `INC-${targetWard.code}-004`,
       category: 'Cơ sở hạ tầng',
-      title: 'Cầu gỗ dân sinh bắc qua mương rạch bị nứt gãy ván lót',
-      description: 'Cầu ván qua kênh rạch có 2 thanh gỗ bị mục gãy, xe máy qua lại nguy hiểm. Cần bố trí ván thay thế gấp.',
-      address: `Tổ 4, Ấp An Hòa, ${ward.name}, ${ward.province}`,
-      lat: ward.lat + 0.004,
-      lon: ward.lon - 0.001,
+      title: 'Cầu dân sinh bắc qua mương rạch bị hư hỏng mặt cầu',
+      description: 'Mặt cầu qua kênh rạch có nhịp bị nứt gãy, xe máy qua lại nguy hiểm. Cần bố trí gia cố gấp.',
+      address: `Tổ 4, Khu dân cư trung tâm, ${targetWard.name}, ${targetWard.province}`,
+      lat: targetWard.lat + 0.0031,
+      lon: targetWard.lon - 0.0012,
       reportedTime: '2 ngày trước',
       status: 'IN_PROGRESS',
       urgency: 'HIGH',
       duplicatesMerged: 4,
       reporterPhone: '0939.***.672',
-      officerNote: 'Trưởng ấp đã tạm thời rào chắn và liên hệ đơn vị sửa chữa dân sinh.',
+      officerNote: 'Tổ công tác đã tạm thời rào chắn và liên hệ đơn vị sửa chữa dân sinh.',
     },
     {
-      id: 'INC-AG-005',
+      id: `INC-${targetWard.code}-005`,
       category: 'An ninh trật tự',
       title: 'Tụ tập hát karaoke loa kéo công suất lớn quá giờ quy định',
       description: 'Hát loa kéo mở âm lượng lớn từ 22h30 đến khuya gây mất trật tự giấc ngủ khu dân cư.',
-      address: `Khu dân cư kênh mới, ${ward.name}, ${ward.province}`,
-      lat: ward.lat - 0.003,
-      lon: ward.lon - 0.002,
+      address: `Khu dân cư kênh mới, ${targetWard.name}, ${targetWard.province}`,
+      lat: targetWard.lat - 0.0025,
+      lon: targetWard.lon - 0.0019,
       reportedTime: '3 ngày trước',
       status: 'RESOLVED',
       urgency: 'MEDIUM',
       duplicatesMerged: 2,
       reporterPhone: '0988.***.543',
-      officerNote: 'Công an xã đã xuống nhắc nhở, hộ gia đình đã ký cam kết không tái phạm.',
+      officerNote: 'Công an địa phương đã xuống nhắc nhở, hộ gia đình đã ký cam kết không tái phạm.',
     },
     {
-      id: 'INC-AG-006',
+      id: `INC-${targetWard.code}-006`,
       category: 'Môi trường & Rác thải',
-      title: 'Cống thoát nước trục lộ liên xã bị tắc nghẽn lục bình',
-      description: 'Lục bình dồn ứ sau đợt nước rút làm nghẽn dòng chảy tiêu thoát mương.',
-      address: `Ngay cống Ba Răng, ${ward.name}, ${ward.province}`,
-      lat: ward.lat + 0.002,
-      lon: ward.lon + 0.003,
+      title: 'Cống thoát nước trục lộ chính bị tắc nghẽn sau mưa',
+      description: 'Rác và lục bình dồn ứ sau đợt mưa lớn làm nghẽn dòng chảy tiêu thoát nước.',
+      address: `Tuyến đường liên khóm/ấp, ${targetWard.name}, ${targetWard.province}`,
+      lat: targetWard.lat + 0.0019,
+      lon: targetWard.lon + 0.0026,
       reportedTime: '3 ngày trước',
       status: 'RESOLVED',
       urgency: 'LOW',
@@ -279,13 +279,13 @@ export const PerWardDashboard: React.FC = () => {
       reporterPhone: '0912.***.334',
     },
     {
-      id: 'INC-AG-007',
+      id: `INC-${targetWard.code}-007`,
       category: 'Cơ sở hạ tầng',
-      title: 'Biển báo giao thông cua dốc nguy hiểm bị cây cối che khuất',
-      description: 'Cành cây mọc sum sê che mất biển báo đường cong nguy hiểm trên tuyến lộ.',
-      address: `Đoạn dốc cầu Kênh Ranh, ${ward.name}, ${ward.province}`,
-      lat: ward.lat - 0.001,
-      lon: ward.lon + 0.001,
+      title: 'Biển báo giao thông khúc cua bị cây cối che khuất',
+      description: 'Cành cây mọc sum sê che mất biển báo giao thông trên tuyến lộ chính.',
+      address: `Đoạn giao lộ trung tâm, ${targetWard.name}, ${targetWard.province}`,
+      lat: targetWard.lat - 0.0011,
+      lon: targetWard.lon + 0.0014,
       reportedTime: '4 ngày trước',
       status: 'PENDING',
       urgency: 'MEDIUM',
@@ -293,20 +293,23 @@ export const PerWardDashboard: React.FC = () => {
       reporterPhone: '0966.***.990',
     },
     {
-      id: 'INC-AG-008',
+      id: `INC-${targetWard.code}-008`,
       category: 'Chiếu sáng đô thị',
       title: 'Đèn đường chiếu sáng khu vực nhà sinh hoạt cộng đồng bị cháy',
-      description: 'Bóng đèn cao áp trước sân nhà sinh hoạt ấp bị cháy bóng 3 ngày nay.',
-      address: `Nhà văn hóa ấp Trung, ${ward.name}, ${ward.province}`,
-      lat: ward.lat + 0.005,
-      lon: ward.lon - 0.004,
+      description: 'Bóng đèn cao áp trước sân nhà sinh hoạt cộng đồng bị cháy bóng 3 ngày nay.',
+      address: `Nhà sinh hoạt cộng đồng, ${targetWard.name}, ${targetWard.province}`,
+      lat: targetWard.lat + 0.0036,
+      lon: targetWard.lon - 0.0031,
       reportedTime: '5 ngày trước',
       status: 'RESOLVED',
       urgency: 'LOW',
       duplicatesMerged: 2,
       reporterPhone: '0944.***.765',
     },
-  ]);
+  ];
+
+  // Incidents Dataset with Rich Context for Progressive Disclosure
+  const [incidents, setIncidents] = useState<LocalIncident[]>(() => buildDefaultWardIncidents(ward));
 
   // Sync live citizen-submitted incidents routed to this ward
   useEffect(() => {
@@ -521,40 +524,140 @@ export const PerWardDashboard: React.FC = () => {
 
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const markersLayerRef = useRef<L.LayerGroup | null>(null);
 
-  // Initialize Leaflet map for ward incidents
+  // Initialize Leaflet map container when MAP tab is active, with ResizeObserver to prevent gray partial tiles
   useEffect(() => {
-    if (activeTab !== 'MAP' || !mapContainerRef.current) return;
-
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.remove();
-      mapInstanceRef.current = null;
+    if (activeTab !== 'MAP' || !mapContainerRef.current) {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+        markersLayerRef.current = null;
+      }
+      return;
     }
 
-    const map = L.map(mapContainerRef.current, {
-      zoomControl: false,
-    }).setView([ward.lat, ward.lon], 15);
+    const container = mapContainerRef.current;
 
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
+    if (!mapInstanceRef.current) {
+      const map = L.map(container, {
+        zoomControl: false,
+        preferCanvas: true,
+      }).setView([ward.lat, ward.lon], 15);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 19,
-    }).addTo(map);
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-    // Add headquarters marker
+      const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19,
+        keepBuffer: 4,
+      });
+
+      // Automatically retry failed tiles so network hiccups never leave blank gray boxes
+      tileLayer.on('tileerror', (err: any) => {
+        const tile = err?.tile as HTMLImageElement | undefined;
+        if (tile && !tile.dataset.retried) {
+          tile.dataset.retried = '1';
+          setTimeout(() => {
+            const currentSrc = tile.src;
+            if (currentSrc) {
+              tile.src = currentSrc.includes('?')
+                ? `${currentSrc}&retry=${Date.now()}`
+                : `${currentSrc}?retry=${Date.now()}`;
+            }
+          }, 400);
+        }
+      });
+
+      tileLayer.addTo(map);
+      const markersLayer = L.layerGroup().addTo(map);
+
+      mapInstanceRef.current = map;
+      markersLayerRef.current = markersLayer;
+    }
+
+    const map = mapInstanceRef.current;
+
+    // Multi-stage invalidateSize + ResizeObserver so container dimensions are always 100% accurate
+    const rafId = requestAnimationFrame(() => {
+      map.invalidateSize({ animate: false });
+    });
+    const t1 = setTimeout(() => map.invalidateSize({ animate: false }), 100);
+    const t2 = setTimeout(() => map.invalidateSize({ animate: false }), 350);
+    const t3 = setTimeout(() => map.invalidateSize({ animate: false }), 700);
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== 'undefined') {
+      resizeObserver = new ResizeObserver(() => {
+        if (mapInstanceRef.current) {
+          mapInstanceRef.current.invalidateSize({ animate: false });
+        }
+      });
+      resizeObserver.observe(container);
+    }
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+      }
+    };
+  }, [activeTab]);
+
+  // Update map camera & incident markers whenever ward or incidents change (without destroying the map!)
+  useEffect(() => {
+    if (activeTab !== 'MAP' || !mapInstanceRef.current || !markersLayerRef.current) return;
+
+    const map = mapInstanceRef.current;
+    const markersLayer = markersLayerRef.current;
+
+    markersLayer.clearLayers();
+    map.setView([ward.lat, ward.lon], 15, { animate: false });
+    map.invalidateSize({ animate: false });
+
+    // 1. Add Ward Administrative Coverage Circle (R = 500m overview) & HQ Marker
+    L.circle([ward.lat, ward.lon], {
+      radius: 450,
+      color: '#00236F',
+      weight: 1.5,
+      dashArray: '6, 6',
+      fillColor: '#38BDF8',
+      fillOpacity: 0.07,
+    }).addTo(markersLayer);
+
     const hqIcon = L.divIcon({
       className: 'custom-hq-marker',
-      html: `<div class="px-3 py-1 rounded-xl bg-[#00236F] text-white border-2 border-white shadow-md text-[11px] font-bold text-center whitespace-nowrap">UBND ${ward.name}</div>`,
-      iconSize: [120, 28],
-      iconAnchor: [60, 14],
+      html: `<div class="px-3 py-1 rounded-xl bg-[#00236F] text-white border-2 border-white shadow-lg text-[11px] font-bold text-center whitespace-nowrap">🏛️ UBND ${ward.name}</div>`,
+      iconSize: [145, 28],
+      iconAnchor: [72, 14],
     });
-    L.marker([ward.lat, ward.lon], { icon: hqIcon }).addTo(map);
+    L.marker([ward.lat, ward.lon], { icon: hqIcon })
+      .addTo(markersLayer)
+      .bindPopup(
+        `<div class="p-2 text-xs font-sans">
+          <b class="text-[#00236F] block mb-1">Trụ sở UBND ${ward.name}</b>
+          <span class="text-[#64748B] block mb-1">${ward.officeAddress}</span>
+          <span class="text-[11px] font-bold text-[#00687A]">📞 Hotline: ${ward.phoneNumber}</span>
+        </div>`
+      );
 
-    // Add incident markers
+    // 2. Add Incident Markers + R=25m Spatial Deduplication Circles
     incidents.forEach((inc) => {
       const markerColor =
         inc.urgency === 'HIGH' ? '#DC2626' : inc.urgency === 'MEDIUM' ? '#D97706' : '#00687A';
+
+      // R = 25m spatial clustering radius ring around each incident hotspot
+      L.circle([inc.lat, inc.lon], {
+        radius: 25,
+        color: markerColor,
+        weight: 1.5,
+        fillColor: markerColor,
+        fillOpacity: 0.2,
+      }).addTo(markersLayer);
+
       const incIcon = L.divIcon({
         className: 'custom-inc-marker',
         html: `<div style="background-color: ${markerColor}" class="w-7 h-7 rounded-full border-2 border-white shadow-md flex items-center justify-center text-white text-xs font-bold cursor-pointer hover:scale-110 transition-transform">!</div>`,
@@ -562,48 +665,95 @@ export const PerWardDashboard: React.FC = () => {
         iconAnchor: [14, 14],
       });
 
-      L.marker([inc.lat, inc.lon], { icon: incIcon })
-        .addTo(map)
+      const marker = L.marker([inc.lat, inc.lon], { icon: incIcon })
+        .addTo(markersLayer)
         .bindPopup(
           `<div class="p-2 text-xs font-sans">
             <b class="text-[#00236F] block mb-1">${inc.title}</b>
             <span class="text-[#64748B] block mb-1">${inc.address}</span>
             <div class="flex items-center gap-2 mt-1">
               <span class="px-2 py-0.5 rounded text-[10px] font-bold text-white" style="background:${markerColor}">${inc.urgency}</span>
-              <span class="text-[10px] text-[#334155] font-semibold">+${inc.duplicatesMerged} trùng</span>
+              <span class="text-[10px] text-[#334155] font-semibold">Gộp ${inc.duplicatesMerged} báo cáo (R=25m)</span>
             </div>
           </div>`
         );
+
+      marker.on('dblclick', () => {
+        setSelectedIncident(inc);
+      });
     });
+  }, [activeTab, ward.code, ward.lat, ward.lon, ward.name, ward.officeAddress, ward.phoneNumber, incidents]);
 
-    mapInstanceRef.current = map;
-
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-    }, 150);
-
+  // Clean up map instance on component unmount
+  useEffect(() => {
     return () => {
-      clearTimeout(timer);
-      map.remove();
-      mapInstanceRef.current = null;
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+        markersLayerRef.current = null;
+      }
     };
-  }, [activeTab, ward, incidents]);
+  }, []);
 
-  // Sync incidents from localStorage and Backend Clusters API
+  // Sync incidents from ward defaults, localStorage, live citizen reports, and Backend Clusters API
   useEffect(() => {
     let mounted = true;
     const storageKey = `smartward_incidents_${ward.code}`;
+    let baseIncidents = buildDefaultWardIncidents(ward);
+
     const saved = localStorage.getItem(storageKey);
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          setIncidents(parsed);
+          // Verify saved incidents actually belong near this ward (within ~0.08 deg ~ 8km)
+          const belongsToWard = parsed.some(
+            (p: any) =>
+              typeof p.lat === 'number' &&
+              typeof p.lon === 'number' &&
+              Math.abs(p.lat - ward.lat) < 0.08 &&
+              Math.abs(p.lon - ward.lon) < 0.08
+          );
+          if (belongsToWard) {
+            baseIncidents = parsed;
+          }
         }
       } catch {
         // ignore
       }
     }
+
+    // Merge any live citizen-submitted incidents routed to this ward
+    const liveAll = getLiveSubmittedIncidents();
+    const matchingLive: LocalIncident[] = liveAll
+      .filter(
+        (item) =>
+          item.wardCode === ward.code ||
+          item.wardName.toLowerCase() === ward.name.toLowerCase()
+      )
+      .map((item) => ({
+        id: item.id,
+        category: item.category,
+        title: item.title,
+        description: item.description,
+        address: item.address,
+        lat: item.lat,
+        lon: item.lon,
+        reportedTime: item.reportedTime,
+        status: item.status,
+        urgency: item.urgency,
+        duplicatesMerged: item.duplicatesMerged,
+        reporterPhone: item.reporterPhone,
+        reporterHomeWardName: item.reporterHomeWardName,
+        officerNote: item.officerNote,
+      }));
+
+    const existingBaseIds = new Set(baseIncidents.map((i) => i.id));
+    const mergedInitial = [
+      ...matchingLive.filter((m) => !existingBaseIds.has(m.id)),
+      ...baseIncidents,
+    ];
+    setIncidents(mergedInitial);
 
     getIssueClusters().then((clusters) => {
       if (!mounted || !clusters || clusters.length === 0) return;
@@ -1375,6 +1525,20 @@ export const PerWardDashboard: React.FC = () => {
                 <span className="flex items-center gap-1">
                   <span className="w-2.5 h-2.5 rounded-full bg-[#00687A]" /> Đã xử lý
                 </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (mapInstanceRef.current) {
+                      mapInstanceRef.current.invalidateSize({ animate: false });
+                      mapInstanceRef.current.flyTo([ward.lat, ward.lon], 15, { duration: 0.8 });
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-lg border border-[#CBD5E1] bg-[#F2F3FF] hover:bg-[#EAEDFF] text-xs font-bold text-[#00236F] flex items-center gap-1 transition cursor-pointer"
+                  title="Định tâm lại bản đồ về trụ sở UBND và các điểm nóng trong địa bàn"
+                >
+                  <MapPin className="w-3.5 h-3.5 text-[#00687A]" />
+                  <span>Định Tâm Địa Bàn</span>
+                </button>
                 <button
                   type="button"
                   onClick={handleRebuildGeoIndex}

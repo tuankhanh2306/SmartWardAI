@@ -34,14 +34,34 @@ export const WardOnboarding: React.FC = () => {
     if (!mapContainerRef.current) return;
 
     if (!mapInstanceRef.current) {
-      const map = L.map(mapContainerRef.current, {
+      const container = mapContainerRef.current;
+      const map = L.map(container, {
         zoomControl: false,
+        preferCanvas: true,
       }).setView([selected.lat, selected.lon], 14);
 
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
         maxZoom: 19,
-      }).addTo(map);
+        keepBuffer: 4,
+      });
+
+      tileLayer.on('tileerror', (err: any) => {
+        const tile = err?.tile as HTMLImageElement | undefined;
+        if (tile && !tile.dataset.retried) {
+          tile.dataset.retried = '1';
+          setTimeout(() => {
+            const currentSrc = tile.src;
+            if (currentSrc) {
+              tile.src = currentSrc.includes('?')
+                ? `${currentSrc}&retry=${Date.now()}`
+                : `${currentSrc}?retry=${Date.now()}`;
+            }
+          }, 400);
+        }
+      });
+
+      tileLayer.addTo(map);
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
 
@@ -75,12 +95,27 @@ export const WardOnboarding: React.FC = () => {
       mapInstanceRef.current = map;
       markerRef.current = marker;
 
-      const timer = setTimeout(() => {
-        map.invalidateSize();
-      }, 150);
+      const rafId = requestAnimationFrame(() => map.invalidateSize({ animate: false }));
+      const t1 = setTimeout(() => map.invalidateSize({ animate: false }), 100);
+      const t2 = setTimeout(() => map.invalidateSize({ animate: false }), 350);
+
+      let resizeObserver: ResizeObserver | null = null;
+      if (typeof ResizeObserver !== 'undefined') {
+        resizeObserver = new ResizeObserver(() => {
+          if (mapInstanceRef.current) {
+            mapInstanceRef.current.invalidateSize({ animate: false });
+          }
+        });
+        resizeObserver.observe(container);
+      }
 
       return () => {
-        clearTimeout(timer);
+        cancelAnimationFrame(rafId);
+        clearTimeout(t1);
+        clearTimeout(t2);
+        if (resizeObserver) {
+          resizeObserver.disconnect();
+        }
       };
     } else {
       // Smooth camera flight to selected ward
