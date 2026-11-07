@@ -547,25 +547,20 @@ export const PerWardDashboard: React.FC = () => {
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-      const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap contributors',
-        maxZoom: 19,
+      const tileLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=vi', {
+        subdomains: ['0', '1', '2', '3'],
+        attribution: '&copy; Google Maps &bull; Dữ liệu GIS Hành chính An Giang',
+        maxZoom: 20,
         keepBuffer: 4,
       });
 
-      // Automatically retry failed tiles so network hiccups never leave blank gray boxes
+      // Automatically fall back to CartoDB Voyager CDN if any tile request fails
       tileLayer.on('tileerror', (err: any) => {
         const tile = err?.tile as HTMLImageElement | undefined;
-        if (tile && !tile.dataset.retried) {
-          tile.dataset.retried = '1';
-          setTimeout(() => {
-            const currentSrc = tile.src;
-            if (currentSrc) {
-              tile.src = currentSrc.includes('?')
-                ? `${currentSrc}&retry=${Date.now()}`
-                : `${currentSrc}?retry=${Date.now()}`;
-            }
-          }, 400);
+        const coords = err?.coords;
+        if (tile && coords && !tile.dataset.fallback) {
+          tile.dataset.fallback = '1';
+          tile.src = `https://a.basemaps.cartocdn.com/rastertiles/voyager/${coords.z}/${coords.x}/${coords.y}.png`;
         }
       });
 
