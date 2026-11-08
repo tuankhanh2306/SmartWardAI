@@ -26,8 +26,8 @@ export const App: React.FC = () => {
               {/* Global Administrative Header with Role-Based Navigation */}
               <Header />
 
-              {/* Content Viewport with top offset for fixed header */}
-              <div className="pt-16 flex-1 flex flex-col">
+              {/* Content Viewport with top offset for fixed header and bottom offset for mobile tab bar */}
+              <div className="pt-14 sm:pt-16 pb-16 lg:pb-0 flex-1 flex flex-col">
                 <Routes>
                   {/* Common / Geographic Routes */}
                   <Route path="/onboarding" element={<WardOnboarding />} />

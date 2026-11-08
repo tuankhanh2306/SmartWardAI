@@ -9,12 +9,14 @@
     font-family: 'Be Vietnam Pro', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
+    font-variant-numeric: tabular-nums;
   }
   
   body {
     overscroll-behavior: none;
-    background-color: #FAF8FF;
-    color: #131B2E;
+    background-color: #F8FAFC;
+    color: #0F172A;
   }
 }
 

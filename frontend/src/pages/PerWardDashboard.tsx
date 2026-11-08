@@ -841,34 +841,30 @@ export const PerWardDashboard: React.FC = () => {
       {/* ========================================================================= */}
       {/* 1. TOP CIVIC HEADER & REAL-TIME WARD SELECTOR (SYNCHRONIZED)              */}
       {/* ========================================================================= */}
-      <section className="bg-gradient-to-r from-[#00236F] via-[#1E3A8A] to-[#0A2540] text-white px-4 md:px-8 py-7 border-b border-[#CBD5E1]/30 shadow-sm">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-5">
-          <div className="flex items-start gap-4">
+      <section className="bg-[#0F2942] text-white px-4 md:px-8 py-5 border-b border-[#1E3A5F] shadow-xs">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
             <button
               onClick={() => navigate('/onboarding')}
-              className="p-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white transition active:scale-95 shrink-0 mt-0.5 cursor-pointer shadow-xs"
+              className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition active:scale-95 shrink-0 mt-0.5 cursor-pointer"
               title="Quay lại danh mục địa bàn"
             >
-              <ArrowLeft className="w-5 h-5" />
+              <ArrowLeft className="w-4 h-4" />
             </button>
             <div className="flex flex-col">
-              <div className="flex flex-wrap items-center gap-2 mb-1">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#57DFFE]/20 text-[#BAE6FD] border border-[#57DFFE]/40 uppercase tracking-wider">
-                  Bàn Làm Việc Cán Bộ Một Cửa
-                </span>
-                <span className="text-xs text-[#BAE6FD] font-medium">• Đề Án 06/CP Verified</span>
-              </div>
-
               {/* Synchronized Ward Header with Quick Select Dropdown */}
-              <div className="flex flex-wrap items-center gap-3">
-                <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight">
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/10 text-[#38BDF8] uppercase tracking-wider">
+                  Bàn Điều Hành
+                </span>
+                <h1 className="text-lg sm:text-xl md:text-2xl font-extrabold tracking-tight">
                   UBND {ward.name.toUpperCase()}
                 </h1>
                 <div className="relative">
                   <select
                     value={ward.code}
                     onChange={(e) => handleWardSelect(e.target.value)}
-                    className="bg-white/15 hover:bg-white/25 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-white/30 focus:outline-none focus:ring-2 focus:ring-[#57DFFE] transition cursor-pointer appearance-none pr-7"
+                    className="bg-white/10 hover:bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-white/20 focus:outline-none focus:ring-2 focus:ring-[#38BDF8] transition cursor-pointer appearance-none pr-7"
                     title="Đổi địa bàn xã/phường đang quản lý"
                   >
                     {AN_GIANG_WARDS.map((w) => (
@@ -881,14 +877,14 @@ export const PerWardDashboard: React.FC = () => {
                 </div>
               </div>
 
-              <p className="text-xs sm:text-sm text-white/80 mt-1 flex flex-wrap items-center gap-2">
+              <p className="text-xs text-white/75 mt-1 flex flex-wrap items-center gap-2">
                 <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-[#57DFFE]" />
+                  <MapPin className="w-3.5 h-3.5 text-[#38BDF8]" />
                   {ward.officeAddress}
                 </span>
                 <span className="hidden sm:inline">•</span>
                 <span className="flex items-center gap-1">
-                  <PhoneCall className="w-3.5 h-3.5 text-[#57DFFE]" />
+                  <PhoneCall className="w-3.5 h-3.5 text-[#38BDF8]" />
                   Hotline: <strong>{ward.phoneNumber}</strong>
                 </span>
               </p>
@@ -896,24 +892,24 @@ export const PerWardDashboard: React.FC = () => {
           </div>
 
           {/* Quick Action Navigation Dock */}
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => {
                 setWard(ward);
                 logoutToCitizen();
               }}
-              className="px-3.5 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold border border-white/20 transition active:scale-95 cursor-pointer flex items-center gap-1.5"
-              title="Đăng xuất khỏi Bàn Cán Bộ và chuyển sang Cổng Công Dân"
+              className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold border border-white/15 transition active:scale-95 cursor-pointer flex items-center gap-1.5"
+              title="Chuyển sang Cổng Công Dân"
             >
-              <ExternalLink className="w-3.5 h-3.5 text-[#57DFFE]" />
-              <span>Giao Diện Dân Sinh</span>
+              <ExternalLink className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <span>Cổng Dân Sinh</span>
             </button>
             <button
               onClick={() => handleTabChange('FORMS')}
-              className="px-3.5 py-2 bg-[#57DFFE] hover:bg-[#38BDF8] text-[#00236F] rounded-xl text-xs font-bold shadow-md transition active:scale-95 cursor-pointer flex items-center gap-1.5"
+              className="px-3.5 py-2 bg-[#0F766E] hover:bg-[#115E59] text-white rounded-xl text-xs font-bold shadow-xs transition active:scale-95 cursor-pointer flex items-center gap-1.5"
             >
               <FileCheck2 className="w-3.5 h-3.5" />
-              <span>Sơ Duyệt Tờ Khai ({dossiers.length}) ❯</span>
+              <span>Duyệt Tờ Khai ({dossiers.length}) ❯</span>
             </button>
           </div>
         </div>

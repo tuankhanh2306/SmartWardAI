@@ -476,121 +476,93 @@ export const CitizenPortal: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col w-full pb-20">
-      {/* CIVIC HERO BANNER: Warm, Respectful, Trust-First (Anti-Slop) */}
-      <section className="relative w-full bg-gradient-to-b from-[#EAEDFF]/70 via-[#F5F7FF]/50 to-white px-4 md:px-8 pt-8 pb-10 border-b border-[#DAE2FD] overflow-hidden">
-        {/* Soft Civic Ambient Glow */}
-        <div className="absolute -right-24 -top-24 w-96 h-96 rounded-full bg-[#38BDF8]/15 blur-3xl pointer-events-none" />
-        <div className="absolute left-1/4 -bottom-24 w-96 h-96 rounded-full bg-[#00236F]/10 blur-3xl pointer-events-none" />
-
-        <div className="max-w-7xl mx-auto flex flex-col gap-5 relative z-10">
-          {/* Top Triage Ribbon: Ward Badge + Operating Status + Policy Seals */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white border border-[#CBD5E1] shadow-xs">
-              <span className={`w-2.5 h-2.5 rounded-full ${isOfficeOpen ? 'bg-[#10B981] animate-pulse' : 'bg-[#F59E0B]'}`} />
-              <span className="text-xs font-extrabold text-[#00236F] uppercase tracking-wider">
-                UBND {currentWard.name.toUpperCase()}
-              </span>
-              <span className="text-xs text-[#64748B] font-semibold">• TỈNH AN GIANG</span>
-              <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${isOfficeOpen ? 'bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0]' : 'bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]'}`}>
+    <div className="flex flex-col w-full pb-12">
+      {/* COMPACT CIVIC BAR: Clean, Trust-First, Zero Bloat */}
+      <section className="w-full bg-white px-4 md:px-8 py-4 border-b border-[#E2E8F0]">
+        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+          {/* Left: Ward Identity + Status + Hotline */}
+          <div className="flex flex-col gap-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className={`w-2.5 h-2.5 rounded-full ${isOfficeOpen ? 'bg-[#10B981]' : 'bg-[#F59E0B]'}`} />
+              <h1 className="text-lg sm:text-xl font-extrabold text-[#0F2942] tracking-tight">
+                Một Cửa UBND {currentWard.name}
+              </h1>
+              <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${isOfficeOpen ? 'bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0]' : 'bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]'}`}>
                 {officeStatusLabel}
               </span>
               <button
                 onClick={() => navigate('/onboarding')}
-                className="text-[11px] font-bold text-[#00236F] hover:text-[#1E3A8A] hover:underline flex items-center gap-1 border-l border-[#CBD5E1] pl-2.5 ml-1 cursor-pointer"
-                title="Bấm để chọn Xã/Phường khác tại An Giang"
+                className="text-xs font-bold text-[#0F766E] hover:underline flex items-center gap-1 pl-1 cursor-pointer"
+                title="Đổi Xã/Phường khác tại An Giang"
               >
-                <MapPin className="w-3.5 h-3.5 text-[#00687A]" />
-                <span>Đổi Xã/Phường</span>
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Đổi xã</span>
               </button>
             </div>
-
-            {/* Accessible Audio Auto-Play Toggle for Elderly Citizens */}
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setIsAudioAutoPlay(!isAudioAutoPlay)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer shadow-2xs ${
-                  isAudioAutoPlay
-                    ? 'bg-[#00236F] text-white border-[#00236F]'
-                    : 'bg-white text-[#475569] border-[#CBD5E1] hover:bg-[#F8FAFC]'
-                }`}
-                title="Bật/Tắt chế độ tự động đọc câu trả lời bằng giọng nói tiếng Việt cho bà con"
-              >
-                {isAudioAutoPlay ? <Volume2 className="w-3.5 h-3.5 text-[#57DFFE]" /> : <VolumeX className="w-3.5 h-3.5 text-[#94A3B8]" />}
-                <span>{isAudioAutoPlay ? 'Tự đọc to: Bật' : 'Tự đọc to: Tắt'}</span>
-              </button>
-
-              <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#DCE1FF] text-[#00164E]">
-                Nghị Định 13/2023
+            <div className="flex flex-wrap items-center gap-3 text-xs text-[#64748B]">
+              <span className="flex items-center gap-1">
+                <PhoneCall className="w-3.5 h-3.5 text-[#0F766E]" />
+                Hotline: <strong className="text-[#334155]">{currentWard.phoneNumber}</strong>
               </span>
-              <span className="px-2.5 py-1 rounded-md text-[11px] font-bold bg-[#ACEDFF] text-[#004E5C]">
-                Đề Án 06/CP
+              <span>•</span>
+              <span className="flex items-center gap-1">
+                <Calendar className="w-3.5 h-3.5 text-[#0F766E]" />
+                Giờ tiếp dân: <strong className="text-[#334155]">{currentWard.workingHours}</strong>
               </span>
             </div>
           </div>
 
-          {/* Main Hero Title & Welcoming Introduction */}
-          <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
-            <div className="max-w-3xl">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-[#00236F] tracking-tight leading-tight">
-                Trợ Lý Hành Chính Công UBND {currentWard.name}
-              </h1>
-              <p className="mt-2 text-sm md:text-base text-[#334155] leading-relaxed font-normal">
-                Tra cứu nhanh <strong>40 thủ tục cấp xã</strong>, kiểm tra tờ khai trước khi nộp và gửi phản ánh hiện trường trực tiếp.
-              </p>
-              <div className="mt-2 flex flex-wrap items-center gap-3 text-xs text-[#64748B]">
-                <span className="flex items-center gap-1">
-                  <PhoneCall className="w-3.5 h-3.5 text-[#00687A]" />
-                  Hotline: <strong>{currentWard.phoneNumber}</strong>
-                </span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <Calendar className="w-3.5 h-3.5 text-[#00687A]" />
-                  Giờ tiếp dân: <strong>{currentWard.workingHours}</strong>
-                </span>
-              </div>
-            </div>
+          {/* Right: Audio Toggle & Quick Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setIsAudioAutoPlay(!isAudioAutoPlay)}
+              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                isAudioAutoPlay
+                  ? 'bg-[#0F2942] text-white border-[#0F2942]'
+                  : 'bg-[#F8FAFC] text-[#475569] border-[#CBD5E1] hover:bg-[#F1F5F9]'
+              }`}
+              title="Bật/Tắt chế độ tự động đọc câu trả lời bằng giọng nói"
+            >
+              {isAudioAutoPlay ? <Volume2 className="w-3.5 h-3.5 text-[#38BDF8]" /> : <VolumeX className="w-3.5 h-3.5 text-[#94A3B8]" />}
+              <span>{isAudioAutoPlay ? 'Đọc tự động: Bật' : 'Đọc tự động: Tắt'}</span>
+            </button>
 
-            {/* Quick Action Navigation Buttons */}
-            <div className="flex items-center gap-3 shrink-0">
-              <button
-                onClick={() => navigate('/citizen/form')}
-                className="group px-4 py-2.5 bg-[#00236F] hover:bg-[#1E3A8A] text-white rounded-xl font-bold text-xs sm:text-sm shadow-md shadow-[#00236F]/20 active:scale-[0.97] transition-all flex items-center gap-2 cursor-pointer"
-              >
-                <FileCheck2 className="w-4 h-4 text-[#57DFFE]" />
-                <span>Kiểm Tra Tờ Khai (4 Mẫu)</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-              </button>
+            <button
+              onClick={() => navigate('/citizen/form')}
+              className="px-3.5 py-2 bg-[#0F2942] hover:bg-[#1E3A5F] text-white rounded-xl font-bold text-xs shadow-xs active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <FileCheck2 className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <span>Kiểm Tra Tờ Khai</span>
+            </button>
 
-              <button
-                onClick={() => navigate('/citizen/form#incident')}
-                className="px-4 py-2.5 bg-white text-[#00236F] border border-[#CBD5E1] rounded-xl font-bold text-xs sm:text-sm hover:bg-[#F1F5F9] active:scale-[0.97] transition-all shadow-xs flex items-center gap-1.5 cursor-pointer"
-              >
-                <AlertTriangle className="w-4 h-4 text-[#D97706]" />
-                <span>Báo Sự Cố (GPS)</span>
-              </button>
-            </div>
+            <button
+              onClick={() => navigate('/citizen/form#incident')}
+              className="px-3.5 py-2 bg-white text-[#0F2942] border border-[#CBD5E1] rounded-xl font-bold text-xs hover:bg-[#F1F5F9] active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer"
+            >
+              <AlertTriangle className="w-3.5 h-3.5 text-[#D97706]" />
+              <span>Báo Sự Cố</span>
+            </button>
           </div>
         </div>
       </section>
 
       {/* MOBILE RESPONSIVE SEGMENTED SWITCHER (< lg screens) */}
-      <div className="lg:hidden max-w-7xl mx-auto w-full px-4 mt-4">
-        <div className="flex rounded-xl bg-[#F1F5F9] p-1 border border-[#CBD5E1]">
+      <div className="lg:hidden max-w-7xl mx-auto w-full px-4 mt-3">
+        <div className="flex rounded-xl bg-[#E2E8F0]/70 p-1 border border-[#CBD5E1]">
           <button
             type="button"
             onClick={() => setMobileTab('chat')}
             className={`flex-1 py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
               mobileTab === 'chat'
-                ? 'bg-white text-[#00236F] shadow-xs'
-                : 'text-[#64748B] hover:text-[#00236F]'
+                ? 'bg-white text-[#0F2942] shadow-xs'
+                : 'text-[#64748B] hover:text-[#0F2942]'
             }`}
           >
             <Bot className="w-4 h-4" />
-            <span>Trợ Lý Hỏi Đáp AI</span>
+            <span>Hỏi Đáp AI</span>
             {messages.length > 0 && (
-              <span className="w-5 h-5 rounded-full bg-[#00236F] text-white text-[10px] flex items-center justify-center font-bold">
+              <span className="w-5 h-5 rounded-full bg-[#0F2942] text-white text-[10px] flex items-center justify-center font-bold">
                 {messages.length}
               </span>
             )}
@@ -600,18 +572,18 @@ export const CitizenPortal: React.FC = () => {
             onClick={() => setMobileTab('catalog')}
             className={`flex-1 py-2 text-xs font-bold rounded-lg flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
               mobileTab === 'catalog'
-                ? 'bg-white text-[#00236F] shadow-xs'
-                : 'text-[#64748B] hover:text-[#00236F]'
+                ? 'bg-white text-[#0F2942] shadow-xs'
+                : 'text-[#64748B] hover:text-[#0F2942]'
             }`}
           >
             <Layers className="w-4 h-4" />
-            <span>Danh Mục 40 Thủ Tục</span>
+            <span>40 Thủ Tục</span>
           </button>
         </div>
       </div>
 
       {/* MAIN INTERACTIVE WORKSPACE (Two-Column Desktop, Tabbed Mobile) */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-6 grid grid-cols-1 lg:grid-cols-12 gap-8 w-full">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-5 grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
         {/* LEFT COLUMN: 4 Bento Cards OR Full 40 Procedures Catalog */}
         <div className={`lg:col-span-5 flex flex-col gap-4 ${mobileTab === 'chat' ? 'hidden lg:flex' : 'flex'}`}>
           {/* Segmented Mode Switcher */}
@@ -765,20 +737,20 @@ export const CitizenPortal: React.FC = () => {
         </div>
 
         {/* RIGHT COLUMN: Interactive Legal RAG Chat Workspace */}
-        <div className={`lg:col-span-7 flex flex-col bg-white rounded-3xl border border-[#CBD5E1] shadow-sm overflow-hidden min-h-[640px] max-h-[760px] ${mobileTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`lg:col-span-7 flex flex-col bg-white rounded-2xl border border-[#CBD5E1] shadow-xs overflow-hidden min-h-[600px] max-h-[740px] ${mobileTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`}>
           {/* Chat Workspace Header */}
-          <div className="px-6 py-4 bg-gradient-to-r from-[#00236F] to-[#1E3A8A] text-white flex items-center justify-between shadow-sm">
+          <div className="px-5 py-3.5 bg-[#0F2942] text-white flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center text-[#57DFFE] border border-white/20 shadow-xs">
-                <Bot className="w-6 h-6" />
+              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-[#38BDF8] border border-white/15">
+                <Bot className="w-5 h-5" />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                  <span className="text-base font-bold tracking-tight">Trợ Lý Pháp Lý Một Cửa AI</span>
-                  <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+                  <span className="text-sm sm:text-base font-bold tracking-tight">Trợ Lý Pháp Lý Một Cửa</span>
+                  <span className="w-2 h-2 rounded-full bg-[#10B981]" />
                 </div>
-                <span className="text-xs text-[#BAE6FD]">
-                  Cơ sở dữ liệu 40 TTHC & Chốt chặn pháp lý UBND {currentWard.name}
+                <span className="text-[11px] text-[#94A3B8]">
+                  Tra cứu 40 TTHC UBND {currentWard.name}
                 </span>
               </div>
             </div>
@@ -802,20 +774,20 @@ export const CitizenPortal: React.FC = () => {
           </div>
 
           {/* Messages Scroll Viewport */}
-          <div className="flex-1 p-4 md:p-6 overflow-y-auto space-y-5 bg-[#FAF8FF]/50">
+          <div className="flex-1 p-4 md:p-5 overflow-y-auto space-y-4 bg-[#F8FAFC]">
             {messages.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-center p-8 text-[#64748B]">
-                <Bot className="w-14 h-14 text-[#CBD5E1] mb-3" />
+                <Bot className="w-12 h-12 text-[#CBD5E1] mb-3" />
                 <p className="text-base font-bold text-[#0F172A]">Kính chào bà con! Tôi có thể giúp gì cho bà con?</p>
                 <p className="text-xs sm:text-sm text-[#64748B] mt-1 max-w-md leading-relaxed">
-                  Bà con có thể bấm vào các gợi ý bên dưới hoặc gõ câu hỏi bất kỳ về thủ tục khai sinh, kết hôn, chứng thực, cư trú...
+                  Bấm vào gợi ý bên dưới hoặc gõ câu hỏi về khai sinh, kết hôn, chứng thực, cư trú...
                 </p>
                 <div className="mt-4 flex flex-wrap justify-center gap-2 max-w-md">
                   {quickPrompts.slice(0, 3).map((p, idx) => (
                     <button
                       key={idx}
                       onClick={() => handleAsk(p.q)}
-                      className="px-3 py-1.5 rounded-full bg-white text-[#00236F] border border-[#CBD5E1] text-xs font-medium hover:bg-[#EAEDFF] transition cursor-pointer"
+                      className="px-3 py-1.5 rounded-full bg-white text-[#0F2942] border border-[#CBD5E1] text-xs font-semibold hover:bg-[#F1F5F9] transition cursor-pointer"
                     >
                       {p.label}
                     </button>
@@ -830,16 +802,16 @@ export const CitizenPortal: React.FC = () => {
                 className={`flex gap-3 ${msg.sender === 'citizen' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.sender === 'bot' && (
-                  <div className="w-9 h-9 rounded-full bg-[#00236F] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
-                    <Bot className="w-5 h-5 text-[#57DFFE]" />
+                  <div className="w-8 h-8 rounded-full bg-[#0F2942] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                    <Bot className="w-4 h-4 text-[#38BDF8]" />
                   </div>
                 )}
 
                 <div
                   className={`max-w-[88%] sm:max-w-[82%] flex flex-col gap-2 rounded-2xl p-4 transition-all ${
                     msg.sender === 'citizen'
-                      ? 'bg-[#00236F] text-white rounded-br-xs shadow-sm'
-                      : 'bg-white text-[#0F172A] border border-[#E2E8F0] rounded-bl-xs shadow-xs'
+                      ? 'bg-[#0F2942] text-white rounded-br-xs shadow-xs'
+                      : 'bg-white text-[#0F172A] border border-[#E2E8F0] rounded-bl-xs shadow-2xs'
                   }`}
                 >
                   {/* Message body text with 5-section badge highlights */}

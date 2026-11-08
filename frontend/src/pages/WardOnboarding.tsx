@@ -155,50 +155,44 @@ export const WardOnboarding: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col w-full min-h-[calc(100vh-64px)] bg-[#FAF8FF]">
-      {/* Top Banner Header */}
-      <section className="relative w-full bg-gradient-to-b from-[#EAEDFF]/80 via-[#F2F3FF]/50 to-transparent px-4 md:px-8 py-8 border-b border-[#EAEDFF] overflow-hidden">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
+    <div className="flex flex-col w-full min-h-[calc(100vh-64px)] bg-[#F8FAFC]">
+      {/* Compact Top Banner Header */}
+      <section className="w-full bg-white px-4 md:px-8 py-4 border-b border-[#E2E8F0]">
+        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white border border-[#DAE2FD] shadow-xs mb-3">
-              <span className="w-2 h-2 rounded-full bg-[#00687A] animate-pulse" />
-              <span className="text-xs font-bold text-[#00236F] uppercase tracking-wider">
-                Tỉnh An Giang • Cổng Quản Trị Trực Tiếp Cấp Xã / Phường
-              </span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-[#00236F] tracking-tight">
+            <h1 className="text-lg sm:text-xl font-extrabold text-[#0F2942] tracking-tight">
               Chọn Xã / Phường / Đặc Khu (Tỉnh An Giang)
             </h1>
-            <p className="mt-1.5 text-xs sm:text-sm text-[#444651] max-w-2xl leading-relaxed">
-              Kết nối trực tiếp 96 đơn vị hành chính cấp cơ sở (14 Phường • 79 Xã • 3 Đặc khu) với Trợ lý AI Một cửa và Bản đồ điều hành sự cố.
+            <p className="mt-0.5 text-xs text-[#64748B]">
+              Kết nối 96 đơn vị hành chính cấp cơ sở (14 Phường • 79 Xã • 3 Đặc khu) với Trợ lý Một cửa và Bản đồ sự cố.
             </p>
           </div>
 
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={handleConfirm}
-              className="px-5 py-2.5 bg-[#00236F] text-white rounded-xl text-xs font-bold shadow-md shadow-[#00236F]/20 hover:bg-[#1E3A8A] active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
+              className="px-4 py-2 bg-[#0F2942] text-white rounded-xl text-xs font-bold shadow-xs hover:bg-[#1E3A5F] active:scale-95 transition-all flex items-center gap-1.5 cursor-pointer"
             >
-              <span>Vào Cổng Dịch Vụ</span>
-              <ArrowRight className="w-4 h-4 text-[#57DFFE]" />
+              <span>Vào Cổng {selected.name}</span>
+              <ArrowRight className="w-3.5 h-3.5 text-[#38BDF8]" />
             </button>
           </div>
         </div>
       </section>
 
       {/* Main Split Grid Viewport */}
-      <div className="max-w-7xl w-full mx-auto px-4 md:px-8 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
+      <div className="max-w-7xl w-full mx-auto px-4 md:px-8 py-5 grid grid-cols-1 lg:grid-cols-12 gap-5 flex-1">
         {/* LEFT COLUMN: Search & Communes List (5 Cols) */}
-        <div className="lg:col-span-5 flex flex-col bg-white rounded-3xl border border-[#EAEDFF] shadow-xs p-5 gap-4 max-h-[720px]">
+        <div className="lg:col-span-5 flex flex-col bg-white rounded-2xl border border-[#CBD5E1] shadow-2xs p-4 gap-3.5 max-h-[680px]">
           {/* Search Input Bar */}
           <div className="relative flex items-center">
-            <Search className="w-4 h-4 text-[#757682] absolute left-3.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#64748B] absolute left-3.5 pointer-events-none" />
             <input
               type="text"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
-              placeholder="Gõ tên xã, phường, đặc khu (VD: Phú Quốc, Long Xuyên, Ba Chúc, An Phú...)"
-              className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl bg-[#F2F3FF]/70 border border-[#DAE2FD] focus:outline-hidden focus:border-[#00236F] focus:bg-white text-[#131B2E] transition-all"
+              placeholder="Tìm xã, phường, đặc khu (VD: Long Xuyên, Châu Đốc, Phú Quốc...)"
+              className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] focus:outline-hidden focus:border-[#0F2942] focus:bg-white text-[#0F172A] transition-all"
             />
           </div>
 
@@ -208,10 +202,10 @@ export const WardOnboarding: React.FC = () => {
               <button
                 key={type}
                 onClick={() => setFilterType(type)}
-                className={`px-3 py-1 rounded-lg font-bold whitespace-nowrap transition-all ${
+                className={`px-3 py-1 rounded-lg font-bold whitespace-nowrap transition-all cursor-pointer ${
                   filterType === type
-                    ? 'bg-[#00236F] text-white shadow-xs'
-                    : 'bg-[#F2F3FF] text-[#444651] hover:bg-[#EAEDFF]'
+                    ? 'bg-[#0F2942] text-white shadow-2xs'
+                    : 'bg-[#F1F5F9] text-[#475569] hover:bg-[#E2E8F0]'
                 }`}
               >
                 {type === 'ALL' ? `Tất Cả (${filteredWards.length})` : type}
@@ -222,7 +216,7 @@ export const WardOnboarding: React.FC = () => {
           {/* Communes List (Scrollable) */}
           <div className="flex-1 overflow-y-auto space-y-2 pr-1">
             {filteredWards.length === 0 ? (
-              <div className="py-12 text-center text-xs text-[#757682]">
+              <div className="py-12 text-center text-xs text-[#64748B]">
                 Không tìm thấy xã/phường phù hợp với từ khóa "{keyword}".
               </div>
             ) : (
@@ -232,39 +226,39 @@ export const WardOnboarding: React.FC = () => {
                   <div
                     key={ward.code}
                     onClick={() => setSelected(ward)}
-                    className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
+                    className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center justify-between gap-3 ${
                       isSelected
-                        ? 'bg-[#00236F]/5 border-[#00236F] shadow-xs'
-                        : 'bg-white border-[#EAEDFF] hover:border-[#DAE2FD] hover:bg-[#F2F3FF]/40'
+                        ? 'bg-[#F1F5F9] border-[#0F2942] shadow-2xs'
+                        : 'bg-white border-[#E2E8F0] hover:border-[#CBD5E1] hover:bg-[#F8FAFC]'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <div
-                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
-                          isSelected ? 'bg-[#00236F] text-[#57DFFE]' : 'bg-[#F2F3FF] text-[#00687A]'
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                          isSelected ? 'bg-[#0F2942] text-[#38BDF8]' : 'bg-[#F1F5F9] text-[#0F766E]'
                         }`}
                       >
                         <Building2 className="w-4 h-4" />
                       </div>
                       <div className="flex flex-col text-left">
-                        <span className="text-xs font-bold text-[#131B2E] tracking-tight">
+                        <span className="text-xs font-bold text-[#0F172A] tracking-tight">
                           {ward.name}
                         </span>
-                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[#757682]">
+                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[#64748B]">
                           <span>{ward.area}</span>
                           <span>•</span>
-                          <span className="font-medium text-[#00687A]">{ward.type}</span>
+                          <span className="font-medium text-[#0F766E]">{ward.type}</span>
                         </div>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] px-2 py-0.5 rounded-md font-bold bg-[#EBFDF3] text-[#166534]">
+                      <span className="text-[10px] px-2 py-0.5 rounded-md font-bold bg-[#ECFDF5] text-[#065F46]">
                         {ward.solvedRate}%
                       </span>
                       <ChevronRight
                         className={`w-4 h-4 transition-transform ${
-                          isSelected ? 'text-[#00236F] translate-x-0.5' : 'text-[#DAE2FD]'
+                          isSelected ? 'text-[#0F2942] translate-x-0.5' : 'text-[#CBD5E1]'
                         }`}
                       />
                     </div>
@@ -278,26 +272,26 @@ export const WardOnboarding: React.FC = () => {
         {/* RIGHT COLUMN: GPS Leaflet Map & Ward Info Panel (7 Cols) */}
         <div className="lg:col-span-7 flex flex-col gap-4">
           {/* Leaflet GPS Map Viewport */}
-          <div className="w-full h-80 rounded-3xl border border-[#EAEDFF] overflow-hidden shadow-xs relative bg-[#E5E7EB]">
+          <div className="w-full h-72 rounded-2xl border border-[#CBD5E1] overflow-hidden shadow-2xs relative bg-[#E2E8F0]">
             <div ref={mapContainerRef} className="w-full h-full" />
 
             {/* Floating Top Badge on Map */}
-            <div className="absolute top-3 left-3 z-20 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border border-[#DAE2FD] shadow-md flex items-center gap-2 text-xs">
-              <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse" />
-              <span className="font-bold text-[#00236F]">UBND {selected.name}</span>
-              <span className="text-[#757682]">({selected.lat.toFixed(4)}, {selected.lon.toFixed(4)})</span>
+            <div className="absolute top-3 left-3 z-20 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border border-[#CBD5E1] shadow-sm flex items-center gap-2 text-xs">
+              <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
+              <span className="font-bold text-[#0F2942]">UBND {selected.name}</span>
+              <span className="text-[#64748B]">({selected.lat.toFixed(4)}, {selected.lon.toFixed(4)})</span>
             </div>
           </div>
 
           {/* Selected Ward Administrative Info Card */}
-          <div className="p-6 bg-white rounded-3xl border border-[#EAEDFF] shadow-xs flex flex-col gap-5">
+          <div className="p-5 bg-white rounded-2xl border border-[#CBD5E1] shadow-2xs flex flex-col gap-4">
             {/* Office Header */}
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
-                <span className="text-[11px] font-bold text-[#00687A] uppercase tracking-wider">
-                  Trụ sở Tiếp Nhận & Trả Kết Quả Một Cửa
+                <span className="text-[11px] font-bold text-[#0F766E] uppercase tracking-wider">
+                  Trụ Sở Tiếp Nhận & Trả Kết Quả Một Cửa
                 </span>
-                <h2 className="text-lg sm:text-xl font-bold text-[#00236F] tracking-tight mt-0.5">
+                <h2 className="text-lg font-bold text-[#0F2942] tracking-tight mt-0.5">
                   UBND {selected.name} • {selected.province}
                 </h2>
               </div>
@@ -306,61 +300,61 @@ export const WardOnboarding: React.FC = () => {
                 <span
                   className={`px-3 py-1 rounded-full text-xs font-bold border flex items-center gap-1.5 ${
                     isOfficeOpen
-                      ? 'bg-[#EBFDF3] border-[#86EFAC] text-[#166534]'
+                      ? 'bg-[#ECFDF5] border-[#A7F3D0] text-[#065F46]'
                       : 'bg-[#FFFBEB] border-[#FDE68A] text-[#92400E]'
                   }`}
                 >
                   <Clock className="w-3.5 h-3.5" />
-                  {isOfficeOpen ? 'Đang mở cửa tiếp dân' : 'Ngoài giờ làm việc'}
+                  {isOfficeOpen ? 'Đang mở cửa' : 'Ngoài giờ hành chính'}
                 </span>
               </div>
             </div>
 
             {/* Address & Hotline Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-[#F2F3FF]/60 border border-[#EAEDFF]">
-              <div className="flex items-start gap-2.5 text-xs text-[#131B2E]">
-                <MapPin className="w-4 h-4 text-[#00236F] shrink-0 mt-0.5" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+              <div className="flex items-start gap-2.5 text-xs text-[#0F172A]">
+                <MapPin className="w-4 h-4 text-[#0F2942] shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold block text-[#757682] text-[11px]">Địa chỉ trụ sở:</span>
+                  <span className="font-bold block text-[#64748B] text-[11px]">Địa chỉ trụ sở:</span>
                   <span>{selected.officeAddress}</span>
                 </div>
               </div>
 
-              <div className="flex items-start gap-2.5 text-xs text-[#131B2E]">
-                <Phone className="w-4 h-4 text-[#00687A] shrink-0 mt-0.5" />
+              <div className="flex items-start gap-2.5 text-xs text-[#0F172A]">
+                <Phone className="w-4 h-4 text-[#0F766E] shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold block text-[#757682] text-[11px]">Đường dây nóng Một Cửa:</span>
-                  <span className="font-bold text-[#00687A]">{selected.phoneNumber}</span>
+                  <span className="font-bold block text-[#64748B] text-[11px]">Hotline Một Cửa:</span>
+                  <span className="font-bold text-[#0F766E]">{selected.phoneNumber}</span>
                 </div>
               </div>
             </div>
 
             {/* Key Metrics Row */}
             <div className="grid grid-cols-3 gap-3 text-center">
-              <div className="p-3 rounded-xl bg-[#FAF8FF] border border-[#EAEDFF]">
-                <span className="text-[11px] text-[#757682] block">Giải quyết đúng hạn</span>
+              <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                <span className="text-[11px] text-[#64748B] block">Đúng hạn</span>
                 <span className="text-base font-extrabold text-[#16A34A]">{selected.solvedRate}%</span>
               </div>
-              <div className="p-3 rounded-xl bg-[#FAF8FF] border border-[#EAEDFF]">
-                <span className="text-[11px] text-[#757682] block">Sự cố đang mở</span>
-                <span className="text-base font-extrabold text-[#00236F]">{selected.totalOpenIncidents} ca</span>
+              <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                <span className="text-[11px] text-[#64748B] block">Sự cố mở</span>
+                <span className="text-base font-extrabold text-[#0F2942]">{selected.totalOpenIncidents} ca</span>
               </div>
-              <div className="p-3 rounded-xl bg-[#FAF8FF] border border-[#EAEDFF]">
-                <span className="text-[11px] text-[#757682] block">Giờ hành chính</span>
-                <span className="text-xs font-bold text-[#131B2E] mt-1 block">07:00 – 17:00</span>
+              <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
+                <span className="text-[11px] text-[#64748B] block">Giờ làm việc</span>
+                <span className="text-xs font-bold text-[#0F172A] mt-1 block">07:00 – 17:00</span>
               </div>
             </div>
 
             {/* Online Services Available */}
             <div>
-              <span className="text-xs font-bold text-[#131B2E] block mb-2">
-                Dịch vụ công trực tuyến tiếp nhận tại địa bàn:
+              <span className="text-xs font-bold text-[#0F172A] block mb-2">
+                Dịch vụ công trực tuyến tại địa bàn:
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {selected.onlineServices.map((srv) => (
                   <span
                     key={srv}
-                    className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#EAEDFF]/70 text-[#00236F] border border-[#DAE2FD]"
+                    className="px-2.5 py-1 rounded-lg text-[11px] font-medium bg-[#F1F5F9] text-[#0F2942] border border-[#CBD5E1]"
                   >
                     ✓ {srv}
                   </span>
@@ -369,21 +363,21 @@ export const WardOnboarding: React.FC = () => {
             </div>
 
             {/* Bottom Actions */}
-            <div className="pt-2 border-t border-[#EAEDFF] flex flex-col sm:flex-row items-center justify-between gap-3">
+            <div className="pt-2 border-t border-[#E2E8F0] flex flex-col sm:flex-row items-center justify-between gap-3">
               <button
                 onClick={handleOpenDashboard}
-                className="w-full sm:w-auto px-4 py-2.5 rounded-xl border border-[#DAE2FD] text-[#00236F] text-xs font-bold hover:bg-[#F2F3FF] transition flex items-center justify-center gap-1.5 cursor-pointer"
+                className="w-full sm:w-auto px-4 py-2 rounded-xl border border-[#CBD5E1] text-[#0F2942] text-xs font-bold hover:bg-[#F1F5F9] transition flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <LayoutDashboard className="w-4 h-4 text-[#00687A]" />
-                <span>Xem Bàn Cán Bộ Địa Bàn Này</span>
+                <LayoutDashboard className="w-4 h-4 text-[#0F766E]" />
+                <span>Xem Bàn Cán Bộ</span>
               </button>
 
               <button
                 onClick={handleConfirm}
-                className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-[#00236F] text-white text-xs font-bold shadow-md shadow-[#00236F]/20 hover:bg-[#1E3A8A] active:scale-95 transition-all flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full sm:w-auto px-5 py-2 rounded-xl bg-[#0F2942] text-white text-xs font-bold shadow-xs hover:bg-[#1E3A5F] active:scale-95 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
               >
-                <span>Xác Nhận & Làm Việc Tại {selected.name}</span>
-                <ArrowRight className="w-4 h-4 text-[#57DFFE]" />
+                <span>Chọn {selected.name}</span>
+                <ArrowRight className="w-4 h-4 text-[#38BDF8]" />
               </button>
             </div>
           </div>
