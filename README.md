@@ -104,9 +104,9 @@ SmartWardAI/
 │   │   ├── data/             # Dữ liệu 96 đơn vị hành chính An Giang & thuật toán định tuyến Haversine/Text
 │   │   └── pages/            # CitizenPortal, FormAndIssueReporting, PerWardDashboard, WardOnboarding
 ├── evaluation/               # [TRỌNG TÂM HỌC THUẬT] Scripts đo đạc, Grid Search & Biểu đồ
-│   ├── datasets/             # 80 câu RAG, 150 phản ánh, 40 tờ khai (Ground-truth)
-│   ├── scripts/              # Python: evaluate_rag.py, grid_search.py, evaluate_forms.py
-│   ├── results/              # Kết quả đo đạc lưu dưới dạng CSV / JSON
+│   ├── requirements.txt      # Thư viện Python cho thực nghiệm (numpy, pandas, scikit-learn, scipy, matplotlib, seaborn)
+│   ├── scripts/              # Python: run_all_evaluations.py, evaluate_rag.py, grid_search.py, evaluate_form_and_vault.py
+│   ├── results/              # Kết quả đo đạc độc lập nhãn (rag_metrics.json, grid_search.csv, heldout_validation.json)
 │   └── charts/               # Biểu đồ PR curve, Hallucination chart phục vụ Báo cáo & Slide
 ├── data-pipeline/            # Pipeline thu thập & làm sạch 40 TTHC từ Cổng DVCQG
 ├── docs/                     # Hệ thống tài liệu kỹ thuật & nghiệp vụ (Xem docs/README.md)
@@ -175,16 +175,17 @@ npm run dev
 
 ---
 
-## 6. Phân Bổ Ngân Sách Tài Nguyên Zero-Cost ($\le 2.0\text{ GB}$ RAM)
+## 6. Phân Bổ Ngân Sách Tài Nguyên Zero-Cost ($\le 2,048\text{ MiB} = 2.0\text{ GiB}$ RAM)
 
 | Phân hệ / Container | Hình ảnh Docker | Giới hạn Cứng (`mem_limit`) | Mức Tiêu Thụ Thực Tế | Vai trò nghiệp vụ |
 | :--- | :--- | :---: | :---: | :--- |
-| **smartward-postgres** | `pgvector/pgvector:pg16` | 512 MB | ~110 MB | Lưu trữ quan hệ ACID & Chỉ mục HNSW 768 chiều |
-| **smartward-redis** | `redis:7-alpine` | 128 MB | ~18 MB | Bộ lọc GEO $R=25\text{m}$, Cache RAG & Single-Use Tokens |
-| **smartward-minio** | `minio/minio:latest` | 256 MB | ~65 MB | Kho lưu trữ tài liệu scan mã hóa AES-256-GCM |
-| **smartward-backend** | `eclipse-temurin:21-jre` | 768 MB | ~380 MB | Spring Boot 3.3, Java 21, JVM Heap `-Xmx512m` |
-| **smartward-frontend**| `nginx:1.27-alpine` | 64 MB | ~12 MB | Nginx phục vụ PWA tĩnh & Reverse Proxy API |
-| **TỔNG CỘNG** | **5 Container Cốt Lõi** | **1,728 MB** | **~585 MB** | **Tuyệt đối $\le 2,048\text{ MB}$ ($< 2.0\text{ GB}$)** |
+| **smartward-postgres** | `pgvector/pgvector:pg16` | 448 MiB | ~110 MiB | Lưu trữ quan hệ ACID & Chỉ mục HNSW 768 chiều |
+| **smartward-redis** | `redis:7-alpine` | 128 MiB | ~18 MiB | Bộ lọc GEO $R=25\text{m}$, Cache RAG & Single-Use Tokens |
+| **smartward-minio** | `minio/minio:latest` | 256 MiB | ~65 MiB | Kho lưu trữ tài liệu scan mã hóa AES-256-GCM |
+| **smartward-ai-sidecar** | `python:3.11-slim` | 384 MiB | ~210 MiB | FastAPI Local AI Sidecar (Embedding / Reranking) |
+| **smartward-backend** | `eclipse-temurin:21-jre` | 768 MiB | ~380 MiB | Spring Boot 3.3, Java 21, JVM Heap `-Xmx512m` |
+| **smartward-frontend**| `nginx:1.27-alpine` | 64 MiB | ~12 MiB | Nginx phục vụ PWA tĩnh & Reverse Proxy API |
+| **TỔNG CỘNG (6 Active)** | **6 Container Thường Trực** | **2,048 MiB** | **~795 MiB** | **Chính xác $2,048\text{ MiB}$ ($= 2.0\text{ GiB}$); `minio-init` tự thoát sau 3s** |
 
 ---
 
