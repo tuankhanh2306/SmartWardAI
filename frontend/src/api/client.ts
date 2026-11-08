@@ -22,6 +22,7 @@ const api = axios.create({
 api.interceptors.request.use((config) => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('smartward_officer_token') : null;
   if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
     config.headers['X-Officer-Token'] = token;
   }
   return config;
@@ -227,7 +228,7 @@ export const askLegalRag = async (
       answer: buildProcedureCatalogResponse(currentWardName),
       abstained: false,
       maxSimilarity: 1.0,
-      appliedThreshold: 0.50,
+      appliedThreshold: 0.78,
       responseTimeMs: 6.0,
       cached: false,
       disclaimer: 'Danh mục 40 TTHC cấp xã chuẩn hóa theo Nghị định 13/2023 và Đề án 06.',
@@ -245,7 +246,7 @@ export const askLegalRag = async (
         `• Bà con nhập **Số điện thoại liên hệ** và bấm gửi: hệ thống sẽ tự động định tuyến về đúng UBND Xã/Phường nơi xảy ra sự cố để cán bộ xử lý ngay!`,
       abstained: false,
       maxSimilarity: 1.0,
-      appliedThreshold: 0.50,
+      appliedThreshold: 0.78,
       responseTimeMs: 6.0,
       cached: false,
       disclaimer: 'Hệ thống Phản ánh Hiện trường & Định tuyến Không gian Đa Xã/Phường (GPS R=25m).',
@@ -312,7 +313,7 @@ export const askLegalRag = async (
       answer: reply,
       abstained: false,
       maxSimilarity: 1.0,
-      appliedThreshold: 0.50,
+      appliedThreshold: 0.78,
       responseTimeMs: 5.0,
       cached: false,
       disclaimer: 'Trợ lý Pháp lý Một Cửa SmartWard AI sẵn sàng phục vụ nhân dân.',
@@ -334,7 +335,7 @@ export const askLegalRag = async (
       abstained: true,
       abstentionReason: outOfScopeCheck.reason || 'Yêu cầu không thuộc thẩm quyền cấp xã.',
       maxSimilarity: 0.45,
-      appliedThreshold: 0.50,
+      appliedThreshold: 0.78,
       responseTimeMs: 8.0,
       cached: false,
       disclaimer: mandatoryDisclaimer,
@@ -359,7 +360,7 @@ export const askLegalRag = async (
         `• Dù đang ngoài giờ hành chính hay cuối tuần, bà con vẫn có thể **hỏi đáp thủ tục với Trợ lý AI**, dùng công cụ **Tiền Kiểm Định Tờ Khai (4 mẫu)** để rà soát lỗi trước ở nhà, **Báo Sự Cố Hiện Trường (GPS)** hoặc nộp hồ sơ trực tuyến trên Cổng DVC Quốc gia tại \`dichvucong.gov.vn\`.`,
       abstained: false,
       maxSimilarity: 1.0,
-      appliedThreshold: 0.50,
+      appliedThreshold: 0.78,
       responseTimeMs: 6.0,
       cached: false,
       disclaimer: 'Thông tin lịch làm việc thời gian thực và Danh bạ hành chính UBND cấp xã/phường.',
@@ -460,7 +461,7 @@ export const askLegalRag = async (
         answer,
         abstained: false,
         maxSimilarity: searchResult.maxScore,
-        appliedThreshold: 0.50,
+        appliedThreshold: 0.78,
         responseTimeMs: 15.0,
         cached: true,
         disclaimer: mandatoryDisclaimer,
@@ -477,7 +478,7 @@ export const askLegalRag = async (
       abstained: true,
       abstentionReason: 'Câu hỏi chưa chỉ định rõ tên thủ tục hành chính cụ thể trong phạm vi cấp xã.',
       maxSimilarity: searchResult.maxScore,
-      appliedThreshold: 0.50,
+      appliedThreshold: 0.78,
       responseTimeMs: 10.0,
       cached: false,
       disclaimer: mandatoryDisclaimer,

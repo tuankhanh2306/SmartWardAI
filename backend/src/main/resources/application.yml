@@ -18,32 +18,46 @@ springdoc:
     operationsSorter: method
     tagsSorter: alpha
 
-# Application specific settings
+# Application specific settings (Single Source of Truth)
 smartward:
+  security:
+    jwt-secret: ${JWT_SECRET:SmartWardAI_DevOnly_HmacSha256_SecretKey_2026_ChangeInProd}
+    token-ttl-hours: ${OFFICER_TOKEN_TTL_HOURS:8}
+    enforce-officer-auth: ${ENFORCE_OFFICER_AUTH:true}
+  rag:
+    default-threshold: ${RAG_DEFAULT_THRESHOLD:0.78}
+    theta-lower: ${RAG_THETA_LOWER:0.42}
+    top-k: ${RAG_TOP_K:3}
+  triage:
+    default-radius-meters: ${TRIAGE_DEFAULT_RADIUS_METERS:25.0}
+    default-similarity-threshold: ${TRIAGE_DEFAULT_SIMILARITY_THRESHOLD:0.82}
+    active-window-hours: ${TRIAGE_ACTIVE_WINDOW_HOURS:72}
   ai:
     gemini:
       api-key: ${GEMINI_API_KEY:mock-key-for-local-testing}
-      model: ${GEMINI_MODEL:gemini-3-flash-preview}
-      embedding-model: text-embedding-004
+      model: ${GEMINI_MODEL:gemini-2.5-flash}
+      embedding-model: ${GEMINI_EMBEDDING_MODEL:text-embedding-004}
       embedding-dim: 768
       max-output-tokens: ${GEMINI_MAX_OUTPUT_TOKENS:8192}
       timeout-seconds: 25
       thinking-budget: ${GEMINI_THINKING_BUDGET:0}
     rag:
-      default-threshold: 0.50
-      theta-lower: 0.42
-      top-k: 3
+      default-threshold: ${RAG_DEFAULT_THRESHOLD:0.78}
+      theta-lower: ${RAG_THETA_LOWER:0.42}
+      top-k: ${RAG_TOP_K:3}
     sidecar:
       enabled: ${SIDECAR_ENABLED:true}
       url: ${SIDECAR_URL:http://localhost:8000}
       timeout-ms: ${SIDECAR_TIMEOUT_MS:2000}
     triage:
-      default-radius-meters: 25.0
-      default-similarity-threshold: 0.82
-      active-window-hours: 72
+      default-radius-meters: ${TRIAGE_DEFAULT_RADIUS_METERS:25.0}
+      default-similarity-threshold: ${TRIAGE_DEFAULT_SIMILARITY_THRESHOLD:0.82}
+      active-window-hours: ${TRIAGE_ACTIVE_WINDOW_HOURS:72}
   vault:
-    bucket-name: smartward-vault
-    token-ttl-hours: 24
+    bucket-name: ${MINIO_BUCKET_NAME:smartward-vault}
+    token-ttl-hours: ${VAULT_TOKEN_TTL_HOURS:24}
+    encryption-key: ${VAULT_ENCRYPTION_KEY:}
+    fail-closed: ${VAULT_FAIL_CLOSED:true}
     watermark-text: "CHỈ DÙNG ĐỂ SƠ DUYỆT HỒ SƠ TẠI UBND"
   rate-limit:
     requests-per-minute: 5

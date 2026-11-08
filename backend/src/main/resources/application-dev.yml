@@ -39,6 +39,15 @@ minio:
   secret-key: ${MINIO_SECRET_KEY:minio_secret_key}
   bucket: smartward-vault
 
+smartward:
+  vault:
+    encryption-key: ${VAULT_ENCRYPTION_KEY:SmartWardAI_DevTest_VaultKey_32B}
+    fail-closed: ${VAULT_FAIL_CLOSED:true}
+  security:
+    jwt-secret: ${JWT_SECRET:SmartWardAI_DevTest_JwtSecret_32B!}
+    token-ttl-hours: ${OFFICER_TOKEN_TTL_HOURS:8}
+    enforce-officer-auth: ${ENFORCE_OFFICER_AUTH:true}
+
 logging:
   level:
     root: INFO
