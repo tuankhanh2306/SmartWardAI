@@ -8,7 +8,6 @@ import {
   Send,
   Bot,
   User,
-  ShieldAlert,
   ShieldCheck,
   BookOpen,
   ArrowRight,
@@ -821,49 +820,35 @@ export const CitizenPortal: React.FC = () => {
                     <p className="text-sm md:text-base leading-relaxed whitespace-pre-wrap">{msg.text}</p>
                   )}
 
-                  {/* GRAY ZONE ALERT CARD: S_max in [0.42, 0.50) */}
-                  {msg.ragData?.abstained && msg.ragData.maxSimilarity >= 0.42 && (
-                    <div className="mt-2 p-3.5 rounded-xl bg-[#FFFBEB] border border-[#FCD34D] text-[#92400E] flex flex-col gap-1.5 shadow-2xs">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 font-bold text-xs text-[#B45309]">
-                          <AlertTriangle className="w-4 h-4 text-[#D97706] shrink-0" />
-                          <span>Vùng Xám Nghi Vấn — Đang Chờ Rà Soát (HITL)</span>
-                        </div>
-                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#92400E] font-bold">
-                          Độ khớp: {(msg.ragData.maxSimilarity * 100).toFixed(1)}%
-                        </span>
-                      </div>
-                      <p className="text-xs leading-relaxed text-[#78350F]">
-                        {msg.ragData.abstentionReason || 'Hệ thống nhận thấy câu hỏi có thể liên quan đến thủ tục nhưng cần làm rõ thêm để đảm bảo an toàn tuyệt đối.'}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* SAFE ABSTENTION GUARDRAIL: S_max < 0.42 */}
-                  {msg.ragData?.abstained && msg.ragData.maxSimilarity < 0.42 && (
-                    <div className="mt-2 p-3.5 rounded-xl bg-[#FEF2F2] border border-[#FECACA] text-[#991B1B] flex items-start gap-2.5 shadow-2xs">
-                      <ShieldAlert className="w-5 h-5 text-[#DC2626] shrink-0 mt-0.5" />
-                      <div className="text-xs leading-relaxed">
-                        <strong className="text-[#B91C1C] block mb-0.5 font-bold">Chốt Chặn An Toàn Pháp Lý (Safe Abstention)</strong>
-                        {msg.ragData.abstentionReason || 'Hệ thống chỉ cung cấp hướng dẫn trong phạm vi 40 thủ tục hành chính công cấp xã/phường.'}
-                      </div>
+                  {/* POLITE CIVIC CONTACT NOTE WHEN QUERY NEEDS DIRECT SUPPORT */}
+                  {msg.ragData?.abstained && (
+                    <div className="mt-2 p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-[#334155] flex items-center justify-between gap-2 text-xs">
+                      <span>
+                        📌 Cần hướng dẫn chi tiết cho trường hợp riêng, bà con vui lòng liên hệ trực tiếp Bộ phận Một cửa <strong>UBND {currentWard.name}</strong>.
+                      </span>
+                      <a
+                        href={`tel:${currentWard.phoneNumber.replace(/\s+/g, '')}`}
+                        className="shrink-0 px-2.5 py-1 rounded-lg bg-[#0F2942] text-white font-bold hover:bg-[#1E3A5F] transition"
+                      >
+                        📞 {currentWard.phoneNumber}
+                      </a>
                     </div>
                   )}
 
                   {/* RESIDENCE / POLICE ROUTING BUTTON: When query touches residence/VNeID */}
                   {(msg.text.includes('Công an cấp xã') || msg.text.includes('VNeID')) && (
                     <div className="mt-2 pt-2 border-t border-[#E2E8F0] flex items-center justify-between">
-                      <span className="text-xs text-[#00687A] font-semibold flex items-center gap-1">
+                      <span className="text-xs text-[#0F766E] font-semibold flex items-center gap-1">
                         <ShieldCheck className="w-4 h-4" />
-                        Đề án 06 — Cổng DVC Bộ Công An
+                        Cổng Dịch vụ công Cư trú
                       </span>
                       <a
                         href="https://dichvucong.bocongan.gov.vn/"
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-[#00687A] hover:bg-[#004E5C] text-white text-xs font-bold transition shadow-xs"
+                        className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-[#0F766E] hover:bg-[#115E59] text-white text-xs font-bold transition shadow-xs"
                       >
-                        <span>Truy cập Cổng Bộ Công An</span>
+                        <span>Mở Cổng Bộ Công An</span>
                         <ExternalLink className="w-3 h-3" />
                       </a>
                     </div>
@@ -874,7 +859,7 @@ export const CitizenPortal: React.FC = () => {
                     <div className="mt-2 pt-2.5 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2">
                       <span className="text-xs text-[#B45309] font-bold flex items-center gap-1.5">
                         <MapPin className="w-4 h-4 text-[#D97706]" />
-                        Tự động quét GPS R=25m & Định tuyến về đúng UBND Xã/Phường
+                        Tự động định vị & chuyển về đúng UBND Xã/Phường
                       </span>
                       <button
                         type="button"
@@ -882,7 +867,7 @@ export const CitizenPortal: React.FC = () => {
                         className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#D97706] hover:bg-[#B45309] text-white text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
                       >
                         <AlertTriangle className="w-3.5 h-3.5" />
-                        <span>Mở Trang Báo Sự Cố Hiện Trường Ngay</span>
+                        <span>Mở Trang Báo Sự Cố Ngay</span>
                         <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
@@ -1097,9 +1082,9 @@ export const CitizenPortal: React.FC = () => {
               </div>
 
               <div className="flex items-center justify-between text-xs text-[#64748B] pt-1">
-                <span>Mã đoạn: <code>{activeCitation.chunkCode}</code></span>
-                <span className="font-bold text-[#00687A]">
-                  Độ tương đồng Cosine: {((activeCitation.relevanceScore || 0) * 100).toFixed(1)}%
+                <span>Nguồn: Bộ thủ tục hành chính công cấp xã</span>
+                <span className="font-semibold text-[#0F766E]">
+                  UBND {currentWard.name}
                 </span>
               </div>
             </div>

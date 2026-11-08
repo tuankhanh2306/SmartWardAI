@@ -1070,8 +1070,8 @@ export const reportIssue = async (data: {
       reporterPhone: phone || 'Chưa cung cấp',
       officerNote:
         data.reporterHomeWardName && data.reporterHomeWardName !== currentWardLabel
-          ? `Tin báo liên địa bàn từ công dân ${data.reporterHomeWardName} đi qua ${currentWardLabel}. Đã định vị chuẩn GPS (R=25m).`
-          : `Tiếp nhận tin báo khẩn qua GPS chuẩn R=25m. Cần liên hệ SĐT ${phone} để giám sát xác minh.`,
+          ? `Tin báo liên địa bàn từ công dân ${data.reporterHomeWardName} đi qua ${currentWardLabel}. Đã định vị tự động.`
+          : `Tiếp nhận tin báo qua định vị bản đồ. Cần liên hệ SĐT ${phone} để xác minh hiện trường.`,
     });
   };
 
@@ -1135,7 +1135,7 @@ export const reportIssue = async (data: {
         assignedAction: 'MERGED_INTO_EXISTING_CLUSTER',
         similarityWithClusterCentroid: 0.914,
         totalReportsInCluster: 4,
-        message: `Hệ thống SmartWard AI đã định tuyến phản ánh về UBND ${currentWardLabel} và phát hiện trùng khớp sự cố trong bán kính chuẩn R=25m (Độ tương đồng: 91.4% ≥ τ=0.82). Cán bộ giám sát tại ${currentWardLabel} sẽ liên hệ SĐT ${phone} để phối hợp xử lý.`,
+        message: `Đã tiếp nhận phản ánh về UBND ${currentWardLabel} và ghi nhận trùng điểm sự cố đang xử lý. Cán bộ tại ${currentWardLabel} sẽ liên hệ SĐT ${phone} để phối hợp giải quyết.`,
         targetWardCode,
         targetWardName: currentWardLabel,
         reporterPhone: phone,
@@ -1156,7 +1156,7 @@ export const reportIssue = async (data: {
       similarityWithClusterCentroid: 0.415,
       totalReportsInCluster: 1,
       message:
-        `Hệ thống đã định vị chuẩn GPS (bán kính hẹp R=25m) và chuyển thẳng hồ sơ sự cố về Bàn Giám Sát UBND ${currentWardLabel}. Người giám sát địa bàn ${currentWardLabel} sẽ liên hệ qua SĐT ${phone} để xác minh và khắc phục.`,
+        `Đã định vị và chuyển thẳng báo cáo sự cố về bộ phận trực ban UBND ${currentWardLabel}. Cán bộ phụ trách sẽ liên hệ qua SĐT ${phone} để xác minh và khắc phục.`,
       targetWardCode,
       targetWardName: currentWardLabel,
       reporterPhone: phone,

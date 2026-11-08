@@ -167,7 +167,7 @@ export const PerWardDashboard: React.FC = () => {
         prev.map((it) => (it.id === item.id ? { ...it, ...updated, status: 'APPROVED' } : it))
       );
       setToastBanner(
-        `Đã phê duyệt hồ sơ vùng xám ${item.id} và nạp trực tiếp vào bộ nhớ đệm Redis RAG (TTL 24 giờ).`
+        `Đã phê duyệt nội dung hướng dẫn cho câu hỏi ${item.id} và cập nhật vào hệ thống giải đáp tự động.`
       );
       // Close detail modal after approval
       setSelectedHitlItem(null);
@@ -180,8 +180,8 @@ export const PerWardDashboard: React.FC = () => {
   const handleRebuildGeoIndex = async () => {
     setGeoSyncing(true);
     try {
-      const res = await rebuildSpatialIndex();
-      setToastBanner(`${res.message} (${res.syncedClustersCount} cụm đang hoạt động).`);
+      await rebuildSpatialIndex();
+      setToastBanner(`Đã cập nhật dữ liệu vị trí sự cố trên bản đồ địa bàn ${ward.name}.`);
       setTimeout(() => setToastBanner(null), 5000);
     } finally {
       setGeoSyncing(false);
@@ -664,11 +664,11 @@ export const PerWardDashboard: React.FC = () => {
         .addTo(markersLayer)
         .bindPopup(
           `<div class="p-2 text-xs font-sans">
-            <b class="text-[#00236F] block mb-1">${inc.title}</b>
+            <b class="text-[#0F2942] block mb-1">${inc.title}</b>
             <span class="text-[#64748B] block mb-1">${inc.address}</span>
             <div class="flex items-center gap-2 mt-1">
               <span class="px-2 py-0.5 rounded text-[10px] font-bold text-white" style="background:${markerColor}">${inc.urgency}</span>
-              <span class="text-[10px] text-[#334155] font-semibold">Gộp ${inc.duplicatesMerged} báo cáo (R=25m)</span>
+              <span class="text-[10px] text-[#334155] font-semibold">${inc.duplicatesMerged} phản ánh cùng điểm</span>
             </div>
           </div>`
         );
@@ -779,7 +779,7 @@ export const PerWardDashboard: React.FC = () => {
           urgency: c.reportCount >= 4 ? 'HIGH' : c.reportCount >= 2 ? 'MEDIUM' : 'LOW',
           duplicatesMerged: c.reportCount,
           reporterPhone: '0988.***.012',
-          officerNote: `Hệ thống phân luồng tự động 2 pha (R=25m, tau=0.82).`,
+          officerNote: `Đã tổng hợp các phản ánh trùng vị trí từ người dân.`,
         };
       });
 
@@ -939,19 +939,19 @@ export const PerWardDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* KPI 2: Vùng xám AI */}
+        {/* KPI 2: Câu hỏi cần giải đáp */}
         <div
           onClick={() => handleTabChange('HITL')}
-          className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-between cursor-pointer hover:border-[#00236F] transition-all"
+          className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-between cursor-pointer hover:border-[#0F2942] transition-all"
         >
           <div>
-            <span className="text-xs font-bold text-[#64748B] uppercase">Vùng xám AI (HITL)</span>
+            <span className="text-xs font-bold text-[#64748B] uppercase">Câu hỏi cần giải đáp</span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-2xl font-extrabold text-[#78350F]">{pendingHitlCount}</span>
               <span className="text-xs text-[#64748B]">câu hỏi</span>
             </div>
-            <span className="text-[11px] text-[#00687A] font-semibold block">
-              {hitlItems.length - pendingHitlCount} câu đã nạp cache
+            <span className="text-[11px] text-[#0F766E] font-semibold block">
+              {hitlItems.length - pendingHitlCount} câu đã phản hồi
             </span>
           </div>
           <div className="w-10 h-10 rounded-xl bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] flex items-center justify-center shrink-0">
@@ -1050,12 +1050,12 @@ export const PerWardDashboard: React.FC = () => {
               onClick={() => handleTabChange('HITL')}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'HITL'
-                  ? 'bg-[#00236F] text-white shadow-xs'
-                  : 'text-[#475569] hover:text-[#00236F] hover:bg-white'
+                  ? 'bg-[#0F2942] text-white shadow-xs'
+                  : 'text-[#475569] hover:text-[#0F2942] hover:bg-white'
               }`}
             >
               <BrainCircuit className="w-4 h-4" />
-              <span>Vùng Xám AI</span>
+              <span>Giải Đáp Hỏi Đáp</span>
               {pendingHitlCount > 0 && (
                 <span className="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-[#F59E0B] text-white">
                   {pendingHitlCount}
@@ -1069,13 +1069,13 @@ export const PerWardDashboard: React.FC = () => {
               onClick={() => handleTabChange('FORMS')}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'FORMS'
-                  ? 'bg-[#00236F] text-white shadow-xs'
-                  : 'text-[#475569] hover:text-[#00236F] hover:bg-white'
+                  ? 'bg-[#0F2942] text-white shadow-xs'
+                  : 'text-[#475569] hover:text-[#0F2942] hover:bg-white'
               }`}
             >
               <FileCheck2 className="w-4 h-4" />
               <span>Duyệt Tờ Khai</span>
-              <span className="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-[#E2E8F0] text-[#00687A]">
+              <span className="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-[#E2E8F0] text-[#0F766E]">
                 {dossiers.length}
               </span>
             </button>
@@ -1086,12 +1086,12 @@ export const PerWardDashboard: React.FC = () => {
               onClick={() => handleTabChange('MAP')}
               className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
                 activeTab === 'MAP'
-                  ? 'bg-[#00236F] text-white shadow-xs'
-                  : 'text-[#475569] hover:text-[#00236F] hover:bg-white'
+                  ? 'bg-[#0F2942] text-white shadow-xs'
+                  : 'text-[#475569] hover:text-[#0F2942] hover:bg-white'
               }`}
             >
               <Radio className="w-4 h-4 text-[#DC2626] animate-pulse" />
-              <span>Bản Đồ GIS</span>
+              <span>Bản Đồ Sự Cố</span>
             </button>
           </div>
 
@@ -1271,45 +1271,42 @@ export const PerWardDashboard: React.FC = () => {
         )}
 
         {/* ========================================================================= */}
-        {/* MODULE 2: HITL GRAY-ZONE APPROVAL (COMPACT LIST + ACCORDION/MODAL)        */}
+        {/* MODULE 2: CITIZEN QUESTION REVIEW & APPROVAL                              */}
         {/* ========================================================================= */}
         {activeTab === 'HITL' && (
           <div className="bg-white rounded-3xl border border-[#CBD5E1] shadow-xs p-5 sm:p-6 flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#E2E8F0]">
               <div>
-                <h2 className="text-base sm:text-lg font-extrabold text-[#00236F]">
-                  Hàng Đợi Phê Duyệt Câu Hỏi Vùng Xám (Human-in-the-Loop)
+                <h2 className="text-base sm:text-lg font-extrabold text-[#0F2942]">
+                  Danh Sách Câu Hỏi Cần Cán Bộ Giải Đáp
                 </h2>
                 <p className="text-xs text-[#64748B] mt-0.5">
-                  Các câu hỏi dùng từ ngữ địa phương hoặc tình huống hồ sơ riêng biệt cần cán bộ xác nhận trước khi đưa vào bộ nhớ đệm tự động.
+                  Các tình huống hồ sơ riêng biệt của người dân cần cán bộ Một cửa kiểm tra và xác nhận nội dung hướng dẫn.
                 </p>
               </div>
               <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] self-start sm:self-auto">
-                0.42 ≤ S_max &lt; 0.78
+                {pendingHitlCount} câu chờ duyệt
               </span>
             </div>
 
-            {/* Compact List of HITL Items */}
+            {/* Compact List of Items */}
             <div className="grid grid-cols-1 gap-3">
               {hitlItems.map((item) => {
                 const isApproved = item.status === 'APPROVED';
                 return (
                   <div
                     key={item.id}
-                    className={`p-4 rounded-2xl border transition-all cursor-pointer hover:border-[#00236F] flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                    className={`p-4 rounded-2xl border transition-all cursor-pointer hover:border-[#0F2942] flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
                       isApproved ? 'bg-[#F8FAFC] border-[#CBD5E1]' : 'bg-white border-[#CBD5E1] shadow-2xs'
                     }`}
                     onClick={() => setSelectedHitlItem(item)}
                   >
                     <div className="flex flex-col gap-1.5 flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <span className="font-mono font-bold text-[#00236F] bg-[#EAEDFF] px-2 py-0.5 rounded">
+                        <span className="font-mono font-bold text-[#0F2942] bg-[#F1F5F9] px-2 py-0.5 rounded">
                           {item.id}
                         </span>
-                        <span className="font-mono font-semibold text-[#D97706] bg-[#FFFBEB] px-2 py-0.5 rounded border border-[#FDE68A]">
-                          Khớp: {(item.similarityScore * 100).toFixed(1)}%
-                        </span>
-                        <span className="text-[#00687A] font-semibold flex items-center gap-1 truncate">
+                        <span className="text-[#0F766E] font-semibold flex items-center gap-1 truncate">
                           <BookOpen className="w-3.5 h-3.5 shrink-0" />
                           {item.candidateProcedureName}
                         </span>
@@ -1349,7 +1346,7 @@ export const PerWardDashboard: React.FC = () => {
 
               {hitlItems.length === 0 && (
                 <div className="p-8 text-center text-[#64748B] text-xs">
-                  Hiện không có câu hỏi vùng xám nào cần duyệt.
+                  Hiện không có câu hỏi nào đang chờ cán bộ giải đáp.
                 </div>
               )}
             </div>
@@ -1497,14 +1494,14 @@ export const PerWardDashboard: React.FC = () => {
         )}
 
         {/* ========================================================================= */}
-        {/* MODULE 4: GIS SPATIAL RADAR MAP                                          */}
+        {/* MODULE 4: INCIDENT MAP                                                    */}
         {/* ========================================================================= */}
         {activeTab === 'MAP' && (
           <div className="bg-white rounded-3xl border border-[#CBD5E1] shadow-xs p-5 flex flex-col gap-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#E2E8F0]">
-              <span className="text-xs sm:text-sm font-bold text-[#00236F] flex items-center gap-2">
+              <span className="text-xs sm:text-sm font-bold text-[#0F2942] flex items-center gap-2">
                 <Radio className="w-4 h-4 text-[#DC2626] animate-pulse shrink-0" />
-                Vị Trí Các Điểm Nóng Sự Cố Tại {ward.name} (Tọa độ: {ward.lat.toFixed(4)}, {ward.lon.toFixed(4)})
+                Bản Đồ Điểm Nóng Sự Cố Tại {ward.name}
               </span>
               <div className="flex flex-wrap items-center gap-3 text-xs text-[#64748B]">
                 <span className="flex items-center gap-1">
@@ -1514,7 +1511,7 @@ export const PerWardDashboard: React.FC = () => {
                   <span className="w-2.5 h-2.5 rounded-full bg-[#D97706]" /> Trung bình
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#00687A]" /> Đã xử lý
+                  <span className="w-2.5 h-2.5 rounded-full bg-[#0F766E]" /> Đã xử lý
                 </span>
                 <button
                   type="button"
@@ -1524,21 +1521,21 @@ export const PerWardDashboard: React.FC = () => {
                       mapInstanceRef.current.flyTo([ward.lat, ward.lon], 15, { duration: 0.8 });
                     }
                   }}
-                  className="px-3 py-1.5 rounded-lg border border-[#CBD5E1] bg-[#F2F3FF] hover:bg-[#EAEDFF] text-xs font-bold text-[#00236F] flex items-center gap-1 transition cursor-pointer"
+                  className="px-3 py-1.5 rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] hover:bg-[#F1F5F9] text-xs font-bold text-[#0F2942] flex items-center gap-1 transition cursor-pointer"
                   title="Định tâm lại bản đồ về trụ sở UBND và các điểm nóng trong địa bàn"
                 >
-                  <MapPin className="w-3.5 h-3.5 text-[#00687A]" />
-                  <span>Định Tâm Địa Bàn</span>
+                  <MapPin className="w-3.5 h-3.5 text-[#0F766E]" />
+                  <span>Về Trung Tâm Xã</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleRebuildGeoIndex}
                   disabled={geoSyncing}
-                  className="px-3 py-1.5 rounded-lg border border-[#CBD5E1] bg-white hover:bg-[#F1F5F9] text-xs font-semibold text-[#00236F] flex items-center gap-1 transition cursor-pointer"
-                  title="Đồng bộ lại chỉ mục không gian Redis GEO từ cơ sở dữ liệu PostgreSQL"
+                  className="px-3 py-1.5 rounded-lg border border-[#CBD5E1] bg-white hover:bg-[#F1F5F9] text-xs font-semibold text-[#0F2942] flex items-center gap-1 transition cursor-pointer"
+                  title="Làm mới dữ liệu vị trí sự cố trên bản đồ"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${geoSyncing ? 'animate-spin' : ''}`} />
-                  <span>{geoSyncing ? 'Đang đồng bộ...' : 'Đồng Bộ Redis GEO'}</span>
+                  <span>{geoSyncing ? 'Đang cập nhật...' : 'Làm Mới Bản Đồ'}</span>
                 </button>
               </div>
             </div>
@@ -1616,7 +1613,7 @@ export const PerWardDashboard: React.FC = () => {
               <div className="p-3.5 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] text-xs text-[#1E40AF] flex items-center gap-2.5">
                 <Check className="w-4 h-4 text-[#2563EB] shrink-0" />
                 <span>
-                  Hệ thống AI tự động phát hiện và gộp <strong>{selectedIncident.duplicatesMerged} phản ánh trùng lặp</strong> từ công dân trong cùng bán kính chuẩn <strong>R = 25m</strong> (Độ tương đồng ngữ nghĩa τ ≥ 0.82).
+                  Đã tổng hợp <strong>{selectedIncident.duplicatesMerged} phản ánh cùng điểm sự cố</strong> từ người dân trên địa bàn.
                 </span>
               </div>
 
@@ -1730,15 +1727,15 @@ export const PerWardDashboard: React.FC = () => {
             {/* Modal Header */}
             <div className="px-6 py-4 bg-[#F8FAFC] border-b border-[#E2E8F0] flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-xl bg-[#00236F] text-white flex items-center justify-center">
-                  <BrainCircuit className="w-5 h-5 text-[#57DFFE]" />
+                <div className="w-9 h-9 rounded-xl bg-[#0F2942] text-white flex items-center justify-center">
+                  <BrainCircuit className="w-5 h-5 text-[#38BDF8]" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm sm:text-base text-[#00236F]">
-                    Phê Duyệt Câu Hỏi Vùng Xám: {selectedHitlItem.id}
+                  <h3 className="font-bold text-sm sm:text-base text-[#0F2942]">
+                    Duyệt Nội Dung Hướng Dẫn: {selectedHitlItem.id}
                   </h3>
                   <span className="text-xs text-[#64748B]">
-                    Điểm tương đồng: {(selectedHitlItem.similarityScore * 100).toFixed(1)}% • Ngưỡng chuẩn: 0.42 ≤ S_max &lt; 0.78
+                    Thủ tục liên quan: {selectedHitlItem.candidateProcedureName}
                   </span>
                 </div>
               </div>
@@ -1815,13 +1812,13 @@ export const PerWardDashboard: React.FC = () => {
                   type="button"
                   disabled={resolvingId === selectedHitlItem.id}
                   onClick={() => handleApproveHitl(selectedHitlItem)}
-                  className="px-4 py-2 rounded-xl bg-[#00236F] hover:bg-[#1E3A8A] text-white text-xs font-bold transition active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-sm"
+                  className="px-4 py-2 rounded-xl bg-[#0F2942] hover:bg-[#1E3A5F] text-white text-xs font-bold transition active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-sm"
                 >
-                  <CheckCircle2 className="w-4 h-4 text-[#57DFFE]" />
+                  <CheckCircle2 className="w-4 h-4 text-[#38BDF8]" />
                   <span>
                     {resolvingId === selectedHitlItem.id
-                      ? 'Đang nạp Cache...'
-                      : 'Phê Duyệt & Nạp Cache Redis (24h)'}
+                      ? 'Đang lưu...'
+                      : 'Phê Duyệt Hướng Dẫn'}
                   </span>
                 </button>
               </div>
@@ -1937,12 +1934,12 @@ export const PerWardDashboard: React.FC = () => {
                 </div>
               </div>
 
-              {/* AI Precheck Results */}
+              {/* Precheck Results */}
               <div className="flex flex-col gap-2">
                 <span className="text-xs font-bold text-[#475569] flex items-center justify-between">
-                  <span>Kết Quả Tiền Kiểm Tra AI:</span>
-                  <span className="text-[#00687A] font-mono">
-                    Độ khớp OCR: {selectedDossier.details?.confidence ?? 98.5}%
+                  <span>Kết Quả Kiểm Tra Hồ Sơ:</span>
+                  <span className="text-[#0F766E] font-semibold">
+                    Đối chiếu tự động
                   </span>
                 </span>
 
@@ -1950,9 +1947,9 @@ export const PerWardDashboard: React.FC = () => {
                   <div className="p-4 rounded-2xl bg-[#ECFDF5] border border-[#86EFAC] text-xs text-[#166534] flex items-start gap-2.5">
                     <CheckCircle2 className="w-5 h-5 text-[#16A34A] shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-bold block">Tờ khai hợp lệ 100% chuẩn quy định</span>
+                      <span className="font-bold block">Tờ khai hợp lệ chuẩn quy định</span>
                       <p className="text-[11px] text-[#15803D] mt-0.5 leading-relaxed">
-                        Các trường thông tin bắt buộc (CCCD 12 số, ngày sinh, địa chỉ, quan hệ nhân thân) đã khớp với Cơ sở dữ liệu quốc gia về dân cư. Đủ điều kiện tiếp nhận và cấp số hẹn trả kết quả.
+                        Các trường thông tin bắt buộc (CCCD 12 số, ngày sinh, địa chỉ, quan hệ nhân thân) đã khớp quy định. Đủ điều kiện tiếp nhận và cấp phiếu hẹn trả kết quả.
                       </p>
                     </div>
                   </div>
@@ -1975,12 +1972,12 @@ export const PerWardDashboard: React.FC = () => {
                 )}
               </div>
 
-              {/* Legal Reference Note & Zero-Trust Vault One-Time Preview (Progressive Disclosure) */}
+              {/* Document Preview (Progressive Disclosure) */}
               <div className="flex flex-col gap-2.5">
                 <div className="p-3.5 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] text-xs text-[#0F766E] flex items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
                     <BookOpen className="w-4 h-4 text-[#0D9488] shrink-0" />
-                    <span>Zero-Trust Vault (NĐ 13/2023/NĐ-CP • AES-256)</span>
+                    <span>Bản Chụp Tờ Khai Đính Kèm</span>
                   </div>
                   <button
                     type="button"
@@ -1992,37 +1989,37 @@ export const PerWardDashboard: React.FC = () => {
                         setVaultTokenConsumed(true);
                       }
                     }}
-                    className="px-3 py-1 rounded-lg bg-[#00236F] hover:bg-[#1E3A8A] text-white text-[11px] font-bold transition cursor-pointer shrink-0"
+                    className="px-3 py-1 rounded-lg bg-[#0F2942] hover:bg-[#1E3A5F] text-white text-[11px] font-bold transition cursor-pointer shrink-0"
                   >
                     {showVaultScan
-                      ? 'Đóng & Hủy Token (GETDEL)'
+                      ? 'Đóng Bản Chụp'
                       : vaultTokenConsumed
-                      ? 'Mở Cấp Lại Token 1 Lần'
-                      : '🔍 Xem Bản Scan Watermark'}
+                      ? 'Xem Lại Bản Chụp'
+                      : '🔍 Xem Bản Chụp Tờ Khai'}
                   </button>
                 </div>
 
                 {showVaultScan && (
-                  <div className="relative p-4 rounded-2xl bg-white border-2 border-[#00236F]/30 shadow-inner overflow-hidden select-none animate-fadeIn">
+                  <div className="relative p-4 rounded-2xl bg-white border-2 border-[#0F2942]/30 shadow-inner overflow-hidden select-none animate-fadeIn">
                     {/* Diagonal Dynamic Watermark Overlay */}
-                    <div className="absolute inset-0 pointer-events-none z-20 flex flex-col justify-around overflow-hidden opacity-25">
+                    <div className="absolute inset-0 pointer-events-none z-20 flex flex-col justify-around overflow-hidden opacity-20">
                       {[1, 2, 3].map((idx) => (
                         <div
                           key={idx}
                           className="-rotate-12 transform whitespace-nowrap text-[#DC2626] font-mono text-[10px] font-extrabold uppercase text-center py-2"
                         >
-                          CHỈ DÙNG SƠ DUYỆT TẠI UBND {ward.name.toUpperCase()} • CÁN BỘ: TRẦN THỊ HƯƠNG (CC-AG-8942) • ONE-TIME TOKEN
+                          CHỈ DÙNG ĐỐI CHIẾU TẠI UBND {ward.name.toUpperCase()} • LƯU HÀNH NỘI BỘ
                         </div>
                       ))}
                     </div>
 
                     <div className="relative z-10 text-[11px] text-[#0F172A] space-y-1.5 font-sans">
                       <div className="text-center border-b border-[#E2E8F0] pb-2">
-                        <strong className="block text-xs text-[#00236F]">
-                          BẢN SCAN TỜ KHAI ({selectedDossier.formType}) — ĐÃ ĐÓNG DẤU MỜ BẢO MẬT
+                        <strong className="block text-xs text-[#0F2942]">
+                          BẢN CHỤP TỜ KHAI ({selectedDossier.formType})
                         </strong>
-                        <span className="text-[10px] text-[#64748B] font-mono">
-                          MinIO AES-256-GCM • Redis GETDEL One-Time Token • Tự hủy sau 07 ngày
+                        <span className="text-[10px] text-[#64748B]">
+                          Phục vụ đối chiếu hồ sơ tại Bộ phận Một cửa UBND {ward.name}
                         </span>
                       </div>
                       <div className="grid grid-cols-2 gap-2 pt-1">
