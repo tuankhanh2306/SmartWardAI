@@ -1,0 +1,34 @@
+{
+  "methodology": "Blind text-only TF-IDF (word 1-3 + char 3-5 + static civic synonym lexicon); zero ground-truth label access during similarity computation.",
+  "chronologicalSplit": {
+    "devReports": 90,
+    "heldOutTestReports": 60
+  },
+  "tunedOnDev": {
+    "optimalRadiusMeters": 50,
+    "optimalTau": 0.75,
+    "devPrecisionPct": 100.0,
+    "devRecallPct": 79.09,
+    "devF1Pct": 88.32
+  },
+  "evaluatedOnHeldOutTest": {
+    "atDevOptimalParams": {
+      "radiusMeters": 50,
+      "tau": 0.75,
+      "precisionPct": 100.0,
+      "recallPct": 70.0,
+      "f1Pct": 82.35,
+      "predictedClusters": 33,
+      "hardCasesAccuracyPct": 66.67
+    },
+    "atProductionConfig_R25_Tau080": {
+      "radiusMeters": 25,
+      "tau": 0.8,
+      "precisionPct": 100.0,
+      "recallPct": 62.0,
+      "f1Pct": 76.54,
+      "predictedClusters": 38,
+      "hardCasesAccuracyPct": 50.0
+    }
+  }
+}
