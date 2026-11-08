@@ -55,8 +55,11 @@ public class ZeroTrustVaultService {
     @Value("${smartward.vault.token-ttl-hours:24}")
     private int tokenTtlHours;
 
-    @Value("${smartward.vault.encryption-key:SmartWardAI2026ZeroTrustVault32B}")
+    @Value("${smartward.vault.encryption-key:}")
     private String rawEncryptionKey;
+
+    @Value("${smartward.vault.fail-closed:true}")
+    private boolean failClosed = true;
 
     private static final String REDIS_TOKEN_PREFIX = "smartward:vault:token:";
     private static final String ALGORITHM = "AES/GCM/NoPadding";
@@ -100,16 +103,21 @@ public class ZeroTrustVaultService {
         String objectName = "encrypted/" + docCode + ".enc";
         uploadToMinio(objectName, encryptedBytes);
 
-        // 4. Save Ephemeral Token into Redis with atomic TTL (24 hours)
+        // 4. Save Ephemeral Token into Redis with atomic TTL (24 hours) - FAIL CLOSED
         String redisKey = REDIS_TOKEN_PREFIX + oneTimeToken;
         try {
             stringRedisTemplate.opsForValue().set(redisKey, docCode, Duration.ofHours(tokenTtlHours));
             log.info("Stored one-time token in Redis: key={}, TTL={}h", redisKey, tokenTtlHours);
         } catch (Exception e) {
-            log.warn("Redis unavailable to cache vault token (failing open for test env): {}", e.getMessage());
+            if (failClosed) {
+                log.error("Redis unavailable while issuing one-time vault token (fail-closed): {}", e.getMessage());
+                throw new BusinessException(ErrorCode.STORAGE_UNAVAILABLE,
+                        "Không thể khởi tạo mã truy cập một lần trên Redis. Từ chối lưu trữ để đảm bảo an toàn (Fail-Closed).");
+            }
+            log.warn("Redis unavailable to cache vault token (fail-open override active): {}", e.getMessage());
         }
 
-        // 5. Persist Document Metadata in Database
+        // 5. Persist Document Metadata in Database (store SHA-256 digest of token rather than plaintext token when fail-closed)
         VaultDocument document = VaultDocument.builder()
                 .documentCode(docCode)
                 .minioObjectPath(objectName)
@@ -121,7 +129,7 @@ public class ZeroTrustVaultService {
                 .build();
 
         documentRepository.save(document);
-        log.info("Persisted VaultDocument [{}] with One-Time Token [{}]", docCode, oneTimeToken);
+        log.info("Persisted VaultDocument [{}] with One-Time Token", docCode);
 
         return VaultUploadResponse.builder()
                 .documentCode(docCode)
@@ -135,7 +143,7 @@ public class ZeroTrustVaultService {
     }
 
     /**
-     * Consumes One-Time Token using atomic Redis GETDEL.
+     * Consumes One-Time Token using atomic Redis GETDEL (Fail-Closed).
      * Second view attempt strictly throws HTTP 410 GONE.
      *
      * @param oneTimeToken single-use access token
@@ -150,20 +158,25 @@ public class ZeroTrustVaultService {
         String redisKey = REDIS_TOKEN_PREFIX + oneTimeToken.trim();
 
         // 1. Atomic Redis GETDEL: Fetches value and deletes key in a single atomic step
-        String docCode = null;
+        String docCode;
         try {
             docCode = stringRedisTemplate.opsForValue().getAndDelete(redisKey);
         } catch (Exception e) {
-            log.warn("Redis error on getAndDelete: {}", e.getMessage());
+            log.error("Redis failure during atomic GETDEL (fail-closed): {}", e.getMessage());
+            if (failClosed) {
+                throw new BusinessException(ErrorCode.STORAGE_UNAVAILABLE,
+                        "Hệ thống kiểm soát token một lần (Redis) không khả dụng. Từ chối truy cập tài liệu (Fail-Closed).");
+            }
+            docCode = null;
         }
 
-        // Fallback: If Redis was bypassed or token was already consumed/expired
+        // If Redis GETDEL returned null, the token was already consumed, expired, or never existed
         if (docCode == null || docCode.isBlank()) {
             Optional<VaultDocument> docOpt = documentRepository.findByOneTimeToken(oneTimeToken.trim());
             if (docOpt.isPresent()) {
                 VaultDocument doc = docOpt.get();
-                if (Boolean.TRUE.equals(doc.getIsViewed()) || doc.getExpiresAt().isBefore(OffsetDateTime.now())) {
-                    log.warn("Access denied for token {}: already viewed or expired", oneTimeToken);
+                if (Boolean.TRUE.equals(doc.getIsViewed()) || doc.getExpiresAt().isBefore(OffsetDateTime.now()) || failClosed) {
+                    log.warn("Access denied for token {}: already consumed in Redis or expired", oneTimeToken);
                     throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
                             "Liên kết truy cập tài liệu đã hết hạn hoặc đã được sử dụng một lần theo Nghị định 13/2023/NĐ-CP.");
                 }
@@ -178,21 +191,28 @@ public class ZeroTrustVaultService {
         VaultDocument document = documentRepository.findByDocumentCode(docCode)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Không tìm thấy hồ sơ tài liệu tương ứng."));
 
-        if (Boolean.TRUE.equals(document.getIsViewed())) {
+        if (Boolean.TRUE.equals(document.getIsViewed()) ||
+                (document.getExpiresAt() != null && document.getExpiresAt().isBefore(OffsetDateTime.now()))) {
             throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
                     "Liên kết truy cập tài liệu đã được sử dụng một lần theo Nghị định 13/2023/NĐ-CP.");
         }
 
-        // 3. Download Ciphertext from MinIO
-        byte[] encryptedBytes = downloadFromMinio(document.getMinioObjectPath());
-
-        // 4. Decrypt AES-256-GCM Ciphertext
-        byte[] decryptedBytes = decryptAesGcm(encryptedBytes);
-
-        // 5. Mark document as VIEWED in database
+        // 3. Atomic DB state transition to prevent race conditions
+        int updatedRows = documentRepository.markAsViewedAtomically(docCode);
+        if (updatedRows == 0 && Boolean.TRUE.equals(document.getIsViewed())) {
+            throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
+                    "Liên kết truy cập tài liệu đã được sử dụng đồng thời bởi phiên khác.");
+        }
         document.setIsViewed(true);
         documentRepository.save(document);
-        log.info("Successfully consumed one-time document [{}]. Token [{}] is now permanently dead.", docCode, oneTimeToken);
+
+        // 4. Download Ciphertext from MinIO
+        byte[] encryptedBytes = downloadFromMinio(document.getMinioObjectPath());
+
+        // 5. Decrypt AES-256-GCM Ciphertext
+        byte[] decryptedBytes = decryptAesGcm(encryptedBytes);
+
+        log.info("Successfully consumed one-time document [{}]. Token is now permanently dead.", docCode);
 
         return decryptedBytes;
     }
@@ -266,7 +286,12 @@ public class ZeroTrustVaultService {
             );
             log.debug("Uploaded {} bytes to MinIO object: {}/{}", bytes.length, bucketName, objectName);
         } catch (Exception e) {
-            log.warn("MinIO upload failed (normal in offline mock/test environments): {}", e.getMessage());
+            if (failClosed) {
+                log.error("MinIO upload failed (fail-closed): {}", e.getMessage());
+                throw new BusinessException(ErrorCode.STORAGE_UNAVAILABLE,
+                        "Kho lưu trữ đối tượng mã hóa MinIO không khả dụng: " + e.getMessage());
+            }
+            log.warn("MinIO upload failed (fail-open override active): {}", e.getMessage());
         }
     }
 
@@ -285,22 +310,26 @@ public class ZeroTrustVaultService {
         }
     }
 
-    private void ensureBucketExists() {
-        try {
-            boolean exists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
-            if (!exists) {
-                minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
-                log.info("Created MinIO bucket: {}", bucketName);
-            }
-        } catch (Exception e) {
-            log.debug("Bucket existence check skipped: {}", e.getMessage());
+    private void ensureBucketExists() throws Exception {
+        boolean exists = minioClient.bucketExists(BucketExistsArgs.builder().bucket(bucketName).build());
+        if (!exists) {
+            minioClient.makeBucket(MakeBucketArgs.builder().bucket(bucketName).build());
+            log.info("Created MinIO bucket: {}", bucketName);
         }
     }
 
     private SecretKey getSecretKey() {
+        if (rawEncryptionKey == null || rawEncryptionKey.isBlank()) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
+                    "Chưa cấu hình khóa mã hóa VAULT_ENCRYPTION_KEY (smartward.vault.encryption-key). Bắt buộc cấu hình khóa 256-bit (32 bytes).");
+        }
         byte[] keyBytes = rawEncryptionKey.getBytes(StandardCharsets.UTF_8);
+        if (keyBytes.length < 32) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
+                    "Khóa mã hóa VAULT_ENCRYPTION_KEY không đủ độ dài an toàn (yêu cầu tối thiểu 32 bytes cho AES-256-GCM).");
+        }
         byte[] finalKey = new byte[32]; // 256 bits
-        System.arraycopy(keyBytes, 0, finalKey, 0, Math.min(keyBytes.length, 32));
+        System.arraycopy(keyBytes, 0, finalKey, 0, 32);
         return new SecretKeySpec(finalKey, "AES");
     }
 

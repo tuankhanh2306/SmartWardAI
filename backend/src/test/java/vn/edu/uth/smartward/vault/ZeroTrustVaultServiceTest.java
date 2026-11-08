@@ -49,7 +49,35 @@ class ZeroTrustVaultServiceTest {
         );
         ReflectionTestUtils.setField(vaultService, "bucketName", "smartward-vault");
         ReflectionTestUtils.setField(vaultService, "tokenTtlHours", 24);
-        ReflectionTestUtils.setField(vaultService, "rawEncryptionKey", "SmartWardAI2026ZeroTrustVault32B");
+        ReflectionTestUtils.setField(vaultService, "rawEncryptionKey", "SmartWardAI_DevTest_VaultKey_32B");
+        ReflectionTestUtils.setField(vaultService, "failClosed", true);
+    }
+
+    @Test
+    void testAesGcm_whenEncryptionKeyMissing_shouldFailClosed() {
+        ReflectionTestUtils.setField(vaultService, "rawEncryptionKey", "");
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                vaultService.encryptAesGcm("secret".getBytes(StandardCharsets.UTF_8))
+        );
+        assertEquals(ErrorCode.INTERNAL_SERVER_ERROR, ex.getErrorCode());
+    }
+
+    @Test
+    void testAesGcm_whenEncryptionKeyWrongLength_shouldFailClosed() {
+        ReflectionTestUtils.setField(vaultService, "rawEncryptionKey", "too_short_key");
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                vaultService.encryptAesGcm("secret".getBytes(StandardCharsets.UTF_8))
+        );
+        assertEquals(ErrorCode.INTERNAL_SERVER_ERROR, ex.getErrorCode());
+    }
+
+    @Test
+    void testConsumeOneTimeDocument_whenRedisDownAndFailClosed_shouldThrowStorageUnavailable() {
+        when(stringRedisTemplate.opsForValue()).thenThrow(new RuntimeException("Redis connection refused"));
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                vaultService.consumeOneTimeDocument("OTT_token_123")
+        );
+        assertEquals(ErrorCode.STORAGE_UNAVAILABLE, ex.getErrorCode());
     }
 
     @Test
