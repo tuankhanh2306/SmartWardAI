@@ -272,12 +272,12 @@ export const askLegalRag = async (
         reply =
           `Dạ chào bà con! Thời gian hiện tại là **${rt.timeStr} (${rt.sessionName} ${rt.dayName}, ngày ${rt.dateStr})**.\n\n` +
           `• **Tại trụ sở UBND ${currentWardName}:** ${rt.statusHeadline} (${currentWorkingHours}).\n` +
-          `• **Hỗ trợ trực tuyến 24/7:** Bà con đang cần làm giấy tờ gì hoặc có vướng mắc về thủ tục nào (như khai sinh, kết hôn, cư trú CT01, chứng thực...) cứ nhắn để tôi hướng dẫn chuẩn bị trước khi đến quầy nhé!`;
+          `• **Hỗ trợ trực tuyến 24/7:** Hôm nay tôi vẫn hoạt động bình thường 24/7 để hỗ trợ bà con. Bà con đang cần làm giấy tờ gì hoặc có vướng mắc về thủ tục nào (như khai sinh, kết hôn, cư trú CT01, chứng thực...) cứ nhắn để tôi hướng dẫn chuẩn bị trước khi đến quầy nhé!`;
       } else {
         reply =
           `Dạ chào bà con! Thời gian hiện tại là **${rt.timeStr} (${rt.sessionName} ${rt.dayName}, ngày ${rt.dateStr})**.\n\n` +
           `• **Tại trụ sở UBND ${currentWardName}:** Hiện tại đang ngoài giờ tiếp dân trực tiếp (${rt.statusHeadline}). Thời gian mở cửa tiếp theo: **${rt.nextOpenText}**.\n` +
-          `• **Hỗ trợ trực tuyến 24/7:** Trợ lý Pháp lý AI vẫn trực 24/7 để hướng dẫn bà con chuẩn bị hồ sơ hoặc tiền kiểm định tờ khai ngay lúc này!`;
+          `• **Hỗ trợ trực tuyến 24/7:** Hôm nay tôi vẫn hoạt động bình thường 24/7. Trợ lý Pháp lý AI vẫn trực 24/7 để hướng dẫn bà con chuẩn bị hồ sơ hoặc tiền kiểm định tờ khai ngay lúc này!`;
       }
     } else if (smallTalk.type === 'THANKS') {
       reply =
@@ -354,7 +354,7 @@ export const askLegalRag = async (
         `• **Trạng thái lúc này:** **${rt.statusHeadline}**.\n` +
         `• **Thời gian tiếp nhận trực tiếp gần nhất:** **${rt.nextOpenText}**.\n` +
         `• **Khung giờ hành chính quy định:** ${currentWorkingHours} *(Thứ Bảy, Chủ Nhật và ngày Lễ nghỉ theo quy định)*.\n` +
-        `• **Địa chỉ trụ sở Một cửa:** ${currentAddress}\n` +
+        `• **Trụ sở / Địa chỉ Một cửa:** ${currentAddress}\n` +
         `• **Số điện thoại / Đường dây nóng:** ${currentPhone}\n\n` +
         `🌐 **2. DỊCH VỤ HỖ TRỢ TRỰC TUYẾN 24/7 (KỂ CẢ THỨ BẢY & CHỦ NHẬT):**\n` +
         `• Dù đang ngoài giờ hành chính hay cuối tuần, bà con vẫn có thể **hỏi đáp thủ tục với Trợ lý AI**, dùng công cụ **Tiền Kiểm Định Tờ Khai (4 mẫu)** để rà soát lỗi trước ở nhà, **Báo Sự Cố Hiện Trường (GPS)** hoặc nộp hồ sơ trực tuyến trên Cổng DVC Quốc gia tại \`dichvucong.gov.vn\`.`,

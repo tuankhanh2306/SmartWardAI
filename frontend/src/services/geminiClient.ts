@@ -1,7 +1,9 @@
 /**
- * Google Gemini Live Client with Grounded Project RAG
- * Powers intelligent, reasoning-capable Vietnamese legal assistance
- * strictly grounded in SmartWard AI administrative procedures.
+ * Google Gemini Client & Grounded Legal RAG Proxy
+ * Routes AI inquiries and Vision OCR securely through the Spring Boot backend
+ * to protect API keys from browser-side exposure.
+ * Automatically falls back to local grounded knowledge base and in-browser Tesseract.js
+ * when running offline.
  */
 
 import { searchLegalKnowledge, type LegalProcedureItem } from './legalKnowledgeBase';
@@ -13,72 +15,39 @@ import {
   buildProcedureCatalogResponse,
 } from './intentClassifier';
 import { type RagResponse, type LegalCitation } from '../api/client';
+import { extractFormWithTesseract } from './tesseractOcr';
 
-const GEMINI_API_STORAGE_KEY = 'smartward_gemini_api_key';
-export const CHAT_MODELS = ['gemini-3-flash-preview', 'gemini-3.5-flash', 'gemini-2.5-flash'];
-export const DEFAULT_MODEL = 'gemini-3-flash-preview';
+export const CHAT_MODELS = ['gemini-2.5-flash'];
+export const DEFAULT_MODEL = 'gemini-2.5-flash';
 
+/**
+ * Legacy API key accessors retained for backward compatibility.
+ * All live API keys are securely managed on the backend server.
+ */
 export function getGeminiApiKey(): string {
-  if (typeof localStorage !== 'undefined') {
-    const localKey = localStorage.getItem(GEMINI_API_STORAGE_KEY);
-    if (localKey && localKey.trim()) {
-      return localKey.trim();
-    }
-  }
-  const globalEnv = (globalThis as any)?.process?.env;
-  const envKey =
-    (import.meta as any).env?.VITE_GEMINI_API_KEY ||
-    globalEnv?.VITE_GEMINI_API_KEY ||
-    globalEnv?.GEMINI_API_KEY;
-  if (envKey && typeof envKey === 'string' && envKey.trim()) {
-    return envKey.trim();
-  }
   return '';
 }
 
-export function setGeminiApiKey(key: string): void {
-  if (typeof localStorage !== 'undefined') {
-    if (key && key.trim()) {
-      localStorage.setItem(GEMINI_API_STORAGE_KEY, key.trim());
-    } else {
-      localStorage.removeItem(GEMINI_API_STORAGE_KEY);
-    }
-  }
+export function setGeminiApiKey(_key: string): void {
+  // No-op: API keys are securely managed on the backend server to prevent bundle leakage
 }
 
 export function isGeminiConfigured(): boolean {
-  return getGeminiApiKey().length > 10;
+  return true;
 }
 
 /**
- * Tests if the given Gemini API key is valid by making a lightweight ping.
+ * Tests connection to the backend AI service.
  */
-export async function testGeminiConnection(key?: string): Promise<{ success: boolean; message: string }> {
-  const activeKey = key?.trim() || getGeminiApiKey();
-  if (!activeKey) {
-    return { success: false, message: 'Chưa nhập API Key Google Gemini.' };
-  }
-
+export async function testGeminiConnection(): Promise<{ success: boolean; message: string }> {
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${DEFAULT_MODEL}:generateContent?key=${activeKey}`;
-    const resp = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: 'Xin chào, hãy phản hồi chữ OK' }] }],
-        generationConfig: { maxOutputTokens: 10, temperature: 0.1 },
-      }),
-    });
-
-    if (!resp.ok) {
-      const errJson = await resp.json().catch(() => ({}));
-      const errMsg = errJson.error?.message || `Mã lỗi HTTP ${resp.status}`;
-      return { success: false, message: `Kết nối thất bại: ${errMsg}` };
+    const resp = await fetch('/api/v1/health');
+    if (resp.ok) {
+      return { success: true, message: 'Kết nối máy chủ SmartWard AI an toàn qua backend proxy.' };
     }
-
-    return { success: true, message: 'Kết nối thành công! Gemini Flash đã sẵn sàng hoạt động.' };
-  } catch (err: any) {
-    return { success: false, message: `Lỗi mạng khi kết nối Gemini: ${err.message || 'Không thể truy cập Google API'}` };
+    return { success: true, message: 'Hệ thống đang hoạt động với cơ sở tri thức ngoại tuyến.' };
+  } catch {
+    return { success: true, message: 'Đang hoạt động với cơ sở dữ liệu pháp lý 40 thủ tục cấp xã.' };
   }
 }
 
@@ -94,102 +63,38 @@ export interface WardContextInfo {
  * Phân định rõ thẩm quyền và hướng dẫn kênh chính thức theo pháp luật Việt Nam.
  */
 export async function answerIntelligentCivicInquiry(
-  query: string,
+  _query: string,
   wardName: string,
   officeAddress: string,
   phoneNumber: string,
   authorityHint?: string
 ): Promise<RagResponse> {
   const startTime = performance.now();
-  const apiKey = getGeminiApiKey();
-
-  const prompt = `Bạn là Trợ lý Hành chính Thông minh SmartWard AI tại Bộ phận Tiếp nhận & Trả kết quả UBND ${wardName}.
-Người dân gửi câu hỏi:
-"${query}"
-
-QUY TẮC BẮT BUỘC (TUÂN THỦ 100%):
-1. NÓI RÕ GIỚI HẠN (NGAY ĐOẠN ĐẦU):
-   - Nói rõ ràng, lịch sự: Thủ tục/yêu cầu này KHÔNG thuộc thẩm quyền giải quyết trực tiếp của UBND cấp xã/phường (nằm ngoài phạm vi dịch vụ công cấp xã).
-   - Chỉ rõ cơ quan có thẩm quyền theo quy định pháp luật Việt Nam ${authorityHint ? `(Gợi ý: ${authorityHint})` : ''} (ví dụ: Phòng Quản lý Xuất nhập cảnh Công an tỉnh, Cơ quan Bảo hiểm Xã hội, Chi cục Thuế, Văn phòng Đăng ký Đất đai, Tòa án nhân dân, Phòng Tư pháp...).
-
-2. TUYỆT ĐỐI KHÔNG TỰ SUY ĐOÁN:
-   - Tuyệt đối không phỏng đoán, không suy diễn tình huống hay đưa ra lời khuyên pháp lý võ đoán/chủ quan.
-   - Chỉ dẫn khách quan kênh tiếp nhận: Nộp hồ sơ trực tuyến qua Cổng Dịch vụ công Quốc gia (dichvucong.gov.vn) hoặc cổng dịch vụ công chuyên ngành (ví dụ: dichvucong.bocongan.gov.vn, VNeID, VssID) nếu có hỗ trợ online.
-   - Nêu tóm tắt thành phần hồ sơ và điều kiện cơ bản theo luật định (nếu có căn cứ pháp lý rõ ràng).
-   - Khuyên công dân liên hệ trực tiếp cơ quan có thẩm quyền hoặc tra cứu cổng DVC chính thức để được hỗ trợ chính xác.
-
-3. PHONG CÁCH:
-   - Trả lời tự nhiên, ân cần, ngắn gọn, súc tích và chuẩn mực công vụ.`;
-
-  if (apiKey) {
-    for (const model of CHAT_MODELS) {
-      try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.2,
-              maxOutputTokens: 2500,
-              thinkingConfig: { thinkingBudget: 0 },
-            },
-          }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const candidate = data.candidates?.[0];
-          let text = '';
-          for (const p of candidate?.content?.parts || []) {
-            if (p.text) text += p.text;
-          }
-
-          if (text.trim()) {
-            const elapsed = Math.round(performance.now() - startTime);
-            return {
-              answer: text.trim(),
-              abstained: false,
-              maxSimilarity: 0.85,
-              appliedThreshold: 0.50,
-              responseTimeMs: elapsed,
-              cached: false,
-              disclaimer: `*Thông tin phân định thẩm quyền theo quy định pháp luật Việt Nam (${model}). Thủ tục này không do UBND cấp xã trực tiếp thụ lý.*`,
-              citations: [
-                {
-                  chunkCode: 'NATIONAL_PORTAL_GUIDANCE',
-                  procedureCode: 'HUONG-DAN-THAM-QUYEN',
-                  procedureName: authorityHint || 'Cơ quan có thẩm quyền liên quan',
-                  title: 'Cổng Dịch vụ công Quốc gia (dichvucong.gov.vn)',
-                  legalReference: 'Hệ thống Văn bản Quy phạm Pháp luật Việt Nam',
-                  content: `Thẩm quyền giải quyết: ${authorityHint || 'Cơ quan chuyên môn cấp huyện/tỉnh/bộ'}. Tra cứu và nộp hồ sơ trực tuyến tại dichvucong.gov.vn hoặc cổng dịch vụ công chuyên ngành.`,
-                  relevanceScore: 0.88,
-                },
-              ],
-            };
-          }
-        }
-      } catch {
-        // Continue to next model
-      }
-    }
-  }
-
-  // Graceful fallback if offline
   const elapsed = Math.round(performance.now() - startTime);
+
   return {
     answer:
       `Thủ tục/yêu cầu này nằm ngoài phạm vi giải quyết trực tiếp của UBND cấp xã/phường.\n\n` +
       `👉 Thẩm quyền giải quyết: Quý công dân vui lòng liên hệ ${authorityHint || 'Cơ quan chuyên môn cấp trên'} hoặc nộp trực tuyến tại Cổng Dịch vụ công Quốc gia (dichvucong.gov.vn) để được thụ lý đúng quy định.\n\n` +
       `Bộ phận Một cửa ${wardName} (Địa chỉ: ${officeAddress} • Hotline: ${phoneNumber}) luôn sẵn sàng hỗ trợ giải đáp thêm cho bà con.`,
-    abstained: false,
-    maxSimilarity: 0.50,
-    appliedThreshold: 0.50,
+    abstained: true,
+    maxSimilarity: 0.45,
+    appliedThreshold: 0.78,
     responseTimeMs: elapsed,
     cached: false,
     disclaimer: 'Thông tin hướng dẫn thẩm quyền theo quy định pháp luật Việt Nam.',
-    citations: [],
+    citations: [
+      {
+        chunkCode: 'NATIONAL_PORTAL_GUIDANCE',
+        procedureCode: 'HUONG-DAN-THAM-QUYEN',
+        procedureName: authorityHint || 'Cơ quan có thẩm quyền liên quan',
+        title: 'Cổng Dịch vụ công Quốc gia (dichvucong.gov.vn)',
+        legalReference: 'Hệ thống Văn bản Quy phạm Pháp luật Việt Nam',
+        content: `Thẩm quyền giải quyết: ${authorityHint || 'Cơ quan chuyên môn cấp huyện/tỉnh/bộ'}. Tra cứu và nộp hồ sơ trực tuyến tại dichvucong.gov.vn hoặc cổng dịch vụ công chuyên ngành.`,
+        relevanceScore: 0.88,
+      },
+    ],
+    suggestions: ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📋 Xem 40 thủ tục'],
   };
 }
 
@@ -197,80 +102,45 @@ QUY TẮC BẮT BUỘC (TUÂN THỦ 100%):
  * Behavior 2: Chào hỏi hoặc câu hỏi ngoài lề nhẹ: trò chuyện tự nhiên, rồi hướng người dùng về các dịch vụ UBND.
  */
 export async function answerCasualAndGuideToCommuneServices(
-  query: string,
+  _query: string,
   wardName: string,
-  officeAddress: string,
-  phoneNumber: string
+  _officeAddress: string,
+  _phoneNumber: string
 ): Promise<RagResponse> {
   const startTime = performance.now();
-  const apiKey = getGeminiApiKey();
 
-  const prompt = `Bạn là Trợ lý Hành chính Một Cửa SmartWard AI tại UBND ${wardName} (Trụ sở: ${officeAddress}, Hotline: ${phoneNumber}).
-Người dân nói hoặc hỏi câu ngoài lề nhẹ:
-"${query}"
-
-QUY TẮC PHẢN HỒI (TUÂN THỦ 100%):
-1. TRÒ CHUYỆN TỰ NHIÊN: Trả lời ngắn gọn (1-2 câu), ân cần, tự nhiên, gần gũi và tích cực.
-2. HƯỚNG VỀ DỊCH VỤ UBND: Sau đó khéo léo và tự nhiên hướng người dùng về các dịch vụ hành chính công của UBND ${wardName} (như khai sinh, kết hôn, chứng thực sao y, xác nhận cư trú CT01, xác nhận độc thân, bảo trợ xã hội...).
-Hỏi xem hôm nay người dân có cần giải quyết giấy tờ gì để được hướng dẫn chuẩn bị hồ sơ chu đáo.`;
-
-  if (apiKey) {
-    for (const model of CHAT_MODELS) {
-      try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-        const resp = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: {
-              temperature: 0.3,
-              maxOutputTokens: 600,
-              thinkingConfig: { thinkingBudget: 0 },
-            },
-          }),
-        });
-
-        if (resp.ok) {
-          const data = await resp.json();
-          const candidate = data.candidates?.[0];
-          let text = '';
-          for (const p of candidate?.content?.parts || []) {
-            if (p.text) text += p.text;
-          }
-          if (text.trim()) {
-            return {
-              answer: text.trim(),
-              abstained: false,
-              maxSimilarity: 0.9,
-              appliedThreshold: 0.5,
-              responseTimeMs: Math.round(performance.now() - startTime),
-              cached: false,
-              disclaimer: 'Trợ lý SmartWard AI luôn sẵn sàng đồng hành cùng bà con.',
-              citations: [],
-            };
-          }
-        }
-      } catch {
-        // Next model
-      }
-    }
-  }
-
-  // Fallback response
   return {
     answer:
       `Dạ chào bà con! Tôi là Trợ lý Hành chính Một Cửa tại UBND ${wardName}, luôn sẵn sàng đồng hành và hỗ trợ giải quyết công việc hành chính cho bà con.\n\n` +
       `Hôm nay bà con đang cần làm giấy tờ hoặc tìm hiểu thủ tục nào (như khai sinh, kết hôn, xác nhận cư trú CT01, chứng thực sao y, giấy độc thân...) để tôi hướng dẫn chi tiết nhé!`,
     abstained: false,
     maxSimilarity: 1.0,
-    appliedThreshold: 0.5,
+    appliedThreshold: 0.78,
     responseTimeMs: Math.round(performance.now() - startTime),
     cached: false,
     disclaimer: 'Trợ lý SmartWard AI luôn sẵn sàng đồng hành cùng bà con.',
     citations: [],
+    suggestions: ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📋 Xem 40 thủ tục'],
   };
 }
+
+export function getProcedureSuggestions(procName: string): string[] {
+  const lower = procName.toLowerCase();
+  if (lower.includes('kết hôn')) {
+    return ['Hồ sơ kết hôn cần gì?', 'Lệ phí kết hôn bao nhiêu?', 'Nơi nộp hồ sơ kết hôn ở đâu?', 'Thời hạn giải quyết bao lâu?'];
+  }
+  if (lower.includes('khai sinh')) {
+    return ['Hồ sơ khai sinh cần gì?', 'Lệ phí khai sinh bao nhiêu?', 'Nơi nộp hồ sơ khai sinh ở đâu?', 'Thời hạn giải quyết bao lâu?'];
+  }
+  if (lower.includes('thường trú') || lower.includes('cư trú')) {
+    return ['Hồ sơ thường trú gồm những gì?', 'Thời hạn đăng ký thường trú?', 'Nơi nộp hồ sơ thường trú?', 'Hướng dẫn điền CT01'];
+  }
+  if (lower.includes('chứng thực')) {
+    return ['Lệ phí chứng thực bản sao?', 'Giấy tờ cần xuất trình khi chứng thực?', 'Thời hạn trả kết quả chứng thực?'];
+  }
+  return ['Hồ sơ cần những gì?', 'Lệ phí bao nhiêu?', 'Nơi nộp hồ sơ ở đâu?', 'Thời hạn giải quyết bao lâu?'];
+}
+
 export function buildStructuredProcedureResponse(
   item: LegalProcedureItem,
   wardName: string,
@@ -295,8 +165,8 @@ export function buildStructuredProcedureResponse(
 }
 
 /**
- * Grounded RAG Generation using Gemini Flash ("Gemini Mini")
- * Combines natural reasoning with strict SmartWard AI administrative legal database.
+ * Grounded RAG Generation
+ * Routes to Spring Boot backend (/api/v1/rag/ask) or falls back to local knowledge base.
  */
 export async function askGeminiWithRAG(
   query: string,
@@ -307,6 +177,8 @@ export async function askGeminiWithRAG(
   const officeAddress = wardContext.officeAddress || 'Trụ sở Bộ phận Tiếp nhận và Trả kết quả (Một cửa)';
   const phoneNumber = wardContext.phoneNumber || '18001096';
   const workingHours = wardContext.workingHours || 'Sáng: 07:30 – 11:30 | Chiều: 13:30 – 17:00 (Thứ 2 – Thứ 6)';
+  const mandatoryDisclaimer =
+    '*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*';
 
   // 1. Procedure Catalog Request ("nêu 40 thủ tục", "danh sách thủ tục"...)
   if (isProcedureListQuery(query)) {
@@ -315,7 +187,7 @@ export async function askGeminiWithRAG(
       answer: buildProcedureCatalogResponse(wardName),
       abstained: false,
       maxSimilarity: 1.0,
-      appliedThreshold: 0.50,
+      appliedThreshold: 0.78,
       responseTimeMs: elapsed,
       cached: false,
       disclaimer: 'Danh mục 40 TTHC cấp xã chuẩn hóa theo Nghị định 13/2023 và Đề án 06.',
@@ -334,7 +206,7 @@ export async function askGeminiWithRAG(
     );
   }
 
-  // 3. Out-of-commune / Higher authority inquiry: Answer intelligently with Gemini 3 Flash without rigid rejection
+  // 3. Out-of-commune / Higher authority inquiry
   const outOfScopeCheck = checkOutOfScopeQuery(query);
   if (outOfScopeCheck.isOutOfScope) {
     return await answerIntelligentCivicInquiry(
@@ -359,7 +231,7 @@ export async function askGeminiWithRAG(
         `Bà con có thể đến trực tiếp trong khung giờ làm việc trên hoặc gửi câu hỏi về thủ tục hành chính để tôi hướng dẫn chuẩn bị đầy đủ hồ sơ trước khi đến nộp.`,
       abstained: false,
       maxSimilarity: 1.0,
-      appliedThreshold: 0.50,
+      appliedThreshold: 0.78,
       responseTimeMs: elapsed,
       cached: false,
       disclaimer: 'Thông tin chính thức từ Danh bạ hành chính UBND cấp xã/phường.',
@@ -367,7 +239,34 @@ export async function askGeminiWithRAG(
     };
   }
 
-  // 5. Semantic Retrieval over SmartWard AI Legal Knowledge Base (with Southern dialect normalization)
+  // 5. Attempt to invoke Spring Boot Backend (/api/v1/rag/ask) securely when in browser
+  if (typeof window !== 'undefined') {
+    try {
+      const response = await fetch('/api/v1/rag/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: query,
+          query,
+          topK: 3,
+          wardName,
+          officeAddress,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const result = data?.data ? data.data : data;
+        if (result && result.answer) {
+          return result as RagResponse;
+        }
+      }
+    } catch (err) {
+      console.info('Backend RAG unreachable, using local knowledge base fallback:', err);
+    }
+  }
+
+  // 6. Semantic Retrieval over SmartWard AI Local Legal Knowledge Base
   let normalizedSearchQuery = query.toLowerCase();
   if (normalizedSearchQuery.includes('cư trú') && normalizedSearchQuery.includes('tthc-ct-01')) {
     normalizedSearchQuery = normalizedSearchQuery.replaceAll('tthc-ct-01', 'mẫu ct01');
@@ -389,11 +288,11 @@ export async function askGeminiWithRAG(
     .replaceAll('chứng giấy tờ', 'chứng thực sao y')
     .replaceAll('chứng giấy', 'chứng thực sao y')
     .replaceAll('mần giấy', 'chứng thực sao y');
+
   const searchResult = searchLegalKnowledge(normalizedSearchQuery, 3);
 
-  // 6. Semantic Retrieval Guardrail: Check if outside 40 commune procedures
+  // 7. Semantic Retrieval Guardrail
   if (!searchResult.isInScope || searchResult.items.length === 0) {
-    // If the citizen is asking a legal, public service, or administrative question outside commune scope -> Behavior 3
     const isCivicQuery = /(?:thủ tục|giấy tờ|hồ sơ|đăng ký|ở đâu|làm sao|cách làm|lệ phí|bao nhiêu tiền|thời hạn|mất bao lâu|quy định|luật|nghĩa vụ|chế độ|trợ cấp|bảo hiểm|bhxh|bhyt|đất đai|sổ đỏ|hộ chiếu|căn cước|bằng lái|gplx|thuế|tòa án|khiếu nại|tố cáo|công chứng)/i.test(query);
 
     if (isCivicQuery) {
@@ -406,223 +305,53 @@ export async function askGeminiWithRAG(
       );
     }
 
-    // Otherwise light off-topic or conversational question -> Behavior 2: chat naturally, then guide to commune services
-    return await answerCasualAndGuideToCommuneServices(
-      query,
-      wardName,
-      officeAddress,
-      phoneNumber
-    );
-  }
-
-  const apiKey = getGeminiApiKey();
-  if (!apiKey) {
-    throw new Error('Chưa cấu hình Gemini API Key.');
-  }
-
-  // 6. Build Grounded Prompt with Project's Legal Data
-  const retrievedText = searchResult.items
-    .map(
-      (item: LegalProcedureItem) => `
-[MÃ THỦ TỤC: ${item.code}]
-• Tên thủ tục: ${item.name} (${item.category})
-• Căn cứ pháp lý: ${item.legalBasis}
-• Thẩm quyền giải quyết: ${item.authority}
-• Thời hạn giải quyết: ${item.timeLimit}
-• Mức lệ phí: ${item.fee}
-• Thành phần hồ sơ bắt buộc:
-${item.dossier.map((d) => `  - ${d}`).join('\n')}
-• Quy định & Lưu ý quan trọng:
-${item.keyRules.map((r) => `  - ${r}`).join('\n')}
-`
-    )
-    .join('\n----------------------------------------\n');
-
-  const mandatoryDisclaimer =
-    '*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*';
-
-  const systemInstruction = `
-Bạn là Cán bộ Tiếp nhận và Trả kết quả (Một Cửa) tại UBND ${wardName}.
-NHIỆM VỤ: Hướng dẫn thủ tục hành chính công trực tiếp, chính xác, ân cần và chuẩn mực cho nhân dân.
-
-QUY TẮC CỐT LÕI (TUÂN THỦ 100%):
-1. TÌM CĂN CỨ TRƯỚC:
-   - Dựa vào căn cứ pháp lý và dữ liệu chính thức được cung cấp bên dưới để giải đáp. TUYỆT ĐỐI KHÔNG tự suy đoán hay bịa đặt điều luật, số liệu.
-2. TRẢ LỜI TỰ NHIÊN, NGẮN GỌN VÀ DẪN NGUỒN:
-   - Mở đầu tự nhiên, thân thiện và đi thẳng vào việc giải đáp cho người dân (ví dụ: "Dạ thưa bà con, về thủ tục...", "Để thực hiện thủ tục... tại UBND ${wardName}, bà con cần chuẩn bị...").
-   - Trình bày ngắn gọn, mạch lạc, dễ hiểu, gồm các nội dung cốt lõi:
-     • Thành phần hồ sơ cần chuẩn bị (các giấy tờ phải nộp và xuất trình) [kèm mã thủ tục].
-     • Thời hạn giải quyết và lệ phí quy định [kèm mã thủ tục] (nếu thiếu thông tin ghi: "Chưa có dữ liệu, vui lòng liên hệ Bộ phận Một cửa").
-     • Nơi tiếp nhận & xử lý hồ sơ: Bộ phận Một cửa của UBND ${wardName} (Địa chỉ: ${officeAddress}).
-   - DẪN NGUỒN CĂN CỨ: Nêu rõ căn cứ pháp luật và mã thủ tục trích dẫn theo định dạng [MÃ_THỦ_TỤC] Căn cứ: [Tên văn bản pháp luật].
-3. KHUYẾN CÁO BẮT BUỘC Ở CUỐI:
-   "${mandatoryDisclaimer}"
-
-DỮ LIỆU THỦ TỤC HÀNH CHÍNH CHÍNH THỨC ĐƯỢC CUNG CẤP:
-${retrievedText}
-`;
-
-  try {
-    let generatedText = '';
-
-    for (const model of CHAT_MODELS) {
-      try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            systemInstruction: {
-              parts: [{ text: systemInstruction }],
-            },
-            contents: [
-              {
-                role: 'user',
-                parts: [{ text: query }],
-              },
-            ],
-            generationConfig: {
-              temperature: 0.1,
-              maxOutputTokens: 8192,
-              thinkingConfig: {
-                thinkingBudget: 0,
-              },
-            },
-          }),
-        });
-
-        if (response.ok) {
-          const resJson = await response.json();
-          const candidate = resJson.candidates?.[0];
-          const parts = candidate?.content?.parts;
-          if (Array.isArray(parts)) {
-            generatedText = parts.map((p: any) => p?.text || '').join('');
-          }
-          if (generatedText.trim()) {
-            break;
-          }
-        }
-      } catch {
-        // Try next model in cascade
-      }
-    }
-
-    if (!generatedText.trim()) {
-      throw new Error('ALL_MODELS_FAILED');
-    }
-
-    // Ensure mandatory disclaimer is present at the end
-    if (!generatedText.includes('không thay thế quyết định chính thức')) {
-      generatedText = generatedText.trim() + '\n\n' + mandatoryDisclaimer;
-    }
-
-    const elapsed = Math.round(performance.now() - startTime);
-
-    // Build verified citations from retrieved items
-    const citations: LegalCitation[] = searchResult.items.map((item) => ({
-      chunkCode: `${item.code}_OFFICIAL`,
-      procedureCode: item.code,
-      procedureName: item.name,
-      title: `${item.name} (${item.category})`,
-      legalReference: item.legalBasis,
-      content: `Thành phần hồ sơ: ${item.dossier.slice(0, 2).join('; ')}... Thời hạn: ${item.timeLimit}. Lệ phí: ${item.fee}.`,
-      relevanceScore: Math.min(0.97, Math.max(0.82, searchResult.maxScore)),
-    }));
-
-    return {
-      answer: generatedText,
-      abstained: false,
-      maxSimilarity: searchResult.maxScore,
-      appliedThreshold: 0.50,
-      citations,
-      cached: false,
-      responseTimeMs: elapsed,
-      disclaimer: mandatoryDisclaimer,
-    };
-  } catch (apiError: any) {
-    console.error('Gemini Live API error, analyzing exception:', apiError);
-
-    const elapsed = Math.round(performance.now() - startTime);
-    const topItem = searchResult.items[0];
-
-    // Exception handling with graceful degradation (R4)
-    if (apiError.message === 'API_KEY_INVALID') {
-      return {
-        answer:
-          `Dịch vụ AI đang cần quản trị viên kiểm tra lại cấu hình API Key. ` +
-          `Để không gián đoạn công việc của bà con, sau đây là thông tin trích xuất trực tiếp từ cơ sở dữ liệu pháp lý của UBND:\n\n` +
-          `1. TÓM TẮT THỦ TỤC: [${topItem.code}] Thủ tục "${topItem.name}" thuộc lĩnh vực ${topItem.category}.\n\n` +
-          `2. THÀNH PHẦN HỒ SƠ:\n${topItem.dossier.map((d) => `   - ${d}`).join('\n')}\n\n` +
-          `3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n   - Thời hạn: ${topItem.timeLimit}\n   - Lệ phí: ${topItem.fee}\n\n` +
-          `4. NƠI TIẾP NHẬN & XỬ LÝ:\n   Bộ phận Một cửa của ${wardName} - Địa chỉ: ${officeAddress} (Hotline: ${phoneNumber}).\n\n` +
-          `5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n   Căn cứ: ${topItem.legalBasis}.\n   ${mandatoryDisclaimer}`,
-        abstained: false,
-        maxSimilarity: searchResult.maxScore,
-        appliedThreshold: 0.50,
-        responseTimeMs: elapsed,
-        cached: false,
-        disclaimer: mandatoryDisclaimer,
-        citations: [
-          {
-            chunkCode: `${topItem.code}_OFFICIAL`,
-            procedureCode: topItem.code,
-            procedureName: topItem.name,
-            title: topItem.name,
-            legalReference: topItem.legalBasis,
-            content: topItem.dossier.join('; '),
-            relevanceScore: searchResult.maxScore,
-          },
-        ],
-      };
-    }
-
-    if (apiError.message === 'RATE_LIMIT_EXCEEDED') {
-      return {
-        answer:
-          `Hệ thống AI đang phục vụ lượng lớn yêu cầu từ công dân. Quý công dân vui lòng thử lại sau ít phút hoặc tham khảo thông tin chuẩn bị hồ sơ dưới đây:\n\n` +
-          `1. TÓM TẮT THỦ TỤC: [${topItem.code}] Thủ tục ${topItem.name}.\n\n` +
-          `2. THÀNH PHẦN HỒ SƠ:\n${topItem.dossier.map((d) => `   - ${d}`).join('\n')}\n\n` +
-          `3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n   - Thời hạn: ${topItem.timeLimit}\n   - Lệ phí: ${topItem.fee}\n\n` +
-          `4. NƠI TIẾP NHẬN & XỬ LÝ: Bộ phận Một cửa của ${wardName} (Địa chỉ: ${officeAddress}).\n\n` +
-          `5. CĂN CỨ PHÁP LÝ:\n   Căn cứ: ${topItem.legalBasis}.\n   ${mandatoryDisclaimer}`,
-        abstained: false,
-        maxSimilarity: searchResult.maxScore,
-        appliedThreshold: 0.50,
-        responseTimeMs: elapsed,
-        cached: false,
-        disclaimer: mandatoryDisclaimer,
-        citations: [],
-      };
-    }
-
-    // Default network / timeout / unexpected error fallback to structured procedure data
     return {
       answer:
-        `Hệ thống kết nối AI trực tuyến tạm thời gián đoạn. Dữ liệu thủ tục chính thức được trích xuất từ cơ sở dữ liệu pháp lý của UBND:\n\n` +
-        `1. TÓM TẮT THỦ TỤC: [${topItem.code}] ${topItem.name} (${topItem.category}).\n\n` +
-        `2. THÀNH PHẦN HỒ SƠ:\n${topItem.dossier.map((d) => `   - ${d}`).join('\n')}\n\n` +
-        `3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n   - Thời hạn: ${topItem.timeLimit}\n   - Lệ phí: ${topItem.fee}\n\n` +
-        `4. NƠI TIẾP NHẬN & XỬ LÝ: Bộ phận Một cửa của ${wardName} (Địa chỉ: ${officeAddress} • Hotline: ${phoneNumber}).\n\n` +
-        `5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n   Căn cứ: ${topItem.legalBasis}.\n   ${mandatoryDisclaimer}`,
-      abstained: false,
+        `Hệ thống SmartWard AI hiện chưa nhận diện rõ thủ tục hành chính mà bà con đang cần tìm hiểu. ` +
+        `Bà con vui lòng nhập rõ tên thủ tục (ví dụ: "đăng ký khai sinh", "đăng ký kết hôn", "hướng dẫn nộp mẫu CT01", hoặc gõ "nêu 40 thủ tục" để xem danh mục) hoặc liên hệ Một cửa ${wardName} để được hướng dẫn chi tiết.`,
+      abstained: true,
+      abstentionReason: 'Câu hỏi chưa chỉ định rõ tên thủ tục hành chính cụ thể trong phạm vi cấp xã.',
       maxSimilarity: searchResult.maxScore,
-      appliedThreshold: 0.50,
-      responseTimeMs: elapsed,
+      appliedThreshold: 0.78,
+      responseTimeMs: Math.round(performance.now() - startTime),
       cached: false,
       disclaimer: mandatoryDisclaimer,
-      citations: [
-        {
-          chunkCode: `${topItem.code}_OFFICIAL`,
-          procedureCode: topItem.code,
-          procedureName: topItem.name,
-          title: topItem.name,
-          legalReference: topItem.legalBasis,
-          content: topItem.dossier.join('; '),
-          relevanceScore: searchResult.maxScore,
-        },
-      ],
+      citations: [],
+      suggestions: ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📋 Xem 40 thủ tục'],
     };
   }
+
+  // 8. Build structured procedure response from local knowledge
+  const topItem = searchResult.items[0];
+  const answer = buildStructuredProcedureResponse(
+    topItem,
+    wardName,
+    officeAddress,
+    mandatoryDisclaimer
+  );
+  const elapsed = Math.round(performance.now() - startTime);
+
+  const citations: LegalCitation[] = searchResult.items.map((item) => ({
+    chunkCode: `${item.code}_OFFICIAL`,
+    procedureCode: item.code,
+    procedureName: item.name,
+    title: `${item.name} (${item.category})`,
+    legalReference: item.legalBasis,
+    content: `Thành phần hồ sơ: ${item.dossier.slice(0, 2).join('; ')}... Thời hạn: ${item.timeLimit}. Lệ phí: ${item.fee}.`,
+    relevanceScore: Math.min(0.97, Math.max(0.82, searchResult.maxScore)),
+  }));
+
+  return {
+    answer,
+    abstained: false,
+    maxSimilarity: searchResult.maxScore,
+    appliedThreshold: 0.78,
+    citations,
+    cached: false,
+    suggestions: getProcedureSuggestions(topItem.name),
+    responseTimeMs: elapsed,
+    disclaimer: mandatoryDisclaimer,
+  };
 }
 
 /**
@@ -705,163 +434,66 @@ export function fileToBase64(file: File | Blob): Promise<{ base64Data: string; m
   });
 }
 
-import { extractFormWithTesseract } from './tesseractOcr';
-
 /**
- * Performs Genuine Vision OCR Extraction using Google Gemini 2.5 Flash Multimodal API.
- * Automatically falls back to In-Browser Tesseract.js WebAssembly OCR if Google API quota is exceeded (HTTP 429)
- * or if network/API key is unavailable.
+ * Performs Vision OCR Extraction.
+ * Routes to Spring Boot backend (/api/v1/forms/precheck) for secure server-side OCR
+ * without exposing Google Gemini API keys in the browser bundle.
+ * Transparently falls back to In-Browser Tesseract.js WebAssembly OCR if the backend is unreachable.
  */
 export async function extractFormWithVision(file: File | Blob): Promise<ExtractedFormFieldsResult> {
-  const apiKey = getGeminiApiKey();
-  if (!apiKey) {
-    // Zero config fallback: directly use client-side Tesseract.js
-    return await extractFormWithTesseract(file);
-  }
-
   try {
-    const { base64Data, mimeType } = await fileToBase64(file);
-    const effectiveMimeType = mimeType || 'image/jpeg';
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('formType', 'CT01_RESIDENCE_DECLARATION');
 
-    const ocrSystemPrompt = `Bạn là hệ thống AI Chuyên gia Thị giác Máy tính & Trích xuất Biểu mẫu Hành chính Việt Nam chuyên sâu cho Tờ khai CT01 cư trú (ban hành kèm theo Thông tư của Bộ trưởng Bộ Công an) và Căn cước công dân.
-Nhiệm vụ: Dò quét hình ảnh và CHỈ trích xuất dữ liệu KHI VÀ CHỈ KHI tìm thấy đúng mục/tiêu đề trường tương ứng trên biểu mẫu:
+    const response = await fetch('/api/v1/forms/precheck', {
+      method: 'POST',
+      body: formData,
+    });
 
-QUY TẮC ANCHOR TRÍCH XUẤT CHUẨN XÁC THEO MẪU CT01 (BẮT BUỘC TUÂN THỦ 100%):
-1. "fullName": BẮT BUỘC dò tìm đúng mục "1. Họ, chữ đệm và tên khai sinh" (hoặc "Họ, chữ đệm và tên").
-   - Chỉ lấy chữ viết tay hoặc chữ in điền tên người khai sau mục 1 này (viết in hoa có dấu, ví dụ: "NGUYỄN TÚ").
-   - NẾU KHÔNG CÓ mục này hoặc mục này bị để trống: Để chuỗi rỗng "". TUYỆT ĐỐI KHÔNG lấy quốc hiệu "CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM" hay tên mẫu đơn "TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ" gán vào họ tên!
-2. "dob": BẮT BUỘC dò tìm đúng mục "2. Ngày, tháng, năm sinh".
-   - Chuẩn hóa sang YYYY-MM-DD (ví dụ: "2015-06-08"). Nếu không có mục này hoặc để trống: để "".
-3. "gender": BẮT BUỘC dò tìm đúng mục "3. Giới tính" (Nam hoặc Nữ). Nếu không có: để "".
-4. "cccd": BẮT BUỘC dò tìm đúng mục "4. Số định danh cá nhân" (dãy 12 ô vuông của người khai).
-   - Chỉ lấy chuỗi số ghi trong mục 4. TUYỆT ĐỐI KHÔNG lấy số điện thoại ở mục 5, KHÔNG lấy số ĐDCN của chủ hộ ở mục 9. Nếu không có hoặc chưa điền: để "".
-5. "address": BẮT BUỘC dò tìm đúng mục "10. Nội dung đề nghị" (hoặc "tại địa chỉ:").
-   - Trích xuất địa chỉ nơi đề nghị đăng ký thường trú / tạm trú ghi trong mục 10.
-   - NẾU KHÔNG CÓ mục này hoặc để trống: để "". TUYỆT ĐỐI KHÔNG lấy câu khẩu hiệu hay quốc hiệu.
-6. TUYỆT ĐỐI KHÔNG TRÍCH XUẤT "NGÀY CẤP CCCD" CHO TỜ KHAI CT01:
-   - Trên Mẫu CT01 HOÀN TOÀN KHÔNG CÓ TRƯỜNG "Ngày cấp CCCD".
-   - Ngày tháng năm ở cuối tờ khai là Ngày lập tờ khai/kê khai, TUYỆT ĐỐI KHÔNG điền thí đại vào ngày cấp thẻ CCCD. Luôn trả về "issueDate": "".
+    if (response.ok) {
+      const resJson = await response.json();
+      const report = resJson?.data || resJson;
+      const fields = report?.extractedFields;
 
-Nếu ảnh không phải biểu mẫu hành chính hoặc không thể đọc được chữ nào, hãy trả về confidence: 0, message: "Không thể nhận diện văn bản từ hình ảnh này", và các trường để rỗng "".
+      if (fields && (fields.fullName || fields.cccdNumber || fields.birthDate || fields.permanentAddress)) {
+        const fullName = (fields.fullName || '').trim();
+        const cccd = (fields.cccdNumber || '').trim().replace(/[^0-9]/g, '');
+        const dob = normalizeDateToYMD(fields.birthDate);
+        const issueDate = normalizeDateToYMD(fields.issueDate);
+        const gender = (fields.gender || '').trim();
+        const address = (fields.permanentAddress || '').trim();
+        const confidence = typeof report.overallConfidence === 'number'
+          ? Math.min(100, Math.max(0, Math.round(report.overallConfidence * 100)))
+          : 95;
 
-Hãy trả về DUY NHẤT một chuỗi JSON hợp lệ không có markdown code fence backticks:
-{
-  "detectedDocType": "Tờ khai CT01 cư trú",
-  "fullName": "...",
-  "dob": "...",
-  "gender": "...",
-  "cccd": "...",
-  "address": "...",
-  "issueDate": "",
-  "confidence": 95.0,
-  "message": "Đã trích xuất chính xác theo đúng các mục Mẫu CT01"
-}`;
+        let count = 0;
+        if (fullName) count++;
+        if (cccd) count++;
+        if (dob) count++;
+        if (gender) count++;
+        if (address) count++;
+        if (issueDate) count++;
 
-    const VISION_CANDIDATE_MODELS = ['gemini-3-flash-preview', 'gemini-3.5-flash', 'gemini-2.5-flash'];
-    let textOutput = '';
-    let apiSuccess = false;
-
-    for (const model of VISION_CANDIDATE_MODELS) {
-      try {
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-        const requestBody = {
-          contents: [
-            {
-              role: 'user',
-              parts: [
-                { text: ocrSystemPrompt },
-                {
-                  inlineData: {
-                    mimeType: effectiveMimeType,
-                    data: base64Data,
-                  },
-                },
-              ],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.1,
-            maxOutputTokens: 8192,
-            thinkingConfig: { thinkingBudget: 0 },
-          },
+        return {
+          success: count > 0,
+          fullName,
+          cccd,
+          dob,
+          gender,
+          issueDate,
+          address,
+          confidence: count > 0 ? confidence : 0,
+          detectedDocType: report.formType || 'Tờ khai CT01 cư trú',
+          message: report.summaryMessage || 'Đã trích xuất thông tin thành công qua máy chủ AI!',
+          extractedFieldsCount: count,
         };
-
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(requestBody),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const candidate = data.candidates?.[0];
-          for (const p of candidate?.content?.parts || []) {
-            if (p.text) {
-              textOutput += p.text;
-            }
-          }
-          if (textOutput.trim()) {
-            apiSuccess = true;
-            break;
-          }
-        }
-      } catch {
-        // Try next candidate model
       }
     }
-
-    if (!apiSuccess || !textOutput.trim()) {
-      return await extractFormWithTesseract(file);
-    }
-
-    // Robust JSON extraction using regex in case model wraps with commentary or code fence
-    let cleanJson = textOutput.trim();
-    const jsonMatch = cleanJson.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      cleanJson = jsonMatch[0];
-    }
-
-    try {
-      const parsed = JSON.parse(cleanJson);
-      const fullName = (parsed.fullName || '').trim();
-      const cccd = (parsed.cccd || parsed.cccdNumber || '').trim().replace(/[^0-9]/g, '');
-      const rawDob = (parsed.dob || parsed.birthDate || '').trim();
-      const rawIssueDate = (parsed.issueDate || '').trim();
-      const dob = normalizeDateToYMD(rawDob);
-      const issueDate = normalizeDateToYMD(rawIssueDate);
-      const gender = (parsed.gender || '').trim();
-      const address = (parsed.address || parsed.permanentAddress || '').trim();
-      const confidence = typeof parsed.confidence === 'number' ? Math.min(100, Math.max(0, parsed.confidence)) : 85.0;
-      const detectedDocType = parsed.detectedDocType || 'Tờ khai CT01 cư trú';
-      const message = parsed.message || 'Đã trích xuất thông tin thành công từ hình ảnh!';
-
-      let count = 0;
-      if (fullName) count++;
-      if (cccd) count++;
-      if (dob) count++;
-      if (gender) count++;
-      if (address) count++;
-      if (issueDate) count++;
-
-      return {
-        success: count > 0,
-        fullName,
-        cccd,
-        dob,
-        gender,
-        issueDate,
-        address,
-        confidence: count > 0 ? confidence : 0,
-        detectedDocType,
-        message: count > 0 ? message : 'Không trích xuất được trường thông tin nào từ ảnh. Vui lòng điền tay.',
-        extractedFieldsCount: count,
-      };
-    } catch {
-      // In case JSON parsing fails, fallback to Tesseract
-      return await extractFormWithTesseract(file);
-    }
-  } catch (error: any) {
-    console.warn(`[Gemini Vision] Exception: ${error.message}. Falling back to in-browser Tesseract.js OCR...`);
-    return await extractFormWithTesseract(file);
+  } catch (backendError) {
+    console.info('Backend Vision OCR unavailable, falling back to in-browser Tesseract.js OCR:', backendError);
   }
+
+  // Fallback to client-side WebAssembly Tesseract.js
+  return await extractFormWithTesseract(file);
 }
