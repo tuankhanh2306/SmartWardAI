@@ -57,7 +57,7 @@ class AdversarialExceptionsAndAbstentionChallengeTest {
     private static final String BASE_URL = "https://generativelanguage.googleapis.com/v1beta";
     private static final String SECRET_API_KEY = "AIzaSyAdversarialChallengeKey999";
     private static final String CHAT_PATH = "/models/gemini-2.5-flash:generateContent";
-    private static final String EMBED_PATH = "/models/text-embedding-004:embedContent";
+    private static final String EMBED_PATH = "/models/gemini-embedding-001:embedContent";
 
     @BeforeEach
     void setUp() {

@@ -21,7 +21,7 @@ import java.util.*;
 
 /**
  * Production Gemini AI Client connecting to Google Generative Language API.
- * Uses text-embedding-004 (768 dimensions) and gemini-2.5-flash for multimodal OCR and chat.
+ * Uses gemini-embedding-001 (768 dimensions via Matryoshka MRL) and gemini-2.5-flash for multimodal OCR and chat.
  * Active in "prod" profile or when explicitly enabling "gemini" profile.
  */
 @Slf4j
@@ -54,8 +54,8 @@ public class GeminiAiClient implements AiModelClient {
     @Value("${smartward.ai.gemini.model:gemini-2.5-flash}")
     private String chatModel = "gemini-2.5-flash";
 
-    @Value("${smartward.ai.gemini.embedding-model:text-embedding-004}")
-    private String embeddingModel = "text-embedding-004";
+    @Value("${smartward.ai.gemini.embedding-model:gemini-embedding-001}")
+    private String embeddingModel = "gemini-embedding-001";
 
     @Value("${smartward.ai.gemini.embedding-dim:768}")
     private int embeddingDim = 768;
@@ -131,6 +131,7 @@ public class GeminiAiClient implements AiModelClient {
         try {
             Map<String, Object> body = Map.of(
                     "model", "models/" + embeddingModel,
+                    "outputDimensionality", embeddingDim > 0 ? embeddingDim : 768,
                     "content", Map.of(
                             "parts", List.of(Map.of("text", text))
                     )
