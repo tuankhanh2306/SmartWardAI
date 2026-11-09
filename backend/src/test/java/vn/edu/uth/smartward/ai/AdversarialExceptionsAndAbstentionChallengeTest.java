@@ -484,6 +484,41 @@ class AdversarialExceptionsAndAbstentionChallengeTest {
                 "restClient must be initialized after initRestClient");
     }
 
+    @Test
+    @DisplayName("Quality 4e: Vector Space Isolation filters pgvector retrieval strictly by active embeddingModelId")
+    void quality_vectorSpaceIsolationFiltersByEmbeddingModelId() {
+        LegalChunkRepository chunkRepo = Mockito.mock(LegalChunkRepository.class);
+        AiModelClient mockAiClient = Mockito.mock(AiModelClient.class);
+        QueryCacheService cacheService = Mockito.mock(QueryCacheService.class);
+        RedisRateLimiter rateLimiter = Mockito.mock(RedisRateLimiter.class);
+
+        Mockito.when(rateLimiter.isAllowed(ArgumentMatchers.anyString())).thenReturn(true);
+        Mockito.when(cacheService.getCachedResponse(ArgumentMatchers.anyString(), ArgumentMatchers.eq(RagAskResponse.class)))
+                .thenReturn(Optional.empty());
+        Mockito.when(mockAiClient.generateEmbedding(ArgumentMatchers.anyString())).thenReturn(new float[768]);
+        Mockito.when(mockAiClient.toPgVectorString(ArgumentMatchers.any())).thenReturn("[0.1, 0.2]");
+        Mockito.when(mockAiClient.getEmbeddingModelId()).thenReturn("gemini-embedding-001");
+
+        LegalChunkMatch match = createMockChunkMatch("TTHC-HT-01", "Đăng ký khai sinh", "Điều kiện", "Nội dung", "Luật Hộ tịch", 0.89);
+        Mockito.when(chunkRepo.findTopKSimilarChunksWithMetadata("[0.1, 0.2]", "gemini-embedding-001", 3))
+                .thenReturn(List.of(match));
+        Mockito.when(mockAiClient.generateChatResponse(ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
+                .thenReturn("1. TÓM TẮT THỦ TỤC:\nHướng dẫn khai sinh [TTHC-HT-01].");
+
+        RagQueryService ragService = new RagQueryService(chunkRepo, mockAiClient, cacheService, rateLimiter);
+        ReflectionTestUtils.setField(ragService, "defaultThreshold", 0.78);
+        ReflectionTestUtils.setField(ragService, "defaultTopK", 3);
+
+        RagAskRequest req = RagAskRequest.builder().question("Đăng ký khai sinh").topK(3).build();
+        RagAskResponse resp = ragService.askQuestion(req, "127.0.0.1");
+
+        assertFalse(resp.isAbstained());
+        Mockito.verify(chunkRepo, Mockito.times(1))
+                .findTopKSimilarChunksWithMetadata("[0.1, 0.2]", "gemini-embedding-001", 3);
+        Mockito.verify(chunkRepo, Mockito.never())
+                .findTopKSimilarChunksWithMetadata(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt());
+    }
+
     private LegalChunkMatch createMockChunkMatch(String code, String procName, String title, String content, String legalRef, double score) {
         return new LegalChunkMatch() {
             @Override public Long getId() { return 1L; }

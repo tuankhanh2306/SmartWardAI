@@ -15,6 +15,17 @@ public interface AiModelClient {
     float[] generateEmbedding(String text);
 
     /**
+     * Returns the canonical identifier of the embedding model that produced the vector space
+     * (e.g., "gemini-embedding-001", "bkai_pho_bert_ft_v1", or "deterministic-mock-v1").
+     * Used to isolate pgvector cosine comparisons strictly within the same vector space.
+     *
+     * @return embedding model identifier
+     */
+    default String getEmbeddingModelId() {
+        return "bkai_pho_bert_ft_v1";
+    }
+
+    /**
      * Converts a float array embedding into the pgvector string representation "[v1, v2, ...]".
      *
      * @param vector embedding array

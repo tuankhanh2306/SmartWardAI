@@ -17,6 +17,8 @@ public interface LegalChunkRepository extends JpaRepository<LegalChunk, Long> {
 
     List<LegalChunk> findByEmbeddingIsNull();
 
+    List<LegalChunk> findByEmbeddingIsNullOrEmbeddingModelNot(String embeddingModel);
+
     /**
      * Top-K Cosine Similarity retrieval using pgvector HNSW index.
      * Distance (c.embedding <=> :embedding) is in range [0, 2].
@@ -57,4 +59,34 @@ public interface LegalChunkRepository extends JpaRepository<LegalChunk, Long> {
         LIMIT :topK
         """, nativeQuery = true)
     List<LegalChunkMatch> findTopKSimilarChunksWithMetadata(@Param("queryVector") String queryVector, @Param("topK") int topK);
+
+    /**
+     * Vector-space isolated Top-K Cosine Similarity retrieval.
+     * Strictly restricts comparison to rows embedded by the exact same embedding_model
+     * (e.g., gemini-embedding-001 vs bkai_pho_bert_ft_v1 vs deterministic-mock-v1).
+     */
+    @Query(value = """
+        SELECT c.id AS id,
+               c.chunk_code AS chunkCode,
+               c.chunk_type AS chunkType,
+               c.title AS title,
+               c.content AS content,
+               c.legal_reference AS legalReference,
+               p.procedure_code AS procedureCode,
+               p.procedure_name AS procedureName,
+               (1.0 - (c.embedding <=> cast(:queryVector as vector))) AS similarityScore
+        FROM legal_chunks c
+        JOIN admin_procedures p ON c.procedure_id = p.id
+        WHERE c.status = 'ACTIVE' 
+          AND c.effective_date <= CURRENT_DATE
+          AND c.embedding IS NOT NULL
+          AND c.embedding_model = :embeddingModel
+        ORDER BY c.embedding <=> cast(:queryVector as vector) ASC
+        LIMIT :topK
+        """, nativeQuery = true)
+    List<LegalChunkMatch> findTopKSimilarChunksWithMetadata(
+            @Param("queryVector") String queryVector,
+            @Param("embeddingModel") String embeddingModel,
+            @Param("topK") int topK
+    );
 }

@@ -123,6 +123,11 @@ public class GeminiAiClient implements AiModelClient {
     }
 
     @Override
+    public String getEmbeddingModelId() {
+        return (embeddingModel != null && !embeddingModel.isBlank()) ? embeddingModel : "gemini-embedding-001";
+    }
+
+    @Override
     public float[] generateEmbedding(String text) {
         if (text == null || text.trim().isEmpty()) {
             return new float[embeddingDim > 0 ? embeddingDim : 768];

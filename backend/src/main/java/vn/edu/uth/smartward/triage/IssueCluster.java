@@ -41,6 +41,10 @@ public class IssueCluster {
     @Column(name = "center_embedding", columnDefinition = "vector(768)")
     private String centerEmbedding;
 
+    @Column(name = "embedding_model", nullable = false, length = 100)
+    @Builder.Default
+    private String embeddingModel = "bkai_pho_bert_ft_v1";
+
     @Column(name = "report_count", nullable = false)
     @Builder.Default
     private Integer reportCount = 1;

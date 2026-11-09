@@ -20,6 +20,12 @@ import java.util.Random;
 public class DeterministicMockAiClient implements AiModelClient {
 
     private static final int EMBEDDING_DIM = 768;
+    public static final String MODEL_ID = "deterministic-mock-v1";
+
+    @Override
+    public String getEmbeddingModelId() {
+        return MODEL_ID;
+    }
 
     @Override
     public float[] generateEmbedding(String text) {

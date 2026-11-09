@@ -162,10 +162,16 @@ public class RagQueryService {
         // 7. Query Vectorization (768-dim) using effectiveQuery
         float[] queryEmbedding = aiModelClient.generateEmbedding(effectiveQuery);
         String pgVectorString = aiModelClient.toPgVectorString(queryEmbedding);
+        String activeModelId = aiModelClient.getEmbeddingModelId();
 
-        // 7. Retrieve Top-K Chunks using pgvector HNSW
+        // 7. Retrieve Top-K Chunks using pgvector HNSW strictly within the active embedding model's vector space
         int k = (request.getTopK() != null && request.getTopK() > 0) ? request.getTopK() : defaultTopK;
-        List<LegalChunkMatch> candidateChunks = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, k);
+        List<LegalChunkMatch> candidateChunks;
+        if (activeModelId != null && !activeModelId.isBlank()) {
+            candidateChunks = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, activeModelId, k);
+        } else {
+            candidateChunks = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, k);
+        }
 
         double threshold = (request.getSimilarityThreshold() != null && request.getSimilarityThreshold() > 0)
                 ? request.getSimilarityThreshold() : defaultThreshold;

@@ -42,6 +42,10 @@ public class LegalChunk {
     @Column(name = "embedding", columnDefinition = "vector(768)")
     private String embedding;
 
+    @Column(name = "embedding_model", nullable = false, length = 100)
+    @Builder.Default
+    private String embeddingModel = "bkai_pho_bert_ft_v1";
+
     @Column(name = "status", nullable = false, length = 50)
     @Builder.Default
     private String status = "ACTIVE";

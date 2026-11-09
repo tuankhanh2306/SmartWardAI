@@ -78,11 +78,19 @@ public class ProcedureDataSeeder implements CommandLineRunner {
                             String content = cNode.path("content").asText();
                             String legalRef = cNode.path("legalReference").asText();
 
+                            String activeModelId = aiModelClient.getEmbeddingModelId() != null
+                                    ? aiModelClient.getEmbeddingModelId()
+                                    : "bkai_pho_bert_ft_v1";
                             String embeddingStr;
-                            if (cNode.has("embedding") && !cNode.path("embedding").asText().isBlank()) {
+                            String chunkModelId;
+                            if ("bkai_pho_bert_ft_v1".equalsIgnoreCase(activeModelId)
+                                    && cNode.has("embedding")
+                                    && !cNode.path("embedding").asText().isBlank()) {
                                 embeddingStr = cNode.path("embedding").asText();
+                                chunkModelId = "bkai_pho_bert_ft_v1";
                             } else {
                                 embeddingStr = aiModelClient.toPgVectorString(aiModelClient.generateEmbedding(title + " " + content));
+                                chunkModelId = activeModelId;
                             }
 
                             chunkList.add(LegalChunk.builder()
@@ -93,6 +101,7 @@ public class ProcedureDataSeeder implements CommandLineRunner {
                                     .content(content)
                                     .legalReference(legalRef)
                                     .embedding(embeddingStr)
+                                    .embeddingModel(chunkModelId)
                                     .status("ACTIVE")
                                     .effectiveDate(LocalDate.now())
                                     .build());
@@ -118,18 +127,24 @@ public class ProcedureDataSeeder implements CommandLineRunner {
 
     private void backfillMissingEmbeddings() {
         try {
-            List<LegalChunk> missing = chunkRepository.findByEmbeddingIsNull();
-            if (!missing.isEmpty()) {
-                log.info("Computing vector embeddings for {} unvectorized chunks...", missing.size());
-                for (LegalChunk c : missing) {
+            String activeModelId = aiModelClient.getEmbeddingModelId() != null
+                    ? aiModelClient.getEmbeddingModelId()
+                    : "bkai_pho_bert_ft_v1";
+            List<LegalChunk> mismatchedOrMissing = chunkRepository.findByEmbeddingIsNullOrEmbeddingModelNot(activeModelId);
+            if (!mismatchedOrMissing.isEmpty()) {
+                log.info("Synchronizing vector embeddings for {} chunks to active model '{}'...",
+                        mismatchedOrMissing.size(), activeModelId);
+                for (LegalChunk c : mismatchedOrMissing) {
                     float[] emb = aiModelClient.generateEmbedding(c.getTitle() + " " + c.getContent());
                     c.setEmbedding(aiModelClient.toPgVectorString(emb));
+                    c.setEmbeddingModel(activeModelId);
                 }
-                chunkRepository.saveAll(missing);
-                log.info("Successfully backfilled embeddings for {} chunks.", missing.size());
+                chunkRepository.saveAll(mismatchedOrMissing);
+                log.info("Successfully synchronized embeddings for {} chunks under model '{}'.",
+                        mismatchedOrMissing.size(), activeModelId);
             }
         } catch (Exception e) {
-            log.warn("Could not backfill embeddings: {}", e.getMessage());
+            log.warn("Could not synchronize embeddings: {}", e.getMessage());
         }
     }
 }

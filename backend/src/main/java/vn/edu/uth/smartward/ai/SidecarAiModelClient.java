@@ -28,10 +28,13 @@ import java.util.List;
 @Profile("!prod & !gemini")
 public class SidecarAiModelClient implements AiModelClient {
 
+    public static final String PHOBERT_MODEL_ID = "bkai_pho_bert_ft_v1";
+
     private final RestClient restClient;
     private final DeterministicMockAiClient fallbackMock;
     private final boolean enabled;
     private final String sidecarUrl;
+    private volatile String activeEmbeddingModelId;
 
     public SidecarAiModelClient(
             @Value("${smartward.ai.sidecar.enabled:true}") boolean enabled,
@@ -42,6 +45,7 @@ public class SidecarAiModelClient implements AiModelClient {
         this.enabled = enabled;
         this.sidecarUrl = sidecarUrl;
         this.fallbackMock = fallbackMock;
+        this.activeEmbeddingModelId = enabled ? PHOBERT_MODEL_ID : fallbackMock.getEmbeddingModelId();
 
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Duration.ofMillis(timeoutMs));
@@ -54,8 +58,14 @@ public class SidecarAiModelClient implements AiModelClient {
     }
 
     @Override
+    public String getEmbeddingModelId() {
+        return activeEmbeddingModelId;
+    }
+
+    @Override
     public float[] generateEmbedding(String text) {
         if (!enabled || text == null || text.trim().isEmpty()) {
+            this.activeEmbeddingModelId = fallbackMock.getEmbeddingModelId();
             return fallbackMock.generateEmbedding(text);
         }
 
@@ -73,6 +83,7 @@ public class SidecarAiModelClient implements AiModelClient {
                 for (int i = 0; i < list.size(); i++) {
                     result[i] = list.get(i).floatValue();
                 }
+                this.activeEmbeddingModelId = PHOBERT_MODEL_ID;
                 log.debug("Generated 768-dim PhoBERT embedding via Sidecar (vector size: {})", result.length);
                 return result;
             }
@@ -80,6 +91,7 @@ public class SidecarAiModelClient implements AiModelClient {
             log.debug("Sidecar service unavailable at {} ({}). Using deterministic fallback.", sidecarUrl, ex.getMessage());
         }
 
+        this.activeEmbeddingModelId = fallbackMock.getEmbeddingModelId();
         return fallbackMock.generateEmbedding(text);
     }
 
