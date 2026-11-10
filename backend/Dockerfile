@@ -34,6 +34,6 @@ COPY --from=builder /workspace/target/smartward-backend-*.jar app.jar
 EXPOSE 8080
 
 HEALTHCHECK --interval=15s --timeout=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:8080/api/v1/health || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/api/v1/health || exit 1
 
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
