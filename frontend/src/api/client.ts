@@ -947,23 +947,34 @@ export const precheckForm = async (data: {
         'Lưu ý cư trú nhiều nơi: Nếu từng đăng ký thường trú tại nhiều xã/phường khác nhau từ khi đủ tuổi kết hôn đến nay, cần có xác nhận tình trạng hôn nhân tại các nơi cư trú trước đó.'
       );
     } else if (formType === 'TK-BTXH') {
-      // Ưu tiên 3: Tờ khai Trợ cấp Bảo trợ xã hội hằng tháng (Mẫu số 01 Nghị định 20/2021/NĐ-CP)
+      // Ưu tiên 3: Tờ khai Trợ cấp Bảo trợ xã hội hằng tháng (Mẫu số 01 Nghị định 20/2021/NĐ-CP & Luật BHXH 2024)
       const ageInfo = computeAgeYearsAndMonths(data.dateOfBirth);
       const hasSevereDisability =
         extra.disabilityLevel === 'SEVERE' || extra.disabilityLevel === 'EXTREMELY_SEVERE';
-      const eligible = Boolean((ageInfo && ageInfo.years >= 80) || hasSevereDisability);
+      const isPoorOrNearPoor =
+        extra.householdStatus === 'POOR' || extra.householdStatus === 'NEAR_POOR';
+      const eligible = Boolean(
+        (ageInfo && ageInfo.years >= 75) ||
+          hasSevereDisability ||
+          (ageInfo && ageInfo.years >= 70 && isPoorOrNearPoor) ||
+          (ageInfo && ageInfo.years >= 80)
+      );
       fieldValidations.push({
-        fieldName: 'Điều kiện Mốc tuổi ≥ 80 hoặc Khuyết tật nặng (Mẫu 01 NĐ 20/2021/NĐ-CP)',
+        fieldName: 'Điều kiện Mốc tuổi (≥ 75 tuổi hoặc ≥ 70 tuổi hộ nghèo theo Luật BHXH 2024 / Khuyết tật nặng)',
         providedValue: `${data.dateOfBirth} (${ageInfo?.years ?? 0} tuổi) | ${
-          hasSevereDisability ? 'Khuyết tật nặng/đặc biệt nặng' : 'Không khuyết tật'
+          hasSevereDisability
+            ? 'Khuyết tật nặng/đặc biệt nặng'
+            : isPoorOrNearPoor
+            ? 'Hộ nghèo/cận nghèo'
+            : 'Không khuyết tật'
         }`,
         valid: eligible,
         errorCode: eligible ? undefined : 'INELIGIBLE_SOCIAL_PROTECTION_AGE',
         errorMessage: eligible
           ? undefined
-          : `CHƯA ĐỦ ĐIỀU KIỆN MỐC TUỔI (Nghị định 20/2021/NĐ-CP): Người cao tuổi không có lương hưu phải từ đủ 80 tuổi trở lên (hiện tại ${
+          : `CHƯA ĐỦ ĐIỀU KIỆN MỐC TUỔI (Luật BHXH 2024 & Nghị định 20/2021/NĐ-CP): Người cao tuổi không có lương hưu phải từ đủ 75 tuổi trở lên (hoặc từ đủ 70 tuổi nếu thuộc hộ nghèo/cận nghèo) hoặc có Giấy xác nhận khuyết tật nặng/đặc biệt nặng. Hiện tại công dân ${
               ageInfo?.years ?? 0
-            } tuổi) hoặc phải có Giấy xác nhận khuyết tật nặng/đặc biệt nặng.`,
+            } tuổi.`,
         confidenceScore: eligible ? 0.99 : 0.3,
       });
 
@@ -994,14 +1005,14 @@ export const precheckForm = async (data: {
         'Lưu ý Mẫu số 03 (Hỗ trợ chi phí mai táng): Người đứng tên tờ khai phải là người trực tiếp lo mai táng và đính kèm bản sao Trích lục khai tử.'
       );
     } else {
-      // Mặc định: Mẫu CT01 — Tờ khai thay đổi thông tin cư trú
+      // Mặc định: Mẫu CT01 — Tờ khai thay đổi thông tin cư trú (Thông tư 66/2023/TT-BCA)
       const nameValid = data.fullName.trim().length >= 4 && data.fullName.trim().includes(' ');
       fieldValidations.push({
-        fieldName: 'Họ và tên (Mục 1)',
+        fieldName: 'Họ và tên (Mục 1 Mẫu CT01)',
         providedValue: data.fullName,
         valid: nameValid,
         errorCode: nameValid ? undefined : 'INVALID_FULL_NAME',
-        errorMessage: nameValid ? undefined : 'Họ và tên công dân phải bao gồm đầy đủ họ, chữ đệm và tên.',
+        errorMessage: nameValid ? undefined : 'Họ và tên công dân phải bao gồm đầy đủ họ, chữ đệm và tên theo giấy khai sinh.',
         confidenceScore: nameValid ? 0.99 : 0.65,
       });
 
@@ -1025,7 +1036,7 @@ export const precheckForm = async (data: {
       }
 
       fieldValidations.push({
-        fieldName: 'Số định danh cá nhân (Mục 4)',
+        fieldName: 'Số định danh cá nhân / CCCD 12 số (Mục 4)',
         providedValue: data.citizenCccd,
         valid: cccdValid,
         errorCode: cccdValid ? undefined : 'INVALID_CCCD_FORMAT',
@@ -1035,7 +1046,7 @@ export const precheckForm = async (data: {
 
       const dobValid = Boolean(data.dateOfBirth);
       fieldValidations.push({
-        fieldName: 'Ngày tháng năm sinh (Mục 2)',
+        fieldName: 'Ngày tháng năm sinh (Mục 2 Mẫu CT01)',
         providedValue: data.dateOfBirth,
         valid: dobValid,
         errorCode: dobValid ? undefined : 'MISSING_DOB',
@@ -1046,7 +1057,7 @@ export const precheckForm = async (data: {
       if (data.gender) {
         const genderValid = ['Nam', 'Nữ', 'nam', 'nữ'].includes(data.gender.trim());
         fieldValidations.push({
-          fieldName: 'Giới tính (Mục 3)',
+          fieldName: 'Giới tính (Mục 3 Mẫu CT01)',
           providedValue: data.gender,
           valid: genderValid,
           confidenceScore: 0.98,
@@ -1062,6 +1073,23 @@ export const precheckForm = async (data: {
         errorMessage: addressValid ? undefined : 'Địa chỉ cư trú đề nghị phải ghi rõ số nhà, tên đường hoặc thôn/ấp, xã/phường.',
         confidenceScore: addressValid ? 0.94 : 0.55,
       });
+
+      const phone = (extra.phoneNumber || extra.phone || '').trim();
+      if (phone) {
+        const phoneValid = /^(0|\+84)(3|5|7|8|9|2)\d{8,9}$/.test(phone);
+        fieldValidations.push({
+          fieldName: 'Số điện thoại liên hệ (Mục 5 Mẫu CT01 - Thông tư 66/2023/TT-BCA)',
+          providedValue: phone,
+          valid: phoneValid,
+          errorCode: phoneValid ? undefined : 'INVALID_PHONE_NUMBER',
+          errorMessage: phoneValid ? undefined : 'Số điện thoại liên hệ phải là số điện thoại di động Việt Nam hợp lệ (10 số).',
+          confidenceScore: phoneValid ? 0.98 : 0.4,
+        });
+      }
+
+      warnings.push(
+        'Lưu ý Mẫu CT01 (Thông tư 66/2023/TT-BCA): Nếu đăng ký thường trú/tạm trú tại nhà thuê, mượn, ở nhờ phải có chữ ký đồng ý của chủ hộ và chủ sở hữu chỗ ở hợp pháp tại Mục 11, 12.'
+      );
     }
 
     const overallValid = fieldValidations.every((f) => f.valid);

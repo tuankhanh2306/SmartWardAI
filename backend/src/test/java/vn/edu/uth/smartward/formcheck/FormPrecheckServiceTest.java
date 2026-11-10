@@ -196,4 +196,48 @@ class FormPrecheckServiceTest {
         assertNotNull(resp);
         assertTrue(resp.isOverallValid(), "80+ citizen with valid 12-digit CCCD and bank account must pass");
     }
+
+    @Test
+    void testPrecheckStructuredForm_socialProtection_shouldValidate75YearsUnderLuatBhxh2024() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-BT-01")
+                .formType("TK-BTXH")
+                .fullName("NGUYỄN THỊ NĂM")
+                .dateOfBirth("1950-02-15") // 76 years old (>= 75 years old under Luật BHXH 2024)
+                .gender("Nữ")
+                .citizenCccd("089150005544")
+                .address("Phường Mỹ Long, An Giang")
+                .formData(Map.of(
+                        "disabilityLevel", "NONE",
+                        "bankAccount", "102800123456 - Vietcombank An Giang"
+                ))
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertTrue(resp.isOverallValid(), "Citizen from 75 years old without pension qualifies under Luật BHXH 2024");
+    }
+
+    @Test
+    void testPrecheckStructuredForm_residenceCt01_shouldValidatePhoneUnderCircular66() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-CR-01")
+                .formType("CT01")
+                .fullName("NGUYỄN MINH TUẤN KHANH")
+                .dateOfBirth("2005-06-23")
+                .gender("Nam")
+                .citizenCccd("089205023490")
+                .address("Số 18 Đường Trần Hưng Đạo, Phường Mỹ Bình, An Giang")
+                .formData(Map.of(
+                        "phoneNumber", "0918123456"
+                ))
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertTrue(resp.isOverallValid(), "Valid CT01 form with valid phone number must pass");
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f -> f.getFieldName().contains("Số điện thoại liên hệ")));
+    }
 }

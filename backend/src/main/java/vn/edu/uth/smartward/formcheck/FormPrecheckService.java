@@ -277,7 +277,24 @@ public class FormPrecheckService {
                 .confidenceScore(addrValid ? 0.95 : 0.55)
                 .build());
 
-        warnings.add("Lưu ý Mẫu CT01: Nếu đăng ký thường trú/tạm trú tại nhà thuê, mượn, ở nhờ phải có chữ ký đồng ý của chủ hộ và chủ sở hữu chỗ ở hợp pháp tại Mục 11, 12.");
+        Map<String, String> data = req.getFormData() != null ? req.getFormData() : Collections.emptyMap();
+        String phone = safeTrim(data.get("phoneNumber"));
+        if (phone.isEmpty()) {
+            phone = safeTrim(data.get("phone"));
+        }
+        if (!phone.isEmpty()) {
+            boolean phoneValid = phone.matches("^(0|\\+84)(3|5|7|8|9|2)\\d{8,9}$");
+            validations.add(FieldValidationItem.builder()
+                    .fieldName("Số điện thoại liên hệ (Mục 5 Mẫu CT01 - Thông tư 66/2023/TT-BCA)")
+                    .providedValue(phone)
+                    .valid(phoneValid)
+                    .errorCode(phoneValid ? null : "INVALID_PHONE_NUMBER")
+                    .errorMessage(phoneValid ? null : "Số điện thoại liên hệ phải là số điện thoại di động Việt Nam hợp lệ (10 số).")
+                    .confidenceScore(phoneValid ? 0.98 : 0.40)
+                    .build());
+        }
+
+        warnings.add("Lưu ý Mẫu CT01 (Thông tư 66/2023/TT-BCA): Nếu đăng ký thường trú/tạm trú tại nhà thuê, mượn, ở nhờ phải có chữ ký đồng ý của chủ hộ và chủ sở hữu chỗ ở hợp pháp tại Mục 11, 12.");
     }
 
     private void validateBirthRegistrationForm(
@@ -493,6 +510,8 @@ public class FormPrecheckService {
         LocalDate dob = parseFlexibleDate(req.getDateOfBirth());
         String disabilityLevel = safeTrim(data.get("disabilityLevel"));
         boolean hasSevereDisability = "SEVERE".equalsIgnoreCase(disabilityLevel) || "EXTREMELY_SEVERE".equalsIgnoreCase(disabilityLevel);
+        String householdStatus = safeTrim(data.get("householdStatus"));
+        boolean isPoorOrNearPoor = "POOR".equalsIgnoreCase(householdStatus) || "NEAR_POOR".equalsIgnoreCase(householdStatus);
 
         boolean ageOrDisabilityValid = false;
         String eligibilityMsg = null;
@@ -500,11 +519,14 @@ public class FormPrecheckService {
         if (dob != null) {
             int years = Period.between(dob, today).getYears();
             ageDisplay = String.format("%s (%d tuổi)", req.getDateOfBirth(), years);
-            if (years >= 80 || hasSevereDisability) {
+            // Cập nhật chuẩn Luật Bảo hiểm xã hội 2024 (số 41/2024/QH15) & Nghị định 20/2021/NĐ-CP:
+            // Người cao tuổi không có lương hưu từ đủ 75 tuổi trở lên (hoặc từ đủ 70 tuổi đối với hộ nghèo, cận nghèo)
+            // hoặc từ đủ 80 tuổi theo quy định chung, hoặc có xác nhận khuyết tật nặng/đặc biệt nặng.
+            if (years >= 75 || hasSevereDisability || (years >= 70 && isPoorOrNearPoor) || years >= 80) {
                 ageOrDisabilityValid = true;
             } else {
                 eligibilityMsg = String.format(
-                        "CHƯA ĐỦ ĐIỀU KIỆN MỐC TUỔI (Nghị định 20/2021/NĐ-CP): Người cao tuổi không có lương hưu phải từ đủ 80 tuổi trở lên (hiện tại %d tuổi) hoặc phải có Giấy xác nhận khuyết tật nặng/đặc biệt nặng.",
+                        "CHƯA ĐỦ ĐIỀU KIỆN MỐC TUỔI (Luật BHXH 2024 & Nghị định 20/2021/NĐ-CP): Người cao tuổi không có lương hưu phải từ đủ 75 tuổi trở lên (hoặc từ đủ 70 tuổi nếu thuộc hộ nghèo/cận nghèo) hoặc có Giấy xác nhận khuyết tật nặng/đặc biệt nặng. Hiện tại công dân %d tuổi.",
                         years);
             }
         } else {
@@ -512,8 +534,8 @@ public class FormPrecheckService {
         }
 
         validations.add(FieldValidationItem.builder()
-                .fieldName("Điều kiện Mốc tuổi ≥ 80 hoặc Khuyết tật nặng (Mẫu 01 NĐ 20/2021/NĐ-CP)")
-                .providedValue(ageDisplay + (hasSevereDisability ? " | Khuyết tật nặng/đặc biệt nặng" : " | Không khuyết tật"))
+                .fieldName("Điều kiện Mốc tuổi (≥ 75 tuổi hoặc ≥ 70 tuổi hộ nghèo theo Luật BHXH 2024 / Khuyết tật nặng)")
+                .providedValue(ageDisplay + (hasSevereDisability ? " | Khuyết tật nặng/đặc biệt nặng" : isPoorOrNearPoor ? " | Hộ nghèo/cận nghèo" : " | Không khuyết tật"))
                 .valid(ageOrDisabilityValid)
                 .errorCode(ageOrDisabilityValid ? null : "INELIGIBLE_SOCIAL_PROTECTION_AGE")
                 .errorMessage(eligibilityMsg)
