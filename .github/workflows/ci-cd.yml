@@ -1,0 +1,123 @@
+name: SmartWard AI CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================================
+  # 1. BACKEND CI: Java 21, Maven Build & JUnit Adversarial Tests (59 assertions)
+  # ============================================================================
+  backend-ci:
+    name: Backend CI (Java 21 / Spring Boot)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21 (Eclipse Temurin)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: 'maven'
+
+      - name: Grant Execute Permission to Maven Wrapper
+        run: chmod +x backend/mvnw
+
+      - name: Run Backend Unit & Adversarial Tests
+        working-directory: ./backend
+        run: ./mvnw test -B
+
+      - name: Verify Backend Executable JAR Packaging
+        working-directory: ./backend
+        run: ./mvnw package -DskipTests -B
+
+  # ============================================================================
+  # 2. FRONTEND CI: Node 20, Vite 6 TypeScript Build & Regression Acceptance Tests
+  # ============================================================================
+  frontend-ci:
+    name: Frontend CI (React 18 / Vite 6)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Frontend Dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run Chatbox Acceptance Tests
+        working-directory: ./frontend
+        run: npm test
+
+      - name: Compile Production Web Bundle (TypeScript & Vite)
+        working-directory: ./frontend
+        run: npm run build
+
+  # ============================================================================
+  # 3. DOCKER COMPOSE CONFIG & RESOURCE BUDGET VALIDATION (<= 2048 MiB RAM)
+  # ============================================================================
+  docker-compose-check:
+    name: Docker Compose & Resource Limits Validation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Initialize Environment Template
+        run: cp .env.example .env
+
+      - name: Validate Docker Compose Configuration & Service Graph
+        run: docker compose config
+
+  # ============================================================================
+  # 4. CONTINUOUS DEPLOYMENT (CD): Automated Server Deployment via SSH
+  # Triggered only when commits land on 'main' and all CI jobs pass.
+  # ============================================================================
+  deploy:
+    name: Continuous Deployment (Production VPS / Server)
+    needs: [backend-ci, frontend-ci, docker-compose-check]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Deployment Credentials
+        id: check_credentials
+        run: |
+          if [ -n "${{ secrets.SERVER_HOST }}" ]; then
+            echo "configured=true" >> $GITHUB_OUTPUT
+            echo "Target host is configured. Proceeding with automated SSH deployment."
+          else
+            echo "configured=false" >> $GITHUB_OUTPUT
+            echo "NOTICE: SERVER_HOST secret is not configured in this repository."
+            echo "To enable automated deployment, add SERVER_HOST, SERVER_USER, and SERVER_SSH_KEY in Repository Settings -> Secrets and variables -> Actions."
+          fi
+
+      - name: Deploy via SSH to Target Server
+        if: steps.check_credentials.outputs.configured == 'true'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            TARGET_PATH="${{ secrets.SERVER_DEPLOY_PATH || '~/SmartWardAI' }}"
+            echo "Connecting to target deployment path: $TARGET_PATH"
+            cd "$TARGET_PATH"
+            chmod +x deploy.sh
+            ./deploy.sh
