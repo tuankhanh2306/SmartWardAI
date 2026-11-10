@@ -241,3 +241,50 @@ html.high-contrast-mode #root {
   @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#0F766E] hover:bg-[#115E59] active:scale-[0.98] shadow-sm shadow-[#0F766E]/20 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#0F766E] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
 }
 
+/* ========================================================================= */
+/* A4 ADMINISTRATIVE DOCUMENT PRINT STYLES (NGHỊ ĐỊNH 30/2020/NĐ-CP)         */
+/* ========================================================================= */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 15mm 15mm 15mm 20mm; /* Chuẩn lề NĐ 30: Trái 30-35mm (hoặc 20mm), Phải 15-20mm, Trên 20-25mm, Dưới 20-25mm */
+  }
+
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-size: 13pt !important;
+  }
+
+  /* Hide all interactive app components during print */
+  header,
+  nav,
+  footer,
+  aside,
+  .no-print,
+  [data-no-print="true"] {
+    display: none !important;
+  }
+
+  /* Printable Modal Container overrides */
+  .a4-print-overlay {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .a4-print-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: transparent !important;
+  }
+}
+
+

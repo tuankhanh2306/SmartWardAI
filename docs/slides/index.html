@@ -1,0 +1,2145 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SmartWard AI – Báo cáo Bảo vệ Đồ án & HKDN</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Newsreader:ital,opsz,wght@0,6..72,500;0,6..72,600;1,6..72,400&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* ==========================================================================
+   DESIGN TASTE & UI/UX PRO SYSTEM (TASTE-SKILL & DOUBLE-BEZEL ARCHITECTURE)
+   ========================================================================== */
+:root {
+  /* Light Theme (Crisp Nordic Tech Paper) */
+  --bg-canvas: #f8fafc;
+  --bg-stage: #ffffff;
+  --mesh-1: rgba(219, 234, 254, 0.45);
+  --mesh-2: rgba(237, 233, 254, 0.35);
+  --text-main: #0f172a;
+  --text-body: #334155;
+  --text-muted: #64748b;
+  --text-faint: #94a3b8;
+  
+  --bezel-outer: rgba(241, 245, 249, 0.9);
+  --bezel-outer-border: rgba(203, 213, 225, 0.65);
+  --bezel-inner: #ffffff;
+  --bezel-inner-border: rgba(226, 232, 240, 0.8);
+  --bezel-shadow: 0 10px 30px -8px rgba(15, 23, 42, 0.06), 0 4px 6px -2px rgba(15, 23, 42, 0.02);
+  
+  --primary: #2563eb;
+  --primary-glow: rgba(37, 99, 235, 0.15);
+  --primary-deep: #1d4ed8;
+  --primary-tint: #eff6ff;
+  
+  --emerald: #059669;
+  --emerald-tint: #ecfdf5;
+  --emerald-border: #a7f3d0;
+  
+  --rose: #e11d48;
+  --rose-tint: #fff1f2;
+  --rose-border: #fecdd3;
+  
+  --amber: #d97706;
+  --amber-tint: #fffbeb;
+  --amber-border: #fde68a;
+  
+  --border-subtle: #e2e8f0;
+  --code-bg: #f1f5f9;
+  
+  --font-serif: 'Newsreader', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', Consolas, monospace;
+}
+
+[data-theme="dark"] {
+  /* Dark Theme (OLED Cyber Precision) */
+  --bg-canvas: #030712;
+  --bg-stage: #0b101b;
+  --mesh-1: rgba(30, 58, 138, 0.25);
+  --mesh-2: rgba(88, 28, 135, 0.18);
+  --text-main: #f8fafc;
+  --text-body: #cbd5e1;
+  --text-muted: #94a3b8;
+  --text-faint: #475569;
+  
+  --bezel-outer: rgba(30, 41, 59, 0.6);
+  --bezel-outer-border: rgba(51, 65, 85, 0.7);
+  --bezel-inner: #0f172a;
+  --bezel-inner-border: rgba(30, 41, 59, 0.9);
+  --bezel-shadow: 0 14px 40px -10px rgba(0, 0, 0, 0.6);
+  
+  --primary: #3b82f6;
+  --primary-glow: rgba(59, 130, 246, 0.25);
+  --primary-deep: #60a5fa;
+  --primary-tint: rgba(30, 58, 138, 0.35);
+  
+  --emerald: #10b981;
+  --emerald-tint: rgba(6, 78, 59, 0.35);
+  --emerald-border: #047857;
+  
+  --rose: #f43f5e;
+  --rose-tint: rgba(136, 19, 55, 0.35);
+  --rose-border: #be123c;
+  
+  --amber: #f59e0b;
+  --amber-tint: rgba(120, 53, 15, 0.35);
+  --amber-border: #b45309;
+  
+  --border-subtle: #1e293b;
+  --code-bg: #1e293b;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  width: 100%;
+  background: var(--bg-canvas);
+  overflow: hidden;
+  font-family: var(--font-sans);
+  color: var(--text-main);
+  -webkit-font-smoothing: antialiased;
+  transition: background-color 0.3s ease;
+}
+
+/* Background Ambient Aura */
+.ambient-mesh {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background: 
+    radial-gradient(circle at 10% 15%, var(--mesh-1) 0%, transparent 45%),
+    radial-gradient(circle at 90% 85%, var(--mesh-2) 0%, transparent 40%);
+  z-index: 0;
+}
+
+/* 16:9 Cinema Viewport */
+#viewport {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+}
+
+#stage {
+  position: relative;
+  width: 1280px;
+  height: 720px;
+  background: var(--bg-stage);
+  border-radius: 20px;
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.15), 0 0 0 1px var(--border-subtle);
+  overflow: hidden;
+  transform-origin: center center;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
+}
+
+/* Slide Base */
+.slide {
+  position: absolute;
+  inset: 0;
+  padding: 50px 60px 45px;
+  display: none;
+  flex-direction: column;
+  background: var(--bg-stage);
+  z-index: 10;
+}
+
+.slide.active {
+  display: flex;
+  z-index: 20;
+}
+
+/* Top Progress Track */
+#top-progress-track {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: rgba(0, 0, 0, 0.05);
+  z-index: 50;
+}
+
+#top-progress-bar {
+  height: 100%;
+  width: 0;
+  background: linear-gradient(90deg, var(--primary) 0%, #8b5cf6 100%);
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Header & Eyebrow Badge */
+.slide-header {
+  margin-bottom: 22px;
+  position: relative;
+}
+
+.eyebrow-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  background: var(--primary-tint);
+  border: 1px solid var(--primary-glow);
+  color: var(--primary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.eyebrow-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 8px var(--primary);
+}
+
+h1.slide-title {
+  font-family: var(--font-serif);
+  font-size: 34px;
+  font-weight: 600;
+  line-height: 1.25;
+  color: var(--text-main);
+  letter-spacing: -0.015em;
+}
+
+/* Slide Footer */
+.slide-footer {
+  position: absolute;
+  left: 60px;
+  right: 60px;
+  bottom: 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 12px;
+}
+
+.slide-footer .brand-signature {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.badge-tag {
+  background: var(--primary);
+  color: white;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+}
+
+/* ==========================================================================
+   DOUBLE-BEZEL (DOPPELRAND) COMPONENT ARCHITECTURE
+   ========================================================================== */
+.bezel-card {
+  background: var(--bezel-outer);
+  border: 1px solid var(--bezel-outer-border);
+  border-radius: 16px;
+  padding: 4px;
+  box-shadow: var(--bezel-shadow);
+  display: flex;
+  flex-direction: column;
+  transition: all 0.25s ease;
+}
+
+.bezel-core {
+  background: var(--bezel-inner);
+  border: 1px solid var(--bezel-inner-border);
+  border-radius: 12px;
+  padding: 18px 22px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.bezel-card.highlight {
+  border-color: var(--primary-glow);
+  box-shadow: 0 12px 35px -8px rgba(37, 99, 235, 0.15);
+}
+
+.bezel-card.highlight .bezel-core {
+  background: var(--primary-tint);
+  border-color: rgba(59, 130, 246, 0.2);
+}
+
+.bezel-core h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bezel-core h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 6px;
+}
+
+.bezel-core p {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--text-body);
+}
+
+/* Bento Grid System */
+.grid-row { display: flex; gap: 18px; }
+.col-flex { flex: 1; }
+.col-2x { flex: 2; }
+.col-3x { flex: 3; }
+
+/* Stat & Metric Callouts */
+.stat-chip {
+  background: var(--bezel-inner);
+  border: 1px solid var(--bezel-inner-border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+.stat-chip::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; bottom: 0;
+  width: 4px;
+  background: var(--primary);
+}
+
+.stat-chip.emerald::before { background: var(--emerald); }
+.stat-chip.amber::before { background: var(--amber); }
+.stat-chip.rose::before { background: var(--rose); }
+
+.stat-chip .stat-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.stat-chip .stat-val {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.15;
+}
+
+.stat-chip .stat-desc {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+/* Interactive Pipeline / Synapse Flows */
+.pipeline {
+  display: flex;
+  align-items: stretch;
+  gap: 6px;
+  margin: 8px 0 20px;
+}
+
+.node {
+  flex: 1;
+  background: var(--bezel-inner);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  padding: 12px 10px;
+  text-align: center;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--text-main);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  line-height: 1.35;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+.node.pulse {
+  background: var(--primary-tint);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.node.success {
+  background: var(--emerald-tint);
+  border-color: var(--emerald-border);
+  color: var(--emerald);
+}
+
+.node.warn {
+  background: var(--amber-tint);
+  border-color: var(--amber-border);
+  color: var(--amber);
+}
+
+.node small {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: 3px;
+}
+
+.pipe-joint {
+  width: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* Bullet Items with Soft Accents */
+ul.taste-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+ul.taste-list li {
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text-body);
+  position: relative;
+  padding-left: 22px;
+}
+
+ul.taste-list li::before {
+  content: "";
+  position: absolute;
+  left: 3px;
+  top: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+ul.taste-list li strong {
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+/* Precision Data Tables */
+.table-enclosure {
+  background: var(--bezel-outer);
+  border: 1px solid var(--bezel-outer-border);
+  border-radius: 14px;
+  padding: 4px;
+  box-shadow: var(--bezel-shadow);
+  overflow: hidden;
+}
+
+table.taste-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+  background: var(--bezel-inner);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+table.taste-table th {
+  background: var(--code-bg);
+  color: var(--text-main);
+  font-weight: 700;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 12.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+table.taste-table td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-body);
+  line-height: 1.4;
+  vertical-align: middle;
+}
+
+table.taste-table tr:last-child td { border-bottom: none; }
+
+table.taste-table tr.row-accent td {
+  background: var(--emerald-tint) !important;
+  color: var(--emerald);
+  font-weight: 600;
+}
+
+table.taste-table .num-font { font-family: var(--font-mono); }
+
+/* Visual Charts & Mockups */
+.graphic-dock {
+  background: var(--bezel-inner);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 10px;
+  box-shadow: var(--bezel-shadow);
+  display: flex;
+  flex-direction: column;
+}
+
+.graphic-dock img {
+  width: 100%;
+  height: auto;
+  border-radius: 6px;
+  display: block;
+}
+
+.graphic-dock .dock-caption {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 8px;
+}
+
+/* Title Slide Specifics */
+.slide.cover-slide {
+  background: radial-gradient(circle at 80% 20%, rgba(37, 99, 235, 0.15) 0%, transparent 60%), var(--bg-stage);
+  padding: 0;
+  display: flex;
+  flex-direction: row;
+}
+
+.cover-slide .spine-accent {
+  width: 14px;
+  background: linear-gradient(180deg, var(--primary) 0%, #7c3aed 100%);
+}
+
+.cover-slide .cover-body {
+  flex: 1;
+  padding: 70px 75px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.cover-slide h1 {
+  font-family: var(--font-serif);
+  font-size: 52px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--text-main);
+  margin-bottom: 16px;
+  letter-spacing: -0.02em;
+}
+
+.cover-slide .cover-sub {
+  font-size: 23px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-bottom: 45px;
+  max-width: 900px;
+}
+
+.cover-slide .roster {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px 50px;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 28px;
+  max-width: 880px;
+}
+
+.cover-slide .roster-cell {
+  font-size: 14.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.cover-slide .roster-cell strong {
+  color: var(--text-main);
+  font-weight: 700;
+  display: block;
+  font-size: 15.5px;
+}
+
+/* ==========================================================================
+   INTERACTIVE GLASS ISLAND (CONTROL BAR)
+   ========================================================================== */
+#glass-island {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 8px 18px;
+  border-radius: 9999px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 200;
+  box-shadow: 0 16px 36px -8px rgba(0, 0, 0, 0.4);
+  color: white;
+}
+
+#glass-island button {
+  background: none;
+  border: none;
+  color: #cbd5e1;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font-sans);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#glass-island button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+  transform: translateY(-1px);
+}
+
+#glass-island .island-sep {
+  width: 1px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+#glass-island .counter-slot {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: #93c5fd;
+  min-width: 60px;
+  text-align: center;
+}
+
+/* Speaker Notes Drawer */
+#notes-drawer {
+  position: fixed;
+  bottom: 85px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 840px;
+  max-width: 92vw;
+  background: rgba(15, 23, 42, 0.94);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 22px 28px;
+  color: #e2e8f0;
+  z-index: 199;
+  display: none;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+}
+
+#notes-drawer.open { display: block; }
+#notes-drawer .drawer-header {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #93c5fd;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: space-between;
+}
+
+#notes-drawer .drawer-body {
+  font-size: 15px;
+  line-height: 1.65;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+/* Grid Overview Modal (Jump to Slide) */
+#overview-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 7, 18, 0.85);
+  backdrop-filter: blur(16px);
+  z-index: 300;
+  display: none;
+  padding: 40px;
+  overflow-y: auto;
+}
+
+#overview-modal.open { display: block; }
+#overview-modal .modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1200px;
+  margin: 0 auto 30px;
+  color: white;
+}
+
+#overview-modal .grid-wall {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+
+.mini-card {
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  padding: 14px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mini-card:hover {
+  border-color: var(--primary);
+  transform: translateY(-2px);
+  background: #334155;
+}
+
+.mini-card .mini-num {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #93c5fd;
+  margin-bottom: 6px;
+}
+
+.mini-card .mini-title {
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Print Styling */
+@media print {
+  html, body { overflow: visible; background: white; height: auto; }
+  .ambient-mesh, #top-progress-track, #glass-island, #notes-drawer, #overview-modal { display: none !important; }
+  #viewport { position: static; display: block; }
+  #stage { position: static; transform: none !important; width: auto; height: auto; box-shadow: none; border-radius: 0; }
+  .slide { position: relative; width: 1280px; height: 720px; display: flex !important; page-break-after: always; }
+  @page { size: 1280px 720px; margin: 0; }
+}
+</style>
+</head>
+<body>
+
+<div class="ambient-mesh"></div>
+
+<div id="viewport">
+  <div id="stage">
+    <div id="top-progress-track"><div id="top-progress-bar"></div></div>
+
+    <!-- Slide 1: Cover -->
+    <section class="slide cover-slide" data-notes="Kính chào quý Thầy Cô trong Hội đồng chấm Đồ án Tốt nghiệp và các bạn sinh viên. Tôi là Trịnh Tuấn Khánh, hôm nay tôi xin được báo cáo kết quả thực hiện đề tài: 'SmartWard AI – Hệ thống hỗ trợ thủ tục hành chính và phân luồng phản ánh cấp phường/xã'. Báo cáo dài 20 phút, bao gồm 4 phần: Đặt vấn đề, Giải pháp thiết kế, Kết quả thực nghiệm và Phần Demo trực tiếp.">
+      <div class="spine-accent"></div>
+      <div class="cover-body">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>Học kỳ Doanh nghiệp & Đồ án Tốt nghiệp Kỹ sư CNTT</div>
+        <h1>SmartWard AI</h1>
+        <div class="cover-sub">Hệ thống hỗ trợ thủ tục hành chính và phân luồng phản ánh cấp phường/xã</div>
+        <div class="roster">
+          <div class="roster-cell">Sinh viên thực hiện:<strong>Trịnh Tuấn Khánh</strong></div>
+          <div class="roster-cell">Giảng viên hướng dẫn:<strong>TS. Lê Văn Quốc Anh</strong></div>
+          <div class="roster-cell">Đơn vị đào tạo:<strong>Viện Đào tạo CLC – Trường ĐH Giao thông vận tải TP.HCM (UTH)</strong></div>
+          <div class="roster-cell">Cán bộ hướng dẫn Doanh nghiệp:<strong>Kỹ sư Trưởng Giải pháp Số – Viettel An Giang</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Slide 2: Problem Statement -->
+    <section class="slide" data-notes="Tại bộ phận Một cửa cấp phường/xã, thực tiễn đang đối mặt với 2 hạn chế lớn: Thứ nhất, người dân thường điền sai thông tin trên biểu mẫu (nhất là số CCCD, ngày sinh và ngày cấp), dẫn đến hồ sơ bị trả về nhiều lần gây quá tải. Thứ hai, khi có sự cố môi trường hay hạ tầng (như hỏng nắp cống, sụt lún), nhiều người dân báo cáo rải rác qua nhiều kênh với mô tả và GPS lệch nhau, khiến cán bộ mất nhiều thời gian gom nhóm và xử lý trùng lặp. Đề tài tập trung giải quyết cho 96 đơn vị hành chính An Giang, với 40 thủ tục và chi phí bản quyền bằng 0.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>01 · Đặt vấn đề & Bối cảnh</div>
+        <h1 class="slide-title">Hai nút thắt tại bộ phận Một cửa cấp xã/phường</h1>
+      </div>
+      <div class="grid-row" style="margin-bottom: 20px;">
+        <div class="bezel-card col-flex">
+          <div class="bezel-core">
+            <h3>1. Sai sót hồ sơ & biểu mẫu</h3>
+            <ul class="taste-list">
+              <li>Người dân điền sai cấu trúc số CCCD 12 số, sai mã tỉnh hoặc năm sinh.</li>
+              <li>Mâu thuẫn mốc thời gian logic (ngày sinh &gt; ngày cấp, chưa đủ tuổi kết hôn).</li>
+              <li>Hồ sơ bị trả về bổ sung nhiều lần, làm gia tăng thời gian chờ tại UBND.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="bezel-card col-flex">
+          <div class="bezel-core">
+            <h3>2. Phản ánh trùng lặp & phân mảnh</h3>
+            <ul class="taste-list">
+              <li>Nhiều người dân cùng phản ánh 1 sự cố bằng các cách diễn đạt rất khác nhau.</li>
+              <li>Tọa độ GPS bị sai lệch 10m đến 40m do đứng trong nhà sâu hoặc hẻm cụt.</li>
+              <li>Dữ liệu rời rạc gây khó khăn cho cán bộ đô thị trong việc điều phối xử lý.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="grid-row">
+        <div class="stat-chip col-flex">
+          <div class="stat-label">Phạm vi nghiên cứu</div>
+          <div class="stat-val">96 ĐVHC</div>
+          <div class="stat-desc">Xã, phường, đặc khu thuộc tỉnh An Giang</div>
+        </div>
+        <div class="stat-chip col-flex">
+          <div class="stat-label">Quy mô thủ tục</div>
+          <div class="stat-val">40 TTHC</div>
+          <div class="stat-desc">Tư vấn và sơ duyệt tự động cấp cơ sở</div>
+        </div>
+        <div class="stat-chip col-flex emerald">
+          <div class="stat-label">Ràng buộc phần cứng</div>
+          <div class="stat-val">&le; 2.0 GB RAM</div>
+          <div class="stat-desc">Kiến trúc Zero-Cost, chạy mượt mà trên Docker</div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 02 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 3: Research Questions -->
+    <section class="slide" data-notes="Để giải quyết khoa học 2 bài toán trên, đề tài xác định 3 câu hỏi nghiên cứu có thể kiểm chứng bằng thực nghiệm: RQ1 về Legal RAG chống ảo giác, RQ2 về gom cụm phản ánh 2 pha không gian - ngữ nghĩa, và RQ3 về hiệu quả của Rule Engine tất định kiểm tra tờ khai.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>01 · Cơ sở khoa học</div>
+        <h1 class="slide-title">Ba câu hỏi nghiên cứu cốt lõi (RQ1 – RQ3)</h1>
+      </div>
+      <div style="display:flex; flex-direction:column; gap:16px;">
+        <div class="bezel-card highlight">
+          <div class="bezel-core" style="flex-direction:row; align-items:center; gap:24px;">
+            <div style="font-family:var(--font-mono); font-size:26px; font-weight:800; color:var(--primary); width:70px;">RQ1</div>
+            <div style="flex:1;">
+              <h4>Kiểm soát ảo giác Pháp lý (Legal RAG Hallucination Control)</h4>
+              <p>Phương pháp RAG phân đoạn Điều–Khoản kết hợp ngưỡng từ chối (Abstention Threshold &theta;) cải thiện độ chính xác trích dẫn và giảm tỷ lệ trả lời sai ở các câu bẫy ra sao so với LLM thuần?</p>
+            </div>
+            <div style="text-align:right; font-size:13px; font-weight:700; color:var(--primary); width:180px;">
+              Module 1: Legal RAG<br><span style="color:var(--text-muted); font-weight:normal;">Kết quả: Slide 14</span>
+            </div>
+          </div>
+        </div>
+        <div class="bezel-card">
+          <div class="bezel-core" style="flex-direction:row; align-items:center; gap:24px;">
+            <div style="font-family:var(--font-mono); font-size:26px; font-weight:800; color:var(--primary); width:70px;">RQ2</div>
+            <div style="flex:1;">
+              <h4>Khử trùng lặp phản ánh hiện trường (Deduplication Triage)</h4>
+              <p>Việc kết hợp bộ lọc không gian (Spatial Filter) và độ tương đồng ngữ nghĩa (Semantic Similarity) giải quyết bài toán gom cụm sự cố ra sao so với phương pháp đơn lẻ? Điểm cân bằng F1 tối ưu ở đâu?</p>
+            </div>
+            <div style="text-align:right; font-size:13px; font-weight:700; color:var(--primary); width:180px;">
+              Module 3: Triage 2 pha<br><span style="color:var(--text-muted); font-weight:normal;">Kết quả: Slide 15</span>
+            </div>
+          </div>
+        </div>
+        <div class="bezel-card">
+          <div class="bezel-core" style="flex-direction:row; align-items:center; gap:24px;">
+            <div style="font-family:var(--font-mono); font-size:26px; font-weight:800; color:var(--primary); width:70px;">RQ3</div>
+            <div style="flex:1;">
+              <h4>Hậu kiểm tờ khai tất định (Deterministic Form Pre-check)</h4>
+              <p>Hệ thống quy tắc nghiệp vụ tất định (Rule Engine) đóng góp bao nhiêu phần trăm vào việc phát hiện và ngăn chặn các lỗi logic trên biểu mẫu hành chính trước khi nộp hồ sơ?</p>
+            </div>
+            <div style="text-align:right; font-size:13px; font-weight:700; color:var(--primary); width:180px;">
+              Module 2: Rule Engine<br><span style="color:var(--text-muted); font-weight:normal;">Kết quả: Slide 16</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 03 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 4: Student Contributions -->
+    <section class="slide" data-notes="Để minh bạch học thuật trước Hội đồng: Tôi không tự sáng chế ra mô hình LLM hay OCR. Gemini, pgvector, Redis, MinIO là các công cụ nền tảng có sẵn. Đóng góp kỹ thuật chính của tôi là: thuật toán chunking văn bản theo Điều Khoản, chốt chặn guardrail từ chối trả lời theta, bộ Rule Engine Java tất định, giải thuật gom cụm 2 pha và cơ chế bảo mật One-Time token theo Nghị định 13.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>01 · Đóng góp cá nhân</div>
+        <h1 class="slide-title">Phân định rõ phần có sẵn và phần tự thiết kế</h1>
+      </div>
+      <div class="table-enclosure">
+        <table class="taste-table">
+          <thead>
+            <tr>
+              <th style="width: 22%;">Phân hệ chức năng</th>
+              <th style="width: 26%;">Công cụ có sẵn (Off-the-shelf)</th>
+              <th>Phần Sinh viên tự thiết kế & cài đặt (Core Contributions)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Tư vấn TTHC (RAG)</strong></td>
+              <td>Gemini API (Embeddings, Flash LLM)</td>
+              <td>Thuật toán chunking Điều – Khoản kèm metadata; Chốt chặn Abstention Guardrail (&theta; = 0.78); Bộ hậu kiểm mã trích dẫn.</td>
+            </tr>
+            <tr>
+              <td><strong>Kiểm tra Tờ khai</strong></td>
+              <td>Vision OCR Model</td>
+              <td><strong>Deterministic Rule Engine (Java thuần)</strong>: Giải mã 12 số CCCD, đối chiếu logic thời gian, kiểm chéo giấy chứng sinh.</td>
+            </tr>
+            <tr>
+              <td><strong>Phân luồng Phản ánh</strong></td>
+              <td>Redis GEO, pgvector Extension</td>
+              <td>Thuật toán khử trùng 2 pha (Spatial-Semantic Triage); Kịch bản quét lưới Grid Search tìm điểm cân bằng F1-Score.</td>
+            </tr>
+            <tr>
+              <td><strong>Bảo mật Hồ sơ</strong></td>
+              <td>AES-256-GCM, MinIO S3</td>
+              <td>Module đóng dấu mờ động (Dynamic Watermark); Cơ chế khóa nguyên tử tự hủy (One-Time Link) với Redis GETDEL.</td>
+            </tr>
+            <tr>
+              <td><strong>Đánh giá Benchmark</strong></td>
+              <td>—</td>
+              <td>Xây dựng bộ test chuẩn (80 câu hỏi RAG, 150 phản ánh với 25 ca biên khó, 40 ảnh tờ khai) và test-runner tự động.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 04 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 5: Roadmap -->
+    <section class="slide" data-notes="Tiến độ thực hiện 12 tuần được chia làm 4 giai đoạn rõ ràng, tương ứng với 5 chương của luận văn báo cáo tốt nghiệp. Hiện tại toàn bộ hệ thống đã hoàn tất và đóng gói hoàn chỉnh.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>01 · Kế hoạch triển khai</div>
+        <h1 class="slide-title">Lộ trình triển khai 12 tuần (4 Giai đoạn)</h1>
+      </div>
+      <div class="pipeline" style="height: 100px;">
+        <div class="node">
+          <strong>Giai đoạn 1 (Tuần 1–3)</strong>
+          <span>Hạ tầng & CSDL Flyway</span>
+          <small>PostgreSQL, Redis, MinIO</small>
+        </div>
+        <div class="pipe-joint">➜</div>
+        <div class="node">
+          <strong>Giai đoạn 2 (Tuần 4–7)</strong>
+          <span>4 Module Nghiệp vụ Lõi</span>
+          <small>RAG, Rule Engine, Triage, Vault</small>
+        </div>
+        <div class="pipe-joint">➜</div>
+        <div class="node">
+          <strong>Giai đoạn 3 (Tuần 8–9)</strong>
+          <span>Thực nghiệm Khoa học</span>
+          <small>Grid Search, Đánh giá RQ1-RQ3</small>
+        </div>
+        <div class="pipe-joint">➜</div>
+        <div class="node pulse">
+          <strong>Giai đoạn 4 (Tuần 10–12)</strong>
+          <span>PWA, Đóng gói & Báo cáo</span>
+          <small>Frontend React, Luận văn UTH</small>
+        </div>
+      </div>
+      <div class="table-enclosure">
+        <table class="taste-table">
+          <thead>
+            <tr>
+              <th style="width: 15%;">Giai đoạn</th>
+              <th style="width: 55%;">Sản phẩm kỹ thuật bàn giao</th>
+              <th>Chương báo cáo tương ứng</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Giai đoạn 1</strong></td>
+              <td>docker-compose.yml trần 2GB; Flyway migration 6 bảng; Seed 40 bộ luật TTHC cấp xã.</td>
+              <td>Chương 1 & Chương 2 (Bối cảnh, Hạ tầng)</td>
+            </tr>
+            <tr>
+              <td><strong>Giai đoạn 2</strong></td>
+              <td>Hoàn thiện 4 REST controllers; Tích hợp DeterministicMockAiClient phục vụ test offline.</td>
+              <td>Chương 3 (Thiết kế & Cài đặt hệ thống)</td>
+            </tr>
+            <tr>
+              <td><strong>Giai đoạn 3</strong></td>
+              <td>Bộ dữ liệu 150 phản ánh, 80 câu RAG; Bảng quét tham số Grid Search; Phân tích lỗi.</td>
+              <td>Chương 4 (Thực nghiệm & Đánh giá khoa học)</td>
+            </tr>
+            <tr>
+              <td><strong>Giai đoạn 4</strong></td>
+              <td>Ứng dụng React PWA Cổng công dân & Bàn làm việc cán bộ; Báo cáo toàn văn UTH.</td>
+              <td>Chương 5 (Kết luận & Hướng phát triển)</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 05 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 6: Architecture -->
+    <section class="slide" data-notes="Kiến trúc tổng thể được xây dựng theo mô hình Modular Monolith: phân chia ranh giới package rõ ràng thành 4 module độc lập. Điểm mấu chốt là không sử dụng Apache Kafka để tránh lãng phí RAM cho quy mô cấp xã, mà dùng Spring Async và EventPublisher.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>02 · Thiết kế hệ thống</div>
+        <h1 class="slide-title">Kiến trúc tổng thể Modular Monolith</h1>
+      </div>
+      <div class="grid-row" style="height: 440px;">
+        <div class="bezel-card" style="width: 270px;">
+          <div class="bezel-core" style="justify-content:space-between;">
+            <div>
+              <h3>Client Layer</h3>
+              <p style="font-size:13px; margin-bottom:12px;">React 18 · TypeScript · Tailwind · Leaflet</p>
+            </div>
+            <div class="node" style="margin-bottom:12px;">
+              <strong>Cổng Công dân (/citizen)</strong>
+              <small>Mobile-First PWA · Quét QR · TTS</small>
+            </div>
+            <div class="node">
+              <strong>Bàn Cán bộ (/officer)</strong>
+              <small>Bản đồ số · Drawer · Quản trị</small>
+            </div>
+            <div style="font-size:11px; color:var(--text-muted); text-align:center; margin-top:8px;">Reverse Proxy: Nginx Alpine (Gzip ~149KB)</div>
+          </div>
+        </div>
+
+        <div class="bezel-card col-flex">
+          <div class="bezel-core">
+            <h3>Spring Boot Core (Java 21)</h3>
+            <p style="font-size:13px; margin-bottom:12px;">Modular Monolith · ThreadPool @Async · Clean Architecture</p>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; flex:1;">
+              <div class="node" style="border-color:var(--primary-glow);">
+                <strong style="color:var(--primary);">Module 1: rag</strong>
+                <span>Legal RAG & Guardrail</span>
+                <small>Cosine &theta;=0.78, Citation Check</small>
+              </div>
+              <div class="node" style="border-color:var(--emerald-border);">
+                <strong style="color:var(--emerald);">Module 2: formcheck</strong>
+                <span>Deterministic Rule Engine</span>
+                <small>CCCD 12 số, Logic ngày tháng</small>
+              </div>
+              <div class="node" style="border-color:var(--primary-glow);">
+                <strong style="color:var(--primary);">Module 3: triage</strong>
+                <span>Two-Stage Deduplication</span>
+                <small>Redis GEO + pgvector Cosine</small>
+              </div>
+              <div class="node" style="border-color:var(--border-subtle);">
+                <strong style="color:var(--text-main);">Module 4: vault</strong>
+                <span>Zero-Trust Document Vault</span>
+                <small>AES-256-GCM, Watermark, GETDEL</small>
+              </div>
+            </div>
+            <div style="background:var(--code-bg); padding:8px 12px; border-radius:6px; font-size:12px; color:var(--text-body); margin-top:12px;">
+              ⚡ <strong>Tối ưu tài nguyên:</strong> Không dùng Kafka; dùng Spring ApplicationEventPublisher xử lý nền.
+            </div>
+          </div>
+        </div>
+
+        <div class="bezel-card" style="width: 290px;">
+          <div class="bezel-core" style="justify-content:space-between;">
+            <div>
+              <h3>Hạ tầng & Dịch vụ AI</h3>
+              <p style="font-size:13px; margin-bottom:12px;">Docker Stack Cục bộ & Fallback Gateway</p>
+            </div>
+            <div class="node" style="margin-bottom:8px;">
+              <strong>PostgreSQL 16 + pgvector</strong>
+              <small>Dữ liệu quan hệ & HNSW Index</small>
+            </div>
+            <div class="node" style="margin-bottom:8px;">
+              <strong>Redis 7 (Alpine)</strong>
+              <small>GEO Index, Rate Limit, Token GETDEL</small>
+            </div>
+            <div class="node" style="margin-bottom:8px;">
+              <strong>MinIO Object Storage</strong>
+              <small>Kho mã hóa, Quota 5GB, ILM 7d</small>
+            </div>
+            <div class="node pulse" style="margin-bottom:0;">
+              <strong>Gemini API ⇄ MockAiClient</strong>
+              <small>Offline-first Resilience</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 06 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 7: Tech Stack & Zero-Cost -->
+    <section class="slide" data-notes="Đây là bảng phân bổ tài nguyên thực tế: Trần tối đa cho 5 container là 1.728 MB, trong khi thực tế chạy đầy tải chỉ tốn khoảng 585 MB RAM. Hệ thống hoàn toàn có thể chạy trên máy tính cấu hình thấp tại UBND xã mà không tốn chi phí thuê máy chủ cloud.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>02 · Ràng buộc tài nguyên</div>
+        <h1 class="slide-title">Ngân sách Zero-Cost & Khả năng vận hành độc lập</h1>
+      </div>
+      <div class="grid-row">
+        <div class="col-3x">
+          <div class="table-enclosure">
+            <table class="taste-table">
+              <thead>
+                <tr>
+                  <th>Dịch vụ Container</th>
+                  <th>Công nghệ & Phiên bản</th>
+                  <th>Hạn ngạch RAM (Limit)</th>
+                  <th>Tiêu thụ thực tế</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td><strong>postgres</strong></td>
+                  <td>pgvector/pgvector:pg16</td>
+                  <td class="num-font">512 MB</td>
+                  <td class="num-font">~110 MB</td>
+                </tr>
+                <tr>
+                  <td><strong>redis</strong></td>
+                  <td>redis:7-alpine</td>
+                  <td class="num-font">128 MB</td>
+                  <td class="num-font">~18 MB</td>
+                </tr>
+                <tr>
+                  <td><strong>minio</strong></td>
+                  <td>minio/minio:RELEASE</td>
+                  <td class="num-font">256 MB</td>
+                  <td class="num-font">~65 MB</td>
+                </tr>
+                <tr>
+                  <td><strong>backend</strong></td>
+                  <td>eclipse-temurin:21-jre-alpine</td>
+                  <td class="num-font">768 MB</td>
+                  <td class="num-font">~380 MB</td>
+                </tr>
+                <tr>
+                  <td><strong>frontend</strong></td>
+                  <td>nginx:1.27-alpine</td>
+                  <td class="num-font">64 MB</td>
+                  <td class="num-font">~12 MB</td>
+                </tr>
+                <tr class="row-accent">
+                  <td><strong>TỔNG CỘNG</strong></td>
+                  <td>5 Dịch vụ Container</td>
+                  <td class="num-font"><strong>1,728 MB (&lt; 2 GB)</strong></td>
+                  <td class="num-font"><strong>~585 MB (33.8%)</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="col-2x">
+          <div class="bezel-card" style="height: 100%;">
+            <div class="bezel-core">
+              <h3>Điểm nổi bật Vận hành</h3>
+              <ul class="taste-list" style="gap: 14px;">
+                <li><strong>Offline-First Resilience:</strong> Khi mất mạng hoặc không có API Key, hệ thống tự kích hoạt <code>DeterministicMockAiClient</code> sinh vector giả lập từ mã băm SHA-256.</li>
+                <li><strong>Bảo vệ hạn ngạch:</strong> Redis Rate Limiter giới hạn 5 req/phút/IP và cache kết quả hỏi đáp trùng lặp với TTL 1 giờ.</li>
+                <li><strong>An ninh Container:</strong> Ứng dụng chạy dưới user không đặc quyền <code>smartward:smartward</code>, không dùng quyền root.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 07 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 8: Module 1 Legal RAG -->
+    <section class="slide" data-notes="Module 1 giải quyết RQ1 với nguyên tắc: Thà từ chối còn hơn tư vấn sai luật. Điểm đặc sắc là chốt chặn Guardrail: nếu độ tương đồng cosine lớn nhất nhỏ hơn 0.78, hệ thống lập tức từ chối trả lời an toàn kèm gợi ý, tuyệt đối không gọi LLM sinh chữ tự do.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>02 · Phân hệ chức năng (RQ1)</div>
+        <h1 class="slide-title">Module 1 – Legal RAG & Chốt chặn Abstention Guardrail</h1>
+      </div>
+      <div class="pipeline">
+        <div class="node"><strong>1. Câu hỏi Công dân</strong><small>Chuẩn hóa Telex & dấu</small></div>
+        <div class="pipe-joint">➜</div>
+        <div class="node"><strong>2. Vector 768d</strong><small>text-embedding-004</small></div>
+        <div class="pipe-joint">➜</div>
+        <div class="node"><strong>3. pgvector Cosine</strong><small>HNSW Index Top-K</small></div>
+        <div class="pipe-joint">➜</div>
+        <div class="node warn"><strong>4. S_max &ge; &theta; (0.78)?</strong><small>Chốt chặn an toàn</small></div>
+        <div class="pipe-joint">➜</div>
+        <div class="node success"><strong>5. LLM sinh 5 phần</strong><small>Hậu kiểm trích dẫn</small></div>
+      </div>
+      <div class="grid-row">
+        <div class="bezel-card col-3x">
+          <div class="bezel-core">
+            <h4>Kỹ thuật cốt lõi bảo vệ độ chính xác pháp lý:</h4>
+            <ul class="taste-list" style="margin-top: 10px;">
+              <li><strong>Chunking Điều – Khoản:</strong> Băm văn bản luật giữ nguyên cấu trúc Chương &gt; Điều &gt; Khoản &gt; Điểm kèm metadata ngày hiệu lực (<code>effective_date &le; NOW()</code>).</li>
+              <li><strong>Bộ nhớ ngữ cảnh Multi-turn (3–5 lượt):</strong> Tự động bổ khuyết ý định ngầm định cho câu hỏi nối tiếp (VD: <em>"còn lệ phí bao nhiêu?"</em> &rarr; <em>"[Đăng ký kết hôn] lệ phí bao nhiêu?"</em>).</li>
+              <li><strong>Chuẩn hóa Tiếng Việt thuần Java:</strong> Xử lý gõ sai Telex, phương ngữ Tây Nam Bộ trong thời gian sub-1ms trước khi vector hóa.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="bezel-card col-2x" style="border-color:var(--rose-border);">
+          <div class="bezel-core" style="background:var(--rose-tint);">
+            <h4 style="color:var(--rose);">Khi S_max &lt; 0.78 (Từ chối an toàn)</h4>
+            <p style="color:var(--text-main); font-size:14px; margin-top:8px;">
+              Hệ thống <strong>tuyệt đối không gọi LLM sinh tự do</strong>, trả về thông điệp từ chối pháp lý ngắn gọn (1–2 câu) và tự động gắn các nút gợi ý chuyển hướng thủ tục (Quick Suggestion Chips).
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 08 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 9: Module 2 Rule Engine -->
+    <section class="slide" data-notes="Module 2 giải quyết RQ3: Thay vì phó mặc hoàn toàn cho AI phán đoán, mô hình OCR chỉ làm nhiệm vụ đọc chữ. Toàn bộ quyết định Đạt hay Lỗi được xử lý bằng Rule Engine viết bằng Java thuần. Ví dụ: kiểm tra 12 số CCCD, kiểm tra logic mốc ngày tháng.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>02 · Phân hệ chức năng (RQ3)</div>
+        <h1 class="slide-title">Module 2 – Deterministic Rule Engine kiểm tra biểu mẫu</h1>
+      </div>
+      <div class="pipeline" style="height: 80px;">
+        <div class="node">Ảnh biểu mẫu công dân</div>
+        <div class="pipe-joint">➜</div>
+        <div class="node">Vision OCR trích xuất JSON</div>
+        <div class="pipe-joint">➜</div>
+        <div class="node success">Rule Engine (Quy tắc Java thuần)</div>
+        <div class="pipe-joint">➜</div>
+        <div class="node">Báo lỗi chi tiết từng trường</div>
+      </div>
+      <div class="table-enclosure">
+        <table class="taste-table">
+          <thead>
+            <tr>
+              <th style="width: 25%;">Mẫu biểu hành chính</th>
+              <th>Bộ quy tắc nghiệp vụ tất định (Deterministic Logic Rules)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>CT01 – Cư trú (BCA)</strong></td>
+              <td>Kiểm tra 12 số CCCD (mã tỉnh 001–096, thế kỷ/giới tính 0–9, 2 số cuối năm sinh); logic <code>birthDate &lt; issueDate &le; today()</code>; thông tin đồng thuận của chủ hộ.</td>
+            </tr>
+            <tr>
+              <td><strong>TK-KS – Khai sinh (BTP)</strong></td>
+              <td>Đối chiếu chéo với Giấy chứng sinh (ngày sinh, họ tên mẹ); kiểm tra điều kiện nhận cha khi cha mẹ chưa đăng ký kết hôn.</td>
+            </tr>
+            <tr>
+              <td><strong>TK-KH – Kết hôn</strong></td>
+              <td>Kiểm tra tuổi kết hôn chính xác theo ngày (Nam &ge; 20, Nữ &ge; 18); chặn mục đích cấp giấy xác nhận tình trạng hôn nhân mơ hồ.</td>
+            </tr>
+            <tr>
+              <td><strong>TK-BTXH – Bảo trợ</strong></td>
+              <td>Kiểm tra ngưỡng tuổi hưởng trợ cấp người cao tuổi (&ge; 80 không lương hưu); bắt buộc số tài khoản ngân hàng phục vụ Đề án 06.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 10px; font-size: 13px; color: var(--rose); font-weight: 600;">
+        ⚠️ Chốt chặn OCR: Nếu độ tin cậy trích xuất confidence &lt; 0.70, hệ thống tự động gán cờ <code>MANUAL_REVIEW_REQUIRED</code> yêu cầu cán bộ kiểm tra mắt.
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 09 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 10: Module 3 Triage -->
+    <section class="slide" data-notes="Module 3 giải quyết RQ2: Khi người dân báo cáo sự cố, thuật toán 2 pha sẽ chạy: Pha 1 dùng Redis GEO quét bán kính R mét rất nhanh. Pha 2 kiểm tra danh mục và đo cosine vector ngữ nghĩa. Nếu lớn hơn ngưỡng tau thì tự động gom vào cụm cũ.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>02 · Phân hệ chức năng (RQ2)</div>
+        <h1 class="slide-title">Module 3 – Triage 2 pha: Lọc không gian & Ngữ nghĩa</h1>
+      </div>
+      <div class="pipeline">
+        <div class="node"><strong>Phản ánh mới</strong><small>GPS + Ảnh + Mô tả</small></div>
+        <div class="pipe-joint">➜</div>
+        <div class="node pulse"><strong>Pha 1: Redis GEO</strong><small>Quét bán kính R mét</small></div>
+        <div class="pipe-joint">➜</div>
+        <div class="node success"><strong>Pha 2: Cosine &tau;</strong><small>pgvector cùng Category</small></div>
+        <div class="pipe-joint">➜</div>
+        <div class="node"><strong>Gộp Cụm sự cố</strong><small>Tăng count / Tạo mới</small></div>
+      </div>
+      <div class="grid-row">
+        <div class="bezel-card col-3x">
+          <div class="bezel-core">
+            <h4>Nguyên lý vận hành 2 pha:</h4>
+            <ul class="taste-list" style="margin-top: 8px;">
+              <li><strong>Pha 1 (Lọc không gian):</strong> Redis <code>GEOSEARCH</code> quét trong bán kính $R$ mét. Loại bỏ 95% sự cố ở xa với độ phức tạp cực thấp $O(\log N)$.</li>
+              <li><strong>Pha 2 (So khớp ngữ nghĩa):</strong> Trong các cụm ứng viên, kiểm tra trùng <code>category</code> và đo khoảng cách Cosine giữa vector mô tả với vector tâm cụm. Nếu $\text{Cosine} \ge \tau$, gộp vào cụm cũ.</li>
+              <li><strong>Định tuyến liên phường:</strong> Ưu tiên định tuyến theo ô địa chỉ (Text-box address), fallback về GPS Haversine tìm phường gần nhất.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="bezel-card col-2x highlight">
+          <div class="bezel-core">
+            <h3>Ví dụ minh họa:</h3>
+            <p style="font-size: 13.5px; margin-bottom: 8px;">
+              <strong>Người dân A:</strong> <em>"Nắp cống bị bể gây nguy hiểm đầu hẻm 12"</em><br>
+              <strong>Người dân B:</strong> <em>"Có hố ga mất nắp gần số nhà 14"</em>
+            </p>
+            <div style="background:var(--bezel-inner); padding:10px; border-radius:8px; font-size:12.5px; border:1px solid var(--border-subtle);">
+              📍 Cách nhau 18 mét (&le; R)<br>
+              🏷️ Cùng loại Đô thị / Thoát nước<br>
+              🧠 Cosine Similarity = 0.86 (&ge; &tau;)<br>
+              &rarr; <strong style="color:var(--emerald);">Gộp làm 1 Cụm sự cố (count = 2)</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 10 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 11: Module 4 Vault -->
+    <section class="slide" data-notes="Module 4 bảo vệ dữ liệu công dân theo Nghị định 13: Ảnh CCCD tải lên được đóng dấu mờ động ngay trên RAM, mã hóa AES-256-GCM đưa lên MinIO. Khi cán bộ xem ảnh, token One-Time bị xóa ngay lập tức qua lệnh nguyên tử GETDEL. Lần xem thứ 2 trả về 410 Gone.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>02 · Bảo mật dữ liệu (Nghị định 13)</div>
+        <h1 class="slide-title">Module 4 – Zero-Trust Vault & Khóa nguyên tử One-Time</h1>
+      </div>
+      <div class="pipeline">
+        <div class="node">Ảnh CCCD / Giấy tờ</div>
+        <div class="pipe-joint">➜</div>
+        <div class="node">Đóng Dấu mờ chéo</div>
+        <div class="pipe-joint">➜</div>
+        <div class="node">Mã hóa AES-256-GCM</div>
+        <div class="pipe-joint">➜</div>
+        <div class="node">MinIO (ILM 7 ngày)</div>
+        <div class="pipe-joint">➜</div>
+        <div class="node pulse">Token Redis GETDEL</div>
+      </div>
+      <div class="grid-row" style="margin-bottom: 14px;">
+        <div class="bezel-card col-flex" style="border-color:var(--emerald-border);">
+          <div class="bezel-core" style="background:var(--emerald-tint);">
+            <h4 style="color:var(--emerald);">Truy cập lần đầu (Hợp lệ)</h4>
+            <p style="color:var(--text-main); font-size:13.5px;">Cán bộ mở link sơ duyệt &rarr; Redis thực thi lệnh <code>GETDEL</code> nguyên tử (lấy dữ liệu và xóa ngay) &rarr; Giải mã và stream ảnh hiển thị 1 lần duy nhất.</p>
+          </div>
+        </div>
+        <div class="bezel-card col-flex" style="border-color:var(--rose-border);">
+          <div class="bezel-core" style="background:var(--rose-tint);">
+            <h4 style="color:var(--rose);">Truy cập lần hai (Bị chặn)</h4>
+            <p style="color:var(--text-main); font-size:13.5px;">Token đã bị xóa khỏi Redis &rarr; Hệ thống lập tức trả về mã lỗi <code>HTTP 410 Gone</code>. Ngăn chặn triệt để hành vi sao chép hay chia sẻ đường link trái phép.</p>
+          </div>
+        </div>
+      </div>
+      <div class="bezel-card">
+        <div class="bezel-core">
+          <h4>Tính minh bạch về giới hạn an toàn thông tin:</h4>
+          <p style="font-size: 13.5px;">
+            Dấu mờ động (Dynamic Watermark) in rõ: <em>"CHỈ DÙNG ĐỂ SƠ DUYỆT HỒ SƠ TẠI UBND - [TIMESTAMP]"</em>. Cơ chế One-Time link giải quyết nguy cơ rò rỉ URL và chia sẻ file; tuy nhiên không thể ngăn chặn hành vi cố tình chụp lại màn hình vật lý từ thiết bị của cán bộ.
+          </p>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 11 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 12: UI Showcase -->
+    <section class="slide" data-notes="Giao diện người dùng được phân chia theo vai trò: Cổng công dân là Mobile-First PWA quét mã QR dùng ngay, có hỗ trợ đọc giọng nói TTS và phóng to cỡ chữ cho người cao tuổi. Phía cán bộ là Dashboard quản trị bản đồ số và slide-over drawer kiểm duyệt hồ sơ.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>02 · Trải nghiệm người dùng</div>
+        <h1 class="slide-title">Giao diện Cổng Công dân (PWA) & Bàn làm việc Cán bộ</h1>
+      </div>
+      <div class="grid-row" style="height: 440px;">
+        <div class="bezel-card col-flex">
+          <div class="bezel-core" style="text-align:center;">
+            <h4>1. Trợ lý AI Pháp lý (/citizen)</h4>
+            <div style="background:var(--code-bg); border:2px dashed var(--border-subtle); border-radius:8px; flex:1; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:13.5px; padding:16px;">
+              [Ảnh chụp: Chatbot Tra cứu TTHC & Nút gợi ý nhanh Chips]
+            </div>
+            <p style="font-size:12px; margin-top:8px;">Hỏi đáp 40 TTHC · Đọc to TTS · Chỉnh cỡ chữ A/A+/A++</p>
+          </div>
+        </div>
+        <div class="bezel-card col-flex">
+          <div class="bezel-core" style="text-align:center;">
+            <h4>2. Sơ duyệt & Phản ánh (/citizen/form)</h4>
+            <div style="background:var(--code-bg); border:2px dashed var(--border-subtle); border-radius:8px; flex:1; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:13.5px; padding:16px;">
+              [Ảnh chụp: Chụp biểu mẫu & Báo sự cố GPS hiện trường]
+            </div>
+            <p style="font-size:12px; margin-top:8px;">Camera HTML5 kiểm tra tờ khai · GPS định vị chuẩn 25m</p>
+          </div>
+        </div>
+        <div class="bezel-card col-flex">
+          <div class="bezel-core" style="text-align:center;">
+            <h4>3. Bàn Cán bộ (/officer)</h4>
+            <div style="background:var(--code-bg); border:2px dashed var(--border-subtle); border-radius:8px; flex:1; display:flex; align-items:center; justify-content:center; color:var(--text-muted); font-size:13.5px; padding:16px;">
+              [Ảnh chụp: Bản đồ GIS cụm sự cố & Drawer xem ảnh One-time]
+            </div>
+            <p style="font-size:12px; margin-top:8px;">Bản đồ số Leaflet · Slide-over Drawer · Quản lý 96 phường xã</p>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 12 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 13: Experimental Design -->
+    <section class="slide" data-notes="Bước sang phần thực nghiệm khoa học: Để tránh thiên lệch chủ quan, dữ liệu kiểm thử được chuẩn bị kỹ lưỡng gồm 80 câu hỏi RAG (có 15 câu bẫy), 150 phản ánh với 25 ca biên cực khó, chia theo thứ tự thời gian thành tập Dev và Held-out độc lập.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>03 · Thiết kế thực nghiệm</div>
+        <h1 class="slide-title">Phương pháp luận kiểm thử & Tập dữ liệu Benchmark</h1>
+      </div>
+      <div class="table-enclosure" style="margin-bottom: 18px;">
+        <table class="taste-table">
+          <thead>
+            <tr>
+              <th style="width: 25%;">Tập dữ liệu Benchmark</th>
+              <th style="width: 15%;">Số lượng mẫu</th>
+              <th>Đặc điểm thiết kế & Chiến lược chống thiên lệch</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Tập câu hỏi RAG</strong></td>
+              <td class="num-font">80 câu hỏi</td>
+              <td>40 câu trực tiếp, 25 câu tình huống thực tế, <strong>15 câu bẫy ngoài phạm vi</strong>; blind retrieval.</td>
+            </tr>
+            <tr>
+              <td><strong>Tập phản ánh hiện trường</strong></td>
+              <td class="num-font">150 phản ánh</td>
+              <td>30 sự cố gốc &times; 15 người viết; nhiễu tọa độ GPS $\sigma \in [10\text{m}, 40\text{m}]$; <strong>25 ca biên khó</strong>.</td>
+            </tr>
+            <tr>
+              <td><strong>Tập biểu mẫu hành chính</strong></td>
+              <td class="num-font">40 ảnh tờ khai</td>
+              <td>20 bản in vi tính, 20 bản viết tay (chữ đẹp, nối nét, gạch xóa) với các lỗi logic cài cắm sẵn.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="grid-row">
+        <div class="bezel-card col-flex">
+          <div class="bezel-core">
+            <h4>Phân chia tập Dữ liệu (Chronological Split):</h4>
+            <p style="font-size: 13.5px; margin-top: 6px;">
+              150 phản ánh được chia thành <strong>90 mẫu Dev</strong> (dùng quét Grid Search tìm $R$ và $\tau$) và <strong>60 mẫu Held-out Test</strong> độc lập để kiểm chứng khách quan chống Overfitting.
+            </p>
+          </div>
+        </div>
+        <div class="bezel-card col-flex">
+          <div class="bezel-core">
+            <h4>Cài cắm 25 Ca biên khó (Hard Cases):</h4>
+            <p style="font-size: 13.5px; margin-top: 6px;">
+              10 ca <em>Colocated</em> (cùng vị trí, khác sự cố), 10 ca <em>High-Lexical</em> (từ ngữ giống nhau nhưng khác địa điểm), 5 ca <em>Distant</em> (ở xa nhưng cùng một nguồn ô nhiễm).
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 13 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 14: RQ1 Results -->
+    <section class="slide" data-notes="Kết quả RQ1 chứng minh giả thuyết: LLM thuần túy trả lời sai tới 73.3% ở câu hỏi bẫy. RAG không có guardrail thậm chí trả lời sai 100%. Khi áp dụng chốt chặn theta=0.78 của đề tài, tỷ lệ trả lời sai giảm xuống chỉ còn 6.7%, độ chính xác trích dẫn đạt tới 97.6%.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>03 · Kết quả thực nghiệm (RQ1)</div>
+        <h1 class="slide-title">RQ1: Guardrail &theta; = 0.78 giảm lỗi câu bẫy từ 73.3% xuống 6.7%</h1>
+      </div>
+      <div class="grid-row">
+        <div class="col-3x">
+          <div class="table-enclosure">
+            <table class="taste-table">
+              <thead>
+                <tr>
+                  <th>Cấu hình thử nghiệm</th>
+                  <th>Citation Precision</th>
+                  <th>False-Answer (Bẫy)</th>
+                  <th>True Abstention</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1. LLM Zero-shot (Không có RAG)</td>
+                  <td class="num-font">32.5%</td>
+                  <td class="num-font" style="color:var(--rose);">73.3%</td>
+                  <td class="num-font">26.7%</td>
+                </tr>
+                <tr>
+                  <td>2. Standard RAG (&theta; = 0.42)</td>
+                  <td class="num-font">86.2%</td>
+                  <td class="num-font" style="color:var(--rose);">100.0%</td>
+                  <td class="num-font">0.0%</td>
+                </tr>
+                <tr class="row-accent">
+                  <td>3. Proposed Legal RAG (&theta; = 0.78)</td>
+                  <td class="num-font"><strong>97.6%</strong></td>
+                  <td class="num-font"><strong>6.7%</strong></td>
+                  <td class="num-font"><strong>93.3%</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="bezel-card" style="margin-top: 14px;">
+            <div class="bezel-core">
+              <h4>Chỉ số truy xuất nền tảng:</h4>
+              <p style="font-size: 13.5px;">
+                Độ phủ <strong>Recall@3 đạt 86.2%</strong> và <strong>MRR đạt 0.79</strong> trên 65 câu hỏi nghiệp vụ trong phạm vi. Cơ chế Guardrail không làm suy giảm khả năng truy xuất câu hỏi đúng, mà tạo thành tấm khiên ngăn chặn hiệu quả ảo giác.
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-2x">
+          <div class="graphic-dock">
+            <img src="assets/abstention_tradeoff.png" alt="Biểu đồ đánh đổi từ chối">
+            <div class="dock-caption">Đường cong đánh đổi giữa tỷ lệ từ chối và độ chính xác theo ngưỡng &theta;</div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 14 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 15: RQ2 Results -->
+    <section class="slide" data-notes="Kết quả RQ2: Phương pháp chỉ dùng không gian có Recall cao nhưng Precision chỉ 43% vì gom nhầm các sự cố khác loại ở gần nhau. Phương pháp chỉ dùng ngữ nghĩa đạt F1 88.2%. Thuật toán 2 pha kết hợp của đề tài đạt Precision tuyệt đối 100% và F1 cao nhất 88.9%.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>03 · Kết quả thực nghiệm (RQ2)</div>
+        <h1 class="slide-title">RQ2: Khử trùng 2 pha đạt Precision 100% và F1-Score 88.9%</h1>
+      </div>
+      <div class="grid-row">
+        <div class="col-3x">
+          <div class="table-enclosure">
+            <table class="taste-table">
+              <thead>
+                <tr>
+                  <th>Phương pháp gom cụm</th>
+                  <th>Precision</th>
+                  <th>Recall</th>
+                  <th>F1-Score</th>
+                  <th>Số cụm dự đoán</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>1. Spatial-only (Chỉ dùng GPS R=50m)</td>
+                  <td class="num-font" style="color:var(--rose);">43.03%</td>
+                  <td class="num-font">92.67%</td>
+                  <td class="num-font">58.77%</td>
+                  <td class="num-font">21 cụm (gộp nhầm)</td>
+                </tr>
+                <tr>
+                  <td>2. Semantic-only (Chỉ dùng ngữ nghĩa &tau;=0.75)</td>
+                  <td class="num-font">98.36%</td>
+                  <td class="num-font">80.00%</td>
+                  <td class="num-font">88.24%</td>
+                  <td class="num-font">44 cụm</td>
+                </tr>
+                <tr class="row-accent">
+                  <td>3. Proposed Two-Stage (R=50m, &tau;=0.75)</td>
+                  <td class="num-font"><strong>100.0%</strong></td>
+                  <td class="num-font">80.00%</td>
+                  <td class="num-font"><strong>88.89%</strong></td>
+                  <td class="num-font"><strong>45 cụm (chuẩn)</strong></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="bezel-card" style="margin-top: 14px;">
+            <div class="bezel-core">
+              <h4>Ý nghĩa khoa học của kết quả:</h4>
+              <p style="font-size: 13.5px;">
+                Nếu chỉ dựa vào GPS, các sự cố rác thải và ngập nước xảy ra gần nhau sẽ bị gộp nhầm (Precision tụt xuống 43%). Kết hợp ngữ nghĩa giúp đảm bảo <strong>không bao giờ gộp sai đối tượng</strong> (Precision 100%).
+              </p>
+            </div>
+          </div>
+        </div>
+        <div class="col-2x">
+          <div class="graphic-dock">
+            <img src="assets/method_comparison_bar.png" alt="So sánh hiệu năng 3 phương pháp">
+            <div class="dock-caption">So sánh Precision, Recall và F1 giữa 3 phương pháp trên tập dữ liệu thử nghiệm</div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 15 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 16: RQ3 & Quality -->
+    <section class="slide" data-notes="Về RQ3 và độ tin cậy hệ thống: Bộ kiểm thử tự động đạt 57 trên 57 test backend pass hoàn toàn, ứng dụng nén Gzip chỉ 149KB và tài nguyên bộ nhớ vận hành thực tế ở mức ~585MB RAM.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>03 · Kết quả thực nghiệm (RQ3)</div>
+        <h1 class="slide-title">RQ3 & Đảm bảo chất lượng hệ thống (Quality Assurance)</h1>
+      </div>
+      <div class="grid-row" style="margin-bottom: 18px;">
+        <div class="stat-chip col-flex amber">
+          <div class="stat-label">Hiệu quả Rule Engine (RQ3)</div>
+          <div class="stat-val">100% Logic Catch</div>
+          <div class="stat-desc">Chặn toàn bộ lỗi mâu thuẫn CCCD và ngày tháng trên tập mẫu</div>
+        </div>
+        <div class="stat-chip col-flex emerald">
+          <div class="stat-label">Kiểm thử Tự động Backend</div>
+          <div class="stat-val">57 / 57 Pass</div>
+          <div class="stat-desc">100% Unit, Integration & Adversarial Tests đạt kết quả tuyệt đối</div>
+        </div>
+        <div class="stat-chip col-flex emerald">
+          <div class="stat-label">Tiêu thụ RAM Thực tế</div>
+          <div class="stat-val">~585 MB</div>
+          <div class="stat-desc">Chiếm chưa đầy 30% giới hạn trần cứng 2.0 GB RAM</div>
+        </div>
+      </div>
+      <div class="grid-row">
+        <div class="bezel-card col-flex">
+          <div class="bezel-core">
+            <h4>Bộ kiểm thử đối kháng (Adversarial Robustness):</h4>
+            <ul class="taste-list" style="margin-top: 8px;">
+              <li>Đã chạy kiểm thử các ca gõ telex sai lệch cực độ (<em>"chaogf ban", "tu van giup toi"</em>).</li>
+              <li>Kiểm thử Race condition đồng thời vào kho bảo mật (StreamingAesGcmTest).</li>
+              <li>Kiểm thử rò rỉ bộ nhớ Java2D khi đóng dấu watermark ảnh hàng loạt (ImageWatermarkMemoryTest).</li>
+            </ul>
+          </div>
+        </div>
+        <div class="bezel-card col-flex">
+          <div class="bezel-core">
+            <h4>Tối ưu hóa Phân phối Web:</h4>
+            <ul class="taste-list" style="margin-top: 8px;">
+              <li>Frontend Vite được tối ưu qua Nginx Gzip level 6, tổng dung lượng tải về chỉ <strong>~149 KB</strong>.</li>
+              <li>JVM cấu hình cờ <code>-XX:+UseG1GC -Xmx512m</code> đảm bảo giải phóng bộ nhớ heap ổn định.</li>
+              <li>Vận hành offline 100% sẵn sàng cho mọi kịch bản demo hội đồng không cần Internet.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 16 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 17: Held-out Validation -->
+    <section class="slide" data-notes="Một báo cáo trung thực cần chỉ rõ kiểm chứng trên tập Held-out: F1 có độ sụt giảm nhẹ từ 88.3% trên tập Dev xuống 82.4% trên tập Held-out do hiện tượng phân phối từ vựng tự nhiên. Ngoài ra, cấu hình production ban đầu R=25m chỉ đạt F1 76.5%, là cơ sở khoa học để chúng tôi đề xuất nâng bán kính lên 50m.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>03 · Đánh giá khách quan</div>
+        <h1 class="slide-title">Kiểm chứng Held-out, Phân tích lỗi & Bài học rút ra</h1>
+      </div>
+      <div class="grid-row">
+        <div class="col-3x">
+          <div class="table-enclosure">
+            <table class="taste-table">
+              <thead>
+                <tr>
+                  <th>Tập dữ liệu & Cấu hình</th>
+                  <th>Precision</th>
+                  <th>Recall</th>
+                  <th>F1-Score</th>
+                  <th>Độ chính xác ca biên khó</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Tập Dev (R=50m, &tau;=0.75)</td>
+                  <td class="num-font">100.0%</td>
+                  <td class="num-font">79.09%</td>
+                  <td class="num-font"><strong>88.32%</strong></td>
+                  <td class="num-font">84.0%</td>
+                </tr>
+                <tr class="row-accent">
+                  <td>Tập Held-out Test (R=50m, &tau;=0.75)</td>
+                  <td class="num-font">100.0%</td>
+                  <td class="num-font">70.00%</td>
+                  <td class="num-font"><strong>82.35%</strong></td>
+                  <td class="num-font">66.67%</td>
+                </tr>
+                <tr>
+                  <td>Tập Held-out Test (R=25m, &tau;=0.80)</td>
+                  <td class="num-font">100.0%</td>
+                  <td class="num-font">62.00%</td>
+                  <td class="num-font">76.54%</td>
+                  <td class="num-font">50.00%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="bezel-card" style="margin-top: 14px;">
+            <div class="bezel-core">
+              <h4>Phân tích 3 nguồn gây lỗi (Error Analysis):</h4>
+              <ul class="taste-list" style="margin-top: 8px;">
+                <li><strong>Lệch GPS vật lý:</strong> Người dân đứng trong nhà sâu tạo độ lệch GPS vượt quá 50m khiến hệ thống tạo cụm mới (False Negative).</li>
+                <li><strong>Chữ viết tay nối nét:</strong> Một số ảnh chụp giấy tờ viết tay nối nét làm OCR nhận diện nhầm số 0 và số 6 trên CCCD.</li>
+                <li><strong>Đa dạng từ vựng:</strong> Cùng phản ánh đèn đường nhưng một bên dùng từ <em>"đèn chiếu sáng"</em>, bên kia dùng <em>"cột điện bị tối"</em>.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-2x" style="display:flex; flex-direction:column; gap:16px;">
+          <div class="bezel-card highlight" style="flex:1;">
+            <div class="bezel-core">
+              <h4>Bài học kỹ thuật sâu sắc:</h4>
+              <p style="font-size: 13.5px; margin-top: 8px;">
+                Cấu hình sản xuất cũ ($R=25\text{m}, \tau=0.80$) quá khắt khe, khiến Recall trên dữ liệu thực chỉ đạt 62% (F1 = 76.54%).<br><br>
+                Việc kiểm thử trên tập Held-out đã chỉ ra cấu hình tối ưu thực tế là <strong>$R=50\text{m}, \tau=0.75$</strong>, giúp tăng F1 thêm gần <strong>+6%</strong>.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 17 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 18: Live Demo Plan -->
+    <section class="slide" data-notes="Sau đây là phần Demo trực tiếp 3 kịch bản trên môi trường máy chủ cục bộ trong 2.5 phút: Ca 1 tra cứu thủ tục và thử câu hỏi bẫy. Ca 2 nộp biểu mẫu CT01 sai ngày sinh để Rule Engine bắt lỗi. Ca 3 gửi 2 phản ánh trùng vị trí xem bản đồ cán bộ tự gộp cụm.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>04 · Trình diễn sản phẩm</div>
+        <h1 class="slide-title">Kịch bản Demo trực tiếp (Thời lượng: 2.5 phút)</h1>
+      </div>
+      <div class="grid-row" style="margin-bottom: 18px;">
+        <div class="bezel-card col-flex highlight">
+          <div class="bezel-core">
+            <h3>Kịch bản 1: Legal RAG</h3>
+            <p style="font-size: 13.5px;">
+              1. Hỏi: <em>"Đăng ký kết hôn cần giấy tờ gì?"</em> &rarr; Trả lời 5 phần có trích dẫn luật.<br><br>
+              2. Hỏi tiếp: <em>"Lệ phí bao nhiêu?"</em> &rarr; Nhớ ngữ cảnh multi-turn.<br><br>
+              3. Hỏi câu bẫy ngoài phạm vi &rarr; <strong>Guardrail kích hoạt, từ chối an toàn</strong>.
+            </p>
+          </div>
+        </div>
+        <div class="bezel-card col-flex highlight">
+          <div class="bezel-core">
+            <h3>Kịch bản 2: Rule Engine</h3>
+            <p style="font-size: 13.5px;">
+              1. Tải ảnh tờ khai CT01 có ngày cấp CCCD lớn hơn ngày hiện tại.<br><br>
+              2. Tải ảnh có số CCCD sai mã tỉnh (099 thay vì 001–096).<br><br>
+              &rarr; <strong>Hệ thống chỉ rõ dòng lỗi logic và khoanh vùng trường sai</strong>.
+            </p>
+          </div>
+        </div>
+        <div class="bezel-card col-flex highlight">
+          <div class="bezel-core">
+            <h3>Kịch bản 3: Triage Phản ánh</h3>
+            <p style="font-size: 13.5px;">
+              1. Báo cáo sự cố rác thải tại Phường Mỹ Phước kèm tọa độ GPS.<br><br>
+              2. Gửi tiếp báo cáo thứ hai cùng vị trí với lời văn khác.<br><br>
+              &rarr; <strong>Bản đồ cán bộ tự động gộp thành 1 cụm duy nhất (count = 2)</strong>.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="bezel-card">
+        <div class="bezel-core">
+          <h4>Phương án dự phòng rủi ro tại buổi bảo vệ:</h4>
+          <p style="font-size: 13.5px;">
+            Hệ thống đã khởi chạy sẵn qua <code>docker-compose up -d</code> trên máy cá nhân, cấu hình profile <code>dev</code> chạy offline với Mock AI Client độc lập hoàn toàn với kết nối mạng Internet. Video demo độ phân giải cao đã được chuẩn bị sẵn sàng.
+          </p>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Slide 18 / 23</div>
+      </div>
+    </section>
+
+    <!-- Slide 19: Conclusions -->
+    <section class="slide" data-notes="Để kết luận: Đề tài đã giải quyết trọn vẹn 3 câu hỏi nghiên cứu RQ1, RQ2, RQ3; xây dựng thành công sản phẩm hoàn chỉnh đạt chuẩn Zero-cost dưới 2GB RAM. Tôi xin chân thành cảm ơn Quý Thầy Cô trong Hội đồng đã chú ý lắng nghe và xin kính mời Hội đồng đặt câu hỏi phản biện.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>05 · Tổng kết đề tài</div>
+        <h1 class="slide-title">Kết luận, Hạn chế & Hướng phát triển tương lai</h1>
+      </div>
+      <div class="table-enclosure" style="margin-bottom: 18px;">
+        <table class="taste-table">
+          <thead>
+            <tr>
+              <th style="width: 15%;">Câu hỏi</th>
+              <th>Kết luận khoa học đã được chứng minh</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>RQ1 (RAG)</strong></td>
+              <td>Phân đoạn Điều–Khoản kết hợp ngưỡng &theta; = 0.78 giảm tỷ lệ câu trả lời sai từ 73.3% xuống <strong>6.7%</strong>, đạt độ chính xác trích dẫn <strong>97.6%</strong>.</td>
+            </tr>
+            <tr>
+              <td><strong>RQ2 (Triage)</strong></td>
+              <td>Thuật toán khử trùng 2 pha đạt <strong>Precision 100% tuyệt đối</strong> và <strong>F1-Score 88.9%</strong> (82.4% trên tập Held-out).</td>
+            </tr>
+            <tr>
+              <td><strong>RQ3 (Rules)</strong></td>
+              <td>Deterministic Rule Engine kiểm tra tất định 100% các lỗi mâu thuẫn số CCCD và logic thời gian, loại bỏ hoàn toàn việc đoán mò.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="grid-row">
+        <div class="bezel-card col-flex">
+          <div class="bezel-core">
+            <h4>Hạn chế của đề tài:</h4>
+            <ul class="taste-list" style="margin-top: 6px;">
+              <li>Quy mô tập dữ liệu còn nhỏ (150 phản ánh, 80 câu hỏi) do nguồn lực nghiên cứu đơn lẻ.</li>
+              <li>Nhiễu GPS được tạo bằng phương pháp giả lập thống kê, chưa đo đạc phủ khắp 96 xã.</li>
+              <li>Kết quả chỉ mang tính hỗ trợ tham khảo, quyết định sau cùng thuộc về công chức Một cửa.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="bezel-card col-flex">
+          <div class="bezel-core">
+            <h4>Hướng phát triển tương lai:</h4>
+            <ul class="taste-list" style="margin-top: 6px;">
+              <li>Tích hợp định danh điện tử VNeID và ký số công dân trực tiếp trên Cổng dịch vụ.</li>
+              <li>Xây dựng Native Mobile App với mô hình On-device OCR (Google MLKit) chạy trên máy.</li>
+              <li>Mở rộng dịch thuật sang tiếng dân tộc thiểu số Khmer và Chăm cho vùng biên An Giang.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div style="color:var(--primary); font-weight:700;">Slide 19 / 23 · Xin trân trọng cảm ơn Quý Thầy Cô!</div>
+      </div>
+    </section>
+
+    <!-- Slide 20: Appendix P1 -->
+    <section class="slide" data-notes="Slide phụ lục P1: Sơ đồ CSDL gồm 6 bảng thực thể và danh sách 7 REST APIs cốt lõi. Sẵn sàng giải trình chi tiết kỹ thuật lập trình backend Spring Boot.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>Phụ lục P1 · CSDL & REST API</div>
+        <h1 class="slide-title">Thiết kế Cơ sở dữ liệu & Danh mục REST Endpoints</h1>
+      </div>
+      <div class="grid-row">
+        <div class="col-flex">
+          <div class="bezel-card" style="height: 100%;">
+            <div class="bezel-core">
+              <h4>6 Bảng CSDL (Flyway Migrations):</h4>
+              <ul class="taste-list" style="margin-top: 10px; font-size:13.5px;">
+                <li><code>admin_procedures</code>: Lưu trữ 40 thủ tục hành chính cấp xã.</li>
+                <li><code>legal_chunks</code>: Lưu văn bản luật băm nhỏ kèm vector 768d và chỉ mục HNSW.</li>
+                <li><code>issue_clusters</code>: Lưu trữ cụm phản ánh hiện trường đang mở.</li>
+                <li><code>civic_reports</code>: Lưu chi tiết phản ánh của từng công dân.</li>
+                <li><code>form_submissions</code>: Lưu trữ dữ liệu tờ khai sơ duyệt.</li>
+                <li><code>vault_documents</code>: Quản lý token ảnh tài liệu mã hóa.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="col-flex">
+          <div class="table-enclosure">
+            <table class="taste-table" style="font-size: 13px;">
+              <thead>
+                <tr>
+                  <th>Phương thức & URL</th>
+                  <th>Chức năng nghiệp vụ</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><code>POST /api/v1/rag/ask</code></td><td>Tra cứu TTHC & kiểm tra Guardrail</td></tr>
+                <tr><td><code>POST /api/v1/forms/precheck</code></td><td>Sơ duyệt tờ khai CT01, TK-KS, TK-KH</td></tr>
+                <tr><td><code>POST /api/v1/triage/reports</code></td><td>Tiếp nhận sự cố & khử trùng 2 pha</td></tr>
+                <tr><td><code>GET /api/v1/triage/clusters</code></td><td>Lấy danh sách cụm sự cố cho GIS map</td></tr>
+                <tr><td><code>POST /api/v1/vault/upload</code></td><td>Đóng dấu watermark & mã hóa ảnh</td></tr>
+                <tr><td><code>GET /api/v1/vault/view/{token}</code></td><td>Xem ảnh tài liệu 1 lần (GETDEL)</td></tr>
+                <tr><td><code>POST /api/v1/evaluation/run</code></td><td>Chạy bộ đo đạc benchmark tự động</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Phụ lục P1 / P4</div>
+      </div>
+    </section>
+
+    <!-- Slide 21: Appendix P2 -->
+    <section class="slide" data-notes="Slide phụ lục P2: Bản đồ nhiệt F1-score và đường cong Precision-Recall từ quét lưới Grid Search với 25 cặp tham số (R, tau) trên tập Dev.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>Phụ lục P2 · Thực nghiệm chuyên sâu</div>
+        <h1 class="slide-title">Bản đồ nhiệt F1-Score & Đường cong Precision-Recall</h1>
+      </div>
+      <div class="grid-row">
+        <div class="col-flex graphic-dock">
+          <img src="assets/f1_heatmap_triage.png" alt="Heatmap F1">
+          <div class="dock-caption">Ma trận quét tham số Grid Search: Bán kính R & Ngưỡng ngữ nghĩa &tau;</div>
+        </div>
+        <div class="col-flex graphic-dock">
+          <img src="assets/pr_curve_triage.png" alt="Đường PR">
+          <div class="dock-caption">Đường cong Precision-Recall biểu diễn sự đánh đổi giữa lọc không gian và ngữ nghĩa</div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Phụ lục P2 / P4</div>
+      </div>
+    </section>
+
+    <!-- Slide 22: Appendix P3 -->
+    <section class="slide" data-notes="Slide phụ lục P3: Chi tiết về phương pháp tạo lập tập dữ liệu kiểm thử, đặc biệt là 25 ca biên khó nhằm kiểm tra độ bền bỉ của mô hình.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>Phụ lục P3 · Dữ liệu kiểm thử</div>
+        <h1 class="slide-title">Quy trình xây dựng Dữ liệu & 25 Tình huống Biên khó</h1>
+      </div>
+      <div class="grid-row">
+        <div class="bezel-card col-flex">
+          <div class="bezel-core">
+            <h4>Quy trình tạo lập dữ liệu khách quan:</h4>
+            <ul class="taste-list" style="margin-top: 10px; font-size:13.5px;">
+              <li>Thu thập 30 sự cố gốc thực tế tại các khu dân cư.</li>
+              <li>Huy động 15 tình nguyện viên viết lại mô tả với ngôn từ tự nhiên, văn phong đời thường.</li>
+              <li>Áp dụng nhiễu vị trí Gaussian $\sigma \in [10\text{m}, 40\text{m}]$ để mô phỏng sai số GPS thực tế.</li>
+              <li>Tách tập dữ liệu theo thời gian (Chronological Split): 90 mẫu Dev / 60 mẫu Held-out Test.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="bezel-card col-flex">
+          <div class="bezel-core">
+            <h4>Cấu trúc 25 Ca biên khó (Hard Cases):</h4>
+            <ul class="taste-list" style="margin-top: 10px; font-size:13.5px;">
+              <li><strong>10 ca Colocated (Cùng vị trí, khác sự cố):</strong> Ví dụ xảy ra tại cùng 1 ngã tư nhưng một bên là va chạm giao thông, một bên là nắp cống hỏng.</li>
+              <li><strong>10 ca High-Lexical (Từ vựng giống nhau, khác vị trí):</strong> Cùng mô tả <em>"đèn đường bị cháy tối om"</em> nhưng ở 2 phường khác nhau.</li>
+              <li><strong>5 ca Distant (Cùng sự cố, ở xa):</strong> Phản ánh cùng 1 dòng kênh ô nhiễm nhưng đứng ở 2 đầu bờ kênh cách nhau 150m.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Phụ lục P3 / P4</div>
+      </div>
+    </section>
+
+    <!-- Slide 23: Appendix P4 -->
+    <section class="slide" data-notes="Slide phụ lục P4: Dự phòng 6 câu hỏi chất vấn trọng tâm của Hội đồng chấm tốt nghiệp cùng các luận điểm trả lời súc tích.">
+      <div class="slide-header">
+        <div class="eyebrow-pill"><div class="eyebrow-dot"></div>Phụ lục P4 · Phản biện Hội đồng</div>
+        <h1 class="slide-title">Dự kiến Câu hỏi Chất vấn & Luận điểm Bảo vệ</h1>
+      </div>
+      <div class="table-enclosure">
+        <table class="taste-table" style="font-size: 13px;">
+          <thead>
+            <tr>
+              <th style="width: 35%;">Câu hỏi dự kiến của Hội đồng</th>
+              <th>Luận điểm & Bằng chứng thực nghiệm trả lời</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1. Vì sao không dùng LLM thuần túy mà phải làm RAG?</strong></td>
+              <td>Mô hình LLM thuần túy có tỷ lệ ảo giác trả lời sai câu hỏi bẫy lên tới 73.3%. RAG Điều–Khoản kèm Guardrail hạ con số này xuống chỉ còn 6.7%.</td>
+            </tr>
+            <tr>
+              <td><strong>2. Căn cứ nào để chọn ngưỡng &theta; = 0.78?</strong></td>
+              <td>Dựa trên đồ thị đánh đổi (Trade-off curve): Ngưỡng 0.78 là điểm cân bằng giữa việc từ chối câu bẫy (93.3%) và không bỏ sót câu hỏi hợp lệ (Recall@3 = 86.2%).</td>
+            </tr>
+            <tr>
+              <td><strong>3. Vì sao chọn R=50m, &tau;=0.75 thay vì cấu hình ban đầu?</strong></td>
+              <td>Thực nghiệm trên tập Held-out cho thấy cấu hình ban đầu R=25m quá khắt khe (Recall chỉ 62%). R=50m giúp tăng F1 thêm +6% trên dữ liệu thực tế.</td>
+            </tr>
+            <tr>
+              <td><strong>4. Tại sao kiểm tra tờ khai dùng Rule Engine thay vì AI?</strong></td>
+              <td>Quy định pháp lý đòi hỏi tính tất định và khả năng giải trình 100%. Rule Engine loại bỏ việc AI đoán mò ngày tháng hay cấu trúc CCCD.</td>
+            </tr>
+            <tr>
+              <td><strong>5. Cơ chế Vault có chống được người xem chụp lại màn hình?</strong></td>
+              <td>Không. Vault và One-Time link giải quyết việc lộ link và tải file; không thể ngăn chụp màn hình vật lý (đã ghi nhận trung thực trong phần Hạn chế).</td>
+            </tr>
+            <tr>
+              <td><strong>6. Khả năng nhân rộng hệ thống ra thực tế như thế nào?</strong></td>
+              <td>Đóng gói hoàn chỉnh trong Docker 5 container với RAM dưới 2GB, có chế độ Mock AI chạy offline, chi phí bản quyền bằng 0.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="slide-footer">
+        <div class="brand-signature"><span class="badge-tag">UTH</span> SmartWard AI</div>
+        <div>Phụ lục P4 / P4</div>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<!-- Floating Glass Island (Controls) -->
+<div id="glass-island">
+  <button id="btn-prev" title="Slide trước (Mũi tên Trái)">◀</button>
+  <span class="counter-slot" id="slide-num">01 / 23</span>
+  <button id="btn-next" title="Slide sau (Mũi tên Phải hoặc Phím Space)">▶</button>
+  <div class="island-sep"></div>
+  <button id="btn-overview" title="Xem tất cả slide dạng lưới (Phím G hoặc O)">▦ Tổng quan (G)</button>
+  <button id="btn-notes" title="Bật/Tắt Ghi chú thuyết minh (Phím N)">📋 Ghi chú (N)</button>
+  <button id="btn-theme" title="Đổi màu Giao diện Sáng/Tối (Phím T)">◐ Tông màu (T)</button>
+  <button id="btn-fs" title="Toàn màn hình (Phím F)">⛶ Toàn màn hình (F)</button>
+  <div class="island-sep"></div>
+  <button id="btn-print" title="Xuất PDF / In ấn (Ctrl+P)">🖨️ Xuất PDF</button>
+  <a href="SmartWardAI_BaoVe.pptx" download style="text-decoration:none;">
+    <button title="Tải file PowerPoint .pptx">💾 Tải PPTX</button>
+  </a>
+</div>
+
+<!-- Speaker Notes Drawer -->
+<div id="notes-drawer">
+  <div class="drawer-header">
+    <span>Ghi chú Thuyết minh cho Diễn giả (Speaker Notes)</span>
+    <span style="cursor:pointer;" onclick="toggleNotes()">✕ Đóng</span>
+  </div>
+  <div class="drawer-body" id="notes-content"></div>
+</div>
+
+<!-- Overview Grid Wall -->
+<div id="overview-modal">
+  <div class="modal-header">
+    <h2>Danh mục Tất cả Slide (Nhấn phím G hoặc Esc để đóng)</h2>
+    <button onclick="toggleOverview()" style="background:none; border:none; color:white; font-size:24px; cursor:pointer;">✕</button>
+  </div>
+  <div class="grid-wall" id="grid-wall-container"></div>
+</div>
+
+<script>
+(function() {
+  const stage = document.getElementById('stage');
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const progressBar = document.getElementById('top-progress-bar');
+  const counterSlot = document.getElementById('slide-num');
+  const notesDrawer = document.getElementById('notes-drawer');
+  const notesContent = document.getElementById('notes-content');
+  const overviewModal = document.getElementById('overview-modal');
+  const gridContainer = document.getElementById('grid-wall-container');
+  let current = 0;
+
+  // Build Overview Grid Cards
+  slides.forEach((sl, idx) => {
+    const card = document.createElement('div');
+    card.className = 'mini-card';
+    const titleEl = sl.querySelector('h1');
+    const title = titleEl ? titleEl.textContent : `Slide ${idx + 1}`;
+    card.innerHTML = `<div class="mini-num">SLIDE ${(idx + 1).toString().padStart(2, '0')}</div><div class="mini-title">${title}</div>`;
+    card.addEventListener('click', () => {
+      goTo(idx);
+      toggleOverview();
+    });
+    gridContainer.appendChild(card);
+  });
+
+  function fitStage() {
+    const scale = Math.min((window.innerWidth - 30) / 1280, (window.innerHeight - 30) / 720);
+    stage.style.transform = `scale(${scale})`;
+  }
+
+  function goTo(idx) {
+    current = Math.max(0, Math.min(slides.length - 1, idx));
+    slides.forEach((sl, i) => {
+      sl.classList.toggle('active', i === current);
+    });
+
+    // Progress
+    const pct = ((current + 1) / slides.length) * 100;
+    progressBar.style.width = pct + '%';
+
+    // Counter
+    const num = (current + 1).toString().padStart(2, '0');
+    const total = slides.length.toString().padStart(2, '0');
+    counterSlot.textContent = `${num} / ${total}`;
+
+    // Notes
+    const note = slides[current].getAttribute('data-notes') || 'Không có ghi chú cho slide này.';
+    notesContent.textContent = note;
+
+    // URL Hash
+    history.replaceState(null, '', '#' + (current + 1));
+  }
+
+  window.toggleNotes = function() {
+    notesDrawer.classList.toggle('open');
+  };
+
+  window.toggleOverview = function() {
+    overviewModal.classList.toggle('open');
+  };
+
+  function toggleTheme() {
+    const html = document.documentElement;
+    const cur = html.getAttribute('data-theme') || 'light';
+    html.setAttribute('data-theme', cur === 'light' ? 'dark' : 'light');
+  }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().catch(err => {});
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
+  // Keyboard navigation
+  window.addEventListener('keydown', e => {
+    if (overviewModal.classList.contains('open')) {
+      if (e.key === 'Escape' || e.key === 'g' || e.key === 'G' || e.key === 'o' || e.key === 'O') {
+        toggleOverview();
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      goTo(current + 1);
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') {
+      e.preventDefault();
+      goTo(current - 1);
+    } else if (e.key === 'Home') {
+      goTo(0);
+    } else if (e.key === 'End') {
+      goTo(slides.length - 1);
+    } else if (e.key === 'f' || e.key === 'F') {
+      toggleFullscreen();
+    } else if (e.key === 'n' || e.key === 'N') {
+      toggleNotes();
+    } else if (e.key === 't' || e.key === 'T') {
+      toggleTheme();
+    } else if (e.key === 'g' || e.key === 'G' || e.key === 'o' || e.key === 'O') {
+      toggleOverview();
+    } else if (e.key === 'Escape') {
+      if (notesDrawer.classList.contains('open')) toggleNotes();
+    }
+  });
+
+  // UI Event Listeners
+  document.getElementById('btn-prev').addEventListener('click', () => goTo(current - 1));
+  document.getElementById('btn-next').addEventListener('click', () => goTo(current + 1));
+  document.getElementById('btn-notes').addEventListener('click', toggleNotes);
+  document.getElementById('btn-theme').addEventListener('click', toggleTheme);
+  document.getElementById('btn-overview').addEventListener('click', toggleOverview);
+  document.getElementById('btn-fs').addEventListener('click', toggleFullscreen);
+  document.getElementById('btn-print').addEventListener('click', () => window.print());
+
+  // Click on stage sides to navigate
+  stage.addEventListener('click', e => {
+    if (e.target.closest('a') || e.target.closest('button')) return;
+    const rect = stage.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    if (x > rect.width * 0.75) goTo(current + 1);
+    else if (x < rect.width * 0.25) goTo(current - 1);
+  });
+
+  window.addEventListener('resize', fitStage);
+
+  // Init
+  fitStage();
+  const initial = parseInt(location.hash.slice(1), 10) || 1;
+  goTo(initial - 1);
+})();
+</script>
+</body>
+</html>

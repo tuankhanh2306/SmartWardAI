@@ -387,11 +387,11 @@ export const CitizenPortal: React.FC = () => {
 
   const categories = [
     { id: 'ALL', label: 'Tất cả (40)' },
-    { id: 'Hộ tịch', label: 'Hộ tịch (15)' },
-    { id: 'Cư trú', label: 'Cư trú (5)' },
-    { id: 'Chứng thực', label: 'Chứng thực (6)' },
-    { id: 'Bảo trợ xã hội', label: 'Bảo trợ (8)' },
-    { id: 'Đất đai', label: 'Đất đai (6)' },
+    { id: 'Hộ tịch', label: 'Hộ tịch (12)' },
+    { id: 'Cư trú', label: 'Cư trú (10)' },
+    { id: 'Chứng thực', label: 'Chứng thực (8)' },
+    { id: 'Bảo trợ xã hội', label: 'Bảo trợ (6)' },
+    { id: 'Địa chính', label: 'Địa chính (4)' },
   ];
 
   // Formatted Message Renderer with Clear 5-Section Structured Cards
