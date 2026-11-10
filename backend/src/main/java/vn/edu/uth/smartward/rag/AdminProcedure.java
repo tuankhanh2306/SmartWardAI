@@ -37,16 +37,16 @@ public class AdminProcedure {
     @Column(name = "category", nullable = false, length = 100)
     private String category;
 
-    @Column(name = "agency", length = 255)
+    @Column(name = "agency", length = 500)
     private String agency;
 
-    @Column(name = "processing_time", length = 255)
+    @Column(name = "processing_time", columnDefinition = "TEXT")
     private String processingTime;
 
-    @Column(name = "fee", length = 255)
+    @Column(name = "fee", columnDefinition = "TEXT")
     private String fee;
 
-    @Column(name = "source_url", length = 500)
+    @Column(name = "source_url", length = 1000)
     private String sourceUrl;
 
     @Column(name = "status", nullable = false, length = 50)
