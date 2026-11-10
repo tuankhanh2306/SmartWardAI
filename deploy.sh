@@ -52,27 +52,29 @@ docker compose ps
 
 # 6. Verify HTTP health endpoints
 echo "🔍 Probing healthcheck endpoints..."
+PORT_BACKEND="${SERVER_PORT:-8080}"
+PORT_FRONTEND="3000"
 BACKEND_OK=0
 FRONTEND_OK=0
 
-if curl -sf http://localhost:8080/api/v1/health > /dev/null 2>&1; then
-  echo "✅ Backend Health: UP (http://localhost:8080/api/v1/health)"
+if curl -sf "http://localhost:${PORT_BACKEND}/api/v1/health" > /dev/null 2>&1; then
+  echo "✅ Backend Health: UP (http://localhost:${PORT_BACKEND}/api/v1/health)"
   BACKEND_OK=1
 else
   echo "⚠️  Backend health check not responding yet (may still be initializing)."
 fi
 
-if curl -sf http://localhost:3000 > /dev/null 2>&1 || curl -sf http://localhost:80 > /dev/null 2>&1; then
-  echo "✅ Frontend Web Server: UP (http://localhost:3000)"
+if curl -sf "http://localhost:${PORT_FRONTEND}" > /dev/null 2>&1 || curl -sf http://localhost:80 > /dev/null 2>&1; then
+  echo "✅ Frontend Web Server: UP (http://localhost:${PORT_FRONTEND})"
   FRONTEND_OK=1
 else
-  echo "⚠️  Frontend port 3000 not responding directly."
+  echo "⚠️  Frontend port ${PORT_FRONTEND} not responding directly."
 fi
 
 echo "========================================================================"
 echo "🎉 [SmartWard AI] Deployment Completed Successfully!"
-echo "   Backend:  http://localhost:8080"
-echo "   Frontend: http://localhost:3000"
-echo "   Swagger:  http://localhost:8080/swagger-ui.html"
+echo "   Backend:  http://localhost:${PORT_BACKEND}"
+echo "   Frontend: http://localhost:${PORT_FRONTEND}"
+echo "   Swagger:  http://localhost:${PORT_BACKEND}/swagger-ui.html"
 echo "========================================================================"
 exit 0
