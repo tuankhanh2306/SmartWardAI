@@ -74,39 +74,13 @@ services:
     volumes:
       - minio_data:/data
     healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 10s
       timeout: 5s
       retries: 5
 
   # =====================================================================
-  # 4. MinIO Bucket Initialization & Auto-Lifecycle (One-shot job, exits)
-  # Sets hard bucket quota: 5GB, Auto-expiry lifecycle: 7 days
-  # =====================================================================
-  minio-init:
-    image: minio/mc:latest
-    container_name: smartward-minio-init
-    depends_on:
-      minio:
-        condition: service_started
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio_admin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:?Set MINIO_ROOT_PASSWORD in .env}
-      MINIO_BUCKET_NAME: ${MINIO_BUCKET_NAME:-smartward-vault}
-    entrypoint: >
-      /bin/sh -c "
-      sleep 3;
-      /usr/bin/mc alias set myminio http://minio:9000 \"$$MINIO_ROOT_USER\" \"$$MINIO_ROOT_PASSWORD\";
-      /usr/bin/mc mb myminio/$$MINIO_BUCKET_NAME --ignore-existing;
-      /usr/bin/mc anonymous set none myminio/$$MINIO_BUCKET_NAME;
-      /usr/bin/mc quota set myminio/$$MINIO_BUCKET_NAME --size 5GB;
-      /usr/bin/mc ilm rule add myminio/$$MINIO_BUCKET_NAME --expire-days 7;
-      echo 'MinIO bucket initialized with 5GB quota and 7-day ILM lifecycle.';
-      exit 0;
-      "
-
-  # =====================================================================
-  # 5. Local AI Sidecar Microservice (FastAPI + PhoBERT INT8)
+  # 4. Local AI Sidecar Microservice (FastAPI + PhoBERT INT8)
   # Resource Limit: 384MB RAM
   # =====================================================================
   ai-sidecar:
@@ -162,8 +136,8 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      minio-init:
-        condition: service_completed_successfully
+      minio:
+        condition: service_healthy
       ai-sidecar:
         condition: service_started
     healthcheck:
