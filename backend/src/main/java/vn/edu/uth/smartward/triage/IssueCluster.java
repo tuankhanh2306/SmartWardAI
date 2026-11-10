@@ -29,7 +29,7 @@ public class IssueCluster {
     @Column(name = "category", nullable = false, length = 50)
     private String category;
 
-    @Column(name = "title", nullable = false, length = 500)
+    @Column(name = "title", nullable = false, columnDefinition = "TEXT")
     private String title;
 
     @Column(name = "center_latitude", nullable = false, precision = 10, scale = 7)

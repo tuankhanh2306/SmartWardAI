@@ -22,7 +22,7 @@ public class VaultDocument {
     @Column(name = "document_code", nullable = false, unique = true, length = 50)
     private String documentCode;
 
-    @Column(name = "minio_object_path", nullable = false, length = 500)
+    @Column(name = "minio_object_path", nullable = false, columnDefinition = "TEXT")
     private String minioObjectPath;
 
     @Column(name = "encryption_algorithm", nullable = false, length = 50)

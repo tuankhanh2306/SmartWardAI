@@ -31,13 +31,13 @@ public class AdminProcedure {
     @Column(name = "portal_id", length = 100)
     private String portalId;
 
-    @Column(name = "procedure_name", nullable = false, length = 500)
+    @Column(name = "procedure_name", nullable = false, columnDefinition = "TEXT")
     private String procedureName;
 
     @Column(name = "category", nullable = false, length = 100)
     private String category;
 
-    @Column(name = "agency", length = 500)
+    @Column(name = "agency", columnDefinition = "TEXT")
     private String agency;
 
     @Column(name = "processing_time", columnDefinition = "TEXT")
@@ -46,7 +46,7 @@ public class AdminProcedure {
     @Column(name = "fee", columnDefinition = "TEXT")
     private String fee;
 
-    @Column(name = "source_url", length = 1000)
+    @Column(name = "source_url", columnDefinition = "TEXT")
     private String sourceUrl;
 
     @Column(name = "status", nullable = false, length = 50)

@@ -30,13 +30,13 @@ public class LegalChunk {
     @Column(name = "chunk_type", nullable = false, length = 50)
     private String chunkType;
 
-    @Column(name = "title", nullable = false, length = 500)
+    @Column(name = "title", nullable = false, columnDefinition = "TEXT")
     private String title;
 
     @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    @Column(name = "legal_reference", length = 500)
+    @Column(name = "legal_reference", columnDefinition = "TEXT")
     private String legalReference;
 
     @Column(name = "embedding", columnDefinition = "vector(768)")

@@ -28,7 +28,7 @@ public class FormSubmission {
     @Column(name = "form_type", nullable = false, length = 50)
     private String formType;
 
-    @Column(name = "file_path", nullable = false, length = 500)
+    @Column(name = "file_path", nullable = false, columnDefinition = "TEXT")
     private String filePath;
 
     @JdbcTypeCode(SqlTypes.JSON)
