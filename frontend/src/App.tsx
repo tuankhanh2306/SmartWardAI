@@ -22,7 +22,7 @@ export const App: React.FC = () => {
       <WardProvider>
         <RoleProvider>
           <AccessibilityProvider>
-            <div className="min-h-screen bg-background font-sans text-on-surface antialiased flex flex-col selection:bg-primary-fixed selection:text-on-primary-fixed">
+            <div className="min-h-screen bg-[#F8FAFC] font-sans text-[#0F172A] antialiased flex flex-col selection:bg-[#0F2942] selection:text-white">
               {/* Global Administrative Header with Role-Based Navigation */}
               <Header />
 

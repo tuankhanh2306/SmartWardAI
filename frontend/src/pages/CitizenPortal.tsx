@@ -15,7 +15,6 @@ import {
   Check,
   RotateCcw,
   Mic,
-  FileCheck2,
   AlertTriangle,
   Clock,
   ChevronRight,
@@ -28,7 +27,14 @@ import {
   ExternalLink,
   Search,
   PhoneCall,
-  Calendar
+  Calendar,
+  FileText,
+  Scale,
+  Building2,
+  ClipboardList,
+  Users,
+  HeartHandshake,
+  Stamp
 } from 'lucide-react';
 
 interface ChatMessage {
@@ -238,7 +244,7 @@ export const CitizenPortal: React.FC = () => {
         sender: 'bot',
         text: `Hệ thống đang kết nối hoặc câu hỏi cần liên hệ trực tiếp Bộ phận Một cửa ${currentWard.name} qua số điện thoại ${currentWard.phoneNumber} để được cán bộ hỗ trợ chu đáo nhất.`,
         timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-        suggestions: ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📋 Xem danh mục 40 thủ tục'],
+        suggestions: ['Đăng ký khai sinh', 'Đăng ký kết hôn', 'Đăng ký thường trú (CT01)', 'Xem danh mục 40 thủ tục'],
       };
       setMessages((prev) => [...prev, errorMsg]);
     } finally {
@@ -309,11 +315,11 @@ export const CitizenPortal: React.FC = () => {
   };
 
   const quickPrompts = [
-    { label: '👶 Đăng ký khai sinh', q: `Tôi muốn làm thủ tục đăng ký khai sinh cho cháu mới sinh tại ${currentWard.name} cần giấy tờ gì và mất bao lâu?` },
-    { label: '💍 Đăng ký kết hôn', q: `Thủ tục đăng ký kết hôn tại UBND ${currentWard.name} cần hai bên chuẩn bị hồ sơ gì và lệ phí bao nhiêu?` },
-    { label: '📜 Trích lục khai sinh', q: 'Tôi bị mất bản gốc giấy khai sinh, muốn xin cấp bản sao trích lục khai sinh tại xã thì cần làm thế nào?' },
-    { label: '🏠 Thủ tục thường trú (VNeID)', q: 'Tôi muốn làm thủ tục đăng ký thường trú thì nộp hồ sơ ở đâu?' },
-    { label: '👵 Trợ cấp người cao tuổi', q: 'Hồ sơ và điều kiện hưởng trợ cấp xã hội hằng tháng cho người cao tuổi, người khuyết tật gồm những gì?' },
+    { label: 'Đăng ký khai sinh', q: `Tôi muốn làm thủ tục đăng ký khai sinh cho cháu mới sinh tại ${currentWard.name} cần giấy tờ gì và mất bao lâu?` },
+    { label: 'Đăng ký kết hôn', q: `Thủ tục đăng ký kết hôn tại UBND ${currentWard.name} cần hai bên chuẩn bị hồ sơ gì và lệ phí bao nhiêu?` },
+    { label: 'Trích lục khai sinh', q: 'Tôi bị mất bản gốc giấy khai sinh, muốn xin cấp bản sao trích lục khai sinh tại xã thì cần làm thế nào?' },
+    { label: 'Thủ tục thường trú (CT01)', q: 'Tôi muốn làm thủ tục đăng ký thường trú thì nộp hồ sơ ở đâu?' },
+    { label: 'Trợ cấp người cao tuổi', q: 'Hồ sơ và điều kiện hưởng trợ cấp xã hội hằng tháng cho người cao tuổi, người khuyết tật gồm những gì?' },
   ];
 
   const bentoCards = [
@@ -325,7 +331,7 @@ export const CitizenPortal: React.FC = () => {
       fee: 'Miễn phí hoàn toàn',
       badge: 'Phổ Biến Nhất',
       badgeColor: 'bg-[#EFF6FF] text-[#1E40AF] border-[#BFDBFE]',
-      icon: '👶',
+      IconComponent: FileText,
       description: 'Đăng ký khai sinh cho trẻ mới sinh trong vòng 60 ngày kể từ ngày sinh.',
       prompt: `Thủ tục đăng ký khai sinh tại ${currentWard.name} gồm những giấy tờ gì và giải quyết trong bao lâu?`,
     },
@@ -336,8 +342,8 @@ export const CitizenPortal: React.FC = () => {
       time: 'Giải quyết trong ngày',
       fee: 'Miễn phí cho công dân',
       badge: 'Thủ Tục Nhanh',
-      badgeColor: 'bg-[#FDF2F8] text-[#9D174D] border-[#FBCFE8]',
-      icon: '💍',
+      badgeColor: 'bg-[#F0FDFA] text-[#0F766E] border-[#99F6E4]',
+      IconComponent: HeartHandshake,
       description: 'Hai bên nam nữ trực tiếp nộp hồ sơ tại UBND cấp xã nơi cư trú.',
       prompt: `Hai bên nam nữ cần chuẩn bị gì khi đến UBND ${currentWard.name} đăng ký kết hôn?`,
     },
@@ -349,7 +355,7 @@ export const CitizenPortal: React.FC = () => {
       fee: '2.000đ / trang',
       badge: 'Sao Y Giấy Tờ',
       badgeColor: 'bg-[#F0FDF4] text-[#166534] border-[#BBF7D0]',
-      icon: '📜',
+      IconComponent: Stamp,
       description: 'Chứng thực bản sao từ bản chính các loại giấy tờ tùy thân, học bạ, văn bằng.',
       prompt: `Thủ tục chứng thực bản sao từ bản chính các loại giấy tờ tại ${currentWard.name}?`,
     },
@@ -361,7 +367,7 @@ export const CitizenPortal: React.FC = () => {
       fee: 'Miễn phí hoàn toàn',
       badge: 'Chính Sách An Sinh',
       badgeColor: 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]',
-      icon: '👵',
+      IconComponent: Users,
       description: 'Hỗ trợ người cao tuổi (từ đủ 80 tuổi), người khuyết tật nặng theo quy định.',
       prompt: 'Hồ sơ và điều kiện hưởng trợ cấp xã hội hằng tháng cho người cao tuổi, khuyết tật gồm những gì?',
     },
@@ -394,11 +400,11 @@ export const CitizenPortal: React.FC = () => {
     const lines = text.split('\n');
 
     const sectionHeaders = [
-      { key: '1. TÓM TẮT THỦ TỤC:', title: '1. TÓM TẮT THỦ TỤC', icon: '📋', badgeColor: 'bg-[#EFF6FF] text-[#1E3A8A] border-[#BFDBFE]' },
-      { key: '2. THÀNH PHẦN HỒ SƠ:', title: '2. THÀNH PHẦN HỒ SƠ CẦN CHUẨN BỊ', icon: '📄', badgeColor: 'bg-[#EEF2FF] text-[#312E81] border-[#C7D2FE]' },
-      { key: '3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:', title: '3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ', icon: '⏱️', badgeColor: 'bg-[#FFFBEB] text-[#78350F] border-[#FDE68A]' },
-      { key: '4. NƠI TIẾP NHẬN & XỬ LÝ:', title: '4. NƠI TIẾP NHẬN & GIẢI QUYẾT', icon: '🏛️', badgeColor: 'bg-[#F0FDFA] text-[#134E4A] border-[#99F6E4]' },
-      { key: '5. CĂN CỨ PHÁP LÝ & LƯU Ý:', title: '5. CĂN CỨ PHÁP LÝ & LƯU Ý QUAN TRỌNG', icon: '⚖️', badgeColor: 'bg-[#F8FAFC] text-[#1E293B] border-[#E2E8F0]' },
+      { key: '1. TÓM TẮT THỦ TỤC:', title: '1. TÓM TẮT THỦ TỤC', Icon: ClipboardList, badgeColor: 'bg-[#F8FAFC] text-[#0F2942] border-[#CBD5E1]' },
+      { key: '2. THÀNH PHẦN HỒ SƠ:', title: '2. THÀNH PHẦN HỒ SƠ CẦN CHUẨN BỊ', Icon: FileText, badgeColor: 'bg-[#EFF6FF] text-[#1E40AF] border-[#BFDBFE]' },
+      { key: '3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:', title: '3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ', Icon: Clock, badgeColor: 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]' },
+      { key: '4. NƠI TIẾP NHẬN & XỬ LÝ:', title: '4. NƠI TIẾP NHẬN & GIẢI QUYẾT', Icon: Building2, badgeColor: 'bg-[#F0FDFA] text-[#0F766E] border-[#99F6E4]' },
+      { key: '5. CĂN CỨ PHÁP LÝ & LƯU Ý:', title: '5. CĂN CỨ PHÁP LÝ & LƯU Ý QUAN TRỌNG', Icon: Scale, badgeColor: 'bg-[#F8FAFC] text-[#334155] border-[#CBD5E1]' },
     ];
 
     const renderTextWithCitations = (lineStr: string) => {
@@ -421,17 +427,18 @@ export const CitizenPortal: React.FC = () => {
                   setActiveCitation(msg.ragData.citations[0]);
                 }
               }}
-              className="inline-flex items-center px-2 py-0.5 mx-1 rounded-md font-mono text-[11px] font-bold bg-[#E0E7FF] text-[#1E3A8A] hover:bg-[#C7D2FE] border border-[#A5B4FC] transition-all cursor-pointer active:scale-95 shadow-2xs"
+              className="inline-flex items-center gap-1 px-2 py-0.5 mx-1 rounded-md font-mono text-[11px] font-bold bg-[#F1F5F9] text-[#0F2942] hover:bg-[#E2E8F0] border border-[#CBD5E1] transition-all cursor-pointer active:scale-95 shadow-2xs"
               title={`Xem căn cứ pháp lý ${code}`}
             >
-              📖 {part}
+              <BookOpen className="w-3 h-3 text-[#0F766E]" />
+              <span>{part}</span>
             </button>
           );
         }
         const boldMatch = part.match(/^\*\*([^*]+)\*\*$/);
         if (boldMatch) {
           return (
-            <strong key={pIdx} className="font-bold text-[#00236F]">
+            <strong key={pIdx} className="font-bold text-[#0F2942]">
               {boldMatch[1]}
             </strong>
           );
@@ -447,10 +454,11 @@ export const CitizenPortal: React.FC = () => {
           const foundHeader = sectionHeaders.find((h) => trimmed.startsWith(h.key));
           if (foundHeader) {
             const rest = trimmed.substring(foundHeader.key.length).trim();
+            const HeaderIcon = foundHeader.Icon;
             return (
               <div key={lIdx} className="mt-3.5 pt-3 border-t border-[#E2E8F0] first:mt-0 first:pt-0 first:border-0">
                 <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border ${foundHeader.badgeColor} shadow-2xs`}>
-                  <span>{foundHeader.icon}</span>
+                  <HeaderIcon className="w-3.5 h-3.5 shrink-0" />
                   <span>{foundHeader.title}</span>
                 </div>
                 {rest && (
@@ -476,71 +484,62 @@ export const CitizenPortal: React.FC = () => {
 
   return (
     <div className="flex flex-col w-full pb-12">
-      {/* COMPACT CIVIC BAR: Clean, Trust-First, Zero Bloat */}
-      <section className="w-full bg-white px-4 md:px-8 py-4 border-b border-[#E2E8F0]">
-        <div className="max-w-7xl mx-auto flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          {/* Left: Ward Identity + Status + Hotline */}
-          <div className="flex flex-col gap-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className={`w-2.5 h-2.5 rounded-full ${isOfficeOpen ? 'bg-[#10B981]' : 'bg-[#F59E0B]'}`} />
-              <h1 className="text-lg sm:text-xl font-extrabold text-[#0F2942] tracking-tight">
-                Một Cửa UBND {currentWard.name}
-              </h1>
-              <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${isOfficeOpen ? 'bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0]' : 'bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]'}`}>
-                {officeStatusLabel}
-              </span>
-              <button
-                onClick={() => navigate('/onboarding')}
-                className="text-xs font-bold text-[#0F766E] hover:underline flex items-center gap-1 pl-1 cursor-pointer"
-                title="Đổi Xã/Phường khác tại An Giang"
-              >
-                <MapPin className="w-3.5 h-3.5" />
-                <span>Đổi xã</span>
-              </button>
-            </div>
-            <div className="flex flex-wrap items-center gap-3 text-xs text-[#64748B]">
-              <span className="flex items-center gap-1">
-                <PhoneCall className="w-3.5 h-3.5 text-[#0F766E]" />
-                Hotline: <strong className="text-[#334155]">{currentWard.phoneNumber}</strong>
-              </span>
-              <span>•</span>
-              <span className="flex items-center gap-1">
-                <Calendar className="w-3.5 h-3.5 text-[#0F766E]" />
-                Giờ tiếp dân: <strong className="text-[#334155]">{currentWard.workingHours}</strong>
-              </span>
-            </div>
+      {/* SINGLE-LINE CIVIC STATUS STRIP (No Duplicate Header / No Duplicate CTA) */}
+      <section className="w-full bg-white px-4 md:px-8 py-2.5 border-b border-[#E2E8F0]">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2.5 text-xs">
+          {/* Left: Real-Time Working Hours Status + Office Address + Hotline */}
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[#475569]">
+            <span
+              className={`inline-flex items-center gap-1.5 font-bold px-2.5 py-1 rounded-full ${
+                isOfficeOpen
+                  ? 'bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0]'
+                  : 'bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]'
+              }`}
+            >
+              <span className={`w-2 h-2 rounded-full ${isOfficeOpen ? 'bg-[#10B981]' : 'bg-[#F59E0B]'}`} />
+              <span>{officeStatusLabel}</span>
+            </span>
+
+            <span className="hidden md:inline text-[#CBD5E1]">|</span>
+
+            <span className="hidden md:flex items-center gap-1.5">
+              <MapPin className="w-3.5 h-3.5 text-[#0F766E] shrink-0" />
+              <span>Trụ sở: <strong className="text-[#0F172A]">{currentWard.officeAddress}</strong></span>
+            </span>
+
+            <span className="text-[#CBD5E1]">|</span>
+
+            <span className="flex items-center gap-1.5">
+              <PhoneCall className="w-3.5 h-3.5 text-[#0F766E] shrink-0" />
+              <span>Đường dây nóng: <strong className="text-[#0F2942] font-mono">{currentWard.phoneNumber}</strong></span>
+            </span>
+
+            <span className="hidden xl:inline text-[#CBD5E1]">|</span>
+
+            <span className="hidden xl:flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-[#0F766E] shrink-0" />
+              <span>{currentWard.workingHours}</span>
+            </span>
           </div>
 
-          {/* Right: Audio Toggle & Quick Action Buttons */}
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+          {/* Right: Accessibility Audio Read Toggle */}
+          <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
               onClick={() => setIsAudioAutoPlay(!isAudioAutoPlay)}
-              className={`inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
                 isAudioAutoPlay
                   ? 'bg-[#0F2942] text-white border-[#0F2942]'
-                  : 'bg-[#F8FAFC] text-[#475569] border-[#CBD5E1] hover:bg-[#F1F5F9]'
+                  : 'bg-[#F8FAFC] text-[#334155] border-[#CBD5E1] hover:bg-[#F1F5F9]'
               }`}
-              title="Bật/Tắt chế độ tự động đọc câu trả lời bằng giọng nói"
+              title="Bật/Tắt chế độ tự động đọc câu trả lời bằng giọng nói cho người lớn tuổi"
             >
-              {isAudioAutoPlay ? <Volume2 className="w-3.5 h-3.5 text-[#38BDF8]" /> : <VolumeX className="w-3.5 h-3.5 text-[#94A3B8]" />}
-              <span>{isAudioAutoPlay ? 'Đọc tự động: Bật' : 'Đọc tự động: Tắt'}</span>
-            </button>
-
-            <button
-              onClick={() => navigate('/citizen/form')}
-              className="px-3.5 py-2 bg-[#0F2942] hover:bg-[#1E3A5F] text-white rounded-xl font-bold text-xs shadow-xs active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <FileCheck2 className="w-3.5 h-3.5 text-[#38BDF8]" />
-              <span>Kiểm Tra Tờ Khai</span>
-            </button>
-
-            <button
-              onClick={() => navigate('/citizen/form#incident')}
-              className="px-3.5 py-2 bg-white text-[#0F2942] border border-[#CBD5E1] rounded-xl font-bold text-xs hover:bg-[#F1F5F9] active:scale-[0.98] transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <AlertTriangle className="w-3.5 h-3.5 text-[#D97706]" />
-              <span>Báo Sự Cố</span>
+              {isAudioAutoPlay ? (
+                <Volume2 className="w-3.5 h-3.5 text-[#38BDF8]" />
+              ) : (
+                <VolumeX className="w-3.5 h-3.5 text-[#64748B]" />
+              )}
+              <span>{isAudioAutoPlay ? 'Tự động đọc giọng nói: Bật' : 'Tự động đọc giọng nói: Tắt'}</span>
             </button>
           </div>
         </div>
@@ -581,162 +580,167 @@ export const CitizenPortal: React.FC = () => {
         </div>
       </div>
 
-      {/* MAIN INTERACTIVE WORKSPACE (Two-Column Desktop, Tabbed Mobile) */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-5 grid grid-cols-1 lg:grid-cols-12 gap-6 w-full">
+      {/* MAIN INTERACTIVE WORKSPACE (Two-Column Desktop with Matched Height, Tabbed Mobile) */}
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-5 grid grid-cols-1 lg:grid-cols-12 gap-6 w-full lg:items-stretch">
         {/* LEFT COLUMN: 4 Bento Cards OR Full 40 Procedures Catalog */}
-        <div className={`lg:col-span-5 flex flex-col gap-4 ${mobileTab === 'chat' ? 'hidden lg:flex' : 'flex'}`}>
-          {/* Segmented Mode Switcher */}
-          <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0]">
-            <div className="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1]">
-              <button
-                onClick={() => setCatalogViewMode('bento')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                  catalogViewMode === 'bento'
-                    ? 'bg-white text-[#00236F] shadow-xs'
-                    : 'text-[#64748B] hover:text-[#00236F]'
-                }`}
-              >
-                ✨ 4 Thủ Tục Phổ Biến
-              </button>
-              <button
-                onClick={() => setCatalogViewMode('catalog')}
-                className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                  catalogViewMode === 'catalog'
-                    ? 'bg-white text-[#00236F] shadow-xs'
-                    : 'text-[#64748B] hover:text-[#00236F]'
-                }`}
-              >
-                <Layers className="w-3.5 h-3.5 text-[#00687A]" />
-                <span>Toàn Bộ 40 Thủ Tục</span>
-              </button>
+        <div className={`lg:col-span-5 flex flex-col justify-between gap-4 lg:h-[700px] ${mobileTab === 'chat' ? 'hidden lg:flex' : 'flex'}`}>
+          <div className="flex flex-col gap-3.5 flex-1 min-h-0">
+            {/* Segmented Mode Switcher */}
+            <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0] shrink-0">
+              <div className="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1]">
+                <button
+                  onClick={() => setCatalogViewMode('bento')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                    catalogViewMode === 'bento'
+                      ? 'bg-[#0F2942] text-white shadow-xs'
+                      : 'text-[#475569] hover:text-[#0F2942]'
+                  }`}
+                >
+                  4 Thủ Tục Trọng Tâm
+                </button>
+                <button
+                  onClick={() => setCatalogViewMode('catalog')}
+                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    catalogViewMode === 'catalog'
+                      ? 'bg-[#0F2942] text-white shadow-xs'
+                      : 'text-[#475569] hover:text-[#0F2942]'
+                  }`}
+                >
+                  <Layers className={`w-3.5 h-3.5 ${catalogViewMode === 'catalog' ? 'text-[#38BDF8]' : 'text-[#0F766E]'}`} />
+                  <span>Danh Mục 40 Thủ Tục</span>
+                </button>
+              </div>
+              <span className="text-xs text-[#64748B] font-medium hidden sm:inline">Chọn để hỏi ngay</span>
             </div>
-            <span className="text-xs text-[#64748B] font-medium hidden sm:inline">1 chạm hỏi AI ngay</span>
+
+            {/* VIEW MODE 1: Bento Cards (4 Clean Civic Cards) */}
+            {catalogViewMode === 'bento' ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 overflow-y-auto pr-0.5 flex-1">
+                {bentoCards.map((card) => {
+                  const CardIcon = card.IconComponent;
+                  return (
+                    <div
+                      key={card.code}
+                      onClick={() => handleAsk(card.prompt)}
+                      className="group relative p-3.5 rounded-2xl bg-white border border-[#CBD5E1] hover:border-[#0F2942] shadow-2xs hover:shadow-sm transition-all duration-200 cursor-pointer active:scale-[0.99] flex flex-col justify-between gap-2"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#0F2942] group-hover:bg-[#0F2942] group-hover:text-[#38BDF8] transition-colors">
+                            <CardIcon className="w-4 h-4" />
+                          </div>
+                          <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${card.badgeColor}`}>
+                            {card.badge}
+                          </span>
+                        </div>
+
+                        <div className="w-7 h-7 rounded-full bg-[#F8FAFC] group-hover:bg-[#0F2942] text-[#0F2942] group-hover:text-white flex items-center justify-center transition-all duration-200 border border-[#E2E8F0]">
+                          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="text-sm sm:text-base font-bold text-[#0F172A] group-hover:text-[#0F2942] transition-colors leading-snug">
+                          {card.title}
+                        </h3>
+                        <p className="text-xs text-[#475569] mt-0.5 leading-relaxed">
+                          {card.description}
+                        </p>
+                      </div>
+
+                      <div className="pt-2 border-t border-[#F1F5F9] flex items-center justify-between text-xs text-[#334155]">
+                        <span className="flex items-center gap-1 font-medium">
+                          <Clock className="w-3.5 h-3.5 text-[#0F766E]" />
+                          {card.time}
+                        </span>
+                        <span className="font-bold text-[#0F766E] bg-[#F0FDFA] px-2 py-0.5 rounded border border-[#99F6E4]">
+                          {card.fee}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              /* VIEW MODE 2: Full 40 Procedures Catalog with Search & Filter */
+              <div className="flex flex-col gap-3 bg-white p-4 rounded-2xl border border-[#CBD5E1] shadow-2xs flex-1 min-h-0">
+                {/* Search in Catalog */}
+                <div className="relative shrink-0">
+                  <Search className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={catalogSearch}
+                    onChange={(e) => setCatalogSearch(e.target.value)}
+                    placeholder="Gõ tên thủ tục cần tìm (khai sinh, kết hôn, đất đai...)"
+                    className="w-full h-10 pl-9 pr-3 text-xs sm:text-sm rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] focus:outline-none focus:border-[#0F2942] focus:bg-white text-[#0F172A] transition-all"
+                  />
+                </div>
+
+                {/* Category Filter Chips */}
+                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs shrink-0">
+                  {categories.map((cat) => (
+                    <button
+                      key={cat.id}
+                      onClick={() => setCatalogCategory(cat.id)}
+                      className={`px-3 py-1.5 rounded-lg shrink-0 font-semibold transition cursor-pointer ${
+                        catalogCategory === cat.id
+                          ? 'bg-[#0F2942] text-white shadow-2xs'
+                          : 'bg-[#F1F5F9] text-[#475569] hover:bg-[#E2E8F0]'
+                      }`}
+                    >
+                      {cat.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Scrollable Procedures List */}
+                <div className="flex-1 overflow-y-auto space-y-2 pr-1 divide-y divide-[#F1F5F9] min-h-0">
+                  {filteredCatalog.map((item) => (
+                    <div
+                      key={item.code}
+                      onClick={() => handleAsk(`Thủ tục ${item.name} tại ${currentWard.name} cần giấy tờ gì, thời gian và lệ phí ra sao?`)}
+                      className="pt-2.5 first:pt-0 p-2.5 rounded-xl border border-transparent hover:border-[#0F2942] hover:bg-[#F8FAFC] transition cursor-pointer flex flex-col gap-1 active:scale-[0.99]"
+                    >
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="font-mono font-bold text-[#0F2942] bg-[#F1F5F9] border border-[#CBD5E1] px-2 py-0.5 rounded">
+                          {item.code}
+                        </span>
+                        <span className="text-[#0F766E] font-semibold">{item.category}</span>
+                      </div>
+                      <span className="text-xs sm:text-sm font-bold text-[#0F172A] line-clamp-2 leading-snug">
+                        {item.name}
+                      </span>
+                      <div className="flex items-center justify-between text-xs text-[#64748B] pt-1">
+                        <span>{item.chunksCount} căn cứ pháp lý</span>
+                        <span className="text-[#0F2942] font-bold flex items-center gap-0.5">
+                          Xem hướng dẫn <ChevronRight className="w-3.5 h-3.5" />
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+
+                  {filteredCatalog.length === 0 && (
+                    <div className="p-6 text-center text-[#64748B] text-xs">
+                      Không tìm thấy thủ tục phù hợp với từ khóa "{catalogSearch}".
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* VIEW MODE 1: Bento Cards (4 Clean Civic Cards) */}
-          {catalogViewMode === 'bento' ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3.5">
-              {bentoCards.map((card) => (
-                <div
-                  key={card.code}
-                  onClick={() => handleAsk(card.prompt)}
-                  className="group relative p-4 rounded-2xl bg-white border border-[#E2E8F0] hover:border-[#00236F] shadow-xs hover:shadow-md transition-all duration-300 cursor-pointer active:scale-[0.99] flex flex-col gap-2.5"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <div className="flex items-center gap-2">
-                      <span className="text-xl" role="img" aria-label={card.title}>
-                        {card.icon}
-                      </span>
-                      <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${card.badgeColor}`}>
-                        {card.badge}
-                      </span>
-                    </div>
-
-                    <div className="w-8 h-8 rounded-full bg-[#F1F5F9] group-hover:bg-[#00236F] text-[#00236F] group-hover:text-white flex items-center justify-center transition-all duration-300 shadow-2xs">
-                      <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-                    </div>
-                  </div>
-
-                  <div>
-                    <h3 className="text-base font-bold text-[#0F172A] group-hover:text-[#00236F] transition-colors leading-snug">
-                      {card.title}
-                    </h3>
-                    <p className="text-xs text-[#64748B] mt-1 leading-relaxed">
-                      {card.description}
-                    </p>
-                  </div>
-
-                  <div className="pt-2.5 border-t border-[#F1F5F9] flex items-center justify-between text-xs text-[#334155]">
-                    <span className="flex items-center gap-1 font-medium">
-                      <Clock className="w-3.5 h-3.5 text-[#00687A]" />
-                      {card.time}
-                    </span>
-                    <span className="font-bold text-[#00687A] bg-[#F0FDFA] px-2 py-0.5 rounded border border-[#99F6E4]">
-                      {card.fee}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            /* VIEW MODE 2: Full 40 Procedures Catalog with Search & Filter */
-            <div className="flex flex-col gap-3 bg-white p-4 rounded-2xl border border-[#E2E8F0] shadow-xs">
-              {/* Search in Catalog */}
-              <div className="relative">
-                <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
-                <input
-                  type="text"
-                  value={catalogSearch}
-                  onChange={(e) => setCatalogSearch(e.target.value)}
-                  placeholder="Gõ tên thủ tục cần tìm (khai sinh, kết hôn, đất đai...)"
-                  className="w-full h-10 pl-9 pr-3 text-xs sm:text-sm rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] focus:outline-none focus:border-[#00236F] focus:bg-white text-[#0F172A] transition-all"
-                />
-              </div>
-
-              {/* Category Filter Chips */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-                {categories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    onClick={() => setCatalogCategory(cat.id)}
-                    className={`px-3 py-1.5 rounded-lg shrink-0 font-semibold transition cursor-pointer ${
-                      catalogCategory === cat.id
-                        ? 'bg-[#00236F] text-white shadow-2xs'
-                        : 'bg-[#F1F5F9] text-[#475569] hover:bg-[#E2E8F0]'
-                    }`}
-                  >
-                    {cat.label}
-                  </button>
-                ))}
-              </div>
-
-              {/* Scrollable Procedures List */}
-              <div className="max-h-[420px] overflow-y-auto space-y-2 pr-1 divide-y divide-[#F1F5F9]">
-                {filteredCatalog.map((item) => (
-                  <div
-                    key={item.code}
-                    onClick={() => handleAsk(`Thủ tục ${item.name} tại ${currentWard.name} cần giấy tờ gì, thời gian và lệ phí ra sao?`)}
-                    className="pt-2.5 first:pt-0 p-2.5 rounded-xl border border-transparent hover:border-[#00236F] hover:bg-[#F8FAFC] transition cursor-pointer flex flex-col gap-1 active:scale-[0.99]"
-                  >
-                    <div className="flex items-center justify-between text-[11px]">
-                      <span className="font-mono font-bold text-[#00236F] bg-[#EAEDFF] px-2 py-0.5 rounded">
-                        {item.code}
-                      </span>
-                      <span className="text-[#00687A] font-semibold">{item.category}</span>
-                    </div>
-                    <span className="text-xs sm:text-sm font-bold text-[#0F172A] line-clamp-2 leading-snug">
-                      {item.name}
-                    </span>
-                    <div className="flex items-center justify-between text-xs text-[#64748B] pt-1">
-                      <span>{item.chunksCount} căn cứ pháp lý</span>
-                      <span className="text-[#00236F] font-bold flex items-center gap-0.5">
-                        Hỏi hướng dẫn <ChevronRight className="w-3 h-3" />
-                      </span>
-                    </div>
-                  </div>
-                ))}
-
-                {filteredCatalog.length === 0 && (
-                  <div className="p-6 text-center text-[#64748B] text-xs">
-                    Không tìm thấy thủ tục phù hợp với từ khóa "{catalogSearch}".
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
           {/* Quick Guidance Box */}
-          <div className="p-4 rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] flex items-start gap-3">
-            <HelpCircle className="w-5 h-5 text-[#166534] shrink-0 mt-0.5" />
-            <div className="text-xs sm:text-sm text-[#14532D] leading-relaxed">
-              <strong className="block font-bold text-[#166534] mb-0.5">Bộ phận Một cửa luôn sẵn sàng đón tiếp bà con</strong>
-              Bà con nộp hồ sơ trực tiếp tại UBND {currentWard.name} ({currentWard.officeAddress}). Hotline giải đáp thắc mắc: <strong>{currentWard.phoneNumber}</strong>.
+          <div className="p-3.5 rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] flex items-start gap-2.5 shrink-0">
+            <HelpCircle className="w-4 h-4 text-[#166534] shrink-0 mt-0.5" />
+            <div className="text-xs text-[#14532D] leading-relaxed">
+              <strong className="font-bold text-[#166534]">Hướng dẫn nộp hồ sơ trực tiếp: </strong>
+              Bộ phận Một cửa UBND {currentWard.name} ({currentWard.officeAddress}). Điện thoại trực ban: <strong>{currentWard.phoneNumber}</strong>.
             </div>
           </div>
         </div>
 
         {/* RIGHT COLUMN: Interactive Legal RAG Chat Workspace */}
-        <div className={`lg:col-span-7 flex flex-col bg-white rounded-2xl border border-[#CBD5E1] shadow-xs overflow-hidden min-h-[600px] max-h-[740px] ${mobileTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`lg:col-span-7 flex flex-col bg-white rounded-2xl border border-[#CBD5E1] shadow-xs overflow-hidden min-h-[580px] lg:h-[700px] ${mobileTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`}>
           {/* Chat Workspace Header */}
           <div className="px-5 py-3.5 bg-[#0F2942] text-white flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -824,13 +828,14 @@ export const CitizenPortal: React.FC = () => {
                   {msg.ragData?.abstained && (
                     <div className="mt-2 p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-[#334155] flex items-center justify-between gap-2 text-xs">
                       <span>
-                        📌 Cần hướng dẫn chi tiết cho trường hợp riêng, bà con vui lòng liên hệ trực tiếp Bộ phận Một cửa <strong>UBND {currentWard.name}</strong>.
+                        Câu hỏi đã được chuyển vào Hàng đợi Cán bộ Một cửa <strong>UBND {currentWard.name}</strong> để kiểm duyệt và phản hồi chính xác.
                       </span>
                       <a
                         href={`tel:${currentWard.phoneNumber.replace(/\s+/g, '')}`}
-                        className="shrink-0 px-2.5 py-1 rounded-lg bg-[#0F2942] text-white font-bold hover:bg-[#1E3A5F] transition"
+                        className="shrink-0 px-2.5 py-1.5 rounded-lg bg-[#0F2942] text-white font-bold hover:bg-[#1E3A5F] transition inline-flex items-center gap-1"
                       >
-                        📞 {currentWard.phoneNumber}
+                        <PhoneCall className="w-3.5 h-3.5 text-[#38BDF8]" />
+                        <span>{currentWard.phoneNumber}</span>
                       </a>
                     </div>
                   )}
@@ -903,7 +908,7 @@ export const CitizenPortal: React.FC = () => {
                           className={`flex items-center gap-1.5 font-bold text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                             speakingId === msg.id
                               ? 'bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5]'
-                              : 'bg-[#F1F5F9] text-[#00236F] hover:bg-[#E2E8F0] border border-[#CBD5E1]'
+                              : 'bg-[#F1F5F9] text-[#0F2942] hover:bg-[#E2E8F0] border border-[#CBD5E1]'
                           }`}
                           title={speakingId === msg.id ? 'Dừng đọc âm thanh' : 'Bấm để nghe đọc bằng giọng nói tiếng Việt'}
                         >
@@ -914,8 +919,8 @@ export const CitizenPortal: React.FC = () => {
                             </>
                           ) : (
                             <>
-                              <Volume2 className="w-3.5 h-3.5 text-[#00236F]" />
-                              <span>🔊 Nghe đọc to</span>
+                              <Volume2 className="w-3.5 h-3.5 text-[#0F766E]" />
+                              <span>Nghe đọc to</span>
                             </>
                           )}
                         </button>
@@ -924,7 +929,7 @@ export const CitizenPortal: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => copyToClipboard(msg.text, msg.id)}
-                          className="hover:text-[#00236F] flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-[#F1F5F9] active:scale-90 transition font-medium cursor-pointer"
+                          className="hover:text-[#0F2942] flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-[#F1F5F9] active:scale-90 transition font-medium cursor-pointer"
                         >
                           {copiedId === msg.id ? (
                             <>
@@ -944,7 +949,7 @@ export const CitizenPortal: React.FC = () => {
                 </div>
 
                 {msg.sender === 'citizen' && (
-                  <div className="w-9 h-9 rounded-full bg-[#EAEDFF] text-[#00236F] flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                  <div className="w-9 h-9 rounded-full bg-[#E2E8F0] text-[#0F2942] flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                     <User className="w-5 h-5" />
                   </div>
                 )}
@@ -954,15 +959,15 @@ export const CitizenPortal: React.FC = () => {
             {/* Staggered Typing Indicator */}
             {loading && (
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#00236F] text-white flex items-center justify-center shrink-0 shadow-xs">
-                  <Bot className="w-5 h-5 text-[#57DFFE] animate-pulse" />
+                <div className="w-9 h-9 rounded-full bg-[#0F2942] text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <Bot className="w-5 h-5 text-[#38BDF8] animate-pulse" />
                 </div>
                 <div className="bg-white border border-[#E2E8F0] rounded-2xl rounded-bl-xs px-4 py-3 shadow-xs flex items-center gap-2">
                   <span className="text-xs sm:text-sm text-[#475569] font-medium">Cán bộ AI đang tra cứu văn bản pháp lý...</span>
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-[#00236F] animate-bounce [animation-delay:-0.3s]" />
-                    <div className="w-2 h-2 rounded-full bg-[#00687A] animate-bounce [animation-delay:-0.15s]" />
-                    <div className="w-2 h-2 rounded-full bg-[#57DFFE] animate-bounce" />
+                    <div className="w-2 h-2 rounded-full bg-[#0F2942] animate-bounce [animation-delay:-0.3s]" />
+                    <div className="w-2 h-2 rounded-full bg-[#0F766E] animate-bounce [animation-delay:-0.15s]" />
+                    <div className="w-2 h-2 rounded-full bg-[#38BDF8] animate-bounce" />
                   </div>
                 </div>
               </div>
@@ -978,7 +983,7 @@ export const CitizenPortal: React.FC = () => {
               <button
                 key={idx}
                 onClick={() => handleAsk(p.q)}
-                className="shrink-0 px-3 py-1.5 rounded-full bg-white hover:bg-[#EAEDFF] text-[#00236F] text-xs font-semibold border border-[#CBD5E1] transition active:scale-95 shadow-2xs cursor-pointer"
+                className="shrink-0 px-3 py-1.5 rounded-full bg-white hover:bg-[#F1F5F9] text-[#0F2942] text-xs font-semibold border border-[#CBD5E1] transition active:scale-95 shadow-2xs cursor-pointer"
               >
                 {p.label}
               </button>
@@ -998,11 +1003,11 @@ export const CitizenPortal: React.FC = () => {
               <button
                 type="button"
                 onClick={toggleMic}
-                title="Bấm để nói câu hỏi (Mô phỏng nhận diện giọng nói tiếng Việt)"
+                title="Bấm để nói câu hỏi (Nhận diện giọng nói tiếng Việt)"
                 className={`p-3 rounded-xl border transition-all active:scale-90 cursor-pointer min-h-[46px] min-w-[46px] flex items-center justify-center ${
                   isMicActive
                     ? 'bg-[#DC2626] text-white border-[#DC2626] animate-pulse'
-                    : 'bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#00687A] border-[#CBD5E1]'
+                    : 'bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#0F766E] border-[#CBD5E1]'
                 }`}
               >
                 <Mic className="w-5 h-5" />
@@ -1016,7 +1021,7 @@ export const CitizenPortal: React.FC = () => {
                   maxLength={1000}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Nhập câu hỏi thủ tục (ví dụ: làm khai sinh, kết hôn, CT01)..."
-                  className="w-full h-12 pl-4 pr-10 rounded-xl bg-[#FAF8FF] border border-[#CBD5E1] focus:border-[#00236F] focus:bg-white text-sm sm:text-base text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#00236F]/15 transition-all"
+                  className="w-full h-12 pl-4 pr-10 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] focus:border-[#0F2942] focus:bg-white text-sm sm:text-base text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#0F2942]/15 transition-all"
                 />
                 {query && (
                   <button
@@ -1035,7 +1040,7 @@ export const CitizenPortal: React.FC = () => {
                 disabled={!query.trim() || loading}
                 className={`h-12 px-5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all duration-200 active:scale-95 cursor-pointer min-h-[46px] ${
                   query.trim() && !loading
-                    ? 'bg-[#00236F] hover:bg-[#1E3A8A] text-white shadow-md shadow-[#00236F]/20'
+                    ? 'bg-[#0F2942] hover:bg-[#1E3A5F] text-white shadow-sm'
                     : 'bg-[#E2E8F0] text-[#94A3B8] cursor-not-allowed'
                 }`}
               >
@@ -1053,8 +1058,8 @@ export const CitizenPortal: React.FC = () => {
           <div className="bg-white max-w-lg w-full rounded-2xl p-6 shadow-2xl border border-[#CBD5E1] flex flex-col gap-4 animate-scaleUp">
             <div className="flex items-center justify-between pb-2.5 border-b border-[#E2E8F0]">
               <div className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-[#00236F]" />
-                <h3 className="font-bold text-sm sm:text-base text-[#00236F]">
+                <BookOpen className="w-5 h-5 text-[#0F2942]" />
+                <h3 className="font-bold text-sm sm:text-base text-[#0F2942]">
                   Căn Cứ Pháp Lý Trích Xuất
                 </h3>
               </div>
@@ -1076,7 +1081,7 @@ export const CitizenPortal: React.FC = () => {
 
               <div>
                 <span className="text-[#64748B] block text-xs font-medium">Nội dung điều khoản trích dẫn:</span>
-                <p className="p-3.5 bg-[#FAF8FF] border border-[#CBD5E1] rounded-xl text-xs sm:text-sm text-[#0F172A] leading-relaxed mt-1">
+                <p className="p-3.5 bg-[#F8FAFC] border border-[#CBD5E1] rounded-xl text-xs sm:text-sm text-[#0F172A] leading-relaxed mt-1">
                   "{activeCitation.content}"
                 </p>
               </div>
@@ -1091,7 +1096,7 @@ export const CitizenPortal: React.FC = () => {
 
             <button
               onClick={() => setActiveCitation(null)}
-              className="w-full py-2.5 bg-[#00236F] hover:bg-[#1E3A8A] text-white text-xs sm:text-sm font-bold rounded-xl transition active:scale-95 cursor-pointer shadow-xs"
+              className="w-full py-2.5 bg-[#0F2942] hover:bg-[#1E3A5F] text-white text-xs sm:text-sm font-bold rounded-xl transition active:scale-95 cursor-pointer shadow-xs"
             >
               Đóng Căn Cứ Pháp Lý
             </button>

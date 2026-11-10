@@ -82,6 +82,51 @@ html.high-contrast-mode #root {
   animation: radarWave 2s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
 }
 
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.22s ease-out forwards;
+}
+
+.animate-scaleUp {
+  animation: scaleUp 0.2s ease-out forwards;
+}
+
+.animate-slideLeft {
+  animation: slideLeft 0.22s ease-out forwards;
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 5px;
@@ -93,12 +138,12 @@ html.high-contrast-mode #root {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #C5C5D3;
+  background: #CBD5E1;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #757682;
+  background: #64748B;
 }
 
 .material-symbols-outlined {
@@ -136,8 +181,8 @@ html.high-contrast-mode #root {
 
 .leaflet-popup-content-wrapper {
   border-radius: 16px !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 35, 111, 0.15), 0 8px 10px -6px rgba(0, 35, 111, 0.1) !important;
-  border: 1px solid #EAEDFF !important;
+  box-shadow: 0 10px 25px -5px rgba(15, 41, 66, 0.15), 0 8px 10px -6px rgba(15, 41, 66, 0.1) !important;
+  border: 1px solid #CBD5E1 !important;
   padding: 2px !important;
 }
 
@@ -148,21 +193,21 @@ html.high-contrast-mode #root {
 
 .leaflet-popup-tip {
   box-shadow: none !important;
-  border: 1px solid #EAEDFF;
+  border: 1px solid #CBD5E1;
 }
 
 /* Modern Rounded Leaflet Controls */
 .leaflet-bar {
-  border: 1px solid #DAE2FD !important;
+  border: 1px solid #CBD5E1 !important;
   border-radius: 12px !important;
   overflow: hidden !important;
-  box-shadow: 0 4px 12px rgba(0, 35, 111, 0.08) !important;
+  box-shadow: 0 4px 12px rgba(15, 41, 66, 0.08) !important;
 }
 
 .leaflet-bar a {
   background-color: #FFFFFF !important;
-  color: #00236F !important;
-  border-bottom: 1px solid #EAEDFF !important;
+  color: #0F2942 !important;
+  border-bottom: 1px solid #E2E8F0 !important;
   width: 32px !important;
   height: 32px !important;
   line-height: 32px !important;
@@ -171,8 +216,8 @@ html.high-contrast-mode #root {
 }
 
 .leaflet-bar a:hover {
-  background-color: #F2F3FF !important;
-  color: #00164E !important;
+  background-color: #F8FAFC !important;
+  color: #0F172A !important;
 }
 
 .leaflet-bar a:last-child {
@@ -181,18 +226,18 @@ html.high-contrast-mode #root {
 
 /* Button Micro-Interactions System-Wide */
 .btn-primary {
-  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#00236F] hover:bg-[#0A328F] active:scale-[0.98] shadow-sm shadow-[#00236F]/20 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#00236F] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#0F2942] hover:bg-[#1E3A5F] active:scale-[0.98] shadow-sm shadow-[#0F2942]/20 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#0F2942] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
 }
 
 .btn-secondary {
-  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-[#00236F] bg-[#F2F3FF] hover:bg-[#EAEDFF] border border-[#DAE2FD] active:scale-[0.98] transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#00236F] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-[#0F2942] bg-[#F8FAFC] hover:bg-[#F1F5F9] border border-[#CBD5E1] active:scale-[0.98] transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#0F2942] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
 }
 
 .btn-danger {
-  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#BA1A1A] hover:bg-[#93000A] active:scale-[0.98] shadow-sm shadow-[#BA1A1A]/20 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#BA1A1A] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#DC2626] hover:bg-[#B91C1C] active:scale-[0.98] shadow-sm shadow-[#DC2626]/20 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#DC2626] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
 }
 
 .btn-teal {
-  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#00687A] hover:bg-[#004E5C] active:scale-[0.98] shadow-sm shadow-[#00687A]/20 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#00687A] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#0F766E] hover:bg-[#115E59] active:scale-[0.98] shadow-sm shadow-[#0F766E]/20 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#0F766E] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
 }
 

@@ -222,6 +222,50 @@ export const askLegalRag = async (
   const mandatoryDisclaimer =
     '*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*';
 
+  // 0. Check Officer-Verified HITL Knowledge Cache first (REA Closed-Loop Duality)
+  if (typeof window !== 'undefined') {
+    try {
+      const rawHitl = localStorage.getItem('smartward_hitl_queue_v1');
+      if (rawHitl) {
+        const hitlList: HitlGrayZoneItem[] = JSON.parse(rawHitl);
+        const qNorm = query.trim().toLowerCase();
+        const matchedApproved = hitlList.find(
+          (item) =>
+            item.status === 'APPROVED' &&
+            item.suggestedAnswer &&
+            (item.query.trim().toLowerCase() === qNorm ||
+              (qNorm.length >= 12 && item.query.toLowerCase().includes(qNorm)) ||
+              (item.query.length >= 12 && qNorm.includes(item.query.trim().toLowerCase())))
+        );
+        if (matchedApproved) {
+          return {
+            answer: matchedApproved.suggestedAnswer,
+            abstained: false,
+            maxSimilarity: 1.0,
+            appliedThreshold: 0.78,
+            responseTimeMs: 4.2,
+            cached: true,
+            disclaimer: `Câu trả lời đã được công chức ${matchedApproved.resolvedBy || 'Bộ phận Một cửa'} kiểm duyệt và xác thực chính thức.`,
+            citations: [
+              {
+                chunkCode: matchedApproved.candidateChunkCode || 'HITL-VERIFIED',
+                procedureCode: matchedApproved.candidateChunkCode || 'TTHC-UBND',
+                procedureName: matchedApproved.candidateProcedureName || 'Hướng dẫn nghiệp vụ Một cửa',
+                title: `Đã xác thực bởi ${matchedApproved.resolvedBy || 'Cán bộ Một cửa'} (${matchedApproved.wardName})`,
+                legalReference: matchedApproved.legalReference || 'Quy định pháp luật hiện hành',
+                content: matchedApproved.suggestedAnswer,
+                relevanceScore: 1.0,
+              },
+            ],
+            suggestions: ['Đăng ký khai sinh', 'Đăng ký kết hôn', 'Đăng ký thường trú (CT01)', 'Xem 40 thủ tục'],
+          };
+        }
+      }
+    } catch {
+      // ignore storage errors
+    }
+  }
+
   // 1. Procedure Catalog Request ("nêu 40 thủ tục", "danh sách thủ tục"...)
   if (isProcedureListQuery(query)) {
     return {
@@ -233,7 +277,7 @@ export const askLegalRag = async (
       cached: false,
       disclaimer: 'Danh mục 40 TTHC cấp xã chuẩn hóa theo Nghị định 13/2023 và Đề án 06.',
       citations: [],
-      suggestions: ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📄 Chứng thực sao y', '🤝 Trợ cấp bảo trợ xã hội'],
+      suggestions: ['Đăng ký khai sinh', 'Đăng ký kết hôn', 'Đăng ký thường trú (CT01)', 'Chứng thực sao y', 'Trợ cấp bảo trợ xã hội'],
     };
   }
 
@@ -241,7 +285,7 @@ export const askLegalRag = async (
   if (isIncidentReportQuery(query)) {
     return {
       answer:
-        `Dạ, để gửi phản ánh hiện trường (hư đường, ngập nước, sạt lở, chiếu sáng, môi trường...) trực tiếp lên Bàn Điều Hành Cán Bộ UBND, bà con vui lòng mở công cụ **Báo Sự Cố Hiện Trường (GPS R=25m)** ngay bên dưới.\n\n` +
+        `Dạ, để gửi phản ánh hiện trường (hư đường, ngập nước, sạt lở, chiếu sáng, môi trường...) trực tiếp lên Bàn Điều Hành Cán Bộ UBND, bà con vui lòng mở công cụ **Báo Sự Cố Hiện Trường (GPS R=25m)** ngay trên thanh điều hướng.\n\n` +
         `• Hệ thống sẽ **tự động quét tọa độ GPS (bán kính R = 25m)** và điền sẵn địa chỉ vào ô vị trí (bà con có thể sửa tay nếu lệch).\n` +
         `• Bà con nhập **Số điện thoại liên hệ** và bấm gửi: hệ thống sẽ tự động định tuyến về đúng UBND Xã/Phường nơi xảy ra sự cố để cán bộ xử lý ngay!`,
       abstained: false,
@@ -251,7 +295,7 @@ export const askLegalRag = async (
       cached: false,
       disclaimer: 'Hệ thống Phản ánh Hiện trường & Định tuyến Không gian Đa Xã/Phường (GPS R=25m).',
       citations: [],
-      suggestions: ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)'],
+      suggestions: ['Đăng ký khai sinh', 'Đăng ký kết hôn', 'Đăng ký thường trú (CT01)'],
     };
   }
 
@@ -259,7 +303,7 @@ export const askLegalRag = async (
   const smallTalk = classifySmallTalk(query);
   if (smallTalk.matched) {
     let reply = '';
-    let suggestions = ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📋 Xem 40 thủ tục'];
+    let suggestions = ['Đăng ký khai sinh', 'Đăng ký kết hôn', 'Đăng ký thường trú (CT01)', 'Xem 40 thủ tục'];
     const rt = getRealTimeScheduleContext();
 
     if (smallTalk.type === 'WELLBEING') {
@@ -296,7 +340,7 @@ export const askLegalRag = async (
         `• "Xin giấy xác nhận độc thân ở đâu?"\n` +
         `• "Chứng thực sao y mất bao lâu?"\n\n` +
         `Hoặc gõ "nêu 40 thủ tục" để xem toàn bộ danh mục.`;
-      suggestions = ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📄 Chứng thực sao y', '📋 Xem 40 thủ tục'];
+      suggestions = ['Đăng ký khai sinh', 'Đăng ký kết hôn', 'Đăng ký thường trú (CT01)', 'Chứng thực sao y', 'Xem 40 thủ tục'];
     } else {
       reply =
         `Xin chào! Tôi là Trợ lý Pháp lý Một Cửa tại UBND ${currentWardName} (Hiện tại: ${rt.timeStr} • ${rt.dayName}, ${rt.dateStr}).\n\n` +
@@ -306,7 +350,7 @@ export const askLegalRag = async (
         `• Chứng thực chữ ký, chứng thực bản sao từ bản chính\n` +
         `• Cấp giấy xác nhận tình trạng hôn nhân (giấy độc thân)\n` +
         `• Các chế độ chính sách bảo trợ xã hội và tiền kiểm tra hồ sơ\n\n` +
-        `${rt.isWeekend ? `📌 *Lưu ý: Hôm nay là ${rt.dayName} (nghỉ cuối tuần), trụ sở Một cửa mở cửa lại lúc ${rt.nextOpenText}, nhưng tôi vẫn trực 24/7 để hỗ trợ bà con chuẩn bị sẵn hồ sơ ngay hôm nay!*` : `Bà con đang cần tìm hiểu hoặc chuẩn bị làm thủ tục nào? Hãy nhập câu hỏi để tôi hướng dẫn chi tiết từng bước nhé!`}`;
+        `${rt.isWeekend ? `*Lưu ý: Hôm nay là ${rt.dayName} (nghỉ cuối tuần), trụ sở Một cửa mở cửa lại lúc ${rt.nextOpenText}, nhưng tôi vẫn trực 24/7 để hỗ trợ bà con chuẩn bị sẵn hồ sơ ngay hôm nay!*` : `Bà con đang cần tìm hiểu hoặc chuẩn bị làm thủ tục nào? Hãy nhập câu hỏi để tôi hướng dẫn chi tiết từng bước nhé!`}`;
     }
 
     return {
@@ -340,7 +384,7 @@ export const askLegalRag = async (
       cached: false,
       disclaimer: mandatoryDisclaimer,
       citations: [],
-      suggestions: ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📋 Xem 40 thủ tục'],
+      suggestions: ['Đăng ký khai sinh', 'Đăng ký kết hôn', 'Đăng ký thường trú (CT01)', 'Xem 40 thủ tục'],
     };
   }
 
@@ -350,13 +394,13 @@ export const askLegalRag = async (
     return {
       answer:
         `Dạ, thời gian hệ thống ghi nhận hiện tại là **${rt.timeStr} (${rt.sessionName} ${rt.dayName}, ngày ${rt.dateStr})**.\n\n` +
-        `📌 **1. TRẠNG THÁI HOẠT ĐỘNG HIỆN TẠI CỦA BỘ PHẬN MỘT CỬA — UBND ${currentWardName.toUpperCase()}:**\n` +
+        `**1. TRẠNG THÁI HOẠT ĐỘNG HIỆN TẠI CỦA BỘ PHẬN MỘT CỬA — UBND ${currentWardName.toUpperCase()}:**\n` +
         `• **Trạng thái lúc này:** **${rt.statusHeadline}**.\n` +
         `• **Thời gian tiếp nhận trực tiếp gần nhất:** **${rt.nextOpenText}**.\n` +
         `• **Khung giờ hành chính quy định:** ${currentWorkingHours} *(Thứ Bảy, Chủ Nhật và ngày Lễ nghỉ theo quy định)*.\n` +
         `• **Trụ sở / Địa chỉ Một cửa:** ${currentAddress}\n` +
         `• **Số điện thoại / Đường dây nóng:** ${currentPhone}\n\n` +
-        `🌐 **2. DỊCH VỤ HỖ TRỢ TRỰC TUYẾN 24/7 (KỂ CẢ THỨ BẢY & CHỦ NHẬT):**\n` +
+        `**2. DỊCH VỤ HỖ TRỢ TRỰC TUYẾN 24/7 (KỂ CẢ THỨ BẢY & CHỦ NHẬT):**\n` +
         `• Dù đang ngoài giờ hành chính hay cuối tuần, bà con vẫn có thể **hỏi đáp thủ tục với Trợ lý AI**, dùng công cụ **Tiền Kiểm Định Tờ Khai (4 mẫu)** để rà soát lỗi trước ở nhà, **Báo Sự Cố Hiện Trường (GPS)** hoặc nộp hồ sơ trực tuyến trên Cổng DVC Quốc gia tại \`dichvucong.gov.vn\`.`,
       abstained: false,
       maxSimilarity: 1.0,
@@ -365,7 +409,7 @@ export const askLegalRag = async (
       cached: false,
       disclaimer: 'Thông tin lịch làm việc thời gian thực và Danh bạ hành chính UBND cấp xã/phường.',
       citations: [],
-      suggestions: ['📋 Xem 40 thủ tục', '👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)'],
+      suggestions: ['Xem 40 thủ tục', 'Đăng ký khai sinh', 'Đăng ký kết hôn', 'Đăng ký thường trú (CT01)'],
     };
   }
 
@@ -470,20 +514,51 @@ export const askLegalRag = async (
       };
     }
 
-    // Unmatched General Inquiry - Polite prompt without guessing (strictly <= 2 concise sentences)
+    // Unmatched General Inquiry - Enqueue into Officer HITL Gray-Zone Queue & polite prompt
+    if (typeof window !== 'undefined' && query.trim().length >= 8) {
+      try {
+        const rawHitl = localStorage.getItem('smartward_hitl_queue_v1');
+        const currentQueue: HitlGrayZoneItem[] = rawHitl ? JSON.parse(rawHitl) : DEFAULT_FALLBACK_HITL_QUEUE;
+        const alreadyExists = currentQueue.some(
+          (i) => i.query.trim().toLowerCase() === query.trim().toLowerCase()
+        );
+        if (!alreadyExists) {
+          const newHitl: HitlGrayZoneItem = {
+            id: `HITL-LIVE-${Math.floor(1000 + Math.random() * 9000)}`,
+            query: query.trim(),
+            wardName: `UBND ${currentWardName}`,
+            similarityScore: Number((searchResult.maxScore || 0.58).toFixed(3)),
+            candidateChunkCode: searchResult.items[0]?.code || 'TTHC-HT-01',
+            candidateProcedureName: searchResult.items[0]?.name || 'Thủ tục hành chính cấp xã',
+            legalReference: searchResult.items[0]?.legalBasis || 'Nghị định 61/2018/NĐ-CP về cơ chế Một cửa',
+            suggestedAnswer:
+              `1. TÓM TẮT HƯỚNG DẪN: Đối với câu hỏi "${query.trim()}", công dân thực hiện tại Bộ phận Một cửa UBND ${currentWardName}.\n` +
+              `2. THÀNH PHẦN HỒ SƠ: Xuất trình CCCD gắn chip (hoặc VNeID mức 2) và tờ khai mẫu quy định.\n` +
+              `3. NƠI TIẾP NHẬN: ${currentAddress} (Đường dây nóng: ${currentPhone}).`,
+            status: 'PENDING',
+            createdAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+            resolvedBy: null,
+          };
+          localStorage.setItem('smartward_hitl_queue_v1', JSON.stringify([newHitl, ...currentQueue].slice(0, 30)));
+        }
+      } catch {
+        // ignore storage errors
+      }
+    }
+
     return {
       answer:
-        `Hệ thống SmartWard AI hiện chưa nhận diện rõ thủ tục hành chính mà bà con đang cần tìm hiểu. ` +
-        `Bà con vui lòng nhập rõ tên thủ tục (ví dụ: "đăng ký khai sinh", "đăng ký kết hôn", "hướng dẫn nộp mẫu CT01", hoặc gõ "nêu 40 thủ tục" để xem danh mục) hoặc liên hệ Một cửa ${currentWardName} để được hướng dẫn chi tiết.`,
+        `Hệ thống SmartWard AI đã chuyển câu hỏi của bà con vào **Hàng đợi Cán bộ Một cửa (${currentWardName})** để kiểm duyệt chính xác. ` +
+        `Trong lúc chờ cán bộ xác thực, bà con có thể chọn nhanh tên thủ tục bên dưới (ví dụ: "đăng ký khai sinh", "đăng ký kết hôn", "mẫu CT01") hoặc liên hệ đường dây nóng ${currentPhone}.`,
       abstained: true,
-      abstentionReason: 'Câu hỏi chưa chỉ định rõ tên thủ tục hành chính cụ thể trong phạm vi cấp xã.',
+      abstentionReason: 'Câu hỏi thuộc vùng xám ngữ nghĩa — đã chuyển lên Bàn Cán Bộ Một Cửa để xác thực.',
       maxSimilarity: searchResult.maxScore,
       appliedThreshold: 0.78,
       responseTimeMs: 10.0,
       cached: false,
       disclaimer: mandatoryDisclaimer,
       citations: [],
-      suggestions: ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📋 Xem 40 thủ tục'],
+      suggestions: ['Đăng ký khai sinh', 'Đăng ký kết hôn', 'Đăng ký thường trú (CT01)', 'Xem 40 thủ tục'],
     };
   }
 };
@@ -518,6 +593,9 @@ export interface LiveFormDossier {
   cccd: string;
   errorCount: number;
   wardName?: string;
+  officerFeedback?: string;
+  reviewedBy?: string;
+  vaultViewUsed?: boolean;
   details: {
     dob: string;
     gender: string;
@@ -541,7 +619,7 @@ export const getLiveSubmittedDossiers = (): LiveFormDossier[] => {
   }
 };
 
-function saveLiveSubmittedDossier(dossier: LiveFormDossier) {
+export function saveLiveSubmittedDossier(dossier: LiveFormDossier) {
   if (typeof window === 'undefined') return;
   try {
     const existing = getLiveSubmittedDossiers();
@@ -549,6 +627,71 @@ function saveLiveSubmittedDossier(dossier: LiveFormDossier) {
     localStorage.setItem(LIVE_DOSSIERS_STORAGE_KEY, JSON.stringify(updated));
   } catch {
     // ignore storage errors
+  }
+}
+
+export function updateLiveDossierStatus(
+  id: string,
+  status: 'PENDING' | 'VALID' | 'HAS_ERRORS',
+  officerFeedback?: string,
+  reviewedBy?: string
+): LiveFormDossier | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const existing = getLiveSubmittedDossiers();
+    let updatedItem: LiveFormDossier | null = null;
+    const next = existing.map((d) => {
+      if (d.id === id) {
+        updatedItem = {
+          ...d,
+          status,
+          errorCount: status === 'VALID' ? 0 : Math.max(1, d.errorCount),
+          officerFeedback: officerFeedback ?? d.officerFeedback,
+          reviewedBy: reviewedBy ?? d.reviewedBy,
+        };
+        return updatedItem;
+      }
+      return d;
+    });
+    if (updatedItem) {
+      localStorage.setItem(LIVE_DOSSIERS_STORAGE_KEY, JSON.stringify(next));
+    }
+    return updatedItem;
+  } catch {
+    return null;
+  }
+}
+
+export function consumeLiveDossierVaultToken(id: string): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const usedKey = 'smartward_consumed_vault_tokens_v1';
+    const rawUsed = localStorage.getItem(usedKey);
+    const usedIds: string[] = rawUsed ? JSON.parse(rawUsed) : [];
+    if (usedIds.includes(id)) {
+      return false; // Already consumed!
+    }
+    usedIds.push(id);
+    localStorage.setItem(usedKey, JSON.stringify(usedIds));
+
+    const existing = getLiveSubmittedDossiers();
+    const next = existing.map((d) => (d.id === id ? { ...d, vaultViewUsed: true } : d));
+    localStorage.setItem(LIVE_DOSSIERS_STORAGE_KEY, JSON.stringify(next));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function isVaultTokenConsumedForDossier(id: string): boolean {
+  if (typeof window === 'undefined') return false;
+  try {
+    const usedKey = 'smartward_consumed_vault_tokens_v1';
+    const rawUsed = localStorage.getItem(usedKey);
+    const usedIds: string[] = rawUsed ? JSON.parse(rawUsed) : [];
+    return usedIds.includes(id);
+  } catch {
+    return false;
   }
 }
 
@@ -1012,6 +1155,35 @@ function saveLiveSubmittedIncident(incident: LiveCitizenIncident) {
   }
 }
 
+export function updateLiveIncidentStatus(
+  id: string,
+  status: 'PENDING' | 'IN_PROGRESS' | 'RESOLVED',
+  officerNote?: string
+): LiveCitizenIncident | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const existing = getLiveSubmittedIncidents();
+    let updatedItem: LiveCitizenIncident | null = null;
+    const next = existing.map((inc) => {
+      if (inc.id === id) {
+        updatedItem = {
+          ...inc,
+          status,
+          officerNote: officerNote ?? inc.officerNote,
+        };
+        return updatedItem;
+      }
+      return inc;
+    });
+    if (updatedItem) {
+      localStorage.setItem(LIVE_INCIDENTS_STORAGE_KEY, JSON.stringify(next));
+    }
+    return updatedItem;
+  } catch {
+    return null;
+  }
+}
+
 function mapCategoryCodeToLabel(code: string): string {
   switch (code) {
     case 'ROAD_DAMAGE':
@@ -1118,9 +1290,9 @@ export const reportIssue = async (data: {
       }
     }
 
-    // Also check reference hotspot within tight R = 25m
-    const refCentroidLat = 10.8035;
-    const refCentroidLon = 106.7145;
+    // Also check reference hotspot within tight R = 25m (An Giang Provincial Center)
+    const refCentroidLat = 10.3864;
+    const refCentroidLon = 105.4352;
     const dLatRef = (data.latitude - refCentroidLat) * 111320;
     const dLonRef = (data.longitude - refCentroidLon) * 111320 * Math.cos((refCentroidLat * Math.PI) / 180);
     const distanceRefMeters = Math.sqrt(dLatRef * dLatRef + dLonRef * dLonRef);
@@ -1178,8 +1350,8 @@ export const getIssueClusters = async (): Promise<IssueCluster[]> => {
         id: String(item.id ?? item.clusterCode),
         clusterCode: item.clusterCode,
         category: item.category,
-        centroidLatitude: Number(item.centerLatitude ?? item.centroidLatitude ?? 10.8035),
-        centroidLongitude: Number(item.centerLongitude ?? item.centroidLongitude ?? 106.7145),
+        centroidLatitude: Number(item.centerLatitude ?? item.centroidLatitude ?? 10.3864),
+        centroidLongitude: Number(item.centerLongitude ?? item.centroidLongitude ?? 105.4352),
         title: item.title || 'Sự cố hiện trường',
         descriptionSummary: item.descriptionSummary || item.title || '',
         status: item.status || 'OPEN',
@@ -1190,60 +1362,7 @@ export const getIssueClusters = async (): Promise<IssueCluster[]> => {
     }
     return [];
   } catch {
-    return [
-      {
-        id: 'clust-1',
-        clusterCode: 'CLUST-ROAD-001',
-        category: 'ROAD_DAMAGE',
-        centroidLatitude: 10.8035,
-        centroidLongitude: 106.7145,
-        title: 'Sụt lún hố ga tại ngã ba Võ Oanh - D5',
-        descriptionSummary: 'Ổ gà sâu và nắp hố ga bị chênh lệch nguy hiểm',
-        status: 'OPEN',
-        reportCount: 5,
-        createdAt: '2026-11-04 08:30:00',
-        lastReportAt: '2026-11-04 09:15:00',
-      },
-      {
-        id: 'clust-2',
-        clusterCode: 'CLUST-ENV-002',
-        category: 'ENVIRONMENT',
-        centroidLatitude: 10.8055,
-        centroidLongitude: 106.717,
-        title: 'Tập kết rác thải tự phát đường Ung Văn Khiêm',
-        descriptionSummary: 'Rác sinh hoạt ứ đọng bốc mùi gần ngõ hẻm',
-        status: 'INVESTIGATING',
-        reportCount: 3,
-        createdAt: '2026-11-04 07:10:00',
-        lastReportAt: '2026-11-04 08:45:00',
-      },
-      {
-        id: 'clust-3',
-        clusterCode: 'CLUST-LIGHT-003',
-        category: 'LIGHTING',
-        centroidLatitude: 10.8015,
-        centroidLongitude: 106.7125,
-        title: 'Đèn chiếu sáng công cộng không sáng hẻm 48 Điện Biên Phủ',
-        descriptionSummary: 'Hai bóng đèn cao áp hẻm phụ tắt suốt 3 đêm',
-        status: 'RESOLVED',
-        reportCount: 2,
-        createdAt: '2026-11-03 19:20:00',
-        lastReportAt: '2026-11-04 06:10:00',
-      },
-      {
-        id: 'clust-4',
-        clusterCode: 'CLUST-FLOOD-004',
-        category: 'FLOODING',
-        centroidLatitude: 10.8062,
-        centroidLongitude: 106.7135,
-        title: 'Ngập úng cục bộ sau triều cường đường D2 (Nguyễn Gia Trí)',
-        descriptionSummary: 'Nước tràn mép vỉa hè gây chết máy xe máy',
-        status: 'OPEN',
-        reportCount: 4,
-        createdAt: '2026-11-04 09:05:00',
-        lastReportAt: '2026-11-04 09:40:00',
-      },
-    ];
+    return [];
   }
 };
 
@@ -1401,15 +1520,37 @@ const DEFAULT_FALLBACK_HITL_QUEUE: HitlGrayZoneItem[] = [
 ];
 
 export const getHitlQueue = async (): Promise<HitlGrayZoneItem[]> => {
+  const getLocalHitl = (): HitlGrayZoneItem[] => {
+    if (typeof window === 'undefined') return DEFAULT_FALLBACK_HITL_QUEUE;
+    try {
+      const raw = localStorage.getItem('smartward_hitl_queue_v1');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+      localStorage.setItem('smartward_hitl_queue_v1', JSON.stringify(DEFAULT_FALLBACK_HITL_QUEUE));
+    } catch {
+      // ignore
+    }
+    return DEFAULT_FALLBACK_HITL_QUEUE;
+  };
+
   try {
     const resp = await api.get<any>('/rag/hitl-queue');
     const items = resp.data?.data ? resp.data.data : resp.data;
+    const localItems = getLocalHitl();
     if (Array.isArray(items) && items.length > 0) {
-      return items as HitlGrayZoneItem[];
+      const merged = [
+        ...localItems.filter((l) => l.id.startsWith('HITL-LIVE-') || l.status === 'APPROVED'),
+        ...(items as HitlGrayZoneItem[]).filter(
+          (srv) => !localItems.some((l) => l.id === srv.id)
+        ),
+      ];
+      return merged;
     }
-    return DEFAULT_FALLBACK_HITL_QUEUE;
+    return localItems;
   } catch {
-    return DEFAULT_FALLBACK_HITL_QUEUE;
+    return getLocalHitl();
   }
 };
 
@@ -1418,21 +1559,51 @@ export const resolveHitlItem = async (
   approvedAnswer: string,
   officerName: string
 ): Promise<HitlGrayZoneItem> => {
+  const persistResolvedLocally = (resolved: HitlGrayZoneItem) => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = localStorage.getItem('smartward_hitl_queue_v1');
+      const current: HitlGrayZoneItem[] = raw ? JSON.parse(raw) : DEFAULT_FALLBACK_HITL_QUEUE;
+      const exists = current.some((i) => i.id === id);
+      const next = exists
+        ? current.map((i) => (i.id === id ? resolved : i))
+        : [resolved, ...current];
+      localStorage.setItem('smartward_hitl_queue_v1', JSON.stringify(next));
+    } catch {
+      // ignore
+    }
+  };
+
   try {
     const resp = await api.post<any>(`/rag/hitl-queue/${id}/resolve`, {
       approvedAnswer,
       officerName,
     });
-    return (resp.data?.data ? resp.data.data : resp.data) as HitlGrayZoneItem;
+    const resItem = (resp.data?.data ? resp.data.data : resp.data) as HitlGrayZoneItem;
+    persistResolvedLocally(resItem);
+    return resItem;
   } catch {
-    const fallback = DEFAULT_FALLBACK_HITL_QUEUE.find((i) => i.id === id);
-    return {
-      ...(fallback || DEFAULT_FALLBACK_HITL_QUEUE[0]),
+    let baseItem = DEFAULT_FALLBACK_HITL_QUEUE.find((i) => i.id === id);
+    if (!baseItem && typeof window !== 'undefined') {
+      try {
+        const raw = localStorage.getItem('smartward_hitl_queue_v1');
+        if (raw) {
+          const list: HitlGrayZoneItem[] = JSON.parse(raw);
+          baseItem = list.find((i) => i.id === id);
+        }
+      } catch {
+        // ignore
+      }
+    }
+    const resolved: HitlGrayZoneItem = {
+      ...(baseItem || DEFAULT_FALLBACK_HITL_QUEUE[0]),
       id,
       suggestedAnswer: approvedAnswer,
       status: 'APPROVED',
       resolvedBy: officerName,
     };
+    persistResolvedLocally(resolved);
+    return resolved;
   }
 };
 

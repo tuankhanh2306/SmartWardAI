@@ -16,12 +16,40 @@ export const Header: React.FC = () => {
   const { textScale, setTextScale } = useAccessibility();
 
   const citizenNavLinks = [
-    { to: '/citizen', label: 'Hỏi Đáp Thủ Tục', icon: Bot },
-    { to: '/citizen/form', label: 'Kiểm Tra Tờ Khai & Báo Sự Cố', icon: FileCheck2 },
+    { to: '/citizen', label: 'Hỏi Đáp Thủ Tục', icon: Bot, match: () => path === '/citizen' },
+    {
+      to: '/citizen/form#form',
+      label: 'Kiểm Tra Tờ Khai (4 Mẫu)',
+      icon: FileCheck2,
+      match: () => path === '/citizen/form' && hash !== '#incident',
+    },
+    {
+      to: '/citizen/form#incident',
+      label: 'Báo Sự Cố (GPS)',
+      icon: AlertTriangle,
+      match: () => path === '/citizen/form' && hash === '#incident',
+    },
   ];
 
   const officerNavLinks = [
-    { to: `/officer/ward/${currentWard.code}`, label: 'Bàn Điều Hành Xã', icon: ShieldCheck },
+    {
+      to: `/officer/ward/${currentWard.code}`,
+      label: `Bàn Điều Hành • ${currentWard.name}`,
+      icon: ShieldCheck,
+      match: () => path.startsWith('/officer'),
+    },
+    {
+      to: '/citizen',
+      label: 'Cổng Hỏi Đáp Dân',
+      icon: Bot,
+      match: () => path === '/citizen',
+    },
+    {
+      to: '/citizen/form#form',
+      label: 'Cổng Tờ Khai & Sự Cố',
+      icon: FileCheck2,
+      match: () => path === '/citizen/form',
+    },
   ];
 
   const activeNavLinks = isOfficer ? officerNavLinks : citizenNavLinks;
@@ -79,7 +107,7 @@ export const Header: React.FC = () => {
           <nav className="hidden lg:flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 shrink-0">
             {activeNavLinks.map((item) => {
               const Icon = item.icon;
-              const isActive = path === item.to || (item.to !== '/citizen' && path.startsWith(item.to));
+              const isActive = item.match();
               return (
                 <Link
                   key={item.to}
@@ -90,7 +118,7 @@ export const Header: React.FC = () => {
                       : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-teal-300' : 'text-slate-500'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#38BDF8]' : 'text-slate-500'}`} />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -174,7 +202,7 @@ export const Header: React.FC = () => {
 
         <button
           type="button"
-          onClick={() => navigate('/citizen/form')}
+          onClick={() => navigate('/citizen/form#form')}
           className={`flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-semibold transition active:scale-95 cursor-pointer ${
             path === '/citizen/form' && hash !== '#incident'
               ? 'text-[#0F2942] bg-slate-100 font-bold'
