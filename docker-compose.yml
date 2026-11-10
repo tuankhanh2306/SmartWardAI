@@ -113,6 +113,7 @@ services:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
       DB_HOST: postgres
       DB_PORT: 5432
+      DB_NAME: ${POSTGRES_DB:-smartward_db}
       DB_USER: ${POSTGRES_USER:-smartward}
       DB_PASS: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
       REDIS_HOST: redis
