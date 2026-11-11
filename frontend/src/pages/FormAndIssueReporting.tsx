@@ -915,6 +915,119 @@ export const FormAndIssueReporting: React.FC = () => {
             })}
           </div>
 
+          {/* ========================================================================= */}
+          {/* MANDATORY SIGNATURE CERTIFICATION WARNING & 4-GROUP PRECHECK REFERENCE */}
+          {/* ========================================================================= */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            {/* Red Alert Box: Signature Certification Rule */}
+            <div className="lg:col-span-4 p-5 rounded-2xl bg-[#FEF2F2] border-2 border-[#FCA5A5] shadow-xs flex flex-col justify-between gap-3">
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#DC2626] text-white uppercase tracking-wider">
+                    Quy tắc bắt buộc
+                  </span>
+                  <span className="text-xs font-bold text-[#991B1B]">• Thủ tục Chứng thực</span>
+                </div>
+                <h3 className="text-sm sm:text-base font-extrabold text-[#991B1B]">
+                  Tuyệt Đối KHÔNG Ký Tên Trước Ở Nhà!
+                </h3>
+                <p className="text-xs text-[#7F1D1D] leading-relaxed">
+                  Đối với <strong>Chứng thực chữ ký</strong> và <strong>Chứng thực văn bản phân chia / từ chối nhận di sản thừa kế</strong> (Nghị định 23/2015/NĐ-CP):
+                </p>
+                <ul className="text-xs text-[#7F1D1D] space-y-1.5 list-disc pl-4 font-medium">
+                  <li>
+                    Người dân <strong>tuyệt đối không được ký tên sẵn ở nhà</strong> vào tờ khai hoặc văn bản.
+                  </li>
+                  <li>
+                    Chữ ký bắt buộc phải được <strong>ký trực tiếp trước mặt công chức Tư pháp – Hộ tịch</strong> tại Bộ phận Một cửa.
+                  </li>
+                  <li>
+                    Nếu đã ký sẵn ở nhà, hồ sơ sẽ bị hủy và bắt buộc phải in lại bản mới để ký trực tiếp.
+                  </li>
+                </ul>
+              </div>
+              <div className="p-2.5 rounded-xl bg-white/80 border border-[#FECACA] text-xs font-bold text-[#991B1B]">
+                Nhóm Đất đai (Mẫu số 09/ĐK): Cần đối chiếu kỹ Số phát hành Sổ đỏ/Sổ hồng, số thửa, tờ bản đồ và tình trạng không tranh chấp trước khi nộp.
+              </div>
+            </div>
+
+            {/* 4 Core Form Groups Reference Matrix */}
+            <div className="lg:col-span-8 p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3">
+              <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2.5">
+                <div>
+                  <h3 className="text-sm sm:text-base font-extrabold text-[#00796B]">
+                    Danh Mục Điểm Bắt Buộc Tiền Kiểm Tra Tại Một Cửa Cấp Xã
+                  </h3>
+                  <span className="text-xs text-[#64748B]">
+                    Tổng hợp các lỗi khiến bà con thường xuyên bị trả hồ sơ nhiều nhất tại UBND xã/phường
+                  </span>
+                </div>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs text-[#0F172A]">
+                  <thead className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[11px] font-bold text-[#475569] uppercase">
+                    <tr>
+                      <th className="p-2.5">Tên Tờ Khai & Căn Cứ</th>
+                      <th className="p-2.5">Điểm Bắt Buộc Đối Chiếu</th>
+                      <th className="p-2.5">Sai Sót Thường Gặp Nhất</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E2E8F0] text-xs">
+                    <tr>
+                      <td className="p-2.5 font-bold text-[#00796B]">
+                        1. Đăng ký khai sinh
+                        <span className="block text-[11px] font-normal text-[#64748B]">TT 04/2020/TT-BTP</span>
+                      </td>
+                      <td className="p-2.5">
+                        Khớp từng chữ Họ tên bé, ngày sinh, giới tính với Giấy chứng sinh; 12 số CCCD cha/mẹ.
+                      </td>
+                      <td className="p-2.5 text-[#DC2626] font-medium">
+                        Lệch ngày sinh với Giấy chứng sinh; cha mẹ chưa kết hôn nhưng ghi tên cha vào tờ khai thường.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="p-2.5 font-bold text-[#00796B]">
+                        2. Đăng ký kết hôn & Độc thân
+                        <span className="block text-[11px] font-normal text-[#64748B]">Luật HN&GĐ 2014</span>
+                      </td>
+                      <td className="p-2.5">
+                        Nam ≥ 20 tuổi, Nữ ≥ 18 tuổi (theo ngày sinh); ghi cụ thể mục đích sử dụng giấy độc thân.
+                      </td>
+                      <td className="p-2.5 text-[#DC2626] font-medium">
+                        Chưa tròn tuổi theo ngày tháng sinh; ghi mục đích độc thân chung chung ("bổ sung hồ sơ").
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="p-2.5 font-bold text-[#00796B]">
+                        3. Khai tử & Trích lục hộ tịch
+                        <span className="block text-[11px] font-normal text-[#64748B]">Luật Hộ tịch 2014</span>
+                      </td>
+                      <td className="p-2.5">
+                        Khớp Giấy báo tử bản chính (nộp trong 15 ngày); ghi rõ năm đăng ký sự kiện hộ tịch gốc.
+                      </td>
+                      <td className="p-2.5 text-[#DC2626] font-medium">
+                        Thiếu Giấy báo tử bản chính; quên năm đăng ký hộ tịch gốc khiến tra lục sổ giấy kéo dài.
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="p-2.5 font-bold text-[#00796B]">
+                        4. Trợ cấp BTXH & Mai táng phí
+                        <span className="block text-[11px] font-normal text-[#64748B]">Mẫu 01, 02, 03 NĐ 20/2021</span>
+                      </td>
+                      <td className="p-2.5">
+                        Người cao tuổi ≥ 80 tuổi (không lương hưu) hoặc Giấy xác nhận khuyết tật nặng + STK ngân hàng.
+                      </td>
+                      <td className="p-2.5 text-[#DC2626] font-medium">
+                        Chưa đủ mốc 80 tuổi; thiếu số tài khoản ngân hàng chính chủ chi trả an sinh Đề án 06.
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
           {/* Core Interactive Layout: Left Form vs Right Visual Result */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* LEFT: Input Form Card (7 Cols) */}
@@ -1858,119 +1971,6 @@ export const FormAndIssueReporting: React.FC = () => {
                   </div>
                 </div>
               )}
-            </div>
-          </div>
-
-          {/* ========================================================================= */}
-          {/* MANDATORY SIGNATURE CERTIFICATION WARNING & 4-GROUP PRECHECK REFERENCE */}
-          {/* ========================================================================= */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-2">
-            {/* Red Alert Box: Signature Certification Rule */}
-            <div className="lg:col-span-4 p-5 rounded-2xl bg-[#FEF2F2] border-2 border-[#FCA5A5] shadow-xs flex flex-col justify-between gap-3">
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#DC2626] text-white uppercase tracking-wider">
-                    Quy tắc bắt buộc
-                  </span>
-                  <span className="text-xs font-bold text-[#991B1B]">• Thủ tục Chứng thực</span>
-                </div>
-                <h3 className="text-sm sm:text-base font-extrabold text-[#991B1B]">
-                  Tuyệt Đối KHÔNG Ký Tên Trước Ở Nhà!
-                </h3>
-                <p className="text-xs text-[#7F1D1D] leading-relaxed">
-                  Đối với <strong>Chứng thực chữ ký</strong> và <strong>Chứng thực văn bản phân chia / từ chối nhận di sản thừa kế</strong> (Nghị định 23/2015/NĐ-CP):
-                </p>
-                <ul className="text-xs text-[#7F1D1D] space-y-1.5 list-disc pl-4 font-medium">
-                  <li>
-                    Người dân <strong>tuyệt đối không được ký tên sẵn ở nhà</strong> vào tờ khai hoặc văn bản.
-                  </li>
-                  <li>
-                    Chữ ký bắt buộc phải được <strong>ký trực tiếp trước mặt công chức Tư pháp – Hộ tịch</strong> tại Bộ phận Một cửa.
-                  </li>
-                  <li>
-                    Nếu đã ký sẵn ở nhà, hồ sơ sẽ bị hủy và bắt buộc phải in lại bản mới để ký trực tiếp.
-                  </li>
-                </ul>
-              </div>
-              <div className="p-2.5 rounded-xl bg-white/80 border border-[#FECACA] text-xs font-bold text-[#991B1B]">
-                Nhóm Đất đai (Mẫu số 09/ĐK): Cần đối chiếu kỹ Số phát hành Sổ đỏ/Sổ hồng, số thửa, tờ bản đồ và tình trạng không tranh chấp trước khi nộp.
-              </div>
-            </div>
-
-            {/* 4 Core Form Groups Reference Matrix */}
-            <div className="lg:col-span-8 p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3">
-              <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2.5">
-                <div>
-                  <h3 className="text-sm sm:text-base font-extrabold text-[#00796B]">
-                    Danh Mục Điểm Bắt Buộc Tiền Kiểm Tra Tại Một Cửa Cấp Xã
-                  </h3>
-                  <span className="text-xs text-[#64748B]">
-                    Tổng hợp các lỗi khiến bà con thường xuyên bị trả hồ sơ nhiều nhất tại UBND xã/phường
-                  </span>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-[#0F172A]">
-                  <thead className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[11px] font-bold text-[#475569] uppercase">
-                    <tr>
-                      <th className="p-2.5">Tên Tờ Khai & Căn Cứ</th>
-                      <th className="p-2.5">Điểm Bắt Buộc Đối Chiếu</th>
-                      <th className="p-2.5">Sai Sót Thường Gặp Nhất</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#E2E8F0] text-xs">
-                    <tr>
-                      <td className="p-2.5 font-bold text-[#00796B]">
-                        1. Đăng ký khai sinh
-                        <span className="block text-[11px] font-normal text-[#64748B]">TT 04/2020/TT-BTP</span>
-                      </td>
-                      <td className="p-2.5">
-                        Khớp từng chữ Họ tên bé, ngày sinh, giới tính với Giấy chứng sinh; 12 số CCCD cha/mẹ.
-                      </td>
-                      <td className="p-2.5 text-[#DC2626] font-medium">
-                        Lệch ngày sinh với Giấy chứng sinh; cha mẹ chưa kết hôn nhưng ghi tên cha vào tờ khai thường.
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="p-2.5 font-bold text-[#00796B]">
-                        2. Đăng ký kết hôn & Độc thân
-                        <span className="block text-[11px] font-normal text-[#64748B]">Luật HN&GĐ 2014</span>
-                      </td>
-                      <td className="p-2.5">
-                        Nam ≥ 20 tuổi, Nữ ≥ 18 tuổi (theo ngày sinh); ghi cụ thể mục đích sử dụng giấy độc thân.
-                      </td>
-                      <td className="p-2.5 text-[#DC2626] font-medium">
-                        Chưa tròn tuổi theo ngày tháng sinh; ghi mục đích độc thân chung chung ("bổ sung hồ sơ").
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="p-2.5 font-bold text-[#00796B]">
-                        3. Khai tử & Trích lục hộ tịch
-                        <span className="block text-[11px] font-normal text-[#64748B]">Luật Hộ tịch 2014</span>
-                      </td>
-                      <td className="p-2.5">
-                        Khớp Giấy báo tử bản chính (nộp trong 15 ngày); ghi rõ năm đăng ký sự kiện hộ tịch gốc.
-                      </td>
-                      <td className="p-2.5 text-[#DC2626] font-medium">
-                        Thiếu Giấy báo tử bản chính; quên năm đăng ký hộ tịch gốc khiến tra lục sổ giấy kéo dài.
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="p-2.5 font-bold text-[#00796B]">
-                        4. Trợ cấp BTXH & Mai táng phí
-                        <span className="block text-[11px] font-normal text-[#64748B]">Mẫu 01, 02, 03 NĐ 20/2021</span>
-                      </td>
-                      <td className="p-2.5">
-                        Người cao tuổi ≥ 80 tuổi (không lương hưu) hoặc Giấy xác nhận khuyết tật nặng + STK ngân hàng.
-                      </td>
-                      <td className="p-2.5 text-[#DC2626] font-medium">
-                        Chưa đủ mốc 80 tuổi; thiếu số tài khoản ngân hàng chính chủ chi trả an sinh Đề án 06.
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
             </div>
           </div>
         </section>
