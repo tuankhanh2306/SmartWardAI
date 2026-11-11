@@ -13,6 +13,7 @@ import {
 } from '../api/client';
 import { extractFormWithVision, normalizeDateToYMD, type ExtractedFormFieldsResult } from '../services/geminiClient';
 import { useWard } from '../context/WardContext';
+import A4DocumentModal from '../components/A4DocumentModal';
 import {
   AN_GIANG_WARDS,
   findNearestWardByCoords,
@@ -43,8 +44,7 @@ import {
   Navigation,
   Radio,
   ArrowRight,
-  Printer,
-  X,
+  FileDown,
   Volume2,
   VolumeX
 } from 'lucide-react';
@@ -111,18 +111,46 @@ export const FormAndIssueReporting: React.FC = () => {
   const [hospitalMotherName, setHospitalMotherName] = useState('LÊ THỊ MỸ LINH');
   const [fatherName, setFatherName] = useState('TRẦN VĂN HÙNG');
   const [parentsMarried, setParentsMarried] = useState<'YES' | 'NO'>('NO');
+  const [childEthnicity, setChildEthnicity] = useState('Kinh');
+  const [childNationality, setChildNationality] = useState('Việt Nam');
+  const [childBirthPlace, setChildBirthPlace] = useState('Bệnh viện Đa khoa Trung tâm An Giang');
+  const [birthCertNumber, setBirthCertNumber] = useState('1234/GCS');
+  const [birthCertIssueDate, setBirthCertIssueDate] = useState('2026-10-16');
+  const [fatherDob] = useState('1998-05-20');
+  const [motherDob] = useState('2000-08-14');
+  const [fatherResidence, setFatherResidence] = useState(`Ấp Bình Hòa, ${currentWard.name}, Tỉnh An Giang`);
+  const [motherResidence, setMotherResidence] = useState(`Ấp Bình Hòa, ${currentWard.name}, Tỉnh An Giang`);
 
   // Specialized fields for Priority 2 (TK-KH: Marriage & Single Status Certificate)
+  const [marriageMode, setMarriageMode] = useState<'MARRIAGE_REGISTRATION' | 'MARITAL_STATUS_CONFIRMATION'>('MARRIAGE_REGISTRATION');
   const [partnerName, setPartnerName] = useState('PHẠM VĂN MINH');
+  const [partnerCccd, setPartnerCccd] = useState('089098004567');
   const [partnerDob, setPartnerDob] = useState('2004-03-10');
   const [partnerGender, setPartnerGender] = useState<'Nam' | 'Nữ'>('Nam');
+  const [partnerAddress, setPartnerAddress] = useState(`Số 45 Lê Lợi, ${currentWard.name}, Tỉnh An Giang`);
+  const [applicantEthnicity, setApplicantEthnicity] = useState('Kinh');
+  const [partnerEthnicity, setPartnerEthnicity] = useState('Kinh');
+  const [applicantNationality] = useState('Việt Nam');
+  const [partnerNationality] = useState('Việt Nam');
   const [maritalCertPurpose, setMaritalCertPurpose] = useState('Bổ sung hồ sơ');
-  const [previousMaritalStatus, setPreviousMaritalStatus] = useState<'SINGLE' | 'DIVORCED'>('SINGLE');
+  const [previousMaritalStatus, setPreviousMaritalStatus] = useState<'SINGLE' | 'DIVORCED' | 'WIDOWED'>('SINGLE');
+  const [divorceJudgmentNumber, setDivorceJudgmentNumber] = useState('');
+  const [divorceJudgmentDate, setDivorceJudgmentDate] = useState('');
+  const [deathCertNumber, setDeathCertNumber] = useState('');
+  const [deathCertDate, setDeathCertDate] = useState('');
 
   // Specialized fields for Priority 3 (TK-BTXH: Social Protection Decree 20/2021/NĐ-CP & Luật BHXH 2024)
   const [disabilityLevel, setDisabilityLevel] = useState<'NONE' | 'SEVERE' | 'EXTREMELY_SEVERE'>('NONE');
   const [householdStatus, setHouseholdStatus] = useState<'NORMAL' | 'POOR' | 'NEAR_POOR'>('NORMAL');
   const [bankAccount, setBankAccount] = useState('');
+  const [poorHouseholdBookNumber, setPoorHouseholdBookNumber] = useState('');
+  const [disabilityCertNumber, setDisabilityCertNumber] = useState('');
+  const [disabilityCertIssueDate, setDisabilityCertIssueDate] = useState('');
+  const [disabilityCertIssuer, setDisabilityCertIssuer] = useState(`Chủ tịch UBND ${currentWard.name}`);
+  const [guardianName, setGuardianName] = useState('');
+  const [guardianCccd, setGuardianCccd] = useState('');
+  const [guardianRelation, setGuardianRelation] = useState('Con đẻ');
+  const [guardianPhone, setGuardianPhone] = useState('');
 
   // A4 Printable Administrative Document Modal Preview (Nghị định 30/2020/NĐ-CP)
   const [showPrintModal, setShowPrintModal] = useState(false);
@@ -1663,6 +1691,26 @@ export const FormAndIssueReporting: React.FC = () => {
                       <span>Đối chiếu chéo Giấy chứng sinh bệnh viện & Tình trạng hôn nhân cha mẹ (Thông tư 04/2020/TT-BTP)</span>
                     </div>
 
+                    {/* Smart Checklist: Cha mẹ chưa kết hôn */}
+                    {parentsMarried === 'NO' && (
+                      <div className="sm:col-span-2 p-3.5 rounded-xl bg-amber-50 border border-amber-300 flex flex-col gap-1.5 text-xs text-amber-900 shadow-2xs">
+                        <div className="font-bold flex items-center gap-1.5 text-amber-800 text-sm">
+                          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                          <span>Thủ tục ghép bắt buộc: Đăng ký nhận cha, mẹ, con (TTHC-HT-06)</span>
+                        </div>
+                        <p className="text-xs leading-relaxed text-amber-800">
+                          Theo Điều 15 Thông tư 04/2020/TT-BTP, do cha mẹ <strong>chưa đăng ký kết hôn</strong> nhưng muốn ghi tên cha vào Giấy khai sinh của con, công dân phải thực hiện đồng thời thủ tục <strong>Khai sinh kết hợp Nhận cha, mẹ, con</strong>.
+                        </p>
+                        <div className="text-xs font-semibold text-amber-900 mt-1">
+                          Hồ sơ cần nộp kèm tại Bộ phận Một cửa:
+                          <ul className="list-disc pl-5 mt-1 space-y-0.5 text-amber-800 font-normal">
+                            <li>Tờ khai đăng ký nhận cha, mẹ, con theo mẫu quy định.</li>
+                            <li>Chứng cứ chứng minh quan hệ cha - con (Kết luận giám định ADN hoặc văn bản cam đoan/chứng cứ thân tộc có xác nhận của người làm chứng).</li>
+                          </ul>
+                        </div>
+                      </div>
+                    )}
+
                     <div className="flex flex-col gap-1">
                       <label className="text-xs font-bold text-[#334155]">
                         Ngày sinh ghi trên Giấy chứng sinh (Bệnh viện cấp):
@@ -1691,6 +1739,66 @@ export const FormAndIssueReporting: React.FC = () => {
 
                     <div className="flex flex-col gap-1">
                       <label className="text-xs font-bold text-[#334155]">
+                        Dân tộc của trẻ:
+                      </label>
+                      <input
+                        type="text"
+                        value={childEthnicity}
+                        onChange={(e) => setChildEthnicity(e.target.value)}
+                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-bold text-[#334155]">
+                        Quốc tịch của trẻ:
+                      </label>
+                      <input
+                        type="text"
+                        value={childNationality}
+                        onChange={(e) => setChildNationality(e.target.value)}
+                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1 sm:col-span-2">
+                      <label className="text-xs font-bold text-[#334155]">
+                        Nơi sinh của trẻ (Tên cơ sở y tế / Bệnh viện):
+                      </label>
+                      <input
+                        type="text"
+                        value={childBirthPlace}
+                        onChange={(e) => setChildBirthPlace(e.target.value)}
+                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-bold text-[#334155]">
+                        Số Giấy chứng sinh:
+                      </label>
+                      <input
+                        type="text"
+                        value={birthCertNumber}
+                        onChange={(e) => setBirthCertNumber(e.target.value)}
+                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-bold text-[#334155]">
+                        Ngày cấp Giấy chứng sinh:
+                      </label>
+                      <input
+                        type="date"
+                        value={birthCertIssueDate}
+                        onChange={(e) => setBirthCertIssueDate(e.target.value)}
+                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-bold text-[#334155]">
                         Họ tên Mẹ ghi trên Tờ khai khai sinh:
                       </label>
                       <input
@@ -1715,13 +1823,37 @@ export const FormAndIssueReporting: React.FC = () => {
 
                     <div className="flex flex-col gap-1 sm:col-span-2">
                       <label className="text-xs font-bold text-[#334155]">
-                        Họ tên Cha ghi trên Tờ khai (Lưu ý: Nếu chưa kết hôn mà ghi tên cha sẽ bị trả hồ sơ thường):
+                        Nơi cư trú của người mẹ:
+                      </label>
+                      <input
+                        type="text"
+                        value={motherResidence}
+                        onChange={(e) => setMotherResidence(e.target.value)}
+                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-bold text-[#334155]">
+                        Họ tên Cha ghi trên Tờ khai:
                       </label>
                       <input
                         type="text"
                         value={fatherName}
-                        placeholder="Để trống nếu khai sinh theo mẹ và chưa làm thủ tục nhận cha con"
+                        placeholder="Để trống nếu chưa làm thủ tục nhận cha con"
                         onChange={(e) => setFatherName(e.target.value)}
+                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-bold text-[#334155]">
+                        Nơi cư trú của người cha:
+                      </label>
+                      <input
+                        type="text"
+                        value={fatherResidence}
+                        onChange={(e) => setFatherResidence(e.target.value)}
                         className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
                       />
                     </div>
@@ -1733,55 +1865,133 @@ export const FormAndIssueReporting: React.FC = () => {
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div className="sm:col-span-2 text-xs font-extrabold text-[#00796B] flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-[#0F766E]" />
-                      <span>Kiểm tra độ tuổi kết hôn (Nam ≥ 20, Nữ ≥ 18) & Mục đích xác nhận tình trạng hôn nhân</span>
+                      <span>Rà soát biểu mẫu Hôn nhân & Tình trạng hôn nhân (Thông tư 04/2020/TT-BTP)</span>
                     </div>
 
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
-                        Họ tên bên kết hôn thứ hai (Nam/Nữ):
-                      </label>
-                      <input
-                        type="text"
-                        value={partnerName}
-                        onChange={(e) => setPartnerName(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                      />
+                    {/* Toggle Switch giữa 2 chế độ */}
+                    <div className="sm:col-span-2 flex items-center gap-2 p-1 bg-slate-200/80 rounded-xl">
+                      <button
+                        type="button"
+                        onClick={() => setMarriageMode('MARRIAGE_REGISTRATION')}
+                        className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer ${
+                          marriageMode === 'MARRIAGE_REGISTRATION'
+                            ? 'bg-[#00796B] text-white shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Đăng Ký Kết Hôn
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setMarriageMode('MARITAL_STATUS_CONFIRMATION')}
+                        className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer ${
+                          marriageMode === 'MARITAL_STATUS_CONFIRMATION'
+                            ? 'bg-[#00796B] text-white shadow-xs'
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}
+                      >
+                        Cấp Giấy Xác Nhận Tình Trạng Hôn Nhân
+                      </button>
                     </div>
 
-                    <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
-                        Ngày sinh & Giới tính bên thứ hai:
-                      </label>
-                      <div className="flex items-center gap-2">
+                    {marriageMode === 'MARRIAGE_REGISTRATION' ? (
+                      <>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-bold text-[#334155]">
+                            Họ tên bên kết hôn thứ hai (Nam/Nữ):
+                          </label>
+                          <input
+                            type="text"
+                            value={partnerName}
+                            onChange={(e) => setPartnerName(e.target.value)}
+                            className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                          />
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-bold text-[#334155]">
+                            Số CCCD bên kết hôn thứ hai (12 số):
+                          </label>
+                          <input
+                            type="text"
+                            value={partnerCccd}
+                            maxLength={12}
+                            placeholder="12 chữ số CCCD"
+                            onChange={(e) => setPartnerCccd(e.target.value)}
+                            className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-mono font-bold text-[#00796B]"
+                          />
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-bold text-[#334155]">
+                            Ngày sinh & Giới tính bên thứ hai:
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="date"
+                              value={partnerDob}
+                              onChange={(e) => setPartnerDob(e.target.value)}
+                              className="w-full h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                            />
+                            <select
+                              value={partnerGender}
+                              onChange={(e) => setPartnerGender(e.target.value as 'Nam' | 'Nữ')}
+                              className="h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs font-bold text-[#00796B]"
+                            >
+                              <option value="Nam">Nam</option>
+                              <option value="Nữ">Nữ</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-bold text-[#334155]">
+                            Dân tộc hai bên (Người nộp / Bên thứ hai):
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={applicantEthnicity}
+                              onChange={(e) => setApplicantEthnicity(e.target.value)}
+                              placeholder="Dân tộc bạn"
+                              className="w-1/2 h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                            />
+                            <input
+                              type="text"
+                              value={partnerEthnicity}
+                              onChange={(e) => setPartnerEthnicity(e.target.value)}
+                              placeholder="Dân tộc phối ngẫu"
+                              className="w-1/2 h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1 sm:col-span-2">
+                          <label className="text-xs font-bold text-[#334155]">
+                            Nơi cư trú bên kết hôn thứ hai:
+                          </label>
+                          <input
+                            type="text"
+                            value={partnerAddress}
+                            onChange={(e) => setPartnerAddress(e.target.value)}
+                            className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                          />
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col gap-1 sm:col-span-2">
+                        <label className="text-xs font-bold text-[#334155]">
+                          Mục đích sử dụng Giấy xác nhận tình trạng hôn nhân (Bắt buộc ghi cụ thể theo TT 04/2020/TT-BTP):
+                        </label>
                         <input
-                          type="date"
-                          value={partnerDob}
-                          onChange={(e) => setPartnerDob(e.target.value)}
-                          className="w-full h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                          type="text"
+                          value={maritalCertPurpose}
+                          placeholder="VD: Để đăng ký kết hôn với anh Phạm Văn Minh tại UBND..."
+                          onChange={(e) => setMaritalCertPurpose(e.target.value)}
+                          className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
                         />
-                        <select
-                          value={partnerGender}
-                          onChange={(e) => setPartnerGender(e.target.value as 'Nam' | 'Nữ')}
-                          className="h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs font-bold text-[#00796B]"
-                        >
-                          <option value="Nam">Nam</option>
-                          <option value="Nữ">Nữ</option>
-                        </select>
                       </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1 sm:col-span-2">
-                      <label className="text-xs font-bold text-[#334155]">
-                        Mục đích sử dụng Giấy xác nhận tình trạng hôn nhân (Bắt buộc ghi cụ thể theo TT 04/2020/TT-BTP):
-                      </label>
-                      <input
-                        type="text"
-                        value={maritalCertPurpose}
-                        placeholder="VD: Để đăng ký kết hôn với anh Phạm Văn Minh tại UBND..."
-                        onChange={(e) => setMaritalCertPurpose(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                      />
-                    </div>
+                    )}
 
                     <div className="flex flex-col gap-1 sm:col-span-2">
                       <label className="text-xs font-bold text-[#334155]">
@@ -1789,13 +1999,82 @@ export const FormAndIssueReporting: React.FC = () => {
                       </label>
                       <select
                         value={previousMaritalStatus}
-                        onChange={(e) => setPreviousMaritalStatus(e.target.value as 'SINGLE' | 'DIVORCED')}
+                        onChange={(e) => setPreviousMaritalStatus(e.target.value as 'SINGLE' | 'DIVORCED' | 'WIDOWED')}
                         className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#0F172A]"
                       >
                         <option value="SINGLE">Chưa từng kết hôn lần nào</option>
-                        <option value="DIVORCED">Đã ly hôn (Cần ghi rõ số Bản án/Quyết định của Tòa án)</option>
+                        <option value="DIVORCED">Đã ly hôn (Bắt buộc có Bản án/Quyết định ly hôn của Tòa án)</option>
+                        <option value="WIDOWED">Vợ / Chồng đã mất (Bắt buộc có Giấy chứng tử/Trích lục khai tử)</option>
                       </select>
                     </div>
+
+                    {/* Smart Checklist: Đã từng ly hôn */}
+                    {previousMaritalStatus === 'DIVORCED' && (
+                      <div className="sm:col-span-2 p-3.5 rounded-xl bg-amber-50 border border-amber-300 flex flex-col gap-2 text-xs text-amber-900 shadow-2xs">
+                        <div className="font-bold flex items-center gap-1.5 text-amber-800">
+                          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                          <span>Yêu cầu văn bản Tòa án đối với người đã ly hôn:</span>
+                        </div>
+                        <p className="text-xs text-amber-800">
+                          Bắt buộc xuất trình bản chính hoặc nộp bản sao trích lục Bản án/Quyết định ly hôn đã có hiệu lực pháp luật của Tòa án nhân dân kèm theo hồ sơ.
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                          <div>
+                            <label className="text-[11px] font-bold text-amber-900">Số Bản án / Quyết định ly hôn:</label>
+                            <input
+                              type="text"
+                              value={divorceJudgmentNumber}
+                              placeholder="VD: 45/2023/HNGĐ-ST"
+                              onChange={(e) => setDivorceJudgmentNumber(e.target.value)}
+                              className="w-full h-8 px-2.5 rounded-lg border border-amber-300 bg-white text-xs text-slate-800 mt-0.5"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[11px] font-bold text-amber-900">Ngày ban hành Bản án/Quyết định:</label>
+                            <input
+                              type="date"
+                              value={divorceJudgmentDate}
+                              onChange={(e) => setDivorceJudgmentDate(e.target.value)}
+                              className="w-full h-8 px-2.5 rounded-lg border border-amber-300 bg-white text-xs text-slate-800 mt-0.5"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Smart Checklist: Vợ/chồng đã mất */}
+                    {previousMaritalStatus === 'WIDOWED' && (
+                      <div className="sm:col-span-2 p-3.5 rounded-xl bg-amber-50 border border-amber-300 flex flex-col gap-2 text-xs text-amber-900 shadow-2xs">
+                        <div className="font-bold flex items-center gap-1.5 text-amber-800">
+                          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                          <span>Yêu cầu giấy tờ đối với người có vợ/chồng đã mất:</span>
+                        </div>
+                        <p className="text-xs text-amber-800">
+                          Bắt buộc nộp bản sao Giấy chứng tử hoặc Trích lục khai tử của vợ/chồng cũ đã mất.
+                        </p>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
+                          <div>
+                            <label className="text-[11px] font-bold text-amber-900">Số Giấy chứng tử / Trích lục khai tử:</label>
+                            <input
+                              type="text"
+                              value={deathCertNumber}
+                              placeholder="VD: 12/TLKT-2024"
+                              onChange={(e) => setDeathCertNumber(e.target.value)}
+                              className="w-full h-8 px-2.5 rounded-lg border border-amber-300 bg-white text-xs text-slate-800 mt-0.5"
+                            />
+                          </div>
+                          <div>
+                            <label className="text-[11px] font-bold text-amber-900">Ngày cấp Giấy chứng tử:</label>
+                            <input
+                              type="date"
+                              value={deathCertDate}
+                              onChange={(e) => setDeathCertDate(e.target.value)}
+                              className="w-full h-8 px-2.5 rounded-lg border border-amber-300 bg-white text-xs text-slate-800 mt-0.5"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -1839,6 +2118,104 @@ export const FormAndIssueReporting: React.FC = () => {
                         <option value="SEVERE">Khuyết tật nặng (Có Giấy xác nhận)</option>
                         <option value="EXTREMELY_SEVERE">Khuyết tật đặc biệt nặng (Có Giấy xác nhận)</option>
                       </select>
+                    </div>
+
+                    {/* Sổ hộ nghèo */}
+                    {(householdStatus === 'POOR' || householdStatus === 'NEAR_POOR') && (
+                      <div className="sm:col-span-2 flex flex-col gap-1 p-3 rounded-xl bg-amber-50 border border-amber-200">
+                        <label className="text-xs font-bold text-amber-900">
+                          Số sổ hộ nghèo / Giấy chứng nhận hộ nghèo:
+                        </label>
+                        <input
+                          type="text"
+                          value={poorHouseholdBookNumber}
+                          placeholder="VD: HN-2026/08912 do UBND cấp xã cấp"
+                          onChange={(e) => setPoorHouseholdBookNumber(e.target.value)}
+                          className="w-full h-9 px-3 rounded-xl border border-amber-300 bg-white text-xs text-slate-800 font-mono"
+                        />
+                      </div>
+                    )}
+
+                    {/* Giấy xác nhận khuyết tật */}
+                    {(disabilityLevel === 'SEVERE' || disabilityLevel === 'EXTREMELY_SEVERE') && (
+                      <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 rounded-xl bg-teal-50 border border-teal-200">
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-bold text-teal-900">Số Giấy xác nhận khuyết tật:</label>
+                          <input
+                            type="text"
+                            value={disabilityCertNumber}
+                            placeholder="VD: GKT-2025/001"
+                            onChange={(e) => setDisabilityCertNumber(e.target.value)}
+                            className="w-full h-9 px-3 rounded-xl border border-teal-300 bg-white text-xs text-slate-800 font-mono"
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-bold text-teal-900">Ngày cấp Giấy xác nhận:</label>
+                          <input
+                            type="date"
+                            value={disabilityCertIssueDate}
+                            onChange={(e) => setDisabilityCertIssueDate(e.target.value)}
+                            className="w-full h-9 px-3 rounded-xl border border-teal-300 bg-white text-xs text-slate-800"
+                          />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <label className="text-xs font-bold text-teal-900">Cơ quan cấp (Chủ tịch UBND):</label>
+                          <input
+                            type="text"
+                            value={disabilityCertIssuer}
+                            onChange={(e) => setDisabilityCertIssuer(e.target.value)}
+                            className="w-full h-9 px-3 rounded-xl border border-teal-300 bg-white text-xs text-slate-800"
+                          />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Thông tin người giám hộ */}
+                    <div className="sm:col-span-2 p-3.5 rounded-xl bg-slate-50 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      <div className="sm:col-span-2 text-xs font-bold text-slate-800">
+                        Thông tin người giám hộ / người chăm sóc (nếu có hoặc đối tượng khuyết tật đặc biệt nặng):
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-700">Họ và tên người giám hộ:</label>
+                        <input
+                          type="text"
+                          value={guardianName}
+                          placeholder="Họ và tên người giám hộ"
+                          onChange={(e) => setGuardianName(e.target.value)}
+                          className="w-full h-8 px-2.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 mt-0.5"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-700">Số CCCD người giám hộ (12 số):</label>
+                        <input
+                          type="text"
+                          value={guardianCccd}
+                          maxLength={12}
+                          placeholder="12 chữ số CCCD"
+                          onChange={(e) => setGuardianCccd(e.target.value)}
+                          className="w-full h-8 px-2.5 rounded-lg border border-slate-300 bg-white text-xs font-mono text-slate-800 mt-0.5"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-700">Quan hệ với người hưởng:</label>
+                        <input
+                          type="text"
+                          value={guardianRelation}
+                          placeholder="VD: Con đẻ, Bố mẹ, Vợ chồng"
+                          onChange={(e) => setGuardianRelation(e.target.value)}
+                          className="w-full h-8 px-2.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 mt-0.5"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-[11px] font-bold text-slate-700">Số điện thoại liên hệ:</label>
+                        <input
+                          type="tel"
+                          value={guardianPhone}
+                          placeholder="VD: 0987654321"
+                          onChange={(e) => setGuardianPhone(e.target.value)}
+                          className="w-full h-8 px-2.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 mt-0.5"
+                        />
+                      </div>
                     </div>
 
                     <div className="flex flex-col gap-1 sm:col-span-2">
@@ -1917,10 +2294,10 @@ export const FormAndIssueReporting: React.FC = () => {
                     type="button"
                     onClick={() => setShowPrintModal(true)}
                     className="px-4 py-2.5 bg-white hover:bg-[#F1F5F9] text-[#00796B] border border-[#CBD5E1] rounded-xl font-bold text-xs shadow-2xs flex items-center gap-1.5 transition-all duration-200 cursor-pointer"
-                    title="Xem trước mẫu tờ khai A4 chuẩn Nghị định 30/2020/NĐ-CP và in ấn"
+                    title="Xem trước và tải về file Word (.docx) hoặc PDF chuẩn Nghị định 30/2020/NĐ-CP"
                   >
-                    <Printer className="w-4 h-4 text-[#00796B]" />
-                    <span>Xem trước & In Mẫu A4</span>
+                    <FileDown className="w-4 h-4 text-[#00796B]" />
+                    <span>Xem & Tải Mẫu A4</span>
                   </button>
 
                   <button
@@ -2084,8 +2461,8 @@ export const FormAndIssueReporting: React.FC = () => {
                       onClick={() => setShowPrintModal(true)}
                       className="w-full py-2 px-3 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-2xs"
                     >
-                      <Printer className="w-3.5 h-3.5 text-[#80CBC4]" />
-                      <span>Xem & In Tờ Khai Chuẩn A4 Để Nộp Một Cửa</span>
+                      <FileDown className="w-3.5 h-3.5 text-[#80CBC4]" />
+                      <span>Xem & Tải Mẫu A4 (Word/PDF)</span>
                     </button>
 
                     <button
@@ -2597,409 +2974,93 @@ export const FormAndIssueReporting: React.FC = () => {
       {/* ========================================================================= */}
       {/* MODAL: XEM TRƯỚC & IN TỜ KHAI CHUẨN A4 (NGHỊ ĐỊNH 30/2020/NĐ-CP)          */}
       {/* ========================================================================= */}
-      {showPrintModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto a4-print-overlay">
-          <div className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col my-auto a4-print-sheet border border-[#CBD5E1] overflow-hidden">
-            {/* Top Toolbar (Hidden during print) */}
-            <div className="no-print bg-[#00796B] text-white px-6 py-4 flex flex-wrap items-center justify-between gap-3 border-b border-[#004D40]">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center font-bold">
-                  A4
-                </div>
-                <div>
-                  <h3 className="font-extrabold text-sm sm:text-base text-white">
-                    Xem Trước & In Tờ Khai Chuẩn A4
-                  </h3>
-                  <p className="text-xs text-teal-100">
-                    Quy chuẩn thể thức văn bản hành chính theo Nghị định 30/2020/NĐ-CP
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => window.print()}
-                  className="px-4 py-2 bg-white hover:bg-teal-50 text-[#00796B] rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm cursor-pointer active:scale-95"
-                >
-                  <Printer className="w-4 h-4" />
-                  <span>In Tờ Khai (Ctrl + P)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setShowPrintModal(false)}
-                  className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
-                  title="Đóng"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Printable A4 Sheet Body */}
-            <div className="p-8 sm:p-12 text-[#0F172A] bg-white text-[13pt] leading-relaxed font-serif select-text">
-              {/* Quốc hiệu & Tiêu ngữ */}
-              <div className="grid grid-cols-12 gap-4 pb-4">
-                <div className="col-span-5 text-center">
-                  <div className="text-[11pt] uppercase tracking-wide">
-                    {selectedFormType === 'CT01' ? 'CÔNG AN TỈNH AN GIANG' : 'ỦY BAN NHÂN DÂN TỈNH AN GIANG'}
-                  </div>
-                  <div className="text-[12pt] font-bold uppercase tracking-wide">
-                    {selectedFormType === 'CT01' ? `CÔNG AN ${currentWard.name.toUpperCase()}` : `UBND ${currentWard.name.toUpperCase()}`}
-                  </div>
-                  <div className="w-20 mx-auto my-1 border-b border-black"></div>
-                  <div className="text-[10pt] italic text-neutral-600">
-                    Số: ...... / TK-{selectedFormType}
-                  </div>
-                </div>
-
-                <div className="col-span-7 text-center">
-                  <div className="text-[12pt] font-bold uppercase tracking-wide">
-                    CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
-                  </div>
-                  <div className="text-[13pt] font-bold">
-                    Độc lập - Tự do - Hạnh phúc
-                  </div>
-                  <div className="w-44 mx-auto my-1 border-b-2 border-black"></div>
-                  <div className="text-[11pt] italic text-right pr-4 pt-1">
-                    {currentWard.name}, ngày {new Date().getDate()} tháng {new Date().getMonth() + 1} năm {new Date().getFullYear()}
-                  </div>
-                </div>
-              </div>
-
-              {/* Title per Circular */}
-              <div className="text-center my-6">
-                <h1 className="text-[16pt] font-extrabold uppercase tracking-wide">
-                  {selectedFormType === 'CT01'
-                    ? 'TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ'
-                    : selectedFormType === 'TK-KS'
-                    ? 'TỜ KHAI ĐĂNG KÝ KHAI SINH'
-                    : selectedFormType === 'TK-KH'
-                    ? 'TỜ KHAI ĐĂNG KÝ KẾT HÔN'
-                    : 'TỜ KHAI THÔNG TIN ĐỀ NGHỊ TRỢ CẤP XÃ HỘI'}
-                </h1>
-                <p className="text-[11pt] italic text-neutral-700 mt-1">
-                  {selectedFormType === 'CT01'
-                    ? '(Mẫu CT01 ban hành kèm theo Thông tư số 66/2023/TT-BCA ngày 17/11/2023 của Bộ trưởng Bộ Công an)'
-                    : selectedFormType === 'TK-KS'
-                    ? '(Ban hành kèm theo Thông tư số 04/2020/TT-BTP ngày 28/05/2020 của Bộ trưởng Bộ Tư pháp)'
-                    : selectedFormType === 'TK-KH'
-                    ? '(Ban hành kèm theo Thông tư số 04/2020/TT-BTP ngày 28/05/2020 của Bộ trưởng Bộ Tư pháp)'
-                    : '(Mẫu số 01 ban hành kèm theo Nghị định số 20/2021/NĐ-CP & Luật Bảo hiểm xã hội 2024)'}
-                </p>
-
-                <div className="mt-4 font-bold italic text-[12pt]">
-                  Kính gửi:{' '}
-                  {selectedFormType === 'CT01'
-                    ? `Công an ${currentWard.name}`
-                    : `Ủy ban nhân dân ${currentWard.name}`}
-                </div>
-              </div>
-
-              {/* FORM TYPE 1: CT01 CONTENT */}
-              {selectedFormType === 'CT01' && (
-                <div className="space-y-2.5 text-[12pt]">
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      1. Họ, chữ đệm và tên: <strong className="uppercase">{fullName || '...................................................'}</strong>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-6 font-medium">
-                      2. Ngày, tháng, năm sinh: <strong>{dob || '..../..../........'}</strong>
-                    </span>
-                    <span className="col-span-6 font-medium">
-                      3. Giới tính: <strong>{gender || 'Nam/Nữ'}</strong>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-6 font-medium">
-                      4. Số định danh cá nhân: <strong className="font-mono tracking-wider">{cccd || '................................'}</strong>
-                    </span>
-                    <span className="col-span-6 font-medium">
-                      5. Số điện thoại liên hệ: <strong>{phoneNumber || '................................'}</strong>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      6. Nơi thường trú: <span>{address || '.......................................................................................................'}</span>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      7. Nơi ở hiện tại: <span>{address || '.......................................................................................................'}</span>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-6 font-medium">
-                      8. Họ và tên chủ hộ nơi chuyển đến: <strong className="uppercase">{hostName || '................................'}</strong>
-                    </span>
-                    <span className="col-span-6 font-medium">
-                      9. Số ĐDCN chủ hộ: <strong className="font-mono">{hostCccd || '....................'}</strong>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      10. Quan hệ với chủ hộ: <strong>{hostRelation || '................................'}</strong>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      11. Nội dung đề nghị: <strong>{declarationScope || 'Đăng ký thường trú'}</strong> tại địa chỉ: {address}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* FORM TYPE 2: TK-KS CONTENT */}
-              {selectedFormType === 'TK-KS' && (
-                <div className="space-y-2.5 text-[12pt]">
-                  <div className="font-bold uppercase text-[11pt] border-b pb-1 text-neutral-800">
-                    I. Thông tin người được đăng ký khai sinh:
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      1. Họ, chữ đệm, tên: <strong className="uppercase text-[13pt]">{fullName || '...................................................'}</strong>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-4 font-medium">
-                      2. Giới tính: <strong>{gender || 'Nam/Nữ'}</strong>
-                    </span>
-                    <span className="col-span-4 font-medium">
-                      3. Dân tộc: <strong>Kinh</strong>
-                    </span>
-                    <span className="col-span-4 font-medium">
-                      4. Quốc tịch: <strong>Việt Nam</strong>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      5. Ngày, tháng, năm sinh: <strong>{dob || '..../..../........'}</strong> (Khớp Giấy chứng sinh y tế: <strong>{hospitalBirthDate}</strong>)
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      6. Nơi sinh: Bệnh viện / Trung tâm Y tế cấp Giấy chứng sinh bản chính
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      7. Quê quán: <span>{address || `${currentWard.name}, Tỉnh An Giang`}</span>
-                    </span>
-                  </div>
-
-                  <div className="font-bold uppercase text-[11pt] border-b pb-1 pt-2 text-neutral-800">
-                    II. Thông tin cha, mẹ:
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      - Họ và tên Mẹ: <strong className="uppercase">{motherName || '................................'}</strong> (Giấy chứng sinh: {hospitalMotherName})
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      - Họ và tên Cha: <strong className="uppercase">{fatherName || '................................'}</strong>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      - Tình trạng kết hôn cha mẹ: <strong>{parentsMarried === 'YES' ? 'Đã có Giấy chứng nhận kết hôn' : 'Chưa đăng ký kết hôn (Làm thủ tục kết hợp Nhận cha con)'}</strong>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      - Số ĐDCN/CCCD của người đi khai sinh: <strong className="font-mono">{cccd}</strong>
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* FORM TYPE 3: TK-KH CONTENT */}
-              {selectedFormType === 'TK-KH' && (
-                <div className="space-y-2.5 text-[12pt]">
-                  <div className="font-bold uppercase text-[11pt] border-b pb-1 text-neutral-800">
-                    Thông tin hai bên nam, nữ đăng ký kết hôn:
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-6 border p-3 rounded-lg">
-                    {/* Bên Nam */}
-                    <div className="space-y-1.5">
-                      <div className="font-bold text-[12pt] text-center border-b pb-1 uppercase">
-                        Bên Nam
-                      </div>
-                      <div>Họ tên: <strong className="uppercase">{gender === 'Nam' ? fullName : partnerName}</strong></div>
-                      <div>Ngày sinh: <strong>{gender === 'Nam' ? dob : partnerDob}</strong> (Đủ điều kiện ≥ 20 tuổi)</div>
-                      <div>Dân tộc: Kinh - Quốc tịch: Việt Nam</div>
-                      <div>Số CCCD: <span className="font-mono">{gender === 'Nam' ? cccd : '....................'}</span></div>
-                      <div>Nơi cư trú: {address}</div>
-                      <div>Tình trạng: Chưa từng kết hôn</div>
-                    </div>
-
-                    {/* Bên Nữ */}
-                    <div className="space-y-1.5">
-                      <div className="font-bold text-[12pt] text-center border-b pb-1 uppercase">
-                        Bên Nữ
-                      </div>
-                      <div>Họ tên: <strong className="uppercase">{gender === 'Nữ' ? fullName : partnerName}</strong></div>
-                      <div>Ngày sinh: <strong>{gender === 'Nữ' ? dob : partnerDob}</strong> (Đủ điều kiện ≥ 18 tuổi)</div>
-                      <div>Dân tộc: Kinh - Quốc tịch: Việt Nam</div>
-                      <div>Số CCCD: <span className="font-mono">{gender === 'Nữ' ? cccd : '....................'}</span></div>
-                      <div>Nơi cư trú: {address}</div>
-                      <div>Tình trạng: {previousMaritalStatus === 'SINGLE' ? 'Chưa từng kết hôn' : 'Đã ly hôn theo quyết định Tòa án'}</div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2 pt-2">
-                    <span className="col-span-12 font-medium">
-                      Mục đích đề nghị: <strong>{maritalCertPurpose || 'Để đăng ký kết hôn tại UBND cấp xã'}</strong>
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* FORM TYPE 4: TK-BTXH CONTENT */}
-              {selectedFormType === 'TK-BTXH' && (
-                <div className="space-y-2.5 text-[12pt]">
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      1. Họ, chữ đệm và tên đối tượng: <strong className="uppercase text-[13pt]">{fullName || '...................................................'}</strong>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-6 font-medium">
-                      2. Ngày, tháng, năm sinh: <strong>{dob || '..../..../........'}</strong>
-                    </span>
-                    <span className="col-span-6 font-medium">
-                      3. Giới tính: <strong>{gender || 'Nam/Nữ'}</strong>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      4. Số định danh cá nhân (CCCD): <strong className="font-mono tracking-wider">{cccd || '................................'}</strong>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      5. Nơi đăng ký thường trú: <span>{address || '.......................................................................................................'}</span>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      6. Diện đối tượng đề nghị hưởng trợ cấp:
-                      <div className="mt-1 p-2 bg-neutral-50 border rounded font-semibold text-[11pt]">
-                        {householdStatus === 'POOR'
-                          ? '• Người cao tuổi từ đủ 70 tuổi trở lên thuộc hộ nghèo (Luật BHXH 2024)'
-                          : householdStatus === 'NEAR_POOR'
-                          ? '• Người cao tuổi từ đủ 70 tuổi trở lên thuộc hộ cận nghèo (Luật BHXH 2024)'
-                          : disabilityLevel !== 'NONE'
-                          ? '• Người khuyết tật nặng / đặc biệt nặng (có Giấy xác nhận của Hội đồng cấp xã)'
-                          : '• Người cao tuổi không có lương hưu từ đủ 75 tuổi trở lên (Luật BHXH 2024 số 41/2024/QH15 & Nghị định 20/2021/NĐ-CP)'}
-                      </div>
-                    </span>
-                  </div>
-
-                  <div className="grid grid-cols-12 gap-2">
-                    <span className="col-span-12 font-medium">
-                      7. Số tài khoản & Ngân hàng nhận trợ cấp không dùng tiền mặt (Đề án 06):
-                      <div className="font-bold text-[12pt] mt-0.5 font-mono">
-                        {bankAccount || '(Chưa đăng ký số tài khoản ngân hàng chính chủ)'}
-                      </div>
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Lời cam đoan */}
-              <div className="mt-6 pt-2 italic text-[11pt] text-neutral-800">
-                Tôi xin cam đoan những lời khai trên đây là hoàn toàn đúng sự thật và chịu mọi trách nhiệm trước pháp luật về tính chính xác của các nội dung đã kê khai.
-              </div>
-
-              {/* Bảng chữ ký chuẩn Nghị định 30/2020/NĐ-CP */}
-              <div className="mt-6 pt-4 border-t border-neutral-300">
-                {selectedFormType === 'CT01' ? (
-                  <div className="grid grid-cols-3 gap-4 text-center">
-                    <div>
-                      <div className="font-bold text-[11pt] uppercase">Ý KIẾN CỦA CHỦ HỘ</div>
-                      <div className="text-[10pt] italic">(Ký, ghi rõ họ tên)</div>
-                      <div className="h-20"></div>
-                      <div className="font-bold">{hostName || '................................'}</div>
-                    </div>
-                    <div>
-                      <div className="font-bold text-[11pt] uppercase">CHỦ SỞ HỮU CHỖ Ở</div>
-                      <div className="text-[10pt] italic">(Ký, ghi rõ họ tên)</div>
-                      <div className="h-20"></div>
-                      <div className="font-bold">................................</div>
-                    </div>
-                    <div>
-                      <div className="font-bold text-[11pt] uppercase">NGƯỜI KÊ KHAI</div>
-                      <div className="text-[10pt] italic">(Ký, ghi rõ họ tên)</div>
-                      <div className="h-20"></div>
-                      <div className="font-bold">{fullName || '................................'}</div>
-                    </div>
-                  </div>
-                ) : selectedFormType === 'TK-KH' ? (
-                  <div className="grid grid-cols-2 gap-8 text-center">
-                    <div>
-                      <div className="font-bold text-[11pt] uppercase">BÊN NAM</div>
-                      <div className="text-[10pt] italic">(Ký trực tiếp trước mặt công chức tiếp nhận)</div>
-                      <div className="h-20"></div>
-                      <div className="font-bold">{gender === 'Nam' ? fullName : partnerName}</div>
-                    </div>
-                    <div>
-                      <div className="font-bold text-[11pt] uppercase">BÊN NỮ</div>
-                      <div className="text-[10pt] italic">(Ký trực tiếp trước mặt công chức tiếp nhận)</div>
-                      <div className="h-20"></div>
-                      <div className="font-bold">{gender === 'Nữ' ? fullName : partnerName}</div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 gap-8 text-center">
-                    <div>
-                      <div className="font-bold text-[11pt] uppercase">CÔNG CHỨC TIẾP NHẬN HỒ SƠ</div>
-                      <div className="text-[10pt] italic">(Ký, ghi rõ họ tên)</div>
-                      <div className="h-20"></div>
-                      <div className="font-bold">Bộ phận Một cửa UBND {currentWard.name}</div>
-                    </div>
-                    <div>
-                      <div className="font-bold text-[11pt] uppercase">NGƯỜI LÀM ĐƠN / KÊ KHAI</div>
-                      <div className="text-[10pt] italic">(Ký, ghi rõ họ tên)</div>
-                      <div className="h-20"></div>
-                      <div className="font-bold">{fullName || '................................'}</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Chú thích pháp lý dưới chân trang */}
-              <div className="mt-8 pt-2 border-t border-dashed border-neutral-300 text-[9pt] italic text-neutral-500">
-                * Lưu ý: Đối với các thủ tục Chứng thực chữ ký và Đăng ký kết hôn, người dân tuyệt đối không ký trước ở nhà mà phải ký trực tiếp trước mặt công chức tiếp nhận tại Bộ phận Một cửa (Nghị định 23/2015/NĐ-CP).
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <A4DocumentModal
+        isOpen={showPrintModal}
+        onClose={() => setShowPrintModal(false)}
+        formType={selectedFormType}
+        procedureCode={
+          selectedFormType === 'CT01'
+            ? 'TTHC-CR-01'
+            : selectedFormType === 'TK-KS'
+            ? 'TTHC-HT-01'
+            : selectedFormType === 'TK-KH'
+            ? 'TTHC-HT-02'
+            : 'TTHC-BT-01'
+        }
+        marriageMode={marriageMode}
+        procedureTitle={
+          selectedFormType === 'CT01'
+            ? 'Tờ khai thay đổi thông tin cư trú (Mẫu CT01)'
+            : selectedFormType === 'TK-KS'
+            ? 'Tờ khai đăng ký khai sinh (Thông tư 04/2020/TT-BTP)'
+            : selectedFormType === 'TK-KH'
+            ? (marriageMode === 'MARRIAGE_REGISTRATION' ? 'Tờ khai đăng ký kết hôn' : 'Tờ khai cấp Giấy xác nhận tình trạng hôn nhân')
+            : 'Tờ khai thông tin đề nghị trợ cấp xã hội (Nghị định 20/2021/NĐ-CP)'
+        }
+        legalBasis={
+          selectedFormType === 'CT01'
+            ? 'Theo Thông tư số 66/2023/TT-BCA của Bộ Công an'
+            : selectedFormType === 'TK-KS'
+            ? 'Theo Thông tư số 04/2020/TT-BTP của Bộ Tư pháp'
+            : selectedFormType === 'TK-KH'
+            ? 'Theo Luật Hôn nhân và Gia đình 2014 & Thông tư 04/2020/TT-BTP'
+            : 'Theo Nghị định số 20/2021/NĐ-CP & Luật BHXH 2024'
+        }
+        initialData={{
+          fullName,
+          gender,
+          dob,
+          idNumber: cccd,
+          phone: phoneNumber,
+          address,
+          // CT01
+          hostName,
+          hostCccd,
+          hostRelation,
+          declarationScope,
+          // TK-KS
+          childName: selectedFormType === 'TK-KS' ? fullName : undefined,
+          birthDate: selectedFormType === 'TK-KS' ? dob : undefined,
+          birthPlace: childBirthPlace,
+          childEthnicity,
+          childNationality,
+          birthCertNumber,
+          birthCertIssueDate,
+          fatherName,
+          fatherDob,
+          fatherResidence,
+          motherName,
+          motherDob,
+          motherResidence,
+          // TK-KH
+          spouseName: partnerName,
+          spouseDob: partnerDob,
+          spouseGender: partnerGender,
+          spouseIdNumber: partnerCccd,
+          spouseAddress: partnerAddress,
+          applicantEthnicity,
+          spouseEthnicity: partnerEthnicity,
+          applicantNationality,
+          spouseNationality: partnerNationality,
+          maritalCertPurpose,
+          divorceJudgmentNumber,
+          divorceJudgmentDate,
+          deathCertNumber,
+          deathCertDate,
+          // TK-BTXH
+          householdStatus,
+          poorHouseholdBookNumber,
+          disabilityLevel,
+          disabilityCertNumber,
+          disabilityCertIssueDate,
+          disabilityCertIssuer,
+          bankAccount,
+          guardianName,
+          guardianCccd,
+          guardianRelation,
+          guardianPhone,
+        }}
+      />
       </div>
     </main>
   );
