@@ -266,17 +266,30 @@ html.high-contrast-mode #root {
 }
 
 /* ========================================================================= */
+/* VIETNAMESE ADMINISTRATIVE TYPOGRAPHY (Nghị định 30/2020/NĐ-CP Standard)    */
+/* ========================================================================= */
+.font-administrative,
+.font-times,
+.a4-print-sheet {
+  font-family: 'Times New Roman', 'Tinos', Times, 'Liberation Serif', serif !important;
+  font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========================================================================= */
 /* A4 ADMINISTRATIVE DOCUMENT PRINT STYLES (NGHỊ ĐỊNH 30/2020/NĐ-CP)         */
 /* ========================================================================= */
 @media print {
   @page {
     size: A4 portrait;
-    margin: 15mm 15mm 15mm 20mm; /* Chuẩn lề NĐ 30: Trái 30-35mm (hoặc 20mm), Phải 15-20mm, Trên 20-25mm, Dưới 20-25mm */
+    margin: 20mm 15mm 20mm 25mm; /* Chuẩn lề NĐ 30: Trái 25-30mm, Phải 15-20mm, Trên 20-25mm, Dưới 20-25mm */
   }
 
-  body {
+  body, .a4-print-sheet {
     background-color: #ffffff !important;
     color: #000000 !important;
+    font-family: 'Times New Roman', 'Tinos', Times, 'Liberation Serif', serif !important;
     font-size: 13pt !important;
   }
 
