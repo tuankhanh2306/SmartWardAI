@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { askLegalRag, type RagResponse, type LegalCitation } from '../api/client';
 import { useNavigate } from 'react-router-dom';
 import { useWard } from '../context/WardContext';
@@ -128,49 +128,100 @@ export const CitizenPortal: React.FC = () => {
     return () => clearTimeout(timer);
   }, [messages, loading]);
 
+  // Reference to current active utterance to prevent Chromium garbage-collection bug
+  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  // Stop speech synthesis cleanly across all browsers
+  const stopSpeech = useCallback(() => {
+    if ('speechSynthesis' in window) {
+      try {
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+        window.speechSynthesis.cancel();
+      } catch (err) {
+        console.warn('speechSynthesis cancel warning:', err);
+      }
+    }
+    currentUtteranceRef.current = null;
+    setSpeakingId(null);
+  }, []);
+
   // Cancel speech on unmount
   useEffect(() => {
     return () => {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-      }
+      stopSpeech();
     };
-  }, []);
+  }, [stopSpeech]);
 
-  // Text-To-Speech (Hỗ trợ người cao tuổi & khiếm thị theo Đề án 06)
-  const toggleSpeech = (text: string, id: string) => {
+  // Start speech synthesis with Vietnamese voice preference
+  const startSpeech = useCallback((text: string, id: string) => {
     if (!('speechSynthesis' in window)) {
       alert('Trình duyệt của bạn hiện chưa hỗ trợ tính năng đọc âm thanh.');
       return;
     }
 
-    if (speakingId === id) {
-      window.speechSynthesis.cancel();
-      setSpeakingId(null);
-      return;
-    }
+    // Stop any currently playing audio first
+    stopSpeech();
 
-    window.speechSynthesis.cancel();
-
-    // Clean brackets, chunk codes, and special markdown characters for natural pronunciation
+    // Clean brackets, chunk codes, hashtags and markdown characters for natural pronunciation
     const clean = text
       .replace(/\[[A-Za-z0-9_\-]+\]/g, '')
-      .replace(/\*/g, '')
+      .replace(/[*#_~`>]/g, ' ')
       .replace(/•/g, ', ')
-      .replace(/#{1,6}\s?/g, '')
-      .replace(/\n+/g, '. ');
+      .replace(/\n+/g, '. ')
+      .replace(/\s+/g, ' ')
+      .trim();
 
-    const utterance = new SpeechSynthesisUtterance(clean);
-    utterance.lang = 'vi-VN';
-    utterance.rate = 0.95;
-    utterance.pitch = 1.0;
+    if (!clean) return;
 
-    utterance.onend = () => setSpeakingId(null);
-    utterance.onerror = () => setSpeakingId(null);
+    // Small delay to allow Chrome's cancel() queue to settle cleanly
+    setTimeout(() => {
+      try {
+        const utterance = new SpeechSynthesisUtterance(clean);
+        utterance.lang = 'vi-VN';
+        utterance.rate = 0.95;
+        utterance.pitch = 1.0;
 
-    setSpeakingId(id);
-    window.speechSynthesis.speak(utterance);
-  };
+        // Pick Vietnamese voice if present in system voices
+        if ('speechSynthesis' in window) {
+          const voices = window.speechSynthesis.getVoices();
+          const viVoice = voices.find((v) => v.lang.toLowerCase().includes('vi'));
+          if (viVoice) {
+            utterance.voice = viVoice;
+          }
+        }
+
+        utterance.onend = () => {
+          currentUtteranceRef.current = null;
+          setSpeakingId(null);
+        };
+        utterance.onerror = () => {
+          currentUtteranceRef.current = null;
+          setSpeakingId(null);
+        };
+
+        // Pin reference to prevent GC while speaking
+        currentUtteranceRef.current = utterance;
+        setSpeakingId(id);
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.error('Speech synthesis speak error:', err);
+        setSpeakingId(null);
+      }
+    }, 50);
+  }, [stopSpeech]);
+
+  // Text-To-Speech (Hỗ trợ 2 chế độ TẮT & MỞ rõ ràng để người dân nghe và tắt khi cần)
+  const toggleSpeech = useCallback((text: string, id: string) => {
+    if (speakingId === id) {
+      // Đang Mở đọc tin nhắn này -> Tắt ngay
+      stopSpeech();
+    } else {
+      // Đang Tắt hoặc chuyển sang tin nhắn mới -> Mở đọc
+      startSpeech(text, id);
+    }
+  }, [speakingId, stopSpeech, startSpeech]);
 
   const handleAsk = async (questionText?: string) => {
     const q = questionText || query;
@@ -493,24 +544,37 @@ export const CitizenPortal: React.FC = () => {
             </span>
           </div>
 
-          {/* Right: Accessibility Audio Read Toggle */}
+          {/* Right: Accessibility Audio Read Toggle (2 Chế độ Rõ Ràng MỞ / TẮT) */}
           <div className="flex items-center gap-2 shrink-0">
             <button
               type="button"
-              onClick={() => setIsAudioAutoPlay(!isAudioAutoPlay)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border transition-all cursor-pointer ${
+              onClick={() => {
+                const nextState = !isAudioAutoPlay;
+                setIsAudioAutoPlay(nextState);
+                if (!nextState) {
+                  stopSpeech();
+                }
+              }}
+              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
                 isAudioAutoPlay
-                  ? 'bg-[#0F2942] text-white border-[#0F2942]'
-                  : 'bg-[#F8FAFC] text-[#334155] border-[#CBD5E1] hover:bg-[#F1F5F9]'
+                  ? 'bg-[#00796B] text-white border-[#00695C] shadow-xs'
+                  : 'bg-white text-[#334155] border-[#CBD5E1] hover:bg-[#F8FAFC]'
               }`}
-              title="Bật/Tắt chế độ tự động đọc câu trả lời bằng giọng nói cho người lớn tuổi"
+              title="Bật hoặc Tắt chế độ tự động đọc câu trả lời bằng giọng nói cho người lớn tuổi"
             >
               {isAudioAutoPlay ? (
-                <Volume2 className="w-3.5 h-3.5 text-[#38BDF8]" />
+                <Volume2 className="w-3.5 h-3.5 text-[#80CBC4]" />
               ) : (
-                <VolumeX className="w-3.5 h-3.5 text-[#64748B]" />
+                <VolumeX className="w-3.5 h-3.5 text-[#94A3B8]" />
               )}
-              <span>{isAudioAutoPlay ? 'Tự động đọc giọng nói: Bật' : 'Tự động đọc giọng nói: Tắt'}</span>
+              <span>Tự động đọc:</span>
+              <span
+                className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${
+                  isAudioAutoPlay ? 'bg-[#80CBC4] text-[#004D40]' : 'bg-[#E2E8F0] text-[#475569]'
+                }`}
+              >
+                {isAudioAutoPlay ? 'MỞ' : 'TẮT'}
+              </span>
             </button>
           </div>
         </div>
@@ -808,26 +872,45 @@ export const CitizenPortal: React.FC = () => {
                           </button>
                         )}
 
-                        {/* Text-To-Speech Button (Prominent for Seniors) */}
+                        {/* Text-To-Speech Button (2 Chế độ Rõ Ràng: MỞ & TẮT để nghe và tắt khi cần) */}
                         <button
                           type="button"
                           onClick={() => toggleSpeech(msg.text, msg.id)}
-                          className={`flex items-center gap-1.5 font-bold text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
+                          className={`group inline-flex items-center gap-1.5 font-bold text-xs px-2.5 py-1.5 rounded-xl border transition-all duration-150 cursor-pointer shadow-2xs select-none active:scale-95 ${
                             speakingId === msg.id
-                              ? 'bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5]'
-                              : 'bg-slate-100 text-[#00796B] hover:bg-teal-50 border border-slate-200'
+                              ? 'bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] border-[#FCA5A5] ring-2 ring-[#FECACA]'
+                              : 'bg-[#F0FDFA] hover:bg-[#CCFBF1] text-[#00796B] border-[#99F6E4]'
                           }`}
-                          title={speakingId === msg.id ? 'Dừng đọc âm thanh' : 'Bấm để nghe đọc bằng giọng nói tiếng Việt'}
+                          title={
+                            speakingId === msg.id
+                              ? 'Chế độ: ĐANG MỞ ĐỌC. Bấm vào để TẮT ngay'
+                              : 'Chế độ: ĐANG TẮT. Bấm vào để MỞ nghe đọc to bằng giọng nói tiếng Việt'
+                          }
+                          aria-label={
+                            speakingId === msg.id
+                              ? 'Tắt nghe đọc to'
+                              : 'Mở nghe đọc to'
+                          }
                         >
                           {speakingId === msg.id ? (
                             <>
+                              <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#EF4444] opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#DC2626]"></span>
+                              </span>
                               <VolumeX className="w-3.5 h-3.5 text-[#DC2626]" />
-                              <span>Dừng đọc</span>
+                              <span className="font-extrabold text-[#B91C1C]">Đang đọc...</span>
+                              <span className="ml-0.5 px-2 py-0.5 rounded-md bg-[#DC2626] text-white text-[10px] font-black uppercase tracking-wider shadow-2xs">
+                                TẮT
+                              </span>
                             </>
                           ) : (
                             <>
-                              <Volume2 className="w-3.5 h-3.5 text-[#00796B]" />
+                              <Volume2 className="w-3.5 h-3.5 text-[#00796B] group-hover:scale-110 transition-transform" />
                               <span>Nghe đọc to</span>
+                              <span className="ml-0.5 px-2 py-0.5 rounded-md bg-[#00796B] text-white text-[10px] font-black uppercase tracking-wider shadow-2xs">
+                                MỞ
+                              </span>
                             </>
                           )}
                         </button>

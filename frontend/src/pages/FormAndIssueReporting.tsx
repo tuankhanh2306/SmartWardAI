@@ -44,7 +44,9 @@ import {
   Radio,
   ArrowRight,
   Printer,
-  X
+  X,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 
 
@@ -161,6 +163,91 @@ export const FormAndIssueReporting: React.FC = () => {
   const [gpsLoading, setGpsLoading] = useState(false);
   const [reportLoading, setReportLoading] = useState(false);
   const [reportResult, setReportResult] = useState<IssueReportResponse | null>(null);
+
+  // Text-To-Speech (Hỗ trợ người cao tuổi & khiếm thị theo Đề án 06 với 2 chế độ TẮT / MỞ)
+  const [speakingId, setSpeakingId] = useState<string | null>(null);
+  const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+
+  const stopSpeech = useCallback(() => {
+    if ('speechSynthesis' in window) {
+      try {
+        if (window.speechSynthesis.paused) {
+          window.speechSynthesis.resume();
+        }
+        window.speechSynthesis.cancel();
+      } catch (err) {
+        console.warn('speechSynthesis cancel warning:', err);
+      }
+    }
+    currentUtteranceRef.current = null;
+    setSpeakingId(null);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      stopSpeech();
+    };
+  }, [stopSpeech]);
+
+  const startSpeech = useCallback((text: string, id: string) => {
+    if (!('speechSynthesis' in window)) {
+      alert('Trình duyệt của bạn hiện chưa hỗ trợ tính năng đọc âm thanh.');
+      return;
+    }
+
+    stopSpeech();
+
+    const clean = text
+      .replace(/\[[A-Za-z0-9_\-]+\]/g, '')
+      .replace(/[*#_~`>]/g, ' ')
+      .replace(/•/g, ', ')
+      .replace(/\n+/g, '. ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!clean) return;
+
+    setTimeout(() => {
+      try {
+        const utterance = new SpeechSynthesisUtterance(clean);
+        utterance.lang = 'vi-VN';
+        utterance.rate = 0.95;
+        utterance.pitch = 1.0;
+
+        if ('speechSynthesis' in window) {
+          const voices = window.speechSynthesis.getVoices();
+          const viVoice = voices.find((v) => v.lang.toLowerCase().includes('vi'));
+          if (viVoice) {
+            utterance.voice = viVoice;
+          }
+        }
+
+        utterance.onend = () => {
+          currentUtteranceRef.current = null;
+          setSpeakingId(null);
+        };
+        utterance.onerror = () => {
+          currentUtteranceRef.current = null;
+          setSpeakingId(null);
+        };
+
+        currentUtteranceRef.current = utterance;
+        setSpeakingId(id);
+        window.speechSynthesis.speak(utterance);
+      } catch (err) {
+        console.error('Speech synthesis error:', err);
+        setSpeakingId(null);
+      }
+    }, 50);
+  }, [stopSpeech]);
+
+  const toggleSpeech = useCallback((text: string, id: string) => {
+    if (speakingId === id) {
+      stopSpeech();
+    } else {
+      startSpeech(text, id);
+    }
+  }, [speakingId, stopSpeech, startSpeech]);
   const phoneInputRef = useRef<HTMLInputElement>(null);
 
   // Incident Map Pin Dropper Refs
@@ -922,11 +1009,56 @@ export const FormAndIssueReporting: React.FC = () => {
             {/* Red Alert Box: Signature Certification Rule */}
             <div className="lg:col-span-4 p-5 rounded-2xl bg-[#FEF2F2] border-2 border-[#FCA5A5] shadow-xs flex flex-col justify-between gap-3">
               <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#DC2626] text-white uppercase tracking-wider">
-                    Quy tắc bắt buộc
-                  </span>
-                  <span className="text-xs font-bold text-[#991B1B]">• Thủ tục Chứng thực</span>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#DC2626] text-white uppercase tracking-wider">
+                      Quy tắc bắt buộc
+                    </span>
+                    <span className="text-xs font-bold text-[#991B1B]">• Thủ tục Chứng thực</span>
+                  </div>
+
+                  {/* Text-To-Speech Button (2 Chế độ Rõ Ràng: MỞ & TẮT để nghe và tắt khi cần) */}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      toggleSpeech(
+                        'Quy tắc bắt buộc đối với thủ tục chứng thực: Tuyệt đối không ký tên trước ở nhà! Đối với chứng thực chữ ký và chứng thực văn bản phân chia hoặc từ chối nhận di sản thừa kế theo Nghị định 23 năm 2015: Người dân tuyệt đối không được ký tên sẵn ở nhà vào tờ khai hoặc văn bản. Chữ ký bắt buộc phải được ký trực tiếp trước mặt công chức Tư pháp Hộ tịch tại Bộ phận Một cửa. Nếu đã ký sẵn ở nhà, hồ sơ sẽ bị hủy và bắt buộc phải in lại bản mới để ký trực tiếp.',
+                        'warning-signature'
+                      )
+                    }
+                    className={`group inline-flex items-center gap-1.5 font-bold text-[11px] px-2 py-1 rounded-lg border transition-all duration-150 cursor-pointer shadow-2xs select-none active:scale-95 ${
+                      speakingId === 'warning-signature'
+                        ? 'bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] border-[#FCA5A5] ring-2 ring-[#FECACA]'
+                        : 'bg-white hover:bg-[#FEE2E2] text-[#991B1B] border-[#FECACA]'
+                    }`}
+                    title={
+                      speakingId === 'warning-signature'
+                        ? 'Chế độ: ĐANG MỞ ĐỌC. Bấm vào để TẮT ngay'
+                        : 'Chế độ: ĐANG TẮT. Bấm vào để MỞ nghe đọc to bằng giọng nói'
+                    }
+                  >
+                    {speakingId === 'warning-signature' ? (
+                      <>
+                        <span className="relative flex h-2 w-2">
+                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#EF4444] opacity-75"></span>
+                          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#DC2626]"></span>
+                        </span>
+                        <VolumeX className="w-3.5 h-3.5 text-[#DC2626]" />
+                        <span className="font-extrabold text-[#B91C1C]">Đang đọc...</span>
+                        <span className="ml-0.5 px-1.5 py-0.5 rounded-md bg-[#DC2626] text-white text-[9px] font-black uppercase tracking-wider shadow-2xs">
+                          TẮT
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 className="w-3.5 h-3.5 text-[#991B1B] group-hover:scale-110 transition-transform" />
+                        <span>Nghe đọc to</span>
+                        <span className="ml-0.5 px-1.5 py-0.5 rounded-md bg-[#991B1B] text-white text-[9px] font-black uppercase tracking-wider shadow-2xs">
+                          MỞ
+                        </span>
+                      </>
+                    )}
+                  </button>
                 </div>
                 <h3 className="text-sm sm:text-base font-extrabold text-[#991B1B]">
                   Tuyệt Đối KHÔNG Ký Tên Trước Ở Nhà!
@@ -1830,12 +1962,66 @@ export const FormAndIssueReporting: React.FC = () => {
                     ) : (
                       <XCircle className="w-6 h-6 shrink-0 mt-0.5 text-[#DC2626]" />
                     )}
-                    <div>
-                      <h3 className="font-bold text-sm">
-                        {precheckResult.overallValid
-                          ? 'Tờ Khai Hợp Lệ - Đã Gửi Sơ Duyệt Lên Quầy Một Cửa'
-                          : 'Phát Hiện Lỗi Cần Chỉnh Sửa Trước Khi Nộp Quầy'}
-                      </h3>
+                    <div className="flex-1">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h3 className="font-bold text-sm">
+                          {precheckResult.overallValid
+                            ? 'Tờ Khai Hợp Lệ - Đã Gửi Sơ Duyệt Lên Quầy Một Cửa'
+                            : 'Phát Hiện Lỗi Cần Chỉnh Sửa Trước Khi Nộp Quầy'}
+                        </h3>
+
+                        {/* Text-To-Speech Button (2 Chế độ Rõ Ràng: MỞ & TẮT để nghe và tắt khi cần) */}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const errs = precheckResult.fieldValidations
+                              .filter((f) => !f.valid)
+                              .map((f) => `${f.fieldName}: ${f.errorMessage || 'chưa hợp lệ'}`)
+                              .join('. ');
+                            const summaryText = `Kết quả rà soát: ${
+                              precheckResult.overallValid
+                                ? 'Tờ khai hợp lệ, đã gửi sơ duyệt lên quầy một cửa.'
+                                : `Phát hiện lỗi cần chỉnh sửa trước khi nộp quầy. Chi tiết: ${errs}`
+                            }`;
+                            toggleSpeech(summaryText, 'precheck-diagnostic');
+                          }}
+                          className={`group inline-flex items-center gap-1.5 font-bold text-xs px-2.5 py-1 rounded-xl border transition-all duration-150 cursor-pointer shadow-2xs select-none active:scale-95 ${
+                            speakingId === 'precheck-diagnostic'
+                              ? 'bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] border-[#FCA5A5] ring-2 ring-[#FECACA]'
+                              : precheckResult.overallValid
+                              ? 'bg-white hover:bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]'
+                              : 'bg-white hover:bg-[#FEF2F2] text-[#991B1B] border-[#FECACA]'
+                          }`}
+                          title={
+                            speakingId === 'precheck-diagnostic'
+                              ? 'Chế độ: ĐANG MỞ ĐỌC. Bấm vào để TẮT ngay'
+                              : 'Chế độ: ĐANG TẮT. Bấm vào để MỞ nghe đọc to kết quả rà soát'
+                          }
+                        >
+                          {speakingId === 'precheck-diagnostic' ? (
+                            <>
+                              <span className="relative flex h-2 w-2">
+                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#EF4444] opacity-75"></span>
+                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#DC2626]"></span>
+                              </span>
+                              <VolumeX className="w-3.5 h-3.5 text-[#DC2626]" />
+                              <span className="font-extrabold text-[#B91C1C]">Đang đọc...</span>
+                              <span className="ml-0.5 px-2 py-0.5 rounded-md bg-[#DC2626] text-white text-[10px] font-black uppercase tracking-wider shadow-2xs">
+                                TẮT
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <Volume2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                              <span>Nghe đọc to</span>
+                              <span className="ml-0.5 px-2 py-0.5 rounded-md bg-[#00796B] text-white text-[10px] font-black uppercase tracking-wider shadow-2xs">
+                                MỞ
+                              </span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+
                       <p className="text-xs mt-1 leading-relaxed">
                         {precheckResult.overallValid
                           ? 'Tất cả các trường thông tin CCCD, độ tuổi và điều kiện pháp lý đều khớp quy định. Phiếu sơ duyệt đã được đồng bộ sang Bàn Cán Bộ.'
