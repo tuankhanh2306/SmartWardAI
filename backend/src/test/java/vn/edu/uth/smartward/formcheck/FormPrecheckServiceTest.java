@@ -10,6 +10,9 @@ import vn.edu.uth.smartward.formcheck.dto.ExtractedFormFields;
 import vn.edu.uth.smartward.formcheck.dto.FormPrecheckReport;
 import vn.edu.uth.smartward.formcheck.dto.StructuredFormPrecheckRequest;
 import vn.edu.uth.smartward.formcheck.dto.StructuredFormPrecheckResponse;
+import vn.edu.uth.smartward.formcheck.dto.CrossCheckStatus;
+import vn.edu.uth.smartward.formcheck.dto.DocumentCrossCheckResult;
+import vn.edu.uth.smartward.formcheck.dto.FieldDiscrepancy;
 
 import java.util.Map;
 
@@ -496,5 +499,361 @@ class FormPrecheckServiceTest {
 
         assertNotNull(resp);
         assertTrue(resp.isOverallValid(), "Severe disability with valid disability certificate and guardian info must pass");
+    }
+
+    // =========================================================================
+    // FEATURE F8: MULTI-DOCUMENT OCR CROSS-CHECK UNIT TESTS (15 Test Cases)
+    // =========================================================================
+
+    @Test
+    void testCrossCheck_birthCertificate_fullMatch() {
+        DocumentCrossCheckResult result = formPrecheckService.crossCheckBirthCertificate(
+                "2026-10-15",
+                "LÊ THỊ BÍCH NGỌC",
+                "TRẦN MINH KHÔI",
+                "Nam",
+                "2026-10-15",
+                "LÊ THỊ BÍCH NGỌC",
+                "TRẦN MINH KHÔI",
+                "Nam",
+                0.95,
+                true
+        );
+
+        assertNotNull(result);
+        assertEquals("GIAY_CHUNG_SINH", result.getDocumentType());
+        assertEquals(CrossCheckStatus.MATCH, result.getOverallStatus());
+        assertFalse(result.isBlocking());
+        assertEquals(4, result.getDiscrepancies().size());
+        assertTrue(result.getDiscrepancies().stream().allMatch(d -> d.getStatus() == CrossCheckStatus.MATCH));
+    }
+
+    @Test
+    void testCrossCheck_birthCertificate_warning_abbreviatedMotherName() {
+        DocumentCrossCheckResult result = formPrecheckService.crossCheckBirthCertificate(
+                "2026-10-15",
+                "NGUYỄN THỊ KIM LOAN",
+                "TRẦN MINH KHÔI",
+                "Nam",
+                "2026-10-15",
+                "NGUYỄN T. KIM LOAN",
+                "TRẦN MINH KHÔI",
+                "Nam",
+                0.92,
+                true
+        );
+
+        assertNotNull(result);
+        assertEquals(CrossCheckStatus.WARNING, result.getOverallStatus());
+        assertFalse(result.isBlocking(), "Abbreviated mother middle name should not block submission");
+        FieldDiscrepancy motherDisc = result.getDiscrepancies().stream()
+                .filter(d -> "motherFullName".equals(d.getFieldKey()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(motherDisc);
+        assertEquals(CrossCheckStatus.WARNING, motherDisc.getStatus());
+        assertEquals("ABBREVIATED_MIDDLE_NAME", motherDisc.getReasonCode());
+    }
+
+    @Test
+    void testCrossCheck_birthCertificate_conflict_dobMismatch() {
+        DocumentCrossCheckResult result = formPrecheckService.crossCheckBirthCertificate(
+                "2026-10-18",
+                "LÊ THỊ BÍCH NGỌC",
+                "TRẦN MINH KHÔI",
+                "Nam",
+                "2026-10-15",
+                "LÊ THỊ BÍCH NGỌC",
+                "TRẦN MINH KHÔI",
+                "Nam",
+                0.95,
+                true
+        );
+
+        assertNotNull(result);
+        assertEquals(CrossCheckStatus.CONFLICT, result.getOverallStatus());
+        assertTrue(result.isBlocking(), "DOB mismatch with hospital birth certificate must block submission");
+        FieldDiscrepancy dobDisc = result.getDiscrepancies().stream()
+                .filter(d -> "childDob".equals(d.getFieldKey()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(dobDisc);
+        assertEquals(CrossCheckStatus.CONFLICT, dobDisc.getStatus());
+        assertEquals("BIRTH_CERT_DATE_MISMATCH", dobDisc.getReasonCode());
+    }
+
+    @Test
+    void testCrossCheck_birthCertificate_conflict_genderMismatch() {
+        DocumentCrossCheckResult result = formPrecheckService.crossCheckBirthCertificate(
+                "2026-10-15",
+                "LÊ THỊ BÍCH NGỌC",
+                "TRẦN MINH KHÔI",
+                "Nam",
+                "2026-10-15",
+                "LÊ THỊ BÍCH NGỌC",
+                "TRẦN MINH KHÔI",
+                "Nữ",
+                0.95,
+                true
+        );
+
+        assertNotNull(result);
+        assertEquals(CrossCheckStatus.CONFLICT, result.getOverallStatus());
+        assertTrue(result.isBlocking());
+        FieldDiscrepancy gDisc = result.getDiscrepancies().stream()
+                .filter(d -> "gender".equals(d.getFieldKey()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(gDisc);
+        assertEquals(CrossCheckStatus.CONFLICT, gDisc.getStatus());
+        assertEquals("GENDER_MISMATCH", gDisc.getReasonCode());
+    }
+
+    @Test
+    void testCrossCheck_birthCertificate_verbalDateParse() {
+        DocumentCrossCheckResult result = formPrecheckService.crossCheckBirthCertificate(
+                "2026-08-15",
+                "LÊ THỊ BÍCH NGỌC",
+                "TRẦN MINH KHÔI",
+                "Nam",
+                "Ngày mười lăm tháng tám năm hai nghìn không trăm hai mươi sáu",
+                "LÊ THỊ BÍCH NGỌC",
+                "TRẦN MINH KHÔI",
+                "Nam",
+                0.95,
+                true
+        );
+
+        assertNotNull(result);
+        assertEquals(CrossCheckStatus.MATCH, result.getOverallStatus(), "Verbal Vietnamese date must parse and match");
+        assertFalse(result.isBlocking());
+    }
+
+    @Test
+    void testCrossCheck_deathReport_fullMatch() {
+        DocumentCrossCheckResult result = formPrecheckService.crossCheckDeathReport(
+                "TRẦN VĂN HÙNG",
+                "079095012345",
+                "2026-11-10",
+                "2026-11-11",
+                "Số 45 Lê Duẩn, Phường Bến Nghé, Quận 1",
+                "123/GBT-2026"
+        );
+
+        assertNotNull(result);
+        assertEquals("GIAY_BAO_TU", result.getDocumentType());
+        assertEquals(CrossCheckStatus.MATCH, result.getOverallStatus());
+        assertFalse(result.isBlocking());
+    }
+
+    @Test
+    void testCrossCheck_deathReport_warning_placeAbbreviation() {
+        DocumentCrossCheckResult result = formPrecheckService.crossCheckDeathReport(
+                "TRẦN VĂN HÙNG",
+                "079095012345",
+                "2026-11-10",
+                "2026-11-11",
+                "P. Bến Nghé, Q.1, TP. Hồ Chí Minh",
+                "123/GBT-2026"
+        );
+
+        assertNotNull(result);
+        assertEquals(CrossCheckStatus.WARNING, result.getOverallStatus());
+        assertFalse(result.isBlocking());
+        assertTrue(result.getDiscrepancies().stream().anyMatch(d -> "PLACE_ABBREVIATION_DETECTED".equals(d.getReasonCode())));
+    }
+
+    @Test
+    void testCrossCheck_deathReport_conflict_temporalImpossibility() {
+        // Death occurred on 2026-11-15, but report was issued on 2026-11-11 (impossible)
+        DocumentCrossCheckResult result = formPrecheckService.crossCheckDeathReport(
+                "TRẦN VĂN HÙNG",
+                "079095012345",
+                "2026-11-15",
+                "2026-11-11",
+                "Phường Bến Nghé, Quận 1",
+                "123/GBT-2026"
+        );
+
+        assertNotNull(result);
+        assertEquals(CrossCheckStatus.CONFLICT, result.getOverallStatus());
+        assertTrue(result.isBlocking(), "Death after report issuance date must block submission");
+        FieldDiscrepancy deathDisc = result.getDiscrepancies().stream()
+                .filter(d -> "dateOfDeath".equals(d.getFieldKey()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(deathDisc);
+        assertEquals(CrossCheckStatus.CONFLICT, deathDisc.getStatus());
+        assertEquals("TEMPORAL_IMPOSSIBILITY_DEATH_AFTER_REPORT", deathDisc.getReasonCode());
+    }
+
+    @Test
+    void testCrossCheck_disabilityCert_fullMatch() {
+        DocumentCrossCheckResult result = formPrecheckService.crossCheckDisabilityCert(
+                "NGUYỄN VĂN AN",
+                "DAC_BIET_NANG",
+                "DAC_BIET_NANG",
+                "GCN-KT-2025-01",
+                0.90,
+                true
+        );
+
+        assertNotNull(result);
+        assertEquals("GIAY_XAC_NHAN_KHUYET_TAT", result.getDocumentType());
+        assertEquals(CrossCheckStatus.MATCH, result.getOverallStatus());
+        assertFalse(result.isBlocking());
+    }
+
+    @Test
+    void testCrossCheck_disabilityCert_conflict_mildLevelDeclaredAsSevere() {
+        DocumentCrossCheckResult result = formPrecheckService.crossCheckDisabilityCert(
+                "NGUYỄN VĂN AN",
+                "DAC_BIET_NANG",
+                "NHE",
+                "GCN-KT-2025-01",
+                0.90,
+                true
+        );
+
+        assertNotNull(result);
+        assertEquals(CrossCheckStatus.CONFLICT, result.getOverallStatus());
+        assertTrue(result.isBlocking(), "Mild disability declared as severe must block submission");
+        FieldDiscrepancy levelDisc = result.getDiscrepancies().stream()
+                .filter(d -> "disabilityLevel".equals(d.getFieldKey()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(levelDisc);
+        assertEquals(CrossCheckStatus.CONFLICT, levelDisc.getStatus());
+        assertEquals("DISABILITY_LEVEL_CONFLICT", levelDisc.getReasonCode());
+    }
+
+    @Test
+    void testCrossCheck_disabilityCert_warning_missingRedStamp() {
+        DocumentCrossCheckResult result = formPrecheckService.crossCheckDisabilityCert(
+                "NGUYỄN VĂN AN",
+                "DAC_BIET_NANG",
+                "DAC_BIET_NANG",
+                "GCN-KT-2025-01",
+                0.15,
+                false
+        );
+
+        assertNotNull(result);
+        assertEquals(CrossCheckStatus.WARNING, result.getOverallStatus());
+        assertFalse(result.isBlocking());
+        assertTrue(result.getDiscrepancies().stream().anyMatch(d -> "MISSING_RED_STAMP".equals(d.getReasonCode())));
+    }
+
+    @Test
+    void testCrossCheck_landCertificate_warning_parcelSubdivision() {
+        DocumentCrossCheckResult result = formPrecheckService.crossCheckLandCertificate(
+                "LÊ VĂN BÌNH",
+                "123",
+                "123-1",
+                "Đường Lê Duẩn, Phường Bến Nghé, Quận 1",
+                "Đường Lê Duẩn, Phường Bến Nghé, Quận 1",
+                "05",
+                "150.5"
+        );
+
+        assertNotNull(result);
+        assertEquals("GCN_QSD_DAT", result.getDocumentType());
+        assertEquals(CrossCheckStatus.WARNING, result.getOverallStatus());
+        assertFalse(result.isBlocking(), "Parcel subdivision should flag warning without blocking");
+        FieldDiscrepancy parcelDisc = result.getDiscrepancies().stream()
+                .filter(d -> "parcelNumber".equals(d.getFieldKey()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(parcelDisc);
+        assertEquals(CrossCheckStatus.WARNING, parcelDisc.getStatus());
+        assertEquals("PARCEL_SUBDIVISION_DETECTED", parcelDisc.getReasonCode());
+    }
+
+    @Test
+    void testCrossCheck_landCertificate_conflict_parcelNumberMismatch() {
+        DocumentCrossCheckResult result = formPrecheckService.crossCheckLandCertificate(
+                "LÊ VĂN BÌNH",
+                "123",
+                "456",
+                "Đường Lê Duẩn, Phường Bến Nghé, Quận 1",
+                "Đường Lê Duẩn, Phường Bến Nghé, Quận 1",
+                "05",
+                "150.5"
+        );
+
+        assertNotNull(result);
+        assertEquals(CrossCheckStatus.CONFLICT, result.getOverallStatus());
+        assertTrue(result.isBlocking(), "Mismatched parcel number must block submission");
+        FieldDiscrepancy parcelDisc = result.getDiscrepancies().stream()
+                .filter(d -> "parcelNumber".equals(d.getFieldKey()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(parcelDisc);
+        assertEquals(CrossCheckStatus.CONFLICT, parcelDisc.getStatus());
+        assertEquals("PARCEL_NUMBER_MISMATCH", parcelDisc.getReasonCode());
+    }
+
+    @Test
+    void testCrossCheck_landCertificate_warning_streetAbbreviation() {
+        DocumentCrossCheckResult result = formPrecheckService.crossCheckLandCertificate(
+                "LÊ VĂN BÌNH",
+                "123",
+                "123",
+                "Đường Lê Duẩn, Phường Bến Nghé, Quận 1",
+                "Đ. Lê Duẩn, Phường Bến Nghé, Quận 1",
+                "05",
+                "150.5"
+        );
+
+        assertNotNull(result);
+        assertEquals(CrossCheckStatus.WARNING, result.getOverallStatus());
+        assertFalse(result.isBlocking());
+        FieldDiscrepancy addrDisc = result.getDiscrepancies().stream()
+                .filter(d -> "landAddress".equals(d.getFieldKey()))
+                .findFirst()
+                .orElse(null);
+        assertNotNull(addrDisc);
+        assertEquals(CrossCheckStatus.WARNING, addrDisc.getStatus());
+        assertEquals("STREET_NAME_ABBREVIATION_DETECTED", addrDisc.getReasonCode());
+    }
+
+    @Test
+    void testPrecheckStructuredForm_withCrossCheck_conflictShouldSetOverallValidFalse() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-HT-01")
+                .formType("TK-KS")
+                .fullName("TRẦN GIA BẢO")
+                .dateOfBirth("2026-10-15")
+                .gender("Nam")
+                .citizenCccd("089195001234")
+                .address("Phường Mỹ Xuyên, An Giang")
+                .childBirthPlace("Bệnh viện Đa khoa An Giang")
+                .childEthnicity("Kinh")
+                .childNationality("Việt Nam")
+                .birthCertNumber("1234/GCS")
+                .birthCertIssueDate("2026-10-16")
+                .fatherDob("1998-05-20")
+                .fatherResidence("Phường Mỹ Xuyên, An Giang")
+                .motherDob("2000-08-14")
+                .motherResidence("Phường Mỹ Xuyên, An Giang")
+                .formData(Map.of(
+                        // Hospital Birth date is mismatched: 2026-10-18 vs 2026-10-15
+                        "hospitalBirthDate", "2026-10-18",
+                        "motherName", "LÊ THỊ MỸ LINH",
+                        "hospitalMotherName", "LÊ THỊ MỸ LINH",
+                        "fatherName", "TRẦN VĂN HÙNG",
+                        "parentsMarried", "YES"
+                ))
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertFalse(resp.isOverallValid(), "Cross-check date mismatch conflict must set overallValid to false");
+        assertNotNull(resp.getCrossCheckResults(), "Must return cross-check results list");
+        assertFalse(resp.getCrossCheckResults().isEmpty(), "Must contain at least 1 cross-check result");
+        assertNotNull(resp.getPrimaryCrossCheck(), "Must return primary cross-check result");
+        assertEquals(CrossCheckStatus.CONFLICT, resp.getPrimaryCrossCheck().getOverallStatus());
+        assertTrue(resp.getPrimaryCrossCheck().isBlocking());
     }
 }

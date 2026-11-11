@@ -15,8 +15,8 @@ import {
   getLiveSubmittedDossiers,
   updateLiveDossierStatus,
   updateLiveIncidentStatus,
-  consumeLiveDossierVaultToken,
-  isVaultTokenConsumedForDossier,
+  viewVaultDocument,
+  uploadVaultDocument,
   type HitlGrayZoneItem,
 } from '../api/client';
 import L from 'leaflet';
@@ -40,6 +40,8 @@ import {
   FileCheck2,
   ArrowLeft,
   UserCheck,
+  ShieldCheck,
+  AlertCircle,
 } from 'lucide-react';
 
 interface LocalIncident {
@@ -68,12 +70,16 @@ interface QuickDossierItem {
   status: 'PENDING' | 'VALID' | 'HAS_ERRORS';
   cccd: string;
   errorCount: number;
+  vaultToken?: string;
+  vaultDocId?: string;
+  vaultViewUsed?: boolean;
   details?: {
     dob?: string;
     gender?: string;
     address?: string;
     confidence?: number;
     issues?: string[];
+    vaultToken?: string;
   };
 }
 
@@ -129,16 +135,121 @@ export const PerWardDashboard: React.FC = () => {
   const [selectedDossier, setSelectedDossier] = useState<QuickDossierItem | null>(null);
   const [showVaultScan, setShowVaultScan] = useState<boolean>(false);
   const [vaultTokenConsumed, setVaultTokenConsumed] = useState<boolean>(false);
+  const [vaultImageBlobUrl, setVaultImageBlobUrl] = useState<string | null>(null);
+  const [vaultLoading, setVaultLoading] = useState<boolean>(false);
+  const [vaultError, setVaultError] = useState<string | null>(null);
+  const [vaultStatus, setVaultStatus] = useState<'IDLE' | 'LOADING' | 'VIEWING' | 'CONSUMED_410' | 'ERROR'>('IDLE');
 
-  // Reset Vault One-Time Token (OTT) state whenever Officer switches selectedDossier
+  // Reset Vault One-Time Token (OTT) state and cleanup blob URL whenever Officer switches selectedDossier
   useEffect(() => {
+    if (vaultImageBlobUrl) {
+      URL.revokeObjectURL(vaultImageBlobUrl);
+      setVaultImageBlobUrl(null);
+    }
+    setVaultLoading(false);
+    setVaultError(null);
     setShowVaultScan(false);
+
     if (selectedDossier) {
-      setVaultTokenConsumed(isVaultTokenConsumedForDossier(selectedDossier.id));
+      if (selectedDossier.vaultViewUsed) {
+        setVaultStatus('CONSUMED_410');
+        setVaultTokenConsumed(true);
+      } else {
+        setVaultStatus('IDLE');
+        setVaultTokenConsumed(false);
+      }
     } else {
+      setVaultStatus('IDLE');
       setVaultTokenConsumed(false);
     }
   }, [selectedDossier?.id]);
+
+  const handleOpenVaultDocument = async () => {
+    if (!selectedDossier) return;
+
+    let token = selectedDossier.vaultToken || selectedDossier.details?.vaultToken;
+
+    // Fallback for legacy demo dossiers: dynamically generate real OTT via uploadVaultDocument
+    if (!token) {
+      try {
+        setVaultLoading(true);
+        const canvas = document.createElement('canvas');
+        canvas.width = 400;
+        canvas.height = 250;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#f8fafc';
+          ctx.fillRect(0, 0, 400, 250);
+          ctx.fillStyle = '#0f2942';
+          ctx.font = 'bold 16px sans-serif';
+          ctx.fillText(`TỜ KHAI HÀNH CHÍNH - ${selectedDossier.formType}`, 20, 40);
+          ctx.font = '12px sans-serif';
+          ctx.fillText(`Họ tên: ${selectedDossier.citizenName}`, 20, 80);
+          ctx.fillText(`Số CCCD: ${selectedDossier.cccd}`, 20, 110);
+          ctx.fillText(`Mã hồ sơ: ${selectedDossier.id}`, 20, 140);
+          ctx.fillText(`UBND ${ward.name}`, 20, 170);
+        }
+        const blob = await new Promise<Blob>((resolve) => canvas.toBlob((b) => resolve(b || new Blob()), 'image/png'));
+        const formData = new FormData();
+        formData.append('file', blob, 'sample_dossier_scan.png');
+        formData.append('documentType', 'CIVIC_DOCUMENT');
+        const uploadRes = await uploadVaultDocument(formData);
+        token = uploadRes.oneTimeToken;
+        selectedDossier.vaultToken = token;
+      } catch (err: any) {
+        setVaultLoading(false);
+        setVaultStatus('ERROR');
+        setVaultError('Không thể tạo phiên xem bảo mật cho hồ sơ này.');
+        return;
+      }
+    }
+
+    setVaultLoading(true);
+    setVaultError(null);
+
+    try {
+      // Call GET /api/v1/vault/view/{token}
+      const imageBlob = await viewVaultDocument(token);
+
+      // Create object URL displaying decrypted image with Java2D watermark
+      const objectUrl = URL.createObjectURL(imageBlob);
+      setVaultImageBlobUrl(objectUrl);
+      setShowVaultScan(true);
+      setVaultStatus('VIEWING');
+      setVaultTokenConsumed(true);
+      selectedDossier.vaultViewUsed = true;
+    } catch (err: any) {
+      // Catch HTTP 410 GONE (Atomic Self-Destruction via Redis GETDEL)
+      if (err?.response?.status === 410 || err?.status === 410) {
+        setVaultStatus('CONSUMED_410');
+        setVaultTokenConsumed(true);
+        setShowVaultScan(false);
+        if (vaultImageBlobUrl) {
+          URL.revokeObjectURL(vaultImageBlobUrl);
+          setVaultImageBlobUrl(null);
+        }
+        setVaultError('Tài liệu bảo mật đã tự hủy theo Nghị định 13/2023/NĐ-CP.');
+      } else {
+        setVaultStatus('ERROR');
+        setVaultError(err?.message || 'Không thể truy xuất tài liệu từ kho Zero-Trust.');
+      }
+    } finally {
+      setVaultLoading(false);
+    }
+  };
+
+  const handleCloseVaultDocument = () => {
+    if (vaultImageBlobUrl) {
+      URL.revokeObjectURL(vaultImageBlobUrl);
+      setVaultImageBlobUrl(null);
+    }
+    setShowVaultScan(false);
+    setVaultStatus('CONSUMED_410');
+    setVaultTokenConsumed(true);
+    if (selectedDossier) {
+      selectedDossier.vaultViewUsed = true;
+    }
+  };
 
   // Dossier Tab Filter & Search
   const [dossierFilter, setDossierFilter] = useState<'ALL' | 'VALID' | 'HAS_ERRORS' | 'PENDING'>('ALL');
@@ -1989,83 +2100,101 @@ export const PerWardDashboard: React.FC = () => {
                     <div className="flex flex-col">
                       <span className="font-bold">Kho Lưu Trữ Tạm Xem 1 Lần (Zero-Trust OTT Vault)</span>
                       <span className="text-[11px] text-[#0F766E]/80">
-                        {vaultTokenConsumed && !showVaultScan
-                          ? 'Token xem 1 lần đã tự hủy vĩnh viễn sau khi đóng (Nghị định 13/2023/NĐ-CP)'
+                        {vaultStatus === 'CONSUMED_410' || (vaultTokenConsumed && !showVaultScan)
+                          ? 'Token xem 1 lần đã tự hủy vĩnh viễn trên Redis (Nghị định 13/2023/NĐ-CP)'
                           : 'Bản chụp đính kèm chỉ mở được duy nhất 01 lần để bảo vệ dữ liệu cá nhân'}
                       </span>
                     </div>
                   </div>
+
                   <button
                     type="button"
-                    disabled={vaultTokenConsumed && !showVaultScan}
+                    disabled={vaultLoading || (vaultStatus === 'CONSUMED_410' && !showVaultScan)}
                     onClick={() => {
-                      if (!showVaultScan && !vaultTokenConsumed) {
-                        consumeLiveDossierVaultToken(selectedDossier.id);
-                        setVaultTokenConsumed(true);
-                        setShowVaultScan(true);
-                      } else if (showVaultScan) {
-                        setShowVaultScan(false);
+                      if (showVaultScan) {
+                        handleCloseVaultDocument();
+                      } else {
+                        handleOpenVaultDocument();
                       }
                     }}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition shrink-0 ${
-                      vaultTokenConsumed && !showVaultScan
+                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition shrink-0 flex items-center gap-1.5 ${
+                      vaultStatus === 'CONSUMED_410' && !showVaultScan
                         ? 'bg-[#E2E8F0] text-[#64748B] cursor-not-allowed'
-                        : 'bg-[#0F2942] hover:bg-[#1E3A5F] text-white cursor-pointer'
+                        : vaultLoading
+                        ? 'bg-[#0F2942]/70 text-white cursor-wait'
+                        : 'bg-[#0F2942] hover:bg-[#1E3A5F] text-white cursor-pointer active:scale-95'
                     }`}
                   >
-                    {showVaultScan
-                      ? 'Đóng & Hủy Token Ngay'
-                      : vaultTokenConsumed
-                      ? 'Đã Hủy Token (Xem 1 Lần)'
-                      : 'Mở Bản Chụp (1 Lần)'}
+                    {vaultLoading ? (
+                      <>
+                        <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#57DFFE]" />
+                        <span>Đang giải mã...</span>
+                      </>
+                    ) : showVaultScan ? (
+                      'Đóng & Tự Hủy Phiên'
+                    ) : vaultStatus === 'CONSUMED_410' || vaultTokenConsumed ? (
+                      'Đã Tự Hủy (HTTP 410)'
+                    ) : (
+                      'Mở Bản Chụp (1 Lần)'
+                    )}
                   </button>
                 </div>
 
-                {showVaultScan && (
-                  <div className="relative p-4 rounded-2xl bg-white border-2 border-[#0F2942]/30 shadow-inner overflow-hidden select-none animate-fadeIn">
-                    {/* Diagonal Dynamic Watermark Overlay */}
-                    <div className="absolute inset-0 pointer-events-none z-20 flex flex-col justify-around overflow-hidden opacity-20">
-                      {[1, 2, 3].map((idx) => (
-                        <div
-                          key={idx}
-                          className="-rotate-12 transform whitespace-nowrap text-[#DC2626] font-mono text-[10px] font-extrabold uppercase text-center py-2"
-                        >
-                          {officerProfile.badgeId} • {officerProfile.name.toUpperCase()} • UBND {ward.name.toUpperCase()} • XEM 1 LẦN TỰ HỦY
-                        </div>
-                      ))}
+                {/* BANNER ĐỎ CẢNH BÁO TỰ HỦY NGHỊ ĐỊNH 13/2023/NĐ-CP (HTTP 410 GONE) */}
+                {(vaultStatus === 'CONSUMED_410' || (vaultTokenConsumed && !showVaultScan)) && (
+                  <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-start gap-2.5 text-xs text-[#991B1B] animate-fadeIn">
+                    <AlertTriangle className="w-4 h-4 text-[#DC2626] shrink-0 mt-0.5" />
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-bold">Tài liệu bảo mật đã tự hủy theo Nghị định 13/2023/NĐ-CP</span>
+                      <span className="text-[11px] text-[#B91C1C]">
+                        Mã token truy cập một lần (One-Time Token) đã bị tiêu hủy vĩnh viễn khỏi Redis bằng lệnh nguyên tử GETDEL. Mọi nỗ lực truy cập lại đều bị máy chủ từ chối với mã phản hồi HTTP 410 GONE để chống sao chép và bảo vệ quyền riêng tư công dân.
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                {/* KHUNG HIỂN THỊ HÌNH ẢNH THẬT ĐÃ GIẢI MÃ TỪ MINIO KÈM WATERMARK */}
+                {showVaultScan && vaultImageBlobUrl && (
+                  <div className="relative p-3 rounded-2xl bg-[#0F172A] border-2 border-[#0F2942] shadow-2xl overflow-hidden select-none animate-fadeIn flex flex-col items-center">
+                    <div className="w-full text-center text-xs text-white py-1.5 font-bold flex items-center justify-between px-2 bg-slate-800/80 rounded-t-xl mb-2">
+                      <span className="flex items-center gap-1.5 text-[#57DFFE]">
+                        <ShieldCheck className="w-4 h-4 text-[#10B981]" />
+                        Bản chụp giải mã từ MinIO (AES-256-GCM)
+                      </span>
+                      <span className="text-[10px] bg-red-600 text-white px-2 py-0.5 rounded-full font-mono font-bold tracking-wider animate-pulse">
+                        XEM 1 LẦN DUY NHẤT
+                      </span>
                     </div>
 
-                    <div className="relative z-10 text-xs text-[#0F172A] space-y-1.5 font-sans">
-                      <div className="text-center border-b border-[#E2E8F0] pb-2">
-                        <strong className="block text-xs text-[#0F2942]">
-                          BẢN CHỤP TỜ KHAI ({selectedDossier.formType}) — PHIÊN XEM DUY NHẤT (OTT)
-                        </strong>
-                        <span className="text-[11px] text-[#64748B]">
-                          Phục vụ đối chiếu hồ sơ tại Bộ phận Một cửa UBND {ward.name}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-2 gap-2 pt-1">
-                        <div>
-                          <span className="text-[#64748B]">Họ tên:</span>{' '}
-                          <strong>{selectedDossier.citizenName}</strong>
-                        </div>
-                        <div>
-                          <span className="text-[#64748B]">Số ĐDCN:</span>{' '}
-                          <strong className="font-mono text-[#0F2942]">{selectedDossier.cccd}</strong>
-                        </div>
-                        <div>
-                          <span className="text-[#64748B]">Ngày sinh:</span>{' '}
-                          <strong>{selectedDossier.details?.dob}</strong>
-                        </div>
-                        <div>
-                          <span className="text-[#64748B]">Mã hồ sơ:</span>{' '}
-                          <strong className="font-mono">{selectedDossier.id}</strong>
-                        </div>
-                      </div>
-                      <div className="pt-1 text-[11px] text-[#065F46] font-semibold">
-                        Đã đóng dấu mờ định danh cán bộ ({officerProfile.badgeId}). Ngay khi đóng cửa sổ này, Token truy cập sẽ bị hủy vĩnh viễn theo Điều 19 Nghị định 13/2023/NĐ-CP.
-                      </div>
+                    {/* THẺ IMG HIỂN THỊ ẢNH THẬT TỪ BLOB URL */}
+                    <div className="relative w-full max-h-96 flex items-center justify-center bg-black/40 rounded-lg overflow-hidden border border-slate-700">
+                      <img
+                        src={vaultImageBlobUrl}
+                        alt="Bản chụp tài liệu công dân có đóng dấu watermark Java2D"
+                        className="max-h-96 w-auto object-contain rounded select-none pointer-events-none"
+                      />
                     </div>
+
+                    <div className="w-full text-center text-[11px] text-slate-300 py-2 mt-2 border-t border-slate-700/80 flex items-center justify-between px-2">
+                      <span className="text-left text-slate-400">
+                        Dấu mờ bảo mật: <strong>CHỈ DÙNG ĐỂ SƠ DUYỆT HỒ SƠ TẠI UBND</strong>
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleCloseVaultDocument}
+                        className="px-2.5 py-1 rounded bg-red-700 hover:bg-red-800 text-white font-bold text-[11px] transition cursor-pointer"
+                      >
+                        Đóng ngay
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* LỖI TRUY XUẤT NẾU CÓ */}
+                {vaultError && vaultStatus === 'ERROR' && (
+                  <div className="p-3 rounded-xl bg-[#FEF2F2] border border-[#FECACA] text-xs text-[#DC2626] flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>{vaultError}</span>
                   </div>
                 )}
               </div>
