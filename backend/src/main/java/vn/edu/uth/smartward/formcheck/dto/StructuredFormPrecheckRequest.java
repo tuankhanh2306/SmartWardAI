@@ -34,6 +34,7 @@ public class StructuredFormPrecheckRequest {
     private String hostRelation;
     private String declarationScope;
     private String phoneNumber;
+    private String citizenEmail;
 
     // ==========================================
     // 2. Trường bổ sung cho TK-KS (Khai sinh)
@@ -77,15 +78,52 @@ public class StructuredFormPrecheckRequest {
     private String guardianPhone;
 
     /**
-     * Reads a field value prioritizing the typed DTO property, falling back to formData map.
+     * Reads a field value prioritizing the typed DTO property, falling back to formData map and aliases.
      */
     public String getFieldValue(String directValue, String mapKey) {
         if (directValue != null && !directValue.isBlank()) {
             return directValue.trim();
         }
-        if (formData != null && formData.containsKey(mapKey) && formData.get(mapKey) != null) {
-            return formData.get(mapKey).trim();
+        if (formData != null && mapKey != null) {
+            if (formData.containsKey(mapKey) && formData.get(mapKey) != null && !formData.get(mapKey).isBlank()) {
+                return formData.get(mapKey).trim();
+            }
+            String aliasVal = resolveFromAliases(mapKey);
+            if (aliasVal != null && !aliasVal.isBlank()) {
+                return aliasVal.trim();
+            }
         }
         return "";
+    }
+
+    private String resolveFromAliases(String key) {
+        if (formData == null || key == null) return null;
+        return switch (key) {
+            case "fatherName" -> getFirstNonBlank("fatherFullName", "father_full_name", "father_name");
+            case "motherResidence" -> getFirstNonBlank("motherAddress", "mother_address", "mother_residence");
+            case "fatherResidence" -> {
+                String val = getFirstNonBlank("fatherAddress", "father_address", "father_residence");
+                if (val != null && !val.isBlank()) yield val;
+                yield getFirstNonBlank("motherAddress", "mother_address", "mother_residence");
+            }
+            case "applicantEthnicity" -> getFirstNonBlank("ethnicity", "applicant_ethnicity", "childEthnicity");
+            case "applicantNationality" -> getFirstNonBlank("nationality", "applicant_nationality", "childNationality");
+            case "childEthnicity" -> getFirstNonBlank("child_ethnicity");
+            case "childNationality" -> getFirstNonBlank("child_nationality");
+            case "partnerAddress" -> getFirstNonBlank("partnerResidence", "partner_address", "partner_residence");
+            case "partnerEthnicity" -> getFirstNonBlank("partner_ethnicity");
+            case "partnerNationality" -> getFirstNonBlank("partner_nationality");
+            default -> null;
+        };
+    }
+
+    private String getFirstNonBlank(String... keys) {
+        if (formData == null) return null;
+        for (String k : keys) {
+            if (formData.containsKey(k) && formData.get(k) != null && !formData.get(k).isBlank()) {
+                return formData.get(k).trim();
+            }
+        }
+        return null;
     }
 }
