@@ -7,14 +7,11 @@ export interface ProcedureCatalogItem {
 }
 
 export const PROCEDURES_CATALOG: ProcedureCatalogItem[] = [
-  // ==========================================
-  // 1. NHÓM BẢO TRỢ XÃ HỘI (6 THỦ TỤC CẤP XÃ)
-  // ==========================================
   {
     "code": "TTHC-BT-01",
-    "name": "Trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng (Nghị định 20/2021/NĐ-CP & Luật BHXH 2024)",
+    "name": "Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ- UBND",
     "category": "Bảo trợ xã hội",
-    "portalCode": "1.001222",
+    "portalCode": "3.000733",
     "chunksCount": 4
   },
   {
@@ -40,25 +37,14 @@ export const PROCEDURES_CATALOG: ProcedureCatalogItem[] = [
   },
   {
     "code": "TTHC-BT-05",
-    "name": "Trợ giúp xã hội khẩn cấp cho đối tượng bị thiệt hại do thiên tai, hỏa hoạn, tai nạn giao thông",
+    "name": "Thủ tục hỗ trợ chi phí mai táng cho đối tượng được trợ cấp xã hội hàng tháng ở cộng đồng theo Điều 4 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ-UBND",
     "category": "Bảo trợ xã hội",
-    "portalCode": "1.001225",
+    "portalCode": "3.000731",
     "chunksCount": 4
   },
-  {
-    "code": "TTHC-BT-06",
-    "name": "Xác định mức độ khuyết tật và cấp Giấy xác nhận mức độ khuyết tật tại UBND cấp xã",
-    "category": "Bảo trợ xã hội",
-    "portalCode": "1.001228",
-    "chunksCount": 4
-  },
-
-  // ==========================================
-  // 2. NHÓM CƯ TRÚ (10 THỦ TỤC CẤP XÃ / CÔNG AN XÃ)
-  // ==========================================
   {
     "code": "TTHC-CR-01",
-    "name": "Đăng ký thường trú (Mẫu CT01 - Thông tư 66/2023/TT-BCA)",
+    "name": "Đăng ký thường trú",
     "category": "Cư trú",
     "portalCode": "1.116788",
     "chunksCount": 6
@@ -79,35 +65,28 @@ export const PROCEDURES_CATALOG: ProcedureCatalogItem[] = [
   },
   {
     "code": "TTHC-CR-04",
-    "name": "Khai báo tạm vắng và thông báo lưu trú tại Công an cấp xã",
+    "name": "Thủ tục gia hạn tạm trú, cấp thị thực mới cho người nước ngoài đang tạm trú ở Việt Nam tại cơ quan có thẩm quyền ở trong nước của Bộ Ngoại giao",
     "category": "Cư trú",
-    "portalCode": "1.003677",
+    "portalCode": "1.000039",
     "chunksCount": 4
   },
   {
-    "code": "TTHC-CR-05",
-    "name": "Liên thông điện tử: Đăng ký khai sinh, đăng ký thường trú, cấp thẻ bảo hiểm y tế cho trẻ em dưới 6 tuổi",
-    "category": "Cư trú",
-    "portalCode": "2.002914",
-    "chunksCount": 6
-  },
-  {
     "code": "TTHC-CR-06",
-    "name": "Thông báo lưu trú qua ứng dụng VNeID / Cổng Dịch vụ công",
+    "name": "Thông báo lưu trú",
     "category": "Cư trú",
     "portalCode": "2.001159",
     "chunksCount": 4
   },
   {
     "code": "TTHC-CR-07",
-    "name": "Gia hạn tạm trú",
+    "name": "Khai báo tạm vắng",
     "category": "Cư trú",
-    "portalCode": "1.003678",
+    "portalCode": "1.003677",
     "chunksCount": 4
   },
   {
     "code": "TTHC-CR-08",
-    "name": "Xác nhận thông tin về cư trú (Mẫu CT07)",
+    "name": "Xác nhận thông tin về cư trú",
     "category": "Cư trú",
     "portalCode": "1.010041",
     "chunksCount": 4
@@ -121,34 +100,23 @@ export const PROCEDURES_CATALOG: ProcedureCatalogItem[] = [
   },
   {
     "code": "TTHC-CR-10",
-    "name": "Xóa đăng ký thường trú",
-    "category": "Cư trú",
-    "portalCode": "1.000845",
+    "name": "Thủ tục xác nhận thông tin hộ tịch",
+    "category": "Hộ tịch",
+    "portalCode": "2.002516",
     "chunksCount": 4
   },
-
-  // ==========================================
-  // 3. NHÓM CHỨNG THỰC (8 THỦ TỤC CẤP XÃ)
-  // ==========================================
   {
     "code": "TTHC-CT-01",
-    "name": "Chứng thực bản sao từ bản chính các giấy tờ, văn bản (Sao y bản chính)",
+    "name": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận",
     "category": "Chứng thực",
     "portalCode": "1.001606",
     "chunksCount": 5
   },
   {
     "code": "TTHC-CT-02",
-    "name": "Chứng thực chữ ký trong các giấy tờ, văn bản (Ký trực tiếp tại Một cửa)",
+    "name": "Thủ tục Chứng thực chữ ký trong các giấy tờ, văn bản",
     "category": "Chứng thực",
     "portalCode": "1.001590",
-    "chunksCount": 4
-  },
-  {
-    "code": "TTHC-CT-03",
-    "name": "Chứng thực hợp đồng, giao dịch liên quan đến tài sản, quyền sử dụng đất",
-    "category": "Chứng thực",
-    "portalCode": "2.001405",
     "chunksCount": 4
   },
   {
@@ -160,23 +128,23 @@ export const PROCEDURES_CATALOG: ProcedureCatalogItem[] = [
   },
   {
     "code": "TTHC-CT-05",
-    "name": "Chứng thực văn bản từ chối nhận di sản thừa kế",
-    "category": "Chứng thực",
-    "portalCode": "2.001016",
+    "name": "Thủ tục ghi vào Sổ hộ tịch việc ly hôn, hủy việc kết hôn của công dân Việt Nam đã được giải quyết tại cơ quan có thẩm quyền của nước ngoài",
+    "category": "Hộ tịch",
+    "portalCode": "2.000554",
     "chunksCount": 4
   },
   {
     "code": "TTHC-CT-06",
-    "name": "Cấp bản sao có chứng thực từ Sổ chứng thực",
-    "category": "Chứng thực",
-    "portalCode": "2.001018",
+    "name": "Thủ tục ghi vào Sổ hộ tịch việc hộ tịch khác của công dân Việt Nam đã được giải quyết tại cơ quan có thẩm quyền của nước ngoài (khai sinh; giám hộ; nhận cha, mẹ, con; xác định cha, mẹ, con; nuôi con nuôi; khai tử; thay đổi hộ tịch)",
+    "category": "Hộ tịch",
+    "portalCode": "2.000547",
     "chunksCount": 4
   },
   {
     "code": "TTHC-CT-07",
-    "name": "Sửa lỗi sai sót trong hợp đồng, giao dịch đã được chứng thực",
+    "name": "Chứng thực văn bản từ chối nhận di sản",
     "category": "Chứng thực",
-    "portalCode": "2.001017",
+    "portalCode": "2.001016",
     "chunksCount": 4
   },
   {
@@ -186,124 +154,137 @@ export const PROCEDURES_CATALOG: ProcedureCatalogItem[] = [
     "portalCode": "2.001019",
     "chunksCount": 4
   },
-
-  // ==========================================
-  // 4. NHÓM ĐỊA CHÍNH - ĐẤT ĐAI (4 THỦ TỤC CẤP XÃ)
-  // ==========================================
   {
     "code": "TTHC-DC-01",
-    "name": "Đăng ký biến động quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất (tiếp nhận luân chuyển tại cấp xã)",
+    "name": "(Đà Nẵng) Đăng ký biến động quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất trong các trường hợp chuyển đổi quyền sử dụng đất nông nghiệp mà không theo phương án dồn điền, đổi thửa; chuyển nhượng, thừa kế, tặng cho quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất, góp vốn bằng quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất (kể cả tặng cho quyền sử dụng đất cho Nhà nước hoặc cộng đồng dân cư hoặc mở rộng đường giao thông); cho thuê, cho thuê lại quyền sử dụng đất trong dự án xây dựng kinh doanh kết cấu hạ tầng; bán hoặc tặng cho hoặc để thừa kế hoặc góp vốn bằng tài sản gắn liền với đất thuê của Nhà nước theo hình thức thuê đất trả tiền hàng năm",
     "category": "Địa chính",
-    "portalCode": "1.000758",
+    "portalCode": "3.000758",
     "chunksCount": 4
   },
   {
     "code": "TTHC-DC-02",
-    "name": "Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất lần đầu (Luật Đất đai 2024)",
+    "name": "(Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất, hộ gia đình, cá nhân, cộng đồng dân cư",
     "category": "Địa chính",
-    "portalCode": "1.000780",
+    "portalCode": "3.000780",
     "chunksCount": 4
   },
-  {
-    "code": "TTHC-XD-01",
-    "name": "Hòa giải tranh chấp đất đai tại UBND cấp xã (Điều 235 Luật Đất đai 2024)",
-    "category": "Địa chính",
-    "portalCode": "1.001456",
-    "chunksCount": 4
-  },
-  {
-    "code": "TTHC-XD-02",
-    "name": "Xác nhận hiện trạng sử dụng đất, nhà ở không có tranh chấp phục vụ đăng ký cấp Giấy chứng nhận",
-    "category": "Địa chính",
-    "portalCode": "1.001458",
-    "chunksCount": 4
-  },
-
-  // ==========================================
-  // 5. NHÓM HỘ TỊCH (12 THỦ TỤC CẤP XÃ)
-  // ==========================================
   {
     "code": "TTHC-HT-01",
-    "name": "Đăng ký khai sinh",
+    "name": "Thủ tục đăng ký khai sinh",
     "category": "Hộ tịch",
     "portalCode": "1.001193",
     "chunksCount": 4
   },
   {
     "code": "TTHC-HT-02",
-    "name": "Đăng ký kết hôn",
+    "name": "Thủ tục đăng ký kết hôn",
     "category": "Hộ tịch",
     "portalCode": "1.000894",
     "chunksCount": 4
   },
   {
     "code": "TTHC-HT-03",
-    "name": "Đăng ký khai tử có yếu tố nước ngoài tại khu vực biên giới",
+    "name": "Thủ tục đăng ký khai tử có yếu tố nước ngoài tại khu vực biên giới",
     "category": "Hộ tịch",
     "portalCode": "1.004827",
     "chunksCount": 4
   },
   {
     "code": "TTHC-HT-04",
-    "name": "Cấp bản sao Trích lục hộ tịch (khai sinh, kết hôn, khai tử...)",
+    "name": "Cấp bản sao Trích lục hộ tịch, bản sao Giấy khai sinh",
     "category": "Hộ tịch",
     "portalCode": "2.000635",
     "chunksCount": 4
   },
   {
     "code": "TTHC-HT-05",
-    "name": "Đăng ký nhận cha, mẹ, con có yếu tố nước ngoài",
+    "name": "Thủ tục đăng ký nhận cha, mẹ, con có yếu tố nước ngoài",
     "category": "Hộ tịch",
     "portalCode": "2.000779",
     "chunksCount": 4
   },
   {
     "code": "TTHC-HT-06",
-    "name": "Đăng ký giám hộ",
+    "name": "Thủ tục đăng ký giám hộ",
     "category": "Hộ tịch",
     "portalCode": "1.004837",
     "chunksCount": 4
   },
   {
     "code": "TTHC-HT-07",
-    "name": "Đăng ký chấm dứt giám hộ có yếu tố nước ngoài",
+    "name": "Thủ tục đăng ký chấm dứt giám hộ có yếu tố nước ngoài",
     "category": "Hộ tịch",
     "portalCode": "2.000756",
     "chunksCount": 4
   },
   {
     "code": "TTHC-HT-08",
-    "name": "Đăng ký lại khai sinh có yếu tố nước ngoài",
+    "name": "Thủ tục đăng ký lại khai sinh có yếu tố nước ngoài",
     "category": "Hộ tịch",
     "portalCode": "2.000522",
     "chunksCount": 5
   },
   {
     "code": "TTHC-HT-09",
-    "name": "Đăng ký lại kết hôn có yếu tố nước ngoài",
+    "name": "Thủ tục đăng ký lại kết hôn có yếu tố nước ngoài",
     "category": "Hộ tịch",
     "portalCode": "2.000513",
     "chunksCount": 5
   },
   {
     "code": "TTHC-HT-10",
-    "name": "Đăng ký lại khai tử có yếu tố nước ngoài",
+    "name": "Thủ tục đăng ký lại khai tử có yếu tố nước ngoài",
     "category": "Hộ tịch",
     "portalCode": "2.000497",
     "chunksCount": 5
   },
   {
     "code": "TTHC-HT-11",
-    "name": "Cấp Giấy xác nhận tình trạng hôn nhân (Giấy độc thân)",
+    "name": "Thủ tục cấp Giấy xác nhận tình trạng hôn nhân",
     "category": "Hộ tịch",
     "portalCode": "1.004873",
     "chunksCount": 4
   },
   {
     "code": "TTHC-HT-12",
-    "name": "Thay đổi, cải chính, bổ sung thông tin hộ tịch, xác định lại dân tộc có yếu tố nước ngoài",
+    "name": "Thủ tục thay đổi, cải chính, bổ sung thông tin hộ tịch, xác định lại dân tộc có yếu tố nước ngoài",
     "category": "Hộ tịch",
     "portalCode": "2.000748",
+    "chunksCount": 4
+  },
+  {
+    "code": "TTHC-HT-13",
+    "name": "Thủ tục Đăng ký khai tử (trong nước)",
+    "category": "Hộ tịch",
+    "portalCode": "1.000874",
+    "chunksCount": 4
+  },
+  {
+    "code": "TTHC-MT-01",
+    "name": "Thủ tục Đăng ký môi trường cấp xã",
+    "category": "Đất đai và Môi trường",
+    "portalCode": "1.010839",
+    "chunksCount": 4
+  },
+  {
+    "code": "TTHC-NCC-01",
+    "name": "Tiếp nhận hồ sơ giải quyết chế độ ưu đãi đối với Người có công với cách mạng",
+    "category": "Bảo trợ xã hội và Người có công",
+    "portalCode": "1.009472",
+    "chunksCount": 4
+  },
+  {
+    "code": "TTHC-XD-01",
+    "name": "(Đà Nẵng) Đăng ký biến động đối với trường hợp thay đổi quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất theo thỏa thuận của các thành viên hộ gia đình hoặc của vợ và chồng; quyền sử dụng đất xây dựng công trình trên mặt đất phục vụ cho việc vận hành, khai thác sử dụng công trình ngầm, quyền sở hữu công trình ngầm; bán tài sản, điều chuyển, chuyển nhượng quyền sử dụng đất là tài sản công theo quy định của pháp luật về quản lý, sử dụng tài sản công; nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất theo kết quả giải quyết tranh chấp, khiếu nại, tố cáo về đất đai hoặc bản án, quyết định của Tòa án, quyết định thi hành án của cơ quan thi hành án đã được thi hành; quyết định hoặc phán quyết của Trọng tài thương mại Việt Nam về giải quyết tranh chấp giữa các bên phát sinh từ hoạt động thương mại liên quan đến đất đai; nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất do xử lý tài sản thế chấp là quyền sử dụng đất, tài sản gắn liền với đất đã được đăng ký, bao gồm cả xử lý khoản nợ có nguồn gốc từ khoản nợ xấu của tổ chức tín dụng, chi nhánh ngân hàng nước ngoài",
+    "category": "Đất đai và Môi trường",
+    "portalCode": "3.000761",
+    "chunksCount": 4
+  },
+  {
+    "code": "TTHC-XD-02",
+    "name": "(Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố",
+    "category": "Đất đai và Môi trường",
+    "portalCode": "3.000785",
     "chunksCount": 4
   }
 ];

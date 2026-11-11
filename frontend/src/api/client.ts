@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { PROCEDURES_CATALOG } from '../data/proceduresCatalog';
 import { isGeminiConfigured, askGeminiWithRAG, buildStructuredProcedureResponse } from '../services/geminiClient';
 import { searchLegalKnowledge } from '../services/legalKnowledgeBase';
 import {
@@ -1651,6 +1652,95 @@ export const rebuildSpatialIndex = async (): Promise<{ syncedClustersCount: numb
       message: 'Đã đồng bộ 8 cụm sự cố đang mở từ PostgreSQL vào Redis GEO (smartward:geo:clusters).',
     };
   }
+};
+
+export interface ProcedureItem {
+  procedureCode: string;
+  officialPortalCode?: string;
+  procedureName: string;
+  category: string;
+  agency: string;
+  processingTime: string;
+  fee: string;
+  status: string;
+  chunksCount: number;
+}
+
+export interface ProcedureDetail extends ProcedureItem {
+  process?: string;
+  sourceUrl?: string;
+  chunks?: Array<{
+    chunkId: string;
+    chunkType: string;
+    title: string;
+    content: string;
+    legalReference: string;
+  }>;
+}
+
+export const getProcedures = async (params?: { category?: string; keyword?: string }): Promise<ProcedureItem[]> => {
+  try {
+    const resp = await api.get<{ success: boolean; data: ProcedureItem[] }>('/procedures', { params });
+    const list = resp.data?.data;
+    if (Array.isArray(list) && list.length > 0) {
+      return list;
+    }
+  } catch (err) {
+    console.warn('Failed to fetch procedures from backend API, using fallback catalog:', err);
+  }
+
+  // Graceful fallback from PROCEDURES_CATALOG
+  let fallbackList: ProcedureItem[] = PROCEDURES_CATALOG.map((p) => ({
+    procedureCode: p.code,
+    officialPortalCode: p.portalCode,
+    procedureName: p.name,
+    category: p.category,
+    agency: 'Ủy ban nhân dân cấp xã / phường',
+    processingTime: 'Theo quy định',
+    fee: 'Miễn phí / Theo quy định',
+    status: 'ACTIVE',
+    chunksCount: p.chunksCount,
+  }));
+
+  if (params?.category && params.category !== 'ALL') {
+    fallbackList = fallbackList.filter((p) => p.category === params.category);
+  }
+  if (params?.keyword) {
+    const kw = params.keyword.toLowerCase();
+    fallbackList = fallbackList.filter(
+      (p) =>
+        p.procedureName.toLowerCase().includes(kw) ||
+        p.procedureCode.toLowerCase().includes(kw) ||
+        (p.officialPortalCode && p.officialPortalCode.includes(kw))
+    );
+  }
+  return fallbackList;
+};
+
+export const getProcedureByCode = async (code: string): Promise<ProcedureDetail | null> => {
+  try {
+    const resp = await api.get<{ success: boolean; data: ProcedureDetail }>(`/procedures/${code}`);
+    if (resp.data?.data) {
+      return resp.data.data;
+    }
+  } catch (err) {
+    console.warn(`Failed to fetch procedure ${code} from API, checking fallback catalog:`, err);
+  }
+
+  const found = PROCEDURES_CATALOG.find((p) => p.code === code);
+  if (!found) return null;
+
+  return {
+    procedureCode: found.code,
+    officialPortalCode: found.portalCode,
+    procedureName: found.name,
+    category: found.category,
+    agency: 'Ủy ban nhân dân cấp xã / phường',
+    processingTime: 'Theo quy định',
+    fee: 'Miễn phí / Theo quy định',
+    status: 'ACTIVE',
+    chunksCount: found.chunksCount,
+  };
 };
 
 export default api;

@@ -2,6 +2,7 @@ package vn.edu.uth.smartward.rag;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import vn.edu.uth.smartward.ai.AiModelClient;
@@ -42,6 +43,9 @@ public class RagQueryService {
     private final AiModelClient aiModelClient;
     private final QueryCacheService queryCacheService;
     private final RedisRateLimiter redisRateLimiter;
+
+    @Autowired(required = false)
+    private AdminProcedureRepository procedureRepository;
 
     @Value("${smartward.rag.default-threshold:0.78}")
     private double defaultThreshold;
@@ -799,43 +803,97 @@ public class RagQueryService {
 
     private RagAskResponse buildProcedureCatalogResponse(String wardName, long startTime) {
         String wardLabel = (wardName != null && !wardName.isBlank()) ? wardName : "UBND cấp xã/phường";
-        String answer = String.format(
-                "Danh mục các thủ tục hành chính công trọng tâm cấp xã/phường được hỗ trợ tại %s gồm 5 nhóm chính:\n\n" +
-                "📋 1. LĨNH VỰC HỘ TỊCH & NHÂN THÂN:\n" +
-                "• [TTHC-HT-01] Đăng ký khai sinh (thông thường & lưu động)\n" +
-                "• [TTHC-HT-02] Đăng ký kết hôn (trong nước)\n" +
-                "• [TTHC-HT-03] Cấp Giấy xác nhận tình trạng hôn nhân (Giấy độc thân)\n" +
-                "• [TTHC-HT-04] Cấp bản sao Trích lục hộ tịch (khai sinh, kết hôn, khai tử)\n" +
-                "• [TTHC-HT-05] Đăng ký khai tử và giải quyết hỗ trợ mai táng\n" +
-                "• [TTHC-HT-06] Đăng ký nhận cha, mẹ, con\n" +
-                "• [TTHC-HT-07] Thay đổi, cải chính hộ tịch, bổ sung thông tin hộ tịch\n" +
-                "• [TTHC-HT-08] Đăng ký giám hộ và chấm dứt giám hộ\n\n" +
-                "🏠 2. LĨNH VỰC QUẢN LÝ CƯ TRÚ (CÔNG AN XÃ/PHƯỜNG & ĐỀ ÁN 06):\n" +
-                "• [TTHC-CR-01] Đăng ký thường trú (Nộp tờ khai CT01)\n" +
-                "• [TTHC-CR-02] Xóa đăng ký thường trú\n" +
-                "• [TTHC-CR-03] Đăng ký tạm trú và gia hạn tạm trú\n" +
-                "• [TTHC-CR-04] Khai báo tạm vắng và thông báo lưu trú\n" +
-                "• [TTHC-CR-05] Xác nhận thông tin về cư trú (Mẫu CT07)\n" +
-                "• [TTHC-CR-06] Tách hộ và điều chỉnh thông tin nơi cư trú\n\n" +
-                "📑 3. LĨNH VỰC CHỨNG THỰC & TƯ PHÁP CƠ SỞ:\n" +
-                "• [TTHC-CT-01] Chứng thực bản sao từ bản chính (Sao y văn bằng, giấy tờ)\n" +
-                "• [TTHC-CT-02] Chứng thực chữ ký trong các giấy tờ, văn bản cá nhân\n" +
-                "• [TTHC-CT-03] Chứng thực hợp đồng, giao dịch liên quan đến tài sản cơ bản\n" +
-                "• [TTHC-CT-04] Chứng thực di chúc, văn bản từ chối nhận di sản thừa kế\n\n" +
-                "🤝 4. LĨNH VỰC BẢO TRỢ XÃ HỘI & CHÍNH SÁCH CÔNG:\n" +
-                "• [TTHC-BT-01] Trợ cấp xã hội hàng tháng (Người cao tuổi, khuyết tật, trẻ mồ côi)\n" +
-                "• [TTHC-BT-02] Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội\n" +
-                "• [TTHC-BT-03] Cấp thẻ Bảo hiểm Y tế cho đối tượng bảo trợ xã hội\n" +
-                "• [TTHC-BT-04] Trợ giúp xã hội đột xuất cho hộ gia đình khó khăn, thiên tai\n" +
-                "• [TTHC-BT-05] Thủ tục xác nhận người có công, gia đình chính sách\n\n" +
-                "🌾 5. LĨNH VỰC ĐỊA CHÍNH & ĐẤT ĐAI CƠ BẢN:\n" +
-                "• [TTHC-DD-01] Xác nhận hiện trạng sử dụng đất và tình trạng không có tranh chấp\n" +
-                "• [TTHC-DD-02] Tiếp nhận và luân chuyển hồ sơ đăng ký biến động đất đai\n" +
-                "• [TTHC-DD-03] Hòa giải tranh chấp đất đai tại cấp xã/phường\n" +
-                "• [TTHC-DD-04] Trích lục bản đồ địa chính và hồ sơ thửa đất\n\n" +
-                "👉 Bà con đang cần làm thủ tục nào? Hãy gõ câu hỏi hoặc tên thủ tục (ví dụ: \"khai sinh cần giấy tờ gì\", \"kết hôn mất bao lâu\", \"hướng dẫn điền CT01\") để tôi hướng dẫn chi tiết từng bước nhé!",
-                wardLabel
-        );
+
+        List<AdminProcedure> procedures = Collections.emptyList();
+        if (procedureRepository != null) {
+            try {
+                procedures = procedureRepository.findByStatus("ACTIVE");
+                if (procedures.isEmpty()) {
+                    procedures = procedureRepository.findAll();
+                }
+            } catch (Exception e) {
+                log.warn("Could not query dynamic procedures from repository: {}", e.getMessage());
+            }
+        }
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("Danh mục các thủ tục hành chính công trọng tâm cấp xã/phường được hỗ trợ tại %s gồm 4 nhóm chính:\n\n", wardLabel));
+
+        if (!procedures.isEmpty()) {
+            List<AdminProcedure> hoTich = procedures.stream()
+                    .filter(p -> "Hộ tịch".equalsIgnoreCase(p.getCategory()) || "Cư trú".equalsIgnoreCase(p.getCategory()))
+                    .sorted(Comparator.comparing(AdminProcedure::getProcedureCode))
+                    .toList();
+            List<AdminProcedure> chungThuc = procedures.stream()
+                    .filter(p -> "Chứng thực".equalsIgnoreCase(p.getCategory()))
+                    .sorted(Comparator.comparing(AdminProcedure::getProcedureCode))
+                    .toList();
+            List<AdminProcedure> datDai = procedures.stream()
+                    .filter(p -> "Đất đai và Môi trường".equalsIgnoreCase(p.getCategory()) || "Địa chính".equalsIgnoreCase(p.getCategory()) || "Xây dựng".equalsIgnoreCase(p.getCategory()))
+                    .sorted(Comparator.comparing(AdminProcedure::getProcedureCode))
+                    .toList();
+            List<AdminProcedure> baoTro = procedures.stream()
+                    .filter(p -> "Bảo trợ xã hội".equalsIgnoreCase(p.getCategory()) || "Bảo trợ xã hội và Người có công".equalsIgnoreCase(p.getCategory()))
+                    .sorted(Comparator.comparing(AdminProcedure::getProcedureCode))
+                    .toList();
+
+            sb.append("📋 1. LĨNH VỰC HỘ TỊCH & NHÂN THÂN:\n");
+            for (AdminProcedure p : hoTich) {
+                sb.append(String.format("• [%s] %s\n", p.getProcedureCode(), p.getProcedureName()));
+            }
+            sb.append("\n📑 2. LĨNH VỰC CHỨNG THỰC GIẤY TỜ & CHỮ KÝ:\n");
+            for (AdminProcedure p : chungThuc) {
+                sb.append(String.format("• [%s] %s\n", p.getProcedureCode(), p.getProcedureName()));
+            }
+            sb.append("\n🌾 3. LĨNH VỰC ĐẤT ĐAI & MÔI TRƯỜNG:\n");
+            for (AdminProcedure p : datDai) {
+                sb.append(String.format("• [%s] %s\n", p.getProcedureCode(), p.getProcedureName()));
+            }
+            sb.append("\n🤝 4. LĨNH VỰC BẢO TRỢ XÃ HỘI & NGƯỜI CÓ CÔNG:\n");
+            for (AdminProcedure p : baoTro) {
+                sb.append(String.format("• [%s] %s\n", p.getProcedureCode(), p.getProcedureName()));
+            }
+        } else {
+            // Standard fallback catalog for testing/offline environments
+            sb.append("📋 1. LĨNH VỰC HỘ TỊCH & NHÂN THÂN:\n");
+            sb.append("• [TTHC-HT-01] Đăng ký khai sinh\n");
+            sb.append("• [TTHC-HT-02] Đăng ký kết hôn\n");
+            sb.append("• [TTHC-HT-03] Đăng ký khai tử có yếu tố nước ngoài tại khu vực biên giới\n");
+            sb.append("• [TTHC-HT-04] Cấp bản sao Trích lục hộ tịch, bản sao Giấy khai sinh\n");
+            sb.append("• [TTHC-HT-05] Đăng ký nhận cha, mẹ, con có yếu tố nước ngoài\n");
+            sb.append("• [TTHC-HT-06] Đăng ký giám hộ\n");
+            sb.append("• [TTHC-HT-11] Cấp Giấy xác nhận tình trạng hôn nhân\n");
+            sb.append("• [TTHC-HT-13] Đăng ký khai tử (trong nước)\n");
+            sb.append("• [TTHC-CR-01] Đăng ký thường trú\n");
+            sb.append("• [TTHC-CR-02] Liên thông điện tử: Khai tử, xóa thường trú, mai táng phí\n");
+            sb.append("• [TTHC-CR-03] Đăng ký tạm trú\n");
+            sb.append("• [TTHC-CR-08] Xác nhận thông tin về cư trú (CT07)\n");
+            sb.append("• [TTHC-CR-10] Xác nhận thông tin hộ tịch\n\n");
+
+            sb.append("📑 2. LĨNH VỰC CHỨNG THỰC GIẤY TỜ & CHỮ KÝ:\n");
+            sb.append("• [TTHC-CT-01] Chứng thực bản sao từ bản chính\n");
+            sb.append("• [TTHC-CT-02] Chứng thực chữ ký trong các giấy tờ, văn bản\n");
+            sb.append("• [TTHC-CT-04] Chứng thực văn bản phân chia di sản\n");
+            sb.append("• [TTHC-CT-07] Chứng thực văn bản từ chối nhận di sản\n");
+            sb.append("• [TTHC-CT-08] Chứng thực di chúc\n\n");
+
+            sb.append("🌾 3. LĨNH VỰC ĐẤT ĐAI & MÔI TRƯỜNG:\n");
+            sb.append("• [TTHC-DC-01] Đăng ký biến động quyền sử dụng đất\n");
+            sb.append("• [TTHC-DC-02] Đăng ký đất đai, cấp GCN QSDĐ lần đầu\n");
+            sb.append("• [TTHC-XD-01] Đăng ký biến động quyền sử dụng đất, tài sản gắn liền với đất\n");
+            sb.append("• [TTHC-XD-02] Cấp Giấy chứng nhận quyền sử dụng đất lần đầu cho tổ chức\n");
+            sb.append("• [TTHC-MT-01] Đăng ký môi trường cấp xã\n\n");
+
+            sb.append("🤝 4. LĨNH VỰC BẢO TRỢ XÃ HỘI & NGƯỜI CÓ CÔNG:\n");
+            sb.append("• [TTHC-BT-01] Trợ cấp xã hội hằng tháng ở cộng đồng\n");
+            sb.append("• [TTHC-BT-02] Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội\n");
+            sb.append("• [TTHC-BT-03] Tiếp nhận đối tượng vào cơ sở trợ giúp xã hội\n");
+            sb.append("• [TTHC-BT-04] Hỗ trợ chi phí mai táng đối với đối tượng trợ cấp hưu trí\n");
+            sb.append("• [TTHC-BT-05] Hỗ trợ chi phí mai táng hàng tháng theo QĐ 124\n");
+            sb.append("• [TTHC-NCC-01] Tiếp nhận hồ sơ giải quyết chế độ ưu đãi Người có công với cách mạng\n");
+        }
+
+        sb.append("\n👉 Bà con đang cần làm thủ tục nào? Hãy gõ câu hỏi hoặc tên thủ tục (ví dụ: \"khai sinh cần giấy tờ gì\", \"kết hôn mất bao lâu\", \"hướng dẫn điền CT01\") để tôi hướng dẫn chi tiết từng bước nhé!");
 
         List<String> suggestions = List.of(
                 "👶 Đăng ký khai sinh",
@@ -846,7 +904,7 @@ public class RagQueryService {
         );
 
         return RagAskResponse.builder()
-                .answer(answer)
+                .answer(sb.toString())
                 .abstained(false)
                 .maxSimilarity(1.0)
                 .appliedThreshold(defaultThreshold)

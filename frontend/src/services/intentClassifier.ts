@@ -488,44 +488,44 @@ export function checkOutOfScopeQuery(query: string): OutOfScopeResult {
  * Builds standard, structured catalog response for the 40 commune administrative procedures
  */
 export function buildProcedureCatalogResponse(wardName: string = 'UBND cấp xã/phường'): string {
-  return `Danh mục các thủ tục hành chính công trọng tâm cấp xã/phường được hỗ trợ tại ${wardName} gồm 5 nhóm chính:
+  return `Danh mục các thủ tục hành chính công trọng tâm cấp xã/phường được hỗ trợ tại ${wardName} gồm 4 nhóm chính:
 
 📋 1. LĨNH VỰC HỘ TỊCH & NHÂN THÂN:
-• [TTHC-HT-01] Đăng ký khai sinh (thông thường & lưu động)
-• [TTHC-HT-02] Đăng ký kết hôn (trong nước)
-• [TTHC-HT-03] Cấp Giấy xác nhận tình trạng hôn nhân (Giấy độc thân)
-• [TTHC-HT-04] Cấp bản sao Trích lục hộ tịch (khai sinh, kết hôn, khai tử)
-• [TTHC-HT-05] Đăng ký khai tử và giải quyết hỗ trợ mai táng
-• [TTHC-HT-06] Đăng ký nhận cha, mẹ, con
-• [TTHC-HT-07] Thay đổi, cải chính hộ tịch, bổ sung thông tin hộ tịch
-• [TTHC-HT-08] Đăng ký giám hộ và chấm dứt giám hộ
+• [TTHC-HT-01] Đăng ký khai sinh
+• [TTHC-HT-02] Đăng ký kết hôn
+• [TTHC-HT-03] Đăng ký khai tử có yếu tố nước ngoài tại khu vực biên giới
+• [TTHC-HT-04] Cấp bản sao Trích lục hộ tịch, bản sao Giấy khai sinh
+• [TTHC-HT-05] Đăng ký nhận cha, mẹ, con có yếu tố nước ngoài
+• [TTHC-HT-06] Đăng ký giám hộ
+• [TTHC-HT-11] Cấp Giấy xác nhận tình trạng hôn nhân
+• [TTHC-HT-13] Đăng ký khai tử (trong nước)
+• [TTHC-CR-01] Đăng ký thường trú
+• [TTHC-CR-02] Liên thông điện tử: Khai tử, xóa thường trú, mai táng phí
+• [TTHC-CR-03] Đăng ký tạm trú
+• [TTHC-CR-08] Xác nhận thông tin về cư trú (CT07)
+• [TTHC-CR-10] Xác nhận thông tin hộ tịch
 
-🏠 2. LĨNH VỰC QUẢN LÝ CƯ TRÚ (CÔNG AN XÃ/PHƯỜNG & ĐỀ ÁN 06):
-• [TTHC-CR-01] Đăng ký thường trú (Nộp tờ khai CT01)
-• [TTHC-CR-02] Xóa đăng ký thường trú
-• [TTHC-CR-03] Đăng ký tạm trú và gia hạn tạm trú
-• [TTHC-CR-04] Khai báo tạm vắng và thông báo lưu trú
-• [TTHC-CR-05] Xác nhận thông tin về cư trú (Mẫu CT07)
-• [TTHC-CR-06] Tách hộ và điều chỉnh thông tin nơi cư trú
+📑 2. LĨNH VỰC CHỨNG THỰC GIẤY TỜ & CHỮ KÝ:
+• [TTHC-CT-01] Chứng thực bản sao từ bản chính
+• [TTHC-CT-02] Chứng thực chữ ký trong các giấy tờ, văn bản
+• [TTHC-CT-04] Chứng thực văn bản phân chia di sản
+• [TTHC-CT-07] Chứng thực văn bản từ chối nhận di sản
+• [TTHC-CT-08] Chứng thực di chúc
 
-📑 3. LĨNH VỰC CHỨNG THỰC & TƯ PHÁP CƠ SỞ:
-• [TTHC-CT-01] Chứng thực bản sao từ bản chính (Sao y văn bằng, giấy tờ)
-• [TTHC-CT-02] Chứng thực chữ ký trong các giấy tờ, văn bản cá nhân
-• [TTHC-CT-03] Chứng thực hợp đồng, giao dịch liên quan đến tài sản cơ bản
-• [TTHC-CT-04] Chứng thực di chúc, văn bản từ chối nhận di sản thừa kế
+🌾 3. LĨNH VỰC ĐẤT ĐAI & MÔI TRƯỜNG:
+• [TTHC-DC-01] Đăng ký biến động quyền sử dụng đất
+• [TTHC-DC-02] Đăng ký đất đai, cấp GCN QSDĐ lần đầu
+• [TTHC-XD-01] Đăng ký biến động quyền sử dụng đất, tài sản gắn liền với đất
+• [TTHC-XD-02] Cấp Giấy chứng nhận quyền sử dụng đất lần đầu cho tổ chức
+• [TTHC-MT-01] Đăng ký môi trường cấp xã
 
-🤝 4. LĨNH VỰC BẢO TRỢ XÃ HỘI & CHÍNH SÁCH CÔNG:
-• [TTHC-BT-01] Trợ cấp xã hội hàng tháng (Người cao tuổi, khuyết tật, trẻ mồ côi)
+🤝 4. LĨNH VỰC BẢO TRỢ XÃ HỘI & NGƯỜI CÓ CÔNG:
+• [TTHC-BT-01] Trợ cấp xã hội hằng tháng ở cộng đồng
 • [TTHC-BT-02] Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội
-• [TTHC-BT-03] Cấp thẻ Bảo hiểm Y tế cho đối tượng bảo trợ xã hội
-• [TTHC-BT-04] Trợ giúp xã hội đột xuất cho hộ gia đình khó khăn, thiên tai
-• [TTHC-BT-05] Thủ tục xác nhận người có công, gia đình chính sách
-
-🌾 5. LĨNH VỰC ĐỊA CHÍNH & ĐẤT ĐAI CƠ BẢN:
-• [TTHC-DD-01] Xác nhận hiện trạng sử dụng đất và tình trạng không có tranh chấp
-• [TTHC-DD-02] Tiếp nhận và luân chuyển hồ sơ đăng ký biến động đất đai
-• [TTHC-DD-03] Hòa giải tranh chấp đất đai tại cấp xã/phường
-• [TTHC-DD-04] Trích lục bản đồ địa chính và hồ sơ thửa đất
+• [TTHC-BT-03] Tiếp nhận đối tượng vào cơ sở trợ giúp xã hội
+• [TTHC-BT-04] Hỗ trợ chi phí mai táng đối với đối tượng trợ cấp hưu trí
+• [TTHC-BT-05] Hỗ trợ chi phí mai táng hàng tháng theo QĐ 124
+• [TTHC-NCC-01] Tiếp nhận hồ sơ giải quyết chế độ ưu đãi Người có công với cách mạng
 
 👉 Bà con đang cần làm thủ tục nào? Hãy gõ câu hỏi hoặc tên thủ tục (ví dụ: "khai sinh cần giấy tờ gì", "kết hôn mất bao lâu", "hướng dẫn điền CT01") để tôi hướng dẫn chi tiết từng bước nhé!`;
 }
