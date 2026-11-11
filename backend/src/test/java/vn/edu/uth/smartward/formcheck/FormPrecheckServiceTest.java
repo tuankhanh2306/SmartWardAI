@@ -240,4 +240,261 @@ class FormPrecheckServiceTest {
         assertTrue(resp.isOverallValid(), "Valid CT01 form with valid phone number must pass");
         assertTrue(resp.getFieldValidations().stream().anyMatch(f -> f.getFieldName().contains("Số điện thoại liên hệ")));
     }
+
+    @Test
+    void testPrecheckStructuredForm_ct01_rentingWithoutHostInfo_shouldFail() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-CR-01")
+                .formType("CT01")
+                .fullName("NGUYỄN VĂN AN")
+                .dateOfBirth("2000-01-01")
+                .gender("Nam")
+                .citizenCccd("089200001234")
+                .address("Số 10 Đường Lý Thường Kiệt, Phường Mỹ Bình, An Giang")
+                .hostRelation("Thuê nhà trọ")
+                .phoneNumber("0912345678")
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertFalse(resp.isOverallValid(), "Renting without host info must fail");
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f -> "MISSING_HOST_NAME".equals(f.getErrorCode())));
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f -> "INVALID_HOST_CCCD".equals(f.getErrorCode())));
+    }
+
+    @Test
+    void testPrecheckStructuredForm_ct01_rentingWithValidHostInfo_shouldPass() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-CR-01")
+                .formType("CT01")
+                .fullName("NGUYỄN VĂN AN")
+                .dateOfBirth("2000-01-01")
+                .gender("Nam")
+                .citizenCccd("089200001234")
+                .address("Số 10 Đường Lý Thường Kiệt, Phường Mỹ Bình, An Giang")
+                .phoneNumber("0912345678")
+                .hostRelation("Thuê nhà trọ")
+                .hostName("LÊ HOÀNG NAM")
+                .hostCccd("089190005678")
+                .declarationScope("Đăng ký tạm trú")
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertTrue(resp.isOverallValid(), "Valid renting declaration with complete host details must pass");
+        assertTrue(resp.getWarnings().stream().anyMatch(w -> w.contains("hợp đồng thuê mượn chỗ ở")));
+    }
+
+    @Test
+    void testPrecheckStructuredForm_tkks_missingMandatoryChildAndCertFields_shouldFail() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-HT-01")
+                .formType("TK-KS")
+                .fullName("TRẦN GIA BẢO")
+                .dateOfBirth("2026-10-15")
+                .gender("Nam")
+                .citizenCccd("089195001234")
+                .address("Phường Mỹ Xuyên, An Giang")
+                .formData(Map.of(
+                        "hospitalBirthDate", "2026-10-15",
+                        "motherName", "LÊ THỊ MỸ LINH",
+                        "hospitalMotherName", "LÊ THỊ MỸ LINH",
+                        "parentsMarried", "YES"
+                ))
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertFalse(resp.isOverallValid());
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f -> "MISSING_CHILD_ETHNICITY".equals(f.getErrorCode())));
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f -> "MISSING_CHILD_NATIONALITY".equals(f.getErrorCode())));
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f -> "MISSING_CHILD_BIRTH_PLACE".equals(f.getErrorCode())));
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f -> "MISSING_BIRTH_CERT_NUMBER".equals(f.getErrorCode())));
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f -> "MISSING_MOTHER_RESIDENCE".equals(f.getErrorCode())));
+    }
+
+    @Test
+    void testPrecheckStructuredForm_tkks_fullValidDeclaration_shouldPass() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-HT-01")
+                .formType("TK-KS")
+                .fullName("TRẦN MINH KHÔI")
+                .dateOfBirth("2026-10-01")
+                .gender("Nam")
+                .citizenCccd("089195001234")
+                .address("Phường Mỹ Xuyên, An Giang")
+                .childEthnicity("Kinh")
+                .childNationality("Việt Nam")
+                .childBirthPlace("Bệnh viện Đa khoa Trung tâm An Giang")
+                .birthCertNumber("1234/GCS-2026")
+                .birthCertIssueDate("2026-10-02")
+                .motherResidence("Số 25 Chu Văn An, Phường Mỹ Xuyên, An Giang")
+                .formData(Map.of(
+                        "hospitalBirthDate", "2026-10-01",
+                        "motherName", "LÊ THỊ BÍCH",
+                        "hospitalMotherName", "LÊ THỊ BÍCH",
+                        "parentsMarried", "YES"
+                ))
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertTrue(resp.isOverallValid(), "Full valid birth declaration under Circular 04/2020 must pass");
+    }
+
+    @Test
+    void testPrecheckStructuredForm_tkh_marriageRegistration_missingPartnerInfo_shouldFail() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-HT-02")
+                .formType("TK-KH")
+                .marriageMode("MARRIAGE_REGISTRATION")
+                .fullName("TRẦN VĂN HẢI")
+                .gender("Nam")
+                .dateOfBirth("1998-05-10")
+                .citizenCccd("089198001234")
+                .address("Phường Mỹ Bình, An Giang")
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertFalse(resp.isOverallValid());
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f -> "MISSING_PARTNER_NAME".equals(f.getErrorCode())));
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f -> "INVALID_PARTNER_CCCD".equals(f.getErrorCode())));
+    }
+
+    @Test
+    void testPrecheckStructuredForm_tkh_marriageRegistration_valid_shouldPass() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-HT-02")
+                .formType("TK-KH")
+                .marriageMode("MARRIAGE_REGISTRATION")
+                .fullName("TRẦN VĂN HẢI")
+                .gender("Nam")
+                .dateOfBirth("1998-05-10")
+                .citizenCccd("089198001234")
+                .address("Phường Mỹ Bình, An Giang")
+                .applicantEthnicity("Kinh")
+                .applicantNationality("Việt Nam")
+                .partnerName("LÊ THỊ MAI")
+                .partnerCccd("089201005678")
+                .partnerAddress("Số 80 Lê Lợi, Phường Mỹ Long, An Giang")
+                .partnerEthnicity("Kinh")
+                .partnerNationality("Việt Nam")
+                .formData(Map.of(
+                        "partnerDob", "2001-08-20",
+                        "partnerGender", "Nữ"
+                ))
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertTrue(resp.isOverallValid(), "Valid marriage registration with both eligible partners must pass");
+    }
+
+    @Test
+    void testPrecheckStructuredForm_tkh_divorcedWithoutJudgment_shouldFail() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-HT-02")
+                .formType("TK-KH")
+                .marriageMode("MARITAL_STATUS_CONFIRMATION")
+                .fullName("NGUYỄN THỊ THU")
+                .gender("Nữ")
+                .dateOfBirth("1995-02-14")
+                .citizenCccd("089195008765")
+                .address("Phường Bình Đức, An Giang")
+                .formData(Map.of(
+                        "maritalCertPurpose", "Để vay vốn ngân hàng thương mại tại An Giang",
+                        "previousMaritalStatus", "DIVORCED"
+                ))
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertFalse(resp.isOverallValid());
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f -> "MISSING_DIVORCE_JUDGMENT_NUMBER".equals(f.getErrorCode())));
+    }
+
+    @Test
+    void testPrecheckStructuredForm_tkh_widowedWithoutDeathCert_shouldFail() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-HT-02")
+                .formType("TK-KH")
+                .marriageMode("MARITAL_STATUS_CONFIRMATION")
+                .fullName("NGUYỄN THỊ THU")
+                .gender("Nữ")
+                .dateOfBirth("1995-02-14")
+                .citizenCccd("089195008765")
+                .address("Phường Bình Đức, An Giang")
+                .formData(Map.of(
+                        "maritalCertPurpose", "Để làm thủ tục chuyển nhượng quyền sử dụng đất",
+                        "previousMaritalStatus", "WIDOWED"
+                ))
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertFalse(resp.isOverallValid());
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f -> "MISSING_DEATH_CERT_NUMBER".equals(f.getErrorCode())));
+    }
+
+    @Test
+    void testPrecheckStructuredForm_tkbtxh_poorHousehold70Years_valid() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-BT-01")
+                .formType("TK-BTXH")
+                .fullName("NGUYỄN VĂN TÁM")
+                .dateOfBirth("1955-04-10") // 71 years old
+                .gender("Nam")
+                .citizenCccd("089055001234")
+                .address("Xã Vĩnh Tế, TP Châu Đốc, An Giang")
+                .poorHouseholdBookNumber("HN-2026/08912")
+                .formData(Map.of(
+                        "householdStatus", "POOR",
+                        "disabilityLevel", "NONE",
+                        "bankAccount", "1029384756 - Agribank Châu Đốc"
+                ))
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertTrue(resp.isOverallValid(), "71-year-old poor citizen with poor book number must qualify under Luật BHXH 2024");
+    }
+
+    @Test
+    void testPrecheckStructuredForm_tkbtxh_severeDisabilityWithCert_valid() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-BT-01")
+                .formType("TK-BTXH")
+                .fullName("HOÀNG MINH ĐỨC")
+                .dateOfBirth("1995-03-12")
+                .gender("Nam")
+                .citizenCccd("089195009876")
+                .address("Phường Mỹ Phước, An Giang")
+                .disabilityCertNumber("GKT-2025/001")
+                .disabilityCertIssueDate("2025-05-10")
+                .disabilityCertIssuer("UBND Phường Mỹ Phước")
+                .guardianName("HOÀNG VĂN CHÍNH")
+                .guardianCccd("089165004321")
+                .guardianRelation("Bố đẻ")
+                .guardianPhone("0987654321")
+                .formData(Map.of(
+                        "disabilityLevel", "SEVERE",
+                        "bankAccount", "9988776655 - BIDV An Giang"
+                ))
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertTrue(resp.isOverallValid(), "Severe disability with valid disability certificate and guardian info must pass");
+    }
 }

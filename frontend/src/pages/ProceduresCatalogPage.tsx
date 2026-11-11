@@ -8,11 +8,12 @@ import {
   Clock,
   ArrowRight,
   ShieldCheck,
-  Printer,
   ChevronRight,
   X,
   Bot,
-  Loader2
+  Loader2,
+  Sparkles,
+  FileDown
 } from 'lucide-react';
 import { PROCEDURES_CATALOG, type ProcedureCatalogItem } from '../data/proceduresCatalog';
 import { getProcedures } from '../api/client';
@@ -86,13 +87,32 @@ export const ProceduresCatalogPage: React.FC = () => {
     setIsModalOpen(true);
   };
 
-  // Determine form type for the modal
-  const getFormType = (code: string): 'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH' | 'GENERAL' => {
+  // Determine form type for the modal covering all 40 commune procedures
+  const getFormType = (code: string): string => {
     if (code === 'TTHC-CR-01') return 'CT01';
     if (code === 'TTHC-HT-01') return 'TK-KS';
     if (code === 'TTHC-HT-02') return 'TK-KH';
     if (code === 'TTHC-BT-01') return 'TK-BTXH';
+    if (code.startsWith('TTHC-CT-')) return 'CHUNG-THUC';
+    if (code.startsWith('TTHC-DC-')) return 'DAT-DAI';
+    if (code.startsWith('TTHC-XD-')) return 'XAY-DUNG';
+    if (code === 'TTHC-CR-02') return 'KHAI-TU';
+    if (code.startsWith('TTHC-BT-')) return 'MAI-TANG-PHI';
+    if (code.startsWith('TTHC-MT-')) return 'MOI-TRUONG';
     return 'GENERAL';
+  };
+
+  // 100% Fee Exemption rule per Law on Fees and Charges 2015 (Luật Phí và Lệ phí 2015)
+  const isFeeExempt = (proc: ProcedureCatalogItem): boolean => {
+    const code = proc.code.toUpperCase();
+    const cat = (proc.category || '').toLowerCase();
+    const feeStr = (proc.fee || '').toLowerCase();
+
+    // Basic timely civil status, social protection, elderly, meritorious persons, or explicit free
+    if (cat.includes('hộ tịch') || cat.includes('bảo trợ')) return true;
+    if (code.startsWith('TTHC-BT-') || code.startsWith('TTHC-HT-') || code === 'TTHC-CR-02') return true;
+    if (feeStr.includes('miễn') || feeStr === '0' || feeStr === '0 đ' || feeStr === '0 vnđ') return true;
+    return false;
   };
 
   // Check if procedure has direct online form declaration
@@ -297,26 +317,32 @@ export const ProceduresCatalogPage: React.FC = () => {
 
                           <span className="text-slate-300">•</span>
 
-                          <span className="font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-sm">
-                            {proc.category === 'Hộ tịch' || proc.category === 'Bảo trợ xã hội'
-                              ? 'Miễn phí'
-                              : 'Theo quy định HĐND'}
-                          </span>
+                          {isFeeExempt(proc) ? (
+                            <span className="inline-flex items-center gap-1 font-bold text-emerald-800 bg-emerald-100/90 border border-emerald-300 px-2 py-0.5 rounded-lg text-[10px] shadow-2xs">
+                              <Sparkles className="w-3 h-3 text-emerald-600 shrink-0" />
+                              <span>🌿 MIỄN 100% LỆ PHÍ (Luật Phí và Lệ phí 2015)</span>
+                            </span>
+                          ) : (
+                            <span className="font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded-lg text-[10px]">
+                              Theo quy định HĐND
+                            </span>
+                          )}
                         </div>
                       </div>
                     </div>
 
                     {/* Right Action Buttons */}
                     <div className="flex items-center gap-2 shrink-0 self-end sm:self-center mt-2 sm:mt-0">
-                      {/* A4 Printable Document Preview */}
+                      {/* A4 Printable Document Preview & Download */}
                       <button
                         type="button"
                         onClick={() => handleOpenA4(proc)}
-                        className="px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-[#00796B] hover:bg-teal-50 text-slate-700 hover:text-[#00796B] text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
-                        title="Xem trước mẫu văn bản A4 chuẩn Nghị định 30/2020/NĐ-CP"
+                        className="px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-[#00796B] hover:bg-teal-50 text-slate-700 hover:text-[#00796B] text-xs font-semibold flex items-center gap-1 transition cursor-pointer shadow-2xs"
+                        title="Xem trước và tải về máy bản Word (.docx) hoặc PDF chuẩn Nghị định 30/2020/NĐ-CP"
                       >
-                        <Printer className="w-3.5 h-3.5 text-[#00796B]" />
-                        <span className="hidden md:inline">Mẫu A4</span>
+                        <FileDown className="w-3.5 h-3.5 text-[#00796B]" />
+                        <span className="hidden sm:inline">Mẫu A4 (Tải/In)</span>
+                        <span className="sm:hidden">Mẫu A4</span>
                       </button>
 
                       {/* Direct Form or AI Consultation */}
@@ -407,14 +433,25 @@ export const ProceduresCatalogPage: React.FC = () => {
           procedureCode={selectedProcedureForModal.code}
           procedureTitle={selectedProcedureForModal.name}
           legalBasis="Theo Quyết định công bố TTHC cấp Xã/Phường"
-          initialData={{
-            fullName: 'NGUYỄN VĂN HÒA',
-            gender: 'Nam',
-            dob: '15/08/1990',
-            idNumber: '089205023490',
-            phone: currentWard.phoneNumber,
-            address: `${currentWard.name}, Tỉnh An Giang`,
-          }}
+          initialData={(() => {
+            try {
+              const saved = localStorage.getItem('smartward_citizen_profile');
+              if (saved) {
+                const p = JSON.parse(saved);
+                return {
+                  fullName: p.fullName,
+                  gender: p.gender,
+                  dob: p.dob || p.dateOfBirth,
+                  idNumber: p.idNumber || p.citizenCccd,
+                  phone: p.phone || p.phoneNumber || currentWard.phoneNumber,
+                  address: p.address || `${currentWard.name}, Tỉnh An Giang`,
+                };
+              }
+            } catch {
+              // Ignore JSON parse errors
+            }
+            return undefined;
+          })()}
         />
       )}
     </main>
