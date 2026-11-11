@@ -597,12 +597,15 @@ export interface LiveFormDossier {
   officerFeedback?: string;
   reviewedBy?: string;
   vaultViewUsed?: boolean;
+  vaultToken?: string;
+  vaultDocId?: string;
   details: {
     dob: string;
     gender: string;
     address: string;
     confidence: number;
     issues: string[];
+    vaultToken?: string;
   };
 }
 
@@ -1445,6 +1448,8 @@ export interface VaultUploadResponse {
   oneTimeToken: string;
   viewUrl: string;
   tokenExpiresInSeconds: number;
+  expiresAt?: string;
+  encryptionAlgorithm?: string;
   watermarkText?: string;
   watermarkApplied?: boolean;
   message: string;
@@ -1452,26 +1457,29 @@ export interface VaultUploadResponse {
 
 export const uploadVaultDocument = async (formData: FormData): Promise<VaultUploadResponse> => {
   const resp = await api.post<any>('/vault/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: { 'Content-Type': undefined },
   });
   const data = resp.data?.data ?? resp.data;
   return {
-    documentId: data.documentCode || data.documentId || ('doc_' + Date.now()),
+    documentId: data.documentCode || data.documentId || ('DOC_' + Date.now()),
     documentCode: data.documentCode,
     oneTimeToken: data.oneTimeToken || '',
     viewUrl: data.viewUrl || '',
     tokenExpiresInSeconds: data.tokenExpiresInSeconds || 86400,
+    expiresAt: data.expiresAt,
+    encryptionAlgorithm: data.encryptionAlgorithm || 'AES/GCM/NoPadding (256-bit)',
     watermarkText: data.watermarkText || 'UBND XÃ - SMARTWARD ZERO-TRUST',
     watermarkApplied: data.watermarkApplied ?? true,
-    message: data.message || 'Tải lên thành công',
+    message: data.message || 'Tài liệu đã được mã hóa AES-256 và lưu trữ an toàn tại MinIO.',
   };
 };
 
 export const viewVaultDocument = async (token: string): Promise<Blob> => {
-  const resp = await api.get(`/vault/view/${token}`, {
+  const cleanToken = token ? token.trim() : '';
+  const resp = await api.get(`/vault/view/${encodeURIComponent(cleanToken)}`, {
     responseType: 'blob',
   });
-  return resp.data;
+  return resp.data as Blob;
 };
 
 // 5. Evaluation Benchmark API

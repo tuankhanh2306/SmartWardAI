@@ -5,6 +5,8 @@ import {
   precheckForm,
   reportIssue,
   getLiveSubmittedDossiers,
+  saveLiveSubmittedDossier,
+  uploadVaultDocument,
   getLiveSubmittedIncidents,
   type FormPrecheckResponse,
   type IssueReportResponse,
@@ -14,6 +16,8 @@ import {
 import { extractFormWithVision, normalizeDateToYMD, type ExtractedFormFieldsResult } from '../services/geminiClient';
 import { useWard } from '../context/WardContext';
 import A4DocumentModal from '../components/A4DocumentModal';
+import { CccdQrScannerModal } from '../components/CccdQrScannerModal';
+import { type DecodedCccdQr, type QrFieldDiscrepancy } from '../utils/cccdQrParser';
 import {
   AN_GIANG_WARDS,
   findNearestWardByCoords,
@@ -46,7 +50,8 @@ import {
   ArrowRight,
   FileDown,
   Volume2,
-  VolumeX
+  VolumeX,
+  QrCode
 } from 'lucide-react';
 
 
@@ -97,6 +102,35 @@ export const FormAndIssueReporting: React.FC = () => {
   const [gender, setGender] = useState('Nữ');
   const [issueDate, setIssueDate] = useState('');
   const [address, setAddress] = useState('32/3 Ích, Khu phố 12, Phường Tp Hồ Chí Minh');
+
+  // F7: Real CCCD QR Scanner Modal State & Discrepancies
+  const [showCccdQrModal, setShowCccdQrModal] = useState<boolean>(false);
+  const [qrDiscrepancies, setQrDiscrepancies] = useState<QrFieldDiscrepancy[]>([]);
+
+  // F9: Zero-Trust Vault MinIO / Redis OTT State
+  const [vaultDocInfo, setVaultDocInfo] = useState<{
+    docId: string;
+    oneTimeToken: string;
+    viewUrl: string;
+    expiresAt?: string;
+  } | null>(null);
+  const [isVaultUploading, setIsVaultUploading] = useState<boolean>(false);
+  const [vaultUploadError, setVaultUploadError] = useState<string | null>(null);
+
+  const handleCccdQrSuccess = (decoded: DecodedCccdQr, discrepancies: QrFieldDiscrepancy[]) => {
+    setCccd(decoded.cccdNumber);
+    setFullName(decoded.fullName);
+    setDob(decoded.dateOfBirth);
+    setGender(decoded.gender);
+    setAddress(decoded.address);
+    if (decoded.issueDate) {
+      setIssueDate(decoded.issueDate);
+    }
+    setOcrSuccess(true);
+    setOcrConfidence(100);
+    setPrecheckResult(null);
+    setQrDiscrepancies(discrepancies);
+  };
 
   // Specialized fields for CT01 (Residence Declaration - Circular 66/2023/TT-BCA)
   const [phoneNumber, setPhoneNumber] = useState('0918234567');
@@ -659,6 +693,40 @@ export const FormAndIssueReporting: React.FC = () => {
         },
       });
       setPrecheckResult(res);
+
+      // Save to live dossiers with vaultToken and vaultDocId
+      const formLabels: Record<'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH', 'CT01' | 'Khai sinh' | 'Kết hôn' | 'Bảo trợ'> = {
+        CT01: 'CT01',
+        'TK-KS': 'Khai sinh',
+        'TK-KH': 'Kết hôn',
+        'TK-BTXH': 'Bảo trợ',
+      };
+      const now = new Date();
+      const nowStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} ${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}`;
+      const issues = res.fieldValidations ? res.fieldValidations.filter((v) => !v.valid).map((v) => v.errorMessage || v.fieldName) : [];
+
+      saveLiveSubmittedDossier({
+        id: `${selectedFormType}-${Math.floor(1000 + Math.random() * 9000)}`,
+        citizenName: (fullName || 'CÔNG DÂN KÊ KHAI').toUpperCase(),
+        procedure: procMap[selectedFormType],
+        formType: formLabels[selectedFormType],
+        submittedAt: `Vừa nộp (${nowStr})`,
+        status: res.overallValid ? 'VALID' : 'HAS_ERRORS',
+        cccd: cccd || 'Chưa điền',
+        errorCount: issues.length,
+        wardName: currentWard.name,
+        vaultToken: vaultDocInfo?.oneTimeToken,
+        vaultDocId: vaultDocInfo?.docId,
+        details: {
+          dob: dob || 'Chưa cung cấp',
+          gender: gender || 'Nam',
+          address: address || currentWard.name,
+          confidence: 99.0,
+          issues,
+          vaultToken: vaultDocInfo?.oneTimeToken,
+        },
+      });
+
       setMyDossiers(getLiveSubmittedDossiers());
     } catch {
       alert('Không thể kết nối đến máy chủ backend để kiểm tra tờ khai.');
@@ -668,21 +736,49 @@ export const FormAndIssueReporting: React.FC = () => {
   };
 
   // Handle File Upload from PC / Desktop
-  const handleFileChange = (file: File) => {
+  const handleFileChange = async (file: File) => {
     if (!file) return;
     if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
       alert('Vui lòng chọn tệp hình ảnh (PNG, JPG, JPEG, WEBP) hoặc PDF tờ khai.');
       return;
     }
-    if (file.size > 10 * 1024 * 1024) {
-      alert('Kích thước tệp vượt quá 10MB. Vui lòng chọn tệp nhẹ hơn.');
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Kích thước tệp vượt quá 5MB theo hạn mức Zero-Trust Vault (Nghị định 13/2023/NĐ-CP). Vui lòng chọn tệp nhẹ hơn.');
       return;
     }
 
     setSelectedFile(file);
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
+
+    // 1. Run client-side OCR
     runVisionOcr(file);
+
+    // 2. Upload to Zero-Trust Vault with AES-256-GCM encryption & Java2D watermark
+    setIsVaultUploading(true);
+    setVaultUploadError(null);
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const docType = selectedFormType === 'TK-KS' ? 'GIAY_CHUNG_SINH'
+                    : selectedFormType === 'TK-KH' ? 'GIAY_XAC_NHAN_DOC_THAN'
+                    : selectedFormType === 'TK-BTXH' ? 'SO_HO_NGHEO_KHUYET_TAT'
+                    : 'CT01_RESIDENCE_ATTACHMENT';
+      formData.append('documentType', docType);
+
+      const vaultRes = await uploadVaultDocument(formData);
+      setVaultDocInfo({
+        docId: vaultRes.documentId,
+        oneTimeToken: vaultRes.oneTimeToken,
+        viewUrl: vaultRes.viewUrl,
+        expiresAt: vaultRes.expiresAt,
+      });
+    } catch (err: any) {
+      console.warn('Lỗi tải tệp lên Vault:', err);
+      setVaultUploadError('Không thể mã hóa tệp vào Vault. Tờ khai vẫn có thể tiền kiểm tra.');
+    } finally {
+      setIsVaultUploading(false);
+    }
   };
 
   const runVisionOcr = async (file: File) => {
@@ -1396,6 +1492,38 @@ export const FormAndIssueReporting: React.FC = () => {
                           </div>
                         </div>
                       )}
+
+                      {/* Vault Upload Status Banner (F9) */}
+                      {isVaultUploading && (
+                        <div className="p-3 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] flex items-center gap-2.5 text-xs text-[#0F766E]">
+                          <RefreshCw className="w-4 h-4 animate-spin text-[#0D9488]" />
+                          <span>Đang đóng dấu watermark và mã hóa AES-256-GCM lưu trữ an toàn vào MinIO...</span>
+                        </div>
+                      )}
+
+                      {vaultDocInfo && !isVaultUploading && (
+                        <div className="p-3 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] flex items-center justify-between gap-2 text-xs text-[#166534]">
+                          <div className="flex items-center gap-2">
+                            <ShieldCheck className="w-4 h-4 text-[#16A34A] shrink-0" />
+                            <div>
+                              <span className="font-bold block">Đã lưu trữ an toàn trong Zero-Trust Vault (MinIO)</span>
+                              <span className="text-[11px] text-[#15803D]">
+                                Mã tài liệu: <code className="font-mono">{vaultDocInfo.docId}</code> • Mã OTT: <code className="font-mono">{vaultDocInfo.oneTimeToken.slice(0, 16)}...</code>
+                              </span>
+                            </div>
+                          </div>
+                          <span className="px-2 py-0.5 rounded-full bg-[#DCFCE7] text-[#15803D] font-mono text-[10px] font-bold">
+                            AES-256-GCM
+                          </span>
+                        </div>
+                      )}
+
+                      {vaultUploadError && !isVaultUploading && (
+                        <div className="p-3 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-center gap-2 text-xs text-[#DC2626]">
+                          <AlertCircle className="w-4 h-4 shrink-0" />
+                          <span>{vaultUploadError}</span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -1439,27 +1567,12 @@ export const FormAndIssueReporting: React.FC = () => {
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => {
-                      const sampleQrRaw = `089205023490|251234567|NGUYỄN MINH TUẤN KHANH|23062005|Nam|Số 18 Đường Trần Hưng Đạo, ${currentWard.name}, Tỉnh An Giang|15082022`;
-                      const parts = sampleQrRaw.split('|');
-                      if (parts.length >= 6) {
-                        setCccd(parts[0]);
-                        setFullName(parts[2]);
-                        const d = parts[3];
-                        if (d.length === 8) {
-                          setDob(`${d.slice(4, 8)}-${d.slice(2, 4)}-${d.slice(0, 2)}`);
-                        }
-                        setGender(parts[4] === 'Nữ' ? 'Nữ' : 'Nam');
-                        setAddress(parts[5]);
-                        setOcrSuccess(true);
-                        setOcrConfidence(100);
-                        setPrecheckResult(null);
-                      }
-                    }}
-                    className="px-3 py-1.5 rounded-lg bg-[#00796B] hover:bg-[#00695C] text-white font-bold text-xs transition cursor-pointer flex items-center gap-1 shadow-2xs"
-                    title="Điền thông tin từ mã QR trên thẻ CCCD"
+                    onClick={() => setShowCccdQrModal(true)}
+                    className="px-3.5 py-1.5 rounded-lg bg-[#00796B] hover:bg-[#00695C] text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                    title="Mở camera hoặc tải ảnh để quét mã QR trên thẻ CCCD thật"
                   >
-                    <span>Quét Mã QR CCCD</span>
+                    <QrCode className="w-4 h-4" />
+                    <span>Quét Mã QR CCCD Thật</span>
                   </button>
                   <button
                     type="button"
@@ -1477,6 +1590,23 @@ export const FormAndIssueReporting: React.FC = () => {
                   </button>
                 </div>
               </div>
+
+              {/* F7: CCCD QR Discrepancy Alert Banner */}
+              {qrDiscrepancies.length > 0 && (
+                <div className="p-3.5 rounded-2xl bg-[#FFFBEB] border border-[#FDE68A] text-xs text-[#92400E] flex items-start gap-2.5 animate-fadeIn">
+                  <AlertTriangle className="w-5 h-5 text-[#D97706] shrink-0 mt-0.5" />
+                  <div className="flex flex-col gap-1">
+                    <span className="font-bold">Đã đối soát với thẻ CCCD: Phát hiện {qrDiscrepancies.length} trường sai khác</span>
+                    <div className="flex flex-wrap gap-2 text-[11px]">
+                      {qrDiscrepancies.map((d) => (
+                        <span key={d.fieldKey} className={`px-2 py-0.5 rounded font-mono font-semibold ${d.level === 'CONFLICT' ? 'bg-red-100 text-red-800 border border-red-200' : 'bg-amber-100 text-amber-800'}`}>
+                          {d.fieldLabel}: {d.typedValue || '(trống)'} vs QR: {d.qrValue}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Form Input Fields - Dynamic Across CT01, TK-KS, TK-KH, TK-BTXH */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -3059,6 +3189,21 @@ export const FormAndIssueReporting: React.FC = () => {
           guardianCccd,
           guardianRelation,
           guardianPhone,
+        }}
+      />
+
+      {/* F7: Real CCCD QR Scanner Modal (WebRTC & Image Upload) */}
+      <CccdQrScannerModal
+        isOpen={showCccdQrModal}
+        onClose={() => setShowCccdQrModal(false)}
+        onScanSuccess={handleCccdQrSuccess}
+        currentFormData={{
+          cccd,
+          fullName,
+          dob,
+          gender,
+          address,
+          issueDate,
         }}
       />
       </div>

@@ -50,8 +50,8 @@
 | # | Name | Scope | Dependencies | Status |
 |---|------|-------|-------------|--------|
 | M1 | Chuẩn hóa Nguồn dữ liệu TTHC & REST API | F1, F2, F3 | none | DONE (Commit 75ccb16, 40 seed JSON clean, REST API /api/v1/procedures, 143/143 tests pass, Gate PASS) |
-| M2 | Động cơ Rà soát Tờ khai & Dynamic A4 Modal & Smart Checklist | F4, F5, F6 | M1 | IN_PROGRESS |
-| M3 | Công cụ Kiểm chứng Thông tin: QR CCCD Thật, OCR Đối soát & Zero-Trust Vault | F7, F8, F9 | M2 | PLANNED |
+| M2 | Động cơ Rà soát Tờ khai & Dynamic A4 Modal & Smart Checklist | F4, F5, F6 | M1 | DONE (Commits 05d0890/253bacd, 29 DTO fields, 7 A4 layouts, 40 procedures fee oracle, 18/18 Precheck tests, 48 adversarial tests, Gate PASS) |
+| M3 | Công cụ Kiểm chứng Thông tin: QR CCCD Thật, OCR Đối soát & Zero-Trust Vault | F7, F8, F9 | M2 | IN_PROGRESS |
 | M4 | Lưu trữ Hồ sơ DB, Quản lý Tiến độ, Phân quyền RBAC & Tuân thủ Kỹ thuật | F10, F11, F12, F13 | M1, M2, M3 | PLANNED |
 | M5 | Nghiệm thu E2E Test Suite & Adversarial Hardening (Tiers 1-5) | F14 | M1, M2, M3, M4 | PLANNED |
 
