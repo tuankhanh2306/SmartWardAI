@@ -797,11 +797,12 @@ export const FormAndIssueReporting: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col w-full max-w-7xl mx-auto px-4 md:px-8 py-5 gap-5">
-      {/* Top Segmented Navigation Tab Pill */}
+    <main className="bg-uth-canvas bg-uth-watermark min-h-[calc(100vh-4rem)] p-3 sm:p-6 lg:p-8 flex flex-col justify-start relative">
+      <div className="flex flex-col w-full max-w-7xl mx-auto gap-5 relative z-10">
+        {/* Top Segmented Navigation Tab Pill */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
         <div>
-          <h1 className="text-lg sm:text-xl font-extrabold text-[#0F2942] tracking-tight">
+          <h1 className="text-lg sm:text-xl font-extrabold text-[#00796B] tracking-tight">
             {activeTab === 'form'
               ? `Kiểm Tra 4 Mẫu Tờ Khai • ${currentWard.name}`
               : `Báo Sự Cố Hiện Trường (GPS) • ${currentWard.name}`}
@@ -821,11 +822,11 @@ export const FormAndIssueReporting: React.FC = () => {
             }}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'form'
-                ? 'bg-[#0F2942] text-white shadow-xs'
-                : 'text-[#475569] hover:text-[#0F2942]'
+                ? 'bg-[#00796B] text-white shadow-xs'
+                : 'text-[#475569] hover:text-[#00796B]'
             }`}
           >
-            <FileCheck2 className={`w-3.5 h-3.5 ${activeTab === 'form' ? 'text-[#38BDF8]' : 'text-[#64748B]'}`} />
+            <FileCheck2 className={`w-3.5 h-3.5 ${activeTab === 'form' ? 'text-[#80CBC4]' : 'text-[#64748B]'}`} />
             <span>Tờ Khai (4 Mẫu)</span>
           </button>
 
@@ -837,11 +838,11 @@ export const FormAndIssueReporting: React.FC = () => {
             }}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'incident'
-                ? 'bg-[#0F2942] text-white shadow-xs'
-                : 'text-[#475569] hover:text-[#0F2942]'
+                ? 'bg-[#00796B] text-white shadow-xs'
+                : 'text-[#475569] hover:text-[#00796B]'
             }`}
           >
-            <AlertTriangle className={`w-3.5 h-3.5 ${activeTab === 'incident' ? 'text-[#38BDF8]' : 'text-[#64748B]'}`} />
+            <AlertTriangle className={`w-3.5 h-3.5 ${activeTab === 'incident' ? 'text-[#80CBC4]' : 'text-[#64748B]'}`} />
             <span>Báo Sự Cố (GPS)</span>
           </button>
         </div>
@@ -889,19 +890,19 @@ export const FormAndIssueReporting: React.FC = () => {
                   onClick={() => handleSelectFormType(item.id, 'ERROR_DEMO')}
                   className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 ${
                     active
-                      ? 'bg-[#0F2942] text-white border-[#0F2942] shadow-sm'
+                      ? 'bg-[#00796B] text-white border-[#00796B] shadow-sm'
                       : 'bg-white hover:bg-[#F8FAFC] text-[#0F172A] border-[#CBD5E1]'
                   }`}
                 >
                   <div className="flex items-center justify-between gap-2">
                     <span
                       className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        active ? 'bg-[#38BDF8] text-[#0F2942]' : 'bg-[#F1F5F9] text-[#0F2942]'
+                        active ? 'bg-[#80CBC4] text-[#00796B]' : 'bg-[#F1F5F9] text-[#00796B]'
                       }`}
                     >
                       {item.badge}
                     </span>
-                    {active && <CheckCircle2 className="w-4 h-4 text-[#38BDF8]" />}
+                    {active && <CheckCircle2 className="w-4 h-4 text-[#80CBC4]" />}
                   </div>
                   <div>
                     <div className="text-xs sm:text-sm font-extrabold">{item.title}</div>
@@ -920,7 +921,7 @@ export const FormAndIssueReporting: React.FC = () => {
             <div className="lg:col-span-7 p-6 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#E2E8F0] gap-3">
                 <div className="flex items-center gap-2">
-                  <FileCheck2 className="w-5 h-5 text-[#0F2942]" />
+                  <FileCheck2 className="w-5 h-5 text-[#00796B]" />
                   <span className="text-sm font-bold text-[#0F172A]">Thông Tin Bản Khai Giấy Cần Rà Soát</span>
                 </div>
 
@@ -931,8 +932,8 @@ export const FormAndIssueReporting: React.FC = () => {
                     onClick={() => setInputMode('upload')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       inputMode === 'upload'
-                        ? 'bg-[#0F2942] text-white shadow-xs'
-                        : 'text-[#475569] hover:text-[#0F2942]'
+                        ? 'bg-[#00796B] text-white shadow-xs'
+                        : 'text-[#475569] hover:text-[#00796B]'
                     }`}
                   >
                     <Laptop className="w-3.5 h-3.5" />
@@ -944,8 +945,8 @@ export const FormAndIssueReporting: React.FC = () => {
                     onClick={() => setInputMode('camera')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       inputMode === 'camera'
-                        ? 'bg-[#0F2942] text-white shadow-xs'
-                        : 'text-[#475569] hover:text-[#0F2942]'
+                        ? 'bg-[#00796B] text-white shadow-xs'
+                        : 'text-[#475569] hover:text-[#00796B]'
                     }`}
                   >
                     <Camera className="w-3.5 h-3.5" />
@@ -957,8 +958,8 @@ export const FormAndIssueReporting: React.FC = () => {
                     onClick={() => setInputMode('manual')}
                     className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                       inputMode === 'manual'
-                        ? 'bg-[#0F2942] text-white shadow-xs'
-                        : 'text-[#475569] hover:text-[#0F2942]'
+                        ? 'bg-[#00796B] text-white shadow-xs'
+                        : 'text-[#475569] hover:text-[#00796B]'
                     }`}
                   >
                     <PenTool className="w-3.5 h-3.5" />
@@ -978,8 +979,8 @@ export const FormAndIssueReporting: React.FC = () => {
                       onClick={() => fileInputRef.current?.click()}
                       className={`relative p-6 sm:p-8 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-3 ${
                         isDragging
-                          ? 'border-[#0F2942] bg-[#F1F5F9] scale-[1.01]'
-                          : 'border-[#CBD5E1] hover:border-[#0F2942] bg-[#F8FAFC] hover:bg-[#F1F5F9]'
+                          ? 'border-[#00796B] bg-[#F1F5F9] scale-[1.01]'
+                          : 'border-[#CBD5E1] hover:border-[#00796B] bg-[#F8FAFC] hover:bg-[#F1F5F9]'
                       }`}
                     >
                       <input
@@ -994,8 +995,8 @@ export const FormAndIssueReporting: React.FC = () => {
                         className="hidden"
                       />
 
-                      <div className="w-14 h-14 rounded-2xl bg-[#E2E8F0] text-[#0F2942] flex items-center justify-center shadow-xs">
-                        <Upload className="w-7 h-7 text-[#0F2942]" />
+                      <div className="w-14 h-14 rounded-2xl bg-[#E2E8F0] text-[#00796B] flex items-center justify-center shadow-xs">
+                        <Upload className="w-7 h-7 text-[#00796B]" />
                       </div>
 
                       <div>
@@ -1003,7 +1004,7 @@ export const FormAndIssueReporting: React.FC = () => {
                           Kéo thả ảnh chụp tờ khai hoặc thẻ CCCD vào đây
                         </p>
                         <p className="text-xs text-[#64748B] mt-1">
-                          Hoặc <span className="text-[#0F2942] font-bold underline">bấm để chọn tệp từ máy tính PC</span> (PNG, JPG, WEBP, PDF tối đa 10MB)
+                          Hoặc <span className="text-[#00796B] font-bold underline">bấm để chọn tệp từ máy tính PC</span> (PNG, JPG, WEBP, PDF tối đa 10MB)
                         </p>
                       </div>
 
@@ -1019,7 +1020,7 @@ export const FormAndIssueReporting: React.FC = () => {
                             e.stopPropagation();
                             handleLoadSample();
                           }}
-                          className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-xs font-bold text-[#0F2942] transition cursor-pointer"
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-xs font-bold text-[#00796B] transition cursor-pointer"
                         >
                           <FileText className="w-3.5 h-3.5" />
                           <span>Dùng ảnh mẫu CT01</span>
@@ -1035,7 +1036,7 @@ export const FormAndIssueReporting: React.FC = () => {
                             {selectedFile?.type.startsWith('image/') ? (
                               <img src={previewUrl} alt="Bản scan tờ khai" className="w-full h-full object-cover" />
                             ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-[#E2E8F0] text-[#0F2942]">
+                              <div className="w-full h-full flex items-center justify-center bg-[#E2E8F0] text-[#00796B]">
                                 <FileText className="w-7 h-7" />
                               </div>
                             )}
@@ -1152,14 +1153,14 @@ export const FormAndIssueReporting: React.FC = () => {
               {/* METHOD 3: MANUAL INPUT HINT */}
               {inputMode === 'manual' && (
                 <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#64748B] flex items-center gap-2">
-                  <PenTool className="w-4 h-4 text-[#0F2942] shrink-0" />
+                  <PenTool className="w-4 h-4 text-[#00796B] shrink-0" />
                   <span>Chế độ nhập tay: Đối chiếu trực tiếp thông tin từ bản khai giấy của bạn vào các ô bên dưới.</span>
                 </div>
               )}
 
               {/* Quick Test Preset Bar for Active Form Type + CCCD QR Scanner */}
               <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] flex flex-wrap items-center justify-between gap-2 text-xs">
-                <span className="font-bold text-[#0F2942]">
+                <span className="font-bold text-[#00796B]">
                   Điền nhanh thông tin mẫu:
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
@@ -1182,7 +1183,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         setPrecheckResult(null);
                       }
                     }}
-                    className="px-3 py-1.5 rounded-lg bg-[#0F2942] hover:bg-[#1E3A5F] text-white font-bold text-xs transition cursor-pointer flex items-center gap-1 shadow-2xs"
+                    className="px-3 py-1.5 rounded-lg bg-[#00796B] hover:bg-[#00695C] text-white font-bold text-xs transition cursor-pointer flex items-center gap-1 shadow-2xs"
                     title="Điền thông tin từ mã QR trên thẻ CCCD"
                   >
                     <span>Quét Mã QR CCCD</span>
@@ -1233,7 +1234,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     value={fullName}
                     placeholder="Ví dụ: NGUYỄN TÚ"
                     onChange={(e) => setFullName(e.target.value)}
-                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#0F2942] focus:bg-white transition-all ${
+                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00796B] focus:bg-white transition-all ${
                       ocrSuccess && fullName ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-[#F8FAFC] border-[#CBD5E1]'
                     }`}
                   />
@@ -1259,8 +1260,8 @@ export const FormAndIssueReporting: React.FC = () => {
                     maxLength={12}
                     placeholder="12 chữ số định danh cá nhân"
                     onChange={(e) => setCccd(e.target.value)}
-                    className={`w-full h-10 px-3.5 rounded-xl font-mono text-xs md:text-sm font-bold focus:outline-none focus:border-[#0F2942] focus:bg-white transition-all tracking-wider ${
-                      ocrSuccess && cccd ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 text-[#0F2942]' : 'bg-[#F8FAFC] border-[#CBD5E1] text-[#0F2942]'
+                    className={`w-full h-10 px-3.5 rounded-xl font-mono text-xs md:text-sm font-bold focus:outline-none focus:border-[#00796B] focus:bg-white transition-all tracking-wider ${
+                      ocrSuccess && cccd ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 text-[#00796B]' : 'bg-[#F8FAFC] border-[#CBD5E1] text-[#00796B]'
                     }`}
                   />
                 </div>
@@ -1282,7 +1283,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     type="date"
                     value={dob}
                     onChange={(e) => setDob(e.target.value)}
-                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#0F2942] focus:bg-white transition-all ${
+                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00796B] focus:bg-white transition-all ${
                       ocrSuccess && dob ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-[#F8FAFC] border-[#CBD5E1]'
                     }`}
                   />
@@ -1303,7 +1304,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         value="Nam"
                         checked={gender === 'Nam'}
                         onChange={(e) => setGender(e.target.value)}
-                        className="text-[#0F2942] focus:ring-[#0F2942]"
+                        className="text-[#00796B] focus:ring-[#00796B]"
                       />
                       <span>Nam</span>
                     </label>
@@ -1314,7 +1315,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         value="Nữ"
                         checked={gender === 'Nữ'}
                         onChange={(e) => setGender(e.target.value)}
-                        className="text-[#0F2942] focus:ring-[#0F2942]"
+                        className="text-[#00796B] focus:ring-[#00796B]"
                       />
                       <span>Nữ</span>
                     </label>
@@ -1324,7 +1325,7 @@ export const FormAndIssueReporting: React.FC = () => {
                 {/* SPECIALIZED FIELDS FOR CT01: Cư trú (Thông tư 66/2023/TT-BCA) */}
                 {selectedFormType === 'CT01' && (
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2 text-xs font-extrabold text-[#0F2942] flex items-center gap-1.5">
+                    <div className="sm:col-span-2 text-xs font-extrabold text-[#00796B] flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-[#0F766E]" />
                       <span>Thông tin Tờ khai thay đổi thông tin cư trú (Mẫu CT01 - Thông tư 66/2023/TT-BCA)</span>
                     </div>
@@ -1383,7 +1384,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         maxLength={12}
                         placeholder="12 chữ số CCCD chủ hộ"
                         onChange={(e) => setHostCccd(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-mono font-bold text-[#0F2942]"
+                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-mono font-bold text-[#00796B]"
                       />
                     </div>
 
@@ -1412,7 +1413,7 @@ export const FormAndIssueReporting: React.FC = () => {
                 {/* SPECIALIZED FIELDS FOR PRIORITY 1: TK-KS (Birth Registration + Hospital Cert Cross-check) */}
                 {selectedFormType === 'TK-KS' && (
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2 text-xs font-extrabold text-[#0F2942] flex items-center gap-1.5">
+                    <div className="sm:col-span-2 text-xs font-extrabold text-[#00796B] flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-[#0F766E]" />
                       <span>Đối chiếu chéo Giấy chứng sinh bệnh viện & Tình trạng hôn nhân cha mẹ (Thông tư 04/2020/TT-BTP)</span>
                     </div>
@@ -1485,7 +1486,7 @@ export const FormAndIssueReporting: React.FC = () => {
                 {/* SPECIALIZED FIELDS FOR PRIORITY 2: TK-KH (Marriage & Single Status Certificate) */}
                 {selectedFormType === 'TK-KH' && (
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2 text-xs font-extrabold text-[#0F2942] flex items-center gap-1.5">
+                    <div className="sm:col-span-2 text-xs font-extrabold text-[#00796B] flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-[#0F766E]" />
                       <span>Kiểm tra độ tuổi kết hôn (Nam ≥ 20, Nữ ≥ 18) & Mục đích xác nhận tình trạng hôn nhân</span>
                     </div>
@@ -1516,7 +1517,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         <select
                           value={partnerGender}
                           onChange={(e) => setPartnerGender(e.target.value as 'Nam' | 'Nữ')}
-                          className="h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs font-bold text-[#0F2942]"
+                          className="h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs font-bold text-[#00796B]"
                         >
                           <option value="Nam">Nam</option>
                           <option value="Nữ">Nữ</option>
@@ -1556,7 +1557,7 @@ export const FormAndIssueReporting: React.FC = () => {
                 {/* SPECIALIZED FIELDS FOR PRIORITY 3: TK-BTXH (Nghị định 20/2021/NĐ-CP & Luật BHXH 2024) */}
                 {selectedFormType === 'TK-BTXH' && (
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2 text-xs font-extrabold text-[#0F2942] flex items-center gap-1.5">
+                    <div className="sm:col-span-2 text-xs font-extrabold text-[#00796B] flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-[#0F766E]" />
                       <span>Kiểm tra điều kiện Mẫu số 01 Nghị định 20/2021/NĐ-CP, Luật BHXH 2024 & Tài khoản an sinh Đề án 06</span>
                     </div>
@@ -1628,7 +1629,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     value={address}
                     placeholder="Ví dụ: 32/3 Ích, Khu phố 12, Phường..., TP. Hồ Chí Minh"
                     onChange={(e) => setAddress(e.target.value)}
-                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#0F2942] focus:bg-white transition-all ${
+                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00796B] focus:bg-white transition-all ${
                       ocrSuccess && address ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-[#F8FAFC] border-[#CBD5E1]'
                     }`}
                   />
@@ -1670,10 +1671,10 @@ export const FormAndIssueReporting: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPrintModal(true)}
-                    className="px-4 py-2.5 bg-white hover:bg-[#F1F5F9] text-[#0F2942] border border-[#CBD5E1] rounded-xl font-bold text-xs shadow-2xs flex items-center gap-1.5 transition-all duration-200 cursor-pointer"
+                    className="px-4 py-2.5 bg-white hover:bg-[#F1F5F9] text-[#00796B] border border-[#CBD5E1] rounded-xl font-bold text-xs shadow-2xs flex items-center gap-1.5 transition-all duration-200 cursor-pointer"
                     title="Xem trước mẫu tờ khai A4 chuẩn Nghị định 30/2020/NĐ-CP và in ấn"
                   >
-                    <Printer className="w-4 h-4 text-[#0F2942]" />
+                    <Printer className="w-4 h-4 text-[#00796B]" />
                     <span>Xem trước & In Mẫu A4</span>
                   </button>
 
@@ -1681,16 +1682,16 @@ export const FormAndIssueReporting: React.FC = () => {
                     type="button"
                     onClick={handlePrecheck}
                     disabled={formLoading}
-                    className="px-6 py-2.5 bg-[#0F2942] hover:bg-[#1E3A5F] text-white rounded-xl font-semibold text-xs shadow-xs flex items-center gap-2 active:scale-95 transition-all duration-200 cursor-pointer"
+                    className="px-6 py-2.5 bg-[#00796B] hover:bg-[#00695C] text-white rounded-xl font-semibold text-xs shadow-xs flex items-center gap-2 active:scale-95 transition-all duration-200 cursor-pointer"
                   >
                     {formLoading ? (
                       <>
-                        <RefreshCw className="w-4 h-4 animate-spin text-[#38BDF8]" />
+                        <RefreshCw className="w-4 h-4 animate-spin text-[#80CBC4]" />
                         <span>Đang Kiểm Tra...</span>
                       </>
                     ) : (
                       <>
-                        <Sparkles className="w-4 h-4 text-[#38BDF8]" />
+                        <Sparkles className="w-4 h-4 text-[#80CBC4]" />
                         <span>Kiểm Tra Tờ Khai</span>
                       </>
                     )}
@@ -1775,23 +1776,23 @@ export const FormAndIssueReporting: React.FC = () => {
                   {/* Footer Meta & Quick Officer Desk Link */}
                   <div className="pt-2 border-t border-[#E2E8F0] flex flex-col gap-2">
                     <div className="flex items-center justify-between text-xs text-[#64748B]">
-                      <span>Mã phiếu kiểm tra: <strong className="font-mono text-[#0F2942]">{precheckResult.submissionId}</strong></span>
+                      <span>Mã phiếu kiểm tra: <strong className="font-mono text-[#00796B]">{precheckResult.submissionId}</strong></span>
                       <span>UBND {currentWard.name}</span>
                     </div>
 
                     <button
                       type="button"
                       onClick={() => setShowPrintModal(true)}
-                      className="w-full py-2 px-3 rounded-xl bg-[#0F2942] hover:bg-[#1E3A5F] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-2xs"
+                      className="w-full py-2 px-3 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-2xs"
                     >
-                      <Printer className="w-3.5 h-3.5 text-[#38BDF8]" />
+                      <Printer className="w-3.5 h-3.5 text-[#80CBC4]" />
                       <span>Xem & In Tờ Khai Chuẩn A4 Để Nộp Một Cửa</span>
                     </button>
 
                     <button
                       type="button"
                       onClick={() => navigate(`/officer/ward/${currentWard.code}?tab=FORMS`)}
-                      className="w-full py-2 px-3 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#0F2942] border border-[#CBD5E1] text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      className="w-full py-2 px-3 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#00796B] border border-[#CBD5E1] text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
                     >
                       <span>Xem Hồ Sơ Vừa Kiểm Tra Trên Bàn Cán Bộ ({currentWard.name})</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -1801,7 +1802,7 @@ export const FormAndIssueReporting: React.FC = () => {
               ) : (
                 /* Empty state */
                 <div className="p-8 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col items-center justify-center text-center text-[#64748B] gap-3">
-                  <div className="w-14 h-14 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#0F2942]">
+                  <div className="w-14 h-14 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#00796B]">
                     <ShieldCheck className="w-7 h-7 text-[#0F766E]" />
                   </div>
                   <div>
@@ -1817,7 +1818,7 @@ export const FormAndIssueReporting: React.FC = () => {
               {myDossiers.length > 0 && (
                 <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3">
                   <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
-                    <span className="text-xs font-extrabold text-[#0F2942] flex items-center gap-1.5">
+                    <span className="text-xs font-extrabold text-[#00796B] flex items-center gap-1.5">
                       <FileCheck2 className="w-4 h-4 text-[#0F766E]" />
                       <span>Trạng Thái Hồ Sơ Sơ Duyệt Gần Đây ({myDossiers.length})</span>
                     </span>
@@ -1848,7 +1849,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         </div>
                         <span className="text-[11px] text-[#64748B] truncate">{d.procedure}</span>
                         {d.officerFeedback && (
-                          <div className="mt-1 p-2 rounded-lg bg-white border border-[#CBD5E1] text-[11px] text-[#0F2942] font-medium">
+                          <div className="mt-1 p-2 rounded-lg bg-white border border-[#CBD5E1] text-[11px] text-[#00796B] font-medium">
                             <strong>Phản hồi Cán bộ ({d.reviewedBy || 'Một cửa'}):</strong> {d.officerFeedback}
                           </div>
                         )}
@@ -1900,7 +1901,7 @@ export const FormAndIssueReporting: React.FC = () => {
             <div className="lg:col-span-8 p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3">
               <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2.5">
                 <div>
-                  <h3 className="text-sm sm:text-base font-extrabold text-[#0F2942]">
+                  <h3 className="text-sm sm:text-base font-extrabold text-[#00796B]">
                     Danh Mục Điểm Bắt Buộc Tiền Kiểm Tra Tại Một Cửa Cấp Xã
                   </h3>
                   <span className="text-xs text-[#64748B]">
@@ -1920,7 +1921,7 @@ export const FormAndIssueReporting: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-[#E2E8F0] text-xs">
                     <tr>
-                      <td className="p-2.5 font-bold text-[#0F2942]">
+                      <td className="p-2.5 font-bold text-[#00796B]">
                         1. Đăng ký khai sinh
                         <span className="block text-[11px] font-normal text-[#64748B]">TT 04/2020/TT-BTP</span>
                       </td>
@@ -1932,7 +1933,7 @@ export const FormAndIssueReporting: React.FC = () => {
                       </td>
                     </tr>
                     <tr>
-                      <td className="p-2.5 font-bold text-[#0F2942]">
+                      <td className="p-2.5 font-bold text-[#00796B]">
                         2. Đăng ký kết hôn & Độc thân
                         <span className="block text-[11px] font-normal text-[#64748B]">Luật HN&GĐ 2014</span>
                       </td>
@@ -1944,7 +1945,7 @@ export const FormAndIssueReporting: React.FC = () => {
                       </td>
                     </tr>
                     <tr>
-                      <td className="p-2.5 font-bold text-[#0F2942]">
+                      <td className="p-2.5 font-bold text-[#00796B]">
                         3. Khai tử & Trích lục hộ tịch
                         <span className="block text-[11px] font-normal text-[#64748B]">Luật Hộ tịch 2014</span>
                       </td>
@@ -1956,7 +1957,7 @@ export const FormAndIssueReporting: React.FC = () => {
                       </td>
                     </tr>
                     <tr>
-                      <td className="p-2.5 font-bold text-[#0F2942]">
+                      <td className="p-2.5 font-bold text-[#00796B]">
                         4. Trợ cấp BTXH & Mai táng phí
                         <span className="block text-[11px] font-normal text-[#64748B]">Mẫu 01, 02, 03 NĐ 20/2021</span>
                       </td>
@@ -1986,7 +1987,7 @@ export const FormAndIssueReporting: React.FC = () => {
               {/* STEP 1: GPS SCAN FIRST & MAP TO LOCATION BOX */}
               <div className="flex flex-col gap-2.5 p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <label className="text-xs sm:text-sm font-extrabold text-[#0F2942] flex items-center gap-1.5">
+                  <label className="text-xs sm:text-sm font-extrabold text-[#00796B] flex items-center gap-1.5">
                     <Navigation className="w-4 h-4 text-[#BA1A1A]" />
                     <span>1. Vị Trí Sự Cố Hiện Trường</span>
                   </label>
@@ -2011,7 +2012,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     onClick={() =>
                       handleSimulateCrossWardGps('AG_P_CHAUDOC', 'Số 18 Đường Phan Văn Vàng')
                     }
-                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#0F2942] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer"
+                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#00796B] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer"
                   >
                     🚗 Phường Châu Đốc
                   </button>
@@ -2020,7 +2021,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     onClick={() =>
                       handleSimulateCrossWardGps('AG_P_LONGXUYEN', 'Số 05 Đường Lê Triệu Kiết')
                     }
-                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#0F2942] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer"
+                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#00796B] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer"
                   >
                     🚗 Phường Long Xuyên
                   </button>
@@ -2029,7 +2030,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     onClick={() =>
                       handleSimulateCrossWardGps('AG_X_ANPHU', 'Đường Thoại Ngọc Hầu')
                     }
-                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#0F2942] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer"
+                    className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#00796B] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer"
                   >
                     🏠 Xã An Phú
                   </button>
@@ -2058,7 +2059,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     value={addressText}
                     onChange={(e) => setAddressText(e.target.value)}
                     placeholder="Nhập địa chỉ cụ thể kèm tên Xã/Phường (VD: Đường Phan Văn Vàng, Phường Châu Đốc)..."
-                    className="w-full h-10 px-3.5 rounded-xl bg-white border border-[#CBD5E1] text-xs md:text-sm font-semibold text-[#0F172A] focus:outline-none focus:border-[#0F2942] shadow-2xs"
+                    className="w-full h-10 px-3.5 rounded-xl bg-white border border-[#CBD5E1] text-xs md:text-sm font-semibold text-[#0F172A] focus:outline-none focus:border-[#00796B] shadow-2xs"
                   />
                 </div>
 
@@ -2075,7 +2076,7 @@ export const FormAndIssueReporting: React.FC = () => {
                       <Radio className="w-3.5 h-3.5 text-[#DC2626] animate-pulse shrink-0" />
                       <span>
                         Đơn vị tiếp nhận:{' '}
-                        <strong className="underline text-[#0F2942]">
+                        <strong className="underline text-[#00796B]">
                           UBND {resolvedJurisdiction.ward.name}
                         </strong>
                       </span>
@@ -2208,7 +2209,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         onClick={() => setCategory(cat.id)}
                         className={`py-2 px-3 rounded-xl text-xs font-semibold border transition active:scale-95 cursor-pointer ${
                           category === cat.id
-                            ? 'bg-[#0F2942] text-white border-[#0F2942] shadow-xs'
+                            ? 'bg-[#00796B] text-white border-[#00796B] shadow-xs'
                             : 'bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#334155] border-[#CBD5E1]'
                         }`}
                       >
@@ -2229,7 +2230,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
-                    className="w-full p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#0F2942] focus:bg-white resize-none transition-all"
+                    className="w-full p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00796B] focus:bg-white resize-none transition-all"
                     placeholder="Mô tả mức độ nguy hiểm, kích thước, ảnh hưởng đến người đi đường..."
                   />
                 </div>
@@ -2238,7 +2239,7 @@ export const FormAndIssueReporting: React.FC = () => {
               {/* Submit Button */}
               <div className="pt-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <span className="text-xs text-[#64748B] font-medium">
-                  Nơi nhận hồ sơ: <strong className="text-[#0F2942]">UBND {resolvedJurisdiction.ward.name}</strong>
+                  Nơi nhận hồ sơ: <strong className="text-[#00796B]">UBND {resolvedJurisdiction.ward.name}</strong>
                 </span>
                 <button
                   type="button"
@@ -2286,7 +2287,7 @@ export const FormAndIssueReporting: React.FC = () => {
                   <div className="flex flex-col gap-2.5 p-4 bg-[#F8FAFC] border border-[#E2E8F0] rounded-2xl text-xs">
                     <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0]">
                       <span className="text-[#64748B]">Đơn vị tiếp nhận:</span>
-                      <strong className="text-[#0F2942] font-extrabold">
+                      <strong className="text-[#00796B] font-extrabold">
                         UBND {reportResult.targetWardName || resolvedJurisdiction.ward.name}
                       </strong>
                     </div>
@@ -2304,7 +2305,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-[#64748B]">Mã hồ sơ sự cố:</span>
-                      <strong className="font-mono text-[#0F2942]">{reportResult.clusterCode}</strong>
+                      <strong className="font-mono text-[#00796B]">{reportResult.clusterCode}</strong>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-[#64748B]">Số phản ánh tại điểm này:</span>
@@ -2322,10 +2323,10 @@ export const FormAndIssueReporting: React.FC = () => {
                       setWard(targetW);
                       navigate(`/officer/ward/${targetW.code}?tab=INCIDENTS`);
                     }}
-                    className="w-full py-2.5 px-4 rounded-xl bg-[#0F2942] hover:bg-[#1E3A5F] text-white text-xs font-bold flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer shadow-xs"
+                    className="w-full py-2.5 px-4 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer shadow-xs"
                   >
                     <span>Xem Trên Bàn Trực Ban UBND {reportResult.targetWardName || resolvedJurisdiction.ward.name}</span>
-                    <ArrowRight className="w-4 h-4 text-[#38BDF8]" />
+                    <ArrowRight className="w-4 h-4 text-[#80CBC4]" />
                   </button>
                 </div>
               ) : (
@@ -2362,7 +2363,7 @@ export const FormAndIssueReporting: React.FC = () => {
               {myIncidents.length > 0 && (
                 <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3">
                   <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
-                    <span className="text-xs font-extrabold text-[#0F2942] flex items-center gap-1.5">
+                    <span className="text-xs font-extrabold text-[#00796B] flex items-center gap-1.5">
                       <Radio className="w-4 h-4 text-[#0F766E]" />
                       <span>Tiến Độ Xử Lý Sự Cố Đã Báo ({myIncidents.length})</span>
                     </span>
@@ -2393,7 +2394,7 @@ export const FormAndIssueReporting: React.FC = () => {
                           UBND {inc.wardName} • {inc.address}
                         </span>
                         {inc.officerNote && (
-                          <div className="mt-1 p-2 rounded-lg bg-white border border-[#CBD5E1] text-[11px] text-[#0F2942] font-medium">
+                          <div className="mt-1 p-2 rounded-lg bg-white border border-[#CBD5E1] text-[11px] text-[#00796B] font-medium">
                             <strong>Trực ban cập nhật:</strong> {inc.officerNote}
                           </div>
                         )}
@@ -2813,7 +2814,8 @@ export const FormAndIssueReporting: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+      </div>
+    </main>
   );
 };
 

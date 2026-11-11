@@ -3,7 +3,6 @@ import { askLegalRag, type RagResponse, type LegalCitation } from '../api/client
 import { useNavigate } from 'react-router-dom';
 import { useWard } from '../context/WardContext';
 import { useAccessibility } from '../context/AccessibilityContext';
-import { PROCEDURES_CATALOG } from '../data/proceduresCatalog';
 import {
   Send,
   Bot,
@@ -17,7 +16,6 @@ import {
   Mic,
   AlertTriangle,
   Clock,
-  ChevronRight,
   HelpCircle,
   X,
   MapPin,
@@ -25,7 +23,6 @@ import {
   VolumeX,
   Layers,
   ExternalLink,
-  Search,
   PhoneCall,
   Calendar,
   FileText,
@@ -61,11 +58,6 @@ export const CitizenPortal: React.FC = () => {
 
   // Mobile tab switcher ('chat' vs 'catalog') for small screens
   const [mobileTab, setMobileTab] = useState<'chat' | 'catalog'>('chat');
-
-  // Left panel view mode: 'bento' (4 cards) vs 'catalog' (full 40 procedures)
-  const [catalogViewMode, setCatalogViewMode] = useState<'bento' | 'catalog'>('bento');
-  const [catalogCategory, setCatalogCategory] = useState<string>('ALL');
-  const [catalogSearch, setCatalogSearch] = useState<string>('');
 
   const initialTimeStr = useMemo(
     () => new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
@@ -373,27 +365,6 @@ export const CitizenPortal: React.FC = () => {
     },
   ];
 
-  // Filter 40 procedures catalog
-  const filteredCatalog = useMemo(() => {
-    return PROCEDURES_CATALOG.filter((item) => {
-      const matchCat = catalogCategory === 'ALL' || item.category === catalogCategory;
-      const matchSearch =
-        !catalogSearch.trim() ||
-        item.name.toLowerCase().includes(catalogSearch.toLowerCase()) ||
-        item.code.toLowerCase().includes(catalogSearch.toLowerCase());
-      return matchCat && matchSearch;
-    });
-  }, [catalogCategory, catalogSearch]);
-
-  const categories = [
-    { id: 'ALL', label: 'Tất cả (40)' },
-    { id: 'Hộ tịch', label: 'Hộ tịch (12)' },
-    { id: 'Cư trú', label: 'Cư trú (10)' },
-    { id: 'Chứng thực', label: 'Chứng thực (8)' },
-    { id: 'Bảo trợ xã hội', label: 'Bảo trợ (6)' },
-    { id: 'Địa chính', label: 'Địa chính (4)' },
-  ];
-
   // Formatted Message Renderer with Clear 5-Section Structured Cards
   const renderMessageContent = (msg: ChatMessage) => {
     const text = msg.text;
@@ -427,10 +398,10 @@ export const CitizenPortal: React.FC = () => {
                   setActiveCitation(msg.ragData.citations[0]);
                 }
               }}
-              className="inline-flex items-center gap-1 px-2 py-0.5 mx-1 rounded-md font-mono text-[11px] font-bold bg-[#F1F5F9] text-[#0F2942] hover:bg-[#E2E8F0] border border-[#CBD5E1] transition-all cursor-pointer active:scale-95 shadow-2xs"
+              className="inline-flex items-center gap-1 px-2 py-0.5 mx-1 rounded-md font-mono text-[11px] font-bold bg-teal-50/70 text-[#00796B] hover:bg-teal-100/70 border border-teal-200 transition-all cursor-pointer active:scale-95 shadow-2xs"
               title={`Xem căn cứ pháp lý ${code}`}
             >
-              <BookOpen className="w-3 h-3 text-[#0F766E]" />
+              <BookOpen className="w-3 h-3 text-[#00796B]" />
               <span>{part}</span>
             </button>
           );
@@ -438,7 +409,7 @@ export const CitizenPortal: React.FC = () => {
         const boldMatch = part.match(/^\*\*([^*]+)\*\*$/);
         if (boldMatch) {
           return (
-            <strong key={pIdx} className="font-bold text-[#0F2942]">
+            <strong key={pIdx} className="font-bold text-[#0F172A]">
               {boldMatch[1]}
             </strong>
           );
@@ -580,184 +551,103 @@ export const CitizenPortal: React.FC = () => {
         </div>
       </div>
 
-      {/* MAIN INTERACTIVE WORKSPACE (Two-Column Desktop with Matched Height, Tabbed Mobile) */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-5 grid grid-cols-1 lg:grid-cols-12 gap-6 w-full lg:items-stretch">
-        {/* LEFT COLUMN: 4 Bento Cards OR Full 40 Procedures Catalog */}
-        <div className={`lg:col-span-5 flex flex-col justify-between gap-4 lg:h-[700px] ${mobileTab === 'chat' ? 'hidden lg:flex' : 'flex'}`}>
-          <div className="flex flex-col gap-3.5 flex-1 min-h-0">
+      {/* MAIN INTERACTIVE WORKSPACE (Two-Column Desktop: 1/4 Info & Procedures, 3/4 Spacious Chat) */}
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-8 mt-5 grid grid-cols-1 lg:grid-cols-12 gap-5 w-full lg:items-stretch">
+        {/* LEFT COLUMN: 1/4 Khung Thông Tin Gọn & 4 Thủ Tục Trọng Tâm */}
+        <div className={`lg:col-span-4 xl:col-span-3 flex flex-col justify-between gap-3.5 lg:h-[750px] ${mobileTab === 'chat' ? 'hidden lg:flex' : 'flex'}`}>
+          <div className="flex flex-col gap-3 flex-1 min-h-0">
             {/* Dedicated Link Banner to the new Dedicated 40 Procedures Page */}
-            <div className="p-3.5 rounded-2xl bg-white border border-teal-200/90 shadow-[0_2px_12px_rgba(0,121,107,0.06)] flex items-center justify-between gap-3 shrink-0">
+            <div className="p-3.5 rounded-2xl bg-white border border-teal-200/90 shadow-[0_2px_12px_rgba(0,121,107,0.06)] flex flex-col gap-2 shrink-0">
               <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-9 h-9 rounded-xl bg-teal-50 text-[#00796B] border border-teal-200 flex items-center justify-center shrink-0 shadow-2xs">
+                <div className="w-8 h-8 rounded-xl bg-teal-50 text-[#00796B] border border-teal-200 flex items-center justify-center shrink-0 shadow-2xs">
                   <BookOpen className="w-4 h-4" />
                 </div>
-                <div className="min-w-0">
-                  <h4 className="text-xs font-bold text-[#00796B] truncate">Trang Danh Mục 40 Thủ Tục & Giấy Tờ</h4>
-                  <p className="text-[11px] text-slate-500 truncate">Văn bản mẫu A4, thời hạn & tra cứu hồ sơ</p>
+                <div className="min-w-0 flex-1">
+                  <h4 className="text-xs font-bold text-[#00796B] truncate">Danh Mục 40 Thủ Tục</h4>
+                  <p className="text-[11px] text-slate-500 truncate">Văn bản mẫu A4 & thời hạn</p>
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => navigate('/citizen/procedures')}
-                className="px-3 py-1.5 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer shadow-xs active:scale-95"
+                className="w-full py-1.5 px-3 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
               >
-                <span>Xem Trang Riêng</span>
-                <ArrowRight className="w-3 h-3" />
+                <span>Mở Trang Thủ Tục Riêng</span>
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
 
-            {/* Segmented Mode Switcher */}
-            <div className="flex items-center justify-between pb-2 border-b border-teal-100 shrink-0">
-              <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200">
-                <button
-                  onClick={() => setCatalogViewMode('bento')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                    catalogViewMode === 'bento'
-                      ? 'bg-[#00796B] text-white shadow-xs'
-                      : 'text-slate-600 hover:text-[#00796B]'
-                  }`}
-                >
-                  4 Thủ Tục Trọng Tâm
-                </button>
-                <button
-                  onClick={() => navigate('/citizen/procedures')}
-                  className="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer text-slate-600 hover:text-[#00796B]"
-                >
-                  <Layers className="w-3.5 h-3.5 text-[#00796B]" />
-                  <span>Trang 40 Thủ Tục →</span>
-                </button>
+            {/* Header: 4 Thủ Tục Trọng Tâm To Rõ Dễ Nhìn */}
+            <div className="flex items-center justify-between pb-1.5 border-b border-teal-100 shrink-0">
+              <div className="flex items-center gap-1.5">
+                <Layers className="w-4 h-4 text-[#00796B]" />
+                <h3 className="text-xs font-bold uppercase tracking-wider text-[#00796B]">
+                  Thủ Tục Thường Gặp
+                </h3>
               </div>
-              <span className="text-xs text-slate-500 font-medium hidden sm:inline">Chọn để hỏi ngay</span>
+              <span className="text-[11px] text-slate-400 font-medium">Bấm hỏi ngay</span>
             </div>
 
-            {/* VIEW MODE 1: Bento Cards (4 Clean Civic Cards) */}
-            {catalogViewMode === 'bento' ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-3 overflow-y-auto pr-0.5 flex-1">
-                {bentoCards.map((card) => {
-                  const CardIcon = card.IconComponent;
-                  return (
-                    <div
-                      key={card.code}
-                      onClick={() => handleAsk(card.prompt)}
-                      className="group relative p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-[#00796B] shadow-2xs hover:shadow-sm transition-all duration-200 cursor-pointer active:scale-[0.99] flex flex-col justify-between gap-2"
-                    >
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-[#00796B] group-hover:bg-[#00796B] group-hover:text-white transition-colors">
-                            <CardIcon className="w-4 h-4" />
-                          </div>
-                          <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${card.badgeColor}`}>
-                            {card.badge}
-                          </span>
+            {/* VIEW MODE 1: Bento Cards (To rõ, dễ nhìn, dễ thao tác) */}
+            <div className="flex flex-col gap-2.5 overflow-y-auto pr-0.5 flex-1">
+              {bentoCards.map((card) => {
+                const CardIcon = card.IconComponent;
+                return (
+                  <div
+                    key={card.code}
+                    onClick={() => handleAsk(card.prompt)}
+                    className="group relative p-3 rounded-2xl bg-white border border-slate-200 hover:border-[#00796B] shadow-2xs hover:shadow-sm transition-all duration-200 cursor-pointer active:scale-[0.99] flex flex-col justify-between gap-1.5 shrink-0"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-center gap-2 min-w-0">
+                        <div className="w-7 h-7 rounded-lg bg-slate-50 border border-slate-200 flex items-center justify-center text-[#00796B] group-hover:bg-[#00796B] group-hover:text-white transition-colors shrink-0">
+                          <CardIcon className="w-3.5 h-3.5" />
                         </div>
-
-                        <div className="w-7 h-7 rounded-full bg-slate-50 group-hover:bg-[#00796B] text-slate-600 group-hover:text-white flex items-center justify-center transition-all duration-200 border border-slate-200">
-                          <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-                        </div>
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold border truncate ${card.badgeColor}`}>
+                          {card.badge}
+                        </span>
                       </div>
 
-                      <div>
-                        <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#00796B] transition-colors leading-snug">
-                          {card.title}
-                        </h3>
-                        <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
-                          {card.description}
-                        </p>
-                      </div>
-
-                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
-                        <span className="flex items-center gap-1 font-medium">
-                          <Clock className="w-3.5 h-3.5 text-[#00796B]" />
-                          {card.time}
-                        </span>
-                        <span className="font-bold text-[#00796B] bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
-                          {card.fee}
-                        </span>
+                      <div className="w-6 h-6 rounded-full bg-slate-50 group-hover:bg-[#00796B] text-slate-600 group-hover:text-white flex items-center justify-center transition-all duration-200 border border-slate-200 shrink-0">
+                        <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            ) : (
-              /* VIEW MODE 2: Full 40 Procedures Catalog with Search & Filter */
-              <div className="flex flex-col gap-3 bg-white p-4 rounded-2xl border border-[#CBD5E1] shadow-2xs flex-1 min-h-0">
-                {/* Search in Catalog */}
-                <div className="relative shrink-0">
-                  <Search className="w-4 h-4 text-[#64748B] absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={catalogSearch}
-                    onChange={(e) => setCatalogSearch(e.target.value)}
-                    placeholder="Gõ tên thủ tục cần tìm (khai sinh, kết hôn, đất đai...)"
-                    className="w-full h-10 pl-9 pr-3 text-xs sm:text-sm rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] focus:outline-none focus:border-[#0F2942] focus:bg-white text-[#0F172A] transition-all"
-                  />
-                </div>
 
-                {/* Category Filter Chips */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs shrink-0">
-                  {categories.map((cat) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => setCatalogCategory(cat.id)}
-                      className={`px-3 py-1.5 rounded-lg shrink-0 font-semibold transition cursor-pointer ${
-                        catalogCategory === cat.id
-                          ? 'bg-[#0F2942] text-white shadow-2xs'
-                          : 'bg-[#F1F5F9] text-[#475569] hover:bg-[#E2E8F0]'
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-[#00796B] transition-colors leading-snug line-clamp-1">
+                        {card.title}
+                      </h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed line-clamp-2">
+                        {card.description}
+                      </p>
+                    </div>
 
-                {/* Scrollable Procedures List */}
-                <div className="flex-1 overflow-y-auto space-y-2 pr-1 divide-y divide-[#F1F5F9] min-h-0">
-                  {filteredCatalog.map((item) => (
-                    <div
-                      key={item.code}
-                      onClick={() => handleAsk(`Thủ tục ${item.name} tại ${currentWard.name} cần giấy tờ gì, thời gian và lệ phí ra sao?`)}
-                      className="pt-2.5 first:pt-0 p-2.5 rounded-xl border border-transparent hover:border-[#0F2942] hover:bg-[#F8FAFC] transition cursor-pointer flex flex-col gap-1 active:scale-[0.99]"
-                    >
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="font-mono font-bold text-[#0F2942] bg-[#F1F5F9] border border-[#CBD5E1] px-2 py-0.5 rounded">
-                          {item.code}
-                        </span>
-                        <span className="text-[#0F766E] font-semibold">{item.category}</span>
-                      </div>
-                      <span className="text-xs sm:text-sm font-bold text-[#0F172A] line-clamp-2 leading-snug">
-                        {item.name}
+                    <div className="pt-1.5 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-600">
+                      <span className="flex items-center gap-1 font-medium text-[10px]">
+                        <Clock className="w-3 h-3 text-[#00796B]" />
+                        {card.time}
                       </span>
-                      <div className="flex items-center justify-between text-xs text-[#64748B] pt-1">
-                        <span>{item.chunksCount} căn cứ pháp lý</span>
-                        <span className="text-[#0F2942] font-bold flex items-center gap-0.5">
-                          Xem hướng dẫn <ChevronRight className="w-3.5 h-3.5" />
-                        </span>
-                      </div>
+                      <span className="font-bold text-[#00796B] bg-teal-50 px-1.5 py-0.5 rounded border border-teal-200 text-[10px]">
+                        {card.fee}
+                      </span>
                     </div>
-                  ))}
-
-                  {filteredCatalog.length === 0 && (
-                    <div className="p-6 text-center text-[#64748B] text-xs">
-                      Không tìm thấy thủ tục phù hợp với từ khóa "{catalogSearch}".
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
 
-          {/* Quick Guidance Box */}
-          <div className="p-3.5 rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] flex items-start gap-2.5 shrink-0">
-            <HelpCircle className="w-4 h-4 text-[#166534] shrink-0 mt-0.5" />
-            <div className="text-xs text-[#14532D] leading-relaxed">
-              <strong className="font-bold text-[#166534]">Hướng dẫn nộp hồ sơ trực tiếp: </strong>
-              Bộ phận Một cửa UBND {currentWard.name} ({currentWard.officeAddress}). Điện thoại trực ban: <strong>{currentWard.phoneNumber}</strong>.
+          {/* Quick Guidance Box Gọn Nhẹ */}
+          <div className="p-3 rounded-2xl bg-teal-50/60 border border-teal-200 flex items-start gap-2 shrink-0">
+            <HelpCircle className="w-4 h-4 text-[#00796B] shrink-0 mt-0.5" />
+            <div className="text-[11px] text-teal-900 leading-snug">
+              <strong>Tiếp dân Một cửa:</strong> UBND {currentWard.name}. ĐT: <strong>{currentWard.phoneNumber}</strong>.
             </div>
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Interactive Legal RAG Chat Workspace */}
-        <div className={`lg:col-span-7 flex flex-col bg-white rounded-3xl border border-teal-100 shadow-[0_4px_24px_rgba(0,121,107,0.06)] overflow-hidden min-h-[580px] lg:h-[700px] ${mobileTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`}>
+        {/* RIGHT COLUMN: Interactive Legal RAG Chat Workspace (Chiếm 3/4 Khung: To Rộng & Thoáng Đãng) */}
+        <div className={`lg:col-span-8 xl:col-span-9 flex flex-col bg-white rounded-3xl border border-teal-100 shadow-[0_4px_24px_rgba(0,121,107,0.06)] overflow-hidden min-h-[580px] lg:h-[750px] ${mobileTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`}>
           {/* Chat Workspace Header */}
           <div className="px-5 py-3.5 bg-[#00796B] text-white flex items-center justify-between border-b border-[#004D40]">
             <div className="flex items-center gap-3">
@@ -1071,8 +961,8 @@ export const CitizenPortal: React.FC = () => {
           <div className="bg-white max-w-lg w-full rounded-2xl p-6 shadow-2xl border border-[#CBD5E1] flex flex-col gap-4 animate-scaleUp">
             <div className="flex items-center justify-between pb-2.5 border-b border-[#E2E8F0]">
               <div className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-[#0F2942]" />
-                <h3 className="font-bold text-sm sm:text-base text-[#0F2942]">
+                <BookOpen className="w-5 h-5 text-[#00796B]" />
+                <h3 className="font-bold text-sm sm:text-base text-[#00796B]">
                   Căn Cứ Pháp Lý Trích Xuất
                 </h3>
               </div>
@@ -1109,7 +999,7 @@ export const CitizenPortal: React.FC = () => {
 
             <button
               onClick={() => setActiveCitation(null)}
-              className="w-full py-2.5 bg-[#0F2942] hover:bg-[#1E3A5F] text-white text-xs sm:text-sm font-bold rounded-xl transition active:scale-95 cursor-pointer shadow-xs"
+              className="w-full py-2.5 bg-[#00796B] hover:bg-[#00695C] text-white text-xs sm:text-sm font-bold rounded-xl transition active:scale-95 cursor-pointer shadow-xs"
             >
               Đóng Căn Cứ Pháp Lý
             </button>
