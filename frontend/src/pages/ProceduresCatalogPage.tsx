@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Search,
@@ -11,15 +11,47 @@ import {
   Printer,
   ChevronRight,
   X,
-  Bot
+  Bot,
+  Loader2
 } from 'lucide-react';
 import { PROCEDURES_CATALOG, type ProcedureCatalogItem } from '../data/proceduresCatalog';
+import { getProcedures } from '../api/client';
 import { useWard } from '../context/WardContext';
 import A4DocumentModal from '../components/A4DocumentModal';
 
 export const ProceduresCatalogPage: React.FC = () => {
   const navigate = useNavigate();
   const { currentWard } = useWard();
+
+  // Dynamic Procedures from REST API
+  const [procedures, setProcedures] = useState<ProcedureCatalogItem[]>(PROCEDURES_CATALOG);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    getProcedures()
+      .then((data) => {
+        if (!isMounted || !data || data.length === 0) return;
+        const mapped: ProcedureCatalogItem[] = data.map((p) => ({
+          code: p.procedureCode,
+          name: p.procedureName,
+          category: p.category,
+          portalCode: p.officialPortalCode || '',
+          chunksCount: p.chunksCount || 4,
+        }));
+        setProcedures(mapped);
+      })
+      .catch((err) => {
+        console.warn('Could not load dynamic procedures from backend API:', err);
+      })
+      .finally(() => {
+        if (isMounted) setIsLoading(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   // Search & Category Filtering
   const [searchTerm, setSearchTerm] = useState('');
@@ -31,13 +63,13 @@ export const ProceduresCatalogPage: React.FC = () => {
 
   // Categories list
   const categories = useMemo(() => {
-    const cats = Array.from(new Set(PROCEDURES_CATALOG.map((p) => p.category)));
+    const cats = Array.from(new Set(procedures.map((p) => p.category)));
     return ['ALL', ...cats];
-  }, []);
+  }, [procedures]);
 
   // Filtered procedures
   const filteredProcedures = useMemo(() => {
-    return PROCEDURES_CATALOG.filter((item) => {
+    return procedures.filter((item) => {
       const matchCat = selectedCategory === 'ALL' || item.category === selectedCategory;
       const matchSearch =
         searchTerm.trim() === '' ||
@@ -46,7 +78,7 @@ export const ProceduresCatalogPage: React.FC = () => {
         item.portalCode.includes(searchTerm);
       return matchCat && matchSearch;
     });
-  }, [selectedCategory, searchTerm]);
+  }, [procedures, selectedCategory, searchTerm]);
 
   // Handler to open A4 Modal
   const handleOpenA4 = (proc: ProcedureCatalogItem) => {
@@ -94,8 +126,14 @@ export const ProceduresCatalogPage: React.FC = () => {
                 <h1 className="text-[#00796B] font-bold text-base sm:text-xl tracking-tight uppercase">
                   DANH MỤC THỦ TỤC & GIẤY TỜ HÀNH CHÍNH
                 </h1>
-                <p className="text-xs text-slate-500 font-medium">
-                  Cập nhật mới nhất từ Cổng Dịch Vụ Công Quốc Gia • UBND {currentWard.name}
+                <p className="text-xs text-slate-500 font-medium flex items-center gap-2">
+                  <span>Cập nhật mới nhất từ Cổng Dịch Vụ Công Quốc Gia • UBND {currentWard.name}</span>
+                  {isLoading && (
+                    <span className="inline-flex items-center gap-1 text-[#00796B] font-semibold text-[11px]">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      <span>Đang đồng bộ...</span>
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
@@ -110,7 +148,7 @@ export const ProceduresCatalogPage: React.FC = () => {
                 }}
                 className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#00796B] text-[#00796B] hover:bg-teal-50 text-xs font-semibold transition active:scale-95 cursor-pointer shadow-2xs"
               >
-                <span>Xem tất cả ({PROCEDURES_CATALOG.length})</span>
+                <span>Xem tất cả ({procedures.length})</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -155,8 +193,8 @@ export const ProceduresCatalogPage: React.FC = () => {
               const isSelected = selectedCategory === cat;
               const count =
                 cat === 'ALL'
-                  ? PROCEDURES_CATALOG.length
-                  : PROCEDURES_CATALOG.filter((p) => p.category === cat).length;
+                  ? procedures.length
+                  : procedures.filter((p) => p.category === cat).length;
               return (
                 <button
                   key={cat}
@@ -318,7 +356,7 @@ export const ProceduresCatalogPage: React.FC = () => {
           {/* Pagination / Summary Footer */}
           <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
             <span>
-              Hiển thị <strong>{filteredProcedures.length}</strong> / <strong>{PROCEDURES_CATALOG.length}</strong> thủ tục hành chính cấp Xã/Phường
+              Hiển thị <strong>{filteredProcedures.length}</strong> / <strong>{procedures.length}</strong> thủ tục hành chính cấp Xã/Phường
             </span>
             <div className="flex items-center gap-1.5 text-teal-800 font-medium">
               <ShieldCheck className="w-4 h-4 text-[#00796B]" />
