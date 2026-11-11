@@ -16,16 +16,16 @@ export const Header: React.FC = () => {
   const { textScale, setTextScale } = useAccessibility();
 
   const citizenNavLinks = [
-    { to: '/citizen', label: 'Hỏi Đáp Thủ Tục (AI)', icon: Bot, match: () => path === '/citizen' },
+    { to: '/citizen', label: 'Hỏi Đáp AI', icon: Bot, match: () => path === '/citizen' },
     {
       to: '/citizen/procedures',
-      label: 'Danh Mục Thủ Tục (40)',
+      label: 'Danh Mục 40 TTHC',
       icon: BookOpen,
       match: () => path === '/citizen/procedures',
     },
     {
       to: '/citizen/form#form',
-      label: 'Kiểm Tra Tờ Khai (4 Mẫu)',
+      label: 'Kiểm Tra Tờ Khai',
       icon: FileCheck2,
       match: () => path === '/citizen/form' && hash !== '#incident',
     },
@@ -40,13 +40,13 @@ export const Header: React.FC = () => {
   const officerNavLinks = [
     {
       to: `/officer/ward/${currentWard.code}`,
-      label: `Bàn Điều Hành • ${currentWard.name}`,
+      label: 'Bàn Điều Hành',
       icon: ShieldCheck,
       match: () => path.startsWith('/officer'),
     },
     {
       to: '/citizen',
-      label: 'Cổng Hỏi Đáp Dân',
+      label: 'Hỏi Đáp Dân',
       icon: Bot,
       match: () => path === '/citizen',
     },
@@ -58,7 +58,7 @@ export const Header: React.FC = () => {
     },
     {
       to: '/citizen/form#form',
-      label: 'Cổng Tờ Khai & Sự Cố',
+      label: 'Tờ Khai & Sự Cố',
       icon: FileCheck2,
       match: () => path === '/citizen/form',
     },
@@ -70,32 +70,32 @@ export const Header: React.FC = () => {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
-        <div className="h-14 sm:h-16 w-full max-w-7xl mx-auto px-3 sm:px-6 flex items-center justify-between gap-3">
+        <div className="h-14 sm:h-16 w-full max-w-[1536px] mx-auto px-3 sm:px-6 flex items-center justify-between gap-2 xl:gap-4">
           {/* Brand Identity & Ward Switcher */}
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <Link
               to={isOfficer ? `/officer/ward/${currentWard.code}` : '/citizen'}
-              className="flex items-center gap-2.5 min-w-0 group active:scale-[0.98] transition-transform"
+              className="flex items-center gap-2 sm:gap-2.5 shrink-0 group active:scale-[0.98] transition-transform"
             >
               <div className="w-9 h-9 rounded-xl bg-[#00796B] flex items-center justify-center text-white shrink-0 shadow-xs">
                 <Landmark className="w-4 h-4 text-teal-200" />
               </div>
-              <div className="flex flex-col min-w-0">
+              <div className="flex flex-col shrink-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-xs sm:text-sm md:text-base text-slate-900 tracking-tight truncate">
+                  <span className="font-bold text-xs sm:text-sm md:text-base text-slate-900 tracking-tight whitespace-nowrap">
                     UBND {currentWard.name}
                   </span>
                   <span
                     className={`px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0 ${
                       isOfficer
-                        ? 'bg-[#0F2942] text-teal-200'
+                        ? 'bg-[#00796B] text-white shadow-2xs'
                         : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
                     }`}
                   >
                     {isOfficer ? 'Cán Bộ' : 'Công Dân'}
                   </span>
                 </div>
-                <span className="text-[11px] text-slate-500 leading-tight truncate hidden sm:inline">
+                <span className="text-[11px] text-slate-500 leading-tight whitespace-nowrap hidden md:inline">
                   Một Cửa Số • Tỉnh An Giang
                 </span>
               </div>
@@ -103,20 +103,20 @@ export const Header: React.FC = () => {
 
             <Link
               to="/onboarding"
-              className={`hidden sm:inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition active:scale-95 shrink-0 ${
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition active:scale-95 shrink-0 shadow-2xs ${
                 isOnboarding
-                  ? 'bg-[#0F2942] text-white border-[#0F2942]'
+                  ? 'bg-[#00796B] text-white border-[#00695C]'
                   : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
               }`}
               title="Đổi Xã/Phường khác tại An Giang"
             >
-              <MapPin className="w-3.5 h-3.5 text-teal-700" />
-              <span>Đổi Xã</span>
+              <MapPin className="w-3.5 h-3.5 text-[#00796B]" />
+              <span className="whitespace-nowrap">Đổi Xã</span>
             </Link>
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 shrink-0">
+          <nav className="hidden lg:flex items-center gap-0.5 xl:gap-1 p-1 bg-slate-100 rounded-xl border border-slate-200 shrink-0">
             {activeNavLinks.map((item) => {
               const Icon = item.icon;
               const isActive = item.match();
@@ -124,13 +124,13 @@ export const Header: React.FC = () => {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-all active:scale-[0.98] whitespace-nowrap ${
+                  className={`flex items-center gap-1.5 xl:gap-2 text-xs font-semibold px-2.5 xl:px-3.5 py-1.5 rounded-lg transition-all active:scale-[0.98] whitespace-nowrap ${
                     isActive
                       ? 'bg-[#00796B] text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-teal-200' : 'text-slate-500'}`} />
+                  <Icon className={`w-3.5 h-3.5 xl:w-4 xl:h-4 ${isActive ? 'text-teal-200' : 'text-slate-500'}`} />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -146,9 +146,9 @@ export const Header: React.FC = () => {
                 else if (textScale === 'large') setTextScale('huge');
                 else setTextScale('normal');
               }}
-              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition active:scale-95 cursor-pointer ${
+              className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition active:scale-95 cursor-pointer shadow-2xs ${
                 textScale !== 'normal'
-                  ? 'bg-[#0F2942] text-white border-[#0F2942]'
+                  ? 'bg-[#00796B] text-white border-[#00695C]'
                   : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
               }`}
               title="Đổi cỡ chữ (Chuẩn / To / Rất to)"
@@ -156,35 +156,40 @@ export const Header: React.FC = () => {
               <span className="font-bold">
                 A{textScale === 'large' ? '+' : textScale === 'huge' ? '++' : ''}
               </span>
-              <span className="hidden md:inline text-[11px]">
+              <span className="hidden xl:inline text-[11px]">
                 {textScale === 'normal' ? 'Cỡ chữ' : textScale === 'large' ? 'Chữ to' : 'Rất to'}
               </span>
             </button>
 
             {isOfficer ? (
-              <div className="flex items-center gap-2 pl-1.5 border-l border-slate-200">
-                <div className="hidden md:flex items-center gap-2">
-                  <div className="w-7 h-7 rounded-lg bg-[#0F2942] text-teal-200 flex items-center justify-center font-bold text-xs">
+              <div className="flex items-center gap-1.5 sm:gap-2 pl-1.5 border-l border-slate-200">
+                <div
+                  className="flex items-center gap-1.5 sm:gap-2"
+                  title={`Cán bộ: ${officerProfile.name}`}
+                >
+                  <div className="w-7 h-7 rounded-lg bg-[#00796B] text-white flex items-center justify-center font-bold text-xs shadow-2xs">
                     {officerProfile.avatarText}
                   </div>
-                  <span className="text-xs font-semibold text-slate-800">{officerProfile.name}</span>
+                  <span className="hidden xl:inline text-xs font-semibold text-slate-800 whitespace-nowrap">
+                    {officerProfile.name}
+                  </span>
                 </div>
 
                 <button
                   type="button"
                   onClick={logoutToCitizen}
-                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition active:scale-95 cursor-pointer"
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition active:scale-95 cursor-pointer shadow-2xs"
                   title="Về Cổng Công Dân"
                 >
                   <LogOut className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Về Cổng Dân</span>
+                  <span className="whitespace-nowrap">Về Cổng Dân</span>
                 </button>
               </div>
             ) : (
               <button
                 type="button"
                 onClick={() => setAuthModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-semibold transition active:scale-95 cursor-pointer shadow-xs"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-semibold transition active:scale-95 cursor-pointer shadow-xs whitespace-nowrap"
               >
                 <ShieldCheck className="w-3.5 h-3.5 text-teal-200" />
                 <span>Bàn Cán Bộ</span>
