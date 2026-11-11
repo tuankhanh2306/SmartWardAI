@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Landmark, Bot, ShieldCheck, FileCheck2, MapPin, LogOut, AlertTriangle } from 'lucide-react';
+import { Landmark, Bot, ShieldCheck, FileCheck2, MapPin, LogOut, AlertTriangle, BookOpen } from 'lucide-react';
 import { useWard } from '../context/WardContext';
 import { useRole } from '../context/RoleContext';
 import { useAccessibility } from '../context/AccessibilityContext';
@@ -16,7 +16,13 @@ export const Header: React.FC = () => {
   const { textScale, setTextScale } = useAccessibility();
 
   const citizenNavLinks = [
-    { to: '/citizen', label: 'Hỏi Đáp Thủ Tục', icon: Bot, match: () => path === '/citizen' },
+    { to: '/citizen', label: 'Hỏi Đáp Thủ Tục (AI)', icon: Bot, match: () => path === '/citizen' },
+    {
+      to: '/citizen/procedures',
+      label: 'Danh Mục Thủ Tục (40)',
+      icon: BookOpen,
+      match: () => path === '/citizen/procedures',
+    },
     {
       to: '/citizen/form#form',
       label: 'Kiểm Tra Tờ Khai (4 Mẫu)',
@@ -45,6 +51,12 @@ export const Header: React.FC = () => {
       match: () => path === '/citizen',
     },
     {
+      to: '/citizen/procedures',
+      label: 'Danh Mục 40 TTHC',
+      icon: BookOpen,
+      match: () => path === '/citizen/procedures',
+    },
+    {
       to: '/citizen/form#form',
       label: 'Cổng Tờ Khai & Sự Cố',
       icon: FileCheck2,
@@ -65,8 +77,8 @@ export const Header: React.FC = () => {
               to={isOfficer ? `/officer/ward/${currentWard.code}` : '/citizen'}
               className="flex items-center gap-2.5 min-w-0 group active:scale-[0.98] transition-transform"
             >
-              <div className="w-9 h-9 rounded-xl bg-[#0F2942] flex items-center justify-center text-white shrink-0 shadow-xs">
-                <Landmark className="w-4 h-4 text-teal-300" />
+              <div className="w-9 h-9 rounded-xl bg-[#00796B] flex items-center justify-center text-white shrink-0 shadow-xs">
+                <Landmark className="w-4 h-4 text-teal-200" />
               </div>
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-1.5">
@@ -114,11 +126,11 @@ export const Header: React.FC = () => {
                   to={item.to}
                   className={`flex items-center gap-2 text-xs font-semibold px-3.5 py-1.5 rounded-lg transition-all active:scale-[0.98] whitespace-nowrap ${
                     isActive
-                      ? 'bg-[#0F2942] text-white shadow-xs'
+                      ? 'bg-[#00796B] text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-[#38BDF8]' : 'text-slate-500'}`} />
+                  <Icon className={`w-4 h-4 ${isActive ? 'text-teal-200' : 'text-slate-500'}`} />
                   <span>{item.label}</span>
                 </Link>
               );
@@ -172,9 +184,9 @@ export const Header: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setAuthModalOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#0F2942] hover:bg-[#1E3A5F] text-white text-xs font-semibold transition active:scale-95 cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-semibold transition active:scale-95 cursor-pointer shadow-xs"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-teal-300" />
+                <ShieldCheck className="w-3.5 h-3.5 text-teal-200" />
                 <span>Bàn Cán Bộ</span>
               </button>
             )}
@@ -185,33 +197,46 @@ export const Header: React.FC = () => {
       {/* Mobile-First Bottom Navigation Bar (1-Thumb Operation on Phones/Tablets) */}
       <nav
         aria-label="Điều hướng di động"
-        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1 grid grid-cols-4 gap-1 shadow-[0_-2px_10px_rgba(15,23,42,0.04)]"
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1 grid grid-cols-5 gap-1 shadow-[0_-2px_10px_rgba(15,23,42,0.04)]"
       >
         <button
           type="button"
           onClick={() => navigate('/citizen')}
-          className={`flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-semibold transition active:scale-95 cursor-pointer ${
+          className={`flex flex-col items-center justify-center py-1 rounded-xl text-[10px] font-semibold transition active:scale-95 cursor-pointer ${
             path === '/citizen'
-              ? 'text-[#0F2942] bg-slate-100 font-bold'
+              ? 'text-[#00796B] bg-teal-50 font-bold'
               : 'text-slate-500 hover:text-slate-900'
           }`}
         >
-          <Bot className={`w-4 h-4 mb-0.5 ${path === '/citizen' ? 'text-[#0F2942]' : 'text-slate-400'}`} />
+          <Bot className={`w-4 h-4 mb-0.5 ${path === '/citizen' ? 'text-[#00796B]' : 'text-slate-400'}`} />
           <span>Hỏi Đáp</span>
         </button>
 
         <button
           type="button"
+          onClick={() => navigate('/citizen/procedures')}
+          className={`flex flex-col items-center justify-center py-1 rounded-xl text-[10px] font-semibold transition active:scale-95 cursor-pointer ${
+            path === '/citizen/procedures'
+              ? 'text-[#00796B] bg-teal-50 font-bold'
+              : 'text-slate-500 hover:text-slate-900'
+          }`}
+        >
+          <BookOpen className={`w-4 h-4 mb-0.5 ${path === '/citizen/procedures' ? 'text-[#00796B]' : 'text-slate-400'}`} />
+          <span>Thủ Tục</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => navigate('/citizen/form#form')}
-          className={`flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-semibold transition active:scale-95 cursor-pointer ${
+          className={`flex flex-col items-center justify-center py-1 rounded-xl text-[10px] font-semibold transition active:scale-95 cursor-pointer ${
             path === '/citizen/form' && hash !== '#incident'
-              ? 'text-[#0F2942] bg-slate-100 font-bold'
+              ? 'text-[#00796B] bg-teal-50 font-bold'
               : 'text-slate-500 hover:text-slate-900'
           }`}
         >
           <FileCheck2
             className={`w-4 h-4 mb-0.5 ${
-              path === '/citizen/form' && hash !== '#incident' ? 'text-[#0F2942]' : 'text-slate-400'
+              path === '/citizen/form' && hash !== '#incident' ? 'text-[#00796B]' : 'text-slate-400'
             }`}
           />
           <span>Tờ Khai</span>
@@ -220,7 +245,7 @@ export const Header: React.FC = () => {
         <button
           type="button"
           onClick={() => navigate('/citizen/form#incident')}
-          className={`flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-semibold transition active:scale-95 cursor-pointer ${
+          className={`flex flex-col items-center justify-center py-1 rounded-xl text-[10px] font-semibold transition active:scale-95 cursor-pointer ${
             path === '/citizen/form' && hash === '#incident'
               ? 'text-red-700 bg-red-50 font-bold'
               : 'text-slate-500 hover:text-slate-900'
@@ -243,9 +268,9 @@ export const Header: React.FC = () => {
               navigate('/onboarding');
             }
           }}
-          className={`flex flex-col items-center justify-center py-1.5 rounded-xl text-[11px] font-semibold transition active:scale-95 cursor-pointer ${
+          className={`flex flex-col items-center justify-center py-1 rounded-xl text-[10px] font-semibold transition active:scale-95 cursor-pointer ${
             isOnboarding || path.startsWith('/officer')
-              ? 'text-[#0F2942] bg-slate-100 font-bold'
+              ? 'text-[#00796B] bg-teal-50 font-bold'
               : 'text-slate-500 hover:text-slate-900'
           }`}
         >
@@ -254,7 +279,7 @@ export const Header: React.FC = () => {
               isOnboarding || path.startsWith('/officer') ? 'text-teal-700' : 'text-slate-400'
             }`}
           />
-          <span>{isOfficer ? 'Bàn Cán Bộ' : 'Đổi Xã'}</span>
+          <span>{isOfficer ? 'Cán Bộ' : 'Đổi Xã'}</span>
         </button>
       </nav>
 

@@ -2414,16 +2414,16 @@ export const FormAndIssueReporting: React.FC = () => {
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto a4-print-overlay">
           <div className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col my-auto a4-print-sheet border border-[#CBD5E1] overflow-hidden">
             {/* Top Toolbar (Hidden during print) */}
-            <div className="no-print bg-[#0F2942] text-white px-6 py-4 flex flex-wrap items-center justify-between gap-3 border-b border-[#1E3A5F]">
+            <div className="no-print bg-[#00796B] text-white px-6 py-4 flex flex-wrap items-center justify-between gap-3 border-b border-[#004D40]">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[#38BDF8]/20 text-[#38BDF8] flex items-center justify-center font-bold">
+                <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center font-bold">
                   A4
                 </div>
                 <div>
                   <h3 className="font-extrabold text-sm sm:text-base text-white">
                     Xem Trước & In Tờ Khai Chuẩn A4
                   </h3>
-                  <p className="text-xs text-[#94A3B8]">
+                  <p className="text-xs text-teal-100">
                     Quy chuẩn thể thức văn bản hành chính theo Nghị định 30/2020/NĐ-CP
                   </p>
                 </div>
@@ -2433,7 +2433,7 @@ export const FormAndIssueReporting: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => window.print()}
-                  className="px-4 py-2 bg-[#38BDF8] hover:bg-[#0284C7] text-[#0F2942] hover:text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm cursor-pointer"
+                  className="px-4 py-2 bg-white hover:bg-teal-50 text-[#00796B] rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm cursor-pointer active:scale-95"
                 >
                   <Printer className="w-4 h-4" />
                   <span>In Tờ Khai (Ctrl + P)</span>

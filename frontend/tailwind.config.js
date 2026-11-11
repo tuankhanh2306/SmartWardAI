@@ -32,7 +32,18 @@ export default {
         "outline-variant": "#CBD5E1",
         "error": "#B91C1C",
         "error-container": "#FEE2E2",
-        "background": "#F8FAFC"
+        "background": "#F8FAFC",
+        "uth": {
+          "teal": "#00796B",
+          "teal-dark": "#004D40",
+          "teal-hover": "#00695C",
+          "teal-light": "#26A69A",
+          "teal-surface": "#E0F2F1",
+          "teal-subtle": "#E8F5E9",
+          "crimson": "#B91C1C",
+          "crimson-dark": "#991B1B",
+          "input-bg": "#EEF2F6",
+        }
       },
       fontFamily: {
         sans: ['"Be Vietnam Pro"', 'system-ui', 'sans-serif'],

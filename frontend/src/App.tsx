@@ -7,6 +7,7 @@ import Header from './components/Header';
 import OfficerGuard from './components/OfficerGuard';
 import CitizenPortal from './pages/CitizenPortal';
 import FormAndIssueReporting from './pages/FormAndIssueReporting';
+import ProceduresCatalogPage from './pages/ProceduresCatalogPage';
 import WardOnboarding from './pages/WardOnboarding';
 import PerWardDashboard from './pages/PerWardDashboard';
 
@@ -35,6 +36,7 @@ export const App: React.FC = () => {
                   {/* Citizen Dedicated Routes */}
                   <Route path="/" element={<Navigate to="/citizen" replace />} />
                   <Route path="/citizen" element={<CitizenPortal />} />
+                  <Route path="/citizen/procedures" element={<ProceduresCatalogPage />} />
                   <Route path="/citizen/form" element={<FormAndIssueReporting />} />
 
                   {/* Officer Protected Unified Workspace (1 Dashboard Duy Nhất Cho Mọi Nghiệp Vụ) */}
