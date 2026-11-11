@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   X,
   CheckCircle2,
@@ -11,6 +11,7 @@ import {
 import { useWard } from '../context/WardContext';
 import { getA4TemplateByCode, type A4FormTemplate } from '../data/a4FormTemplates';
 import { exportA4TemplateToDocx } from '../utils/docxExporter';
+import { exportElementToPdf } from '../utils/pdfExporter';
 
 export type AdministrativeFormType =
   | 'CT01'
@@ -103,8 +104,11 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
   initialData = {},
 }) => {
   const { currentWard } = useWard();
+  const printableA4Ref = useRef<HTMLDivElement>(null);
   const [isExportingDocx, setIsExportingDocx] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
+  const [isExportingPdf, setIsExportingPdf] = useState(false);
+  const [pdfExportSuccess, setPdfExportSuccess] = useState(false);
 
   if (!isOpen) return null;
 
@@ -180,6 +184,21 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
     }
   };
 
+  const handleDownloadPdf = async () => {
+    if (!printableA4Ref.current) return;
+    try {
+      setIsExportingPdf(true);
+      const filename = `${effectiveTemplate.procedureCode || 'TO-KHAI'}_${currentWard.name.replace(/\s+/g, '_')}.pdf`;
+      await exportElementToPdf(printableA4Ref.current, filename);
+      setPdfExportSuccess(true);
+      setTimeout(() => setPdfExportSuccess(false), 3000);
+    } catch (err) {
+      console.error('Lỗi xuất file PDF (.pdf):', err);
+    } finally {
+      setIsExportingPdf(false);
+    }
+  };
+
   const blankDot = '...................................................';
   const shortDot = '........................';
 
@@ -191,7 +210,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto a4-print-overlay">
       <div className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col my-auto a4-print-sheet border border-[#CBD5E1] overflow-hidden">
-        {/* Top Control Bar (Hidden when printing via CSS @media print) */}
+        {/* Top Control Bar (Chỉ có tải Word .docx và tải PDF .pdf, không in ấn) */}
         <div className="no-print bg-[#00796B] text-white px-5 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 border-b border-[#004D40]">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center font-bold text-xs shadow-xs">
@@ -213,7 +232,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
             </div>
           </div>
 
-          {/* Action Buttons: Tải Word / Tải PDF / In trực tiếp */}
+          {/* Action Buttons: Tải Word (.docx) & Tải PDF (.pdf) */}
           <div className="flex items-center flex-wrap gap-2">
             {/* Action 1: Tải File Word (.docx) */}
             <button
@@ -241,15 +260,30 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
               )}
             </button>
 
-            {/* Action 2: Tải / Lưu PDF (.pdf) */}
+            {/* Action 2: Tải File PDF (.pdf) trực tiếp về máy */}
             <button
               type="button"
-              onClick={() => window.print()}
-              className="px-3 py-1.5 bg-sky-700 hover:bg-sky-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
-              title="Tải hoặc lưu dưới dạng PDF (Chọn 'Lưu dưới dạng PDF' trong hộp thoại của trình duyệt)"
+              onClick={handleDownloadPdf}
+              disabled={isExportingPdf}
+              className="px-3 py-1.5 bg-sky-700 hover:bg-sky-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95 disabled:opacity-60"
+              title="Tải trực tiếp tệp PDF tiêu chuẩn về thiết bị để lưu trữ hoặc nộp dịch vụ công trực tuyến"
             >
-              <FileText className="w-3.5 h-3.5 text-sky-200" />
-              <span>Tải File PDF (.pdf)</span>
+              {isExportingPdf ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <span>Đang Tạo File PDF...</span>
+                </>
+              ) : pdfExportSuccess ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-sky-200" />
+                  <span>Đã Tải Xong (.pdf)</span>
+                </>
+              ) : (
+                <>
+                  <FileText className="w-3.5 h-3.5 text-sky-200" />
+                  <span>Tải File PDF (.pdf)</span>
+                </>
+              )}
             </button>
 
             <button
@@ -270,13 +304,14 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
               Tiện ích tải về máy
             </span>
             <span className="leading-tight">
-              Bà con bấm <strong>"Tải Mẫu Word (.docx)"</strong> để tải file về máy tính/điện thoại tự điền thông tin, hoặc bấm <strong>"Tải File PDF (.pdf)"</strong> (chọn <em>Lưu dưới dạng PDF</em>) để nộp hồ sơ trực tuyến.
+              Bà con bấm <strong>"Tải Mẫu Word (.docx)"</strong> để lưu file về máy tính/điện thoại tự điền thông tin, hoặc bấm <strong>"Tải File PDF (.pdf)"</strong> để tải trực tiếp tệp PDF nộp hồ sơ dịch vụ công trực tuyến.
             </span>
           </div>
         </div>
 
         {/* Printable A4 Sheet Body */}
         <div
+          ref={printableA4Ref}
           className="p-8 sm:p-12 text-[#0F172A] bg-white text-[13pt] leading-relaxed select-text max-h-[80vh] overflow-y-auto font-administrative font-times"
           style={{ fontFamily: "'Times New Roman', 'Tinos', Times, 'Liberation Serif', serif" }}
         >

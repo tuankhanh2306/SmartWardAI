@@ -1050,7 +1050,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     type="button"
                     onClick={() =>
                       toggleSpeech(
-                        'Quy tắc bắt buộc đối với thủ tục chứng thực: Tuyệt đối không ký tên trước ở nhà! Đối với chứng thực chữ ký và chứng thực văn bản phân chia hoặc từ chối nhận di sản thừa kế theo Nghị định 23 năm 2015: Người dân tuyệt đối không được ký tên sẵn ở nhà vào tờ khai hoặc văn bản. Chữ ký bắt buộc phải được ký trực tiếp trước mặt công chức Tư pháp Hộ tịch tại Bộ phận Một cửa. Nếu đã ký sẵn ở nhà, hồ sơ sẽ bị hủy và bắt buộc phải in lại bản mới để ký trực tiếp.',
+                        'Quy tắc bắt buộc đối với thủ tục chứng thực: Tuyệt đối không ký tên trước ở nhà! Đối với chứng thực chữ ký và chứng thực văn bản phân chia hoặc từ chối nhận di sản thừa kế theo Nghị định 23 năm 2015: Người dân tuyệt đối không được ký tên sẵn ở nhà vào tờ khai hoặc văn bản. Chữ ký bắt buộc phải được ký trực tiếp trước mặt công chức Tư pháp Hộ tịch tại Bộ phận Một cửa. Nếu đã ký sẵn ở nhà, hồ sơ sẽ bị hủy và bắt buộc phải lập lại bản mới để ký trực tiếp.',
                         'warning-signature'
                       )
                     }
@@ -1102,7 +1102,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     Chữ ký bắt buộc phải được <strong>ký trực tiếp trước mặt công chức Tư pháp – Hộ tịch</strong> tại Bộ phận Một cửa.
                   </li>
                   <li>
-                    Nếu đã ký sẵn ở nhà, hồ sơ sẽ bị hủy và bắt buộc phải in lại bản mới để ký trực tiếp.
+                    Nếu đã ký sẵn ở nhà, hồ sơ sẽ bị hủy và bắt buộc phải lập lại bản mới để ký trực tiếp.
                   </li>
                 </ul>
               </div>
