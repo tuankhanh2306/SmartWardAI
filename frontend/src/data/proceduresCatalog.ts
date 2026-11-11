@@ -4,6 +4,7 @@ export interface ProcedureCatalogItem {
   category: string;
   portalCode: string;
   chunksCount: number;
+  fee?: string;
 }
 
 export const PROCEDURES_CATALOG: ProcedureCatalogItem[] = [
