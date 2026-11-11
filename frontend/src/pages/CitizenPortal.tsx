@@ -483,9 +483,9 @@ export const CitizenPortal: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col w-full pb-12">
+    <div className="flex flex-col w-full pb-12 bg-uth-canvas bg-uth-watermark min-h-[calc(100vh-4rem)]">
       {/* SINGLE-LINE CIVIC STATUS STRIP (No Duplicate Header / No Duplicate CTA) */}
-      <section className="w-full bg-white px-4 md:px-8 py-2.5 border-b border-[#E2E8F0]">
+      <section className="w-full bg-white px-4 md:px-8 py-2.5 border-b border-teal-100/80">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2.5 text-xs">
           {/* Left: Real-Time Working Hours Status + Office Address + Hotline */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[#475569]">
@@ -503,21 +503,21 @@ export const CitizenPortal: React.FC = () => {
             <span className="hidden md:inline text-[#CBD5E1]">|</span>
 
             <span className="hidden md:flex items-center gap-1.5">
-              <MapPin className="w-3.5 h-3.5 text-[#0F766E] shrink-0" />
+              <MapPin className="w-3.5 h-3.5 text-[#00796B] shrink-0" />
               <span>Trụ sở: <strong className="text-[#0F172A]">{currentWard.officeAddress}</strong></span>
             </span>
 
             <span className="text-[#CBD5E1]">|</span>
 
             <span className="flex items-center gap-1.5">
-              <PhoneCall className="w-3.5 h-3.5 text-[#0F766E] shrink-0" />
-              <span>Đường dây nóng: <strong className="text-[#0F2942] font-mono">{currentWard.phoneNumber}</strong></span>
+              <PhoneCall className="w-3.5 h-3.5 text-[#00796B] shrink-0" />
+              <span>Đường dây nóng: <strong className="text-[#00796B] font-mono">{currentWard.phoneNumber}</strong></span>
             </span>
 
             <span className="hidden xl:inline text-[#CBD5E1]">|</span>
 
             <span className="hidden xl:flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-[#0F766E] shrink-0" />
+              <Calendar className="w-3.5 h-3.5 text-[#00796B] shrink-0" />
               <span>{currentWard.workingHours}</span>
             </span>
           </div>
@@ -585,32 +585,49 @@ export const CitizenPortal: React.FC = () => {
         {/* LEFT COLUMN: 4 Bento Cards OR Full 40 Procedures Catalog */}
         <div className={`lg:col-span-5 flex flex-col justify-between gap-4 lg:h-[700px] ${mobileTab === 'chat' ? 'hidden lg:flex' : 'flex'}`}>
           <div className="flex flex-col gap-3.5 flex-1 min-h-0">
+            {/* Dedicated Link Banner to the new Dedicated 40 Procedures Page */}
+            <div className="p-3.5 rounded-2xl bg-white border border-teal-200/90 shadow-[0_2px_12px_rgba(0,121,107,0.06)] flex items-center justify-between gap-3 shrink-0">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <div className="w-9 h-9 rounded-xl bg-teal-50 text-[#00796B] border border-teal-200 flex items-center justify-center shrink-0 shadow-2xs">
+                  <BookOpen className="w-4 h-4" />
+                </div>
+                <div className="min-w-0">
+                  <h4 className="text-xs font-bold text-[#00796B] truncate">Trang Danh Mục 40 Thủ Tục & Giấy Tờ</h4>
+                  <p className="text-[11px] text-slate-500 truncate">Văn bản mẫu A4, thời hạn & tra cứu hồ sơ</p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/citizen/procedures')}
+                className="px-3 py-1.5 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold transition flex items-center gap-1 shrink-0 cursor-pointer shadow-xs active:scale-95"
+              >
+                <span>Xem Trang Riêng</span>
+                <ArrowRight className="w-3 h-3" />
+              </button>
+            </div>
+
             {/* Segmented Mode Switcher */}
-            <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0] shrink-0">
-              <div className="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1]">
+            <div className="flex items-center justify-between pb-2 border-b border-teal-100 shrink-0">
+              <div className="inline-flex p-1 bg-slate-100 rounded-xl border border-slate-200">
                 <button
                   onClick={() => setCatalogViewMode('bento')}
                   className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                     catalogViewMode === 'bento'
-                      ? 'bg-[#0F2942] text-white shadow-xs'
-                      : 'text-[#475569] hover:text-[#0F2942]'
+                      ? 'bg-[#00796B] text-white shadow-xs'
+                      : 'text-slate-600 hover:text-[#00796B]'
                   }`}
                 >
                   4 Thủ Tục Trọng Tâm
                 </button>
                 <button
-                  onClick={() => setCatalogViewMode('catalog')}
-                  className={`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    catalogViewMode === 'catalog'
-                      ? 'bg-[#0F2942] text-white shadow-xs'
-                      : 'text-[#475569] hover:text-[#0F2942]'
-                  }`}
+                  onClick={() => navigate('/citizen/procedures')}
+                  className="px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer text-slate-600 hover:text-[#00796B]"
                 >
-                  <Layers className={`w-3.5 h-3.5 ${catalogViewMode === 'catalog' ? 'text-[#38BDF8]' : 'text-[#0F766E]'}`} />
-                  <span>Danh Mục 40 Thủ Tục</span>
+                  <Layers className="w-3.5 h-3.5 text-[#00796B]" />
+                  <span>Trang 40 Thủ Tục →</span>
                 </button>
               </div>
-              <span className="text-xs text-[#64748B] font-medium hidden sm:inline">Chọn để hỏi ngay</span>
+              <span className="text-xs text-slate-500 font-medium hidden sm:inline">Chọn để hỏi ngay</span>
             </div>
 
             {/* VIEW MODE 1: Bento Cards (4 Clean Civic Cards) */}
@@ -622,11 +639,11 @@ export const CitizenPortal: React.FC = () => {
                     <div
                       key={card.code}
                       onClick={() => handleAsk(card.prompt)}
-                      className="group relative p-3.5 rounded-2xl bg-white border border-[#CBD5E1] hover:border-[#0F2942] shadow-2xs hover:shadow-sm transition-all duration-200 cursor-pointer active:scale-[0.99] flex flex-col justify-between gap-2"
+                      className="group relative p-3.5 rounded-2xl bg-white border border-slate-200 hover:border-[#00796B] shadow-2xs hover:shadow-sm transition-all duration-200 cursor-pointer active:scale-[0.99] flex flex-col justify-between gap-2"
                     >
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#0F2942] group-hover:bg-[#0F2942] group-hover:text-[#38BDF8] transition-colors">
+                          <div className="w-8 h-8 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center text-[#00796B] group-hover:bg-[#00796B] group-hover:text-white transition-colors">
                             <CardIcon className="w-4 h-4" />
                           </div>
                           <span className={`px-2.5 py-0.5 rounded-md text-[11px] font-bold border ${card.badgeColor}`}>
@@ -634,26 +651,26 @@ export const CitizenPortal: React.FC = () => {
                           </span>
                         </div>
 
-                        <div className="w-7 h-7 rounded-full bg-[#F8FAFC] group-hover:bg-[#0F2942] text-[#0F2942] group-hover:text-white flex items-center justify-center transition-all duration-200 border border-[#E2E8F0]">
+                        <div className="w-7 h-7 rounded-full bg-slate-50 group-hover:bg-[#00796B] text-slate-600 group-hover:text-white flex items-center justify-center transition-all duration-200 border border-slate-200">
                           <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
                         </div>
                       </div>
 
                       <div>
-                        <h3 className="text-sm sm:text-base font-bold text-[#0F172A] group-hover:text-[#0F2942] transition-colors leading-snug">
+                        <h3 className="text-sm sm:text-base font-bold text-slate-900 group-hover:text-[#00796B] transition-colors leading-snug">
                           {card.title}
                         </h3>
-                        <p className="text-xs text-[#475569] mt-0.5 leading-relaxed">
+                        <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
                           {card.description}
                         </p>
                       </div>
 
-                      <div className="pt-2 border-t border-[#F1F5F9] flex items-center justify-between text-xs text-[#334155]">
+                      <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-600">
                         <span className="flex items-center gap-1 font-medium">
-                          <Clock className="w-3.5 h-3.5 text-[#0F766E]" />
+                          <Clock className="w-3.5 h-3.5 text-[#00796B]" />
                           {card.time}
                         </span>
-                        <span className="font-bold text-[#0F766E] bg-[#F0FDFA] px-2 py-0.5 rounded border border-[#99F6E4]">
+                        <span className="font-bold text-[#00796B] bg-teal-50 px-2 py-0.5 rounded border border-teal-200">
                           {card.fee}
                         </span>
                       </div>
@@ -740,19 +757,19 @@ export const CitizenPortal: React.FC = () => {
         </div>
 
         {/* RIGHT COLUMN: Interactive Legal RAG Chat Workspace */}
-        <div className={`lg:col-span-7 flex flex-col bg-white rounded-2xl border border-[#CBD5E1] shadow-xs overflow-hidden min-h-[580px] lg:h-[700px] ${mobileTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`lg:col-span-7 flex flex-col bg-white rounded-3xl border border-teal-100 shadow-[0_4px_24px_rgba(0,121,107,0.06)] overflow-hidden min-h-[580px] lg:h-[700px] ${mobileTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`}>
           {/* Chat Workspace Header */}
-          <div className="px-5 py-3.5 bg-[#0F2942] text-white flex items-center justify-between">
+          <div className="px-5 py-3.5 bg-[#00796B] text-white flex items-center justify-between border-b border-[#004D40]">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-[#38BDF8] border border-white/15">
-                <Bot className="w-5 h-5" />
+              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center text-white border border-white/20 shadow-2xs">
+                <Bot className="w-5 h-5 text-teal-100" />
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <span className="text-sm sm:text-base font-bold tracking-tight">Trợ Lý Pháp Lý Một Cửa</span>
-                  <span className="w-2 h-2 rounded-full bg-[#10B981]" />
+                  <span className="w-2 h-2 rounded-full bg-emerald-300" />
                 </div>
-                <span className="text-[11px] text-[#94A3B8]">
+                <span className="text-[11px] text-teal-100">
                   Tra cứu 40 TTHC UBND {currentWard.name}
                 </span>
               </div>
@@ -768,7 +785,7 @@ export const CitizenPortal: React.FC = () => {
                   }
                 }}
                 title="Làm mới cuộc trò chuyện"
-                className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer"
+                className="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-2xs"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Làm mới</span>
@@ -780,7 +797,7 @@ export const CitizenPortal: React.FC = () => {
           <div className="flex-1 p-4 md:p-5 overflow-y-auto space-y-4 bg-[#F8FAFC]">
             {messages.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-center p-8 text-[#64748B]">
-                <Bot className="w-12 h-12 text-[#CBD5E1] mb-3" />
+                <Bot className="w-12 h-12 text-teal-300 mb-3" />
                 <p className="text-base font-bold text-[#0F172A]">Kính chào bà con! Tôi có thể giúp gì cho bà con?</p>
                 <p className="text-xs sm:text-sm text-[#64748B] mt-1 max-w-md leading-relaxed">
                   Bấm vào gợi ý bên dưới hoặc gõ câu hỏi về khai sinh, kết hôn, chứng thực, cư trú...
@@ -790,7 +807,7 @@ export const CitizenPortal: React.FC = () => {
                     <button
                       key={idx}
                       onClick={() => handleAsk(p.q)}
-                      className="px-3 py-1.5 rounded-full bg-white text-[#0F2942] border border-[#CBD5E1] text-xs font-semibold hover:bg-[#F1F5F9] transition cursor-pointer"
+                      className="px-3 py-1.5 rounded-full bg-white text-[#00796B] border border-teal-200 text-xs font-semibold hover:bg-teal-50 transition cursor-pointer shadow-2xs"
                     >
                       {p.label}
                     </button>
@@ -805,16 +822,16 @@ export const CitizenPortal: React.FC = () => {
                 className={`flex gap-3 ${msg.sender === 'citizen' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.sender === 'bot' && (
-                  <div className="w-8 h-8 rounded-full bg-[#0F2942] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
-                    <Bot className="w-4 h-4 text-[#38BDF8]" />
+                  <div className="w-8 h-8 rounded-full bg-[#00796B] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                    <Bot className="w-4 h-4 text-teal-100" />
                   </div>
                 )}
 
                 <div
                   className={`max-w-[88%] sm:max-w-[82%] flex flex-col gap-2 rounded-2xl p-4 transition-all ${
                     msg.sender === 'citizen'
-                      ? 'bg-[#0F2942] text-white rounded-br-xs shadow-xs'
-                      : 'bg-white text-[#0F172A] border border-[#E2E8F0] rounded-bl-xs shadow-2xs'
+                      ? 'bg-[#00796B] text-white rounded-br-xs shadow-xs'
+                      : 'bg-white text-[#0F172A] border border-teal-100/90 rounded-bl-xs shadow-2xs'
                   }`}
                 >
                   {/* Message body text with 5-section badge highlights */}
@@ -826,15 +843,15 @@ export const CitizenPortal: React.FC = () => {
 
                   {/* POLITE CIVIC CONTACT NOTE WHEN QUERY NEEDS DIRECT SUPPORT */}
                   {msg.ragData?.abstained && (
-                    <div className="mt-2 p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-[#334155] flex items-center justify-between gap-2 text-xs">
+                    <div className="mt-2 p-3 rounded-xl bg-teal-50/50 border border-teal-200 text-[#334155] flex items-center justify-between gap-2 text-xs">
                       <span>
                         Câu hỏi đã được chuyển vào Hàng đợi Cán bộ Một cửa <strong>UBND {currentWard.name}</strong> để kiểm duyệt và phản hồi chính xác.
                       </span>
                       <a
                         href={`tel:${currentWard.phoneNumber.replace(/\s+/g, '')}`}
-                        className="shrink-0 px-2.5 py-1.5 rounded-lg bg-[#0F2942] text-white font-bold hover:bg-[#1E3A5F] transition inline-flex items-center gap-1"
+                        className="shrink-0 px-2.5 py-1.5 rounded-lg bg-[#00796B] text-white font-bold hover:bg-[#00695C] transition inline-flex items-center gap-1 shadow-xs"
                       >
-                        <PhoneCall className="w-3.5 h-3.5 text-[#38BDF8]" />
+                        <PhoneCall className="w-3.5 h-3.5 text-teal-200" />
                         <span>{currentWard.phoneNumber}</span>
                       </a>
                     </div>
@@ -843,7 +860,7 @@ export const CitizenPortal: React.FC = () => {
                   {/* RESIDENCE / POLICE ROUTING BUTTON: When query touches residence/VNeID */}
                   {(msg.text.includes('Công an cấp xã') || msg.text.includes('VNeID')) && (
                     <div className="mt-2 pt-2 border-t border-[#E2E8F0] flex items-center justify-between">
-                      <span className="text-xs text-[#0F766E] font-semibold flex items-center gap-1">
+                      <span className="text-xs text-[#00796B] font-semibold flex items-center gap-1">
                         <ShieldCheck className="w-4 h-4" />
                         Cổng Dịch vụ công Cư trú
                       </span>
@@ -851,7 +868,7 @@ export const CitizenPortal: React.FC = () => {
                         href="https://dichvucong.bocongan.gov.vn/"
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-[#0F766E] hover:bg-[#115E59] text-white text-xs font-bold transition shadow-xs"
+                        className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold transition shadow-xs"
                       >
                         <span>Mở Cổng Bộ Công An</span>
                         <ExternalLink className="w-3 h-3" />
@@ -880,10 +897,10 @@ export const CitizenPortal: React.FC = () => {
 
                   {/* Bot Interactive Action Dock & Citations */}
                   {msg.sender === 'bot' && (
-                    <div className="mt-2.5 pt-2 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2 text-xs text-[#64748B]">
+                    <div className="mt-2.5 pt-2 border-t border-teal-100 flex flex-wrap items-center justify-between gap-2 text-xs text-[#64748B]">
                       {/* Clean Timestamp */}
-                      <span className="flex items-center gap-1.5 font-mono text-[11px] text-[#64748B]">
-                        <Clock className="w-3.5 h-3.5 text-[#00687A]" />
+                      <span className="flex items-center gap-1.5 font-mono text-[11px] text-[#00796B]">
+                        <Clock className="w-3.5 h-3.5 text-[#00796B]" />
                         {msg.timestamp}
                       </span>
 
@@ -894,7 +911,7 @@ export const CitizenPortal: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setActiveCitation(msg.ragData!.citations[0])}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#00687A] text-xs font-semibold transition active:scale-95 cursor-pointer shadow-2xs"
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-[#00796B] text-xs font-semibold transition active:scale-95 cursor-pointer shadow-2xs border border-teal-200"
                           >
                             <BookOpen className="w-3.5 h-3.5" />
                             <span>Căn cứ pháp lý ({msg.ragData.citations.length})</span>
@@ -908,7 +925,7 @@ export const CitizenPortal: React.FC = () => {
                           className={`flex items-center gap-1.5 font-bold text-xs px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
                             speakingId === msg.id
                               ? 'bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5]'
-                              : 'bg-[#F1F5F9] text-[#0F2942] hover:bg-[#E2E8F0] border border-[#CBD5E1]'
+                              : 'bg-slate-100 text-[#00796B] hover:bg-teal-50 border border-slate-200'
                           }`}
                           title={speakingId === msg.id ? 'Dừng đọc âm thanh' : 'Bấm để nghe đọc bằng giọng nói tiếng Việt'}
                         >
@@ -919,7 +936,7 @@ export const CitizenPortal: React.FC = () => {
                             </>
                           ) : (
                             <>
-                              <Volume2 className="w-3.5 h-3.5 text-[#0F766E]" />
+                              <Volume2 className="w-3.5 h-3.5 text-[#00796B]" />
                               <span>Nghe đọc to</span>
                             </>
                           )}
@@ -929,7 +946,7 @@ export const CitizenPortal: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => copyToClipboard(msg.text, msg.id)}
-                          className="hover:text-[#0F2942] flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-[#F1F5F9] active:scale-90 transition font-medium cursor-pointer"
+                          className="hover:text-[#00796B] flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-slate-100 active:scale-90 transition font-medium cursor-pointer"
                         >
                           {copiedId === msg.id ? (
                             <>
@@ -949,7 +966,7 @@ export const CitizenPortal: React.FC = () => {
                 </div>
 
                 {msg.sender === 'citizen' && (
-                  <div className="w-9 h-9 rounded-full bg-[#E2E8F0] text-[#0F2942] flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
+                  <div className="w-9 h-9 rounded-full bg-teal-100 text-[#00796B] flex items-center justify-center shrink-0 mt-0.5 shadow-xs">
                     <User className="w-5 h-5" />
                   </div>
                 )}
@@ -959,15 +976,15 @@ export const CitizenPortal: React.FC = () => {
             {/* Staggered Typing Indicator */}
             {loading && (
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-full bg-[#0F2942] text-white flex items-center justify-center shrink-0 shadow-xs">
-                  <Bot className="w-5 h-5 text-[#38BDF8] animate-pulse" />
+                <div className="w-9 h-9 rounded-full bg-[#00796B] text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <Bot className="w-5 h-5 text-teal-100 animate-pulse" />
                 </div>
-                <div className="bg-white border border-[#E2E8F0] rounded-2xl rounded-bl-xs px-4 py-3 shadow-xs flex items-center gap-2">
-                  <span className="text-xs sm:text-sm text-[#475569] font-medium">Cán bộ AI đang tra cứu văn bản pháp lý...</span>
+                <div className="bg-white border border-teal-100 rounded-2xl rounded-bl-xs px-4 py-3 shadow-xs flex items-center gap-2">
+                  <span className="text-xs sm:text-sm text-slate-700 font-medium">Cán bộ AI đang tra cứu văn bản pháp lý...</span>
                   <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-[#0F2942] animate-bounce [animation-delay:-0.3s]" />
-                    <div className="w-2 h-2 rounded-full bg-[#0F766E] animate-bounce [animation-delay:-0.15s]" />
-                    <div className="w-2 h-2 rounded-full bg-[#38BDF8] animate-bounce" />
+                    <div className="w-2 h-2 rounded-full bg-[#00796B] animate-bounce [animation-delay:-0.3s]" />
+                    <div className="w-2 h-2 rounded-full bg-[#26A69A] animate-bounce [animation-delay:-0.15s]" />
+                    <div className="w-2 h-2 rounded-full bg-[#80CBC4] animate-bounce" />
                   </div>
                 </div>
               </div>
@@ -977,13 +994,13 @@ export const CitizenPortal: React.FC = () => {
           </div>
 
           {/* Quick Prompts Carousel Bar */}
-          <div className="px-4 py-2.5 bg-[#F8FAFC] border-t border-[#E2E8F0] flex items-center gap-2 overflow-x-auto">
-            <span className="text-xs font-bold text-[#64748B] uppercase shrink-0">Hỏi nhanh:</span>
+          <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-200 flex items-center gap-2 overflow-x-auto">
+            <span className="text-xs font-bold text-slate-500 uppercase shrink-0">Hỏi nhanh:</span>
             {quickPrompts.map((p, idx) => (
               <button
                 key={idx}
                 onClick={() => handleAsk(p.q)}
-                className="shrink-0 px-3 py-1.5 rounded-full bg-white hover:bg-[#F1F5F9] text-[#0F2942] text-xs font-semibold border border-[#CBD5E1] transition active:scale-95 shadow-2xs cursor-pointer"
+                className="shrink-0 px-3 py-1.5 rounded-full bg-white hover:bg-teal-50 text-[#00796B] text-xs font-semibold border border-teal-200 transition active:scale-95 shadow-2xs cursor-pointer"
               >
                 {p.label}
               </button>
@@ -991,7 +1008,7 @@ export const CitizenPortal: React.FC = () => {
           </div>
 
           {/* Interactive Chat Input Dock with Large Accessible Buttons */}
-          <div className="p-3.5 bg-white border-t border-[#CBD5E1]">
+          <div className="p-3.5 bg-white border-t border-slate-200">
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -1007,7 +1024,7 @@ export const CitizenPortal: React.FC = () => {
                 className={`p-3 rounded-xl border transition-all active:scale-90 cursor-pointer min-h-[46px] min-w-[46px] flex items-center justify-center ${
                   isMicActive
                     ? 'bg-[#DC2626] text-white border-[#DC2626] animate-pulse'
-                    : 'bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#0F766E] border-[#CBD5E1]'
+                    : 'bg-[#F8FAFC] hover:bg-teal-50 text-[#00796B] border-slate-200'
                 }`}
               >
                 <Mic className="w-5 h-5" />
@@ -1021,30 +1038,26 @@ export const CitizenPortal: React.FC = () => {
                   maxLength={1000}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Nhập câu hỏi thủ tục (ví dụ: làm khai sinh, kết hôn, CT01)..."
-                  className="w-full h-12 pl-4 pr-10 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] focus:border-[#0F2942] focus:bg-white text-sm sm:text-base text-[#0F172A] placeholder-[#94A3B8] focus:outline-none focus:ring-2 focus:ring-[#0F2942]/15 transition-all"
+                  className="w-full h-12 pl-4 pr-10 rounded-xl bg-[#F8FAFC] border border-slate-200 focus:border-[#00796B] focus:bg-white text-sm sm:text-base text-[#0F172A] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00796B]/15 transition-all"
                 />
                 {query && (
                   <button
                     type="button"
                     onClick={() => setQuery('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#0F172A] cursor-pointer p-1"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer p-1"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
 
-              {/* Send Button with Tactile Physics */}
+              {/* Primary Send Button in Solid Teal */}
               <button
                 type="submit"
-                disabled={!query.trim() || loading}
-                className={`h-12 px-5 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 transition-all duration-200 active:scale-95 cursor-pointer min-h-[46px] ${
-                  query.trim() && !loading
-                    ? 'bg-[#0F2942] hover:bg-[#1E3A5F] text-white shadow-sm'
-                    : 'bg-[#E2E8F0] text-[#94A3B8] cursor-not-allowed'
-                }`}
+                disabled={loading || !query.trim()}
+                className="h-12 px-5 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white font-bold text-sm shadow-xs hover:shadow-md disabled:opacity-40 disabled:hover:bg-[#00796B] disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 shrink-0 active:scale-95 cursor-pointer"
               >
-                <span>Gửi</span>
+                <span className="hidden sm:inline">Gửi</span>
                 <Send className="w-4 h-4" />
               </button>
             </form>
