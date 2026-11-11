@@ -15,7 +15,7 @@ import vn.edu.uth.smartward.common.ApiResponse;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/auth/officer")
+@RequestMapping({"/api/v1/auth/officer", "/api/v1/officer"})
 @RequiredArgsConstructor
 public class OfficerAuthController {
 

@@ -23,7 +23,12 @@ public class OfficerAuthInterceptor implements HandlerInterceptor {
         boolean requiresOfficerRole =
                 (uri.startsWith("/api/v1/issues/clusters/") && ("PUT".equalsIgnoreCase(method) || "PATCH".equalsIgnoreCase(method) || "DELETE".equalsIgnoreCase(method)))
                 || uri.startsWith("/api/v1/issues/spatial-index/")
-                || uri.startsWith("/api/v1/rag/hitl/");
+                || uri.startsWith("/api/v1/rag/hitl-queue")
+                || uri.startsWith("/api/v1/rag/hitl/")
+                || uri.startsWith("/api/v1/dossiers/officer")
+                || (uri.startsWith("/api/v1/dossiers/") && uri.endsWith("/review"))
+                || uri.startsWith("/api/v1/forms/submissions")
+                || (uri.startsWith("/api/v1/vault/") && !uri.startsWith("/api/v1/vault/upload") && !uri.startsWith("/api/v1/vault/view/"));
 
         if (!requiresOfficerRole) {
             return true;

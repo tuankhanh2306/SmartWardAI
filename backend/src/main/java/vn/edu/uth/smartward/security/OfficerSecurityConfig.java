@@ -23,7 +23,16 @@ public class OfficerSecurityConfig implements WebMvcConfigurer {
                 .addPathPatterns(
                         "/api/v1/issues/clusters/**",
                         "/api/v1/issues/spatial-index/**",
-                        "/api/v1/rag/hitl/**"
+                        "/api/v1/rag/hitl-queue/**",
+                        "/api/v1/rag/hitl/**",
+                        "/api/v1/dossiers/officer/**",
+                        "/api/v1/dossiers/*/review",
+                        "/api/v1/forms/submissions/**",
+                        "/api/v1/vault/**"
+                )
+                .excludePathPatterns(
+                        "/api/v1/vault/upload",
+                        "/api/v1/vault/view/**"
                 );
     }
 }

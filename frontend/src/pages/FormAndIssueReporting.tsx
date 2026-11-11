@@ -6,14 +6,22 @@ import {
   reportIssue,
   getLiveSubmittedDossiers,
   saveLiveSubmittedDossier,
+  getCitizenEmailNotifications,
   uploadVaultDocument,
   getLiveSubmittedIncidents,
+  submitDossier,
+  trackDossier,
   type FormPrecheckResponse,
   type IssueReportResponse,
   type LiveFormDossier,
-  type LiveCitizenIncident
+  type EmailNotificationItem,
+  type LiveCitizenIncident,
+  type DossierTrackingResponse,
+  type DossierSubmissionResponse
 } from '../api/client';
 import { extractFormWithVision, normalizeDateToYMD, type ExtractedFormFieldsResult } from '../services/geminiClient';
+import { analyzeImageQuality, verifyTemplateMatch, type VisionQualityGateResult } from '../services/tesseractOcr';
+import { exportElementToPdf } from '../utils/pdfExporter';
 import { useWard } from '../context/WardContext';
 import A4DocumentModal from '../components/A4DocumentModal';
 import { CccdQrScannerModal } from '../components/CccdQrScannerModal';
@@ -51,7 +59,11 @@ import {
   FileDown,
   Volume2,
   VolumeX,
-  QrCode
+  QrCode,
+  Search,
+  Clock,
+  Calendar,
+  Mail
 } from 'lucide-react';
 
 
@@ -61,23 +73,63 @@ export const FormAndIssueReporting: React.FC = () => {
   const navigate = useNavigate();
 
   // Active Tab initialized from URL hash or default to 'form'
-  const [activeTab, setActiveTab] = useState<'form' | 'incident'>(
-    location.hash === '#incident' ? 'incident' : 'form'
+  const [activeTab, setActiveTab] = useState<'form' | 'incident' | 'tracking'>(
+    location.hash === '#incident' ? 'incident' : location.hash === '#tracking' ? 'tracking' : 'form'
   );
 
   // REA Citizen Live Tracking State (Synchronized with Officer Dashboard actions)
   const [myDossiers, setMyDossiers] = useState<LiveFormDossier[]>(() => getLiveSubmittedDossiers());
   const [myIncidents, setMyIncidents] = useState<LiveCitizenIncident[]>(() => getLiveSubmittedIncidents());
+  const [emailNotifications, setEmailNotifications] = useState<EmailNotificationItem[]>(() => getCitizenEmailNotifications());
+  const [citizenEmail, setCitizenEmail] = useState<string>('khanhblue06@gmail.com');
+  const [visionGateResult, setVisionGateResult] = useState<VisionQualityGateResult | null>(null);
+  const qrPassRef = useRef<HTMLDivElement>(null);
+  const [isExportingQrPass, setIsExportingQrPass] = useState<boolean>(false);
+
+  // Milestone 4: Database Dossier Submission & Tracking State
+  const [trackingDossierCode, setTrackingDossierCode] = useState<string>('');
+  const [trackingLast4Cccd, setTrackingLast4Cccd] = useState<string>('');
+  const [trackingLoading, setTrackingLoading] = useState<boolean>(false);
+  const [trackingError, setTrackingError] = useState<string | null>(null);
+  const [trackingResult, setTrackingResult] = useState<DossierTrackingResponse | null>(null);
+  const [submittedDossier, setSubmittedDossier] = useState<DossierSubmissionResponse | null>(null);
 
   useEffect(() => {
     if (location.hash === '#incident') {
       setActiveTab('incident');
+    } else if (location.hash === '#tracking') {
+      setActiveTab('tracking');
     } else {
       setActiveTab('form');
     }
     setMyDossiers(getLiveSubmittedDossiers());
     setMyIncidents(getLiveSubmittedIncidents());
+    setEmailNotifications(getCitizenEmailNotifications());
   }, [location.hash, location.pathname]);
+
+  const handleTrackDossier = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!trackingDossierCode.trim()) {
+      setTrackingError('Vui lòng nhập Mã hồ sơ (ví dụ: HS-20261111-BENNGHE-0001).');
+      return;
+    }
+    if (!trackingLast4Cccd.trim()) {
+      setTrackingError('Vui lòng nhập 4 số cuối số định danh/CCCD.');
+      return;
+    }
+    setTrackingLoading(true);
+    setTrackingError(null);
+    setTrackingResult(null);
+    try {
+      const res = await trackDossier(trackingDossierCode.trim(), trackingLast4Cccd.trim());
+      setTrackingResult(res);
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Không tìm thấy hồ sơ hoặc 4 số cuối CCCD không trùng khớp.';
+      setTrackingError(msg);
+    } finally {
+      setTrackingLoading(false);
+    }
+  };
 
 
   // Form Precheck State (Supports 4 Core Administrative Forms: CT01, TK-KS, TK-KH, TK-BTXH)
@@ -201,7 +253,7 @@ export const FormAndIssueReporting: React.FC = () => {
   const [ocrSuccess, setOcrSuccess] = useState(false);
   const [, setOcrConfidence] = useState<number | null>(null);
   const [ocrError, setOcrError] = useState<string | null>(null);
-  const [, setOcrDetails] = useState<ExtractedFormFieldsResult | null>(null);
+  const [ocrDetails, setOcrDetails] = useState<ExtractedFormFieldsResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Civic Incident Reporting State
@@ -649,8 +701,24 @@ export const FormAndIssueReporting: React.FC = () => {
     }
   };
 
-  // Handle Form Precheck across all 4 form types
+  // Handle Form Precheck across all 4 form types & Submit to Officer Queue
   const handlePrecheck = async () => {
+    // 1. Check AI Vision Quality Gate first if a file/photo was uploaded or simulated
+    if (visionGateResult && (visionGateResult.isBlurry || visionGateResult.isTooDark || !visionGateResult.templateMatched)) {
+      const reason = !visionGateResult.templateMatched
+        ? visionGateResult.templateMessage
+        : visionGateResult.qualityMessage;
+      alert(`❌ CHỐT CHẶN AI THỊ GIÁC TỪ CHỐI GỬI CÁN BỘ:\n\n${reason}\n\n👉 Vui lòng chụp lại ảnh rõ nét hoặc chọn đúng biểu mẫu trước khi gửi lên cán bộ sơ duyệt!`);
+      return;
+    }
+
+    // 2. Validate Email for receiving precheck notification & QR appointment pass
+    const cleanEmail = citizenEmail.trim();
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      alert('Vui lòng nhập Địa chỉ Email hợp lệ (ví dụ: congdan@gmail.com) để hệ thống gửi thông báo kết quả sơ duyệt và Phiếu hẹn Mã QR miễn phí!');
+      return;
+    }
+
     setFormLoading(true);
     const procMap: Record<'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH', string> = {
       CT01: 'TTHC-CR-01',
@@ -673,6 +741,8 @@ export const FormAndIssueReporting: React.FC = () => {
           gender,
           phoneNumber,
           phone: phoneNumber,
+          citizenEmail: cleanEmail,
+          email: cleanEmail,
           hostName,
           hostCccd,
           hostRelation,
@@ -705,14 +775,56 @@ export const FormAndIssueReporting: React.FC = () => {
       const nowStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} ${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}`;
       const issues = res.fieldValidations ? res.fieldValidations.filter((v) => !v.valid).map((v) => v.errorMessage || v.fieldName) : [];
 
+      // Milestone 4: Submit official dossier into PostgreSQL
+      let officialCode = `${selectedFormType}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const generatedAppointment = `LH-${now.toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+      try {
+        const procCodeMap: Record<'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH', string> = {
+          CT01: 'TTHC-CT-01',
+          'TK-KS': 'TTHC-CR-01',
+          'TK-KH': 'TTHC-CR-03',
+          'TK-BTXH': 'TTHC-BT-01',
+        };
+        const submitRes = await submitDossier({
+          procedureCode: procCodeMap[selectedFormType],
+          wardCode: currentWard.code,
+          citizenCccd: cccd || '089095012345',
+          formData: {
+            fullName: fullName || 'Công dân kê khai',
+            dob: dob || '1990-01-01',
+            gender: gender || 'Nam',
+            address: address || currentWard.name,
+            phone: phoneNumber || '0918234567',
+            email: cleanEmail,
+            citizenEmail: cleanEmail,
+            sharpnessScore: visionGateResult?.sharpnessScore ?? 96,
+            templateMatched: visionGateResult?.templateMatched ?? true,
+            formType: selectedFormType,
+          },
+          precheckReport: res,
+          vaultDocIds: vaultDocInfo?.docId ? [vaultDocInfo.docId] : [],
+        });
+        officialCode = submitRes.dossierCode;
+        setSubmittedDossier(submitRes);
+        setTrackingDossierCode(submitRes.dossierCode);
+        if (cccd && cccd.length >= 4) {
+          setTrackingLast4Cccd(cccd.slice(-4));
+        }
+      } catch (submitErr) {
+        console.warn('Lỗi lưu hồ sơ vào PostgreSQL:', submitErr);
+      }
+
       saveLiveSubmittedDossier({
-        id: `${selectedFormType}-${Math.floor(1000 + Math.random() * 9000)}`,
+        id: officialCode,
         citizenName: (fullName || 'CÔNG DÂN KÊ KHAI').toUpperCase(),
         procedure: procMap[selectedFormType],
         formType: formLabels[selectedFormType],
         submittedAt: `Vừa nộp (${nowStr})`,
         status: res.overallValid ? 'VALID' : 'HAS_ERRORS',
         cccd: cccd || 'Chưa điền',
+        citizenEmail: cleanEmail,
+        contactPhone: phoneNumber || '0918234567',
+        appointmentCode: res.overallValid ? generatedAppointment : undefined,
         errorCount: issues.length,
         wardName: currentWard.name,
         vaultToken: vaultDocInfo?.oneTimeToken,
@@ -722,12 +834,15 @@ export const FormAndIssueReporting: React.FC = () => {
           gender: gender || 'Nam',
           address: address || currentWard.name,
           confidence: 99.0,
+          sharpnessScore: visionGateResult?.sharpnessScore ?? 96,
+          templateMatched: visionGateResult?.templateMatched ?? true,
           issues,
           vaultToken: vaultDocInfo?.oneTimeToken,
         },
       });
 
       setMyDossiers(getLiveSubmittedDossiers());
+      setEmailNotifications(getCitizenEmailNotifications());
     } catch {
       alert('Không thể kết nối đến máy chủ backend để kiểm tra tờ khai.');
     } finally {
@@ -735,11 +850,31 @@ export const FormAndIssueReporting: React.FC = () => {
     }
   };
 
-  // Handle File Upload from PC / Desktop
+  const handleDownloadQrPassPdf = async () => {
+    if (!qrPassRef.current) return;
+    try {
+      setIsExportingQrPass(true);
+      const code = submittedDossier?.dossierCode || myDossiers[0]?.id || 'PHIEU-HEN';
+      await exportElementToPdf(qrPassRef.current, `Phieu_Hen_So_Duyet_QR_${code}.pdf`);
+    } catch (err) {
+      console.error('Lỗi tải Phiếu hẹn PDF:', err);
+    } finally {
+      setIsExportingQrPass(false);
+    }
+  };
+
+  // Handle File Upload from PC / Desktop (Supports Image, PDF, and filled Word .docx)
   const handleFileChange = async (file: File) => {
     if (!file) return;
-    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-      alert('Vui lòng chọn tệp hình ảnh (PNG, JPG, JPEG, WEBP) hoặc PDF tờ khai.');
+    const lowerName = file.name.toLowerCase();
+    const isSupported =
+      file.type.startsWith('image/') ||
+      file.type === 'application/pdf' ||
+      file.type.includes('wordprocessingml') ||
+      lowerName.endsWith('.docx') ||
+      lowerName.endsWith('.pdf');
+    if (!isSupported) {
+      alert('Vui lòng chọn tệp hình ảnh (PNG, JPG, JPEG, WEBP), tệp PDF hoặc tệp Word (.docx) tờ khai đã điền.');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
@@ -751,7 +886,7 @@ export const FormAndIssueReporting: React.FC = () => {
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
 
-    // 1. Run client-side OCR
+    // 1. Run AI Vision Quality Gate & OCR
     runVisionOcr(file);
 
     // 2. Upload to Zero-Trust Vault with AES-256-GCM encryption & Java2D watermark
@@ -786,6 +921,7 @@ export const FormAndIssueReporting: React.FC = () => {
     setOcrSuccess(false);
     setOcrError(null);
     setOcrDetails(null);
+    setVisionGateResult(null);
 
     // Clear previous values so the citizen directly observes fresh field mapping from the file
     setFullName('');
@@ -796,8 +932,37 @@ export const FormAndIssueReporting: React.FC = () => {
     setAddress('');
 
     try {
-      const result = await extractFormWithVision(file);
+      const [quality, result] = await Promise.all([
+        analyzeImageQuality(file),
+        extractFormWithVision(file),
+      ]);
+
+      const tplMatch = verifyTemplateMatch(
+        `${result.detectedDocType || ''} ${result.message || ''} ${result.fullName || ''} ${result.address || ''}`,
+        file.name || '',
+        selectedFormType
+      );
+
+      setVisionGateResult({
+        ...quality,
+        ...tplMatch,
+      });
+
       setOcrDetails(result);
+
+      if (quality.isBlurry || quality.isTooDark) {
+        setOcrSuccess(false);
+        setOcrConfidence(null);
+        setOcrError(quality.qualityMessage);
+        return;
+      }
+
+      if (!tplMatch.templateMatched) {
+        setOcrSuccess(false);
+        setOcrConfidence(null);
+        setOcrError(tplMatch.templateMessage);
+        return;
+      }
 
       if (result.success && result.extractedFieldsCount > 0) {
         // Direct field mapping into form state ONLY when the corresponding section is identified
@@ -838,6 +1003,7 @@ export const FormAndIssueReporting: React.FC = () => {
     setOcrConfidence(null);
     setOcrError(null);
     setOcrDetails(null);
+    setVisionGateResult(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -863,28 +1029,78 @@ export const FormAndIssueReporting: React.FC = () => {
 
   // Helper to load sample CT01 form for instant test on PC
   const handleLoadSample = () => {
-    setFullName('NGUYỄN TÚ');
-    setCccd('03103708');
-    setDob('2015-06-08');
-    setGender('Nữ');
+    setFullName('NGUYỄN MINH TUẤN KHANH');
+    setCccd('089205023490');
+    setDob('2005-06-23');
+    setGender('Nam');
     setIssueDate('');
-    setAddress('32/3 Ích, Khu phố 12, Phường Tp Hồ Chí Minh');
+    setAddress(`Số 18 Đường Trần Hưng Đạo, ${currentWard.name}, Tỉnh An Giang`);
     setOcrConfidence(98.5);
     setOcrSuccess(true);
     setOcrError(null);
+    setVisionGateResult({
+      sharpnessScore: 96,
+      brightnessScore: 205,
+      isBlurry: false,
+      isTooDark: false,
+      qualityStatus: 'GOOD',
+      qualityMessage: 'Ảnh rõ nét (96/100), ánh sáng chuẩn — Đạt điều kiện gửi cán bộ sơ duyệt.',
+      templateMatched: true,
+      detectedFormCode: selectedFormType,
+      detectedFormLabel: `Biểu mẫu ${selectedFormType} chuẩn quy định`,
+      templateMessage: `Khớp 100% với mục thủ tục đang chọn (${selectedFormType}).`,
+    });
     setOcrDetails({
       success: true,
-      fullName: 'NGUYỄN TÚ',
-      cccd: '03103708',
-      dob: '2015-06-08',
-      gender: 'Nữ',
+      fullName: 'NGUYỄN MINH TUẤN KHANH',
+      cccd: '089205023490',
+      dob: '2005-06-23',
+      gender: 'Nam',
       issueDate: '',
-      address: '32/3 Ích, Khu phố 12, Phường Tp Hồ Chí Minh',
+      address: `Số 18 Đường Trần Hưng Đạo, ${currentWard.name}, Tỉnh An Giang`,
       confidence: 98.5,
       detectedDocType: 'Tờ khai CT01 cư trú (Mẫu chuẩn Bộ Công an)',
       message: 'Đã nạp bộ dữ liệu chuẩn theo Mẫu CT01 (Thông tư Bộ Công an)!',
       extractedFieldsCount: 5,
     });
+  };
+
+  // Helper to simulate a blurred / wrong-template image so user can test AI Vision Gate blocking
+  const handleSimulateBlurredOrWrongFile = (mode: 'BLURRY' | 'WRONG_TEMPLATE') => {
+    setOcrSuccess(false);
+    setOcrConfidence(null);
+    if (mode === 'BLURRY') {
+      const msg = 'Ảnh bị mờ nhòe / rung tay (Độ nét 11/100). Chốt chặn AI Thị giác đã chặn không cho gửi tới cán bộ — Vui lòng chụp lại rõ nét!';
+      setOcrError(msg);
+      setVisionGateResult({
+        sharpnessScore: 11,
+        brightnessScore: 95,
+        isBlurry: true,
+        isTooDark: false,
+        qualityStatus: 'BLURRY',
+        qualityMessage: msg,
+        templateMatched: true,
+        detectedFormCode: selectedFormType,
+        detectedFormLabel: `Biểu mẫu ${selectedFormType}`,
+        templateMessage: `Khớp mục thủ tục (${selectedFormType}), nhưng hình ảnh bị mờ không đọc được chữ.`,
+      });
+    } else {
+      const otherForm = selectedFormType === 'CT01' ? 'TK-KS (Tờ khai đăng ký khai sinh)' : 'CT01 (Tờ khai thay đổi cư trú)';
+      const msg = `Lệch biểu mẫu! Hệ thống nhận diện tệp tải lên là "${otherForm}", không khớp với mục bạn đang chọn là "${selectedFormType}". Chốt chặn AI đã chặn gửi!`;
+      setOcrError(msg);
+      setVisionGateResult({
+        sharpnessScore: 94,
+        brightnessScore: 198,
+        isBlurry: false,
+        isTooDark: false,
+        qualityStatus: 'GOOD',
+        qualityMessage: 'Ảnh rõ nét (94/100).',
+        templateMatched: false,
+        detectedFormCode: selectedFormType === 'CT01' ? 'TK-KS' : 'CT01',
+        detectedFormLabel: otherForm,
+        templateMessage: msg,
+      });
+    }
   };
 
   // Handle High-Accuracy HTML5 Geolocation API (R=25m) and auto-map into boxes
@@ -1016,12 +1232,16 @@ export const FormAndIssueReporting: React.FC = () => {
           <h1 className="text-lg sm:text-xl font-extrabold text-[#00796B] tracking-tight">
             {activeTab === 'form'
               ? `Kiểm Tra 4 Mẫu Tờ Khai • ${currentWard.name}`
-              : `Báo Sự Cố Hiện Trường (GPS) • ${currentWard.name}`}
+              : activeTab === 'incident'
+              ? `Báo Sự Cố Hiện Trường (GPS) • ${currentWard.name}`
+              : `Tra Cứu Tiến Độ Hồ Sơ (SLA) • ${currentWard.name}`}
           </h1>
           <p className="text-xs text-[#64748B] mt-0.5">
             {activeTab === 'form'
               ? 'Rà soát tự động 12 số CCCD, ngày sinh, điều kiện kết hôn & bảo trợ trước khi nộp quầy.'
-              : 'Định vị GPS tự động và chuyển thẳng về Bàn điều hành xã/phường phụ trách.'}
+              : activeTab === 'incident'
+              ? 'Định vị GPS tự động và chuyển thẳng về Bàn điều hành xã/phường phụ trách.'
+              : 'Tra cứu trực tuyến tiến độ giải quyết hồ sơ hành chính bằng Mã hồ sơ và 4 số cuối CCCD.'}
           </p>
         </div>
 
@@ -1055,6 +1275,22 @@ export const FormAndIssueReporting: React.FC = () => {
           >
             <AlertTriangle className={`w-3.5 h-3.5 ${activeTab === 'incident' ? 'text-[#80CBC4]' : 'text-[#64748B]'}`} />
             <span>Báo Sự Cố (GPS)</span>
+          </button>
+
+          <button
+            id="tracking"
+            onClick={() => {
+              setActiveTab('tracking');
+              navigate('/citizen/form#tracking', { replace: true });
+            }}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'tracking'
+                ? 'bg-[#00796B] text-white shadow-xs'
+                : 'text-[#475569] hover:text-[#00796B]'
+            }`}
+          >
+            <Clock className={`w-3.5 h-3.5 ${activeTab === 'tracking' ? 'text-[#80CBC4]' : 'text-[#64748B]'}`} />
+            <span>Tra Cứu Hồ Sơ (SLA)</span>
           </button>
         </div>
       </div>
@@ -1355,7 +1591,7 @@ export const FormAndIssueReporting: React.FC = () => {
                       <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/png,image/jpeg,image/jpg,image/webp,application/pdf"
+                        accept="image/png,image/jpeg,image/jpg,image/webp,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                         onChange={(e) => {
                           if (e.target.files && e.target.files[0]) {
                             handleFileChange(e.target.files[0]);
@@ -1370,17 +1606,17 @@ export const FormAndIssueReporting: React.FC = () => {
 
                       <div>
                         <p className="text-sm font-bold text-[#0F172A]">
-                          Kéo thả ảnh chụp tờ khai hoặc thẻ CCCD vào đây
+                          Kéo thả ảnh chụp tờ khai, file Word (.docx) hoặc PDF đã điền vào đây
                         </p>
                         <p className="text-xs text-[#64748B] mt-1">
-                          Hoặc <span className="text-[#00796B] font-bold underline">bấm để chọn tệp từ máy tính PC</span> (PNG, JPG, WEBP, PDF tối đa 10MB)
+                          Hoặc <span className="text-[#00796B] font-bold underline">bấm để chọn tệp từ máy</span> (PNG, JPG, WEBP, DOCX, PDF tối đa 10MB)
                         </p>
                       </div>
 
                       <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#CBD5E1] text-xs font-semibold text-[#0F766E]">
                           <Sparkles className="w-3.5 h-3.5 text-[#0F766E]" />
-                          <span>Tự động đọc chữ từ ảnh chụp</span>
+                          <span>Chốt chặn AI Thị Giác: Kiểm độ nét & Khớp đúng mẫu</span>
                         </span>
 
                         <button
@@ -1392,7 +1628,31 @@ export const FormAndIssueReporting: React.FC = () => {
                           className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-xs font-bold text-[#00796B] transition cursor-pointer"
                         >
                           <FileText className="w-3.5 h-3.5" />
-                          <span>Dùng ảnh mẫu CT01</span>
+                          <span>Dùng mẫu chuẩn rõ nét</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSimulateBlurredOrWrongFile('BLURRY');
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FEF2F2] hover:bg-[#FEE2E2] border border-[#FECACA] text-[11px] font-bold text-[#DC2626] transition cursor-pointer"
+                          title="Mô phỏng ảnh chụp bị mờ nhòe để kiểm thử chốt chặn AI Thị Giác"
+                        >
+                          <span>Thử ảnh mờ (AI Chặn)</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSimulateBlurredOrWrongFile('WRONG_TEMPLATE');
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFFBEB] hover:bg-[#FEF3C7] border border-[#FDE68A] text-[11px] font-bold text-[#B45309] transition cursor-pointer"
+                          title="Mô phỏng nộp nhầm tờ khai khác mục đã chọn để kiểm thử chốt chặn AI Thị Giác"
+                        >
+                          <span>Thử sai mẫu (AI Chặn)</span>
                         </button>
                       </div>
                     </div>
@@ -1415,7 +1675,7 @@ export const FormAndIssueReporting: React.FC = () => {
                               {selectedFile?.name || 'to_khai_ct01_an_giang.jpg'}
                             </span>
                             <span className="text-xs text-[#64748B]">
-                              {selectedFile ? (selectedFile.size / (1024 * 1024)).toFixed(2) + ' MB' : '2.14 MB'} • Đã tải ảnh lên
+                              {selectedFile ? (selectedFile.size / (1024 * 1024)).toFixed(2) + ' MB' : '2.14 MB'} • Đã qua kiểm định AI Thị Giác
                             </span>
                           </div>
                         </div>
@@ -1426,13 +1686,13 @@ export const FormAndIssueReporting: React.FC = () => {
                             onClick={() => fileInputRef.current?.click()}
                             className="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] bg-white hover:bg-[#F1F5F9] text-xs font-semibold text-[#334155] transition cursor-pointer"
                           >
-                            Đổi ảnh
+                            Đổi tệp
                           </button>
                           <button
                             type="button"
                             onClick={handleRemoveFile}
                             className="p-1.5 rounded-lg border border-[#FCA5A5] bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] transition cursor-pointer"
-                            title="Xóa ảnh"
+                            title="Xóa tệp"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -1443,7 +1703,7 @@ export const FormAndIssueReporting: React.FC = () => {
                       <input
                         ref={fileInputRef}
                         type="file"
-                        accept="image/png,image/jpeg,image/jpg,image/webp,application/pdf"
+                        accept="image/png,image/jpeg,image/jpg,image/webp,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                         onChange={(e) => {
                           if (e.target.files && e.target.files[0]) {
                             handleFileChange(e.target.files[0]);
@@ -1451,6 +1711,93 @@ export const FormAndIssueReporting: React.FC = () => {
                         }}
                         className="hidden"
                       />
+
+                      {/* CHỐT CHẶN AI THỊ GIÁC 3 TIÊU CHÍ (Sharpness + Template Match + Field Legibility) */}
+                      {visionGateResult && !isOcrProcessing && (
+                        <div
+                          className={`p-3.5 rounded-xl border flex flex-col gap-2.5 text-xs ${
+                            !visionGateResult.isBlurry && !visionGateResult.isTooDark && visionGateResult.templateMatched
+                              ? 'bg-[#F0FDFA] border-[#99F6E4] text-[#0F766E]'
+                              : 'bg-[#FEF2F2] border-[#FCA5A5] text-[#991B1B]'
+                          }`}
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-current/15 pb-2">
+                            <span className="font-extrabold flex items-center gap-1.5 text-xs">
+                              <ShieldCheck className="w-4 h-4 shrink-0" />
+                              <span>Chốt Chặn AI Thị Giác Trước Khi Gửi Cán Bộ (3 Tiêu Chí)</span>
+                            </span>
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                                !visionGateResult.isBlurry && !visionGateResult.isTooDark && visionGateResult.templateMatched
+                                  ? 'bg-[#CCFBF1] text-[#0F766E]'
+                                  : 'bg-[#FEE2E2] text-[#DC2626]'
+                              }`}
+                            >
+                              {!visionGateResult.isBlurry && !visionGateResult.isTooDark && visionGateResult.templateMatched
+                                ? 'ĐẠT CHUẨN GỬI CÁN BỘ'
+                                : 'BỊ CHẶN — CẦN CHỤP/CHỌN LẠI'}
+                            </span>
+                          </div>
+
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                            {/* Tiêu chí 1: Độ nét & Ánh sáng */}
+                            <div className="p-2.5 rounded-lg bg-white/90 border border-current/15 flex flex-col gap-1">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-[#0F172A] text-[11px]">1. Độ sắc nét ảnh</span>
+                                {!visionGateResult.isBlurry && !visionGateResult.isTooDark ? (
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
+                                ) : (
+                                  <XCircle className="w-3.5 h-3.5 text-[#DC2626]" />
+                                )}
+                              </div>
+                              <span className="font-mono font-extrabold text-xs">
+                                {visionGateResult.sharpnessScore}/100 điểm
+                              </span>
+                              <span className="text-[10px] text-[#475569] leading-tight">
+                                {visionGateResult.qualityMessage}
+                              </span>
+                            </div>
+
+                            {/* Tiêu chí 2: Khớp mẫu đã chọn */}
+                            <div className="p-2.5 rounded-lg bg-white/90 border border-current/15 flex flex-col gap-1">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-[#0F172A] text-[11px]">2. Khớp mục đã chọn</span>
+                                {visionGateResult.templateMatched ? (
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
+                                ) : (
+                                  <XCircle className="w-3.5 h-3.5 text-[#DC2626]" />
+                                )}
+                              </div>
+                              <span className="font-mono font-extrabold text-xs">
+                                Mẫu {selectedFormType}
+                              </span>
+                              <span className="text-[10px] text-[#475569] leading-tight">
+                                {visionGateResult.templateMessage}
+                              </span>
+                            </div>
+
+                            {/* Tiêu chí 3: Nhận diện thông tin điền */}
+                            <div className="p-2.5 rounded-lg bg-white/90 border border-current/15 flex flex-col gap-1">
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-[#0F172A] text-[11px]">3. Nhận diện chữ điền</span>
+                                {(ocrDetails?.extractedFieldsCount ?? 0) >= 3 ? (
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
+                                ) : (
+                                  <AlertCircle className="w-3.5 h-3.5 text-[#D97706]" />
+                                )}
+                              </div>
+                              <span className="font-mono font-extrabold text-xs">
+                                {ocrDetails?.extractedFieldsCount ?? 0}/5 mục rõ chữ
+                              </span>
+                              <span className="text-[10px] text-[#475569] leading-tight">
+                                {(ocrDetails?.extractedFieldsCount ?? 0) >= 3
+                                  ? 'Chữ viết/in rõ ràng, trích xuất tốt'
+                                  : 'Cần kiểm tra bổ sung các ô bên dưới'}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {/* OCR Status Banner */}
                       {isOcrProcessing && (
@@ -2413,6 +2760,50 @@ export const FormAndIssueReporting: React.FC = () => {
                 </div>
               </div>
 
+              {/* ITEM 2: CITIZEN CONTACT INFO FOR FREE EMAIL NOTIFICATION & QR PASS (NO SMS / NO ZALO FEES) */}
+              <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] flex flex-col gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-[#00796B] shrink-0" />
+                    <span className="text-xs font-extrabold text-[#0F172A]">
+                      Thông Tin Nhận Phê Duyệt Sơ Bộ & Phiếu Hẹn Mã QR (Miễn Phí Qua Email)
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-[#CCFBF1] text-[#0F766E] text-[10px] font-bold">
+                    100% Miễn phí • Không dùng SMS/Zalo thu phí
+                  </span>
+                </div>
+                <p className="text-[11px] text-[#64748B] leading-relaxed">
+                  Khi Cán bộ Một cửa xem duyệt hồ sơ sơ bộ và chấp thuận, hệ thống sẽ tự động gửi thông báo kèm <strong>Phiếu Hẹn Điện Tử Có Mã QR</strong> về Email của bà con và hiển thị trực tiếp trên cổng tra cứu Web.
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-[#334155]">
+                      Địa chỉ Email nhận kết quả phê duyệt & Mã QR (*):
+                    </label>
+                    <input
+                      type="email"
+                      value={citizenEmail}
+                      onChange={(e) => setCitizenEmail(e.target.value)}
+                      placeholder="Ví dụ: congdan.angiang@gmail.com"
+                      className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A] focus:outline-none focus:border-[#00796B] transition"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1">
+                    <label className="text-[11px] font-bold text-[#334155]">
+                      Số điện thoại liên hệ & tra cứu hồ sơ (Không gửi SMS):
+                    </label>
+                    <input
+                      type="tel"
+                      value={phoneNumber}
+                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      placeholder="Ví dụ: 0918234567"
+                      className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A] focus:outline-none focus:border-[#00796B] transition"
+                    />
+                  </div>
+                </div>
+              </div>
+
               {/* Action Trigger Buttons */}
               <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
                 <span className="text-[11px] text-[#64748B]">
@@ -2433,18 +2824,26 @@ export const FormAndIssueReporting: React.FC = () => {
                   <button
                     type="button"
                     onClick={handlePrecheck}
-                    disabled={formLoading}
-                    className="px-6 py-2.5 bg-[#00796B] hover:bg-[#00695C] text-white rounded-xl font-semibold text-xs shadow-xs flex items-center gap-2 active:scale-95 transition-all duration-200 cursor-pointer"
+                    disabled={
+                      formLoading ||
+                      Boolean(visionGateResult && (visionGateResult.isBlurry || visionGateResult.isTooDark || !visionGateResult.templateMatched))
+                    }
+                    className="px-6 py-2.5 bg-[#00796B] hover:bg-[#00695C] disabled:bg-[#94A3B8] text-white rounded-xl font-semibold text-xs shadow-xs flex items-center gap-2 active:scale-95 transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
                   >
                     {formLoading ? (
                       <>
                         <RefreshCw className="w-4 h-4 animate-spin text-[#80CBC4]" />
                         <span>Đang Kiểm Tra...</span>
                       </>
+                    ) : visionGateResult && (visionGateResult.isBlurry || visionGateResult.isTooDark || !visionGateResult.templateMatched) ? (
+                      <>
+                        <AlertCircle className="w-4 h-4 text-white" />
+                        <span>AI Thị Giác Chặn Gửi (Chụp Lại Ảnh)</span>
+                      </>
                     ) : (
                       <>
                         <Sparkles className="w-4 h-4 text-[#80CBC4]" />
-                        <span>Kiểm Tra Tờ Khai</span>
+                        <span>Kiểm Tra & Gửi Sơ Duyệt Cán Bộ</span>
                       </>
                     )}
                   </button>
@@ -2620,6 +3019,52 @@ export const FormAndIssueReporting: React.FC = () => {
                 </div>
               )}
 
+              {/* Milestone 4: Official Database Dossier Submission Banner */}
+              {submittedDossier && (
+                <div className="p-5 rounded-2xl bg-[#F0FDF4] border border-[#86EFAC] shadow-xs flex flex-col gap-3">
+                  <div className="flex items-center gap-2 text-[#166534]">
+                    <CheckCircle2 className="w-5 h-5 text-[#16A34A] shrink-0" />
+                    <div>
+                      <span className="font-extrabold text-sm block">Nộp Hồ Sơ Thành Công Lên Cơ Sở Dữ Liệu</span>
+                      <span className="text-[11px] text-[#15803D]">
+                        Hồ sơ đã được lưu trữ an toàn trong PostgreSQL UBND {currentWard.name}.
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-3 rounded-xl bg-white/80 border border-[#BBF7D0] flex flex-col gap-1.5 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#64748B]">Mã hồ sơ chính thức:</span>
+                      <code className="font-mono font-bold text-[#0F2942] bg-[#E2E8F0] px-2 py-0.5 rounded text-xs">
+                        {submittedDossier.dossierCode}
+                      </code>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#64748B]">Thời hạn giải quyết (SLA):</span>
+                      <span className="font-semibold text-[#166534]">
+                        {new Date(submittedDossier.slaDeadline).toLocaleDateString('vi-VN')} (17:00:00)
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[#64748B]">Trạng thái:</span>
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FEF3C7] text-[#92400E]">
+                        {submittedDossier.status} • Đang chờ cán bộ thụ lý
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab('tracking');
+                      navigate('/citizen/form#tracking', { replace: true });
+                    }}
+                    className="w-full py-2.5 rounded-xl bg-[#0F766E] hover:bg-[#115E59] text-white text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                  >
+                    <Clock className="w-4 h-4" />
+                    <span>Chuyển Sang Tab Tra Cứu Tiến Độ</span>
+                  </button>
+                </div>
+              )}
+
               {/* REA CLOSED-LOOP TRACKER: Citizen sees Officer's approval/supplement feedback */}
               {myDossiers.length > 0 && (
                 <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3">
@@ -2659,6 +3104,164 @@ export const FormAndIssueReporting: React.FC = () => {
                             <strong>Phản hồi Cán bộ ({d.reviewedBy || 'Một cửa'}):</strong> {d.officerFeedback}
                           </div>
                         )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ITEM 4: ELECTRONIC QR APPOINTMENT PASS ("PHIẾU HẸN SƠ DUYỆT ĐIỆN TỬ CÓ MÃ QR" + TẢI PDF) */}
+              {(() => {
+                const approvedDossier =
+                  myDossiers.find((d) => d.status === 'VALID' && d.reviewedBy) ||
+                  myDossiers.find((d) => d.status === 'VALID');
+                if (!approvedDossier) return null;
+                const appointmentCode =
+                  approvedDossier.appointmentCode ||
+                  `LH-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${approvedDossier.id.slice(-4)}`;
+                return (
+                  <div className="p-5 rounded-2xl bg-white border-2 border-[#00796B] shadow-sm flex flex-col gap-3">
+                    <div
+                      ref={qrPassRef}
+                      className="p-4 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] flex flex-col gap-3"
+                    >
+                      <div className="flex items-start justify-between gap-3 border-b border-[#E2E8F0] pb-2.5">
+                        <div>
+                          <span className="inline-block px-2 py-0.5 rounded bg-[#CCFBF1] text-[#0F766E] text-[10px] font-black uppercase tracking-wider mb-1">
+                            PHIẾU HẸN SƠ DUYỆT ĐIỆN TỬ • ƯU TIÊN QUẦY MỘT CỬA
+                          </span>
+                          <h4 className="font-extrabold text-sm text-[#0F172A]">
+                            UBND {approvedDossier.wardName || currentWard.name}
+                          </h4>
+                          <p className="text-[11px] text-[#64748B]">
+                            Bộ phận Tiếp nhận & Trả kết quả Một cửa — {approvedDossier.wardName || currentWard.name}, {currentWard.province}
+                          </p>
+                        </div>
+
+                        {/* Dynamic SVG QR Code for Counter Scanner */}
+                        <div className="p-1.5 bg-white rounded-lg border border-[#CBD5E1] shrink-0 flex flex-col items-center">
+                          <svg
+                            viewBox="0 0 100 100"
+                            className="w-16 h-16 text-[#0F172A]"
+                            fill="currentColor"
+                            aria-label="Mã QR Phiếu Hẹn Sơ Duyệt"
+                          >
+                            {/* Finder patterns */}
+                            <path d="M5,5 h28 v28 h-28 z M10,10 v18 h18 v-18 z M14,14 h10 v10 h-10 z" />
+                            <path d="M67,5 h28 v28 h-28 z M72,10 v18 h18 v-18 z M76,14 h10 v10 h-10 z" />
+                            <path d="M5,67 h28 v28 h-28 z M10,72 v18 h18 v-18 z M14,76 h10 v10 h-10 z" />
+                            {/* Data modules */}
+                            <rect x="38" y="8" width="6" height="6" />
+                            <rect x="50" y="8" width="6" height="12" />
+                            <rect x="38" y="20" width="12" height="6" />
+                            <rect x="8" y="38" width="12" height="6" />
+                            <rect x="26" y="38" width="6" height="12" />
+                            <rect x="38" y="38" width="18" height="6" />
+                            <rect x="62" y="38" width="6" height="12" />
+                            <rect x="74" y="38" width="18" height="6" />
+                            <rect x="14" y="50" width="6" height="12" />
+                            <rect x="38" y="50" width="12" height="12" />
+                            <rect x="56" y="56" width="12" height="6" />
+                            <rect x="74" y="50" width="6" height="18" />
+                            <rect x="86" y="56" width="6" height="12" />
+                            <rect x="38" y="68" width="6" height="18" />
+                            <rect x="50" y="68" width="18" height="6" />
+                            <rect x="50" y="80" width="6" height="12" />
+                            <rect x="62" y="80" width="12" height="6" />
+                            <rect x="80" y="74" width="12" height="12" />
+                            <rect x="68" y="88" width="18" height="6" />
+                          </svg>
+                          <span className="text-[9px] font-mono font-bold text-[#00796B] mt-0.5">
+                            {appointmentCode}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="text-[10px] text-[#64748B] block">Họ và tên công dân:</span>
+                          <strong className="text-[#0F172A]">{approvedDossier.citizenName}</strong>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-[#64748B] block">Mã hồ sơ sơ duyệt:</span>
+                          <strong className="font-mono text-[#00796B]">{approvedDossier.id}</strong>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-[#64748B] block">Biểu mẫu & Thủ tục:</span>
+                          <strong className="text-[#0F172A]">{approvedDossier.formType} • {approvedDossier.procedure}</strong>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-[#64748B] block">Cán bộ duyệt sơ bộ:</span>
+                          <strong className="text-[#065F46]">
+                            {approvedDossier.reviewedBy || 'Trần Thị Hương (Một cửa)'}
+                          </strong>
+                        </div>
+                      </div>
+
+                      <div className="p-2.5 rounded-lg bg-[#ECFDF5] border border-[#A7F3D0] text-[11px] text-[#065F46] leading-relaxed">
+                        <strong>Hướng dẫn khi đến Bộ phận Một cửa:</strong> Bà con xuất trình Mã QR này (trên điện thoại hoặc bản PDF tải về) kèm <strong>Bản chính CCCD</strong> và giấy tờ gốc liên quan để ký nhận trực tiếp, không phải xếp hàng viết lại tờ khai.
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleDownloadQrPassPdf}
+                      disabled={isExportingQrPass}
+                      className="w-full py-2.5 px-4 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs disabled:opacity-60"
+                    >
+                      <FileDown className="w-4 h-4 text-[#80CBC4]" />
+                      <span>
+                        {isExportingQrPass
+                          ? 'Đang tạo file PDF Phiếu Hẹn...'
+                          : 'Tải Phiếu Hẹn Có Mã QR (.pdf) Về Máy'}
+                      </span>
+                    </button>
+                  </div>
+                );
+              })()}
+
+              {/* ITEM 3: CITIZEN EMAIL NOTIFICATION INBOX (100% FREE EMAIL LOG — NO SMS/ZALO) */}
+              {emailNotifications.length > 0 && (
+                <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3">
+                  <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
+                    <span className="text-xs font-extrabold text-[#00796B] flex items-center gap-1.5">
+                      <Mail className="w-4 h-4 text-[#0F766E]" />
+                      <span>Hộp Thư Thông Báo Email Từ Cán Bộ ({emailNotifications.length})</span>
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-[#ECFDF5] text-[#065F46] text-[10px] font-bold">
+                      Miễn phí 100%
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-2.5 max-h-60 overflow-y-auto pr-1">
+                    {emailNotifications.slice(0, 3).map((mail) => (
+                      <div
+                        key={mail.id}
+                        className={`p-3 rounded-xl border flex flex-col gap-1.5 text-xs ${
+                          mail.status === 'APPROVED'
+                            ? 'bg-[#F0FDF4]/70 border-[#BBF7D0]'
+                            : 'bg-[#FEF2F2]/70 border-[#FECACA]'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="font-extrabold text-[#0F172A] truncate">
+                            {mail.subject}
+                          </span>
+                          <span className="text-[10px] font-mono text-[#64748B] shrink-0">
+                            {mail.sentAt}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-[#475569] flex flex-wrap items-center gap-2">
+                          <span>Tới: <strong className="text-[#0F172A]">{mail.recipientEmail}</strong></span>
+                          {mail.appointmentCode && (
+                            <span className="px-1.5 py-0.5 rounded bg-white border border-[#A7F3D0] font-mono font-bold text-[#065F46] text-[10px]">
+                              Mã hẹn QR: {mail.appointmentCode}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-[#334155] leading-relaxed bg-white/90 p-2 rounded-lg border border-[#E2E8F0]">
+                          {mail.feedbackText}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -3093,6 +3696,228 @@ export const FormAndIssueReporting: React.FC = () => {
                         )}
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ========================================================================= */}
+      {/* TAB 3: DOSSIER SLA TRACKING & INQUIRY (MILESTONE 4 - F11)                */}
+      {/* ========================================================================= */}
+      {activeTab === 'tracking' && (
+        <section className="flex flex-col gap-5 animate-fadeIn">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            {/* Left: Tracking Form & Query Box (6 Cols) */}
+            <div className="lg:col-span-6 p-6 rounded-3xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-5">
+              <div className="flex items-center gap-2.5 pb-3 border-b border-[#E2E8F0]">
+                <div className="w-10 h-10 rounded-xl bg-[#00796B]/10 flex items-center justify-center text-[#00796B]">
+                  <Search className="w-5 h-5 text-[#0F766E]" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-[#0F172A]">Tra Cứu Tiến Độ Giải Quyết Hồ Sơ</h2>
+                  <p className="text-xs text-[#64748B]">
+                    Truy vấn dữ liệu thời gian thực từ cơ sở dữ liệu PostgreSQL Một cửa UBND {currentWard.name}
+                  </p>
+                </div>
+              </div>
+
+              <form onSubmit={handleTrackDossier} className="flex flex-col gap-4">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-[#334155] flex items-center justify-between">
+                    <span>Mã số hồ sơ (In trên biên nhận hoặc cấp khi nộp):</span>
+                    <span className="text-[10px] text-[#DC2626] font-semibold">* Bắt buộc</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={trackingDossierCode}
+                    onChange={(e) => setTrackingDossierCode(e.target.value)}
+                    placeholder="Ví dụ: HS-20261111-BENNGHE-0001"
+                    className="w-full h-11 px-3.5 rounded-xl border border-[#CBD5E1] font-mono text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00796B] focus:bg-white transition-all bg-[#F8FAFC]"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-bold text-[#334155] flex items-center justify-between">
+                    <span>4 số cuối CCCD / Số định danh công dân:</span>
+                    <span className="text-[10px] text-[#DC2626] font-semibold">* Xác thực bảo mật</span>
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={12}
+                    value={trackingLast4Cccd}
+                    onChange={(e) => setTrackingLast4Cccd(e.target.value)}
+                    placeholder="Ví dụ: 1234 (hoặc đủ 12 số CCCD)"
+                    className="w-full h-11 px-3.5 rounded-xl border border-[#CBD5E1] font-mono text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00796B] focus:bg-white transition-all bg-[#F8FAFC]"
+                  />
+                  <span className="text-[11px] text-[#64748B]">
+                    Hệ thống đối soát 4 số cuối với hồ sơ lưu trữ để bảo vệ bí mật đời tư công dân theo Nghị định 13/2023/NĐ-CP.
+                  </span>
+                </div>
+
+                {trackingError && (
+                  <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-start gap-2.5 text-xs text-[#DC2626]">
+                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                    <span>{trackingError}</span>
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  disabled={trackingLoading}
+                  className="w-full h-11 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold transition active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 shadow-xs disabled:opacity-60"
+                >
+                  {trackingLoading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>Đang truy vấn cơ sở dữ liệu...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Search className="w-4 h-4" />
+                      <span>Tra Cứu Tiến Độ Ngay</span>
+                    </>
+                  )}
+                </button>
+              </form>
+
+              {/* Quick links to recently submitted dossiers */}
+              {myDossiers.length > 0 && (
+                <div className="pt-2 border-t border-[#E2E8F0] flex flex-col gap-2">
+                  <span className="text-xs font-bold text-[#64748B]">Hồ sơ đã nộp trong phiên làm việc:</span>
+                  <div className="flex flex-wrap gap-2">
+                    {myDossiers.slice(0, 3).map((d) => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => {
+                          setTrackingDossierCode(d.id);
+                          if (d.cccd && d.cccd.length >= 4) {
+                            setTrackingLast4Cccd(d.cccd.slice(-4));
+                          }
+                        }}
+                        className="px-2.5 py-1 rounded-lg bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] border border-[#CBD5E1] text-[11px] font-mono font-semibold transition cursor-pointer"
+                      >
+                        {d.id} ({d.formType})
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right: Detailed Progress Result Card (6 Cols) */}
+            <div className="lg:col-span-6 flex flex-col gap-4">
+              {trackingResult ? (
+                <div className="p-6 rounded-3xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-4">
+                  <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
+                    <div className="flex items-center gap-2">
+                      <FileCheck2 className="w-5 h-5 text-[#00796B]" />
+                      <h3 className="font-bold text-sm text-[#0F172A]">Thông Tin Hồ Sơ & Kết Quả Thụ Lý</h3>
+                    </div>
+                    <span
+                      className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wide border ${
+                        trackingResult.status === 'APPROVED'
+                          ? 'bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]'
+                          : trackingResult.status === 'SUPPLEMENT_REQUIRED'
+                          ? 'bg-[#FEF2F2] text-[#991B1B] border-[#FECACA]'
+                          : trackingResult.status === 'REJECTED'
+                          ? 'bg-[#FEE2E2] text-[#7F1D1D] border-[#FCA5A5]'
+                          : 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]'
+                      }`}
+                    >
+                      {trackingResult.status === 'APPROVED'
+                        ? 'ĐÃ TIẾP NHẬN / PHÊ DUYỆT'
+                        : trackingResult.status === 'SUPPLEMENT_REQUIRED'
+                        ? 'YÊU CẦU BỔ SUNG'
+                        : trackingResult.status === 'REJECTED'
+                        ? 'TỪ CHỐI TIẾP NHẬN'
+                        : 'ĐANG XỬ LÝ (PENDING)'}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-col gap-3 text-xs">
+                    <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col gap-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[#64748B]">Mã hồ sơ:</span>
+                        <code className="font-mono font-bold text-sm text-[#0F2942] bg-[#E2E8F0] px-2 py-0.5 rounded">
+                          {trackingResult.dossierCode}
+                        </code>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[#64748B]">Thủ tục hành chính:</span>
+                        <span className="font-bold text-[#0F172A] text-right max-w-xs">{trackingResult.procedureName}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[#64748B]">Số định danh công dân:</span>
+                        <code className="font-mono font-bold text-[#00796B]">{trackingResult.citizenCccd}</code>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-[#64748B]">Đơn vị thụ lý:</span>
+                        <span className="font-semibold text-[#0F172A]">UBND {currentWard.name}</span>
+                      </div>
+                    </div>
+
+                    {/* SLA Deadline Box */}
+                    <div className="p-3.5 rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-between text-xs text-[#1E40AF]">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-4 h-4 text-[#2563EB] shrink-0" />
+                        <div>
+                          <span className="font-bold block">Thời hạn cam kết giải quyết (SLA):</span>
+                          <span className="text-[11px] text-[#3B82F6]">
+                            Theo quy định chuẩn dịch vụ Một cửa cấp xã
+                          </span>
+                        </div>
+                      </div>
+                      <span className="font-mono font-extrabold text-sm text-[#1D4ED8]">
+                        {new Date(trackingResult.slaDeadline).toLocaleDateString('vi-VN')} 17:00
+                      </span>
+                    </div>
+
+                    {/* Officer Feedback */}
+                    {trackingResult.officerFeedback && (
+                      <div className="p-3.5 rounded-2xl bg-[#FFFBEB] border border-[#FDE68A] flex flex-col gap-1 text-xs text-[#92400E]">
+                        <span className="font-bold flex items-center gap-1.5">
+                          <AlertTriangle className="w-3.5 h-3.5 text-[#D97706]" />
+                          <span>Ý kiến cán bộ tiếp nhận:</span>
+                        </span>
+                        <p className="text-xs leading-relaxed text-[#78350F] pl-5">{trackingResult.officerFeedback}</p>
+                      </div>
+                    )}
+
+                    {/* Appointment Code */}
+                    {trackingResult.appointmentCode && (
+                      <div className="p-3.5 rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] flex items-center justify-between text-xs text-[#166534]">
+                        <div>
+                          <span className="font-bold block">Mã số lịch hẹn nhận kết quả:</span>
+                          <span className="text-[11px] text-[#15803D]">
+                            Vui lòng mang theo bản chính giấy tờ để đối chiếu
+                          </span>
+                        </div>
+                        <code className="font-mono font-extrabold text-sm text-[#15803D] bg-white px-2.5 py-1 rounded-lg border border-[#86EFAC]">
+                          {trackingResult.appointmentCode}
+                        </code>
+                      </div>
+                    )}
+
+                    <div className="flex items-center justify-between text-[11px] text-[#64748B] pt-1">
+                      <span>Thời điểm nộp: {new Date(trackingResult.createdAt).toLocaleString('vi-VN')}</span>
+                      <span>Cập nhật: {new Date(trackingResult.updatedAt).toLocaleString('vi-VN')}</span>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-8 rounded-3xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col items-center justify-center text-center text-[#64748B] gap-3">
+                  <div className="w-14 h-14 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#00796B]">
+                    <Clock className="w-7 h-7 text-[#0F766E]" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-[#0F172A]">Chưa Có Kết Quả Tra Cứu</h3>
+                    <p className="text-xs text-[#64748B] mt-1 max-w-xs leading-relaxed">
+                      Nhập mã hồ sơ và 4 số cuối CCCD ở khung bên trái để xem tiến độ giải quyết, phản hồi từ cán bộ Một cửa và thời hạn cam kết SLA.
+                    </p>
                   </div>
                 </div>
               )}

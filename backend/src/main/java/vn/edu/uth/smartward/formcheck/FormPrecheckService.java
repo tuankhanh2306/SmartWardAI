@@ -468,16 +468,17 @@ public class FormPrecheckService {
         // 5. Parents Marital Status vs Father Name Declaration
         String fatherName = req.getFieldValue(null, "fatherName");
         String parentsMarried = req.getFieldValue(null, "parentsMarried");
+        String combinedPaternity = req.getFieldValue(null, "combinedPaternityProcedure");
         boolean paternityRuleValid = true;
         String paternityErr = null;
-        if ("NO".equalsIgnoreCase(parentsMarried) && !fatherName.isEmpty()) {
+        if ("NO".equalsIgnoreCase(parentsMarried) && !fatherName.isEmpty() && !"true".equalsIgnoreCase(combinedPaternity)) {
             paternityRuleValid = false;
             paternityErr = "Cha mẹ CHƯA đăng ký kết hôn nhưng ghi tên Cha ('" + fatherName + "') vào tờ khai khai sinh thường: " +
                     "Bắt buộc phải làm thủ tục kết hợp 'Đăng ký khai sinh và Nhận cha, mẹ, con' (Thông tư 04/2020/TT-BTP).";
         }
         validations.add(FieldValidationItem.builder()
                 .fieldName("Quy tắc Pháp lý Cha Mẹ & Tình trạng hôn nhân")
-                .providedValue("NO".equalsIgnoreCase(parentsMarried) ? "Chưa kết hôn (Tên cha: " + (fatherName.isEmpty() ? "Để trống" : fatherName) + ")" : "Đã có Giấy chứng nhận kết hôn")
+                .providedValue("NO".equalsIgnoreCase(parentsMarried) ? ("Chưa kết hôn (Tên cha: " + (fatherName.isEmpty() ? "Để trống" : fatherName) + ("true".equalsIgnoreCase(combinedPaternity) ? " - Thủ tục kết hợp)" : ")")) : "Đã có Giấy chứng nhận kết hôn")
                 .valid(paternityRuleValid)
                 .errorCode(paternityRuleValid ? null : "UNMARRIED_PARENTS_PATERNITY_REQUIRED")
                 .errorMessage(paternityErr)

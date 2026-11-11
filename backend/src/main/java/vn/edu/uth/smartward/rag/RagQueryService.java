@@ -70,10 +70,10 @@ public class RagQueryService {
                         .query("Ba tôi già yếu đi lại khó khăn thì xã có cử người xuống tận nhà lăn tay chứng thực chữ ký được không?")
                         .wardName("Phường Mỹ Bình")
                         .similarityScore(0.612)
-                        .candidateChunkCode("TTHC-CT-03-DIEU24")
+                        .candidateChunkCode("TTHC-CT-02-DIEU24")
                         .candidateProcedureName("Chứng thực chữ ký trong các giấy tờ, văn bản")
                         .legalReference("Khoản 2 Điều 10 & Điều 24 Nghị định 23/2015/NĐ-CP")
-                        .suggestedAnswer("1. TÓM TẮT THỦ TỤC:\nNgười yêu cầu chứng thực già yếu, không thể đi lại được phép yêu cầu UBND cấp xã thực hiện chứng thực chữ ký ngoài trụ sở (tại nhà riêng).\n\n2. THÀNH PHẦN HỒ SƠ:\n- Bản chính CCCD của người yêu cầu chứng thực.\n- Văn bản, giấy tờ cần chứng thực chữ ký (điểm chỉ).\n\n3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n- Giải quyết trong ngày nhận yêu cầu.\n- Miễn thu chi phí đi lại ngoài trụ sở đối với người già yếu không thể đi lại theo quy định.\n\n4. NƠI TIẾP NHẬN & XỬ LÝ:\n- Bộ phận Một cửa UBND xã/phường tiếp nhận thông tin và cử công chức Tư pháp - Hộ tịch đến xác minh trực tiếp.\n\n5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n- Khoản 2 Điều 10 và Điều 24 Nghị định 23/2015/NĐ-CP [TTHC-CT-03-DIEU24].")
+                        .suggestedAnswer("1. TÓM TẮT THỦ TỤC:\nNgười yêu cầu chứng thực già yếu, không thể đi lại được phép yêu cầu UBND cấp xã thực hiện chứng thực chữ ký ngoài trụ sở (tại nhà riêng).\n\n2. THÀNH PHẦN HỒ SƠ:\n- Bản chính CCCD của người yêu cầu chứng thực.\n- Văn bản, giấy tờ cần chứng thực chữ ký (điểm chỉ).\n\n3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n- Giải quyết trong ngày nhận yêu cầu.\n- Miễn thu chi phí đi lại ngoài trụ sở đối với người già yếu không thể đi lại theo quy định.\n\n4. NƠI TIẾP NHẬN & XỬ LÝ:\n- Bộ phận Một cửa UBND xã/phường tiếp nhận thông tin và cử công chức Tư pháp - Hộ tịch đến xác minh trực tiếp.\n\n5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n- Khoản 2 Điều 10 và Điều 24 Nghị định 23/2015/NĐ-CP [TTHC-CT-02-DIEU24].")
                         .status("PENDING")
                         .createdAt("2026-11-05 08:40")
                         .build(),

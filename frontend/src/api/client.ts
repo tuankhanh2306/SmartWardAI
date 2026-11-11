@@ -584,6 +584,123 @@ export interface FormPrecheckResponse {
   processingTimeMs: number;
 }
 
+// ============================================================================
+// 1.1 Citizen Dossier Database API Models (Milestone 4 - F10, F11)
+// ============================================================================
+
+export interface SubmitDossierPayload {
+  dossierCode?: string;
+  procedureCode: string;
+  wardCode: string;
+  citizenCccd: string;
+  formData: Record<string, any>;
+  precheckReport?: Record<string, any>;
+  vaultDocIds?: string[];
+}
+
+export interface DossierSubmissionResponse {
+  dossierCode: string;
+  procedureCode: string;
+  wardCode: string;
+  status: string;
+  slaDeadline: string;
+  createdAt: string;
+}
+
+export interface DossierTrackingResponse {
+  dossierCode: string;
+  procedureCode: string;
+  procedureName: string;
+  wardCode: string;
+  citizenCccd: string;
+  status: 'PENDING' | 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'REJECTED' | string;
+  slaDeadline: string;
+  officerFeedback?: string;
+  appointmentCode?: string;
+  precheckReport?: any;
+  vaultDocIds?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OfficerReviewPayload {
+  status: 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'REJECTED';
+  officerFeedback?: string;
+  reviewStatus?: string;
+  feedbackReason?: string;
+  appointmentCode?: string;
+}
+
+export interface OfficerDossierItem {
+  id: number | string;
+  dossierCode: string;
+  procedureCode: string;
+  procedureName: string;
+  wardCode: string;
+  citizenCccd: string;
+  citizenName: string;
+  status: 'PENDING' | 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'REJECTED' | 'VALID' | 'HAS_ERRORS' | string;
+  slaDeadline: string;
+  officerFeedback?: string;
+  appointmentCode?: string;
+  formData: Record<string, any>;
+  precheckReport?: Record<string, any>;
+  vaultDocIds?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Submit citizen dossier to PostgreSQL backend
+ */
+export const submitDossier = async (payload: SubmitDossierPayload): Promise<DossierSubmissionResponse> => {
+  const resp = await api.post<any>('/dossiers', payload);
+  const data = resp.data?.data ? resp.data.data : resp.data;
+  return data as DossierSubmissionResponse;
+};
+
+/**
+ * Track citizen dossier progress via dossierCode and last 4 CCCD digits from PostgreSQL
+ */
+export const trackDossier = async (
+  dossierCode: string,
+  last4Cccd?: string,
+  citizenCccd?: string
+): Promise<DossierTrackingResponse> => {
+  const params: Record<string, string> = { dossierCode: dossierCode.trim() };
+  if (last4Cccd) params.last4Cccd = last4Cccd.trim();
+  if (citizenCccd) params.citizenCccd = citizenCccd.trim();
+
+  const resp = await api.get<any>('/dossiers/track', { params });
+  const data = resp.data?.data ? resp.data.data : resp.data;
+  return data as DossierTrackingResponse;
+};
+
+/**
+ * Officer retrieves dossiers for review from PostgreSQL
+ */
+export const getOfficerDossiers = async (wardCode?: string, status?: string): Promise<OfficerDossierItem[]> => {
+  const params: Record<string, string> = {};
+  if (wardCode) params.wardCode = wardCode.trim();
+  if (status) params.status = status.trim();
+
+  const resp = await api.get<any>('/dossiers/officer/list', { params });
+  const data = resp.data?.data ? resp.data.data : resp.data;
+  return Array.isArray(data) ? data : [];
+};
+
+/**
+ * Officer reviews, approves, or requests supplement on citizen dossier in PostgreSQL
+ */
+export const reviewOfficerDossier = async (
+  dossierCode: string,
+  payload: OfficerReviewPayload
+): Promise<OfficerDossierItem> => {
+  const resp = await api.put<any>(`/dossiers/${encodeURIComponent(dossierCode.trim())}/review`, payload);
+  const data = resp.data?.data ? resp.data.data : resp.data;
+  return data as OfficerDossierItem;
+};
+
 export interface LiveFormDossier {
   id: string;
   citizenName: string;
@@ -592,6 +709,9 @@ export interface LiveFormDossier {
   submittedAt: string;
   status: 'PENDING' | 'VALID' | 'HAS_ERRORS';
   cccd: string;
+  citizenEmail?: string;
+  contactPhone?: string;
+  appointmentCode?: string;
   errorCount: number;
   wardName?: string;
   officerFeedback?: string;
@@ -604,12 +724,59 @@ export interface LiveFormDossier {
     gender: string;
     address: string;
     confidence: number;
+    sharpnessScore?: number;
+    templateMatched?: boolean;
     issues: string[];
     vaultToken?: string;
   };
 }
 
+export interface EmailNotificationItem {
+  id: string;
+  dossierId: string;
+  recipientEmail: string;
+  citizenName: string;
+  subject: string;
+  status: 'APPROVED' | 'SUPPLEMENT_REQUIRED';
+  wardName: string;
+  reviewerName: string;
+  feedbackText: string;
+  appointmentCode?: string;
+  sentAt: string;
+}
+
 const LIVE_DOSSIERS_STORAGE_KEY = 'smartward_live_dossiers_v1';
+const EMAIL_NOTIFICATIONS_STORAGE_KEY = 'smartward_email_notifications_v1';
+
+export const getCitizenEmailNotifications = (): EmailNotificationItem[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(EMAIL_NOTIFICATIONS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+export function sendCitizenEmailNotification(item: Omit<EmailNotificationItem, 'id' | 'sentAt'>): EmailNotificationItem {
+  const now = new Date();
+  const fullItem: EmailNotificationItem = {
+    ...item,
+    id: `EMAIL-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+    sentAt: `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} ${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`,
+  };
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = getCitizenEmailNotifications();
+      localStorage.setItem(EMAIL_NOTIFICATIONS_STORAGE_KEY, JSON.stringify([fullItem, ...existing].slice(0, 30)));
+    } catch {
+      // ignore storage errors
+    }
+  }
+  return fullItem;
+}
 
 export const getLiveSubmittedDossiers = (): LiveFormDossier[] => {
   if (typeof window === 'undefined') return [];
@@ -638,7 +805,8 @@ export function updateLiveDossierStatus(
   id: string,
   status: 'PENDING' | 'VALID' | 'HAS_ERRORS',
   officerFeedback?: string,
-  reviewedBy?: string
+  reviewedBy?: string,
+  appointmentCode?: string
 ): LiveFormDossier | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -652,6 +820,7 @@ export function updateLiveDossierStatus(
           errorCount: status === 'VALID' ? 0 : Math.max(1, d.errorCount),
           officerFeedback: officerFeedback ?? d.officerFeedback,
           reviewedBy: reviewedBy ?? d.reviewedBy,
+          appointmentCode: appointmentCode ?? d.appointmentCode,
         };
         return updatedItem;
       }
