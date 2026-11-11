@@ -333,7 +333,7 @@ export const ProceduresCatalogPage: React.FC = () => {
 
                     {/* Right Action Buttons */}
                     <div className="flex items-center gap-2 shrink-0 self-end sm:self-center mt-2 sm:mt-0">
-                      {/* A4 Printable Document Preview & Download */}
+                      {/* A4 Document Preview & Download */}
                       <button
                         type="button"
                         onClick={() => handleOpenA4(proc)}
@@ -341,7 +341,7 @@ export const ProceduresCatalogPage: React.FC = () => {
                         title="Xem trước và tải về máy bản Word (.docx) hoặc PDF chuẩn Nghị định 30/2020/NĐ-CP"
                       >
                         <FileDown className="w-3.5 h-3.5 text-[#00796B]" />
-                        <span className="hidden sm:inline">Mẫu A4 (Tải/In)</span>
+                        <span className="hidden sm:inline">Tải Mẫu A4</span>
                         <span className="sm:hidden">Mẫu A4</span>
                       </button>
 

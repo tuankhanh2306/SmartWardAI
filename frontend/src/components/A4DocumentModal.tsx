@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Printer,
   X,
   CheckCircle2,
   FileText,
@@ -10,7 +9,6 @@ import {
   Check,
 } from 'lucide-react';
 import { useWard } from '../context/WardContext';
-import { useRole } from '../context/RoleContext';
 import { getA4TemplateByCode, type A4FormTemplate } from '../data/a4FormTemplates';
 import { exportA4TemplateToDocx } from '../utils/docxExporter';
 
@@ -105,7 +103,6 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
   initialData = {},
 }) => {
   const { currentWard } = useWard();
-  const { isOfficer } = useRole();
   const [isExportingDocx, setIsExportingDocx] = useState(false);
   const [exportSuccess, setExportSuccess] = useState(false);
 
@@ -249,21 +246,10 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
               type="button"
               onClick={() => window.print()}
               className="px-3 py-1.5 bg-sky-700 hover:bg-sky-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
-              title="Tải hoặc in dưới dạng PDF (Chọn 'Lưu dưới dạng PDF' trong hộp thoại của trình duyệt)"
+              title="Tải hoặc lưu dưới dạng PDF (Chọn 'Lưu dưới dạng PDF' trong hộp thoại của trình duyệt)"
             >
               <FileText className="w-3.5 h-3.5 text-sky-200" />
               <span>Tải File PDF (.pdf)</span>
-            </button>
-
-            {/* Action 3: In Trực Tiếp Tại Quầy (Dành cho cán bộ hoặc người có máy in giấy) */}
-            <button
-              type="button"
-              onClick={() => window.print()}
-              className="px-3 py-1.5 bg-white/90 hover:bg-white text-[#00796B] rounded-lg text-xs font-bold flex items-center gap-1.5 transition shadow-xs cursor-pointer active:scale-95"
-              title={isOfficer ? "In trực tiếp ra máy in tại Bộ phận Một cửa (Dành cho cán bộ)" : "In trực tiếp ra máy in giấy"}
-            >
-              <Printer className="w-3.5 h-3.5 text-[#00796B]" />
-              <span>{isOfficer ? 'In Quầy (Cán Bộ)' : 'In Ra Giấy'}</span>
             </button>
 
             <button
@@ -284,7 +270,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
               Tiện ích tải về máy
             </span>
             <span className="leading-tight">
-              Bà con bấm <strong>"Tải Mẫu Word (.docx)"</strong> để lưu file về máy tính/điện thoại tự điền, hoặc bấm <strong>"Tải File PDF (.pdf)"</strong> (chọn <em>Lưu dưới dạng PDF</em>) để nộp hồ sơ trực tuyến mà không cần máy in.
+              Bà con bấm <strong>"Tải Mẫu Word (.docx)"</strong> để tải file về máy tính/điện thoại tự điền thông tin, hoặc bấm <strong>"Tải File PDF (.pdf)"</strong> (chọn <em>Lưu dưới dạng PDF</em>) để nộp hồ sơ trực tuyến.
             </span>
           </div>
         </div>
