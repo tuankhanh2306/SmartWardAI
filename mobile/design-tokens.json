@@ -1,0 +1,225 @@
+{
+  "$schema": "https://tr.designtokens.org/format/",
+  "meta": {
+    "project": "SmartWard AI Mobile (Tỉnh An Giang — 96 Xã/Phường/Đặc Khu)",
+    "version": "2.0.0",
+    "synchronizedWithWeb": true,
+    "figmaFileUrl": "https://www.figma.com/design/EPb6cskC8gGllcxAjglEK5",
+    "targetFramework": "React Native (Expo SDK 52 + TypeScript + NativeWind/StyleSheet)",
+    "accessibilityStandard": "WCAG 2.1 AA/AAA (Elderly-First: Min Touch Target 48x48px, 3-Tier Font Scaling A/A+/A++)"
+  },
+  "color": {
+    "primitives": {
+      "primary": {
+        "50": "#F0FDFA",
+        "100": "#CCFBF1",
+        "200": "#99F6E4",
+        "300": "#5EEAD4",
+        "400": "#2DD4BF",
+        "500": "#14B8A6",
+        "600": "#00796B",
+        "700": "#00695C",
+        "800": "#115E59",
+        "900": "#134E4A",
+        "950": "#042F2E"
+      },
+      "neutral": {
+        "0": "#FFFFFF",
+        "50": "#F8FAFC",
+        "100": "#F1F5F9",
+        "200": "#E2E8F0",
+        "300": "#CBD5E1",
+        "400": "#94A3B8",
+        "500": "#64748B",
+        "600": "#475569",
+        "700": "#334155",
+        "800": "#1E293B",
+        "900": "#0F172A",
+        "950": "#020617"
+      },
+      "success": {
+        "50": "#ECFDF5",
+        "100": "#D1FAE5",
+        "200": "#A7F3D0",
+        "500": "#10B981",
+        "600": "#059669",
+        "800": "#065F46"
+      },
+      "warning": {
+        "50": "#FFFBEB",
+        "100": "#FEF3C7",
+        "200": "#FDE68A",
+        "500": "#F59E0B",
+        "600": "#D97706",
+        "800": "#92400E"
+      },
+      "error": {
+        "50": "#FEF2F2",
+        "100": "#FEE2E2",
+        "200": "#FECACA",
+        "300": "#FCA5A5",
+        "500": "#EF4444",
+        "600": "#DC2626",
+        "800": "#991B1B"
+      },
+      "info": {
+        "50": "#EFF6FF",
+        "100": "#DBEAFE",
+        "200": "#BFDBFE",
+        "600": "#2563EB",
+        "800": "#1E40AF"
+      }
+    },
+    "semantic": {
+      "light": {
+        "color/primary/default": "#00796B",
+        "color/primary/pressed": "#00695C",
+        "color/primary/subtle": "#F0FDFA",
+        "color/primary/border": "#99F6E4",
+        "color/primary/on-primary": "#FFFFFF",
+        "color/surface/canvas": "#F8FAFC",
+        "color/surface/card": "#FFFFFF",
+        "color/surface/elevated": "#FFFFFF",
+        "color/surface/muted": "#F1F5F9",
+        "color/surface/camera-overlay": "#0F172A",
+        "color/text/primary": "#0F172A",
+        "color/text/secondary": "#334155",
+        "color/text/muted": "#64748B",
+        "color/text/disabled": "#94A3B8",
+        "color/border/default": "#CBD5E1",
+        "color/border/subtle": "#E2E8F0",
+        "color/border/focus": "#00796B",
+        "color/status/success-text": "#065F46",
+        "color/status/success-bg": "#ECFDF5",
+        "color/status/success-border": "#A7F3D0",
+        "color/status/warning-text": "#92400E",
+        "color/status/warning-bg": "#FFFBEB",
+        "color/status/warning-border": "#FDE68A",
+        "color/status/error-text": "#991B1B",
+        "color/status/error-bg": "#FEF2F2",
+        "color/status/error-border": "#FCA5A5",
+        "color/status/info-text": "#1E40AF",
+        "color/status/info-bg": "#EFF6FF",
+        "color/status/info-border": "#BFDBFE"
+      },
+      "dark": {
+        "color/primary/default": "#14B8A6",
+        "color/primary/pressed": "#0D9488",
+        "color/primary/subtle": "#134E4A",
+        "color/primary/border": "#2DD4BF",
+        "color/primary/on-primary": "#042F2E",
+        "color/surface/canvas": "#0F172A",
+        "color/surface/card": "#1E293B",
+        "color/surface/elevated": "#334155",
+        "color/surface/muted": "#1E293B",
+        "color/surface/camera-overlay": "#020617",
+        "color/text/primary": "#F8FAFC",
+        "color/text/secondary": "#CBD5E1",
+        "color/text/muted": "#94A3B8",
+        "color/text/disabled": "#475569",
+        "color/border/default": "#334155",
+        "color/border/subtle": "#1E293B",
+        "color/border/focus": "#2DD4BF",
+        "color/status/success-text": "#A7F3D0",
+        "color/status/success-bg": "#064E3B",
+        "color/status/success-border": "#059669",
+        "color/status/warning-text": "#FDE68A",
+        "color/status/warning-bg": "#78350F",
+        "color/status/warning-border": "#D97706",
+        "color/status/error-text": "#FECACA",
+        "color/status/error-bg": "#7F1D1D",
+        "color/status/error-border": "#DC2626",
+        "color/status/info-text": "#BFDBFE",
+        "color/status/info-bg": "#1E3A8A",
+        "color/status/info-border": "#3B82F6"
+      }
+    }
+  },
+  "typography": {
+    "fontFamilies": {
+      "sans": "Be Vietnam Pro",
+      "mono": "JetBrains Mono"
+    },
+    "accessibilityModes": {
+      "A_Standard": {
+        "label": "Cỡ chuẩn (A)",
+        "scaleFactor": 1.0,
+        "styles": {
+          "display/xl": { "fontSize": 22, "lineHeight": 30, "fontWeight": "800" },
+          "heading/lg": { "fontSize": 18, "lineHeight": 26, "fontWeight": "800" },
+          "heading/md": { "fontSize": 16, "lineHeight": 24, "fontWeight": "700" },
+          "body/md": { "fontSize": 14, "lineHeight": 22, "fontWeight": "400" },
+          "body/bold": { "fontSize": 14, "lineHeight": 22, "fontWeight": "700" },
+          "caption/sm": { "fontSize": 12, "lineHeight": 18, "fontWeight": "500" },
+          "mono/code": { "fontSize": 13, "lineHeight": 20, "fontWeight": "700", "fontFamily": "JetBrains Mono" }
+        }
+      },
+      "A_Plus_Large": {
+        "label": "Cỡ lớn (A+)",
+        "scaleFactor": 1.15,
+        "styles": {
+          "display/xl": { "fontSize": 25, "lineHeight": 34, "fontWeight": "800" },
+          "heading/lg": { "fontSize": 20, "lineHeight": 28, "fontWeight": "800" },
+          "heading/md": { "fontSize": 18, "lineHeight": 26, "fontWeight": "700" },
+          "body/md": { "fontSize": 16, "lineHeight": 25, "fontWeight": "400" },
+          "body/bold": { "fontSize": 16, "lineHeight": 25, "fontWeight": "700" },
+          "caption/sm": { "fontSize": 14, "lineHeight": 20, "fontWeight": "500" },
+          "mono/code": { "fontSize": 15, "lineHeight": 22, "fontWeight": "700", "fontFamily": "JetBrains Mono" }
+        }
+      },
+      "A_PlusPlus_Elderly": {
+        "label": "Cỡ rất lớn (A++)",
+        "scaleFactor": 1.32,
+        "styles": {
+          "display/xl": { "fontSize": 28, "lineHeight": 38, "fontWeight": "800" },
+          "heading/lg": { "fontSize": 22, "lineHeight": 32, "fontWeight": "800" },
+          "heading/md": { "fontSize": 20, "lineHeight": 28, "fontWeight": "700" },
+          "body/md": { "fontSize": 18.5, "lineHeight": 28, "fontWeight": "500" },
+          "body/bold": { "fontSize": 18.5, "lineHeight": 28, "fontWeight": "700" },
+          "caption/sm": { "fontSize": 15.5, "lineHeight": 22, "fontWeight": "600" },
+          "mono/code": { "fontSize": 17, "lineHeight": 24, "fontWeight": "700", "fontFamily": "JetBrains Mono" }
+        }
+      }
+    }
+  },
+  "spacing": {
+    "gridBase": 4,
+    "space/1": 4,
+    "space/2": 8,
+    "space/3": 12,
+    "space/4": 16,
+    "space/5": 20,
+    "space/6": 24,
+    "space/8": 32,
+    "space/10": 40,
+    "space/12": 48
+  },
+  "radius": {
+    "radius/xs": 6,
+    "radius/sm": 8,
+    "radius/md": 12,
+    "radius/lg": 16,
+    "radius/xl": 20,
+    "radius/2xl": 24,
+    "radius/full": 9999
+  },
+  "touchTargets": {
+    "minButtonHeight": 48,
+    "minIconTapArea": 48,
+    "minInputHeight": 48,
+    "bottomTabBarHeight": 64,
+    "appBarHeight": 56
+  },
+  "frames": {
+    "iOS_Primary": { "name": "iPhone 14/15/16", "width": 390, "height": 844 },
+    "Android_Reference": { "name": "Android Compact", "width": 360, "height": 800 }
+  },
+  "domainThresholds": {
+    "ragDirectAnswerSimilarity": 0.78,
+    "ragHitlLowerSimilarity": 0.42,
+    "visionMinSharpnessScore": 45,
+    "visionMinBrightnessScore": 55,
+    "gpsClusterRadiusMeters": 25.0,
+    "semanticClusterThreshold": 0.82
+  }
+}

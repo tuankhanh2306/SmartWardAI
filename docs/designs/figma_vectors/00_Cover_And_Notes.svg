@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900">
+  <g id="Page/00_Cover_And_Notes">
+    <rect width="1600" height="900" rx="32" fill="#0F172A"/>
+    <rect x="64" y="64" width="1472" height="772" rx="24" fill="#1E293B" stroke="#334155" stroke-width="2"/>
+    <rect x="112" y="112" width="340" height="44" rx="22" fill="#00796B"/>
+    <text x="136" y="140" fill="#FFFFFF" font-family="Be Vietnam Pro, sans-serif" font-size="16" font-weight="800">SMARTWARD AI MOBILE • v2.0 HANDOFF</text>
+    <text x="112" y="230" fill="#FFFFFF" font-family="Be Vietnam Pro, sans-serif" font-size="48" font-weight="800">Hệ Thống Dịch Vụ Công &amp; Sơ Duyệt Tờ Khai Cấp Xã</text>
+    <text x="112" y="286" fill="#99F6E4" font-family="Be Vietnam Pro, sans-serif" font-size="24" font-weight="600">Đồng bộ 100% Web ↔ Mobile (96 Xã, Phường &amp; Đặc khu Tỉnh An Giang)</text>
+    
+    <g id="Cover/Architecture_Cards" transform="translate(112, 340)">
+      <rect x="0" y="0" width="430" height="220" rx="16" fill="#0F172A" stroke="#00796B" stroke-width="2"/>
+      <text x="28" y="44" fill="#2DD4BF" font-family="Be Vietnam Pro, sans-serif" font-size="18" font-weight="800">01. DESIGN SYSTEM &amp; TOKENS</text>
+      <text x="28" y="80" fill="#CBD5E1" font-family="Be Vietnam Pro, sans-serif" font-size="15">• Primary Civic Emerald: #00796B</text>
+      <text x="28" y="110" fill="#CBD5E1" font-family="Be Vietnam Pro, sans-serif" font-size="15">• Dark Slate Ink: #0F172A | Canvas: #F8FAFC</text>
+      <text x="28" y="140" fill="#CBD5E1" font-family="Be Vietnam Pro, sans-serif" font-size="15">• 3 Cấp Cỡ Chữ Người Cao Tuổi: A / A+ / A++</text>
+      <text x="28" y="170" fill="#CBD5E1" font-family="Be Vietnam Pro, sans-serif" font-size="15">• Touch Target tối thiểu: 48x48px (WCAG AA)</text>
+
+      <rect x="460" y="0" width="430" height="220" rx="16" fill="#0F172A" stroke="#00796B" stroke-width="2"/>
+      <text x="488" y="44" fill="#2DD4BF" font-family="Be Vietnam Pro, sans-serif" font-size="18" font-weight="800">02. 5 MÀN HÌNH + CHẾ ĐỘ CÁN BỘ</text>
+      <text x="488" y="80" fill="#CBD5E1" font-family="Be Vietnam Pro, sans-serif" font-size="15">• Màn 1: Chọn địa bàn 96 xã (iPhone 390x844 &amp; Android 360x800)</text>
+      <text x="488" y="110" fill="#CBD5E1" font-family="Be Vietnam Pro, sans-serif" font-size="15">• Màn 2: Trợ lý RAG 40 TTHC (θ=0.78, TTS MỞ/TẮT)</text>
+      <text x="488" y="140" fill="#CBD5E1" font-family="Be Vietnam Pro, sans-serif" font-size="15">• Màn 3: Sơ duyệt &amp; AI Thị Giác (Độ nét ≥45/100)</text>
+      <text x="488" y="170" fill="#CBD5E1" font-family="Be Vietnam Pro, sans-serif" font-size="15">• Màn 4 &amp; 5: GPS R=25m &amp; Ví Mã Hẹn QR Offline (.pdf)</text>
+
+      <rect x="920" y="0" width="450" height="220" rx="16" fill="#0F172A" stroke="#00796B" stroke-width="2"/>
+      <text x="948" y="44" fill="#2DD4BF" font-family="Be Vietnam Pro, sans-serif" font-size="18" font-weight="800">03. NGUYÊN TẮC BẤT BIẾN (ZERO-COST)</text>
+      <text x="948" y="80" fill="#CBD5E1" font-family="Be Vietnam Pro, sans-serif" font-size="15">• Tuyệt đối KHÔNG dùng lệnh in (window.print)</text>
+      <text x="948" y="110" fill="#CBD5E1" font-family="Be Vietnam Pro, sans-serif" font-size="15">• Tải trực tiếp file mẫu .DOCX &amp; .PDF về điện thoại</text>
+      <text x="948" y="140" fill="#CBD5E1" font-family="Be Vietnam Pro, sans-serif" font-size="15">• Thông báo qua Email miễn phí 100% (Không SMS/Zalo)</text>
+      <text x="948" y="170" fill="#CBD5E1" font-family="Be Vietnam Pro, sans-serif" font-size="15">• Ảnh công dân mã hóa AES-256-GCM + Watermark OTT</text>
+    </g>
+
+    <rect x="112" y="600" width="1370" height="180" rx="16" fill="#0F172A" stroke="#475569" stroke-width="1.5"/>
+    <text x="140" y="640" fill="#FDE68A" font-family="Be Vietnam Pro, sans-serif" font-size="18" font-weight="800">GHI CHÚ GIẢ ĐỊNH &amp; BÀN GIAO DEVELOPER (REACT NATIVE EXPO SDK 52)</text>
+    <text x="140" y="676" fill="#E2E8F0" font-family="Be Vietnam Pro, sans-serif" font-size="15">1. Giả định Chế độ Sáng/Tối: Mặc định ưu tiên Light Mode (#F8FAFC) cho người cao tuổi nhìn rõ ngoài nắng; hỗ trợ Dark Mode (#0F172A) qua biến semantic.</text>
+    <text x="140" y="708" fill="#E2E8F0" font-family="Be Vietnam Pro, sans-serif" font-size="15">2. Giả định Offline-First: Danh mục 40 TTHC và Phiếu hẹn Mã QR (LH-YYYYMMDD-XXXX) được lưu trong AsyncStorage/SQLite để mở được khi mất mạng 4G.</text>
+    <text x="140" y="740" fill="#E2E8F0" font-family="Be Vietnam Pro, sans-serif" font-size="15">3. Cấu trúc Pages chuẩn: 00 Cover | 01 Design System | 02 Components | 03 Screens (iPhone 390x844 + Android 360x800) | 04 Flows | 05 Handoff.</text>
+  </g>
+</svg>
