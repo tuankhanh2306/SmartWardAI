@@ -33,7 +33,7 @@ const sanitizeFileName = (str: string): string => {
 export async function exportA4TemplateToDocx(
   template: A4FormTemplate,
   wardName: string,
-  initialData: Record<string, string> = {}
+  _initialData: Record<string, string> = {}
 ): Promise<void> {
   const today = new Date();
   const day = today.getDate();
@@ -132,16 +132,16 @@ export async function exportA4TemplateToDocx(
             children: [
               new TextRun({ text: `${field.label}: `, size: 24, font: 'Times New Roman' }),
               new TextRun({
-                text: field.placeholder || '........................................................',
-                bold: !!field.isBold,
+                text: '........................................................',
+                bold: false,
                 size: 24,
                 font: 'Times New Roman',
               }),
               new TextRun({ text: '        ', size: 24, font: 'Times New Roman' }),
               new TextRun({ text: `${field.secondLabel}: `, size: 24, font: 'Times New Roman' }),
               new TextRun({
-                text: field.secondPlaceholder || '........................................................',
-                bold: !!field.isBold,
+                text: '........................................................',
+                bold: false,
                 size: 24,
                 font: 'Times New Roman',
               }),
@@ -155,8 +155,8 @@ export async function exportA4TemplateToDocx(
             children: [
               new TextRun({ text: `${field.label}: `, size: 24, font: 'Times New Roman' }),
               new TextRun({
-                text: field.placeholder || '...........................................................................................................',
-                bold: !!field.isBold,
+                text: '...........................................................................................................',
+                bold: false,
                 size: 24,
                 font: 'Times New Roman',
               }),
@@ -222,7 +222,7 @@ export async function exportA4TemplateToDocx(
                 alignment: AlignmentType.CENTER,
                 children: [
                   new TextRun({
-                    text: initialData.fullName || '',
+                    text: '',
                     bold: true,
                     size: 24,
                     font: 'Times New Roman',
@@ -369,7 +369,7 @@ export async function exportA4TemplateToDocx(
   const downloadUrl = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = downloadUrl;
-  const fileName = `${template.procedureCode}_${sanitizeFileName(template.title)}.docx`;
+  const fileName = `${template.procedureCode}_PHOI_MAU_TRANG_${sanitizeFileName(template.title)}.docx`;
   a.download = fileName;
   document.body.appendChild(a);
   a.click();
