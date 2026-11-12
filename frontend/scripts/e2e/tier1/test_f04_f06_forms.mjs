@@ -15,7 +15,7 @@ import { TK_KS_FIXTURES } from '../fixtures/form_tk_ks_fixtures.mjs';
 import { TK_KH_FIXTURES } from '../fixtures/form_tk_kh_fixtures.mjs';
 import { TK_BTXH_FIXTURES } from '../fixtures/form_tk_btxh_fixtures.mjs';
 
-const PROJECT_ROOT = path.resolve(process.cwd());
+import { PROJECT_ROOT } from '../helpers/project_root.mjs';
 
 export async function runTests(assertContext) {
   console.log('\n--- [TIER 1] Running F4: Enhanced Form Precheck Engine Tests ---');

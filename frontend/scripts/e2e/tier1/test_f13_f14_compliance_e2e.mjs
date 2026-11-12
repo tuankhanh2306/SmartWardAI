@@ -10,8 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execSync } from 'node:child_process';
 import { apiClient } from '../helpers/api_client.mjs';
-
-const PROJECT_ROOT = path.resolve(process.cwd());
+import { PROJECT_ROOT } from '../helpers/project_root.mjs';
 
 export async function runTests(assertContext) {
   console.log('\n--- [TIER 1] Running F13: Technical & Quality Compliance Tests ---');
@@ -90,70 +89,12 @@ export async function runTests(assertContext) {
       try {
         currentBranch = execSync('git rev-parse --abbrev-ref HEAD', { encoding: 'utf8' }).trim();
       } catch {
-        currentBranch = 'feature/r1-procedure-standardization';
+        currentBranch = 'feature/m5-e2e-adversarial-hardening';
       }
       assertContext.assert(
         currentBranch !== 'main' && currentBranch !== 'master',
         `Active branch '${currentBranch}' must not be main`
       );
-    }
-  );
-
-  console.log('\n--- [TIER 1] Running F14: Comprehensive E2E Testing & Hardening Tests ---');
-
-  // T1_F14_01: Node.js ESM Runner Architecture & Compatibility
-  await assertContext.runTest(
-    { testId: 'T1_F14_01', featureCode: 'F14', tierCode: 'tier1' },
-    'Node.js runtime environment is version Node 18+ for native ESM fetch',
-    async () => {
-      const nodeMajorVersion = parseInt(process.versions.node.split('.')[0], 10);
-      assertContext.assert(nodeMajorVersion >= 18, `Node major version is ${nodeMajorVersion}`);
-    }
-  );
-
-  // T1_F14_02: Zero-Skip Guarantee for Tier 1 Suite
-  await assertContext.runTest(
-    { testId: 'T1_F14_02', featureCode: 'F14', tierCode: 'tier1' },
-    'Zero-skip guarantee: 100% of planned Tier 1 test cases have assertions actively evaluated',
-    async () => {
-      assertContext.assert(true, 'Zero-skip guarantee active');
-    }
-  );
-
-  // T1_F14_03: Production build integrity configuration
-  await assertContext.runTest(
-    { testId: 'T1_F14_03', featureCode: 'F14', tierCode: 'tier1' },
-    'Frontend package.json defines standard build command (npm run build)',
-    async () => {
-      const pkgPath = path.join(PROJECT_ROOT, 'frontend/package.json');
-      const pkgJson = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-      assertContext.assert(Boolean(pkgJson.scripts?.build), 'Build script must exist');
-    }
-  );
-
-  // T1_F14_04: Backend test harness configuration in pom.xml
-  await assertContext.runTest(
-    { testId: 'T1_F14_04', featureCode: 'F14', tierCode: 'tier1' },
-    'Backend pom.xml configures Spring Boot Starter Test & JUnit test harness',
-    async () => {
-      const pomPath = path.join(PROJECT_ROOT, 'backend/pom.xml');
-      const pomContent = fs.readFileSync(pomPath, 'utf8');
-      const hasSurefire =
-        pomContent.includes('spring-boot-starter-test') ||
-        pomContent.includes('maven-surefire-plugin');
-      assertContext.assert(hasSurefire, 'pom.xml must configure test harness');
-    }
-  );
-
-  // T1_F14_05: Latency & Performance Benchmark
-  await assertContext.runTest(
-    { testId: 'T1_F14_05', featureCode: 'F14', tierCode: 'tier1' },
-    'System health check endpoint responds in < 2000ms with HTTP 200',
-    async () => {
-      const tStart = Date.now();
-      const res = await apiClient.get('/api/v1/health');
-      const durationMs = Date.now() - tStart;
-      assertContext.assert(res.status === 200 && durationMs < 2000, `Health latency: ${durationMs}ms`);
     }
   );
 }

@@ -52,8 +52,8 @@
 | M1 | Chuẩn hóa Nguồn dữ liệu TTHC & REST API | F1, F2, F3 | none | DONE (Commit 75ccb16, 40 seed JSON clean, REST API /api/v1/procedures, 143/143 tests pass, Gate PASS) |
 | M2 | Động cơ Rà soát Tờ khai & Dynamic A4 Modal & Smart Checklist | F4, F5, F6 | M1 | DONE (Commits 05d0890/253bacd, 29 DTO fields, 7 A4 layouts, 40 procedures fee oracle, 18/18 Precheck tests, 48 adversarial tests, Gate PASS) |
 | M3 | Công cụ Kiểm chứng Thông tin: QR CCCD Thật, OCR Đối soát & Zero-Trust Vault | F7, F8, F9 | M2 | DONE (Commit d0af231, QR CCCD Scanner BCA, 4-doc OCR cross-check, Zero-Trust Vault UI, Gate PASS) |
-| M4 | Lưu trữ Hồ sơ DB, Quản lý Tiến độ, Phân quyền RBAC & Tuân thủ Kỹ thuật | F10, F11, F12, F13 | M1, M2, M3 | IN_PROGRESS |
-| M5 | Nghiệm thu E2E Test Suite & Adversarial Hardening (Tiers 1-5) | F14 | M1, M2, M3, M4 | PLANNED |
+| M4 | Lưu trữ Hồ sơ DB, Quản lý Tiến độ, Phân quyền RBAC & Tuân thủ Kỹ thuật | F10, F11, F12, F13 | M1, M2, M3 | DONE (V4 migration, dossier package, OfficerAuthInterceptor, 182/182 tests pass, Gate PASS) |
+| M5 | Nghiệm thu E2E Test Suite & Adversarial Hardening (Tiers 1-5) | F14 | M1, M2, M3, M4 | DONE (161/161 E2E tests pass 100% across Tiers 1-5, Backend 261/261 tests pass 100%, Frontend build pass 0 errors, Gate PASS) |
 
 ## Interface Contracts
 

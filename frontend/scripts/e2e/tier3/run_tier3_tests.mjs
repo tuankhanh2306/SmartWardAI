@@ -23,33 +23,11 @@
 import { initializeTestSuiteState, createAssertionContext } from '../helpers/assertions.mjs';
 import { apiClient } from '../helpers/api_client.mjs';
 import { printHeader, printScoreboard } from '../helpers/reporter.mjs';
+import { ensureBackendAvailable } from '../helpers/backend_server.mjs';
 import { runTests as runTier3Tests } from './test_tier3_interactions.mjs';
 
-async function probeBackend() {
-  const candidateUrls = [
-    process.env.SMARTWARD_API_URL,
-    'http://localhost:8082', // Docker mapped port for smartward-backend
-    'http://localhost:8080', // Default Spring Boot dev port
-  ].filter(Boolean);
-
-  for (const url of candidateUrls) {
-    try {
-      const probeClient = new (apiClient.constructor)(url);
-      const res = await probeClient.get('/api/v1/health', { timeoutMs: 3000 });
-      if (res.status === 200) {
-        apiClient.setBaseUrl(url);
-        return url;
-      }
-    } catch {
-      // Continue probing next URL
-    }
-  }
-
-  return apiClient.getBaseUrl();
-}
-
 export async function runTier3Suite(parentAssertContext = null) {
-  const activeUrl = await probeBackend();
+  const { activeUrl, server } = await ensureBackendAvailable(apiClient);
 
   let suiteState;
   let assertContext;
@@ -68,6 +46,9 @@ export async function runTier3Suite(parentAssertContext = null) {
   if (suiteState) {
     suiteState.tierResults.tier3.durationMs = Date.now() - startTime;
     const allPassed = printScoreboard(suiteState);
+    if (server) {
+      server.close();
+    }
     return { allPassed, suiteState };
   }
 

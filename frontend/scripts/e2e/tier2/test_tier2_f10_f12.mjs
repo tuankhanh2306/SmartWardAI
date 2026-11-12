@@ -12,7 +12,7 @@ import path from 'node:path';
 import { apiClient } from '../helpers/api_client.mjs';
 import { loginOfficer, OFFICER_ACCOUNTS } from '../helpers/auth_helper.mjs';
 
-const PROJECT_ROOT = path.resolve(process.cwd());
+import { PROJECT_ROOT } from '../helpers/project_root.mjs';
 const MIGRATION_DIR = path.join(PROJECT_ROOT, 'backend/src/main/resources/db/migration');
 const DOSSIER_PKG_DIR = path.join(PROJECT_ROOT, 'backend/src/main/java/vn/edu/uth/smartward/dossier');
 

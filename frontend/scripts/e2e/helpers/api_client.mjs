@@ -59,8 +59,9 @@ export class ApiClient {
       ...(options.headers || {})
     };
 
-    // Attach Bearer token if available and not overridden
-    if (this.officerToken && !headers['Authorization'] && !headers['authorization']) {
+    // Attach Bearer token if available and not explicitly provided in headers
+    const hasAuthHeader = Object.keys(headers).some((k) => k.toLowerCase() === 'authorization');
+    if (this.officerToken && !hasAuthHeader) {
       headers['Authorization'] = `Bearer ${this.officerToken}`;
     }
 

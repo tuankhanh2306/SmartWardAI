@@ -28,7 +28,7 @@ import { parseCccdQrString, STATIC_CCCD_FIXTURES } from '../fixtures/cccd_qr_fix
 import { TK_KS_FIXTURES } from '../fixtures/form_tk_ks_fixtures.mjs';
 import { OCR_CROSS_CHECK_FIXTURES, createSampleFileBuffer } from '../fixtures/vault_document_fixtures.mjs';
 
-const PROJECT_ROOT = path.resolve(process.cwd());
+import { PROJECT_ROOT } from '../helpers/project_root.mjs';
 const SEED_PROCEDURES_DIR = path.join(PROJECT_ROOT, 'backend/src/main/resources/db/seed/procedures');
 
 export async function runTests(assertContext) {
@@ -551,6 +551,53 @@ export async function runTests(assertContext) {
         threwTamperError,
         'AES-256-GCM must strictly reject tampered ciphertext with authentication error'
       );
+    }
+  );
+
+  // -------------------------------------------------------------------------
+  // T3_INT_15 (F7 + F8 + F11): QR CCCD + OCR Cross-Check -> Citizen Dossier Submission
+  // -------------------------------------------------------------------------
+  await assertContext.runTest(
+    { testId: 'T3_INT_15', featureCode: 'F7', tierCode: 'tier3' },
+    '[F7+F8+F11] QR CCCD parsing and multi-doc OCR cross-check synergize into validated Citizen Dossier submission',
+    async () => {
+      // Step 1: Parse real BCA CCCD QR string
+      const qrParsed = parseCccdQrString(STATIC_CCCD_FIXTURES.VALID_AN_GIANG_MALE_1995.rawQr);
+      assertContext.assert(qrParsed.valid, 'QR string must parse successfully');
+
+      // Step 2: Retrieve multi-doc OCR cross-check result
+      const ocrCrossCheck = OCR_CROSS_CHECK_FIXTURES.BIRTH_CERTIFICATE_MATCH;
+      assertContext.assertEqual(ocrCrossCheck.status, 'MATCH', 'OCR cross-check must be MATCH');
+
+      // Step 3: Submit complete dossier combining QR identity and OCR cross-check metadata
+      const comboDossierCode = `HS-COMBO-${Date.now().toString().slice(-6)}`;
+      const payload = {
+        dossierCode: comboDossierCode,
+        procedureCode: 'TTHC-HT-01',
+        wardCode: 'WARD-AG-01',
+        citizenCccd: qrParsed.data.cccdNumber,
+        formData: {
+          fullName: qrParsed.data.fullName,
+          dateOfBirth: qrParsed.data.dateOfBirth,
+          gender: qrParsed.data.gender,
+          address: qrParsed.data.address,
+        },
+        precheckReport: {
+          overallValid: true,
+          crossCheckResults: [ocrCrossCheck],
+        },
+        vaultDocIds: ['DOC_COMBO_QR_OCR_01'],
+      };
+
+      const submitRes = await apiClient.post('/api/v1/dossiers', payload);
+      assertContext.assertStatusCode(submitRes.status, 201, 'POST /api/v1/dossiers combo status');
+
+      // Step 4: Track dossier using last 4 digits of parsed QR CCCD
+      const last4 = qrParsed.data.cccdNumber.slice(-4);
+      const trackRes = await apiClient.get(
+        `/api/v1/dossiers/track?dossierCode=${comboDossierCode}&last4Cccd=${last4}`
+      );
+      assertContext.assertStatusCode(trackRes.status, 200, 'Tracking combo dossier with QR CCCD last 4 digits');
     }
   );
 }

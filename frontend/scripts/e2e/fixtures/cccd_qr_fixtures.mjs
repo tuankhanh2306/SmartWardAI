@@ -141,6 +141,11 @@ export function parseCccdQrString(rawQr) {
     return { valid: false, error: 'Empty or non-string QR payload' };
   }
 
+  // Reject payloads with null bytes or illegal control characters
+  if (/[\x00-\x08\x0B\x0C\x0E-\x1F]/.test(rawQr)) {
+    return { valid: false, error: 'QR barcode contains illegal null bytes or control characters' };
+  }
+
   const parts = rawQr.split('|');
   if (parts.length < 6 || parts.length > 7) {
     return { valid: false, error: `Invalid field count: expected 7 fields separated by '|', got ${parts.length}` };
