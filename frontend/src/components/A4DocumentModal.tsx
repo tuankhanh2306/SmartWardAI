@@ -117,6 +117,13 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
   const month = today.getMonth() + 1;
   const year = today.getFullYear();
 
+  // Ensure scroll position resets to top on modal open so the official administrative header is always visible
+  React.useEffect(() => {
+    if (isOpen && printableA4Ref.current) {
+      printableA4Ref.current.scrollTop = 0;
+    }
+  }, [isOpen]);
+
   // Resolve category
   const resolvedCategory = (() => {
     if (formType === 'CT01' || procedureCode === 'TTHC-CR-01') return 'CT01';
@@ -208,10 +215,10 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto a4-print-overlay">
-      <div className="relative bg-white w-full max-w-4xl rounded-2xl shadow-2xl flex flex-col my-auto a4-print-sheet border border-[#CBD5E1] overflow-hidden">
+    <div className="fixed inset-0 z-[1000] bg-black/75 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-hidden a4-print-overlay">
+      <div className="relative bg-white w-full max-w-4xl max-h-[94vh] rounded-2xl shadow-2xl flex flex-col my-auto a4-print-sheet border border-[#CBD5E1] overflow-hidden">
         {/* Top Control Bar (Chỉ có tải Word .docx và tải PDF .pdf, không in ấn) */}
-        <div className="no-print bg-[#00796B] text-white px-5 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 border-b border-[#004D40]">
+        <div className="no-print shrink-0 bg-[#00796B] text-white px-5 sm:px-6 py-3.5 flex flex-wrap items-center justify-between gap-3 border-b border-[#004D40]">
           <div className="flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-lg bg-white/20 text-white flex items-center justify-center font-bold text-xs shadow-xs">
               A4
@@ -298,7 +305,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         </div>
 
         {/* Citizen Guidance Bar (Hidden when printing via CSS @media print) */}
-        <div className="no-print bg-teal-50 border-b border-teal-200 px-4 sm:px-6 py-2 flex items-center justify-between gap-3 text-xs text-teal-950">
+        <div className="no-print shrink-0 bg-teal-50 border-b border-teal-200 px-4 sm:px-6 py-2 flex items-center justify-between gap-3 text-xs text-teal-950">
           <div className="flex items-center gap-2">
             <span className="px-1.5 py-0.5 rounded bg-teal-700 text-white font-bold text-[10px] uppercase shrink-0">
               Tiện ích tải về máy
@@ -312,7 +319,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         {/* Printable A4 Sheet Body */}
         <div
           ref={printableA4Ref}
-          className="p-8 sm:p-12 text-[#0F172A] bg-white text-[13pt] leading-relaxed select-text max-h-[80vh] overflow-y-auto font-administrative font-times"
+          className="flex-1 overflow-y-auto p-6 sm:p-10 md:p-12 text-[#0F172A] bg-white text-[13pt] leading-relaxed select-text font-administrative font-times"
           style={{ fontFamily: "'Times New Roman', 'Tinos', Times, 'Liberation Serif', serif" }}
         >
           {/* Header per Decree 30/2020/ND-CP */}
