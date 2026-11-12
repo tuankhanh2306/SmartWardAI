@@ -13,6 +13,8 @@ RUN npm ci
 
 # Copy sources and compile production bundle
 COPY . .
+ARG VITE_API_BASE_URL=/api/v1
+ENV VITE_API_BASE_URL=${VITE_API_BASE_URL}
 RUN npm run build
 
 # Stage 2: Minimal Production Web Server
@@ -20,13 +22,15 @@ FROM nginx:1.27-alpine
 WORKDIR /usr/share/nginx/html
 
 # Clean default nginx files
-RUN rm -rf ./*
+RUN rm -rf ./* /etc/nginx/conf.d/default.conf
 
 # Copy built bundle from builder stage
 COPY --from=builder /workspace/dist .
 
-# Copy custom nginx configuration with SPA fallback & API proxy
-COPY nginx.conf /etc/nginx/conf.d/default.conf
+# Dynamic upstream support (defaults to Docker Compose http://backend:8080, overridable in Railway/Cloud)
+ENV BACKEND_URL=http://backend:8080
+ENV NGINX_ENVSUBST_FILTER=^BACKEND_URL$
+COPY nginx.conf /etc/nginx/templates/default.conf.template
 
 EXPOSE 80
 
