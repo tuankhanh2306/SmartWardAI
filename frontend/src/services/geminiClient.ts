@@ -411,6 +411,22 @@ export interface ExtractedFormFieldsResult {
   gender?: string;
   issueDate: string;
   address: string;
+  phone?: string;
+  hostName?: string;
+  hostCccd?: string;
+  hostRelation?: string;
+  declarationScope?: string;
+  childName?: string;
+  motherName?: string;
+  fatherName?: string;
+  birthPlace?: string;
+  birthCertNumber?: string;
+  partnerName?: string;
+  partnerCccd?: string;
+  partnerDob?: string;
+  maritalCertPurpose?: string;
+  disabilityLevel?: string;
+  poorHouseholdBookNumber?: string;
   confidence: number;
   detectedDocType: string;
   message: string;
@@ -456,13 +472,18 @@ export async function extractFormWithVision(file: File | Blob): Promise<Extracte
       const report = resJson?.data || resJson;
       const fields = report?.extractedFields;
 
-      if (fields && (fields.fullName || fields.cccdNumber || fields.birthDate || fields.permanentAddress)) {
+      if (fields && (fields.fullName || fields.cccdNumber || fields.birthDate || fields.permanentAddress || fields.phoneNumber || fields.hostName)) {
         const fullName = (fields.fullName || '').trim();
         const cccd = (fields.cccdNumber || '').trim().replace(/[^0-9]/g, '');
         const dob = normalizeDateToYMD(fields.birthDate);
         const issueDate = normalizeDateToYMD(fields.issueDate);
         const gender = (fields.gender || '').trim();
         const address = (fields.permanentAddress || '').trim();
+        const phone = (fields.phoneNumber || fields.phone || '').trim();
+        const hostName = (fields.hostName || '').trim();
+        const hostCccd = (fields.hostCccd || fields.hostCccdNumber || '').trim().replace(/[^0-9]/g, '');
+        const hostRelation = (fields.hostRelation || '').trim();
+        const declarationScope = (fields.declarationScope || '').trim();
         const confidence = typeof report.overallConfidence === 'number'
           ? Math.min(100, Math.max(0, Math.round(report.overallConfidence * 100)))
           : 95;
@@ -474,6 +495,11 @@ export async function extractFormWithVision(file: File | Blob): Promise<Extracte
         if (gender) count++;
         if (address) count++;
         if (issueDate) count++;
+        if (phone) count++;
+        if (hostName) count++;
+        if (hostCccd) count++;
+        if (hostRelation) count++;
+        if (declarationScope) count++;
 
         return {
           success: count > 0,
@@ -483,6 +509,11 @@ export async function extractFormWithVision(file: File | Blob): Promise<Extracte
           gender,
           issueDate,
           address,
+          phone,
+          hostName,
+          hostCccd,
+          hostRelation,
+          declarationScope,
           confidence: count > 0 ? confidence : 0,
           detectedDocType: report.formType || 'Tờ khai CT01 cư trú',
           message: report.summaryMessage || 'Đã trích xuất thông tin thành công qua máy chủ AI!',

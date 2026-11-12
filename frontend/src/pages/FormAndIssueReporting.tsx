@@ -26,6 +26,7 @@ import { useWard } from '../context/WardContext';
 import A4DocumentModal from '../components/A4DocumentModal';
 import { CccdQrScannerModal } from '../components/CccdQrScannerModal';
 import { type DecodedCccdQr, type QrFieldDiscrepancy } from '../utils/cccdQrParser';
+import { decodeQrFromImageFile } from '../utils/qrImageDecoder';
 import {
   AN_GIANG_WARDS,
   findNearestWardByCoords,
@@ -186,9 +187,9 @@ export const FormAndIssueReporting: React.FC = () => {
 
   // Specialized fields for CT01 (Residence Declaration - Circular 66/2023/TT-BCA)
   const [phoneNumber, setPhoneNumber] = useState('0918234567');
-  const [hostName, setHostName] = useState('NGUYỄN VĂN AN');
-  const [hostCccd, setHostCccd] = useState('089075001234');
-  const [hostRelation, setHostRelation] = useState('Con đẻ');
+  const [hostName, setHostName] = useState('');
+  const [hostCccd, setHostCccd] = useState('');
+  const [hostRelation, setHostRelation] = useState('Chủ hộ');
   const [declarationScope, setDeclarationScope] = useState('Đăng ký thường trú');
 
   // Specialized cross-check fields for Priority 1 (TK-KS: Birth Registration + Hospital Birth Cert)
@@ -930,15 +931,31 @@ export const FormAndIssueReporting: React.FC = () => {
     setGender('');
     setIssueDate('');
     setAddress('');
+    setPhoneNumber('');
+    setHostName('');
+    setHostCccd('');
+    setHostRelation('Chủ hộ');
+    setDeclarationScope('Đăng ký thường trú');
 
     try {
+      // Step A: Attempt direct QR Code decoding if file is an image (BCA CCCD 7-field standard)
+      let qrData: DecodedCccdQr | null = null;
+      if (file.type.startsWith('image/')) {
+        try {
+          qrData = await decodeQrFromImageFile(file);
+        } catch (qrErr) {
+          console.warn('QR decode error from file:', qrErr);
+        }
+      }
+
+      // Step B: Run Vision Quality Gate & OCR in parallel
       const [quality, result] = await Promise.all([
         analyzeImageQuality(file),
         extractFormWithVision(file),
       ]);
 
       const tplMatch = verifyTemplateMatch(
-        `${result.detectedDocType || ''} ${result.message || ''} ${result.fullName || ''} ${result.address || ''}`,
+        `${result.detectedDocType || ''} ${result.message || ''} ${result.fullName || ''} ${result.address || ''} ${qrData ? qrData.fullName : ''}`,
         file.name || '',
         selectedFormType
       );
@@ -964,20 +981,40 @@ export const FormAndIssueReporting: React.FC = () => {
         return;
       }
 
-      if (result.success && result.extractedFieldsCount > 0) {
-        // Direct field mapping into form state ONLY when the corresponding section is identified
-        if (result.fullName) setFullName(result.fullName.toUpperCase());
-        if (result.cccd) setCccd(result.cccd);
-        if (result.dob) setDob(normalizeDateToYMD(result.dob));
-        if (result.gender) setGender(result.gender);
-        if (result.address) setAddress(result.address);
+      // Step C: Merge QR decoded data and OCR extraction results (QR has 100% precision for CCCD cards)
+      const mappedFullName = (qrData?.fullName || result.fullName || '').trim().toUpperCase();
+      const mappedCccd = (qrData?.cccdNumber || result.cccd || '').trim();
+      const mappedDob = qrData?.dateOfBirth
+        ? normalizeDateToYMD(qrData.dateOfBirth)
+        : (result.dob ? normalizeDateToYMD(result.dob) : '');
+      const mappedGender = qrData?.gender || result.gender || '';
+      const mappedAddress = (qrData?.address || result.address || '').trim();
+      const mappedIssueDate = qrData?.issueDate
+        ? normalizeDateToYMD(qrData.issueDate)
+        : (result.issueDate ? normalizeDateToYMD(result.issueDate) : '');
 
-        // Note: Mẫu CT01 has NO "Ngày cấp CCCD" (Issue Date) field. Never map signing date into CCCD issue date!
-        if (result.issueDate) {
-          setIssueDate(normalizeDateToYMD(result.issueDate));
-        }
+      const mappedPhone = (result.phone || '').trim();
+      const mappedHostName = (result.hostName || '').trim().toUpperCase();
+      const mappedHostCccd = (result.hostCccd || '').trim();
+      const mappedHostRelation = (result.hostRelation || '').trim();
+      const mappedDeclarationScope = (result.declarationScope || '').trim();
 
-        setOcrConfidence(Number(result.confidence.toFixed(1)));
+      let mappedCount = 0;
+      if (mappedFullName) { setFullName(mappedFullName); mappedCount++; }
+      if (mappedCccd) { setCccd(mappedCccd); mappedCount++; }
+      if (mappedDob) { setDob(mappedDob); mappedCount++; }
+      if (mappedGender) { setGender(mappedGender); mappedCount++; }
+      if (mappedAddress) { setAddress(mappedAddress); mappedCount++; }
+      if (mappedPhone) { setPhoneNumber(mappedPhone); mappedCount++; }
+      if (mappedHostName) { setHostName(mappedHostName); mappedCount++; }
+      if (mappedHostCccd) { setHostCccd(mappedHostCccd); mappedCount++; }
+      if (mappedHostRelation) { setHostRelation(mappedHostRelation); mappedCount++; }
+      if (mappedDeclarationScope) { setDeclarationScope(mappedDeclarationScope); mappedCount++; }
+      if (mappedIssueDate) { setIssueDate(mappedIssueDate); mappedCount++; }
+
+      if (mappedCount > 0) {
+        const conf = qrData ? 100 : Number((result.confidence || 95).toFixed(1));
+        setOcrConfidence(conf);
         setOcrSuccess(true);
       } else {
         setOcrSuccess(false);
@@ -1035,6 +1072,11 @@ export const FormAndIssueReporting: React.FC = () => {
     setGender('Nam');
     setIssueDate('');
     setAddress(`Số 18 Đường Trần Hưng Đạo, ${currentWard.name}, Tỉnh An Giang`);
+    setPhoneNumber('0918234567');
+    setHostName('NGUYỄN VĂN AN');
+    setHostCccd('089075001234');
+    setHostRelation('Con đẻ');
+    setDeclarationScope('Đăng ký thường trú');
     setOcrConfidence(98.5);
     setOcrSuccess(true);
     setOcrError(null);
@@ -2028,6 +2070,11 @@ export const FormAndIssueReporting: React.FC = () => {
                         ? '3. Ngày sinh người cao tuổi (Mốc ≥ 80 tuổi):'
                         : '3. Ngày, tháng, năm sinh (Mục 2 Mẫu CT01):'}
                     </label>
+                    {ocrSuccess && dob ? (
+                      <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                        <Check className="w-3 h-3 text-[#10B981]" /> Đã map đúng Mục 2
+                      </span>
+                    ) : null}
                   </div>
                   <input
                     type="date"
@@ -2045,6 +2092,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     <label className="text-xs font-bold text-[#334155]">
                       4. Giới tính:
                     </label>
+                    {ocrSuccess && gender ? (
+                      <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                        <Check className="w-3 h-3 text-[#10B981]" /> Đã map đúng Mục 3 ({gender})
+                      </span>
+                    ) : null}
                   </div>
                   <div className="flex items-center gap-4">
                     <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#0F172A]">
@@ -2081,26 +2133,44 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
-                        Số điện thoại liên hệ (Mục 5 Mẫu CT01):
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-[#334155]">
+                          Số điện thoại liên hệ (Mục 5 Mẫu CT01):
+                        </label>
+                        {ocrSuccess && phoneNumber ? (
+                          <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                            <Check className="w-3 h-3 text-[#10B981]" /> Đã map Mục 5
+                          </span>
+                        ) : null}
+                      </div>
                       <input
                         type="tel"
                         value={phoneNumber}
                         placeholder="VD: 0918234567"
                         onChange={(e) => setPhoneNumber(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                        className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] transition-all ${
+                          ocrSuccess && phoneNumber ? 'border-[#10B981]/60 bg-[#F0FDF4]/30' : 'bg-white border-[#CBD5E1]'
+                        }`}
                       />
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
-                        Nội dung đề nghị (Mục 10 Mẫu CT01):
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-[#334155]">
+                          Nội dung đề nghị (Mục 10 Mẫu CT01):
+                        </label>
+                        {ocrSuccess && declarationScope ? (
+                          <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                            <Check className="w-3 h-3 text-[#10B981]" /> Đã map Mục 10
+                          </span>
+                        ) : null}
+                      </div>
                       <select
                         value={declarationScope}
                         onChange={(e) => setDeclarationScope(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#0F172A]"
+                        className={`w-full h-9 px-3 rounded-xl border text-xs font-semibold text-[#0F172A] transition-all ${
+                          ocrSuccess && declarationScope ? 'border-[#10B981]/60 bg-[#F0FDF4]/30' : 'bg-white border-[#CBD5E1]'
+                        }`}
                       >
                         <option value="Đăng ký thường trú">Đăng ký thường trú</option>
                         <option value="Đăng ký tạm trú">Đăng ký tạm trú</option>
@@ -2112,40 +2182,67 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
-                        Họ và tên chủ hộ nơi đến (Mục 11):
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-[#334155]">
+                          Họ và tên chủ hộ nơi đến (Mục 11):
+                        </label>
+                        {ocrSuccess && hostName ? (
+                          <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                            <Check className="w-3 h-3 text-[#10B981]" /> Đã map Mục 11
+                          </span>
+                        ) : null}
+                      </div>
                       <input
                         type="text"
                         value={hostName}
                         placeholder="Họ và tên chủ hộ"
                         onChange={(e) => setHostName(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                        className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] transition-all ${
+                          ocrSuccess && hostName ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-white border-[#CBD5E1]'
+                        }`}
                       />
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
-                        Số CCCD / ĐDCN của chủ hộ (Mục 11):
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-[#334155]">
+                          Số CCCD / ĐDCN của chủ hộ (Mục 11):
+                        </label>
+                        {ocrSuccess && hostCccd ? (
+                          <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                            <Check className="w-3 h-3 text-[#10B981]" /> Đã map ({hostCccd.length} số)
+                          </span>
+                        ) : null}
+                      </div>
                       <input
                         type="text"
                         value={hostCccd}
                         maxLength={12}
                         placeholder="12 chữ số CCCD chủ hộ"
                         onChange={(e) => setHostCccd(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-mono font-bold text-[#00796B]"
+                        className={`w-full h-9 px-3 rounded-xl border text-xs font-mono font-bold text-[#00796B] transition-all ${
+                          ocrSuccess && hostCccd ? 'border-[#10B981]/60 bg-[#F0FDF4]/30' : 'bg-white border-[#CBD5E1]'
+                        }`}
                       />
                     </div>
 
                     <div className="flex flex-col gap-1 sm:col-span-2">
-                      <label className="text-xs font-bold text-[#334155]">
-                        Quan hệ với chủ hộ (Mục 12):
-                      </label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-[#334155]">
+                          Quan hệ với chủ hộ (Mục 12):
+                        </label>
+                        {ocrSuccess && hostRelation ? (
+                          <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                            <Check className="w-3 h-3 text-[#10B981]" /> Đã map Mục 12
+                          </span>
+                        ) : null}
+                      </div>
                       <select
                         value={hostRelation}
                         onChange={(e) => setHostRelation(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#0F172A]"
+                        className={`w-full h-9 px-3 rounded-xl border text-xs font-semibold text-[#0F172A] transition-all ${
+                          ocrSuccess && hostRelation ? 'border-[#10B981]/60 bg-[#F0FDF4]/30' : 'bg-white border-[#CBD5E1]'
+                        }`}
                       >
                         <option value="Chủ hộ">Chủ hộ (Bản thân là chủ hộ)</option>
                         <option value="Vợ/Chồng">Vợ / Chồng</option>
@@ -2722,6 +2819,11 @@ export const FormAndIssueReporting: React.FC = () => {
                         ? '5. Địa chỉ thường trú của người hưởng trợ cấp xã hội:'
                         : '5. Nơi đề nghị đăng ký thường trú / tạm trú (Mục 10 - Nội dung đề nghị):'}
                     </label>
+                    {ocrSuccess && address ? (
+                      <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                        <Check className="w-3 h-3 text-[#10B981]" /> Đã map đúng địa chỉ
+                      </span>
+                    ) : null}
                   </div>
                   <input
                     type="text"

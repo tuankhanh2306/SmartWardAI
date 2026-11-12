@@ -397,10 +397,15 @@ export function parseVietnameseAdministrativeText(rawText: string, confidence: n
   let gender = '';
   let issueDate = '';
   let address = '';
+  let phone = '';
+  let hostName = '';
+  let hostCccd = '';
+  let hostRelation = '';
+  let declarationScope = '';
 
-  // 1. Extract Full Name: ONLY if explicitly preceded by Section 1 label
+  // 1. Extract Full Name: Section 1 or CCCD card name
   const nameLabelMatch = rawText.match(
-    /(?:1\.?\s*Họ,?\s*chữ đệm và tên(?: khai sinh)?|Họ,?\s*chữ đệm và tên)[\s\:\.\-]*([^\n\r\d\:\;\,\(\)]{3,35})/i
+    /(?:1\.?\s*Họ,?\s*chữ đệm và tên(?: khai sinh)?|Họ,?\s*chữ đệm và tên|Họ và tên\s*[\/\-]?\s*Full name|Họ và tên|Họ tên)[\s\:\.\-]*([^\n\r\d\:\;\,\(\)]{3,40})/i
   );
   if (nameLabelMatch) {
     const candidate = nameLabelMatch[1].trim();
@@ -409,25 +414,27 @@ export function parseVietnameseAdministrativeText(rawText: string, confidence: n
     }
   }
 
-  // 2. Extract Date of Birth: ONLY if explicitly preceded by Section 2 label
+  // 2. Extract Date of Birth: Section 2 or CCCD card DOB
   const dobMatch = rawText.match(
-    /(?:2\.?\s*Ngày,?\s*tháng,?\s*năm sinh|Ngày,?\s*tháng,?\s*năm sinh)[\s\:\.\-]*([0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{4})/i
+    /(?:2\.?\s*Ngày,?\s*tháng,?\s*năm sinh|Ngày,?\s*tháng,?\s*năm sinh|Ngày sinh\s*[\/\-]?\s*Date of birth|Ngày sinh|Sinh ngày|Date of birth)[\s\:\.\-]*([0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{4})/i
   );
   if (dobMatch) {
     dob = normalizeDateToYMD(dobMatch[1]);
   }
 
-  // 3. Extract Gender: Section 3
-  const genderMatch = rawText.match(/(?:3\.?\s*Giới tính|Giới tính)[\s\:\.\-]*([^\n\r\d\:\;\,\(\)]{2,8})/i);
+  // 3. Extract Gender: Section 3 or CCCD card Sex
+  const genderMatch = rawText.match(
+    /(?:3\.?\s*Giới tính|Giới tính\s*[\/\-]?\s*Sex|Giới tính|Sex)[\s\:\.\-]*([^\n\r\d\:\;\,\(\)]{2,8})/i
+  );
   if (genderMatch) {
     const g = genderMatch[1].trim().toLowerCase();
     if (g.includes('nữ') || g.includes('nu')) gender = 'Nữ';
     else if (g.includes('nam')) gender = 'Nam';
   }
 
-  // 4. Extract 12-digit CCCD / ĐDCN: ONLY from Section 4
+  // 4. Extract 12-digit CCCD / ĐDCN: Section 4 or CCCD card "Số / No.:"
   const cccdMatch = rawText.match(
-    /(?:4\.?\s*Số định danh cá nhân|Số định danh cá nhân)[\s\:\.\-]*([0-9\s]{9,16})/i
+    /(?:4\.?\s*Số\s*(?:định\s*danh\s*cá\s*nhân|ĐDCN|CCCD|CMND)(?:\s*[\/\-]\s*(?:CMND|CCCD|ĐDCN))?|Số\s*định\s*danh\s*cá\s*nhân|Số\s*[\/\-]?\s*No\.?|Số\s*CCCD|Số\s*CMND)[\s\:\.\-\/]*([0-9\s]{9,16})/i
   );
   if (cccdMatch) {
     const digitsOnly = cccdMatch[1].replace(/\s+/g, '');
@@ -435,10 +442,41 @@ export function parseVietnameseAdministrativeText(rawText: string, confidence: n
       cccd = digitsOnly;
     }
   }
+  // Fallback: search for any 12-digit Vietnamese CCCD number starting with 0
+  if (!cccd) {
+    const all12Digits = rawText.match(/\b(0\d{11})\b/g);
+    if (all12Digits && all12Digits.length > 0) {
+      cccd = all12Digits[0];
+    }
+  }
+  // Fallback: 9-digit CMND number
+  if (!cccd) {
+    const all9Digits = rawText.match(/\b(\d{9})\b/);
+    if (all9Digits) {
+      cccd = all9Digits[1];
+    }
+  }
 
-  // 5. Extract Address: ONLY from Section 10 "Nội dung đề nghị" or "tại địa chỉ"
+  // 5. Extract Phone Number: Section 5 Mẫu CT01
+  const phoneMatch = rawText.match(
+    /(?:5\.?\s*Số điện thoại(?: liên hệ)?|Số điện thoại(?: liên hệ)?|Số điện thoại|Điện thoại|SĐT|Phone|Tel)[\s\:\.\-]*([0-9\s\.\-]{9,13})/i
+  );
+  if (phoneMatch) {
+    const digitsOnly = phoneMatch[1].replace(/[^0-9]/g, '');
+    if (digitsOnly.length >= 10 && digitsOnly.length <= 11) {
+      phone = digitsOnly;
+    }
+  }
+  if (!phone) {
+    const standalonePhone = rawText.match(/\b(0[35789]\d{8})\b/);
+    if (standalonePhone) {
+      phone = standalonePhone[1];
+    }
+  }
+
+  // 6. Extract Address: Section 6, 8, 10 or CCCD "Nơi thường trú / Place of residence"
   const addressMatch = rawText.match(
-    /(?:10\.?\s*Nội dung đề nghị[^:]*tại địa chỉ|tại địa chỉ)[\s\:\.\-]+([^\n\r]{8,120})/i
+    /(?:(?:6\.?\s*Nơi thường trú hiện tại|8\.?\s*Nơi ở hiện tại|5\.?\s*Nơi đề nghị[^:\n]*|Nơi thường trú\s*[\/\-]?\s*Place of residence|Nơi thường trú|Place of residence|Nơi ở hiện tại|Địa chỉ thường trú|Địa chỉ|tại địa chỉ)[\s\:\.\-]+([^\n\r]{6,150}))/i
   );
   if (addressMatch) {
     const candidate = addressMatch[1].trim();
@@ -447,7 +485,72 @@ export function parseVietnameseAdministrativeText(rawText: string, confidence: n
     }
   }
 
-  // Note: Mẫu CT01 has NO "Ngày cấp CCCD" (Issue Date) field. Do not guess or map form signing date as CCCD issue date.
+  // 7. Extract Host Name (Họ và tên chủ hộ): Section 9 or Section 11 Mẫu CT01
+  const hostNameMatch = rawText.match(
+    /(?:(?:9\.?\s*Họ và tên chủ hộ|11\.?\s*Họ và tên chủ hộ nơi đến|Họ và tên chủ hộ|Họ tên chủ hộ)[\s\:\.\-]*([^\n\r\d\:\;\,\(\)]{3,40}))/i
+  );
+  if (hostNameMatch) {
+    const candidate = hostNameMatch[1].trim();
+    if (!isAdministrativeHeader(candidate) && candidate.split(/\s+/).length >= 2) {
+      hostName = candidate.toUpperCase();
+    }
+  }
+
+  // 8. Extract Host CCCD (Số CCCD / ĐDCN của chủ hộ): Section 9 or 11 Mẫu CT01
+  const hostCccdMatch = rawText.match(
+    /(?:(?:Số ĐDCN\s*[\/\-]?\s*CCCD chủ hộ|Số CCCD\s*[\/\-]?\s*ĐDCN của chủ hộ|Số định danh cá nhân của chủ hộ|CCCD chủ hộ)[\s\:\.\-]*([0-9\s]{9,16}))/i
+  );
+  if (hostCccdMatch) {
+    const digitsOnly = hostCccdMatch[1].replace(/\s+/g, '');
+    if (digitsOnly.length === 12 || digitsOnly.length === 9) {
+      hostCccd = digitsOnly;
+    }
+  }
+  // If hostName is found and there is a second 12-digit number in the text different from citizen's cccd
+  if (hostName && !hostCccd) {
+    const all12Digits = rawText.match(/\b(0\d{11})\b/g);
+    if (all12Digits && all12Digits.length > 1) {
+      const secondCccd = all12Digits.find((d) => d !== cccd);
+      if (secondCccd) {
+        hostCccd = secondCccd;
+      }
+    }
+  }
+
+  // 9. Extract Host Relation (Quan hệ với chủ hộ): Section 9 or 12 Mẫu CT01
+  const hostRelationMatch = rawText.match(
+    /(?:(?:Quan hệ với chủ hộ(?:\s*\(Mục 12\))?|Quan hệ chủ hộ)[\s\:\.\-]*([^\n\r\d\:\;\,\(\)]{2,30}))/i
+  );
+  if (hostRelationMatch) {
+    const candidate = hostRelationMatch[1].trim();
+    if (!isAdministrativeHeader(candidate)) {
+      hostRelation = candidate;
+    }
+  }
+
+  // 10. Extract Declaration Scope (Nội dung đề nghị): Section 10 Mẫu CT01
+  const scopeMatch = rawText.match(
+    /(?:(?:10\.?\s*Nội dung đề nghị|Nội dung đề nghị)[\s\:\.\-]*([^\n\r\:\;]{4,50}))/i
+  );
+  if (scopeMatch) {
+    const candidate = scopeMatch[1].trim();
+    if (!isAdministrativeHeader(candidate)) {
+      if (candidate.toLowerCase().includes('tạm trú')) {
+        declarationScope = 'Đăng ký tạm trú';
+      } else if (candidate.toLowerCase().includes('tách hộ')) {
+        declarationScope = 'Tách hộ';
+      } else if (candidate.toLowerCase().includes('điều chỉnh')) {
+        declarationScope = 'Điều chỉnh thông tin cư trú';
+      } else if (candidate.toLowerCase().includes('xóa')) {
+        declarationScope = 'Xóa đăng ký thường trú';
+      } else if (candidate.toLowerCase().includes('gia hạn')) {
+        declarationScope = 'Gia hạn tạm trú';
+      } else {
+        declarationScope = 'Đăng ký thường trú';
+      }
+    }
+  }
+
   issueDate = '';
 
   let count = 0;
@@ -456,13 +559,18 @@ export function parseVietnameseAdministrativeText(rawText: string, confidence: n
   if (dob) count++;
   if (gender) count++;
   if (address) count++;
+  if (phone) count++;
+  if (hostName) count++;
+  if (hostCccd) count++;
+  if (hostRelation) count++;
+  if (declarationScope) count++;
 
   const detectedDocType =
     rawText.includes('CT01') || rawText.includes('cư trú')
-      ? 'Tờ khai CT01 cư trú (Động cơ OCR Ngoại tuyến)'
+      ? 'Tờ khai CT01 cư trú (Động cơ OCR Trí tuệ nhân tạo)'
       : rawText.includes('CĂN CƯỚC') || rawText.includes('IDENTITY')
-      ? 'Thẻ CCCD (Động cơ OCR Ngoại tuyến)'
-      : 'Tài liệu hành chính (Động cơ OCR Ngoại tuyến)';
+      ? 'Thẻ CCCD (Động cơ OCR Trí tuệ nhân tạo)'
+      : 'Tài liệu hành chính (Động cơ OCR Trí tuệ nhân tạo)';
 
   return {
     success: count > 0,
@@ -472,11 +580,16 @@ export function parseVietnameseAdministrativeText(rawText: string, confidence: n
     gender,
     issueDate,
     address,
+    phone,
+    hostName,
+    hostCccd,
+    hostRelation,
+    declarationScope,
     confidence: count > 0 ? confidence : 0,
     detectedDocType,
     message:
       count > 0
-        ? `Đã trích xuất ${count} trường thông tin chuẩn theo các mục của biểu mẫu!`
+        ? `Đã nhận diện và trích xuất thành công ${count} trường thông tin từ tệp!`
         : 'Không tìm thấy các mục trường thông tin tương ứng trên ảnh. Vui lòng nhập tay.',
     extractedFieldsCount: count,
   };
