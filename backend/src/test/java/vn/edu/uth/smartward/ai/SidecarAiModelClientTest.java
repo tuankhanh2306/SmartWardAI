@@ -45,12 +45,13 @@ class SidecarAiModelClientTest {
     @Test
     @DisplayName("When sidecar is unreachable, should catch exception and return fallback embedding")
     void testGenerateEmbedding_whenSidecarUnreachable_shouldFallbackGracefully() {
-        // http://localhost:8000 is not running during this unit test
+        // Use non-existent port to guarantee unreachable condition even if port 8000 is active locally
+        SidecarAiModelClient unreachableClient = new SidecarAiModelClient(true, "http://127.0.0.1:59999", 50, fallbackMock);
         float[] mockVec = new float[768];
         mockVec[0] = 0.5f;
         when(fallbackMock.generateEmbedding(anyString())).thenReturn(mockVec);
 
-        float[] result = sidecarClient.generateEmbedding("Thủ tục kết hôn");
+        float[] result = unreachableClient.generateEmbedding("Thủ tục kết hôn");
 
         assertNotNull(result);
         assertEquals(768, result.length);

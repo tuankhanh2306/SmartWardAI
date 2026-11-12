@@ -14,6 +14,7 @@ import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Component
@@ -28,19 +29,23 @@ public class ProcedureDataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
-        long currentCount = procedureRepository.count();
-        if (currentCount >= 40) {
-            log.info("Database already contains {} procedures. Checking unvectorized chunks...", currentCount);
-            backfillMissingEmbeddings();
-            return;
+        log.info("Starting synchronization and seeding of verified administrative procedures...");
+
+        // 1. Remove deprecated duplicate records if present in database
+        List<String> deprecatedCodes = List.of("TTHC-BT-06", "TTHC-CR-05", "TTHC-CT-03");
+        for (String deprecatedCode : deprecatedCodes) {
+            procedureRepository.findByProcedureCode(deprecatedCode).ifPresent(proc -> {
+                log.info("Removing deprecated duplicate procedure from database: {}", deprecatedCode);
+                procedureRepository.delete(proc);
+            });
         }
 
-        log.info("Seeding verified administrative procedures from classpath:db/seed/procedures/*.json...");
+        // 2. Load and upsert all standard seed procedures from classpath
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
         try {
             Resource[] resources = resolver.getResources("classpath:db/seed/procedures/*.json");
-            log.info("Found {} procedure seed files to import.", resources.length);
+            log.info("Found {} procedure seed files to synchronize.", resources.length);
 
             int seededCount = 0;
             for (Resource res : resources) {
@@ -48,68 +53,79 @@ public class ProcedureDataSeeder implements CommandLineRunner {
                     JsonNode root = objectMapper.readTree(is);
 
                     String procCode = root.path("procedureCode").asText();
-                    if (procedureRepository.findByProcedureCode(procCode).isPresent()) {
+                    if (procCode == null || procCode.isBlank()) {
                         continue;
                     }
 
-                    AdminProcedure proc = AdminProcedure.builder()
-                            .procedureCode(procCode)
-                            .portalCode(root.path("officialPortalCode").asText(null))
-                            .procedureName(root.path("procedureName").asText())
-                            .category(root.path("category").asText("Hành chính công"))
-                            .agency(root.path("agency").asText("Ủy ban nhân dân cấp xã / phường"))
-                            .processingTime(root.path("processingTime").asText("Theo quy định"))
-                            .fee(root.path("fee").asText("Theo quy định"))
-                            .sourceUrl(root.path("sourceUrl").asText())
-                            .status("ACTIVE")
-                            .build();
+                    Optional<AdminProcedure> existingOpt = procedureRepository.findByProcedureCode(procCode);
+                    AdminProcedure proc;
+                    boolean isNew = existingOpt.isEmpty();
+                    if (isNew) {
+                        proc = AdminProcedure.builder()
+                                .procedureCode(procCode)
+                                .build();
+                    } else {
+                        proc = existingOpt.get();
+                    }
+
+                    proc.setPortalCode(root.path("officialPortalCode").asText(proc.getPortalCode()));
+                    proc.setProcedureName(root.path("procedureName").asText(proc.getProcedureName()));
+                    proc.setCategory(root.path("category").asText(proc.getCategory() != null ? proc.getCategory() : "Hành chính công"));
+                    proc.setAgency(root.path("agency").asText(proc.getAgency() != null ? proc.getAgency() : "Ủy ban nhân dân cấp xã / phường"));
+                    proc.setProcessingTime(root.path("processingTime").asText(proc.getProcessingTime() != null ? proc.getProcessingTime() : "Theo quy định"));
+                    proc.setFee(root.path("fee").asText(proc.getFee() != null ? proc.getFee() : "Theo quy định"));
+                    proc.setSourceUrl(root.path("sourceUrl").asText(proc.getSourceUrl()));
+                    proc.setStatus("ACTIVE");
 
                     AdminProcedure savedProc = procedureRepository.save(proc);
 
-                    // Import predefined chunks
-                    JsonNode chunksNode = root.path("chunks");
-                    List<LegalChunk> chunkList = new ArrayList<>();
+                    // Import predefined chunks if newly inserted or if no chunks exist for this procedure
+                    List<LegalChunk> existingChunks = chunkRepository.findByProcedureId(savedProc.getId());
+                    if (existingChunks.isEmpty()) {
+                        JsonNode chunksNode = root.path("chunks");
+                        List<LegalChunk> chunkList = new ArrayList<>();
 
-                    if (chunksNode.isArray()) {
-                        for (JsonNode cNode : chunksNode) {
-                            String chunkCode = cNode.path("chunkId").asText();
-                            String chunkType = cNode.path("chunkType").asText("OVERVIEW");
-                            String title = cNode.path("title").asText();
-                            String content = cNode.path("content").asText();
-                            String legalRef = cNode.path("legalReference").asText();
+                        if (chunksNode.isArray()) {
+                            for (JsonNode cNode : chunksNode) {
+                                String chunkCode = cNode.path("chunkId").asText();
+                                String chunkType = cNode.path("chunkType").asText("OVERVIEW");
+                                String title = cNode.path("title").asText();
+                                String content = cNode.path("content").asText();
+                                String legalRef = cNode.path("legalReference").asText();
 
-                            String activeModelId = aiModelClient.getEmbeddingModelId() != null
-                                    ? aiModelClient.getEmbeddingModelId()
-                                    : "bkai_pho_bert_ft_v1";
-                            String embeddingStr;
-                            String chunkModelId;
-                            if ("bkai_pho_bert_ft_v1".equalsIgnoreCase(activeModelId)
-                                    && cNode.has("embedding")
-                                    && !cNode.path("embedding").asText().isBlank()) {
-                                embeddingStr = cNode.path("embedding").asText();
-                                chunkModelId = "bkai_pho_bert_ft_v1";
-                            } else {
-                                embeddingStr = aiModelClient.toPgVectorString(aiModelClient.generateEmbedding(title + " " + content));
-                                chunkModelId = activeModelId;
+                                String activeModelId = aiModelClient.getEmbeddingModelId() != null
+                                        ? aiModelClient.getEmbeddingModelId()
+                                        : "bkai_pho_bert_ft_v1";
+                                String embeddingStr;
+                                String chunkModelId;
+                                if ("bkai_pho_bert_ft_v1".equalsIgnoreCase(activeModelId)
+                                        && cNode.has("embedding")
+                                        && !cNode.path("embedding").asText().isBlank()) {
+                                    embeddingStr = cNode.path("embedding").asText();
+                                    chunkModelId = "bkai_pho_bert_ft_v1";
+                                } else {
+                                    embeddingStr = aiModelClient.toPgVectorString(aiModelClient.generateEmbedding(title + " " + content));
+                                    chunkModelId = activeModelId;
+                                }
+
+                                chunkList.add(LegalChunk.builder()
+                                        .procedure(savedProc)
+                                        .chunkCode(chunkCode)
+                                        .chunkType(chunkType)
+                                        .title(title)
+                                        .content(content)
+                                        .legalReference(legalRef)
+                                        .embedding(embeddingStr)
+                                        .embeddingModel(chunkModelId)
+                                        .status("ACTIVE")
+                                        .effectiveDate(LocalDate.now())
+                                        .build());
                             }
-
-                            chunkList.add(LegalChunk.builder()
-                                    .procedure(savedProc)
-                                    .chunkCode(chunkCode)
-                                    .chunkType(chunkType)
-                                    .title(title)
-                                    .content(content)
-                                    .legalReference(legalRef)
-                                    .embedding(embeddingStr)
-                                    .embeddingModel(chunkModelId)
-                                    .status("ACTIVE")
-                                    .effectiveDate(LocalDate.now())
-                                    .build());
                         }
-                    }
 
-                    if (!chunkList.isEmpty()) {
-                        chunkRepository.saveAll(chunkList);
+                        if (!chunkList.isEmpty()) {
+                            chunkRepository.saveAll(chunkList);
+                        }
                     }
 
                     seededCount++;
@@ -118,7 +134,8 @@ public class ProcedureDataSeeder implements CommandLineRunner {
                 }
             }
 
-            log.info("Successfully seeded {} administrative procedures into database.", seededCount);
+            log.info("Successfully synchronized {} administrative procedures into database.", seededCount);
+            backfillMissingEmbeddings();
 
         } catch (Exception e) {
             log.warn("Could not load seed resources (normal during offline test environments): {}", e.getMessage());

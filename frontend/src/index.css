@@ -20,6 +20,30 @@
   }
 }
 
+/* UTH & Civic Institutional Pattern & Watermark */
+.bg-uth-canvas {
+  background-color: #E0F2F1;
+  background-image: 
+    radial-gradient(circle at 12% 18%, rgba(0, 121, 107, 0.12) 0%, transparent 35%),
+    radial-gradient(circle at 88% 82%, rgba(38, 166, 154, 0.14) 0%, transparent 40%),
+    linear-gradient(135deg, #E0F2F1 0%, #E6F4F1 50%, #ECFDF5 100%);
+  background-attachment: fixed;
+}
+
+.bg-uth-watermark {
+  position: relative;
+}
+
+.bg-uth-watermark::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='180' height='180' viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2300796B' fill-opacity='0.035'%3E%3Cpath d='M90 35 L125 55 L90 75 L55 55 Z'/%3E%3Cpath d='M70 65 L70 85 C70 98 110 98 110 85 L110 65' fill='none' stroke='%2300796B' stroke-opacity='0.035' stroke-width='3'/%3E%3Cpath d='M125 55 L135 68 L135 85' fill='none' stroke='%2300796B' stroke-opacity='0.035' stroke-width='2'/%3E%3Ctext x='90' y='145' font-family='sans-serif' font-size='11' font-weight='bold' text-anchor='middle' fill='%2300796B' fill-opacity='0.03'%3EUTH - SMARTWARD%3C/text%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+  z-index: 0;
+}
+
 /* Accessibility & Inclusive All-Ages Scaling (Phù hợp mọi lứa tuổi & người lớn tuổi) */
 html.scale-text-large {
   font-size: 112.5%;
@@ -240,4 +264,64 @@ html.high-contrast-mode #root {
 .btn-teal {
   @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#0F766E] hover:bg-[#115E59] active:scale-[0.98] shadow-sm shadow-[#0F766E]/20 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#0F766E] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
 }
+
+/* ========================================================================= */
+/* VIETNAMESE ADMINISTRATIVE TYPOGRAPHY (Nghị định 30/2020/NĐ-CP Standard)    */
+/* ========================================================================= */
+.font-administrative,
+.font-times,
+.a4-print-sheet {
+  font-family: 'Times New Roman', 'Tinos', Times, 'Liberation Serif', serif !important;
+  font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ========================================================================= */
+/* A4 ADMINISTRATIVE DOCUMENT PRINT STYLES (NGHỊ ĐỊNH 30/2020/NĐ-CP)         */
+/* ========================================================================= */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 20mm 15mm 20mm 25mm; /* Chuẩn lề NĐ 30: Trái 25-30mm, Phải 15-20mm, Trên 20-25mm, Dưới 20-25mm */
+  }
+
+  body, .a4-print-sheet {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Times New Roman', 'Tinos', Times, 'Liberation Serif', serif !important;
+    font-size: 13pt !important;
+  }
+
+  /* Hide all interactive app components during print */
+  header,
+  nav,
+  footer,
+  aside,
+  .no-print,
+  [data-no-print="true"] {
+    display: none !important;
+  }
+
+  /* Printable Modal Container overrides */
+  .a4-print-overlay {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: block !important;
+    width: 100% !important;
+  }
+
+  .a4-print-sheet {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    background: transparent !important;
+  }
+}
+
 

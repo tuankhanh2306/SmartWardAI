@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartWard AI Mobile — Bản Mẫu Giao Diện Đồng Bộ Chuẩn UX/UI Pro Max</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Be Vietnam Pro', sans-serif;
+      background: #0F172A;
+      color: #0F172A;
+    }
+    .font-mono-code {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .phone-frame {
+      width: 392px;
+      height: 820px;
+      border-radius: 48px;
+      border: 10px solid #1E293B;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 2px #334155;
+      background-color: #E0F2F1;
+      background-image: 
+        radial-gradient(circle at 12% 18%, rgba(0, 121, 107, 0.12) 0%, transparent 35%),
+        radial-gradient(circle at 88% 82%, rgba(38, 166, 154, 0.14) 0%, transparent 40%),
+        linear-gradient(135deg, #E0F2F1 0%, #E6F4F1 50%, #ECFDF5 100%);
+      overflow: hidden;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .civic-web-grid {
+      background-image: url("data:image/svg+xml,%3Csvg width='180' height='180' viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2300796B' fill-opacity='0.04'%3E%3Cpath d='M90 35 L125 55 L90 75 L55 55 Z'/%3E%3Cpath d='M70 65 L70 85 C70 98 110 98 110 85 L110 65' fill='none' stroke='%2300796B' stroke-opacity='0.04' stroke-width='3'/%3E%3Cpath d='M125 55 L135 68 L135 85' fill='none' stroke='%2300796B' stroke-opacity='0.04' stroke-width='2'/%3E%3Ctext x='90' y='145' font-family='sans-serif' font-size='11' font-weight='bold' text-anchor='middle' fill='%2300796B' fill-opacity='0.035'%3EUTH - SMARTWARD%3C/text%3E%3C/g%3E%3C/svg%3E");
+      background-repeat: repeat;
+    }
+    .dynamic-island {
+      width: 116px;
+      height: 26px;
+      background: #0F172A;
+      border-radius: 999px;
+      margin: 8px auto 4px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+    }
+    .screen-scroll {
+      flex: 1;
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+    .screen-scroll::-webkit-scrollbar {
+      display: none;
+    }
+    @keyframes laserSweep {
+      0%, 100% { top: 12%; }
+      50% { top: 86%; }
+    }
+    .laser-line {
+      position: absolute;
+      left: 8%;
+      right: 8%;
+      height: 2px;
+      background: #2DD4BF;
+      box-shadow: 0 0 10px #2DD4BF;
+      animation: laserSweep 2.4s ease-in-out infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen py-6 px-4 flex flex-col items-center">
+
+  <!-- Top Presentation Control Bar -->
+  <div class="max-w-6xl w-full mb-6 p-4 rounded-2xl bg-[#1E293B] border border-[#334155] text-white flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="px-2.5 py-0.5 rounded-full bg-[#00796B] text-white text-[11px] font-extrabold uppercase tracking-wider">UX/UI PRO MAX • STITCH DESIGN SYSTEM</span>
+        <span class="text-xs text-[#94A3B8] font-mono-code">Đồng bộ 100% với Web SmartWard AI</span>
+      </div>
+      <h1 class="text-lg font-extrabold mt-1">Bản Mẫu Tương Tác SmartWard AI Mobile (5 Màn Hình Đồng Bộ Thời Gian Thực)</h1>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <button onclick="switchScreen('rag')" id="top-btn-rag" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#00796B] text-white cursor-pointer transition">1. Hỏi Đáp 40 TTHC & TTS</button>
+      <button onclick="switchScreen('form')" id="top-btn-form" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#334155] text-[#CBD5E1] hover:bg-[#475569] cursor-pointer transition">2. Sơ Duyệt & AI Thị Giác</button>
+      <button onclick="switchScreen('qr')" id="top-btn-qr" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#334155] text-[#CBD5E1] hover:bg-[#475569] cursor-pointer transition">3. Ví Mã Hẹn QR & Email</button>
+      <button onclick="switchScreen('gps')" id="top-btn-gps" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#334155] text-[#CBD5E1] hover:bg-[#475569] cursor-pointer transition">4. Sự Cố GPS 25m</button>
+      <button onclick="switchScreen('officer')" id="top-btn-officer" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-[#334155] text-[#CBD5E1] hover:bg-[#475569] cursor-pointer transition">5. Cán Bộ Quét QR & Duyệt</button>
+    </div>
+  </div>
+
+  <!-- Interactive iPhone 16 Pro Prototype Container -->
+  <div class="phone-frame civic-web-grid">
+    <!-- iOS Status Bar + Dynamic Island -->
+    <div class="bg-white pt-1 pb-2 px-5 border-b border-[#E2E8F0]">
+      <div class="flex items-center justify-between text-[11px] font-bold text-[#0F172A]">
+        <span>09:41</span>
+        <div class="dynamic-island">
+          <span class="w-2 h-2 rounded-full bg-[#10B981]"></span>
+          <span class="text-[9px] text-white/80 font-mono-code">AI GATE</span>
+        </div>
+        <span>5G • 100%</span>
+      </div>
+
+      <!-- Persistent Civic Header (Synchronized with Web Header) -->
+      <div class="mt-2 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] text-[#00796B] text-[11px] font-extrabold">
+          <span>📍 Phường Mỹ Bình</span>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-white border border-[#99F6E4]">Đổi Xã</span>
+        </div>
+
+        <div class="flex items-center gap-1">
+          <button onclick="cycleFont()" id="font-btn" class="px-2 py-1 rounded-lg border border-[#CBD5E1] bg-white text-[10px] font-extrabold text-[#334155] cursor-pointer" title="Đổi cỡ chữ cho người cao tuổi">
+            A Cỡ chữ: Chuẩn
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- SCREEN 1: LEGAL RAG 40 TTHC & 2-MODE VOICE READER + DOCX/PDF -->
+    <!-- ========================================================= -->
+    <div id="screen-rag" class="screen-scroll p-3.5 space-y-3">
+      <div class="p-3.5 rounded-2xl bg-[#00796B] text-white shadow-xs">
+        <span class="text-[10px] font-bold uppercase tracking-wider text-[#99F6E4]">Cổng Dịch Vụ Công 96 Xã/Phường An Giang</span>
+        <h2 class="text-sm font-extrabold mt-0.5">Trợ Lý Pháp Lý AI & 40 TTHC Chuẩn Hóa</h2>
+        <p class="text-[11px] text-[#E0F2F1] mt-1">Chốt chặn chống ảo giác pháp lý (θ = 0.78) • Tải trực tiếp file .docx / .pdf</p>
+      </div>
+
+      <!-- Quick Category Pills -->
+      <div class="flex gap-1.5 overflow-x-auto pb-1">
+        <span class="px-2.5 py-1 rounded-full bg-[#00796B] text-white text-[11px] font-bold shrink-0">Cư trú (CT01)</span>
+        <span class="px-2.5 py-1 rounded-full bg-white border border-[#CBD5E1] text-[#334155] text-[11px] font-semibold shrink-0">Hộ tịch (Khai sinh/Kết hôn)</span>
+        <span class="px-2.5 py-1 rounded-full bg-white border border-[#CBD5E1] text-[#334155] text-[11px] font-semibold shrink-0">Bảo trợ XH</span>
+      </div>
+
+      <!-- Grounded 5-Part Legal Answer Card -->
+      <div class="p-3.5 rounded-2xl bg-white border border-[#CBD5E1] shadow-2xs space-y-2.5">
+        <div class="flex items-center justify-between gap-2 border-b border-[#E2E8F0] pb-2">
+          <div>
+            <span class="text-[10px] font-mono-code font-bold text-[#00796B] bg-[#F0FDFA] px-2 py-0.5 rounded border border-[#99F6E4]">TTHC-CR-01 • S_max = 0.94</span>
+            <h3 class="text-xs font-extrabold text-[#0F172A] mt-1">Thủ tục Đăng ký thường trú (Mẫu CT01)</h3>
+          </div>
+
+          <!-- 2-Mode TTS Button (MỞ / TẮT) -->
+          <button onclick="toggleTts()" id="tts-btn" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border border-[#A7F3D0] bg-white text-[#065F46] text-[11px] font-bold cursor-pointer shadow-2xs">
+            <span id="tts-label">🔊 Nghe đọc to</span>
+            <span id="tts-badge" class="px-1.5 py-0.5 rounded bg-[#00796B] text-white text-[9px] font-black">MỞ</span>
+          </button>
+        </div>
+
+        <div id="rag-content" class="text-xs text-[#334155] space-y-1.5 leading-relaxed">
+          <p><strong class="text-[#0F172A]">1. Thành phần hồ sơ:</strong> Tờ khai thay đổi thông tin cư trú (Mẫu CT01 ban hành kèm Thông tư 66/2023/TT-BCA) và giấy tờ chứng minh chỗ ở hợp pháp.</p>
+          <p><strong class="text-[#0F172A]">2. Thời hạn giải quyết:</strong> Tối đa 07 ngày làm việc.</p>
+          <p><strong class="text-[#0F172A]">3. Lệ phí:</strong> 10.000đ – 20.000đ (Miễn 100% cho người cao tuổi, hộ nghèo, người khuyết tật).</p>
+          <p><strong class="text-[#0F172A]">4. Nơi tiếp nhận:</strong> Công an / Bộ phận Một cửa UBND Phường Mỹ Bình.</p>
+        </div>
+
+        <!-- Download Word / PDF Directly (No Print Button) -->
+        <div class="pt-2 border-t border-[#E2E8F0] grid grid-cols-2 gap-2">
+          <button onclick="alert('Đã tải xuống: Mau_CT01_CuTru_Chuan_ND30.docx')" class="py-2 px-2.5 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] border border-[#CBD5E1] text-[#0F172A] text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer">
+            <span>📄 Tải Mẫu .DOCX</span>
+          </button>
+          <button onclick="alert('Đã tải xuống: Mau_CT01_CuTru_Chuan_ND30.pdf')" class="py-2 px-2.5 rounded-xl bg-[#00796B] text-white text-[11px] font-bold flex items-center justify-center gap-1 cursor-pointer">
+            <span>📥 Tải Mẫu .PDF</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- SCREEN 2: SMART FORM PRECHECK & AI VISION 3-CRITERIA GATE -->
+    <!-- ========================================================= -->
+    <div id="screen-form" class="screen-scroll p-3.5 space-y-3 hidden">
+      <!-- 4 Form Type Tabs -->
+      <div class="grid grid-cols-4 gap-1 p-1 rounded-xl bg-[#E2E8F0]">
+        <button class="py-1.5 rounded-lg bg-[#00796B] text-white text-[10px] font-extrabold">1. CT01</button>
+        <button class="py-1.5 rounded-lg text-[#475569] text-[10px] font-bold">2. Khai sinh</button>
+        <button class="py-1.5 rounded-lg text-[#475569] text-[10px] font-bold">3. Kết hôn</button>
+        <button class="py-1.5 rounded-lg text-[#475569] text-[10px] font-bold">4. Bảo trợ</button>
+      </div>
+
+      <!-- Camera / File Upload + Simulation Buttons -->
+      <div class="p-3 rounded-2xl bg-white border border-[#CBD5E1] space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-extrabold text-[#0F172A]">Chụp Ảnh Tờ Khai / Tải File .DOCX</span>
+          <span class="text-[10px] font-bold text-[#00796B] bg-[#F0FDFA] px-2 py-0.5 rounded border border-[#99F6E4]">Quét QR CCCD</span>
+        </div>
+
+        <!-- Quick Test Simulation Buttons -->
+        <div class="flex flex-wrap gap-1.5">
+          <button onclick="setVisionMode('GOOD')" class="px-2 py-1 rounded-lg bg-[#ECFDF5] border border-[#A7F3D0] text-[#065F46] text-[10px] font-bold cursor-pointer">✓ Mẫu chuẩn rõ nét</button>
+          <button onclick="setVisionMode('BLURRY')" class="px-2 py-1 rounded-lg bg-[#FEF2F2] border border-[#FECACA] text-[#DC2626] text-[10px] font-bold cursor-pointer">✕ Thử ảnh mờ (AI Chặn)</button>
+          <button onclick="setVisionMode('WRONG')" class="px-2 py-1 rounded-lg bg-[#FFFBEB] border border-[#FDE68A] text-[#B45309] text-[10px] font-bold cursor-pointer">⚠ Thử sai mẫu (AI Chặn)</button>
+        </div>
+
+        <!-- 3-Criteria AI Vision Gate Card -->
+        <div id="vision-card" class="p-2.5 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] text-[#0F766E] space-y-2">
+          <div class="flex items-center justify-between border-b border-current/15 pb-1.5">
+            <span class="text-[11px] font-extrabold">🛡️ Chốt Chặn AI Thị Giác (3 Tiêu Chí)</span>
+            <span id="vision-badge" class="px-2 py-0.5 rounded-full bg-[#CCFBF1] text-[#0F766E] text-[9px] font-black">ĐẠT CHUẨN GỬI CÁN BỘ</span>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5 text-[10px]">
+            <div class="p-1.5 rounded-lg bg-white border border-current/15">
+              <span class="text-[#64748B] block text-[9px]">1. Độ sắc nét</span>
+              <strong id="vision-sharpness" class="font-mono-code text-[#0F172A]">96/100 điểm</strong>
+            </div>
+            <div class="p-1.5 rounded-lg bg-white border border-current/15">
+              <span class="text-[#64748B] block text-[9px]">2. Khớp mẫu</span>
+              <strong id="vision-template" class="font-mono-code text-[#0F172A]">Đúng CT01</strong>
+            </div>
+            <div class="p-1.5 rounded-lg bg-white border border-current/15">
+              <span class="text-[#64748B] block text-[9px]">3. Chữ đã điền</span>
+              <strong id="vision-fields" class="font-mono-code text-[#0F172A]">5/5 mục rõ</strong>
+            </div>
+          </div>
+          <p id="vision-msg" class="text-[10px] leading-tight">Ảnh rõ nét, đúng mẫu CT01 và đã tự động trích xuất 5 trường thông tin.</p>
+        </div>
+      </div>
+
+      <!-- Extracted Fields + Free Email Notification Input -->
+      <div class="p-3 rounded-2xl bg-white border border-[#CBD5E1] space-y-2">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[10px] font-bold text-[#475569]">1. Họ tên công dân:</label>
+            <input type="text" value="NGUYỄN MINH TUẤN KHANH" class="w-full mt-0.5 px-2.5 py-1.5 rounded-lg border border-[#10B981] bg-[#F0FDF4]/50 text-[11px] font-bold text-[#0F172A]" />
+          </div>
+          <div>
+            <label class="text-[10px] font-bold text-[#475569]">2. Số ĐDCN / CCCD:</label>
+            <input type="text" value="089205023490" class="w-full mt-0.5 px-2.5 py-1.5 rounded-lg border border-[#10B981] bg-[#F0FDF4]/50 text-[11px] font-mono-code font-bold text-[#0F172A]" />
+          </div>
+        </div>
+
+        <!-- Free Email Card (No SMS / No Zalo Fees) -->
+        <div class="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] font-extrabold text-[#0F172A]">✉️ Email nhận kết quả & Mã QR:</span>
+            <span class="px-1.5 py-0.5 rounded bg-[#CCFBF1] text-[#0F766E] text-[9px] font-bold">100% Miễn phí • Không SMS</span>
+          </div>
+          <input type="email" value="congdan.angiang@gmail.com" class="w-full px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] bg-white text-[11px] text-[#0F172A]" />
+        </div>
+
+        <button id="submit-precheck-btn" onclick="switchScreen('qr')" class="w-full py-2.5 rounded-xl bg-[#00796B] text-white text-xs font-extrabold shadow-xs cursor-pointer transition">
+          ✨ Kiểm Tra & Gửi Sơ Duyệt Cán Bộ
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- SCREEN 3: ELECTRONIC QR APPOINTMENT PASS & EMAIL INBOX    -->
+    <!-- ========================================================= -->
+    <div id="screen-qr" class="screen-scroll p-3.5 space-y-3 hidden">
+      <div class="p-3.5 rounded-2xl bg-white border-2 border-[#00796B] shadow-xs space-y-3">
+        <div class="flex items-start justify-between gap-2 border-b border-[#E2E8F0] pb-2.5">
+          <div>
+            <span class="inline-block px-2 py-0.5 rounded bg-[#CCFBF1] text-[#0F766E] text-[9px] font-black uppercase">PHIẾU HẸN SƠ DUYỆT ĐIỆN TỬ</span>
+            <h3 class="text-xs font-extrabold text-[#0F172A] mt-1">UBND Phường Mỹ Bình</h3>
+            <p class="text-[10px] text-[#64748B]">Bộ phận Một cửa — Tỉnh An Giang</p>
+          </div>
+          <div class="p-1.5 bg-[#F8FAFC] rounded-xl border border-[#CBD5E1] flex flex-col items-center">
+            <svg viewBox="0 0 100 100" class="w-14 h-14 text-[#0F172A]" fill="currentColor">
+              <path d="M5,5 h28 v28 h-28 z M10,10 v18 h18 v-18 z M14,14 h10 v10 h-10 z" />
+              <path d="M67,5 h28 v28 h-28 z M72,10 v18 h18 v-18 z M76,14 h10 v10 h-10 z" />
+              <path d="M5,67 h28 v28 h-28 z M10,72 v18 h18 v-18 z M14,76 h10 v10 h-10 z" />
+              <rect x="38" y="10" width="8" height="16" />
+              <rect x="52" y="18" width="8" height="8" />
+              <rect x="38" y="38" width="22" height="8" />
+              <rect x="14" y="44" width="16" height="8" />
+              <rect x="44" y="52" width="16" height="16" />
+              <rect x="70" y="44" width="18" height="12" />
+              <rect x="38" y="74" width="24" height="8" />
+              <rect x="72" y="72" width="16" height="16" />
+            </svg>
+            <span class="text-[8px] font-mono-code font-bold text-[#00796B] mt-0.5">LH-20261111-8899</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 text-[11px]">
+          <div>
+            <span class="text-[9px] text-[#64748B] block">Họ và tên công dân:</span>
+            <strong class="text-[#0F172A]">NGUYỄN MINH TUẤN KHANH</strong>
+          </div>
+          <div>
+            <span class="text-[9px] text-[#64748B] block">Mã hồ sơ đồng bộ Web:</span>
+            <strong class="font-mono-code text-[#00796B]">HS-20261111-MB01</strong>
+          </div>
+          <div>
+            <span class="text-[9px] text-[#64748B] block">Biểu mẫu & Thủ tục:</span>
+            <strong class="text-[#0F172A]">CT01 • Đăng ký thường trú</strong>
+          </div>
+          <div>
+            <span class="text-[9px] text-[#64748B] block">Cán bộ duyệt sơ bộ:</span>
+            <strong class="text-[#059669]">Trần Thị Hương (Một cửa)</strong>
+          </div>
+        </div>
+
+        <div class="p-2 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] text-[10px] text-[#065F46]">
+          <strong>Hướng dẫn tại quầy:</strong> Xuất trình Mã QR này trên điện thoại kèm CCCD bản chính tại Quầy ưu tiên số 2, không cần xếp hàng viết lại đơn.
+        </div>
+
+        <button onclick="alert('Đã tải xuống: Phieu_Hen_So_Duyet_QR_LH-20261111-8899.pdf')" class="w-full py-2 rounded-xl bg-[#00796B] text-white text-[11px] font-extrabold cursor-pointer">
+          📥 Tải Phiếu Hẹn Có Mã QR (.pdf) Về Máy
+        </button>
+      </div>
+
+      <!-- Free Email Notification Inbox -->
+      <div class="p-3 rounded-2xl bg-white border border-[#CBD5E1] space-y-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-extrabold text-[#00796B]">📬 Hộp Thư Thông Báo Email Từ Cán Bộ</span>
+          <span class="text-[9px] font-bold px-2 py-0.5 rounded-full bg-[#ECFDF5] text-[#065F46]">Miễn phí 100%</span>
+        </div>
+        <div class="p-2.5 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] text-[10px] space-y-1">
+          <div class="flex justify-between font-bold text-[#0F172A]">
+            <span>[UBND Phường Mỹ Bình] Đã duyệt sơ bộ CT01</span>
+            <span class="font-mono-code text-[#64748B]">Vừa xong</span>
+          </div>
+          <p class="text-[#334155]">Tới: <strong>congdan.angiang@gmail.com</strong> — Hồ sơ CT01 hợp lệ 100%. Mời anh/chị mang bản chính CCCD đến quầy Một cửa và xuất trình mã QR <strong>LH-20261111-8899</strong>.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- SCREEN 4: FIELD INCIDENT GPS R=25M & CROSS-WARD ROUTING   -->
+    <!-- ========================================================= -->
+    <div id="screen-gps" class="screen-scroll p-3.5 space-y-3 hidden">
+      <div class="p-3 rounded-2xl bg-white border border-[#CBD5E1] space-y-2.5">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-extrabold text-[#00796B]">📍 1. Định Vị Sự Cố Hiện Trường (R = 25m)</span>
+          <span class="px-2 py-0.5 rounded-full bg-[#CCFBF1] text-[#0F766E] text-[9px] font-mono-code font-bold">GPS ±6m</span>
+        </div>
+
+        <!-- Simulated Map with R=25m Spatial Circle -->
+        <div class="h-36 rounded-xl bg-[#E2E8F0] border border-[#CBD5E1] relative overflow-hidden flex items-center justify-center">
+          <div class="w-24 h-24 rounded-full bg-[#00796B]/20 border-2 border-[#00796B] flex items-center justify-center animate-pulse">
+            <div class="w-3.5 h-3.5 rounded-full bg-[#DC2626] ring-4 ring-white"></div>
+          </div>
+          <span class="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-white/90 text-[9px] font-mono-code font-bold text-[#0F172A]">10.3864°N, 105.4352°E • Bán kính gom cụm R=25m</span>
+        </div>
+
+        <div>
+          <label class="text-[10px] font-bold text-[#475569]">Ô vị trí tự động điền (Định tuyến liên xã/phường):</label>
+          <input type="text" value="Đường Nguyễn Huệ, Phường Mỹ Bình, TP. Long Xuyên, An Giang" class="w-full mt-0.5 px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] text-[11px] font-semibold text-[#0F172A]" />
+        </div>
+
+        <div class="p-2 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] text-[10px] text-[#0F766E] flex items-center justify-between">
+          <span>🏛️ Tự động định tuyến về: <strong>UBND Phường Mỹ Bình</strong></span>
+          <span class="font-mono-code font-bold">τ = 0.82</span>
+        </div>
+
+        <div>
+          <label class="text-[10px] font-bold text-[#475569]">Số điện thoại liên hệ xác minh khẩn cấp (*):</label>
+          <input type="tel" value="0918234567" class="w-full mt-0.5 px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] bg-white text-[11px] font-mono-code font-bold text-[#0F172A]" />
+        </div>
+
+        <button onclick="alert('Đã gửi phản ánh sự cố và gom cụm không gian R=25m về Bàn điều hành UBND Phường Mỹ Bình!')" class="w-full py-2.5 rounded-xl bg-[#DC2626] text-white text-xs font-extrabold cursor-pointer">
+          🚨 Gửi Báo Cáo Sự Cố Hiện Trường
+        </button>
+      </div>
+    </div>
+
+    <!-- ========================================================= -->
+    <!-- SCREEN 5: OFFICER MOBILE COUNTER QR SCANNER & QUICK AUDIT -->
+    <!-- ========================================================= -->
+    <div id="screen-officer" class="screen-scroll p-3.5 space-y-3 hidden">
+      <!-- Camera QR Scanner Viewfinder -->
+      <div class="h-36 rounded-2xl bg-[#0F172A] border-2 border-[#2DD4BF] relative overflow-hidden flex flex-col items-center justify-center text-white p-3">
+        <div class="laser-line"></div>
+        <span class="text-[10px] font-mono-code text-[#2DD4BF] uppercase tracking-wider">Chế độ Cán bộ Một cửa • CC-AG-8942</span>
+        <p class="text-xs font-extrabold mt-1">Quét Mã QR Phiếu Hẹn Công Dân</p>
+        <span class="mt-1 px-2.5 py-0.5 rounded-full bg-[#10B981]/20 border border-[#10B981] text-[#6EE7B7] text-[10px] font-mono-code">Đã nhận diện: LH-20261111-8899</span>
+      </div>
+
+      <!-- Officer Dossier Review Sheet -->
+      <div class="p-3 rounded-2xl bg-white border border-[#CBD5E1] space-y-2.5">
+        <div class="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
+          <div>
+            <span class="text-[10px] font-mono-code font-bold text-[#00796B]">HS-20261111-MB01 • Mẫu CT01</span>
+            <h3 class="text-xs font-extrabold text-[#0F172A]">NGUYỄN MINH TUẤN KHANH</h3>
+          </div>
+          <span class="px-2 py-0.5 rounded-full bg-[#ECFDF5] border border-[#A7F3D0] text-[#065F46] text-[9px] font-extrabold">AI GATE PASS: 96/100</span>
+        </div>
+
+        <div class="p-2 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-[10px] space-y-1">
+          <div>📧 Email công dân: <strong>congdan.angiang@gmail.com</strong></div>
+          <div>🔒 Zero-Trust Vault: <span class="font-mono-code text-[#00796B]">AES-256-GCM • OTT 1-Time View</span></div>
+        </div>
+
+        <div>
+          <label class="text-[10px] font-bold text-[#475569]">Lời dặn của Cán bộ gửi qua Email cho công dân:</label>
+          <textarea rows="2" class="w-full mt-0.5 p-2 rounded-lg border border-[#CBD5E1] text-[10px] text-[#0F172A]">Hồ sơ CT01 hợp lệ. Mời anh/chị xuất trình CCCD gốc tại Quầy số 2 để ký nhận.</textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <button onclick="alert('Đã gửi Email yêu cầu bổ sung tới congdan.angiang@gmail.com!')" class="py-2 rounded-xl border border-[#FCA5A5] bg-[#FEF2F2] text-[#DC2626] text-[10px] font-extrabold cursor-pointer">
+            Yêu Cầu Bổ Sung
+          </button>
+          <button onclick="alert('Đã Duyệt Hợp Lệ & Gửi Email + Mã Hẹn QR LH-20261111-8899!')" class="py-2 rounded-xl bg-[#00796B] text-white text-[10px] font-extrabold cursor-pointer">
+            ✓ Duyệt & Gửi Mã QR
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Tab Navigation Bar (5 Tabs) -->
+    <div class="bg-white border-t border-[#CBD5E1] px-2 py-2 grid grid-cols-5 gap-1 text-center">
+      <button onclick="switchScreen('rag')" id="tab-rag" class="flex flex-col items-center gap-0.5 text-[#00796B] font-extrabold text-[10px] cursor-pointer">
+        <span>💬</span>
+        <span>40 TTHC</span>
+      </button>
+      <button onclick="switchScreen('form')" id="tab-form" class="flex flex-col items-center gap-0.5 text-[#64748B] font-semibold text-[10px] cursor-pointer">
+        <span>🛡️</span>
+        <span>Sơ Duyệt</span>
+      </button>
+      <button onclick="switchScreen('qr')" id="tab-qr" class="flex flex-col items-center gap-0.5 text-[#64748B] font-semibold text-[10px] cursor-pointer">
+        <span>🎫</span>
+        <span>Ví Mã QR</span>
+      </button>
+      <button onclick="switchScreen('gps')" id="tab-gps" class="flex flex-col items-center gap-0.5 text-[#64748B] font-semibold text-[10px] cursor-pointer">
+        <span>📍</span>
+        <span>Sự Cố 25m</span>
+      </button>
+      <button onclick="switchScreen('officer')" id="tab-officer" class="flex flex-col items-center gap-0.5 text-[#64748B] font-semibold text-[10px] cursor-pointer">
+        <span>🏛️</span>
+        <span>Cán Bộ</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const screens = ['rag', 'form', 'qr', 'gps', 'officer'];
+    function switchScreen(active) {
+      screens.forEach(s => {
+        document.getElementById('screen-' + s).classList.toggle('hidden', s !== active);
+        const tab = document.getElementById('tab-' + s);
+        tab.className = s === active
+          ? 'flex flex-col items-center gap-0.5 text-[#00796B] font-extrabold text-[10px] cursor-pointer'
+          : 'flex flex-col items-center gap-0.5 text-[#64748B] font-semibold text-[10px] cursor-pointer';
+        const topBtn = document.getElementById('top-btn-' + s);
+        topBtn.className = s === active
+          ? 'px-3 py-1.5 rounded-xl text-xs font-bold bg-[#00796B] text-white cursor-pointer transition'
+          : 'px-3 py-1.5 rounded-xl text-xs font-bold bg-[#334155] text-[#CBD5E1] hover:bg-[#475569] cursor-pointer transition';
+      });
+    }
+
+    let isSpeaking = false;
+    function toggleTts() {
+      isSpeaking = !isSpeaking;
+      const btn = document.getElementById('tts-btn');
+      const label = document.getElementById('tts-label');
+      const badge = document.getElementById('tts-badge');
+      if (isSpeaking) {
+        btn.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border border-[#FCA5A5] bg-[#FEF2F2] text-[#DC2626] text-[11px] font-extrabold cursor-pointer shadow-2xs';
+        label.textContent = '🔇 Đang đọc...';
+        badge.className = 'px-1.5 py-0.5 rounded bg-[#DC2626] text-white text-[9px] font-black';
+        badge.textContent = 'TẮT';
+      } else {
+        btn.className = 'inline-flex items-center gap-1 px-2.5 py-1 rounded-xl border border-[#A7F3D0] bg-white text-[#065F46] text-[11px] font-bold cursor-pointer shadow-2xs';
+        label.textContent = '🔊 Nghe đọc to';
+        badge.className = 'px-1.5 py-0.5 rounded bg-[#00796B] text-white text-[9px] font-black';
+        badge.textContent = 'MỞ';
+      }
+    }
+
+    function setVisionMode(mode) {
+      const card = document.getElementById('vision-card');
+      const badge = document.getElementById('vision-badge');
+      const sharp = document.getElementById('vision-sharpness');
+      const tpl = document.getElementById('vision-template');
+      const fields = document.getElementById('vision-fields');
+      const msg = document.getElementById('vision-msg');
+      const submitBtn = document.getElementById('submit-precheck-btn');
+
+      if (mode === 'GOOD') {
+        card.className = 'p-2.5 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] text-[#0F766E] space-y-2';
+        badge.className = 'px-2 py-0.5 rounded-full bg-[#CCFBF1] text-[#0F766E] text-[9px] font-black';
+        badge.textContent = 'ĐẠT CHUẨN GỬI CÁN BỘ';
+        sharp.textContent = '96/100 điểm';
+        tpl.textContent = 'Đúng CT01';
+        fields.textContent = '5/5 mục rõ';
+        msg.textContent = 'Ảnh rõ nét, đúng mẫu CT01 và đã tự động trích xuất 5 trường thông tin.';
+        submitBtn.className = 'w-full py-2.5 rounded-xl bg-[#00796B] text-white text-xs font-extrabold shadow-xs cursor-pointer transition';
+        submitBtn.textContent = '✨ Kiểm Tra & Gửi Sơ Duyệt Cán Bộ';
+        submitBtn.disabled = false;
+      } else if (mode === 'BLURRY') {
+        card.className = 'p-2.5 rounded-xl bg-[#FEF2F2] border border-[#FCA5A5] text-[#991B1B] space-y-2';
+        badge.className = 'px-2 py-0.5 rounded-full bg-[#FEE2E2] text-[#DC2626] text-[9px] font-black';
+        badge.textContent = 'BỊ CHẶN — ẢNH MỜ';
+        sharp.textContent = '22/100 (Mờ)';
+        tpl.textContent = 'Đúng CT01';
+        fields.textContent = '1/5 mục rõ';
+        msg.textContent = 'Ảnh chụp bị rung nhòe (22/100 < 45). AI Thị Giác chặn gửi để tránh cán bộ phải trả hồ sơ.';
+        submitBtn.className = 'w-full py-2.5 rounded-xl bg-[#94A3B8] text-white text-xs font-extrabold cursor-not-allowed transition';
+        submitBtn.textContent = '🚫 AI Thị Giác Chặn Gửi (Chụp Lại Ảnh)';
+        submitBtn.disabled = true;
+      } else {
+        card.className = 'p-2.5 rounded-xl bg-[#FEF2F2] border border-[#FCA5A5] text-[#991B1B] space-y-2';
+        badge.className = 'px-2 py-0.5 rounded-full bg-[#FEE2E2] text-[#DC2626] text-[9px] font-black';
+        badge.textContent = 'BỊ CHẶN — SAI MẪU';
+        sharp.textContent = '91/100 điểm';
+        tpl.textContent = 'Lệch: TK-KS';
+        fields.textContent = '4/5 mục rõ';
+        msg.textContent = 'Đang chọn mục Cư trú (CT01) nhưng tệp tải lên là Tờ khai Khai sinh (TK-KS).';
+        submitBtn.className = 'w-full py-2.5 rounded-xl bg-[#94A3B8] text-white text-xs font-extrabold cursor-not-allowed transition';
+        submitBtn.textContent = '🚫 AI Thị Giác Chặn Gửi (Chọn Đúng Mẫu)';
+        submitBtn.disabled = true;
+      }
+    }
+
+    const fontModes = ['Chuẩn', 'Lớn (A+)', 'Rất lớn (A++)'];
+    let fontIdx = 0;
+    function cycleFont() {
+      fontIdx = (fontIdx + 1) % fontModes.length;
+      document.getElementById('font-btn').textContent = 'A Cỡ chữ: ' + fontModes[fontIdx];
+      const ragContent = document.getElementById('rag-content');
+      ragContent.style.fontSize = fontIdx === 0 ? '12px' : fontIdx === 1 ? '14px' : '16px';
+    }
+  </script>
+</body>
+</html>

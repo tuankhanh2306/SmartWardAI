@@ -411,6 +411,35 @@ export interface ExtractedFormFieldsResult {
   gender?: string;
   issueDate: string;
   address: string;
+  phone?: string;
+  hostName?: string;
+  hostCccd?: string;
+  hostRelation?: string;
+  declarationScope?: string;
+  childName?: string;
+  motherName?: string;
+  fatherName?: string;
+  birthPlace?: string;
+  birthCertNumber?: string;
+  birthCertIssueDate?: string;
+  childEthnicity?: string;
+  childNationality?: string;
+  partnerName?: string;
+  partnerCccd?: string;
+  partnerDob?: string;
+  partnerGender?: string;
+  partnerAddress?: string;
+  maritalCertPurpose?: string;
+  disabilityLevel?: string;
+  poorHouseholdBookNumber?: string;
+  householdStatus?: string;
+  disabilityCertNumber?: string;
+  disabilityCertIssueDate?: string;
+  guardianName?: string;
+  guardianCccd?: string;
+  guardianRelation?: string;
+  guardianPhone?: string;
+  bankAccount?: string;
   confidence: number;
   detectedDocType: string;
   message: string;
@@ -436,11 +465,15 @@ export function fileToBase64(file: File | Blob): Promise<{ base64Data: string; m
 
 /**
  * Performs Vision OCR Extraction.
- * Routes to Spring Boot backend (/api/v1/forms/precheck) for secure server-side OCR
- * without exposing Google Gemini API keys in the browser bundle.
- * Transparently falls back to In-Browser Tesseract.js WebAssembly OCR if the backend is unreachable.
+ * 1. Runs In-Browser Tesseract.js / Docx OCR directly on the citizen's uploaded file to capture actual text.
+ * 2. Attempts backend precheck (/api/v1/forms/precheck) for server-side rule verification and merges fields.
+ * Guarantees that extracted data is never overwritten with empty values.
  */
 export async function extractFormWithVision(file: File | Blob): Promise<ExtractedFormFieldsResult> {
+  // 1. Run local client-side extraction directly on user's file
+  const localResult = await extractFormWithTesseract(file);
+
+  // 2. Query backend for server-side complementary extraction / precheck
   try {
     const formData = new FormData();
     formData.append('file', file);
@@ -456,44 +489,60 @@ export async function extractFormWithVision(file: File | Blob): Promise<Extracte
       const report = resJson?.data || resJson;
       const fields = report?.extractedFields;
 
-      if (fields && (fields.fullName || fields.cccdNumber || fields.birthDate || fields.permanentAddress)) {
-        const fullName = (fields.fullName || '').trim();
-        const cccd = (fields.cccdNumber || '').trim().replace(/[^0-9]/g, '');
-        const dob = normalizeDateToYMD(fields.birthDate);
-        const issueDate = normalizeDateToYMD(fields.issueDate);
-        const gender = (fields.gender || '').trim();
-        const address = (fields.permanentAddress || '').trim();
-        const confidence = typeof report.overallConfidence === 'number'
-          ? Math.min(100, Math.max(0, Math.round(report.overallConfidence * 100)))
-          : 95;
+      if (fields) {
+        const mergedFullName = (localResult.fullName || fields.fullName || '').trim().toUpperCase();
+        const mergedCccd = localResult.cccd || (fields.cccdNumber || '').trim().replace(/[^0-9]/g, '');
+        const mergedDob = localResult.dob || normalizeDateToYMD(fields.birthDate);
+        const mergedIssueDate = localResult.issueDate || normalizeDateToYMD(fields.issueDate);
+        const mergedGender = localResult.gender || (fields.gender || '').trim();
+        const mergedAddress = localResult.address || (fields.permanentAddress || '').trim();
+        const mergedPhone = localResult.phone || (fields.phoneNumber || fields.phone || '').trim();
+        const mergedHostName = (localResult.hostName || fields.hostName || '').trim().toUpperCase();
+        const mergedHostCccd = localResult.hostCccd || (fields.hostCccd || fields.hostCccdNumber || '').trim().replace(/[^0-9]/g, '');
+        const mergedHostRelation = localResult.hostRelation || (fields.hostRelation || '').trim();
+        const mergedDeclarationScope = localResult.declarationScope || (fields.declarationScope || '').trim();
 
         let count = 0;
-        if (fullName) count++;
-        if (cccd) count++;
-        if (dob) count++;
-        if (gender) count++;
-        if (address) count++;
-        if (issueDate) count++;
+        if (mergedFullName) count++;
+        if (mergedCccd) count++;
+        if (mergedDob) count++;
+        if (mergedGender) count++;
+        if (mergedAddress) count++;
+        if (mergedPhone) count++;
+        if (mergedHostName) count++;
+        if (mergedHostCccd) count++;
+        if (mergedHostRelation) count++;
+        if (mergedDeclarationScope) count++;
+        if (mergedIssueDate) count++;
+        if (localResult.childName) count++;
+        if (localResult.motherName) count++;
+        if (localResult.partnerName) count++;
+        if (localResult.guardianName) count++;
 
         return {
+          ...localResult,
           success: count > 0,
-          fullName,
-          cccd,
-          dob,
-          gender,
-          issueDate,
-          address,
-          confidence: count > 0 ? confidence : 0,
-          detectedDocType: report.formType || 'Tờ khai CT01 cư trú',
-          message: report.summaryMessage || 'Đã trích xuất thông tin thành công qua máy chủ AI!',
+          fullName: mergedFullName,
+          cccd: mergedCccd,
+          dob: mergedDob,
+          gender: mergedGender,
+          issueDate: mergedIssueDate,
+          address: mergedAddress,
+          phone: mergedPhone,
+          hostName: mergedHostName,
+          hostCccd: mergedHostCccd,
+          hostRelation: mergedHostRelation,
+          declarationScope: mergedDeclarationScope,
+          confidence: Math.max(localResult.confidence || 0, typeof report.overallConfidence === 'number' ? Math.round(report.overallConfidence * 100) : 95),
+          detectedDocType: localResult.detectedDocType || report.formType || 'Tờ khai CT01 cư trú',
+          message: localResult.message || report.summaryMessage || 'Đã trích xuất thông tin thành công!',
           extractedFieldsCount: count,
         };
       }
     }
   } catch (backendError) {
-    console.info('Backend Vision OCR unavailable, falling back to in-browser Tesseract.js OCR:', backendError);
+    console.info('Backend Vision OCR unavailable, using local OCR result:', backendError);
   }
 
-  // Fallback to client-side WebAssembly Tesseract.js
-  return await extractFormWithTesseract(file);
+  return localResult;
 }

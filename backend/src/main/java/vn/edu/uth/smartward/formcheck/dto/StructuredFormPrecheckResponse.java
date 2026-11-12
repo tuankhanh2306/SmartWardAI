@@ -20,6 +20,8 @@ public class StructuredFormPrecheckResponse {
     private boolean overallValid;
     private List<FieldValidationItem> fieldValidations;
     private List<String> warnings;
+    private List<DocumentCrossCheckResult> crossCheckResults;
+    private DocumentCrossCheckResult primaryCrossCheck;
     private String processedAt;
     private double processingTimeMs;
 

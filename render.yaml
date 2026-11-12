@@ -1,0 +1,64 @@
+services:
+  # 1. Spring Boot 3.3 Backend API Service (Java 21 Docker)
+  - type: web
+    name: smartward-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    plan: free
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: JAVA_OPTS
+        value: "-XX:+UseSerialGC -XX:MaxRAMPercentage=70.0 -Xmx384m -Xss512k"
+      - key: VAULT_ENCRYPTION_KEY
+        generateValue: true
+      - key: JWT_SECRET
+        generateValue: true
+      - key: RAG_DEFAULT_THRESHOLD
+        value: "0.78"
+      - key: RAG_THETA_LOWER
+        value: "0.42"
+      - key: TRIAGE_DEFAULT_RADIUS_METERS
+        value: "25.0"
+      - key: SIDECAR_ENABLED
+        value: "false"
+      - key: DB_HOST
+        fromDatabase:
+          name: smartward-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: smartward-postgres
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: smartward-postgres
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: smartward-postgres
+          property: user
+      - key: DB_PASS
+        fromDatabase:
+          name: smartward-postgres
+          property: password
+
+  # 2. React 18 + Vite Frontend Static Site
+  - type: web
+    name: smartward-frontend
+    runtime: static
+    rootDir: ./frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+databases:
+  - name: smartward-postgres
+    databaseName: smartward_db
+    user: smartward
+    plan: free

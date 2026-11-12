@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { PROCEDURES_CATALOG } from '../data/proceduresCatalog';
 import { isGeminiConfigured, askGeminiWithRAG, buildStructuredProcedureResponse } from '../services/geminiClient';
 import { searchLegalKnowledge } from '../services/legalKnowledgeBase';
 import {
@@ -11,8 +12,13 @@ import {
   getRealTimeScheduleContext,
 } from '../services/intentClassifier';
 
+const resolvedApiBaseUrl =
+  (typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_BASE_URL)
+    ? String((import.meta as any).env.VITE_API_BASE_URL).replace(/\/+$/, '')
+    : '/api/v1';
+
 const api = axios.create({
-  baseURL: '/api/v1',
+  baseURL: resolvedApiBaseUrl,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -583,6 +589,123 @@ export interface FormPrecheckResponse {
   processingTimeMs: number;
 }
 
+// ============================================================================
+// 1.1 Citizen Dossier Database API Models (Milestone 4 - F10, F11)
+// ============================================================================
+
+export interface SubmitDossierPayload {
+  dossierCode?: string;
+  procedureCode: string;
+  wardCode: string;
+  citizenCccd: string;
+  formData: Record<string, any>;
+  precheckReport?: Record<string, any>;
+  vaultDocIds?: string[];
+}
+
+export interface DossierSubmissionResponse {
+  dossierCode: string;
+  procedureCode: string;
+  wardCode: string;
+  status: string;
+  slaDeadline: string;
+  createdAt: string;
+}
+
+export interface DossierTrackingResponse {
+  dossierCode: string;
+  procedureCode: string;
+  procedureName: string;
+  wardCode: string;
+  citizenCccd: string;
+  status: 'PENDING' | 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'REJECTED' | string;
+  slaDeadline: string;
+  officerFeedback?: string;
+  appointmentCode?: string;
+  precheckReport?: any;
+  vaultDocIds?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OfficerReviewPayload {
+  status: 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'REJECTED';
+  officerFeedback?: string;
+  reviewStatus?: string;
+  feedbackReason?: string;
+  appointmentCode?: string;
+}
+
+export interface OfficerDossierItem {
+  id: number | string;
+  dossierCode: string;
+  procedureCode: string;
+  procedureName: string;
+  wardCode: string;
+  citizenCccd: string;
+  citizenName: string;
+  status: 'PENDING' | 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'REJECTED' | 'VALID' | 'HAS_ERRORS' | string;
+  slaDeadline: string;
+  officerFeedback?: string;
+  appointmentCode?: string;
+  formData: Record<string, any>;
+  precheckReport?: Record<string, any>;
+  vaultDocIds?: string[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+/**
+ * Submit citizen dossier to PostgreSQL backend
+ */
+export const submitDossier = async (payload: SubmitDossierPayload): Promise<DossierSubmissionResponse> => {
+  const resp = await api.post<any>('/dossiers', payload);
+  const data = resp.data?.data ? resp.data.data : resp.data;
+  return data as DossierSubmissionResponse;
+};
+
+/**
+ * Track citizen dossier progress via dossierCode and last 4 CCCD digits from PostgreSQL
+ */
+export const trackDossier = async (
+  dossierCode: string,
+  last4Cccd?: string,
+  citizenCccd?: string
+): Promise<DossierTrackingResponse> => {
+  const params: Record<string, string> = { dossierCode: dossierCode.trim() };
+  if (last4Cccd) params.last4Cccd = last4Cccd.trim();
+  if (citizenCccd) params.citizenCccd = citizenCccd.trim();
+
+  const resp = await api.get<any>('/dossiers/track', { params });
+  const data = resp.data?.data ? resp.data.data : resp.data;
+  return data as DossierTrackingResponse;
+};
+
+/**
+ * Officer retrieves dossiers for review from PostgreSQL
+ */
+export const getOfficerDossiers = async (wardCode?: string, status?: string): Promise<OfficerDossierItem[]> => {
+  const params: Record<string, string> = {};
+  if (wardCode) params.wardCode = wardCode.trim();
+  if (status) params.status = status.trim();
+
+  const resp = await api.get<any>('/dossiers/officer/list', { params });
+  const data = resp.data?.data ? resp.data.data : resp.data;
+  return Array.isArray(data) ? data : [];
+};
+
+/**
+ * Officer reviews, approves, or requests supplement on citizen dossier in PostgreSQL
+ */
+export const reviewOfficerDossier = async (
+  dossierCode: string,
+  payload: OfficerReviewPayload
+): Promise<OfficerDossierItem> => {
+  const resp = await api.put<any>(`/dossiers/${encodeURIComponent(dossierCode.trim())}/review`, payload);
+  const data = resp.data?.data ? resp.data.data : resp.data;
+  return data as OfficerDossierItem;
+};
+
 export interface LiveFormDossier {
   id: string;
   citizenName: string;
@@ -591,21 +714,74 @@ export interface LiveFormDossier {
   submittedAt: string;
   status: 'PENDING' | 'VALID' | 'HAS_ERRORS';
   cccd: string;
+  citizenEmail?: string;
+  contactPhone?: string;
+  appointmentCode?: string;
   errorCount: number;
   wardName?: string;
   officerFeedback?: string;
   reviewedBy?: string;
   vaultViewUsed?: boolean;
+  vaultToken?: string;
+  vaultDocId?: string;
   details: {
     dob: string;
     gender: string;
     address: string;
     confidence: number;
+    sharpnessScore?: number;
+    templateMatched?: boolean;
     issues: string[];
+    vaultToken?: string;
   };
 }
 
+export interface EmailNotificationItem {
+  id: string;
+  dossierId: string;
+  recipientEmail: string;
+  citizenName: string;
+  subject: string;
+  status: 'APPROVED' | 'SUPPLEMENT_REQUIRED';
+  wardName: string;
+  reviewerName: string;
+  feedbackText: string;
+  appointmentCode?: string;
+  sentAt: string;
+}
+
 const LIVE_DOSSIERS_STORAGE_KEY = 'smartward_live_dossiers_v1';
+const EMAIL_NOTIFICATIONS_STORAGE_KEY = 'smartward_email_notifications_v1';
+
+export const getCitizenEmailNotifications = (): EmailNotificationItem[] => {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(EMAIL_NOTIFICATIONS_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+};
+
+export function sendCitizenEmailNotification(item: Omit<EmailNotificationItem, 'id' | 'sentAt'>): EmailNotificationItem {
+  const now = new Date();
+  const fullItem: EmailNotificationItem = {
+    ...item,
+    id: `EMAIL-${Date.now()}-${Math.floor(100 + Math.random() * 900)}`,
+    sentAt: `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} ${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()}`,
+  };
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = getCitizenEmailNotifications();
+      localStorage.setItem(EMAIL_NOTIFICATIONS_STORAGE_KEY, JSON.stringify([fullItem, ...existing].slice(0, 30)));
+    } catch {
+      // ignore storage errors
+    }
+  }
+  return fullItem;
+}
 
 export const getLiveSubmittedDossiers = (): LiveFormDossier[] => {
   if (typeof window === 'undefined') return [];
@@ -634,7 +810,8 @@ export function updateLiveDossierStatus(
   id: string,
   status: 'PENDING' | 'VALID' | 'HAS_ERRORS',
   officerFeedback?: string,
-  reviewedBy?: string
+  reviewedBy?: string,
+  appointmentCode?: string
 ): LiveFormDossier | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -648,6 +825,7 @@ export function updateLiveDossierStatus(
           errorCount: status === 'VALID' ? 0 : Math.max(1, d.errorCount),
           officerFeedback: officerFeedback ?? d.officerFeedback,
           reviewedBy: reviewedBy ?? d.reviewedBy,
+          appointmentCode: appointmentCode ?? d.appointmentCode,
         };
         return updatedItem;
       }
@@ -947,23 +1125,34 @@ export const precheckForm = async (data: {
         'Lưu ý cư trú nhiều nơi: Nếu từng đăng ký thường trú tại nhiều xã/phường khác nhau từ khi đủ tuổi kết hôn đến nay, cần có xác nhận tình trạng hôn nhân tại các nơi cư trú trước đó.'
       );
     } else if (formType === 'TK-BTXH') {
-      // Ưu tiên 3: Tờ khai Trợ cấp Bảo trợ xã hội hằng tháng (Mẫu số 01 Nghị định 20/2021/NĐ-CP)
+      // Ưu tiên 3: Tờ khai Trợ cấp Bảo trợ xã hội hằng tháng (Mẫu số 01 Nghị định 20/2021/NĐ-CP & Luật BHXH 2024)
       const ageInfo = computeAgeYearsAndMonths(data.dateOfBirth);
       const hasSevereDisability =
         extra.disabilityLevel === 'SEVERE' || extra.disabilityLevel === 'EXTREMELY_SEVERE';
-      const eligible = Boolean((ageInfo && ageInfo.years >= 80) || hasSevereDisability);
+      const isPoorOrNearPoor =
+        extra.householdStatus === 'POOR' || extra.householdStatus === 'NEAR_POOR';
+      const eligible = Boolean(
+        (ageInfo && ageInfo.years >= 75) ||
+          hasSevereDisability ||
+          (ageInfo && ageInfo.years >= 70 && isPoorOrNearPoor) ||
+          (ageInfo && ageInfo.years >= 80)
+      );
       fieldValidations.push({
-        fieldName: 'Điều kiện Mốc tuổi ≥ 80 hoặc Khuyết tật nặng (Mẫu 01 NĐ 20/2021/NĐ-CP)',
+        fieldName: 'Điều kiện Mốc tuổi (≥ 75 tuổi hoặc ≥ 70 tuổi hộ nghèo theo Luật BHXH 2024 / Khuyết tật nặng)',
         providedValue: `${data.dateOfBirth} (${ageInfo?.years ?? 0} tuổi) | ${
-          hasSevereDisability ? 'Khuyết tật nặng/đặc biệt nặng' : 'Không khuyết tật'
+          hasSevereDisability
+            ? 'Khuyết tật nặng/đặc biệt nặng'
+            : isPoorOrNearPoor
+            ? 'Hộ nghèo/cận nghèo'
+            : 'Không khuyết tật'
         }`,
         valid: eligible,
         errorCode: eligible ? undefined : 'INELIGIBLE_SOCIAL_PROTECTION_AGE',
         errorMessage: eligible
           ? undefined
-          : `CHƯA ĐỦ ĐIỀU KIỆN MỐC TUỔI (Nghị định 20/2021/NĐ-CP): Người cao tuổi không có lương hưu phải từ đủ 80 tuổi trở lên (hiện tại ${
+          : `CHƯA ĐỦ ĐIỀU KIỆN MỐC TUỔI (Luật BHXH 2024 & Nghị định 20/2021/NĐ-CP): Người cao tuổi không có lương hưu phải từ đủ 75 tuổi trở lên (hoặc từ đủ 70 tuổi nếu thuộc hộ nghèo/cận nghèo) hoặc có Giấy xác nhận khuyết tật nặng/đặc biệt nặng. Hiện tại công dân ${
               ageInfo?.years ?? 0
-            } tuổi) hoặc phải có Giấy xác nhận khuyết tật nặng/đặc biệt nặng.`,
+            } tuổi.`,
         confidenceScore: eligible ? 0.99 : 0.3,
       });
 
@@ -994,14 +1183,14 @@ export const precheckForm = async (data: {
         'Lưu ý Mẫu số 03 (Hỗ trợ chi phí mai táng): Người đứng tên tờ khai phải là người trực tiếp lo mai táng và đính kèm bản sao Trích lục khai tử.'
       );
     } else {
-      // Mặc định: Mẫu CT01 — Tờ khai thay đổi thông tin cư trú
+      // Mặc định: Mẫu CT01 — Tờ khai thay đổi thông tin cư trú (Thông tư 66/2023/TT-BCA)
       const nameValid = data.fullName.trim().length >= 4 && data.fullName.trim().includes(' ');
       fieldValidations.push({
-        fieldName: 'Họ và tên (Mục 1)',
+        fieldName: 'Họ và tên (Mục 1 Mẫu CT01)',
         providedValue: data.fullName,
         valid: nameValid,
         errorCode: nameValid ? undefined : 'INVALID_FULL_NAME',
-        errorMessage: nameValid ? undefined : 'Họ và tên công dân phải bao gồm đầy đủ họ, chữ đệm và tên.',
+        errorMessage: nameValid ? undefined : 'Họ và tên công dân phải bao gồm đầy đủ họ, chữ đệm và tên theo giấy khai sinh.',
         confidenceScore: nameValid ? 0.99 : 0.65,
       });
 
@@ -1025,7 +1214,7 @@ export const precheckForm = async (data: {
       }
 
       fieldValidations.push({
-        fieldName: 'Số định danh cá nhân (Mục 4)',
+        fieldName: 'Số định danh cá nhân / CCCD 12 số (Mục 4)',
         providedValue: data.citizenCccd,
         valid: cccdValid,
         errorCode: cccdValid ? undefined : 'INVALID_CCCD_FORMAT',
@@ -1035,7 +1224,7 @@ export const precheckForm = async (data: {
 
       const dobValid = Boolean(data.dateOfBirth);
       fieldValidations.push({
-        fieldName: 'Ngày tháng năm sinh (Mục 2)',
+        fieldName: 'Ngày tháng năm sinh (Mục 2 Mẫu CT01)',
         providedValue: data.dateOfBirth,
         valid: dobValid,
         errorCode: dobValid ? undefined : 'MISSING_DOB',
@@ -1046,7 +1235,7 @@ export const precheckForm = async (data: {
       if (data.gender) {
         const genderValid = ['Nam', 'Nữ', 'nam', 'nữ'].includes(data.gender.trim());
         fieldValidations.push({
-          fieldName: 'Giới tính (Mục 3)',
+          fieldName: 'Giới tính (Mục 3 Mẫu CT01)',
           providedValue: data.gender,
           valid: genderValid,
           confidenceScore: 0.98,
@@ -1062,6 +1251,23 @@ export const precheckForm = async (data: {
         errorMessage: addressValid ? undefined : 'Địa chỉ cư trú đề nghị phải ghi rõ số nhà, tên đường hoặc thôn/ấp, xã/phường.',
         confidenceScore: addressValid ? 0.94 : 0.55,
       });
+
+      const phone = (extra.phoneNumber || extra.phone || '').trim();
+      if (phone) {
+        const phoneValid = /^(0|\+84)(3|5|7|8|9|2)\d{8,9}$/.test(phone);
+        fieldValidations.push({
+          fieldName: 'Số điện thoại liên hệ (Mục 5 Mẫu CT01 - Thông tư 66/2023/TT-BCA)',
+          providedValue: phone,
+          valid: phoneValid,
+          errorCode: phoneValid ? undefined : 'INVALID_PHONE_NUMBER',
+          errorMessage: phoneValid ? undefined : 'Số điện thoại liên hệ phải là số điện thoại di động Việt Nam hợp lệ (10 số).',
+          confidenceScore: phoneValid ? 0.98 : 0.4,
+        });
+      }
+
+      warnings.push(
+        'Lưu ý Mẫu CT01 (Thông tư 66/2023/TT-BCA): Nếu đăng ký thường trú/tạm trú tại nhà thuê, mượn, ở nhờ phải có chữ ký đồng ý của chủ hộ và chủ sở hữu chỗ ở hợp pháp tại Mục 11, 12.'
+      );
     }
 
     const overallValid = fieldValidations.every((f) => f.valid);
@@ -1416,6 +1622,8 @@ export interface VaultUploadResponse {
   oneTimeToken: string;
   viewUrl: string;
   tokenExpiresInSeconds: number;
+  expiresAt?: string;
+  encryptionAlgorithm?: string;
   watermarkText?: string;
   watermarkApplied?: boolean;
   message: string;
@@ -1423,26 +1631,29 @@ export interface VaultUploadResponse {
 
 export const uploadVaultDocument = async (formData: FormData): Promise<VaultUploadResponse> => {
   const resp = await api.post<any>('/vault/upload', formData, {
-    headers: { 'Content-Type': 'multipart/form-data' },
+    headers: { 'Content-Type': undefined },
   });
   const data = resp.data?.data ?? resp.data;
   return {
-    documentId: data.documentCode || data.documentId || ('doc_' + Date.now()),
+    documentId: data.documentCode || data.documentId || ('DOC_' + Date.now()),
     documentCode: data.documentCode,
     oneTimeToken: data.oneTimeToken || '',
     viewUrl: data.viewUrl || '',
     tokenExpiresInSeconds: data.tokenExpiresInSeconds || 86400,
+    expiresAt: data.expiresAt,
+    encryptionAlgorithm: data.encryptionAlgorithm || 'AES/GCM/NoPadding (256-bit)',
     watermarkText: data.watermarkText || 'UBND XÃ - SMARTWARD ZERO-TRUST',
     watermarkApplied: data.watermarkApplied ?? true,
-    message: data.message || 'Tải lên thành công',
+    message: data.message || 'Tài liệu đã được mã hóa AES-256 và lưu trữ an toàn tại MinIO.',
   };
 };
 
 export const viewVaultDocument = async (token: string): Promise<Blob> => {
-  const resp = await api.get(`/vault/view/${token}`, {
+  const cleanToken = token ? token.trim() : '';
+  const resp = await api.get(`/vault/view/${encodeURIComponent(cleanToken)}`, {
     responseType: 'blob',
   });
-  return resp.data;
+  return resp.data as Blob;
 };
 
 // 5. Evaluation Benchmark API
@@ -1623,6 +1834,95 @@ export const rebuildSpatialIndex = async (): Promise<{ syncedClustersCount: numb
       message: 'Đã đồng bộ 8 cụm sự cố đang mở từ PostgreSQL vào Redis GEO (smartward:geo:clusters).',
     };
   }
+};
+
+export interface ProcedureItem {
+  procedureCode: string;
+  officialPortalCode?: string;
+  procedureName: string;
+  category: string;
+  agency: string;
+  processingTime: string;
+  fee: string;
+  status: string;
+  chunksCount: number;
+}
+
+export interface ProcedureDetail extends ProcedureItem {
+  process?: string;
+  sourceUrl?: string;
+  chunks?: Array<{
+    chunkId: string;
+    chunkType: string;
+    title: string;
+    content: string;
+    legalReference: string;
+  }>;
+}
+
+export const getProcedures = async (params?: { category?: string; keyword?: string }): Promise<ProcedureItem[]> => {
+  try {
+    const resp = await api.get<{ success: boolean; data: ProcedureItem[] }>('/procedures', { params });
+    const list = resp.data?.data;
+    if (Array.isArray(list) && list.length > 0) {
+      return list;
+    }
+  } catch (err) {
+    console.warn('Failed to fetch procedures from backend API, using fallback catalog:', err);
+  }
+
+  // Graceful fallback from PROCEDURES_CATALOG
+  let fallbackList: ProcedureItem[] = PROCEDURES_CATALOG.map((p) => ({
+    procedureCode: p.code,
+    officialPortalCode: p.portalCode,
+    procedureName: p.name,
+    category: p.category,
+    agency: 'Ủy ban nhân dân cấp xã / phường',
+    processingTime: 'Theo quy định',
+    fee: 'Miễn phí / Theo quy định',
+    status: 'ACTIVE',
+    chunksCount: p.chunksCount,
+  }));
+
+  if (params?.category && params.category !== 'ALL') {
+    fallbackList = fallbackList.filter((p) => p.category === params.category);
+  }
+  if (params?.keyword) {
+    const kw = params.keyword.toLowerCase();
+    fallbackList = fallbackList.filter(
+      (p) =>
+        p.procedureName.toLowerCase().includes(kw) ||
+        p.procedureCode.toLowerCase().includes(kw) ||
+        (p.officialPortalCode && p.officialPortalCode.includes(kw))
+    );
+  }
+  return fallbackList;
+};
+
+export const getProcedureByCode = async (code: string): Promise<ProcedureDetail | null> => {
+  try {
+    const resp = await api.get<{ success: boolean; data: ProcedureDetail }>(`/procedures/${code}`);
+    if (resp.data?.data) {
+      return resp.data.data;
+    }
+  } catch (err) {
+    console.warn(`Failed to fetch procedure ${code} from API, checking fallback catalog:`, err);
+  }
+
+  const found = PROCEDURES_CATALOG.find((p) => p.code === code);
+  if (!found) return null;
+
+  return {
+    procedureCode: found.code,
+    officialPortalCode: found.portalCode,
+    procedureName: found.name,
+    category: found.category,
+    agency: 'Ủy ban nhân dân cấp xã / phường',
+    processingTime: 'Theo quy định',
+    fee: 'Miễn phí / Theo quy định',
+    status: 'ACTIVE',
+    chunksCount: found.chunksCount,
+  };
 };
 
 export default api;
