@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
@@ -71,7 +72,9 @@ public class GeminiAiClient implements AiModelClient {
 
     private RestClient restClient;
     private final ObjectMapper objectMapper;
+    private final DeterministicMockAiClient fallbackMock = new DeterministicMockAiClient();
 
+    @Autowired
     public GeminiAiClient(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
         initRestClient();
@@ -80,6 +83,10 @@ public class GeminiAiClient implements AiModelClient {
     public GeminiAiClient(RestClient restClient, ObjectMapper objectMapper) {
         this.restClient = restClient;
         this.objectMapper = objectMapper;
+    }
+
+    private boolean hasApiKey() {
+        return apiKey != null && !apiKey.trim().isEmpty();
     }
 
     @PostConstruct
@@ -124,6 +131,9 @@ public class GeminiAiClient implements AiModelClient {
 
     @Override
     public String getEmbeddingModelId() {
+        if (!hasApiKey()) {
+            return fallbackMock.getEmbeddingModelId();
+        }
         return (embeddingModel != null && !embeddingModel.isBlank()) ? embeddingModel : "gemini-embedding-001";
     }
 
@@ -131,6 +141,9 @@ public class GeminiAiClient implements AiModelClient {
     public float[] generateEmbedding(String text) {
         if (text == null || text.trim().isEmpty()) {
             return new float[embeddingDim > 0 ? embeddingDim : 768];
+        }
+        if (!hasApiKey()) {
+            return fallbackMock.generateEmbedding(text);
         }
 
         try {
@@ -188,6 +201,9 @@ public class GeminiAiClient implements AiModelClient {
 
     @Override
     public String generateChatResponse(String systemPrompt, String userPrompt) {
+        if (!hasApiKey()) {
+            return fallbackMock.generateChatResponse(systemPrompt, userPrompt);
+        }
         ChatCallResult result = executeGenerateContentWithRetry(systemPrompt, userPrompt, maxOutputTokens);
         if (result.isError()) {
             return result.getErrorMessage();
@@ -322,6 +338,9 @@ public class GeminiAiClient implements AiModelClient {
 
     @Override
     public String performVisionOcr(byte[] imageBytes, String mimeType) {
+        if (!hasApiKey()) {
+            return fallbackMock.performVisionOcr(imageBytes, mimeType);
+        }
         try {
             String base64Image = Base64.getEncoder().encodeToString(imageBytes);
 
