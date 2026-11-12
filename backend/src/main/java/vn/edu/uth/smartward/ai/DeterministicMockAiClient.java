@@ -163,6 +163,11 @@ public class DeterministicMockAiClient implements AiModelClient {
               "issueDate": "20/09/2021",
               "issuePlace": "Cục Cảnh sát QLHC về TTXH",
               "permanentAddress": "Số 15 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh",
+              "phoneNumber": "0918234567",
+              "hostName": "NGUYỄN VĂN BÌNH",
+              "hostCccdNumber": "089075001234",
+              "hostRelation": "Con đẻ",
+              "declarationScope": "Đăng ký thường trú",
               "overallConfidence": 0.945,
               "fieldConfidences": {
                 "fullName": 0.98,
@@ -170,7 +175,12 @@ public class DeterministicMockAiClient implements AiModelClient {
                 "gender": 0.99,
                 "cccdNumber": 0.95,
                 "issueDate": 0.92,
-                "permanentAddress": 0.89
+                "permanentAddress": 0.89,
+                "phoneNumber": 0.95,
+                "hostName": 0.96,
+                "hostCccdNumber": 0.97,
+                "hostRelation": 0.98,
+                "declarationScope": 0.99
               }
             }
             """;
