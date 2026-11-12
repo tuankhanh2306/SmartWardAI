@@ -414,9 +414,9 @@ export function parseVietnameseAdministrativeText(rawText: string, confidence: n
     }
   }
 
-  // 2. Extract Date of Birth: Section 2 or CCCD card DOB
+  // 2. Extract Date of Birth: Section 2 or CCCD card DOB (Supports DD/MM/YYYY and YYYY-MM-DD)
   const dobMatch = rawText.match(
-    /(?:2\.?\s*Ngày,?\s*tháng,?\s*năm sinh|Ngày,?\s*tháng,?\s*năm sinh|Ngày sinh\s*[\/\-]?\s*Date of birth|Ngày sinh|Sinh ngày|Date of birth)[\s\:\.\-]*([0-9]{1,2}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{4})/i
+    /(?:2\.?\s*Ngày,?\s*tháng,?\s*năm sinh|Ngày,?\s*tháng,?\s*năm sinh|Ngày sinh\s*[\/\-]?\s*Date of birth|Ngày sinh|Sinh ngày|Date of birth)[\s\:\.\-]*([0-9]{1,4}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{1,4})/i
   );
   if (dobMatch) {
     dob = normalizeDateToYMD(dobMatch[1]);
@@ -479,7 +479,9 @@ export function parseVietnameseAdministrativeText(rawText: string, confidence: n
     /(?:(?:6\.?\s*Nơi thường trú hiện tại|8\.?\s*Nơi ở hiện tại|5\.?\s*Nơi đề nghị[^:\n]*|Nơi thường trú\s*[\/\-]?\s*Place of residence|Nơi thường trú|Place of residence|Nơi ở hiện tại|Địa chỉ thường trú|Địa chỉ|tại địa chỉ)[\s\:\.\-]+([^\n\r]{6,150}))/i
   );
   if (addressMatch) {
-    const candidate = addressMatch[1].trim();
+    let candidate = addressMatch[1].trim();
+    // Trim if it bleeds into section 7 or 8
+    candidate = candidate.split(/\s*(?:7\.?\s*Nơi tạm trú|8\.?\s*Nơi ở|9\.?\s*Họ và tên)/i)[0].trim();
     if (!isAdministrativeHeader(candidate)) {
       address = candidate;
     }
@@ -498,7 +500,7 @@ export function parseVietnameseAdministrativeText(rawText: string, confidence: n
 
   // 8. Extract Host CCCD (Số CCCD / ĐDCN của chủ hộ): Section 9 or 11 Mẫu CT01
   const hostCccdMatch = rawText.match(
-    /(?:(?:Số ĐDCN\s*[\/\-]?\s*CCCD chủ hộ|Số CCCD\s*[\/\-]?\s*ĐDCN của chủ hộ|Số định danh cá nhân của chủ hộ|CCCD chủ hộ)[\s\:\.\-]*([0-9\s]{9,16}))/i
+    /(?:(?:Số\s*(?:ĐDCN|CCCD|định\s*danh)(?:\s*[\/\-]\s*(?:CCCD|ĐDCN))?\s*(?:của\s*)?chủ\s*hộ|CCCD\s*chủ\s*hộ)[\s\:\.\-]*([0-9\s]{9,16}))/i
   );
   if (hostCccdMatch) {
     const digitsOnly = hostCccdMatch[1].replace(/\s+/g, '');
@@ -519,11 +521,28 @@ export function parseVietnameseAdministrativeText(rawText: string, confidence: n
 
   // 9. Extract Host Relation (Quan hệ với chủ hộ): Section 9 or 12 Mẫu CT01
   const hostRelationMatch = rawText.match(
-    /(?:(?:Quan hệ với chủ hộ(?:\s*\(Mục 12\))?|Quan hệ chủ hộ)[\s\:\.\-]*([^\n\r\d\:\;\,\(\)]{2,30}))/i
+    /(?:(?:Quan hệ với chủ hộ(?:\s*\(Mục 12\))?|Quan hệ chủ hộ|Quan hệ)[\s\:\.\-]*([^\n\r\d\:\;\,\(\)]{2,30}))/i
   );
   if (hostRelationMatch) {
-    const candidate = hostRelationMatch[1].trim();
+    let candidate = hostRelationMatch[1].trim();
     if (!isAdministrativeHeader(candidate)) {
+      if (candidate.toLowerCase().includes('chủ hộ') || candidate.toLowerCase().includes('bản thân')) {
+        candidate = 'Chủ hộ';
+      } else if (candidate.toLowerCase().includes('vợ') || candidate.toLowerCase().includes('chồng')) {
+        candidate = 'Vợ/Chồng';
+      } else if (candidate.toLowerCase().includes('con')) {
+        candidate = 'Con đẻ';
+      } else if (candidate.toLowerCase().includes('bố') || candidate.toLowerCase().includes('mẹ')) {
+        candidate = 'Bố/Mẹ';
+      } else if (candidate.toLowerCase().includes('ông') || candidate.toLowerCase().includes('bà')) {
+        candidate = 'Ông/Bà';
+      } else if (candidate.toLowerCase().includes('cháu')) {
+        candidate = 'Cháu ruột';
+      } else if (candidate.toLowerCase().includes('anh') || candidate.toLowerCase().includes('chị') || candidate.toLowerCase().includes('em')) {
+        candidate = 'Anh/Chị/Em ruột';
+      } else if (candidate.toLowerCase().includes('thuê') || candidate.toLowerCase().includes('mượn') || candidate.toLowerCase().includes('ở nhờ')) {
+        candidate = 'Thuê / Mượn / Ở nhờ';
+      }
       hostRelation = candidate;
     }
   }
