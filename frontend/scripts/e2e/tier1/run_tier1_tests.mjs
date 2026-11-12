@@ -22,6 +22,7 @@
 import { initializeTestSuiteState, createAssertionContext } from '../helpers/assertions.mjs';
 import { apiClient } from '../helpers/api_client.mjs';
 import { printHeader, printScoreboard } from '../helpers/reporter.mjs';
+import { ensureBackendAvailable } from '../helpers/backend_server.mjs';
 
 import { runTests as runProceduresTests } from './test_f01_f03_procedures.mjs';
 import { runTests as runFormsTests } from './test_f04_f06_forms.mjs';
@@ -29,32 +30,8 @@ import { runTests as runVerificationVaultTests } from './test_f07_f09_verificati
 import { runTests as runDossierRbacTests } from './test_f10_f12_dossier_rbac.mjs';
 import { runTests as runComplianceE2eTests } from './test_f13_f14_compliance_e2e.mjs';
 
-async function probeBackend() {
-  const candidateUrls = [
-    process.env.SMARTWARD_API_URL,
-    'http://localhost:8082', // Docker mapped port for smartward-backend
-    'http://localhost:8080', // Default Spring Boot dev port
-  ].filter(Boolean);
-
-  for (const url of candidateUrls) {
-    try {
-      const probeClient = new (apiClient.constructor)(url);
-      const res = await probeClient.get('/api/v1/health', { timeoutMs: 3000 });
-      if (res.status === 200) {
-        apiClient.setBaseUrl(url);
-        return url;
-      }
-    } catch {
-      // Continue probing next URL
-    }
-  }
-
-  // Fallback to primary default
-  return apiClient.getBaseUrl();
-}
-
 async function main() {
-  const activeUrl = await probeBackend();
+  const { activeUrl, server } = await ensureBackendAvailable(apiClient);
   printHeader(activeUrl);
 
   const suiteState = initializeTestSuiteState();
@@ -90,14 +67,18 @@ async function main() {
   }
 
   try {
-    // Group 5: F13, F14 (10 tests)
+    // Group 5: F13 (5 tests)
     await runComplianceE2eTests(assertContext);
   } catch (err) {
-    console.error(`[UNCAUGHT_RUNNER_ERROR] in F13-F14: ${err.message}`);
+    console.error(`[UNCAUGHT_RUNNER_ERROR] in F13: ${err.message}`);
   }
 
   suiteState.tierResults.tier1.durationMs = Date.now() - tier1StartTime;
   const allPassed = printScoreboard(suiteState);
+
+  if (server) {
+    server.close();
+  }
 
   process.exitCode = allPassed ? 0 : 1;
 }

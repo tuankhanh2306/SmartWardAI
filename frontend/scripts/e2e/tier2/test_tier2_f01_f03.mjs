@@ -11,7 +11,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { apiClient } from '../helpers/api_client.mjs';
 
-const PROJECT_ROOT = path.resolve(process.cwd());
+import { PROJECT_ROOT } from '../helpers/project_root.mjs';
 const SEED_DIR = path.join(PROJECT_ROOT, 'backend/src/main/resources/db/seed/procedures');
 
 export async function runTests(assertContext) {

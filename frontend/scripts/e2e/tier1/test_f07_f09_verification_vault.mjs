@@ -13,7 +13,7 @@ import { apiClient } from '../helpers/api_client.mjs';
 import { parseCccdQrString, STATIC_CCCD_FIXTURES } from '../fixtures/cccd_qr_fixtures.mjs';
 import { createSampleFileBuffer, OCR_CROSS_CHECK_FIXTURES } from '../fixtures/vault_document_fixtures.mjs';
 
-const PROJECT_ROOT = path.resolve(process.cwd());
+import { PROJECT_ROOT } from '../helpers/project_root.mjs';
 
 export async function runTests(assertContext) {
   console.log('\n--- [TIER 1] Running F7: Real QR CCCD Scanner & Decoder Tests ---');

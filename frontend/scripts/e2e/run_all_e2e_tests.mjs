@@ -2,12 +2,14 @@
 /**
  * run_all_e2e_tests.mjs - Master Unified E2E Test Suite Runner for SmartWard AI
  *
- * Orchestrates and executes all 161+ comprehensive opaque-box E2E test cases across:
- * - Tier 1: Feature Coverage (70 tests, F1..F14)
- * - Tier 2: Boundary & Corner Cases (70 tests, F1..F14)
- * - Tier 3: Cross-Module Interactions (14 tests, T3_INT_01 .. T3_INT_14)
- * - Tier 4: Real-World Citizen Life Scenarios (7 tests, T4_LIFE_01 .. T4_LIFE_07)
+ * Orchestrates and executes all 161 comprehensive opaque-box E2E test cases across:
+ * - Tier 1: Feature Coverage (65 tests, F1..F13)
+ * - Tier 2: Boundary & Corner Cases (65 tests, F1..F13)
+ * - Tier 3: Cross-Module Interactions (15 tests, T3_INT_01 .. T3_INT_15)
+ * - Tier 4: Real-World Citizen Life Scenarios (8 tests, T4_LIFE_01 .. T4_LIFE_08)
+ * - Tier 5: Adversarial Hardening (8 tests, T5_ADV_01 .. T5_ADV_08)
  *
+ * Total: 161 test cases.
  * Produces a unified Scoreboard breakdown by Tier and by Feature (F1 - F14),
  * pinpointing root causes and implementation escalations with full auditability.
  */
@@ -15,6 +17,7 @@
 import { initializeTestSuiteState, createAssertionContext } from './helpers/assertions.mjs';
 import { apiClient } from './helpers/api_client.mjs';
 import { printHeader, printScoreboard } from './helpers/reporter.mjs';
+import { ensureBackendAvailable } from './helpers/backend_server.mjs';
 
 // Tier 1 Test Suites
 import { runTests as runT1Procedures } from './tier1/test_f01_f03_procedures.mjs';
@@ -36,42 +39,19 @@ import { runTests as runTier3Tests } from './tier3/test_tier3_interactions.mjs';
 // Tier 4 Test Suite
 import { runTests as runTier4Tests } from './tier4/test_tier4_scenarios.mjs';
 
-/**
- * Probe live backend instances to auto-discover active container/dev port.
- */
-async function probeBackend() {
-  const candidateUrls = [
-    process.env.SMARTWARD_API_URL,
-    'http://localhost:8082', // Docker compose mapped port for smartward-backend
-    'http://localhost:8080', // Standard Spring Boot dev port
-  ].filter(Boolean);
-
-  for (const url of candidateUrls) {
-    try {
-      const probeClient = new (apiClient.constructor)(url);
-      const res = await probeClient.get('/api/v1/health', { timeoutMs: 3000 });
-      if (res.status === 200) {
-        apiClient.setBaseUrl(url);
-        return url;
-      }
-    } catch {
-      // Continue next probe target
-    }
-  }
-
-  return apiClient.getBaseUrl();
-}
+// Tier 5 Test Suite
+import { runTests as runTier5Tests } from './tier5/test_tier5_adversarial.mjs';
 
 /**
  * Main execution function
  */
 async function main() {
-  const activeUrl = await probeBackend();
+  const { activeUrl, server } = await ensureBackendAvailable(apiClient);
 
   console.log('================================================================');
-  console.log('SMARTWARD AI — UNIFIED MASTER E2E TEST SUITE (TIERS 1 - 4)');
+  console.log('SMARTWARD AI — UNIFIED MASTER E2E TEST SUITE (TIERS 1 - 5)');
   console.log(`Environment Target: ${activeUrl}`);
-  console.log(`Execution Mode: Complete CI/CD Acceptance Gate (161+ Test Cases)`);
+  console.log(`Execution Mode: Complete CI/CD Acceptance Gate (161 Test Cases)`);
   console.log('================================================================\n');
 
   const suiteState = initializeTestSuiteState();
@@ -81,14 +61,14 @@ async function main() {
   const tierFilterArg = args.find((a) => a.startsWith('--tier='));
   const activeTiers = tierFilterArg
     ? tierFilterArg.split('=')[1].split(',').map((t) => t.trim().toLowerCase())
-    : ['1', '2', '3', '4'];
+    : ['1', '2', '3', '4', '5'];
 
   // =========================================================================
-  // TIER 1: FEATURE COVERAGE (70 TESTS)
+  // TIER 1: FEATURE COVERAGE (65 TESTS)
   // =========================================================================
   if (activeTiers.includes('1') || activeTiers.includes('tier1')) {
     console.log('\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-    console.log('EXECUTING TIER 1: FEATURE BASELINE COVERAGE (F1 - F14: 70 TESTS)');
+    console.log('EXECUTING TIER 1: FEATURE BASELINE COVERAGE (F1 - F13: 65 TESTS)');
     console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n');
     const t1Start = Date.now();
     try {
@@ -104,11 +84,11 @@ async function main() {
   }
 
   // =========================================================================
-  // TIER 2: BOUNDARY & CORNER CASES (70 TESTS)
+  // TIER 2: BOUNDARY & CORNER CASES (65 TESTS)
   // =========================================================================
   if (activeTiers.includes('2') || activeTiers.includes('tier2')) {
     console.log('\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-    console.log('EXECUTING TIER 2: BOUNDARY & CORNER CASES (F1 - F14: 70 TESTS)');
+    console.log('EXECUTING TIER 2: BOUNDARY & CORNER CASES (F1 - F13: 65 TESTS)');
     console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n');
     const t2Start = Date.now();
     try {
@@ -124,11 +104,11 @@ async function main() {
   }
 
   // =========================================================================
-  // TIER 3: CROSS-FEATURE INTERACTIONS (14 TESTS)
+  // TIER 3: CROSS-FEATURE INTERACTIONS (15 TESTS)
   // =========================================================================
   if (activeTiers.includes('3') || activeTiers.includes('tier3')) {
     console.log('\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-    console.log('EXECUTING TIER 3: CROSS-FEATURE INTERACTIONS (14 TESTS)');
+    console.log('EXECUTING TIER 3: CROSS-FEATURE INTERACTIONS (15 TESTS)');
     console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n');
     const t3Start = Date.now();
     try {
@@ -140,11 +120,11 @@ async function main() {
   }
 
   // =========================================================================
-  // TIER 4: REAL-WORLD CITIZEN LIFE SCENARIOS (7 SCENARIOS)
+  // TIER 4: REAL-WORLD CITIZEN LIFE SCENARIOS (8 SCENARIOS)
   // =========================================================================
   if (activeTiers.includes('4') || activeTiers.includes('tier4')) {
     console.log('\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
-    console.log('EXECUTING TIER 4: REAL-WORLD CITIZEN LIFE SCENARIOS (7 SCENARIOS)');
+    console.log('EXECUTING TIER 4: REAL-WORLD CITIZEN LIFE SCENARIOS (8 SCENARIOS)');
     console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n');
     const t4Start = Date.now();
     try {
@@ -156,9 +136,30 @@ async function main() {
   }
 
   // =========================================================================
+  // TIER 5: ADVERSARIAL COVERAGE HARDENING (8 TESTS)
+  // =========================================================================
+  if (activeTiers.includes('5') || activeTiers.includes('tier5')) {
+    console.log('\n>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>');
+    console.log('EXECUTING TIER 5: ADVERSARIAL COVERAGE HARDENING (8 TESTS)');
+    console.log('<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n');
+    const t5Start = Date.now();
+    try {
+      await runTier5Tests(assertContext);
+    } catch (err) {
+      console.error(`[UNCAUGHT_RUNNER_ERROR] Tier 5 execution error: ${err.message}`);
+    }
+    suiteState.tierResults.tier5.durationMs = Date.now() - t5Start;
+  }
+
+  // =========================================================================
   // FINAL AGGREGATED SCOREBOARD REPORT
   // =========================================================================
   const allPassed = printScoreboard(suiteState);
+
+  if (server) {
+    server.close();
+  }
+
   process.exitCode = allPassed ? 0 : 1;
 }
 

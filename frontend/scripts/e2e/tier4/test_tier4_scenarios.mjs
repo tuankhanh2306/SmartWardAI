@@ -23,7 +23,7 @@ import { TK_KH_FIXTURES } from '../fixtures/form_tk_kh_fixtures.mjs';
 import { TK_BTXH_FIXTURES } from '../fixtures/form_tk_btxh_fixtures.mjs';
 import { createSampleFileBuffer, OCR_CROSS_CHECK_FIXTURES } from '../fixtures/vault_document_fixtures.mjs';
 
-const PROJECT_ROOT = path.resolve(process.cwd());
+import { PROJECT_ROOT } from '../helpers/project_root.mjs';
 const SEED_PROCEDURES_DIR = path.join(PROJECT_ROOT, 'backend/src/main/resources/db/seed/procedures');
 
 export async function runTests(assertContext) {
@@ -532,6 +532,74 @@ export async function runTests(assertContext) {
       );
       assertContext.assertStatusCode(finalTrackRes.status, 200, 'Final track inquiry');
       assertContext.assertEqual(finalTrackRes.data?.data?.status, 'APPROVED', 'Final status must be APPROVED');
+    }
+  );
+
+  // =========================================================================
+  // T4_LIFE_08: Cấp Bản sao Trích lục Hộ tịch & Chứng thực Bản sao từ bản chính
+  // =========================================================================
+  await assertContext.runTest(
+    { testId: 'T4_LIFE_08', featureCode: 'F5', tierCode: 'tier4' },
+    '[T4_LIFE_08] Cấp Bản sao Trích lục Hộ tịch & Chứng thực Bản sao từ bản chính (TTHC-CT-01 & TTHC-HT-06)',
+    async () => {
+      // Step 1: Query certification procedure details
+      const procRes = await apiClient.get('/api/v1/procedures/TTHC-CT-01');
+      assertContext.assertStatusCode(procRes.status, 200, 'Query TTHC-CT-01 status');
+
+      // Step 2: Citizen uploads identity document and original document to Vault
+      const samplePng = createSampleFileBuffer('png');
+      const uploadRes = await apiClient.uploadFile(
+        '/api/v1/vault/upload',
+        samplePng,
+        'ban_chinh_giay_to.png',
+        { documentType: 'ORIGINAL_DOCUMENT' }
+      );
+      assertContext.assertStatusCode(uploadRes.status, 200, 'Upload original document');
+      const ott = uploadRes.data?.data?.oneTimeToken;
+      assertContext.assert(Boolean(ott), 'Must receive OTT token');
+
+      // Step 3: Submit certification dossier
+      const certDossierCode = `HS-CERT-${Date.now().toString().slice(-6)}`;
+      const submitRes = await apiClient.post('/api/v1/dossiers', {
+        dossierCode: certDossierCode,
+        procedureCode: 'TTHC-CT-01',
+        wardCode: 'WARD-AG-01',
+        citizenCccd: '089095012345',
+        formData: {
+          fullName: 'NGUYỄN VĂN AN',
+          documentType: 'BẢN CHÍNH BẰNG ĐẠI HỌC',
+          copiesCount: 3,
+        },
+        vaultDocIds: ['DOC_CERT_ORIGINAL_01'],
+      });
+      assertContext.assertStatusCode(submitRes.status, 201, 'Submit certification dossier');
+
+      // Step 4: Officer logs in, views document through OTT, and approves
+      const officerAuth = await loginOfficer();
+      const officerToken = officerAuth.data?.data?.token;
+
+      const viewRes = await apiClient.get(`/api/v1/vault/view/${ott}`);
+      assertContext.assertStatusCode(viewRes.status, 200, 'Officer view OTT status');
+
+      const reviewRes = await apiClient.put(
+        `/api/v1/dossiers/${certDossierCode}/review`,
+        {
+          status: 'APPROVED',
+          officerFeedback: 'Đã đối chiếu đúng bản chính; lệ phí chứng thực 6.000 VNĐ (3 bản x 2.000 VNĐ).',
+          appointmentCode: `LH-${Date.now().toString().slice(-6)}`,
+        },
+        {
+          headers: { Authorization: `Bearer ${officerToken}` },
+        }
+      );
+      assertContext.assertStatusCode(reviewRes.status, 200, 'Officer approve certification dossier');
+
+      // Step 5: Citizen tracks dossier and receives APPROVED status with fee & appointment
+      const trackRes = await apiClient.get(
+        `/api/v1/dossiers/track?dossierCode=${certDossierCode}&last4Cccd=2345`
+      );
+      assertContext.assertStatusCode(trackRes.status, 200, 'Citizen track cert dossier');
+      assertContext.assertEqual(trackRes.data?.data?.status, 'APPROVED', 'Dossier status must be APPROVED');
     }
   );
 }
