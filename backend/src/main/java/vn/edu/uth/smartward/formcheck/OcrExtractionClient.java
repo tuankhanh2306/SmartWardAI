@@ -67,6 +67,11 @@ public class OcrExtractionClient {
                     .issueDate(root.path("issueDate").asText(null))
                     .issuePlace(root.path("issuePlace").asText(null))
                     .permanentAddress(root.path("permanentAddress").asText(null))
+                    .phoneNumber(root.path("phoneNumber").asText(null))
+                    .hostName(root.path("hostName").asText(null))
+                    .hostCccdNumber(root.path("hostCccdNumber").asText(null))
+                    .hostRelation(root.path("hostRelation").asText(null))
+                    .declarationScope(root.path("declarationScope").asText(null))
                     .overallConfidence(root.path("overallConfidence").asDouble(0.95))
                     .fieldConfidences(confidences)
                     .build();

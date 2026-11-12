@@ -37,6 +37,21 @@ public class ExtractedFormFields {
     @Schema(description = "Nơi thường trú đăng ký", example = "Số 15 Võ Oanh, Phường 25, Quận Bình Thạnh, TP. Hồ Chí Minh")
     private String permanentAddress;
 
+    @Schema(description = "Số điện thoại liên hệ", example = "0918234567")
+    private String phoneNumber;
+
+    @Schema(description = "Họ và tên chủ hộ", example = "NGUYỄN VĂN BÌNH")
+    private String hostName;
+
+    @Schema(description = "Số CCCD chủ hộ", example = "089075001234")
+    private String hostCccdNumber;
+
+    @Schema(description = "Quan hệ với chủ hộ", example = "Con đẻ")
+    private String hostRelation;
+
+    @Schema(description = "Nội dung đề nghị", example = "Đăng ký thường trú")
+    private String declarationScope;
+
     @Schema(description = "Điểm tin cậy OCR trung bình toàn biểu mẫu", example = "0.945")
     private Double overallConfidence;
 

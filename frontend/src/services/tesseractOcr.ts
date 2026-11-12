@@ -442,11 +442,28 @@ export function parseVietnameseAdministrativeText(rawText: string, confidence: n
       cccd = digitsOnly;
     }
   }
+  // Fallback: search for spaced 12-digit numbers
+  if (!cccd) {
+    const spacedMatch = rawText.match(/\b(0\s*(?:\d\s*){11})\b/);
+    if (spacedMatch) {
+      const digitsOnly = spacedMatch[1].replace(/\s+/g, '');
+      if (digitsOnly.length === 12) {
+        cccd = digitsOnly;
+      }
+    }
+  }
   // Fallback: search for any 12-digit Vietnamese CCCD number starting with 0
   if (!cccd) {
     const all12Digits = rawText.match(/\b(0\d{11})\b/g);
     if (all12Digits && all12Digits.length > 0) {
       cccd = all12Digits[0];
+    }
+  }
+  // Fallback: OCR leading zero misread as O, D, Q
+  if (!cccd) {
+    const ocrZeroFix = rawText.match(/\b[OODQ](\d{11})\b/i);
+    if (ocrZeroFix) {
+      cccd = '0' + ocrZeroFix[1];
     }
   }
   // Fallback: 9-digit CMND number
@@ -484,6 +501,13 @@ export function parseVietnameseAdministrativeText(rawText: string, confidence: n
     candidate = candidate.split(/\s*(?:7\.?\s*Nơi tạm trú|8\.?\s*Nơi ở|9\.?\s*Họ và tên)/i)[0].trim();
     if (!isAdministrativeHeader(candidate)) {
       address = candidate;
+    }
+  }
+  // Address heuristic fallback: Any line containing standard Vietnamese administrative units
+  if (!address) {
+    const addrLineMatch = rawText.match(/(?:(?:Số|Đường|Khu phố|Tổ|Ấp|Khóm|Thôn|Xã|Phường|Thị trấn)[^\n\r]{10,120}(?:Tỉnh|TP|Thành phố)[^\n\r]{2,30})/i);
+    if (addrLineMatch) {
+      address = addrLineMatch[0].trim();
     }
   }
 
@@ -547,6 +571,17 @@ export function parseVietnameseAdministrativeText(rawText: string, confidence: n
     }
   }
 
+  // Fallback for Host in CT01: If host is self or not specified, under Residence Law citizen is head of household
+  if (!hostRelation) {
+    hostRelation = 'Chủ hộ';
+  }
+  if (!hostName && hostRelation === 'Chủ hộ' && fullName) {
+    hostName = fullName;
+    if (!hostCccd && cccd) {
+      hostCccd = cccd;
+    }
+  }
+
   // 10. Extract Declaration Scope (Nội dung đề nghị): Section 10 Mẫu CT01
   const scopeMatch = rawText.match(
     /(?:(?:10\.?\s*Nội dung đề nghị|Nội dung đề nghị)[\s\:\.\-]*([^\n\r\:\;]{4,50}))/i
@@ -569,6 +604,105 @@ export function parseVietnameseAdministrativeText(rawText: string, confidence: n
       }
     }
   }
+  if (!declarationScope) {
+    declarationScope = 'Đăng ký thường trú';
+  }
+
+  // 11. Specialized Fields for TK-KS (Birth Registration)
+  let childName = '';
+  let motherName = '';
+  let fatherName = '';
+  let birthPlace = '';
+  let birthCertNumber = '';
+  let birthCertIssueDate = '';
+
+  const childNameMatch = rawText.match(/(?:Họ(?:,? chữ đệm)? và tên người được khai sinh|Họ(?:,? chữ đệm)? và tên trẻ|Tên trẻ|Người được khai sinh)[\s\:\.\-]*([^\n\r\d\:\;\,\(\)]{3,40})/i);
+  if (childNameMatch && !isAdministrativeHeader(childNameMatch[1])) {
+    childName = childNameMatch[1].trim().toUpperCase();
+  }
+
+  const motherNameMatch = rawText.match(/(?:Họ(?:,? chữ đệm)? và tên mẹ|Họ tên mẹ|Mẹ|Họ tên sản phụ)[\s\:\.\-]*([^\n\r\d\:\;\,\(\)]{3,40})/i);
+  if (motherNameMatch && !isAdministrativeHeader(motherNameMatch[1])) {
+    motherName = motherNameMatch[1].trim().toUpperCase();
+  }
+
+  const fatherNameMatch = rawText.match(/(?:Họ(?:,? chữ đệm)? và tên cha|Họ tên cha|Cha)[\s\:\.\-]*([^\n\r\d\:\;\,\(\)]{3,40})/i);
+  if (fatherNameMatch && !isAdministrativeHeader(fatherNameMatch[1])) {
+    fatherName = fatherNameMatch[1].trim().toUpperCase();
+  }
+
+  const birthPlaceMatch = rawText.match(/(?:Nơi sinh|Tại cơ sở y tế|Bệnh viện)[\s\:\.\-]*([^\n\r\:\;]{5,80})/i);
+  if (birthPlaceMatch) {
+    birthPlace = birthPlaceMatch[1].trim();
+  }
+
+  const gcsMatch = rawText.match(/(?:Số Giấy chứng sinh|Giấy chứng sinh số|Số GCS)[\s\:\.\-]*([a-zA-Z0-9\/\-]{3,20})/i);
+  if (gcsMatch) {
+    birthCertNumber = gcsMatch[1].trim();
+  }
+
+  const gcsDateMatch = rawText.match(/(?:Ngày cấp Giấy chứng sinh|Ngày cấp GCS)[\s\:\.\-]*([0-9]{1,4}[\/\-\.][0-9]{1,2}[\/\-\.][0-9]{1,4})/i);
+  if (gcsDateMatch) {
+    birthCertIssueDate = normalizeDateToYMD(gcsDateMatch[1]);
+  }
+
+  // 12. Specialized Fields for TK-KH (Marriage)
+  let partnerName = '';
+  let partnerCccd = '';
+  let partnerDob = '';
+  let partnerGender = '';
+  let partnerAddress = '';
+  let maritalCertPurpose = '';
+
+  const partnerNameMatch = rawText.match(/(?:Bên thứ hai|Bên Nữ|Bên Nam|Phối ngẫu|Người kết hôn cùng)[\s\:\.\-]*([^\n\r\d\:\;\,\(\)]{3,40})/i);
+  if (partnerNameMatch && !isAdministrativeHeader(partnerNameMatch[1])) {
+    partnerName = partnerNameMatch[1].trim().toUpperCase();
+  }
+
+  const partnerCccdMatch = rawText.match(/(?:CCCD bên thứ hai|CCCD phối ngẫu|CCCD Bên Nữ|CCCD Bên Nam)[\s\:\.\-]*([0-9\s]{9,16})/i);
+  if (partnerCccdMatch) {
+    partnerCccd = partnerCccdMatch[1].replace(/\s+/g, '');
+  }
+
+  const purposeMatch = rawText.match(/(?:Mục đích sử dụng Giấy xác nhận|Mục đích)[\s\:\.\-]*([^\n\r]{5,80})/i);
+  if (purposeMatch) {
+    maritalCertPurpose = purposeMatch[1].trim();
+  }
+
+  // 13. Specialized Fields for TK-BTXH (Social Protection)
+  let poorHouseholdBookNumber = '';
+  let disabilityCertNumber = '';
+  let disabilityCertIssueDate = '';
+  let guardianName = '';
+  let guardianCccd = '';
+  let guardianRelation = '';
+  let guardianPhone = '';
+  let bankAccount = '';
+
+  const poorBookMatch = rawText.match(/(?:Số sổ hộ nghèo|Sổ hộ nghèo số|Mã hộ nghèo)[\s\:\.\-]*([a-zA-Z0-9\/\-]{4,20})/i);
+  if (poorBookMatch) {
+    poorHouseholdBookNumber = poorBookMatch[1].trim();
+  }
+
+  const disCertMatch = rawText.match(/(?:Giấy xác nhận khuyết tật số|Số giấy khuyết tật)[\s\:\.\-]*([a-zA-Z0-9\/\-]{4,20})/i);
+  if (disCertMatch) {
+    disabilityCertNumber = disCertMatch[1].trim();
+  }
+
+  const guardianNameMatch = rawText.match(/(?:Người giám hộ|Người chăm sóc|Họ tên người giám hộ)[\s\:\.\-]*([^\n\r\d\:\;\,\(\)]{3,40})/i);
+  if (guardianNameMatch && !isAdministrativeHeader(guardianNameMatch[1])) {
+    guardianName = guardianNameMatch[1].trim().toUpperCase();
+  }
+
+  const guardianCccdMatch = rawText.match(/(?:CCCD người giám hộ|Số CCCD giám hộ)[\s\:\.\-]*([0-9\s]{9,16})/i);
+  if (guardianCccdMatch) {
+    guardianCccd = guardianCccdMatch[1].replace(/\s+/g, '');
+  }
+
+  const bankAccountMatch = rawText.match(/(?:Tài khoản ngân hàng|Số tài khoản|TK ngân hàng)[\s\:\.\-]*([a-zA-Z0-9\s\-\/]{8,40})/i);
+  if (bankAccountMatch) {
+    bankAccount = bankAccountMatch[1].trim();
+  }
 
   issueDate = '';
 
@@ -583,6 +717,11 @@ export function parseVietnameseAdministrativeText(rawText: string, confidence: n
   if (hostCccd) count++;
   if (hostRelation) count++;
   if (declarationScope) count++;
+  if (childName) count++;
+  if (motherName) count++;
+  if (fatherName) count++;
+  if (partnerName) count++;
+  if (guardianName) count++;
 
   const detectedDocType =
     rawText.includes('CT01') || rawText.includes('cư trú')
@@ -604,6 +743,26 @@ export function parseVietnameseAdministrativeText(rawText: string, confidence: n
     hostCccd,
     hostRelation,
     declarationScope,
+    childName,
+    motherName,
+    fatherName,
+    birthPlace,
+    birthCertNumber,
+    birthCertIssueDate,
+    partnerName,
+    partnerCccd,
+    partnerDob,
+    partnerGender,
+    partnerAddress,
+    maritalCertPurpose,
+    poorHouseholdBookNumber,
+    disabilityCertNumber,
+    disabilityCertIssueDate,
+    guardianName,
+    guardianCccd,
+    guardianRelation,
+    guardianPhone,
+    bankAccount,
     confidence: count > 0 ? confidence : 0,
     detectedDocType,
     message:
