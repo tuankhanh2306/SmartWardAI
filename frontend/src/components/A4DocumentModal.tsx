@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   X,
   CheckCircle2,
@@ -110,19 +110,19 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
   const [isExportingPdf, setIsExportingPdf] = useState(false);
   const [pdfExportSuccess, setPdfExportSuccess] = useState(false);
 
+  // Ensure scroll position resets to top on modal open so the official administrative header is always visible
+  useEffect(() => {
+    if (isOpen && printableA4Ref.current) {
+      printableA4Ref.current.scrollTop = 0;
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const today = new Date();
   const day = today.getDate();
   const month = today.getMonth() + 1;
   const year = today.getFullYear();
-
-  // Ensure scroll position resets to top on modal open so the official administrative header is always visible
-  React.useEffect(() => {
-    if (isOpen && printableA4Ref.current) {
-      printableA4Ref.current.scrollTop = 0;
-    }
-  }, [isOpen]);
 
   // Resolve category
   const resolvedCategory = (() => {
