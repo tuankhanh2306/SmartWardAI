@@ -2,9 +2,10 @@ package vn.edu.uth.smartward.security;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ErrorCode;
@@ -13,6 +14,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.LinkedHashMap;
@@ -23,11 +25,20 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class OfficerAuthService {
 
     private static final String HMAC_ALGO = "HmacSHA256";
     private final ObjectMapper objectMapper;
+    private final StringRedisTemplate stringRedisTemplate;
+
+    public OfficerAuthService(ObjectMapper objectMapper, @Autowired(required = false) StringRedisTemplate stringRedisTemplate) {
+        this.objectMapper = objectMapper;
+        this.stringRedisTemplate = stringRedisTemplate;
+    }
+
+    public OfficerAuthService(ObjectMapper objectMapper) {
+        this(objectMapper, null);
+    }
 
     @Value("${smartward.security.jwt-secret:}")
     private String jwtSecret;
@@ -47,14 +58,14 @@ public class OfficerAuthService {
             "CC-AG-8942", new OfficerAccount(
                     "CC-AG-8942",
                     "Trần Quốc Bảo — Cán bộ Tư pháp - Hộ tịch",
-                    "WARD-AG-01",
+                    "AG_P_LONGXUYEN",
                     "OFFICER",
                     sha256Hex("8942")
             ),
             "CC-AG-1001", new OfficerAccount(
                     "CC-AG-1001",
                     "Nguyễn Thị Minh Khai — Cán bộ Địa chính - Đô thị",
-                    "WARD-AG-01",
+                    "AG_P_LONGXUYEN",
                     "OFFICER",
                     sha256Hex("2026")
             )
@@ -120,7 +131,7 @@ public class OfficerAuthService {
 
             String sub = String.valueOf(claims.getOrDefault("sub", ""));
             String name = String.valueOf(claims.getOrDefault("name", ""));
-            String wardCode = String.valueOf(claims.getOrDefault("wardCode", "WARD-AG-01"));
+            String wardCode = String.valueOf(claims.getOrDefault("wardCode", "AG_P_LONGXUYEN"));
             String role = String.valueOf(claims.getOrDefault("role", ""));
             String jti = String.valueOf(claims.getOrDefault("jti", ""));
             long exp = ((Number) claims.getOrDefault("exp", 0L)).longValue();
@@ -128,7 +139,18 @@ public class OfficerAuthService {
             if (Instant.now().getEpochSecond() >= exp) {
                 throw new BusinessException(ErrorCode.UNAUTHORIZED, "Phiên làm việc cán bộ đã hết hạn. Vui lòng đăng nhập lại.");
             }
-            if (revokedTokenIds.contains(jti)) {
+            boolean isRevoked = false;
+            if (stringRedisTemplate != null) {
+                try {
+                    isRevoked = Boolean.TRUE.equals(stringRedisTemplate.hasKey("smartward:auth:revoked:" + jti));
+                } catch (Exception e) {
+                    log.warn("Redis unavailable during token verification, falling back to local set: {}", e.getMessage());
+                    isRevoked = revokedTokenIds.contains(jti);
+                }
+            } else {
+                isRevoked = revokedTokenIds.contains(jti);
+            }
+            if (isRevoked || revokedTokenIds.contains(jti)) {
                 throw new BusinessException(ErrorCode.UNAUTHORIZED, "Phiên làm việc cán bộ đã đăng xuất.");
             }
             if (!"OFFICER".equals(role) || !AUTHORIZED_OFFICERS.containsKey(sub)) {
@@ -146,7 +168,16 @@ public class OfficerAuthService {
     public void revokeToken(String rawBearerOrToken) {
         try {
             OfficerPrincipal principal = verifyToken(rawBearerOrToken);
-            revokedTokenIds.add(principal.tokenId());
+            String jti = principal.tokenId();
+            long ttlSec = Math.max(1, principal.expiresAtEpochSec() - Instant.now().getEpochSecond());
+            if (stringRedisTemplate != null) {
+                try {
+                    stringRedisTemplate.opsForValue().set("smartward:auth:revoked:" + jti, "true", Duration.ofSeconds(ttlSec));
+                } catch (Exception e) {
+                    log.warn("Redis unavailable during token revocation, falling back to local set: {}", e.getMessage());
+                }
+            }
+            revokedTokenIds.add(jti);
         } catch (Exception ignored) {
             // Ignore invalid/expired token on logout
         }

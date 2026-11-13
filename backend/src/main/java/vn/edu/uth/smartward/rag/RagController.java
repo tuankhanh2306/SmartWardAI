@@ -45,7 +45,7 @@ public class RagController {
             HttpServletRequest httpRequest) {
 
         String clientIp = extractClientIp(httpRequest);
-        log.info("Received RAG ask request from IP: '{}', query: '{}'", clientIp, request.getQuestion());
+        log.info("Received RAG ask request from IP: '{}', query: '{}'", clientIp, sanitizeForLog(request.getQuestion()));
 
         RagAskResponse response = ragQueryService.askQuestion(request, clientIp);
         return ResponseEntity.ok(ApiResponse.ok(response));
@@ -78,10 +78,17 @@ public class RagController {
     }
 
     private String extractClientIp(HttpServletRequest request) {
-        String xfHeader = request.getHeader("X-Forwarded-For");
-        if (xfHeader == null || xfHeader.isBlank() || "unknown".equalsIgnoreCase(xfHeader)) {
-            return request.getRemoteAddr();
+        if (request == null) {
+            return "127.0.0.1";
         }
-        return xfHeader.split(",")[0].trim();
+        return request.getRemoteAddr();
+    }
+
+    private String sanitizeForLog(String text) {
+        if (text == null || text.isBlank()) {
+            return "";
+        }
+        String redacted = text.replaceAll("\\d{9,12}", "***REDACTED_ID***");
+        return redacted.length() > 60 ? redacted.substring(0, 60) : redacted;
     }
 }

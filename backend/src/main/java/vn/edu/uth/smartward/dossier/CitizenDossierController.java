@@ -40,8 +40,8 @@ public class CitizenDossierController {
             @RequestParam String dossierCode,
             @RequestParam(required = false) String last4Cccd,
             @RequestParam(required = false) String citizenCccd) {
-        log.info("Tracking dossier: code='{}', last4Cccd='{}', citizenCccd='{}'",
-                dossierCode, last4Cccd, citizenCccd);
+        log.info("Tracking dossier: code='{}', hasLast4Cccd={}",
+                dossierCode, (last4Cccd != null && !last4Cccd.isBlank()));
         DossierTrackingResponse response = dossierService.trackDossier(dossierCode, last4Cccd, citizenCccd);
         return ResponseEntity.ok(ApiResponse.ok("Tra cứu hồ sơ thành công.", response));
     }
