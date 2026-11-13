@@ -14,6 +14,8 @@ Usage:
 import os
 import sys
 import argparse
+from pathlib import Path
+from contextlib import asynccontextmanager
 import joblib
 import numpy as np
 import onnxruntime as ort
@@ -23,20 +25,9 @@ from pydantic import BaseModel
 import uvicorn
 
 sys.stdout.reconfigure(encoding='utf-8')
-sys.path.append(os.path.abspath('ml/src'))
+BASE_DIR = Path(__file__).resolve().parents[2]
+sys.path.append(str(BASE_DIR / 'ml' / 'src'))
 from enhanced_pipeline import VietnameseTextNormalizer, CLASSES
-
-app = FastAPI(
-    title="SmartWard AI Sidecar",
-    description="Local Bi-Encoder & Intent Classification Service for SmartWard AI",
-    version="1.0.0"
-)
-
-# Global model state
-tokenizer = None
-ort_session = None
-intent_classifier = None
-normalizer = None
 
 class TextInput(BaseModel):
     text: str
@@ -65,9 +56,9 @@ class PipelineResponse(BaseModel):
 def init_models():
     global tokenizer, ort_session, intent_classifier, normalizer
     print("Loading PhoBERT Bi-Encoder & Intent Classifier into Sidecar...")
-    model_dir = "ml/models/fine_tuned_biencoder"
-    onnx_path = "ml/models/bkai_finetuned_int8.onnx"
-    clf_path = "ml/models/intent_classifier.joblib"
+    model_dir = str(BASE_DIR / "ml" / "models" / "fine_tuned_biencoder")
+    onnx_path = str(BASE_DIR / "ml" / "models" / "bkai_finetuned_int8.onnx")
+    clf_path = str(BASE_DIR / "ml" / "models" / "intent_classifier.joblib")
     
     tokenizer = AutoTokenizer.from_pretrained(model_dir)
     
@@ -81,9 +72,23 @@ def init_models():
     normalizer = VietnameseTextNormalizer()
     print("Sidecar models loaded successfully!")
 
-@app.on_event("startup")
-def startup_event():
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     init_models()
+    yield
+
+app = FastAPI(
+    title="SmartWard AI Sidecar",
+    description="Local Bi-Encoder & Intent Classification Service for SmartWard AI",
+    version="1.0.0",
+    lifespan=lifespan
+)
+
+# Global model state
+tokenizer = None
+ort_session = None
+intent_classifier = None
+normalizer = None
 
 @app.get("/health")
 def health():

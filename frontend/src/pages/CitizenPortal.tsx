@@ -265,18 +265,19 @@ export const CitizenPortal: React.FC = () => {
       );
 
       const botMsgId = `msg-${Date.now()}-bot`;
+      const fallbackAnswer = `Dạ, đối với thủ tục này tại ${currentWard.name}, bà con có thể chọn các gợi ý bên dưới hoặc liên hệ trực tiếp Bộ phận Một cửa qua số điện thoại ${currentWard.phoneNumber} để được hướng dẫn chi tiết.`;
       const botMsg: ChatMessage = {
         id: botMsgId,
         sender: 'bot',
-        text: resp.answer,
+        text: resp?.answer || fallbackAnswer,
         ragData: resp,
-        suggestions: resp.suggestions || ['Hồ sơ cần những gì?', 'Lệ phí bao nhiêu?', 'Thời hạn giải quyết?', 'Nơi nộp hồ sơ?'],
+        suggestions: resp?.suggestions || ['Hồ sơ cần những gì?', 'Lệ phí bao nhiêu?', 'Thời hạn giải quyết?', 'Nơi nộp hồ sơ?'],
         timestamp: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
       };
       setMessages((prev) => [...prev, botMsg]);
 
       // Auto-play audio if enabled by user (for elderly citizens)
-      if (isAudioAutoPlay) {
+      if (isAudioAutoPlay && resp?.answer) {
         setTimeout(() => {
           toggleSpeech(resp.answer, botMsgId);
         }, 300);

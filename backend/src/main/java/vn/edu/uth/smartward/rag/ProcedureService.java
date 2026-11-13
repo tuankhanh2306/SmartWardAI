@@ -10,7 +10,9 @@ import vn.edu.uth.smartward.rag.dto.ProcedureDetailDto;
 import vn.edu.uth.smartward.rag.dto.ProcedureDto;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @Service
@@ -24,20 +26,29 @@ public class ProcedureService {
     public List<ProcedureDto> getProcedures(String category, String keyword) {
         log.debug("Querying procedures with category='{}', keyword='{}'", category, keyword);
         List<AdminProcedure> procedures = procedureRepository.searchProcedures(category, keyword);
-        return procedures.stream().map(p -> {
-            List<LegalChunk> chunks = chunkRepository.findByProcedureId(p.getId());
-            return ProcedureDto.builder()
-                    .procedureCode(p.getProcedureCode())
-                    .officialPortalCode(p.getPortalCode())
-                    .procedureName(p.getProcedureName())
-                    .category(p.getCategory())
-                    .agency(p.getAgency())
-                    .processingTime(p.getProcessingTime())
-                    .fee(p.getFee())
-                    .status(p.getStatus())
-                    .chunksCount(chunks != null ? chunks.size() : 0)
-                    .build();
-        }).toList();
+
+        Map<Long, Integer> chunkCounts = new HashMap<>();
+        List<Object[]> countResults = chunkRepository.countChunksByProcedure();
+        if (countResults != null) {
+            for (Object[] row : countResults) {
+                if (row != null && row.length >= 2 && row[0] instanceof Number procId && row[1] instanceof Number count) {
+                    chunkCounts.put(procId.longValue(), count.intValue());
+                }
+            }
+        }
+
+        return procedures.stream().map(p -> ProcedureDto.builder()
+                .procedureCode(p.getProcedureCode())
+                .officialPortalCode(p.getPortalCode())
+                .procedureName(p.getProcedureName())
+                .category(p.getCategory())
+                .agency(p.getAgency())
+                .processingTime(p.getProcessingTime())
+                .fee(p.getFee())
+                .status(p.getStatus())
+                .chunksCount(chunkCounts.getOrDefault(p.getId(), 0))
+                .build()
+        ).toList();
     }
 
     @Transactional(readOnly = true)

@@ -65,12 +65,12 @@ public class FormCheckController {
             description = "Đối chiếu chéo thông tin Tờ khai khai sinh với Giấy chứng sinh, kiểm tra mốc tuổi kết hôn hợp pháp (Nam >= 20, Nữ >= 18), " +
                           "kiểm tra mục đích xác nhận tình trạng hôn nhân, và kiểm tra điều kiện 80 tuổi trợ cấp xã hội."
     )
-    public ResponseEntity<StructuredFormPrecheckResponse> precheckStructuredForm(
+    public ResponseEntity<ApiResponse<StructuredFormPrecheckResponse>> precheckStructuredForm(
             @RequestBody StructuredFormPrecheckRequest request) {
         log.info("Received structured form precheck request for formType: '{}', procedureCode: '{}'",
                 request.getFormType(), request.getProcedureCode());
         StructuredFormPrecheckResponse response = formPrecheckService.precheckStructuredForm(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
     @GetMapping("/submissions")

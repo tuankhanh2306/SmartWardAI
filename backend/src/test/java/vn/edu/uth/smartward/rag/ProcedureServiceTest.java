@@ -49,8 +49,8 @@ class ProcedureServiceTest {
                 .build();
 
         when(procedureRepository.searchProcedures(any(), any())).thenReturn(List.of(proc1));
-        when(chunkRepository.findByProcedureId(1L)).thenReturn(List.of(
-                LegalChunk.builder().id(101L).chunkCode("TTHC-HT-01_CHUNK_001").build()
+        when(chunkRepository.countChunksByProcedure()).thenReturn(List.<Object[]>of(
+                new Object[]{1L, 1L}
         ));
 
         List<ProcedureDto> result = procedureService.getProcedures("Hộ tịch", "khai sinh");
@@ -62,6 +62,8 @@ class ProcedureServiceTest {
         assertEquals("Thủ tục đăng ký khai sinh", dto.getProcedureName());
         assertEquals(1, dto.getChunksCount());
         verify(procedureRepository, times(1)).searchProcedures("Hộ tịch", "khai sinh");
+        verify(chunkRepository, times(1)).countChunksByProcedure();
+        verify(chunkRepository, never()).findByProcedureId(anyLong());
     }
 
     @Test
