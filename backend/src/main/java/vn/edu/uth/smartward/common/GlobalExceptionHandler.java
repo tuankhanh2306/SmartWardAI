@@ -51,8 +51,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
         log.error("Unhandled unexpected exception: ", ex);
+        String detailMsg = ex.getClass().getSimpleName() + ": " + (ex.getMessage() != null ? ex.getMessage() : "Unknown");
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error("Hệ thống gặp sự cố ngoài dự kiến. Vui lòng thử lại sau.", ErrorCode.INTERNAL_SERVER_ERROR.getCode()));
+                .body(ApiResponse.error("Hệ thống gặp sự cố ngoài dự kiến (" + detailMsg + "). Vui lòng thử lại sau.", ErrorCode.INTERNAL_SERVER_ERROR.getCode()));
     }
 }
