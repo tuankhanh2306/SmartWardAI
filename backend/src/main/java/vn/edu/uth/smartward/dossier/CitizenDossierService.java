@@ -216,7 +216,7 @@ public class CitizenDossierService {
                 .procedureCode(dossier.getProcedureCode())
                 .procedureName(procedureName)
                 .wardCode(dossier.getWardCode())
-                .citizenCccd(dossier.getCitizenCccd())
+                .citizenCccd(maskCccd(dossier.getCitizenCccd()))
                 .citizenName(citizenName)
                 .status(dossier.getStatus())
                 .slaDeadline(dossier.getSlaDeadline())

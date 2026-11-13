@@ -81,4 +81,28 @@ class VaultControllerTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.errorCode").value("SW_410"));
     }
+
+    @Test
+    void testViewDocumentOnce_withPdfMagicBytes_shouldReturnApplicationPdf() throws Exception {
+        byte[] pdfBytes = new byte[]{0x25, 0x50, 0x44, 0x46, 0x2D, 0x31, 0x2E, 0x34}; // %PDF-1.4
+        when(vaultService.consumeOneTimeDocument("OTT_pdf_token")).thenReturn(pdfBytes);
+
+        mockMvc.perform(get("/api/v1/vault/view/OTT_pdf_token"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_PDF))
+                .andExpect(header().string("Content-Disposition", "inline; filename=\"vault_document.pdf\""))
+                .andExpect(content().bytes(pdfBytes));
+    }
+
+    @Test
+    void testViewDocumentOnce_withJpegMagicBytes_shouldReturnImageJpeg() throws Exception {
+        byte[] jpegBytes = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE0, 0x00, 0x10};
+        when(vaultService.consumeOneTimeDocument("OTT_jpeg_token")).thenReturn(jpegBytes);
+
+        mockMvc.perform(get("/api/v1/vault/view/OTT_jpeg_token"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.IMAGE_JPEG))
+                .andExpect(header().string("Content-Disposition", "inline; filename=\"vault_document.jpg\""))
+                .andExpect(content().bytes(jpegBytes));
+    }
 }

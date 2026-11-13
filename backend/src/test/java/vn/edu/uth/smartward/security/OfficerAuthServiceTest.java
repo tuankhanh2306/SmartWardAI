@@ -3,11 +3,18 @@ package vn.edu.uth.smartward.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
+import org.mockito.Mockito;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.util.ReflectionTestUtils;
 import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ErrorCode;
 
+import java.time.Duration;
+
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 class OfficerAuthServiceTest {
 
@@ -56,6 +63,42 @@ class OfficerAuthServiceTest {
         officerAuthService.revokeToken("Bearer " + login.token());
         BusinessException ex = assertThrows(BusinessException.class, () ->
                 officerAuthService.verifyToken("Bearer " + login.token())
+        );
+        assertEquals(ErrorCode.UNAUTHORIZED, ex.getErrorCode());
+    }
+
+    @Test
+    void testAuthenticate_defaultWardCode_isLongXuyen() {
+        OfficerAuthService.LoginResponse login = officerAuthService.authenticate("CC-AG-8942", "8942", null);
+        assertEquals("AG_P_LONGXUYEN", login.wardCode());
+
+        OfficerAuthService.OfficerPrincipal principal = officerAuthService.verifyToken("Bearer " + login.token());
+        assertEquals("AG_P_LONGXUYEN", principal.wardCode());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testRedisJwtRevocation() {
+        StringRedisTemplate mockRedis = mock(StringRedisTemplate.class);
+        ValueOperations<String, String> mockOps = mock(ValueOperations.class);
+        when(mockRedis.opsForValue()).thenReturn(mockOps);
+
+        OfficerAuthService serviceWithRedis = new OfficerAuthService(new ObjectMapper(), mockRedis);
+        ReflectionTestUtils.setField(serviceWithRedis, "jwtSecret", "SmartWardAI_UnitTest_JwtSecret_32B!");
+        ReflectionTestUtils.setField(serviceWithRedis, "tokenTtlHours", 8);
+
+        OfficerAuthService.LoginResponse login = serviceWithRedis.authenticate("CC-AG-8942", "8942", null);
+        serviceWithRedis.revokeToken("Bearer " + login.token());
+
+        verify(mockOps).set(
+                startsWith("smartward:auth:revoked:"),
+                eq("true"),
+                any(Duration.class)
+        );
+
+        when(mockRedis.hasKey(startsWith("smartward:auth:revoked:"))).thenReturn(true);
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                serviceWithRedis.verifyToken("Bearer " + login.token())
         );
         assertEquals(ErrorCode.UNAUTHORIZED, ex.getErrorCode());
     }

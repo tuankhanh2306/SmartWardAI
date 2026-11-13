@@ -55,4 +55,19 @@ class ImageWatermarkServiceTest {
         byte[] result = watermarkService.applyWatermark(invalidBytes);
         assertArrayEquals(invalidBytes, result, "Should gracefully return original bytes if not decodable");
     }
+
+    @Test
+    void testApplyWatermark_pixelFloodExceedsLimit_shouldThrowBusinessException() throws IOException {
+        BufferedImage hugeDimImg = new BufferedImage(4097, 2, BufferedImage.TYPE_INT_RGB);
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(hugeDimImg, "png", baos);
+        byte[] inputBytes = baos.toByteArray();
+
+        vn.edu.uth.smartward.common.BusinessException ex = assertThrows(
+                vn.edu.uth.smartward.common.BusinessException.class,
+                () -> watermarkService.applyWatermark(inputBytes)
+        );
+        assertEquals(vn.edu.uth.smartward.common.ErrorCode.INVALID_REQUEST, ex.getErrorCode());
+        assertTrue(ex.getMessage().contains("4096x4096"));
+    }
 }

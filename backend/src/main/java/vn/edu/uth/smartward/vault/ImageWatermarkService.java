@@ -3,14 +3,19 @@ package vn.edu.uth.smartward.vault;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import vn.edu.uth.smartward.common.BusinessException;
+import vn.edu.uth.smartward.common.ErrorCode;
 
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Iterator;
 
 /**
  * Java2D Watermarking Service for Administrative Citizen Documents.
@@ -37,8 +42,36 @@ public class ImageWatermarkService {
             return imageBytes;
         }
 
+        // 1. Inspect image dimensions before decoding to protect against pixel flood / decompression bombs (max 4096px, 16M pixels)
+        try (ImageInputStream iis = ImageIO.createImageInputStream(new ByteArrayInputStream(imageBytes))) {
+            if (iis != null) {
+                Iterator<ImageReader> readers = ImageIO.getImageReaders(iis);
+                if (readers.hasNext()) {
+                    ImageReader reader = readers.next();
+                    try {
+                        reader.setInput(iis, true, true);
+                        int w = reader.getWidth(0);
+                        int h = reader.getHeight(0);
+                        if (w > 4096 || h > 4096 || ((long) w * h) > 16_777_216L) {
+                            log.warn("Image dimensions exceed allowed security limits: {}x{} (area={})", w, h, (long) w * h);
+                            throw new BusinessException(ErrorCode.INVALID_REQUEST,
+                                    "Kích thước ảnh vượt quá giới hạn cho phép (tối đa 4096x4096 px).");
+                        }
+                    } finally {
+                        reader.dispose();
+                    }
+                }
+            }
+        } catch (BusinessException be) {
+            throw be;
+        } catch (Exception e) {
+            log.warn("Could not inspect image metadata header: {}", e.getMessage());
+        }
+
+        BufferedImage original = null;
+        BufferedImage watermarked = null;
         try {
-            BufferedImage original = ImageIO.read(new ByteArrayInputStream(imageBytes));
+            original = ImageIO.read(new ByteArrayInputStream(imageBytes));
             if (original == null) {
                 log.warn("ImageIO could not decode image format; returning original bytes.");
                 return imageBytes;
@@ -48,7 +81,7 @@ public class ImageWatermarkService {
             int height = original.getHeight();
 
             // Create target image with RGB channels
-            BufferedImage watermarked = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            watermarked = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
             Graphics2D g2d = watermarked.createGraphics();
 
             // Enable High-Quality Anti-Aliasing
@@ -97,9 +130,14 @@ public class ImageWatermarkService {
                     width, height, fullWatermarkText);
             return result;
 
+        } catch (BusinessException be) {
+            throw be;
         } catch (Exception e) {
             log.error("Failed to apply watermark to image: {}", e.getMessage());
             return imageBytes; // Graceful fallback to original bytes
+        } finally {
+            if (original != null) original.flush();
+            if (watermarked != null) watermarked.flush();
         }
     }
 }

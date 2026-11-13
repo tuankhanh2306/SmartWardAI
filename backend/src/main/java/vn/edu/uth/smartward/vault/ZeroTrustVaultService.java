@@ -24,6 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -117,13 +118,13 @@ public class ZeroTrustVaultService {
             log.warn("Redis unavailable to cache vault token (fail-open override active): {}", e.getMessage());
         }
 
-        // 5. Persist Document Metadata in Database (store SHA-256 digest of token rather than plaintext token when fail-closed)
+        // 5. Persist Document Metadata in Database (store SHA-256 digest of token rather than plaintext token)
         VaultDocument document = VaultDocument.builder()
                 .documentCode(docCode)
                 .minioObjectPath(objectName)
                 .encryptionAlgorithm(ALGORITHM)
                 .watermarkContent("CHỈ DÙNG ĐỂ SƠ DUYỆT HỒ SƠ TẠI UBND")
-                .oneTimeToken(oneTimeToken)
+                .oneTimeToken(sha256Hex(oneTimeToken))
                 .isViewed(false)
                 .expiresAt(expiresAt)
                 .build();
@@ -172,7 +173,7 @@ public class ZeroTrustVaultService {
 
         // If Redis GETDEL returned null, the token was already consumed, expired, or never existed
         if (docCode == null || docCode.isBlank()) {
-            Optional<VaultDocument> docOpt = documentRepository.findByOneTimeToken(oneTimeToken.trim());
+            Optional<VaultDocument> docOpt = documentRepository.findByOneTimeToken(sha256Hex(oneTimeToken.trim()));
             if (docOpt.isPresent()) {
                 VaultDocument doc = docOpt.get();
                 if (Boolean.TRUE.equals(doc.getIsViewed()) || doc.getExpiresAt().isBefore(OffsetDateTime.now()) || failClosed) {
@@ -337,5 +338,20 @@ public class ZeroTrustVaultService {
         String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
         String rand = UUID.randomUUID().toString().substring(0, 4).toUpperCase();
         return "DOC_" + ts + "_" + rand;
+    }
+
+    public static String sha256Hex(String input) {
+        if (input == null) return null;
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] digest = md.digest(input.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder(digest.length * 2);
+            for (byte b : digest) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            throw new IllegalStateException("SHA-256 not available", e);
+        }
     }
 }

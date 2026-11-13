@@ -116,12 +116,12 @@ class ZeroTrustVaultServiceTest {
 
         VaultDocument viewedDoc = VaultDocument.builder()
                 .documentCode("DOC_123")
-                .oneTimeToken(token)
+                .oneTimeToken(ZeroTrustVaultService.sha256Hex(token))
                 .isViewed(true) // Marked as viewed
                 .expiresAt(OffsetDateTime.now().plusHours(10))
                 .build();
 
-        when(documentRepository.findByOneTimeToken(token)).thenReturn(Optional.of(viewedDoc));
+        when(documentRepository.findByOneTimeToken(ZeroTrustVaultService.sha256Hex(token))).thenReturn(Optional.of(viewedDoc));
 
         BusinessException ex = assertThrows(BusinessException.class, () ->
                 vaultService.consumeOneTimeDocument(token)
@@ -129,5 +129,14 @@ class ZeroTrustVaultServiceTest {
 
         assertEquals(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED, ex.getErrorCode());
         assertTrue(ex.getMessage().contains("đã được sử dụng một lần"));
+    }
+
+    @Test
+    void testSha256Hex_validInput_returns64CharHex() {
+        String token = "OTT_test_token_12345";
+        String hash = ZeroTrustVaultService.sha256Hex(token);
+        assertNotNull(hash);
+        assertEquals(64, hash.length());
+        assertEquals(hash, ZeroTrustVaultService.sha256Hex(token));
     }
 }

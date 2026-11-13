@@ -69,13 +69,28 @@ public class VaultController {
 
         log.info("Requesting one-time view for token: {}", token);
 
-        byte[] decryptedImageBytes = vaultService.consumeOneTimeDocument(token);
+        byte[] decryptedBytes = vaultService.consumeOneTimeDocument(token);
+
+        MediaType mediaType = MediaType.IMAGE_PNG;
+        String filename = "vault_document.png";
+
+        if (decryptedBytes != null && decryptedBytes.length >= 4) {
+            if (decryptedBytes[0] == 0x25 && decryptedBytes[1] == 0x50 
+                    && decryptedBytes[2] == 0x44 && decryptedBytes[3] == 0x46) {
+                mediaType = MediaType.APPLICATION_PDF;
+                filename = "vault_document.pdf";
+            } else if (decryptedBytes[0] == (byte) 0xFF && decryptedBytes[1] == (byte) 0xD8 
+                    && decryptedBytes[2] == (byte) 0xFF) {
+                mediaType = MediaType.IMAGE_JPEG;
+                filename = "vault_document.jpg";
+            }
+        }
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"vault_document.png\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
                 .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate, max-age=0")
                 .header(HttpHeaders.PRAGMA, "no-cache")
-                .contentType(MediaType.IMAGE_PNG)
-                .body(decryptedImageBytes);
+                .contentType(mediaType)
+                .body(decryptedBytes);
     }
 }
