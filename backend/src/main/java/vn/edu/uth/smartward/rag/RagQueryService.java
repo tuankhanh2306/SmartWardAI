@@ -177,6 +177,12 @@ public class RagQueryService {
             candidateChunks = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, k);
         }
 
+        // Cross-model fallback if model-specific vector space returned 0 chunks (e.g. during cold start or mock fallback)
+        if (candidateChunks.isEmpty()) {
+            log.info("Zero chunks found for model '{}'. Falling back to all active chunks in database.", activeModelId);
+            candidateChunks = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, k);
+        }
+
         double threshold = (request.getSimilarityThreshold() != null && request.getSimilarityThreshold() > 0)
                 ? request.getSimilarityThreshold() : defaultThreshold;
 

@@ -257,7 +257,7 @@ export async function askGeminiWithRAG(
       if (response.ok) {
         const data = await response.json();
         const result = data?.data ? data.data : data;
-        if (result && result.answer) {
+        if (result && result.answer && !result.abstained) {
           return result as RagResponse;
         }
       }
@@ -323,12 +323,20 @@ export async function askGeminiWithRAG(
 
   // 8. Build structured procedure response from local knowledge
   const topItem = searchResult.items[0];
-  const answer = buildStructuredProcedureResponse(
+  let answer = buildStructuredProcedureResponse(
     topItem,
     wardName,
     officeAddress,
     mandatoryDisclaimer
   );
+
+  if (searchResult.items.length > 1) {
+    const additionalProcedures = searchResult.items
+      .slice(1)
+      .map((it) => `• [${it.code}] ${it.name} (${it.category}) — Thời hạn: ${it.timeLimit} | Lệ phí: ${it.fee}`)
+      .join('\n');
+    answer += `\n\n📌 CÁC THỦ TỤC LIÊN QUAN CÙNG ĐƯỢC ĐỀ CẬP:\n${additionalProcedures}\n(Bà con có thể nhấn vào từng thủ tục hoặc đặt câu hỏi chi tiết về thủ tục mình quan tâm để được hướng dẫn riêng nhé!)`;
+  }
   const elapsed = Math.round(performance.now() - startTime);
 
   const citations: LegalCitation[] = searchResult.items.map((item) => ({
