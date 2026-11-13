@@ -60,4 +60,4 @@ smartward:
     fail-closed: ${VAULT_FAIL_CLOSED:true}
     watermark-text: "CHỈ DÙNG ĐỂ SƠ DUYỆT HỒ SƠ TẠI UBND"
   rate-limit:
-    requests-per-minute: 5
+    requests-per-minute: ${RATE_LIMIT_RPM:30}
