@@ -195,6 +195,17 @@ public class RagQueryService {
         log.info("RAG retrieval for query '{}' (effective '{}'): found {} candidates, maxSimilarity={}",
                 truncate(rawQuery, 40), truncate(effectiveQuery, 40), candidateChunks.size(), String.format(Locale.US, "%.4f", maxSimilarity));
 
+        // 7.1. Hybrid Keyword Matching Fallback when vector similarity is low (e.g. cross-model embedding or keyword query)
+        if ((candidateChunks.isEmpty() || maxSimilarity < threshold) && procedureRepository != null) {
+            List<LegalChunkMatch> hybridMatches = tryHybridProcedureKeywordMatch(effectiveQuery);
+            if (!hybridMatches.isEmpty()) {
+                candidateChunks = hybridMatches;
+                maxSimilarity = candidateChunks.stream()
+                        .mapToDouble(m -> m.getSimilarityScore() != null ? m.getSimilarityScore() : 0.0)
+                        .max().orElse(0.92);
+            }
+        }
+
         // 8. Abstention Guardrail: S_max < threshold (Safe abstention without calling LLM)
         if (candidateChunks.isEmpty() || maxSimilarity < threshold) {
             long elapsed = System.currentTimeMillis() - startTime;
@@ -1238,5 +1249,97 @@ public class RagQueryService {
     private String truncate(String text, int maxLen) {
         if (text == null) return "";
         return text.length() > maxLen ? text.substring(0, maxLen) + "..." : text;
+    }
+
+    record SimpleLegalChunkMatch(
+            Long id,
+            String chunkCode,
+            String chunkType,
+            String title,
+            String content,
+            String legalReference,
+            String procedureCode,
+            String procedureName,
+            Double similarityScore
+    ) implements LegalChunkMatch {
+        @Override public Long getId() { return id; }
+        @Override public String getChunkCode() { return chunkCode; }
+        @Override public String getChunkType() { return chunkType; }
+        @Override public String getTitle() { return title; }
+        @Override public String getContent() { return content; }
+        @Override public String getLegalReference() { return legalReference; }
+        @Override public String getProcedureCode() { return procedureCode; }
+        @Override public String getProcedureName() { return procedureName; }
+        @Override public Double getSimilarityScore() { return similarityScore; }
+    }
+
+    private List<LegalChunkMatch> tryHybridProcedureKeywordMatch(String query) {
+        if (query == null || query.isBlank() || procedureRepository == null) {
+            return Collections.emptyList();
+        }
+        String lower = query.toLowerCase();
+
+        String matchedCode = null;
+        if (lower.contains("khai sinh") || lower.contains("giấy khai sinh") || lower.contains("chứng sinh") || lower.contains("sinh con") || lower.contains("mới sinh")) {
+            matchedCode = "TTHC-HT-01";
+        } else if (lower.contains("kết hôn") || lower.contains("đăng ký kết hôn") || lower.contains("hôn thú") || lower.contains("giá thú") || lower.contains("lấy vợ") || lower.contains("lấy chồng")) {
+            matchedCode = "TTHC-HT-02";
+        } else if (lower.contains("khai tử") || lower.contains("giấy chứng tử") || lower.contains("báo tử") || lower.contains("người mất") || lower.contains("người chết")) {
+            matchedCode = "TTHC-HT-13";
+        } else if (lower.contains("trích lục") || lower.contains("bản sao trích lục") || lower.contains("xin lại khai sinh") || lower.contains("xin lại kết hôn")) {
+            matchedCode = "TTHC-HT-04";
+        } else if (lower.contains("độc thân") || lower.contains("tình trạng hôn nhân") || lower.contains("chưa kết hôn")) {
+            matchedCode = "TTHC-HT-11";
+        } else if (lower.contains("chứng thực chữ ký") || lower.contains("lăn tay") || lower.contains("điểm chỉ")) {
+            matchedCode = "TTHC-CT-02";
+        } else if (lower.contains("sao y") || lower.contains("chứng thực bản sao") || lower.contains("chứng giấy")) {
+            matchedCode = "TTHC-CT-01";
+        } else if (lower.contains("mai táng") || lower.contains("tiền mai táng") || lower.contains("chi phí mai táng") || lower.contains("chết có trợ cấp")) {
+            matchedCode = "TTHC-BT-02";
+        } else if (lower.contains("tiền già") || lower.contains("trợ cấp người cao tuổi") || lower.contains("trợ cấp xã hội") || lower.contains("bảo trợ xã hội")) {
+            matchedCode = "TTHC-BT-01";
+        } else if (lower.contains("ct01") || lower.contains("thường trú") || lower.contains("nhập hộ khẩu") || lower.contains("nhập khẩu")) {
+            matchedCode = "TTHC-CR-01";
+        } else if (lower.contains("tạm trú") || lower.contains("đăng ký tạm trú")) {
+            matchedCode = "TTHC-CR-03";
+        } else if (lower.contains("lưu trú") || lower.contains("thông báo lưu trú")) {
+            matchedCode = "TTHC-CR-06";
+        } else if (lower.contains("tạm vắng") || lower.contains("khai báo tạm vắng")) {
+            matchedCode = "TTHC-CR-07";
+        } else if (lower.contains("biến động đất") || lower.contains("sang tên đất") || lower.contains("chuyển nhượng quyền sử dụng") || lower.contains("tặng cho đất")) {
+            matchedCode = "TTHC-DC-01";
+        } else if (lower.contains("sổ đỏ") || lower.contains("cấp sổ") || lower.contains("đăng ký đất đai")) {
+            matchedCode = "TTHC-DC-02";
+        } else if (lower.contains("giấy phép xây dựng") || lower.contains("xin phép xây nhà") || lower.contains("xây dựng nhà ở")) {
+            matchedCode = "TTHC-XD-01";
+        }
+
+        if (matchedCode != null) {
+            Optional<AdminProcedure> procOpt = procedureRepository.findByProcedureCode(matchedCode);
+            if (procOpt.isPresent()) {
+                AdminProcedure proc = procOpt.get();
+                List<LegalChunk> chunks = chunkRepository.findByProcedureId(proc.getId());
+                if (!chunks.isEmpty()) {
+                    log.info("Hybrid Keyword Match: mapped query '{}' to procedure '{}' ({})",
+                            truncate(query, 40), proc.getProcedureName(), proc.getProcedureCode());
+                    List<LegalChunkMatch> matches = new ArrayList<>();
+                    for (LegalChunk c : chunks) {
+                        matches.add(new SimpleLegalChunkMatch(
+                                c.getId(),
+                                c.getChunkCode(),
+                                c.getChunkType(),
+                                c.getTitle(),
+                                c.getContent(),
+                                c.getLegalReference(),
+                                proc.getProcedureCode(),
+                                proc.getProcedureName(),
+                                0.92
+                        ));
+                    }
+                    return matches;
+                }
+            }
+        }
+        return Collections.emptyList();
     }
 }
