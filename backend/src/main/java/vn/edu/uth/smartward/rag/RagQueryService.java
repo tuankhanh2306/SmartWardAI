@@ -1359,27 +1359,15 @@ public class RagQueryService {
                             proc.getProcedureCode() + "_CHUNK_001",
                             "OVERVIEW",
                             "Tổng quan " + proc.getProcedureName(),
-                            "Thủ tục: " + proc.getProcedureName() + ". Cơ quan giải quyết: " + proc.getAgency() +
-                                    ". Thời hạn giải quyết: " + proc.getProcessingTime() + ". Lệ phí: " + proc.getFee() +
-                                    ". Trình tự: " + (proc.getProcess() != null ? proc.getProcess() : "Thực hiện tại Bộ phận Một cửa."),
+                            "Thủ tục: " + proc.getProcedureName() + ". Cơ quan giải quyết: " + (proc.getAgency() != null ? proc.getAgency() : "UBND cấp xã / phường") +
+                                    ". Thời hạn giải quyết: " + (proc.getProcessingTime() != null ? proc.getProcessingTime() : "Theo quy định") +
+                                    ". Lệ phí: " + (proc.getFee() != null ? proc.getFee() : "Miễn phí / theo quy định") +
+                                    ". Thực hiện tại Bộ phận Tiếp nhận và Trả kết quả (Một cửa).",
                             proc.getProcedureName(),
                             proc.getProcedureCode(),
                             proc.getProcedureName(),
                             0.92
                     ));
-                    if (proc.getProcess() != null && !proc.getProcess().isBlank()) {
-                        matches.add(new SimpleLegalChunkMatch(
-                                proc.getId(),
-                                proc.getProcedureCode() + "_CHUNK_002",
-                                "PROCESS_STEP",
-                                "Trình tự thực hiện " + proc.getProcedureName(),
-                                proc.getProcess(),
-                                proc.getProcedureName() + " - Trình tự Một cửa",
-                                proc.getProcedureCode(),
-                                proc.getProcedureName(),
-                                0.92
-                        ));
-                    }
                 }
                 return matches;
             }
