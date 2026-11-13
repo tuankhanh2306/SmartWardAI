@@ -48,6 +48,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("Kích thước tệp vượt quá hạn mức tối đa cho phép (5 MB).", "SW_FILE_TOO_LARGE"));
     }
 
+    @ExceptionHandler(org.springframework.web.servlet.resource.NoResourceFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleNoResourceFound(org.springframework.web.servlet.resource.NoResourceFoundException ex) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error("Tài nguyên không tồn tại: " + ex.getResourcePath(), "SW_404"));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
         log.error("Unhandled unexpected exception: ", ex);
