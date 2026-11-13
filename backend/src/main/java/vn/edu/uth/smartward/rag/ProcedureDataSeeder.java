@@ -8,7 +8,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.time.LocalDate;
@@ -27,17 +26,20 @@ public class ProcedureDataSeeder implements CommandLineRunner {
     private final vn.edu.uth.smartward.ai.AiModelClient aiModelClient;
 
     @Override
-    @Transactional
     public void run(String... args) {
         log.info("Starting synchronization and seeding of verified administrative procedures...");
 
         // 1. Remove deprecated duplicate records if present in database
         List<String> deprecatedCodes = List.of("TTHC-BT-06", "TTHC-CR-05", "TTHC-CT-03");
         for (String deprecatedCode : deprecatedCodes) {
-            procedureRepository.findByProcedureCode(deprecatedCode).ifPresent(proc -> {
-                log.info("Removing deprecated duplicate procedure from database: {}", deprecatedCode);
-                procedureRepository.delete(proc);
-            });
+            try {
+                procedureRepository.findByProcedureCode(deprecatedCode).ifPresent(proc -> {
+                    log.info("Removing deprecated duplicate procedure from database: {}", deprecatedCode);
+                    procedureRepository.delete(proc);
+                });
+            } catch (Exception e) {
+                log.warn("Could not delete deprecated procedure {}: {}", deprecatedCode, e.getMessage());
+            }
         }
 
         // 2. Load and upsert all standard seed procedures from classpath
@@ -79,52 +81,60 @@ public class ProcedureDataSeeder implements CommandLineRunner {
 
                     AdminProcedure savedProc = procedureRepository.save(proc);
 
-                    // Import predefined chunks if newly inserted or if no chunks exist for this procedure
-                    List<LegalChunk> existingChunks = chunkRepository.findByProcedureId(savedProc.getId());
-                    if (existingChunks.isEmpty()) {
-                        JsonNode chunksNode = root.path("chunks");
-                        List<LegalChunk> chunkList = new ArrayList<>();
+                    // Import or update predefined chunks idempotently
+                    JsonNode chunksNode = root.path("chunks");
+                    if (chunksNode.isArray()) {
+                        for (JsonNode cNode : chunksNode) {
+                            String chunkCode = cNode.path("chunkId").asText();
+                            if (chunkCode == null || chunkCode.isBlank()) {
+                                continue;
+                            }
 
-                        if (chunksNode.isArray()) {
-                            for (JsonNode cNode : chunksNode) {
-                                String chunkCode = cNode.path("chunkId").asText();
+                            try {
+                                Optional<LegalChunk> existingChunkOpt = chunkRepository.findByChunkCode(chunkCode);
+                                LegalChunk chunk;
+                                if (existingChunkOpt.isPresent()) {
+                                    chunk = existingChunkOpt.get();
+                                    chunk.setProcedure(savedProc);
+                                } else {
+                                    chunk = LegalChunk.builder()
+                                            .procedure(savedProc)
+                                            .chunkCode(chunkCode)
+                                            .build();
+                                }
+
                                 String chunkType = cNode.path("chunkType").asText("OVERVIEW");
                                 String title = cNode.path("title").asText();
                                 String content = cNode.path("content").asText();
                                 String legalRef = cNode.path("legalReference").asText();
 
+                                chunk.setChunkType(chunkType);
+                                chunk.setTitle(title);
+                                chunk.setContent(content);
+                                chunk.setLegalReference(legalRef);
+                                chunk.setStatus("ACTIVE");
+                                if (chunk.getEffectiveDate() == null) {
+                                    chunk.setEffectiveDate(LocalDate.now());
+                                }
+
                                 String activeModelId = aiModelClient.getEmbeddingModelId() != null
                                         ? aiModelClient.getEmbeddingModelId()
                                         : "bkai_pho_bert_ft_v1";
-                                String embeddingStr;
-                                String chunkModelId;
+
                                 if ("bkai_pho_bert_ft_v1".equalsIgnoreCase(activeModelId)
                                         && cNode.has("embedding")
                                         && !cNode.path("embedding").asText().isBlank()) {
-                                    embeddingStr = cNode.path("embedding").asText();
-                                    chunkModelId = "bkai_pho_bert_ft_v1";
-                                } else {
-                                    embeddingStr = aiModelClient.toPgVectorString(aiModelClient.generateEmbedding(title + " " + content));
-                                    chunkModelId = activeModelId;
+                                    chunk.setEmbedding(cNode.path("embedding").asText());
+                                    chunk.setEmbeddingModel("bkai_pho_bert_ft_v1");
+                                } else if (chunk.getEmbedding() == null) {
+                                    chunk.setEmbedding(aiModelClient.toPgVectorString(aiModelClient.generateEmbedding(title + " " + content)));
+                                    chunk.setEmbeddingModel(activeModelId);
                                 }
 
-                                chunkList.add(LegalChunk.builder()
-                                        .procedure(savedProc)
-                                        .chunkCode(chunkCode)
-                                        .chunkType(chunkType)
-                                        .title(title)
-                                        .content(content)
-                                        .legalReference(legalRef)
-                                        .embedding(embeddingStr)
-                                        .embeddingModel(chunkModelId)
-                                        .status("ACTIVE")
-                                        .effectiveDate(LocalDate.now())
-                                        .build());
+                                chunkRepository.save(chunk);
+                            } catch (Exception chunkEx) {
+                                log.warn("Failed to upsert chunk {} for procedure {}: {}", chunkCode, procCode, chunkEx.getMessage());
                             }
-                        }
-
-                        if (!chunkList.isEmpty()) {
-                            chunkRepository.saveAll(chunkList);
                         }
                     }
 
