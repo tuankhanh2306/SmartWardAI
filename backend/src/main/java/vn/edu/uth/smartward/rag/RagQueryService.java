@@ -163,24 +163,35 @@ public class RagQueryService {
             return buildWardOfficeResponse(request.getWardName(), request.getOfficeAddress(), startTime);
         }
 
-        // 7. Query Vectorization (768-dim) using effectiveQuery
-        float[] queryEmbedding = aiModelClient.generateEmbedding(effectiveQuery);
-        String pgVectorString = aiModelClient.toPgVectorString(queryEmbedding);
+        // 7. Query Vectorization (768-dim) using effectiveQuery with graceful exception handling
+        float[] queryEmbedding = null;
+        String pgVectorString = null;
+        try {
+            queryEmbedding = aiModelClient.generateEmbedding(effectiveQuery);
+            pgVectorString = aiModelClient.toPgVectorString(queryEmbedding);
+        } catch (Exception ex) {
+            log.warn("Query vectorization failed: {}. Continuing with hybrid keyword retrieval.", ex.getMessage());
+        }
+
         String activeModelId = aiModelClient.getEmbeddingModelId();
 
         // 7. Retrieve Top-K Chunks using pgvector HNSW strictly within the active embedding model's vector space
         int k = (request.getTopK() != null && request.getTopK() > 0) ? request.getTopK() : defaultTopK;
         List<LegalChunkMatch> candidateChunks;
-        if (activeModelId != null && !activeModelId.isBlank()) {
-            candidateChunks = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, activeModelId, k);
-        } else {
-            candidateChunks = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, k);
-        }
+        if (pgVectorString != null) {
+            if (activeModelId != null && !activeModelId.isBlank()) {
+                candidateChunks = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, activeModelId, k);
+            } else {
+                candidateChunks = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, k);
+            }
 
-        // Cross-model fallback if model-specific vector space returned 0 chunks (e.g. during cold start or mock fallback)
-        if (candidateChunks.isEmpty()) {
-            log.info("Zero chunks found for model '{}'. Falling back to all active chunks in database.", activeModelId);
-            candidateChunks = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, k);
+            // Cross-model fallback if model-specific vector space returned 0 chunks (e.g. during cold start or mock fallback)
+            if (candidateChunks.isEmpty()) {
+                log.info("Zero chunks found for model '{}'. Falling back to all active chunks in database.", activeModelId);
+                candidateChunks = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, k);
+            }
+        } else {
+            candidateChunks = new ArrayList<>();
         }
 
         double threshold = (request.getSimilarityThreshold() != null && request.getSimilarityThreshold() > 0)
@@ -250,8 +261,8 @@ public class RagQueryService {
                     .disclaimer(LEGAL_DISCLAIMER)
                     .build();
 
-            // Cache abstention for 30 minutes to conserve LLM quota on repetitive invalid queries
-            queryCacheService.putResponse(cacheKey, abstainedResponse, 1800);
+            // Cache abstention for 30 seconds to prevent poisoning cache with transient abstentions
+            queryCacheService.putResponse(cacheKey, abstainedResponse, 30);
             return abstainedResponse;
         }
 
@@ -1316,13 +1327,18 @@ public class RagQueryService {
 
         if (matchedCode != null) {
             Optional<AdminProcedure> procOpt = procedureRepository.findByProcedureCode(matchedCode);
+            if (procOpt.isEmpty() && "TTHC-HT-13".equals(matchedCode)) {
+                procOpt = procedureRepository.findByProcedureCode("TTHC-HT-03");
+            }
+
             if (procOpt.isPresent()) {
                 AdminProcedure proc = procOpt.get();
                 List<LegalChunk> chunks = chunkRepository.findByProcedureId(proc.getId());
+                log.info("Hybrid Keyword Match: mapped query '{}' to procedure '{}' ({}) with {} database chunks",
+                        truncate(query, 40), proc.getProcedureName(), proc.getProcedureCode(), chunks.size());
+
+                List<LegalChunkMatch> matches = new ArrayList<>();
                 if (!chunks.isEmpty()) {
-                    log.info("Hybrid Keyword Match: mapped query '{}' to procedure '{}' ({})",
-                            truncate(query, 40), proc.getProcedureName(), proc.getProcedureCode());
-                    List<LegalChunkMatch> matches = new ArrayList<>();
                     for (LegalChunk c : chunks) {
                         matches.add(new SimpleLegalChunkMatch(
                                 c.getId(),
@@ -1336,8 +1352,36 @@ public class RagQueryService {
                                 0.92
                         ));
                     }
-                    return matches;
+                } else {
+                    // Synthesize fallback chunk directly from AdminProcedure entity so LLM has accurate context
+                    matches.add(new SimpleLegalChunkMatch(
+                            proc.getId(),
+                            proc.getProcedureCode() + "_CHUNK_001",
+                            "OVERVIEW",
+                            "Tổng quan " + proc.getProcedureName(),
+                            "Thủ tục: " + proc.getProcedureName() + ". Cơ quan giải quyết: " + proc.getAgency() +
+                                    ". Thời hạn giải quyết: " + proc.getProcessingTime() + ". Lệ phí: " + proc.getFee() +
+                                    ". Trình tự: " + (proc.getProcess() != null ? proc.getProcess() : "Thực hiện tại Bộ phận Một cửa."),
+                            proc.getProcedureName(),
+                            proc.getProcedureCode(),
+                            proc.getProcedureName(),
+                            0.92
+                    ));
+                    if (proc.getProcess() != null && !proc.getProcess().isBlank()) {
+                        matches.add(new SimpleLegalChunkMatch(
+                                proc.getId(),
+                                proc.getProcedureCode() + "_CHUNK_002",
+                                "PROCESS_STEP",
+                                "Trình tự thực hiện " + proc.getProcedureName(),
+                                proc.getProcess(),
+                                proc.getProcedureName() + " - Trình tự Một cửa",
+                                proc.getProcedureCode(),
+                                proc.getProcedureName(),
+                                0.92
+                        ));
+                    }
                 }
+                return matches;
             }
         }
         return Collections.emptyList();

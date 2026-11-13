@@ -47,6 +47,8 @@ smartward:
     jwt-secret: ${JWT_SECRET}
     token-ttl-hours: ${OFFICER_TOKEN_TTL_HOURS:8}
     enforce-officer-auth: ${ENFORCE_OFFICER_AUTH:true}
+  rate-limit:
+    requests-per-minute: ${RATE_LIMIT_RPM:30}
 
 logging:
   level:

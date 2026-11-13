@@ -451,7 +451,10 @@ export const askLegalRag = async (
       history: historyPayload
     });
     const result = resp.data?.data ? resp.data.data : resp.data;
-    return result as RagResponse;
+    if (result && result.answer && !result.abstained) {
+      return result as RagResponse;
+    }
+    console.info('Backend abstained, attempting in-app legal knowledge fallback for query:', effectiveQuery);
   } catch (backendError: any) {
     // 5. If Backend is offline, check if Gemini Live RAG is configured
     if (isGeminiConfigured()) {

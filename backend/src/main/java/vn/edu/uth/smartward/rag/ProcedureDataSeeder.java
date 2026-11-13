@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.io.InputStream;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -121,14 +122,18 @@ public class ProcedureDataSeeder implements CommandLineRunner {
                                         ? aiModelClient.getEmbeddingModelId()
                                         : "bkai_pho_bert_ft_v1";
 
-                                if ("bkai_pho_bert_ft_v1".equalsIgnoreCase(activeModelId)
-                                        && cNode.has("embedding")
-                                        && !cNode.path("embedding").asText().isBlank()) {
+                                if (cNode.has("embedding") && !cNode.path("embedding").asText().isBlank()) {
                                     chunk.setEmbedding(cNode.path("embedding").asText());
                                     chunk.setEmbeddingModel("bkai_pho_bert_ft_v1");
                                 } else if (chunk.getEmbedding() == null) {
-                                    chunk.setEmbedding(aiModelClient.toPgVectorString(aiModelClient.generateEmbedding(title + " " + content)));
-                                    chunk.setEmbeddingModel(activeModelId);
+                                    try {
+                                        chunk.setEmbedding(aiModelClient.toPgVectorString(aiModelClient.generateEmbedding(title + " " + content)));
+                                        chunk.setEmbeddingModel(activeModelId);
+                                    } catch (Exception embedEx) {
+                                        log.warn("Embedding generation skipped for chunk {}: {}. Using fallback zero vector.", chunkCode, embedEx.getMessage());
+                                        chunk.setEmbedding("[" + String.join(",", Collections.nCopies(768, "0.0")) + "]");
+                                        chunk.setEmbeddingModel("fallback_zero_v1");
+                                    }
                                 }
 
                                 chunkRepository.save(chunk);
