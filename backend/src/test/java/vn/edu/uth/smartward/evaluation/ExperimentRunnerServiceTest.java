@@ -38,6 +38,7 @@ class ExperimentRunnerServiceTest {
         assertEquals("100.0%", result.getAbstentionAccuracy(), "Abstention on out-of-scope must be 100%");
         assertEquals("0.0%", result.getFalseAnswerRate());
         assertTrue(result.getMrr() >= 0.85);
+        assertTrue(result.getAverageLatencyMs() > 0.0, "Average latency must be dynamic and > 0ms");
     }
 
     @Test
@@ -66,6 +67,25 @@ class ExperimentRunnerServiceTest {
         assertEquals(25, result.getHardCasesCount());
         assertEquals("100.0%", result.getColocatedSeparationRate(), "Colocated different categories must be 100% separated");
         assertEquals("100.0%", result.getDistantSeparationRate(), "Distant locations must be 100% separated");
+        assertTrue(result.getAverageProcessingTimeMs() > 0.0, "Average triage processing time must be dynamic and > 0ms");
+    }
+
+    @Test
+    void testFullConstructor_withInjectedDependencies() {
+        ExperimentRunnerService fullService = new ExperimentRunnerService(
+                new ObjectMapper(),
+                new CccdValidator(),
+                new DateLogicValidator(),
+                new MandatoryFieldValidator(),
+                null,
+                null,
+                null,
+                null
+        );
+        RagBenchmarkResult ragResult = fullService.evaluateRagBenchmark();
+        assertNotNull(ragResult);
+        assertEquals(80, ragResult.getTotalQuestions());
+        assertTrue(ragResult.getAverageLatencyMs() > 0.0);
     }
 
     @Test

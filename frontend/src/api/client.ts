@@ -451,12 +451,15 @@ export const askLegalRag = async (
       history: historyPayload
     });
     const result = resp.data?.data ? resp.data.data : resp.data;
-    if (result && result.answer && !result.abstained) {
+    if (result && result.answer) {
       return result as RagResponse;
     }
-    console.info('Backend abstained, attempting in-app legal knowledge fallback for query:', effectiveQuery);
+    console.info('Backend did not return answer, attempting in-app legal knowledge fallback for query:', effectiveQuery);
   } catch (backendError: any) {
-    // 5. If Backend is offline, check if Gemini Live RAG is configured
+    console.warn('Backend call failed or timed out, executing in-app fallback:', backendError);
+  }
+
+  // 5. If Backend is offline or returned no answer, check if Gemini Live RAG is configured
     if (isGeminiConfigured()) {
       try {
         console.info('Invoking in-app Gemini Flash Live RAG Engine with Project Knowledge...');
@@ -569,7 +572,6 @@ export const askLegalRag = async (
       citations: [],
       suggestions: ['Đăng ký khai sinh', 'Đăng ký kết hôn', 'Đăng ký thường trú (CT01)', 'Xem 40 thủ tục'],
     };
-  }
 };
 
 // 2. Form Precheck Types & API

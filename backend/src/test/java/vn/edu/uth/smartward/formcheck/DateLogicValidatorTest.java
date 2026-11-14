@@ -51,4 +51,21 @@ class DateLogicValidatorTest {
         assertEquals("INVALID_DATE_LOGIC", issues.get(0).getErrorType());
         assertTrue(issues.get(0).getMessage().contains("chưa đủ 14 tuổi"));
     }
+
+    @Test
+    void testValidate_strictDateResolution_invalidFeb31() {
+        // 31/02/2020 does not exist
+        List<FormValidationIssue> issues = validator.validate("31/02/2020", "20/09/2021");
+        assertFalse(issues.isEmpty());
+        assertEquals("INVALID_DATE_FORMAT", issues.get(0).getErrorType());
+    }
+
+    @Test
+    void testValidate_birthYearBefore1900() {
+        List<FormValidationIssue> issues = validator.validate("15/08/1899", "20/09/2021");
+        assertEquals(1, issues.size());
+        assertEquals("INVALID_DATE_LOGIC", issues.get(0).getErrorType());
+        assertEquals("birthDate", issues.get(0).getField());
+        assertTrue(issues.get(0).getMessage().contains("1899"));
+    }
 }

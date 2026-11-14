@@ -7,21 +7,23 @@ import java.time.LocalDate;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Pure Java Deterministic Validator for Administrative Date Logic.
  * Verifies:
- * 1. Valid date formatting (dd/MM/yyyy or yyyy-MM-dd)
+ * 1. Valid date formatting (dd/MM/uuuu or uuuu-MM-dd) with STRICT resolver
  * 2. Temporal sequence: birthDate < issueDate <= today
  * 3. Citizen minimum age of 14 at the date of CCCD issuance (Law on Citizen Identity)
+ * 4. Birth year must not be prior to 1900
  */
 @Component
 public class DateLogicValidator {
 
-    private static final DateTimeFormatter FORMAT_DMY = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private static final DateTimeFormatter FORMAT_YMD = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter FORMAT_DMY = DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter FORMAT_YMD = DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT);
 
     /**
      * Validates birth date and card issue date logic.
@@ -51,6 +53,17 @@ public class DateLogicValidator {
         }
 
         if (birthDate == null || issueDate == null) {
+            return issues;
+        }
+
+        // 0. Birth date must not be before year 1900
+        if (birthDate.getYear() < 1900) {
+            issues.add(FormValidationIssue.builder()
+                    .field("birthDate")
+                    .errorType("INVALID_DATE_LOGIC")
+                    .message("Năm sinh (" + birthDate.getYear() + ") không hợp lệ (phải từ năm 1900 trở lại đây)")
+                    .severity("ERROR")
+                    .build());
             return issues;
         }
 

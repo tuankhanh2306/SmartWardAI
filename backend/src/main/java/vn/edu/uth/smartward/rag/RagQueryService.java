@@ -129,9 +129,13 @@ public class RagQueryService {
             log.info("Contextual follow-up resolved: '{}' -> '{}'", rawQuery, effectiveQuery);
         }
 
-        // Build scoped cache key based on effectiveQuery + wardName to prevent cross-ward and cross-procedure cache poisoning
-        String safeWard = (request.getWardName() != null && !request.getWardName().isBlank()) ? request.getWardName().trim() : "";
-        String cacheKey = safeWard.isEmpty() ? effectiveQuery : (effectiveQuery + "::" + safeWard);
+        // Build scoped cache key based on effectiveQuery, wardName, and category
+        String cacheKey = queryCacheService.buildCacheKey(effectiveQuery, request.getWardName(), request.getCategory());
+        if (cacheKey == null) {
+            // Fallback for mock environments without buildCacheKey stubbing
+            String safeWard = (request.getWardName() != null && !request.getWardName().isBlank()) ? request.getWardName().trim() : "";
+            cacheKey = safeWard.isEmpty() ? effectiveQuery : (effectiveQuery + "::" + safeWard);
+        }
 
         // 3. Redis Distributed Query Cache Check
         Optional<RagAskResponse> cachedOpt = queryCacheService.getCachedResponse(cacheKey, RagAskResponse.class);

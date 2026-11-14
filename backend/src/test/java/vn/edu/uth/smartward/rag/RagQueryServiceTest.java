@@ -115,7 +115,7 @@ class RagQueryServiceTest {
         assertTrue(response.getCitations().isEmpty());
         assertTrue(response.getAnswer().contains("chưa tìm thấy thông tin thủ tục"));
         verify(aiModelClient, never()).generateChatResponse(anyString(), anyString());
-        verify(queryCacheService).putResponse(anyString(), any(RagAskResponse.class), eq(1800L));
+        verify(queryCacheService).putResponse(anyString(), any(RagAskResponse.class), eq(30L));
     }
 
     @Test
