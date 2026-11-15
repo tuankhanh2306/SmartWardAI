@@ -268,6 +268,9 @@ export const FormAndIssueReporting: React.FC = () => {
   const [ocrError, setOcrError] = useState<string | null>(null);
   const [ocrDetails, setOcrDetails] = useState<ExtractedFormFieldsResult | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dossierFullNameInputRef = useRef<HTMLInputElement>(null);
+  const dossierCccdInputRef = useRef<HTMLInputElement>(null);
+  const dossierPhoneInputRef = useRef<HTMLInputElement>(null);
 
   // Civic Incident Reporting State
   const [category, setCategory] = useState('ROAD_DAMAGE');
@@ -725,7 +728,31 @@ export const FormAndIssueReporting: React.FC = () => {
       return;
     }
 
-    // 2. Validate Email for receiving precheck notification & QR appointment pass
+    // 2. Validate Citizen Full Name (Fix #2: strictly no fake fallback)
+    const cleanFullName = (fullName || '').trim();
+    if (!cleanFullName || cleanFullName.length < 3) {
+      alert('Vui lòng nhập đầy đủ Họ và tên công dân (tối thiểu 3 ký tự).');
+      dossierFullNameInputRef.current?.focus();
+      return;
+    }
+
+    // 3. Validate CCCD / Định danh cá nhân (đúng 12 chữ số)
+    const cleanCccd = (cccd || '').trim();
+    if (!cleanCccd || !/^\d{12}$/.test(cleanCccd)) {
+      alert('Số CCCD/ĐDCN không hợp lệ. Vui lòng nhập đúng 12 chữ số theo quy định Đề án 06.');
+      dossierCccdInputRef.current?.focus();
+      return;
+    }
+
+    // 4. Validate Contact Phone Number (10 chữ số, bắt đầu bằng 0)
+    const cleanPhone = (phoneNumber || '').trim();
+    if (!cleanPhone || !/^0\d{9}$/.test(cleanPhone)) {
+      alert('Số điện thoại liên hệ không hợp lệ (cần 10 chữ số, bắt đầu bằng 0).');
+      dossierPhoneInputRef.current?.focus();
+      return;
+    }
+
+    // 5. Validate Email for receiving precheck notification & QR appointment pass
     const cleanEmail = citizenEmail.trim();
     if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
       alert('Vui lòng nhập Địa chỉ Email hợp lệ (ví dụ: congdan@gmail.com) để hệ thống gửi thông báo kết quả sơ duyệt và Phiếu hẹn Mã QR miễn phí!');
@@ -743,8 +770,8 @@ export const FormAndIssueReporting: React.FC = () => {
       const res = await precheckForm({
         procedureCode: procMap[selectedFormType],
         formType: selectedFormType,
-        citizenCccd: cccd,
-        fullName,
+        citizenCccd: cleanCccd,
+        fullName: cleanFullName,
         dateOfBirth: dob,
         gender,
         cccdIssueDate: issueDate,
@@ -752,8 +779,8 @@ export const FormAndIssueReporting: React.FC = () => {
         formData: {
           permanentAddress: address,
           gender,
-          phoneNumber,
-          phone: phoneNumber,
+          phoneNumber: cleanPhone,
+          phone: cleanPhone,
           citizenEmail: cleanEmail,
           email: cleanEmail,
           hostName,
@@ -801,13 +828,13 @@ export const FormAndIssueReporting: React.FC = () => {
         const submitRes = await submitDossier({
           procedureCode: procCodeMap[selectedFormType],
           wardCode: currentWard.code,
-          citizenCccd: cccd || '089095012345',
+          citizenCccd: cleanCccd,
           formData: {
-            fullName: fullName || 'Công dân kê khai',
+            fullName: cleanFullName,
             dob: dob || '1990-01-01',
             gender: gender || 'Nam',
             address: address || currentWard.name,
-            phone: phoneNumber || '0918234567',
+            phone: cleanPhone,
             email: cleanEmail,
             citizenEmail: cleanEmail,
             sharpnessScore: visionGateResult?.sharpnessScore ?? 96,
@@ -820,8 +847,8 @@ export const FormAndIssueReporting: React.FC = () => {
         officialCode = submitRes.dossierCode;
         setSubmittedDossier(submitRes);
         setTrackingDossierCode(submitRes.dossierCode);
-        if (cccd && cccd.length >= 4) {
-          setTrackingLast4Cccd(cccd.slice(-4));
+        if (cleanCccd && cleanCccd.length >= 4) {
+          setTrackingLast4Cccd(cleanCccd.slice(-4));
         }
       } catch (submitErr) {
         console.warn('Lỗi lưu hồ sơ vào PostgreSQL:', submitErr);
@@ -829,14 +856,14 @@ export const FormAndIssueReporting: React.FC = () => {
 
       saveLiveSubmittedDossier({
         id: officialCode,
-        citizenName: (fullName || 'CÔNG DÂN KÊ KHAI').toUpperCase(),
+        citizenName: cleanFullName.toUpperCase(),
         procedure: procMap[selectedFormType],
         formType: formLabels[selectedFormType],
         submittedAt: `Vừa nộp (${nowStr})`,
         status: res.overallValid ? 'VALID' : 'HAS_ERRORS',
-        cccd: cccd || 'Chưa điền',
+        cccd: cleanCccd,
         citizenEmail: cleanEmail,
-        contactPhone: phoneNumber || '0918234567',
+        contactPhone: cleanPhone,
         appointmentCode: res.overallValid ? generatedAppointment : undefined,
         errorCount: issues.length,
         wardName: currentWard.name,
@@ -2123,6 +2150,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     ) : null}
                   </div>
                   <input
+                    ref={dossierFullNameInputRef}
                     type="text"
                     value={fullName}
                     placeholder="Ví dụ: NGUYỄN TÚ"
@@ -2148,6 +2176,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     ) : null}
                   </div>
                   <input
+                    ref={dossierCccdInputRef}
                     type="text"
                     value={cccd}
                     maxLength={12}
@@ -3023,6 +3052,7 @@ export const FormAndIssueReporting: React.FC = () => {
                       )}
                     </div>
                     <input
+                      ref={dossierPhoneInputRef}
                       type="tel"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
