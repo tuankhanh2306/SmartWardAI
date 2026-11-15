@@ -51,7 +51,7 @@ SmartWardAI/
 │       ├── context/              # WardContext, RoleContext, AccessibilityContext
 │       ├── components/           # QrPassCard, VisionGateBadge, VoiceReaderButton
 │       └── screens/              # 6 màn hình chuyên biệt (chi tiết tại Mục 3)
-└── docs/mobile.md                # Tài liệu đặc tả này
+└── docs/specs/MOBILE_APP_SPEC.md # Tài liệu đặc tả này
 ```
 
 ---

@@ -1,4 +1,7 @@
 # Lộ Trình Triển Khai Chi Tiết (12 Tuần - 3 Tháng)
+> 💡 **Vai trò tài liệu:** Đây là **Kế hoạch hành động dài hạn cơ sở (Baseline Roadmap)** được cố định theo đề cương ban đầu.  
+> Đối với tiến độ công việc đang làm từng tuần/ngày thực tế (Sprint Board sống), vui lòng xem [`docs/TODO_SPRINT_BOARD.md`](../TODO_SPRINT_BOARD.md).
+
 **Dự án:** SmartWard AI – Hệ thống Hỗ trợ Thủ tục Hành chính và Phân luồng Phản ánh Cấp Phường/Xã  
 **Đơn vị:** Trường Đại học Giao thông vận tải TP.HCM (UTH) – Ngành Công nghệ Thông tin  
 **Phạm vi:** Học kỳ Doanh nghiệp & Đồ án Tốt nghiệp Kỹ sư (01 Sinh viên thực hiện)
