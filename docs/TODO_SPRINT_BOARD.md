@@ -1,4 +1,7 @@
 # Kế Hoạch & Tiến Độ Thực Hiện Dự Án (Project Sprint Board)
+> 💡 **Vai trò tài liệu:** Đây là **Sprint Board sống (cập nhật liên tục theo ngày/tuần)** ghi nhận đầu việc cụ thể.  
+> Đối với kế hoạch chiến lược dài hạn và định hướng kiến trúc, vui lòng tham chiếu [`docs/roadmap/ROADMAP.md`](roadmap/ROADMAP.md) và [`docs/roadmap/BASELINE_ROADMAP_12W.md`](roadmap/BASELINE_ROADMAP_12W.md).
+
 **Dự án:** SmartWard AI – Hệ thống Hỗ trợ Thủ tục Hành chính và Phân luồng Phản ánh Cấp Phường/Xã  
 **Đơn vị:** Viện Đào tạo Chất lượng cao – Trường Đại học Giao thông vận tải TP.HCM (UTH)  
 **Trạng thái hiện tại:** `Tuần 11 / 12` 🟢 (Đã hoàn thành Tuần 11 - Đóng gói Docker, Tối ưu RAM < 2GB & Hoàn thiện Báo cáo UTH, chuẩn bị sang Tuần 12 - Slide Thuyết trình, Video Demo & Bảo vệ Tốt nghiệp)

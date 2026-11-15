@@ -135,10 +135,10 @@ npm run dev                 # Truy cập http://localhost:3000
 | **🔒 Ràng Buộc Hệ Thống** | [`docs/architecture/PROJECT_CONSTRAINTS.md`](docs/architecture/PROJECT_CONSTRAINTS.md) | Quy định trần RAM $\le 2048\text{MB}$, Zero-Cost 0 VNĐ, bảo vệ dữ liệu NĐ 13. |
 | **🌿 Quy Trình Git Phân Nhánh** | [`docs/architecture/GIT_WORKFLOW.md`](docs/architecture/GIT_WORKFLOW.md) | Quy chuẩn Conventional Commits, phân nhánh `develop`/`feature`, release. |
 | **🚀 Lộ Trình Triển Khai** | [`docs/roadmap/ROADMAP.md`](docs/roadmap/ROADMAP.md) | Bảng trạng thái M1–M4 (100% Hoàn thành) & Kế hoạch đưa lên Production. |
-| **📱 Đặc Tả Ứng Dụng Mobile** | [`docs/mobile.md`](docs/mobile.md) | Kiến trúc React Native + Expo SDK 52, 6 màn hình chuyên biệt. |
+| **📱 Đặc Tả Ứng Dụng Mobile** | [`docs/specs/MOBILE_APP_SPEC.md`](docs/specs/MOBILE_APP_SPEC.md) | Kiến trúc React Native + Expo SDK 52, 6 màn hình chuyên biệt. |
 | **🧪 Sẵn Sàng Kiểm Thử** | [`docs/testing/TEST_READY.md`](docs/testing/TEST_READY.md) | Báo cáo 420/420 Backend tests PASS, 44 Frontend acceptance tests PASS. |
 | **🏢 Báo Cáo Doanh Nghiệp** | [`docs/reports/MENTOR_TECHNICAL_BRIEFING.md`](docs/reports/MENTOR_TECHNICAL_BRIEFING.md) | Báo cáo kỹ thuật dành cho Mentor Viettel An Giang và Giảng viên UTH. |
-| **📝 Kế Hoạch 12 Tuần** | [`docs/TODO.md`](docs/TODO.md) | Sprint board và nhật ký công việc chi tiết qua 12 tuần thực hiện. |
+| **📝 Sprint Board Sống** | [`docs/TODO_SPRINT_BOARD.md`](docs/TODO_SPRINT_BOARD.md) | Bảng theo dõi tiến độ công việc sống cập nhật liên tục qua 12 tuần. |
 
 ---
 
