@@ -41,7 +41,7 @@
 | M1 | Security, PII & Vault Hardening (`bugfix/security-pii-and-vault-hardening`) | F1, F2, F3, F4, F5, F6 | none | DONE (Commit 5a96ee0 merged into develop, Gate PASS) |
 | M2 | Honest Benchmarks, Validators & Performance (`bugfix/honest-benchmarks-and-validators`) | F7, F8, F9, F10, F11, F12 | M1 | DONE (Commit 53738ea merged into develop, Gate PASS) |
 | M3 | An Giang 2026 TTHC, CT01 & Rule Engine Sync (`feature/an-giang-2026-tthc-and-ct01-sync`) | F13, F14, F15, F16, F17 | M2 | DONE (Commit aa2e8a1 + challenger suites, 420 backend tests pass, Gate PASS) |
-| M4 | Final Integration, Verification & Forensic Audit | F18 | M1, M2, M3 | IN_PROGRESS (Merging M3 to develop, full E2E & final audit) |
+| M4 | Final Integration, Verification & Forensic Audit | F18 | M1, M2, M3 | DONE (Commit d1da674 merged into develop, 420 tests pass, frontend build pass, audit ready) |
 
 ## Code Layout & Write Boundaries
 - **Milestone 1**:
