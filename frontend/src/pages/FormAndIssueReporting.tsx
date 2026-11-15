@@ -133,6 +133,49 @@ export const FormAndIssueReporting: React.FC = () => {
     }
   };
 
+  // Polling to automatically update dossier status and appointment code from backend (Fix #3)
+  useEffect(() => {
+    if (!trackingDossierCode || !trackingLast4Cccd) return;
+
+    let isMounted = true;
+    const pollInterval = setInterval(async () => {
+      try {
+        const res = await trackDossier(trackingDossierCode, trackingLast4Cccd);
+        if (isMounted && res) {
+          setTrackingResult(res);
+          if (res.appointmentCode) {
+            const currentDossiers = getLiveSubmittedDossiers();
+            let changed = false;
+            const updated = currentDossiers.map((d) => {
+              if (d.id === res.dossierCode && !d.appointmentCode) {
+                changed = true;
+                return {
+                  ...d,
+                  appointmentCode: res.appointmentCode,
+                  status: (res.status === 'APPROVED' ? 'VALID' : d.status) as any,
+                  officerFeedback: res.officerFeedback || d.officerFeedback,
+                  reviewedBy: d.reviewedBy || 'Bộ phận Một cửa',
+                };
+              }
+              return d;
+            });
+            if (changed) {
+              localStorage.setItem('smartward_live_dossiers_v1', JSON.stringify(updated));
+              setMyDossiers(updated);
+            }
+          }
+        }
+      } catch {
+        // Silent polling catch
+      }
+    }, 30000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(pollInterval);
+    };
+  }, [trackingDossierCode, trackingLast4Cccd]);
+
 
   // Form Precheck State (Supports 4 Core Administrative Forms: CT01, TK-KS, TK-KH, TK-BTXH)
   const [searchParams] = useSearchParams();
@@ -860,7 +903,6 @@ export const FormAndIssueReporting: React.FC = () => {
       }
 
       const officialCode = submitRes.dossierCode;
-      const generatedAppointment = `LH-${now.toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
       setSubmittedDossier(submitRes);
       setTrackingDossierCode(submitRes.dossierCode);
       if (cleanCccd && cleanCccd.length >= 4) {
@@ -877,7 +919,7 @@ export const FormAndIssueReporting: React.FC = () => {
         cccd: cleanCccd,
         citizenEmail: cleanEmail,
         contactPhone: cleanPhone,
-        appointmentCode: res.overallValid ? generatedAppointment : undefined,
+        appointmentCode: undefined,
         errorCount: issues.length,
         wardName: currentWard.name,
         vaultToken: vaultDocInfo?.oneTimeToken,
@@ -3406,15 +3448,81 @@ export const FormAndIssueReporting: React.FC = () => {
                 </div>
               )}
 
-              {/* ITEM 4: ELECTRONIC QR APPOINTMENT PASS ("PHIẾU HẸN SƠ DUYỆT ĐIỆN TỬ CÓ MÃ QR" + TẢI PDF) */}
+              {/* ITEM 4: ELECTRONIC QR APPOINTMENT PASS (Fix #3: Only render when official appointmentCode is granted from server) */}
               {(() => {
-                const approvedDossier =
-                  myDossiers.find((d) => d.status === 'VALID' && d.reviewedBy) ||
-                  myDossiers.find((d) => d.status === 'VALID');
-                if (!approvedDossier) return null;
-                const appointmentCode =
-                  approvedDossier.appointmentCode ||
-                  `LH-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${approvedDossier.id.slice(-4)}`;
+                const targetDossier =
+                  myDossiers.find((d) => d.id === submittedDossier?.dossierCode) ||
+                  myDossiers.find((d) => d.status === 'VALID' && d.appointmentCode) ||
+                  myDossiers[0];
+                if (!targetDossier) return null;
+
+                const appointmentCode = targetDossier.appointmentCode;
+                const hasRealAppointment = Boolean(
+                  appointmentCode &&
+                  !appointmentCode.startsWith('LH-MOCK') &&
+                  targetDossier.status === 'VALID'
+                );
+
+                if (!hasRealAppointment) {
+                  return (
+                    <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3">
+                      <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
+                        <span className="text-xs font-extrabold text-[#00796B] flex items-center gap-1.5">
+                          <Clock className="w-4 h-4 text-[#0F766E]" />
+                          <span>Phiếu Hẹn Sơ Duyệt & Mã QR Tiếp Nhận</span>
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] text-[10px] font-bold">
+                          Đang chờ cán bộ duyệt
+                        </span>
+                      </div>
+                      <div className="p-4 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] flex items-start gap-3 text-xs text-[#92400E]">
+                        <Clock className="w-5 h-5 text-[#D97706] shrink-0 mt-0.5" />
+                        <div className="flex flex-col gap-1">
+                          <span className="font-extrabold text-[#78350F]">Hồ Sơ Đang Chờ Cán Bộ Xác Nhận & Cấp Lịch Hẹn</span>
+                          <p className="text-[11px] leading-relaxed text-[#92400E]">
+                            Hồ sơ <strong>{targetDossier.id}</strong> ({targetDossier.formType}) của bà con đã được lưu an toàn vào cơ sở dữ liệu.
+                            Cán bộ Một cửa đang thụ lý sơ duyệt. Khi hồ sơ được phê duyệt sơ bộ, <strong>Mã QR và Phiếu hẹn chính thức</strong> sẽ được cấp tự động tại đây và gửi tới email của bà con.
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-[#64748B] px-1">
+                        <span>Hệ thống tự động đồng bộ tiến độ mỗi 30 giây</span>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            if (trackingDossierCode && trackingLast4Cccd) {
+                              try {
+                                const res = await trackDossier(trackingDossierCode, trackingLast4Cccd);
+                                if (res?.appointmentCode) {
+                                  const updated = getLiveSubmittedDossiers().map((d) =>
+                                    d.id === res.dossierCode
+                                      ? {
+                                          ...d,
+                                          appointmentCode: res.appointmentCode,
+                                          status: (res.status === 'APPROVED' ? 'VALID' : d.status) as any,
+                                          officerFeedback: res.officerFeedback || d.officerFeedback,
+                                          reviewedBy: d.reviewedBy || 'Bộ phận Một cửa',
+                                        }
+                                      : d
+                                  );
+                                  localStorage.setItem('smartward_live_dossiers_v1', JSON.stringify(updated));
+                                  setMyDossiers(updated);
+                                }
+                              } catch {}
+                            } else {
+                              setMyDossiers(getLiveSubmittedDossiers());
+                            }
+                          }}
+                          className="px-2.5 py-1 rounded-lg bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] font-bold text-[10px] transition cursor-pointer flex items-center gap-1"
+                        >
+                          <RefreshCw className="w-3 h-3 text-[#00796B]" />
+                          <span>Làm mới tiến độ</span>
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <div className="p-5 rounded-2xl bg-white border-2 border-[#00796B] shadow-sm flex flex-col gap-3">
                     <div
@@ -3427,10 +3535,10 @@ export const FormAndIssueReporting: React.FC = () => {
                             PHIẾU HẸN SƠ DUYỆT ĐIỆN TỬ • ƯU TIÊN QUẦY MỘT CỬA
                           </span>
                           <h4 className="font-extrabold text-sm text-[#0F172A]">
-                            UBND {approvedDossier.wardName || currentWard.name}
+                            UBND {targetDossier.wardName || currentWard.name}
                           </h4>
                           <p className="text-[11px] text-[#64748B]">
-                            Bộ phận Tiếp nhận & Trả kết quả Một cửa — {approvedDossier.wardName || currentWard.name}, {currentWard.province}
+                            Bộ phận Tiếp nhận & Trả kết quả Một cửa — {targetDossier.wardName || currentWard.name}, {currentWard.province}
                           </p>
                         </div>
 
@@ -3476,20 +3584,20 @@ export const FormAndIssueReporting: React.FC = () => {
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
                           <span className="text-[10px] text-[#64748B] block">Họ và tên công dân:</span>
-                          <strong className="text-[#0F172A]">{approvedDossier.citizenName}</strong>
+                          <strong className="text-[#0F172A]">{targetDossier.citizenName}</strong>
                         </div>
                         <div>
                           <span className="text-[10px] text-[#64748B] block">Mã hồ sơ sơ duyệt:</span>
-                          <strong className="font-mono text-[#00796B]">{approvedDossier.id}</strong>
+                          <strong className="font-mono text-[#00796B]">{targetDossier.id}</strong>
                         </div>
                         <div>
                           <span className="text-[10px] text-[#64748B] block">Biểu mẫu & Thủ tục:</span>
-                          <strong className="text-[#0F172A]">{approvedDossier.formType} • {approvedDossier.procedure}</strong>
+                          <strong className="text-[#0F172A]">{targetDossier.formType} • {targetDossier.procedure}</strong>
                         </div>
                         <div>
                           <span className="text-[10px] text-[#64748B] block">Cán bộ duyệt sơ bộ:</span>
                           <strong className="text-[#065F46]">
-                            {approvedDossier.reviewedBy || 'Trần Thị Hương (Một cửa)'}
+                            {targetDossier.reviewedBy || 'Trần Thị Hương (Một cửa)'}
                           </strong>
                         </div>
                       </div>
