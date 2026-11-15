@@ -1111,7 +1111,7 @@ export const FormAndIssueReporting: React.FC = () => {
         mappedCccd = `089${centuryGenderCode}${yrCode}023490`;
       }
 
-      if (!mappedPhone) mappedPhone = phoneNumber || '0918234567';
+      if (!mappedPhone) mappedPhone = phoneNumber || '';
       if (!mappedAddress) mappedAddress = `Số 18 Đường Trần Hưng Đạo, Khóm 3, ${currentWard.name}, Tỉnh An Giang`;
       if (!mappedDeclarationScope) mappedDeclarationScope = 'Đăng ký thường trú';
 
@@ -1191,7 +1191,7 @@ export const FormAndIssueReporting: React.FC = () => {
         setGuardianName(result.guardianName || 'NGUYỄN VĂN HÙNG');
         setGuardianCccd(result.guardianCccd || '089065009876');
         setGuardianRelation(result.guardianRelation || 'Con đẻ');
-        setGuardianPhone(result.guardianPhone || mappedPhone || '0918234567');
+        setGuardianPhone(result.guardianPhone || mappedPhone || '');
         setBankAccount(result.bankAccount || '0123456789 - Agribank Chi nhánh An Giang');
       }
 

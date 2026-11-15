@@ -47,13 +47,19 @@ const suites = [
     cwd: rootDir,
   },
   {
-    name: '7. Frontend TypeScript & Production Build (Vite)',
+    name: '7. Dossier Submission & QR Pass Integrity Suite (30 assertions)',
+    cmd: process.execPath,
+    args: [path.join(currentDir, 'test_dossier_submission_integrity.mjs')],
+    cwd: rootDir,
+  },
+  {
+    name: '8. Frontend TypeScript & Production Build (Vite)',
     cmd: process.platform === 'win32' ? 'cmd.exe' : 'npm',
     args: process.platform === 'win32' ? ['/c', 'npm --prefix frontend run build'] : ['--prefix', 'frontend', 'run', 'build'],
     cwd: rootDir,
   },
   {
-    name: '8. Backend JUnit RAG Query Service Test (16 assertions)',
+    name: '9. Backend JUnit RAG Query Service Test (16 assertions)',
     cmd: process.platform === 'win32' ? 'cmd.exe' : './mvnw',
     args: process.platform === 'win32' ? ['/c', 'cd backend && mvnw.cmd test -Dtest=RagQueryServiceTest'] : ['test', '-Dtest=RagQueryServiceTest'],
     cwd: rootDir,
