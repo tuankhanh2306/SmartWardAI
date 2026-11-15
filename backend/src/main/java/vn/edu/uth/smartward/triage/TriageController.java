@@ -59,7 +59,7 @@ public class TriageController {
             @Parameter(description = "Trạng thái cụm sự cố (mặc định: OPEN)")
             @RequestParam(value = "status", defaultValue = "OPEN") String status,
 
-            @Parameter(description = "Lĩnh vực sự cố cần lọc (ROAD_DAMAGE, FLOODING, GARBAGE...)")
+            @Parameter(description = "Lĩnh vực sự cố cần lọc (ROAD_DAMAGE, FLOODING, ENVIRONMENT, LIGHTING_ELECTRICAL, ORDER_SECURITY)")
             @RequestParam(value = "category", required = false) String category) {
 
         List<IssueClusterDto> clusters = triageService.getActiveClusters(status, category);
