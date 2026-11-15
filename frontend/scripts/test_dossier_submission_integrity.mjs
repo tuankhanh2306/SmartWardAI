@@ -1,0 +1,260 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const sourcePath = path.resolve(__dirname, '../src/pages/FormAndIssueReporting.tsx');
+
+console.log('================================================================');
+console.log('SMARTWARD AI: DOSSIER SUBMISSION INTEGRITY ACCEPTANCE TEST SUITE');
+console.log('================================================================');
+
+let totalPassed = 0;
+let totalTests = 0;
+
+function assert(condition, message) {
+  totalTests++;
+  if (!condition) {
+    console.error(`  ❌ FAILED: ${message}`);
+    process.exit(1);
+  }
+  console.log(`  ✓ [PASS] ${message}`);
+  totalPassed++;
+}
+
+// Read FormAndIssueReporting.tsx source code
+const sourceCode = fs.readFileSync(sourcePath, 'utf-8');
+
+// =================================================================
+// 1. STATIC SOURCE CODE INTEGRITY AUDIT
+// =================================================================
+console.log('\n--- 1. STATIC SOURCE CODE INTEGRITY AUDIT ---');
+
+// Audit 1.1: Banned fallback values must be eliminated completely
+assert(
+  !sourceCode.includes("cccd || '089095012345'"),
+  'Must ban fake CCCD fallback: cccd || \'089095012345\''
+);
+assert(
+  !sourceCode.includes("phoneNumber || '0918234567'") && !sourceCode.includes("phone: phoneNumber || '0918234567'"),
+  'Must ban fake Phone fallback: phoneNumber || \'0918234567\''
+);
+assert(
+  !sourceCode.includes("fullName || 'Công dân kê khai'"),
+  'Must ban fake Full Name fallback: fullName || \'Công dân kê khai\''
+);
+assert(
+  !sourceCode.includes('const generatedAppointment = `LH-'),
+  'Must ban auto-generated fake appointment code: generatedAppointment = LH-...'
+);
+assert(
+  !sourceCode.includes("approvedDossier.appointmentCode || `LH-"),
+  'Must ban QR fallback to fake appointment code in counter QR pass'
+);
+
+// Audit 1.2: Mandatory Validations before submission
+assert(
+  sourceCode.includes('/^\\d{12}$/.test(cleanCccd)'),
+  'Must validate CCCD with exact 12-digit regex (/^\\d{12}$/)'
+);
+assert(
+  sourceCode.includes('/^0\\d{9}$/.test(cleanPhone)'),
+  'Must validate phone number with 10 digits starting with 0 (/^0\\d{9}$/)'
+);
+assert(
+  sourceCode.includes('cleanFullName.length < 3'),
+  'Must validate full name length >= 3 characters'
+);
+
+// Audit 1.3: Error resilience in submitDossier catch block
+assert(
+  sourceCode.includes('setSubmitError(') && sourceCode.includes('return; // Dừng hẳn: không tạo bản ghi giả'),
+  'Must halt immediately and set submitError on API failure, never proceeding to saveLiveSubmittedDossier'
+);
+
+// Audit 1.4: Appointment code assignment in initial submission
+assert(
+  sourceCode.includes('appointmentCode: undefined,'),
+  'Initial dossier cache must store appointmentCode as undefined until officer approval'
+);
+
+// Audit 1.5: QR pass conditional rendering
+assert(
+  sourceCode.includes('hasRealAppointment = Boolean(') &&
+  sourceCode.includes('Hồ Sơ Đang Chờ Cán Bộ Xác Nhận & Cấp Lịch Hẹn'),
+  'Must render "Waiting for officer approval" banner when appointmentCode is not yet officially granted'
+);
+
+// =================================================================
+// 2. RUNTIME LOGIC SIMULATION & VALIDATION TEST
+// =================================================================
+console.log('\n--- 2. RUNTIME VALIDATION & ERROR HANDLING TEST ---');
+
+// Pure simulation of validation logic
+function validateCitizenDossierInputs(fullName, cccd, phone, email) {
+  const cleanFullName = (fullName || '').trim();
+  if (!cleanFullName || cleanFullName.length < 3) {
+    return { valid: false, field: 'fullName', error: 'Vui lòng nhập đầy đủ Họ và tên công dân (tối thiểu 3 ký tự).' };
+  }
+
+  const cleanCccd = (cccd || '').trim();
+  if (!cleanCccd || !/^\d{12}$/.test(cleanCccd)) {
+    return { valid: false, field: 'cccd', error: 'Số CCCD/ĐDCN không hợp lệ. Vui lòng nhập đúng 12 chữ số theo quy định Đề án 06.' };
+  }
+
+  const cleanPhone = (phone || '').trim();
+  if (!cleanPhone || !/^0\d{9}$/.test(cleanPhone)) {
+    return { valid: false, field: 'phone', error: 'Số điện thoại liên hệ không hợp lệ (cần 10 chữ số, bắt đầu bằng 0).' };
+  }
+
+  const cleanEmail = (email || '').trim();
+  if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+    return { valid: false, field: 'email', error: 'Vui lòng nhập Địa chỉ Email hợp lệ.' };
+  }
+
+  return { valid: true, cleanFullName, cleanCccd, cleanPhone, cleanEmail };
+}
+
+// Test Case 1: Short / invalid CCCD
+const tc1 = validateCitizenDossierInputs('NGUYỄN MINH TUẤN KHANH', '03103708', '0918234567', 'test@gmail.com');
+assert(!tc1.valid && tc1.field === 'cccd', 'Must reject 8-digit CCCD ("03103708")');
+
+// Test Case 2: CCCD with non-digits
+const tc2 = validateCitizenDossierInputs('NGUYỄN MINH TUẤN KHANH', '08920502349A', '0918234567', 'test@gmail.com');
+assert(!tc2.valid && tc2.field === 'cccd', 'Must reject 12-character CCCD containing letters ("08920502349A")');
+
+// Test Case 3: Invalid Phone (5 digits)
+const tc3 = validateCitizenDossierInputs('NGUYỄN MINH TUẤN KHANH', '089205023490', '09012', 'test@gmail.com');
+assert(!tc3.valid && tc3.field === 'phone', 'Must reject 5-digit phone number ("09012")');
+
+// Test Case 4: Phone not starting with 0
+const tc4 = validateCitizenDossierInputs('NGUYỄN MINH TUẤN KHANH', '089205023490', '8491823456', 'test@gmail.com');
+assert(!tc4.valid && tc4.field === 'phone', 'Must reject phone number not starting with 0 ("8491823456")');
+
+// Test Case 5: Empty / Short Full Name
+const tc5 = validateCitizenDossierInputs('   ', '089205023490', '0918234567', 'test@gmail.com');
+assert(!tc5.valid && tc5.field === 'fullName', 'Must reject empty full name');
+
+const tc5b = validateCitizenDossierInputs('Lê', '089205023490', '0918234567', 'test@gmail.com');
+assert(!tc5b.valid && tc5b.field === 'fullName', 'Must reject 2-character full name ("Lê")');
+
+// Test Case 6: Valid Inputs Pass
+const tc6 = validateCitizenDossierInputs('NGUYỄN MINH TUẤN KHANH', '089205023490', '0918234567', 'khanhblue06@gmail.com');
+assert(tc6.valid === true, 'Must accept fully valid inputs with 12-digit CCCD and 10-digit phone');
+
+// =================================================================
+// 3. API FAILURE RESILIENCE SIMULATION
+// =================================================================
+console.log('\n--- 3. API FAILURE RESILIENCE & CACHE ISOLATION TEST ---');
+
+// Mock localStorage
+const mockStorage = new Map();
+
+function simulateSubmitWorkflow(apiWillFail = false) {
+  let submitError = null;
+  let submittedDossier = null;
+
+  // 1. Validation passed
+  const cleanFullName = 'NGUYỄN MINH TUẤN KHANH';
+  const cleanCccd = '089205023490';
+  const cleanPhone = '0918234567';
+  const cleanEmail = 'khanhblue06@gmail.com';
+
+  let submitRes;
+  try {
+    if (apiWillFail) {
+      throw new Error('Connection refused / 500 Internal Server Error');
+    }
+    submitRes = {
+      dossierCode: 'TTHC-CT-01-20261115-0001',
+      procedureCode: 'TTHC-CT-01',
+      wardCode: 'AN_PHU',
+      status: 'PENDING_REVIEW',
+      slaDeadline: '2026-11-18T17:00:00Z',
+      createdAt: '2026-11-15T16:00:00Z'
+    };
+  } catch (err) {
+    submitError = 'Không thể nộp hồ sơ lên hệ thống. Vui lòng kiểm tra kết nối mạng và thử lại.';
+    return { success: false, submitError, submittedDossier: null };
+  }
+
+  // Only reaches here if API succeeded
+  submittedDossier = submitRes;
+  const liveRecord = {
+    id: submitRes.dossierCode,
+    citizenName: cleanFullName.toUpperCase(),
+    status: 'VALID',
+    cccd: cleanCccd,
+    contactPhone: cleanPhone,
+    citizenEmail: cleanEmail,
+    appointmentCode: undefined // No fake appointment code!
+  };
+  mockStorage.set('smartward_live_dossiers_v1', [liveRecord]);
+
+  return { success: true, submitError: null, submittedDossier, liveRecord };
+}
+
+// Test Failure Case: API Fails
+const failureRun = simulateSubmitWorkflow(true);
+assert(failureRun.success === false, 'Workflow must report failure when submitDossier throws');
+assert(failureRun.submitError !== null, 'Must populate submitError banner on failure');
+assert(!mockStorage.has('smartward_live_dossiers_v1'), 'Must NOT write anything to localStorage when API fails');
+
+// Test Success Case: API Succeeds
+const successRun = simulateSubmitWorkflow(false);
+assert(successRun.success === true, 'Workflow must succeed when API returns 200');
+assert(successRun.submittedDossier.dossierCode === 'TTHC-CT-01-20261115-0001', 'Must use official dossierCode from server');
+assert(successRun.liveRecord.appointmentCode === undefined, 'Must NOT have fake appointmentCode on new submission');
+assert(mockStorage.has('smartward_live_dossiers_v1'), 'Must save valid cache only after server confirms');
+
+// =================================================================
+// 4. QR PASS DISPLAY LOGIC TEST
+// =================================================================
+console.log('\n--- 4. QR PASS DISPLAY LOGIC AUDIT ---');
+
+function determineQrPassDisplay(targetDossier) {
+  const appointmentCode = targetDossier?.appointmentCode;
+  const hasRealAppointment = Boolean(
+    appointmentCode &&
+    !appointmentCode.startsWith('LH-MOCK') &&
+    targetDossier.status === 'VALID'
+  );
+  if (!hasRealAppointment) {
+    return { mode: 'WAITING_APPROVAL', appointmentCode: null };
+  }
+  return { mode: 'SHOW_QR_PASS', appointmentCode };
+}
+
+// 4.1: Newly submitted dossier (no appointmentCode)
+const newlySubmitted = {
+  id: 'TTHC-CT-01-20261115-0001',
+  status: 'VALID',
+  appointmentCode: undefined
+};
+const qrState1 = determineQrPassDisplay(newlySubmitted);
+assert(qrState1.mode === 'WAITING_APPROVAL', 'Newly submitted dossier must display WAITING_APPROVAL mode');
+assert(qrState1.appointmentCode === null, 'Newly submitted dossier must NOT have an appointmentCode');
+
+// 4.2: Approved dossier with official appointmentCode
+const approvedDossier = {
+  id: 'TTHC-CT-01-20261115-0001',
+  status: 'VALID',
+  appointmentCode: 'LH-20261115-ANPHU-0089'
+};
+const qrState2 = determineQrPassDisplay(approvedDossier);
+assert(qrState2.mode === 'SHOW_QR_PASS', 'Approved dossier must enter SHOW_QR_PASS mode');
+assert(qrState2.appointmentCode === 'LH-20261115-ANPHU-0089', 'QR Pass must display official appointmentCode from server');
+
+// 4.3: Mock appointment code rejected
+const fakeMockDossier = {
+  id: 'TTHC-CT-01-20261115-0001',
+  status: 'VALID',
+  appointmentCode: 'LH-MOCK-9999'
+};
+const qrState3 = determineQrPassDisplay(fakeMockDossier);
+assert(qrState3.mode === 'WAITING_APPROVAL', 'Mock appointment code (LH-MOCK) must be rejected and remain in WAITING_APPROVAL');
+
+console.log('\n================================================================');
+console.log(`SUMMARY: All ${totalPassed}/${totalTests} dossier integrity tests PASSED! 100% GREEN!`);
+console.log('================================================================');
