@@ -94,6 +94,7 @@ export const FormAndIssueReporting: React.FC = () => {
   const [trackingError, setTrackingError] = useState<string | null>(null);
   const [trackingResult, setTrackingResult] = useState<DossierTrackingResponse | null>(null);
   const [submittedDossier, setSubmittedDossier] = useState<DossierSubmissionResponse | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     if (location.hash === '#incident') {
@@ -759,6 +760,7 @@ export const FormAndIssueReporting: React.FC = () => {
       return;
     }
 
+    setSubmitError(null);
     setFormLoading(true);
     const procMap: Record<'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH', string> = {
       CT01: 'TTHC-CR-01',
@@ -816,16 +818,15 @@ export const FormAndIssueReporting: React.FC = () => {
       const issues = res.fieldValidations ? res.fieldValidations.filter((v) => !v.valid).map((v) => v.errorMessage || v.fieldName) : [];
 
       // Milestone 4: Submit official dossier into PostgreSQL
-      let officialCode = `${selectedFormType}-${Math.floor(1000 + Math.random() * 9000)}`;
-      const generatedAppointment = `LH-${now.toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const procCodeMap: Record<'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH', string> = {
+        CT01: 'TTHC-CT-01',
+        'TK-KS': 'TTHC-CR-01',
+        'TK-KH': 'TTHC-CR-03',
+        'TK-BTXH': 'TTHC-BT-01',
+      };
+      let submitRes: DossierSubmissionResponse;
       try {
-        const procCodeMap: Record<'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH', string> = {
-          CT01: 'TTHC-CT-01',
-          'TK-KS': 'TTHC-CR-01',
-          'TK-KH': 'TTHC-CR-03',
-          'TK-BTXH': 'TTHC-BT-01',
-        };
-        const submitRes = await submitDossier({
+        submitRes = await submitDossier({
           procedureCode: procCodeMap[selectedFormType],
           wardCode: currentWard.code,
           citizenCccd: cleanCccd,
@@ -844,14 +845,26 @@ export const FormAndIssueReporting: React.FC = () => {
           precheckReport: res,
           vaultDocIds: vaultDocInfo?.docId ? [vaultDocInfo.docId] : [],
         });
-        officialCode = submitRes.dossierCode;
-        setSubmittedDossier(submitRes);
-        setTrackingDossierCode(submitRes.dossierCode);
-        if (cleanCccd && cleanCccd.length >= 4) {
-          setTrackingLast4Cccd(cleanCccd.slice(-4));
-        }
-      } catch (submitErr) {
-        console.warn('Lỗi lưu hồ sơ vào PostgreSQL:', submitErr);
+      } catch (submitErr: any) {
+        setFormLoading(false);
+        const status = submitErr?.response?.status || 'NETWORK_ERROR';
+        const errDetail = submitErr?.response?.data?.message || submitErr?.message || 'Không thể kết nối đến máy chủ';
+        console.error(
+          `[DossierSubmissionFailed] Status: ${status}, Procedure: ${procCodeMap[selectedFormType]}, Ward: ${currentWard.code}, Error: ${errDetail}`
+        );
+        setSubmitError(
+          'Không thể nộp hồ sơ lên hệ thống. Vui lòng kiểm tra kết nối mạng và thử lại. ' +
+          'Hồ sơ CHƯA được ghi nhận, không có mã hồ sơ nào được cấp.'
+        );
+        return; // Dừng hẳn: không tạo bản ghi giả trên localStorage, không sinh mã hẹn hay QR
+      }
+
+      const officialCode = submitRes.dossierCode;
+      const generatedAppointment = `LH-${now.toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
+      setSubmittedDossier(submitRes);
+      setTrackingDossierCode(submitRes.dossierCode);
+      if (cleanCccd && cleanCccd.length >= 4) {
+        setTrackingLast4Cccd(cleanCccd.slice(-4));
       }
 
       saveLiveSubmittedDossier({
@@ -3064,6 +3077,28 @@ export const FormAndIssueReporting: React.FC = () => {
                   </div>
                 </div>
               </div>
+
+              {/* Submission Error Banner */}
+              {submitError && (
+                <div className="p-4 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-[#991B1B] animate-shake">
+                  <div className="flex items-start gap-2.5">
+                    <AlertCircle className="w-5 h-5 text-[#DC2626] shrink-0 mt-0.5" />
+                    <div className="flex flex-col gap-0.5">
+                      <span className="font-extrabold text-sm text-[#7F1D1D]">Lỗi Nộp Hồ Sơ Lên Hệ Thống</span>
+                      <p className="leading-relaxed text-[#B91C1C]">{submitError}</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handlePrecheck}
+                    disabled={formLoading}
+                    className="self-end sm:self-center px-3.5 py-1.5 rounded-xl bg-[#DC2626] hover:bg-[#B91C1C] text-white font-bold text-xs shrink-0 transition flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${formLoading ? 'animate-spin' : ''}`} />
+                    <span>Thử lại</span>
+                  </button>
+                </div>
+              )}
 
               {/* Action Trigger Buttons */}
               <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
