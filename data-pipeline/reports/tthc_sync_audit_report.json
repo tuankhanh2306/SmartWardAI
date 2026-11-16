@@ -1,0 +1,9 @@
+{
+  "timestamp": "2026-11-16T04:20:27.572912+00:00",
+  "totalProcedures": 40,
+  "totalChunks": 160,
+  "backendChunksMatched": 160,
+  "frontendProceduresMatched": 13,
+  "isSynced": true,
+  "architecturalNote": "Firecrawl runs exclusively offline in data-pipeline. Zero runtime RAM footprint in Docker production."
+}
