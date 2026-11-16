@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.11.9-slim
 
 WORKDIR /app
 
@@ -12,6 +12,11 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY ml ml
 
 ENV PYTHONPATH=/app/ml/src
+
+# Create unprivileged system user for security compliance (SEC-07)
+RUN groupadd -r smartward && useradd -r -g smartward smartward \
+    && chown -R smartward:smartward /app
+USER smartward
 
 EXPOSE 8000
 

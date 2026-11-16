@@ -80,10 +80,19 @@ public class QueryCacheService {
      * Overloaded cache key builder incorporating wardName and category into SHA-256 hash.
      */
     public String buildCacheKey(String query, String wardName, String category) {
+        return buildCacheKey(query, null, wardName, category);
+    }
+
+    /**
+     * SEC-05: Scoped cache key builder incorporating wardCode, wardName, and category into SHA-256 hash.
+     * Prevents cache leakage across different administrative wards.
+     */
+    public String buildCacheKey(String query, String wardCode, String wardName, String category) {
         String normQuery = query == null ? "" : query.toLowerCase()
                 .replaceAll("\\p{Punct}", "")
                 .replaceAll("\\s+", " ")
                 .trim();
+        String normWardCode = wardCode == null ? "" : wardCode.trim().toUpperCase();
         String normWard = wardName == null ? "" : wardName.toLowerCase()
                 .replaceAll("\\p{Punct}", "")
                 .replaceAll("\\s+", " ")
@@ -94,11 +103,14 @@ public class QueryCacheService {
                 .trim();
 
         StringBuilder sb = new StringBuilder(normQuery);
+        if (!normWardCode.isEmpty()) {
+            sb.append("::wardCode=").append(normWardCode);
+        }
         if (!normWard.isEmpty()) {
-            sb.append("::").append(normWard);
+            sb.append("::wardName=").append(normWard);
         }
         if (!normCategory.isEmpty()) {
-            sb.append("::").append(normCategory);
+            sb.append("::category=").append(normCategory);
         }
         return CACHE_PREFIX + hashString(sb.toString());
     }

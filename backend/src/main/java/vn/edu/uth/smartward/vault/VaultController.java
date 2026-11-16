@@ -47,7 +47,7 @@ public class VaultController {
             @RequestParam(value = "documentType", defaultValue = "CIVIC_DOCUMENT") String documentType) {
 
         log.info("Received document upload to Vault: filename='{}', type='{}', size={} bytes",
-                file.getOriginalFilename(), documentType, file.getSize());
+                vn.edu.uth.smartward.common.FilenameUtils.sanitizeFilename(file.getOriginalFilename()), documentType, file.getSize());
 
         VaultUploadResponse response = vaultService.storeDocument(file, documentType);
         return ResponseEntity.ok(ApiResponse.ok(response));
@@ -67,7 +67,7 @@ public class VaultController {
             @Parameter(description = "Mã token xem 1 lần (bắt đầu bằng OTT_)", required = true)
             @PathVariable("token") String token) {
 
-        log.info("Requesting one-time view for token: {}", token);
+        log.info("Requesting one-time view for token: {}", vn.edu.uth.smartward.common.FilenameUtils.maskToken(token));
 
         byte[] decryptedBytes = vaultService.consumeOneTimeDocument(token);
 
