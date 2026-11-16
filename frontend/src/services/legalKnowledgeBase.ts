@@ -79,7 +79,10 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
       'Nhờ kết nối Cơ sở dữ liệu hộ tịch điện tử toàn quốc, công dân có thể xin trích lục tại BẤT KỲ UBND phường/xã nào, không bắt buộc về nơi đã đăng ký trước đây.',
       'Bản sao trích lục có giá trị sử dụng thay thế bản chính trong các giao dịch dân sự và thủ tục hành chính.',
     ],
-    keywords: ['trích lục', 'bản sao khai sinh', 'trích lục kết hôn', 'trích lục khai tử', 'xin lại giấy khai sinh', 'cấp lại trích lục'],
+    keywords: [
+      'trích lục', 'trích lục khai sinh', 'trích lục khai sinh bị mất', 'mất giấy khai sinh', 'mất khai sinh',
+      'bản sao khai sinh', 'trích lục kết hôn', 'trích lục khai tử', 'xin lại giấy khai sinh', 'cấp lại trích lục'
+    ],
   },
   {
     code: 'TTHC-HT-11',
@@ -123,7 +126,7 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
       'Công dân có thể nộp hồ sơ trực tuyến tiện lợi qua Cổng Dịch vụ công Bộ Công an hoặc Ứng dụng VNeID.',
     ],
     keywords: [
-      'thường trú', 'nhập hộ khẩu', 'đăng ký thường trú', 'mẫu ct01', 'chuyển hộ khẩu', 'sổ hộ khẩu', 'nhập khẩu',
+      'thường trú', 'nhập hộ khẩu', 'đăng ký thường trú', 'mẫu ct01', 'chuyển hộ khẩu', 'chuyển khẩu', 'chuyển khẩu về nhà mới', 'sổ hộ khẩu', 'nhập khẩu',
       'cư trú', 'đăng ký cư trú', 'thủ tục cư trú', 'thủ tục đăng ký cư trú', 'luật cư trú', 'tờ khai cư trú', 'tthc-cr-01', 'ct01', 'tthc-ct-01'
     ],
   },
@@ -245,10 +248,14 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
       'Bản sao căn cước hoặc xác nhận cư trú của người đứng ra tổ chức mai táng (miễn nộp bản giấy nếu đã xác thực VNeID)',
     ],
     keyRules: [
-      'Áp dụng khi đối tượng đang hưởng trợ cấp xã hội hàng tháng qua đời, hoặc trẻ em/người lang thang cơ nhỡ qua đời trên địa bàn xã / phường / đặc khu thuộc tỉnh An Giang.',
+      'Áp dụng khi đối tượng đang hưởng trợ cấp xã hội hàng tháng qua đời (người cao tuổi, người khuyết tật, trẻ em mồ côi...), hoặc người lang thang cơ nhỡ qua đời trên địa bàn xã / phường / đặc khu thuộc tỉnh An Giang.',
       'Thời hạn giải quyết rút gọn còn 03 ngày làm việc theo Nghị định 335/2026/NĐ-CP và QĐ 4595/QĐ-UBND của UBND tỉnh An Giang.',
     ],
-    keywords: ['tiền mai táng', 'hỗ trợ mai táng', 'mai táng phí', 'chi phí mai táng', 'chết có trợ cấp mai táng', 'tthc-bt-02', 'xã / phường / đặc khu thuộc tỉnh an giang'],
+    keywords: [
+      'tiền mai táng', 'hỗ trợ mai táng', 'mai táng phí', 'chi phí mai táng', 'trợ cấp mai táng', 'trợ cấp mai táng phí',
+      'mai táng phí cho người cao tuổi', 'trợ cấp mai táng cho người cao tuổi', 'tiền mai táng người cao tuổi',
+      'chết có trợ cấp mai táng', 'tthc-bt-02', 'xã / phường / đặc khu thuộc tỉnh an giang'
+    ],
   },
   {
     code: 'TTHC-HT-03',
@@ -290,22 +297,26 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
   },
 ];
 
-import { isGreetingQuery, isProcedureListQuery, checkOutOfScopeQuery, removeVietnameseAccents } from './intentClassifier';
+import { isGreetingQuery, isProcedureListQuery, checkOutOfScopeQuery } from './intentClassifier';
+import {
+  FALLBACK_THRESHOLD,
+  FALLBACK_AMBIGUOUS_GAP,
+  FALLBACK_LOWER_BOUND,
+  scoreProcedureCatalog,
+  evaluateIntentDecision,
+  matchesPhrase,
+  type IntentDecision,
+  type ScoredProcedure,
+} from './intentScoring';
 
-/**
- * Word-boundary aware phrase matcher to eliminate false-positive substring collisions
- * (e.g. prevents "bao tro" from matching "o tro" in temporary residence TTHC-CR-03).
- */
-export function matchesPhrase(text: string, phrase: string): boolean {
-  if (!text || !phrase) return false;
-  const t = text.toLowerCase();
-  const p = phrase.toLowerCase().trim();
-  if (!p) return false;
-  if (t === p) return true;
-  const escaped = p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const boundaryRegex = new RegExp(`(^|[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ])${escaped}($|[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ])`, 'i');
-  return boundaryRegex.test(t);
-}
+export {
+  FALLBACK_THRESHOLD,
+  FALLBACK_AMBIGUOUS_GAP,
+  FALLBACK_LOWER_BOUND,
+  matchesPhrase,
+  type IntentDecision,
+  type ScoredProcedure,
+};
 
 /**
  * Pre-processes accentless Vietnamese, typo/telex slips and Southern civic dialects
@@ -350,98 +361,84 @@ export function normalizeVietnameseQuery(raw: string): string {
   return q;
 }
 
-const STOP_WORDS = new Set([
-  'la', 'là', 'va', 'và', 'cua', 'của', 'cho', 'co', 'có', 'tai', 'tại', 'o', 'ở',
-  'gi', 'gì', 'nao', 'nào', 'dau', 'đâu', 'duoc', 'được', 'nhu', 'như', 'the', 'thế',
-  'thi', 'thì', 'ra', 'sao', 'toi', 'tôi', 'muon', 'muốn', 'hay', 'hãy', 'lam', 'làm',
-  'can', 'cần', 'giup', 'giúp', 'em', 'anh', 'chi', 'chị', 'minh', 'mình', 'nay', 'này',
-  'do', 'đó', 'voi', 'với', 've', 'về', 'trong', 'cac', 'các', 'nhung', 'những', 'mot', 'một',
-  'da', 'dạ', 'a', 'ạ', 'nhe', 'nhé', 'nha', 'di', 'đi', 'giùm', 'dum', 'hi', 'hello', 'alo', 'chao', 'chào'
-]);
-
 /**
- * Searches the legal knowledge base using keyword / semantic scoring
+ * Searches the legal knowledge base using shared intent scoring and confidence guardrails
  */
-export function searchLegalKnowledge(query: string, topK: number = 3): {
+export function searchLegalKnowledge(
+  query: string,
+  topK: number = 3,
+  wardName: string = 'UBND cấp xã'
+): {
   items: LegalProcedureItem[];
   maxScore: number;
   isInScope: boolean;
+  decision: IntentDecision;
+  topItem?: LegalProcedureItem;
 } {
   const cleanRaw = normalizeVietnameseQuery(query);
   const q = cleanRaw.toLowerCase().trim();
-  const qNoAccent = removeVietnameseAccents(q);
 
   // 1. Check if greeting, small talk, or asking for full procedure catalog
   if (isGreetingQuery(q) || isProcedureListQuery(q)) {
-    return { items: [], maxScore: 0.0, isInScope: false };
+    const decision: IntentDecision = {
+      status: 'ABSTAIN',
+      maxScore: 0.0,
+      scoreGap: 0.0,
+      reason: 'Truy vấn chào hỏi hoặc yêu cầu danh mục chung.',
+    };
+    return { items: [], maxScore: 0.0, isInScope: false, decision };
   }
 
   // 2. Out of scope check (Forbidden / Non-commune domains)
   const outOfScopeCheck = checkOutOfScopeQuery(q);
   if (outOfScopeCheck.isOutOfScope) {
-    return { items: [], maxScore: 0.15, isInScope: false };
+    const decision: IntentDecision = {
+      status: 'ABSTAIN',
+      maxScore: 0.15,
+      scoreGap: 0.0,
+      reason: 'Truy vấn ngoài phạm vi thẩm quyền UBND cấp xã.',
+    };
+    return { items: [], maxScore: 0.15, isInScope: false, decision };
   }
 
-  // 3. Extract meaningful non-stop content tokens
-  const queryTokens = q
-    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
-    .split(/\s+/)
-    .filter((w) => w.length > 1 && !STOP_WORDS.has(w));
+  // 3. Score all 40 commune procedures using shared lexical & semantic scoring
+  const scored = scoreProcedureCatalog(q, LEGAL_KNOWLEDGE_BASE);
 
-  const scored = LEGAL_KNOWLEDGE_BASE.map((item) => {
-    let score = 0;
-
-    // Check exact keyword match with boundary awareness (highest confidence)
-    for (const kw of item.keywords) {
-      const kwNoAccent = removeVietnameseAccents(kw);
-      if (matchesPhrase(q, kw) || matchesPhrase(qNoAccent, kwNoAccent)) {
-        score += 0.50;
-        break;
-      }
-    }
-
-    // Check procedure name with boundary awareness
-    const nameNoAccent = removeVietnameseAccents(item.name);
-    if (matchesPhrase(q, item.name) || matchesPhrase(qNoAccent, nameNoAccent)) {
-      score += 0.40;
-    }
-
-    // Whole-word token intersection with procedure content
-    if (queryTokens.length > 0) {
-      const fullText = (
-        item.name + ' ' + item.category + ' ' + item.keyRules.join(' ') + ' ' + item.dossier.join(' ')
-      ).toLowerCase();
-      const docTokens = new Set(
-        fullText
-          .replace(/[^\p{L}\p{N}\s]/gu, ' ')
-          .split(/\s+/)
-          .filter(Boolean)
-      );
-
-      let matchedTokens = 0;
-      for (const token of queryTokens) {
-        if (docTokens.has(token)) {
-          matchedTokens++;
-        }
-      }
-      score += (matchedTokens / queryTokens.length) * 0.30;
-    }
-
-    // Normalize to [0, 0.99]
-    const normalizedScore = Math.min(0.98, Math.max(0.0, score));
-
-    return { item, score: normalizedScore };
-  });
-
-  scored.sort((a, b) => b.score - a.score);
+  // 4. Apply Confidence Guardrails: CONFIDENT (score>=0.60, gap>=0.12), AMBIGUOUS (gap<0.12), ABSTAIN (score<0.60)
+  const decision = evaluateIntentDecision(q, scored, wardName);
 
   const topItems = scored.slice(0, topK);
-  const maxScore = topItems.length > 0 ? topItems[0].score : 0.0;
-  const isInScope = maxScore >= 0.45; // Strict threshold for commune TTHC relevance
+  const isInScope = decision.status === 'CONFIDENT';
 
   return {
     items: isInScope ? topItems.map((s) => s.item) : [],
-    maxScore,
+    maxScore: decision.maxScore,
     isInScope,
+    decision,
+    topItem: decision.top1?.item,
   };
 }
+
+/**
+ * Trợ thủ tra cứu nhanh thủ tục phù hợp kèm đánh giá độ tin cậy
+ */
+export function findMatchingProcedure(query: string, wardName?: string): {
+  procedureCode: string;
+  procedureName: string;
+  score: number;
+  status: 'CONFIDENT' | 'AMBIGUOUS' | 'ABSTAIN';
+  decision: IntentDecision;
+} | null {
+  const result = searchLegalKnowledge(query, 3, wardName);
+  if (result.decision.top1) {
+    return {
+      procedureCode: result.decision.top1.item.code,
+      procedureName: result.decision.top1.item.name,
+      score: result.decision.top1.score,
+      status: result.decision.status,
+      decision: result.decision,
+    };
+  }
+  return null;
+}
+

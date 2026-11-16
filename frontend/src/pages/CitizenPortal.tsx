@@ -971,6 +971,28 @@ export const CitizenPortal: React.FC = () => {
                     </div>
                   )}
 
+                  {/* INTERACTIVE SUGGESTION CHIPS / CLARIFYING BUTTONS (BƯỚC 1: Nút bấm chọn nhanh khi hỏi lại) */}
+                  {msg.sender === 'bot' && msg.suggestions && msg.suggestions.length > 0 && (
+                    <div className="mt-2.5 pt-2 border-t border-teal-100/70 flex flex-col gap-1.5">
+                      <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide">
+                        Gợi ý thủ tục liên quan (Bấm để chọn ngay):
+                      </span>
+                      <div className="flex flex-wrap gap-2">
+                        {msg.suggestions.map((sug, sIdx) => (
+                          <button
+                            key={sIdx}
+                            type="button"
+                            onClick={() => handleAsk(sug.replace(/^[👉👶💍🏠📋\s]+/, ''))}
+                            className="px-3 py-1.5 rounded-xl text-xs font-semibold bg-teal-50 hover:bg-teal-100 text-[#00796B] border border-teal-200 transition-all active:scale-95 cursor-pointer shadow-2xs flex items-center gap-1.5"
+                          >
+                            <span>{sug}</span>
+                            <ArrowRight className="w-3 h-3 text-[#00796B]" />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Bot Interactive Action Dock & Citations */}
                   {msg.sender === 'bot' && (
                     <div className="mt-2.5 pt-2 border-t border-teal-100 flex flex-wrap items-center justify-between gap-2 text-xs text-[#64748B]">

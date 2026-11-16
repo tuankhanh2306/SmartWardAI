@@ -2,6 +2,7 @@ import axios from 'axios';
 import { PROCEDURES_CATALOG } from '../data/proceduresCatalog';
 import { isGeminiConfigured, askGeminiWithRAG, buildStructuredProcedureResponse } from '../services/geminiClient';
 import { searchLegalKnowledge, normalizeVietnameseQuery } from '../services/legalKnowledgeBase';
+import { preprocessQuery } from '../services/diacriticsRestorer';
 import {
   isWardOfficeQuery,
   checkOutOfScopeQuery,
@@ -228,18 +229,24 @@ export const askLegalRag = async (
   const mandatoryDisclaimer =
     '*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*';
 
+  // BƯỚC 2.2 & 2.3: Tiền xử lý câu hỏi tại ĐÚNG 1 ĐIỂM VÀO DUY NHẤT
+  // Khôi phục dấu thanh tiếng Việt cho câu không dấu và chuẩn hóa lỗi gõ phím telex
+  const cleanQuery = await preprocessQuery(query);
+
   // 0. Check Officer-Verified HITL Knowledge Cache first (REA Closed-Loop Duality)
   if (typeof window !== 'undefined') {
     try {
       const rawHitl = localStorage.getItem('smartward_hitl_queue_v1');
       if (rawHitl) {
         const hitlList: HitlGrayZoneItem[] = JSON.parse(rawHitl);
-        const qNorm = query.trim().toLowerCase();
+        const qNorm = cleanQuery.trim().toLowerCase();
+        const rawNorm = query.trim().toLowerCase();
         const matchedApproved = hitlList.find(
           (item) =>
             item.status === 'APPROVED' &&
             item.suggestedAnswer &&
             (item.query.trim().toLowerCase() === qNorm ||
+              item.query.trim().toLowerCase() === rawNorm ||
               (qNorm.length >= 12 && item.query.toLowerCase().includes(qNorm)) ||
               (item.query.length >= 12 && qNorm.includes(item.query.trim().toLowerCase())))
         );
@@ -273,7 +280,7 @@ export const askLegalRag = async (
   }
 
   // 1. Procedure Catalog Request ("nêu 40 thủ tục", "danh sách thủ tục"...)
-  if (isProcedureListQuery(query)) {
+  if (isProcedureListQuery(cleanQuery) || isProcedureListQuery(query)) {
     return {
       answer: buildProcedureCatalogResponse(currentWardName),
       abstained: false,
@@ -288,7 +295,7 @@ export const askLegalRag = async (
   }
 
   // 1.5. Field Incident Report Inquiry ("chỗ tôi hư đường", "sạt lở", "bạn có thể giúp tôi báo lên cán bộ không"...)
-  if (isIncidentReportQuery(query)) {
+  if (isIncidentReportQuery(cleanQuery) || isIncidentReportQuery(query)) {
     return {
       answer:
         `Dạ, để gửi phản ánh hiện trường (hư đường, ngập nước, sạt lở, chiếu sáng, môi trường...) trực tiếp lên Bàn Điều Hành Cán Bộ UBND, bà con vui lòng mở công cụ **Báo Sự Cố Hiện Trường (GPS R=25m)** ngay trên thanh điều hướng.\n\n` +
@@ -306,7 +313,7 @@ export const askLegalRag = async (
   }
 
   // 2. Conversational Intent: Small Talk, Wellbeing, Gratitude, Farewell, Greeting
-  const smallTalk = classifySmallTalk(query);
+  const smallTalk = classifySmallTalk(cleanQuery) || classifySmallTalk(query);
   if (smallTalk.matched) {
     let reply = '';
     let suggestions = ['Đăng ký khai sinh', 'Đăng ký kết hôn', 'Đăng ký thường trú (CT01)', 'Xem 40 thủ tục'];
@@ -373,7 +380,7 @@ export const askLegalRag = async (
   }
 
   // 2. Pre-filter: Out-of-scope inquiry (Strictly <= 2 concise sentences with direct guidance)
-  const outOfScopeCheck = checkOutOfScopeQuery(query);
+  const outOfScopeCheck = checkOutOfScopeQuery(cleanQuery) || checkOutOfScopeQuery(query);
   if (outOfScopeCheck.isOutOfScope) {
     const authority = outOfScopeCheck.authority;
     const answer = authority
@@ -395,7 +402,7 @@ export const askLegalRag = async (
   }
 
   // 3. Pre-filter: Ward Office Information & Real-Time Working Hours / Weekend Check
-  if (isWardOfficeQuery(query)) {
+  if (isWardOfficeQuery(cleanQuery) || isWardOfficeQuery(query)) {
     const rt = getRealTimeScheduleContext();
     return {
       answer:
@@ -420,8 +427,8 @@ export const askLegalRag = async (
   }
 
   // 3.1. Contextual Query Rewriting for Follow-up Inquiries
-  let effectiveQuery = query;
-  if (conversationHistory.length > 0 && isFollowUpQuestion(query)) {
+  let effectiveQuery = cleanQuery;
+  if (conversationHistory.length > 0 && (isFollowUpQuestion(cleanQuery) || isFollowUpQuestion(query))) {
     for (let i = conversationHistory.length - 1; i >= Math.max(0, conversationHistory.length - 5); i--) {
       const turn = conversationHistory[i];
       let proc = mapProcedureCodeToName(turn.procedureCode);
@@ -429,7 +436,7 @@ export const askLegalRag = async (
         proc = extractProcedureFromText(turn.text);
       }
       if (proc) {
-        effectiveQuery = `[Thủ tục ${proc}] ${query}`;
+        effectiveQuery = `[Thủ tục ${proc}] ${cleanQuery}`;
         break;
       }
     }
@@ -475,8 +482,11 @@ export const askLegalRag = async (
       normalizedQuery = normalizedQuery.replaceAll('tthc-ct-01', 'mẫu ct01');
     }
 
-    const searchResult = searchLegalKnowledge(normalizedQuery, 3);
-    if (searchResult.isInScope && searchResult.items.length > 0) {
+    const searchResult = searchLegalKnowledge(normalizedQuery, 3, currentWardName);
+    const { decision } = searchResult;
+
+    // 6.1. CONFIDENT MATCH (S_max >= 0.60 && Gap >= 0.12)
+    if (decision.status === 'CONFIDENT' && searchResult.items.length > 0) {
       const primaryItem = searchResult.items[0];
       const answer = buildStructuredProcedureResponse(
         primaryItem,
@@ -491,7 +501,7 @@ export const askLegalRag = async (
         title: `${item.name} - ${item.category}`,
         legalReference: item.legalBasis,
         content: item.keyRules.join(' '),
-        relevanceScore: searchResult.maxScore,
+        relevanceScore: decision.maxScore,
       }));
 
       const suggestions = getProcedureSuggestions(primaryItem.name);
@@ -499,8 +509,8 @@ export const askLegalRag = async (
       return {
         answer,
         abstained: false,
-        maxSimilarity: searchResult.maxScore,
-        appliedThreshold: 0.78,
+        maxSimilarity: decision.maxScore,
+        appliedThreshold: 0.60,
         responseTimeMs: 15.0,
         cached: true,
         disclaimer: mandatoryDisclaimer,
@@ -509,8 +519,75 @@ export const askLegalRag = async (
       };
     }
 
-    // Unmatched General Inquiry - Enqueue into Officer HITL Gray-Zone Queue & polite prompt
-    if (typeof window !== 'undefined' && query.trim().length >= 8) {
+    // 6.2. AMBIGUOUS MATCH (Gap < 0.12) - Chủ động hỏi lại công dân để xác nhận
+    if (decision.status === 'AMBIGUOUS' && decision.top1 && decision.top2) {
+      const top1 = decision.top1.item;
+      const top2 = decision.top2.item;
+
+      // Log và đẩy vào HITL Gray-zone queue
+      if (typeof window !== 'undefined' && query.trim().length >= 4) {
+        try {
+          const rawHitl = localStorage.getItem('smartward_hitl_queue_v1');
+          const currentQueue: HitlGrayZoneItem[] = rawHitl ? JSON.parse(rawHitl) : DEFAULT_FALLBACK_HITL_QUEUE;
+          const alreadyExists = currentQueue.some(
+            (i) => i.query.trim().toLowerCase() === query.trim().toLowerCase()
+          );
+          if (!alreadyExists) {
+            const newHitl: HitlGrayZoneItem = {
+              id: `HITL-AMB-${Math.floor(1000 + Math.random() * 9000)}`,
+              query: query.trim(),
+              wardName: `UBND ${currentWardName}`,
+              similarityScore: Number(decision.maxScore.toFixed(3)),
+              candidateChunkCode: top1.code,
+              candidateProcedureName: `${top1.name} / ${top2.name}`,
+              legalReference: `${top1.legalBasis} | ${top2.legalBasis}`,
+              suggestedAnswer: decision.clarifyingQuestion || `Làm rõ ý định giữa ${top1.name} và ${top2.name}`,
+              status: 'PENDING',
+              createdAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+              resolvedBy: null,
+            };
+            localStorage.setItem('smartward_hitl_queue_v1', JSON.stringify([newHitl, ...currentQueue].slice(0, 40)));
+          }
+        } catch {
+          // ignore storage errors
+        }
+      }
+
+      return {
+        answer: decision.clarifyingQuestion || `Bạn đang hỏi về ${top1.name} hay ${top2.name}?`,
+        abstained: true,
+        abstentionReason: decision.reason,
+        maxSimilarity: decision.maxScore,
+        appliedThreshold: 0.60,
+        responseTimeMs: 15.0,
+        cached: false,
+        disclaimer: mandatoryDisclaimer,
+        citations: [
+          {
+            chunkCode: `${top1.code}_CHK_001`,
+            procedureCode: top1.code,
+            procedureName: top1.name,
+            title: top1.name,
+            legalReference: top1.legalBasis,
+            content: top1.keyRules.join(' '),
+            relevanceScore: decision.top1.score,
+          },
+          {
+            chunkCode: `${top2.code}_CHK_001`,
+            procedureCode: top2.code,
+            procedureName: top2.name,
+            title: top2.name,
+            legalReference: top2.legalBasis,
+            content: top2.keyRules.join(' '),
+            relevanceScore: decision.top2.score,
+          },
+        ],
+        suggestions: decision.clarifyingSuggestions || [`👉 ${top1.name}`, `👉 ${top2.name}`, '📋 Danh mục 40 thủ tục'],
+      };
+    }
+
+    // 6.3. ABSTAIN MATCH (S_max < 0.60 hoặc câu hỏi vô nghĩa/ngoài phạm vi)
+    if (typeof window !== 'undefined' && query.trim().length >= 4) {
       try {
         const rawHitl = localStorage.getItem('smartward_hitl_queue_v1');
         const currentQueue: HitlGrayZoneItem[] = rawHitl ? JSON.parse(rawHitl) : DEFAULT_FALLBACK_HITL_QUEUE;
@@ -518,14 +595,15 @@ export const askLegalRag = async (
           (i) => i.query.trim().toLowerCase() === query.trim().toLowerCase()
         );
         if (!alreadyExists) {
+          const topItem = decision.top1?.item;
           const newHitl: HitlGrayZoneItem = {
-            id: `HITL-LIVE-${Math.floor(1000 + Math.random() * 9000)}`,
+            id: `HITL-LOW-${Math.floor(1000 + Math.random() * 9000)}`,
             query: query.trim(),
             wardName: `UBND ${currentWardName}`,
-            similarityScore: Number((searchResult.maxScore || 0.58).toFixed(3)),
-            candidateChunkCode: searchResult.items[0]?.code || 'TTHC-HT-01',
-            candidateProcedureName: searchResult.items[0]?.name || 'Thủ tục hành chính cấp xã',
-            legalReference: searchResult.items[0]?.legalBasis || 'Nghị định 61/2018/NĐ-CP về cơ chế Một cửa',
+            similarityScore: Number(decision.maxScore.toFixed(3)),
+            candidateChunkCode: topItem?.code || 'TTHC-HT-01',
+            candidateProcedureName: topItem?.name || 'Thủ tục hành chính cấp xã',
+            legalReference: topItem?.legalBasis || 'Nghị định 61/2018/NĐ-CP về cơ chế Một cửa',
             suggestedAnswer:
               `1. TÓM TẮT HƯỚNG DẪN: Đối với câu hỏi "${query.trim()}", công dân thực hiện tại Bộ phận Một cửa UBND ${currentWardName}.\n` +
               `2. THÀNH PHẦN HỒ SƠ: Xuất trình CCCD gắn chip (hoặc VNeID mức 2) và tờ khai mẫu quy định.\n` +
@@ -534,7 +612,7 @@ export const askLegalRag = async (
             createdAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
             resolvedBy: null,
           };
-          localStorage.setItem('smartward_hitl_queue_v1', JSON.stringify([newHitl, ...currentQueue].slice(0, 30)));
+          localStorage.setItem('smartward_hitl_queue_v1', JSON.stringify([newHitl, ...currentQueue].slice(0, 40)));
         }
       } catch {
         // ignore storage errors
@@ -543,17 +621,22 @@ export const askLegalRag = async (
 
     return {
       answer:
-        `Hệ thống SmartWard AI đã chuyển câu hỏi của bà con vào **Hàng đợi Cán bộ Một cửa (${currentWardName})** để kiểm duyệt chính xác. ` +
-        `Trong lúc chờ cán bộ xác thực, bà con có thể chọn nhanh tên thủ tục bên dưới (ví dụ: "đăng ký khai sinh", "đăng ký kết hôn", "mẫu CT01") hoặc liên hệ đường dây nóng ${currentPhone}.`,
+        decision.abstentionMessage ||
+        `Hệ thống chưa chắc chắn về câu hỏi này (${decision.reason}). Bà con vui lòng mô tả rõ hơn hoặc chọn đúng thủ tục từ danh mục 40 TTHC bên dưới.`,
       abstained: true,
-      abstentionReason: 'Câu hỏi thuộc vùng xám ngữ nghĩa — đã chuyển lên Bàn Cán Bộ Một Cửa để xác thực.',
-      maxSimilarity: searchResult.maxScore,
-      appliedThreshold: 0.78,
-      responseTimeMs: 10.0,
+      abstentionReason: decision.reason,
+      maxSimilarity: decision.maxScore,
+      appliedThreshold: 0.60,
+      responseTimeMs: 15.0,
       cached: false,
       disclaimer: mandatoryDisclaimer,
       citations: [],
-      suggestions: ['Đăng ký khai sinh', 'Đăng ký kết hôn', 'Đăng ký thường trú (CT01)', 'Xem 40 thủ tục'],
+      suggestions: decision.clarifyingSuggestions || [
+        '👶 Đăng ký khai sinh',
+        '💍 Đăng ký kết hôn',
+        '🏠 Đăng ký thường trú (CT01)',
+        '📋 Xem 40 thủ tục',
+      ],
     };
 };
 
