@@ -49,7 +49,7 @@ class ZeroTrustVaultServiceTest {
         );
         ReflectionTestUtils.setField(vaultService, "bucketName", "smartward-vault");
         ReflectionTestUtils.setField(vaultService, "tokenTtlHours", 24);
-        ReflectionTestUtils.setField(vaultService, "rawEncryptionKey", "SmartWardAI_DevTest_VaultKey_32B");
+        ReflectionTestUtils.setField(vaultService, "rawEncryptionKey", "SmartWardAI_UnitTest_VaultKey_32B_Key!");
         ReflectionTestUtils.setField(vaultService, "failClosed", true);
     }
 

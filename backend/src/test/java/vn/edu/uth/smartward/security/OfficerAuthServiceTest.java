@@ -102,4 +102,27 @@ class OfficerAuthServiceTest {
         );
         assertEquals(ErrorCode.UNAUTHORIZED, ex.getErrorCode());
     }
+
+    @Test
+    void testAuthenticate_ignoresClientSuppliedWardCode_alwaysUsesAccountWard() {
+        // SEC-09: Client supplies spoofed ward 'WARD-HACKED-99'
+        OfficerAuthService.LoginResponse login = officerAuthService.authenticate("CC-AG-8942", "8942", "WARD-HACKED-99");
+        assertEquals("AG_P_LONGXUYEN", login.wardCode(), "Ward code must be strictly taken from officer account, ignoring client override");
+
+        OfficerAuthService.OfficerPrincipal principal = officerAuthService.verifyToken("Bearer " + login.token());
+        assertEquals("AG_P_LONGXUYEN", principal.wardCode());
+    }
+
+    @Test
+    void testResolveSigningSecret_rejectsChangeMeDevTestFallback() {
+        // SEC-01: Rejects placeholder strings
+        OfficerAuthService badSecretService = new OfficerAuthService(new ObjectMapper());
+        ReflectionTestUtils.setField(badSecretService, "jwtSecret", "SmartWardAI_ChangeMe_In_Prod_Secret_Key_32B!");
+
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                badSecretService.authenticate("CC-AG-8942", "8942", null)
+        );
+        assertEquals(ErrorCode.INTERNAL_SERVER_ERROR, ex.getErrorCode());
+        assertTrue(ex.getMessage().contains("placeholder"));
+    }
 }

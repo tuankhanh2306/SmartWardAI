@@ -24,7 +24,7 @@ interface RoleContextType {
   officerProfile: OfficerProfile;
   citizenProfile: CitizenProfile;
   setRole: (role: UserRole) => void;
-  loginAsOfficer: (badgeId?: string, pin?: string) => boolean;
+  loginAsOfficer: (badgeId?: string, pin?: string) => Promise<boolean>;
   logoutToCitizen: () => void;
   authModalOpen: boolean;
   setAuthModalOpen: (open: boolean) => void;
@@ -33,31 +33,16 @@ interface RoleContextType {
 const ROLE_STORAGE_KEY = 'smartward_user_role';
 const OFFICER_TOKEN_KEY = 'smartward_officer_token';
 const OFFICER_BADGE_KEY = 'smartward_officer_badge';
+const OFFICER_PROFILE_KEY = 'smartward_officer_profile';
 
-const AUTHORIZED_OFFICER_CREDENTIALS: Record<string, { pin: string; profile: OfficerProfile }> = {
-  'CC-AG-8942': {
-    pin: '8942',
-    profile: {
-      name: 'Trần Thị Hương',
-      title: 'Chuyên viên Tiếp nhận & Trả kết quả',
-      badgeId: 'CC-AG-8942',
-      department: 'Bộ phận Một Cửa',
-      avatarText: 'TH',
-    },
-  },
-  'CC-AG-1001': {
-    pin: '2026',
-    profile: {
-      name: 'Nguyễn Thị Minh Khai',
-      title: 'Cán bộ Địa chính - Đô thị',
-      badgeId: 'CC-AG-1001',
-      department: 'Bộ phận Một Cửa',
-      avatarText: 'MK',
-    },
-  },
+// SEC-09: AUTHORIZED_OFFICER_CREDENTIALS removed from client code. Server is the sole authority for authentication.
+const DEFAULT_OFFICER_PROFILE: OfficerProfile = {
+  name: 'Cán bộ Một Cửa',
+  title: 'Chuyên viên Tiếp nhận & Trả kết quả',
+  badgeId: 'CC-AG-8942',
+  department: 'Bộ phận Một Cửa',
+  avatarText: 'CB',
 };
-
-const DEFAULT_OFFICER_PROFILE: OfficerProfile = AUTHORIZED_OFFICER_CREDENTIALS['CC-AG-8942'].profile;
 
 const DEFAULT_CITIZEN_PROFILE: CitizenProfile = {
   name: 'Nguyễn Văn An',
@@ -74,8 +59,7 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [role, setRoleState] = useState<UserRole>(() => {
     const saved = localStorage.getItem(ROLE_STORAGE_KEY);
     const token = localStorage.getItem(OFFICER_TOKEN_KEY);
-    const badge = (localStorage.getItem(OFFICER_BADGE_KEY) || '').toUpperCase();
-    if (saved === 'OFFICER' && token && AUTHORIZED_OFFICER_CREDENTIALS[badge]) {
+    if (saved === 'OFFICER' && token && !token.startsWith('pending_sync_')) {
       return 'OFFICER';
     }
     return 'CITIZEN';
@@ -83,16 +67,22 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [officerProfile, setOfficerProfile] = useState<OfficerProfile>(() => {
-    const badge = (localStorage.getItem(OFFICER_BADGE_KEY) || '').toUpperCase();
-    return AUTHORIZED_OFFICER_CREDENTIALS[badge]?.profile || DEFAULT_OFFICER_PROFILE;
+    const saved = localStorage.getItem(OFFICER_PROFILE_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        // fallback below
+      }
+    }
+    return DEFAULT_OFFICER_PROFILE;
   });
   const [citizenProfile] = useState<CitizenProfile>(DEFAULT_CITIZEN_PROFILE);
 
   const setRole = (newRole: UserRole) => {
     if (newRole === 'OFFICER') {
       const token = localStorage.getItem(OFFICER_TOKEN_KEY);
-      const badge = (localStorage.getItem(OFFICER_BADGE_KEY) || '').toUpperCase();
-      if (!token || !AUTHORIZED_OFFICER_CREDENTIALS[badge]) {
+      if (!token || token.startsWith('pending_sync_')) {
         setAuthModalOpen(true);
         return;
       }
@@ -101,41 +91,60 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem(ROLE_STORAGE_KEY, newRole);
   };
 
-  const loginAsOfficer = (badgeId?: string, pin?: string): boolean => {
+  const loginAsOfficer = async (badgeId?: string, pin?: string): Promise<boolean> => {
     const normalizedBadge = (badgeId || '').trim().toUpperCase();
     const cleanPin = (pin || '').trim();
 
-    const record = AUTHORIZED_OFFICER_CREDENTIALS[normalizedBadge];
-    if (!record || record.pin !== cleanPin) {
+    if (!normalizedBadge || !cleanPin) {
       return false;
     }
 
-    setOfficerProfile(record.profile);
-    localStorage.setItem(OFFICER_BADGE_KEY, normalizedBadge);
-    localStorage.setItem(OFFICER_TOKEN_KEY, `pending_sync_${normalizedBadge}_${Date.now()}`);
-    setRoleState('OFFICER');
-    localStorage.setItem(ROLE_STORAGE_KEY, 'OFFICER');
-    setAuthModalOpen(false);
-
-    // Exchange credentials for a server-signed HMAC-SHA256 JWT token when backend is online
-    fetch('/api/v1/auth/officer/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ badgeId: normalizedBadge, pin: cleanPin, wardCode: 'WARD-AG-01' }),
-    })
-      .then(async (res) => {
-        if (!res.ok) return;
-        const json = await res.json();
-        const serverToken = json?.data?.token;
-        if (serverToken) {
-          localStorage.setItem(OFFICER_TOKEN_KEY, serverToken);
-        }
-      })
-      .catch(() => {
-        // Offline demo fallback keeps verified local session
+    try {
+      // SEC-09: Authenticate directly against backend server. Do NOT pass client wardCode!
+      const res = await fetch('/api/v1/auth/officer/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ badgeId: normalizedBadge, pin: cleanPin }),
       });
 
-    return true;
+      if (!res.ok) {
+        return false;
+      }
+
+      const json = await res.json();
+      const data = json?.data;
+      if (!data || !data.token) {
+        return false;
+      }
+
+      const initials = (data.fullName || 'CB')
+        .split(' ')
+        .filter(Boolean)
+        .map((w: string) => w[0])
+        .slice(-2)
+        .join('')
+        .toUpperCase();
+
+      const newProfile: OfficerProfile = {
+        name: data.fullName || 'Cán bộ Một Cửa',
+        title: data.role === 'ADMIN' ? 'Lãnh đạo UBND' : 'Chuyên viên Tiếp nhận & Trả kết quả',
+        badgeId: data.badgeId || normalizedBadge,
+        department: `UBND ${data.wardCode || 'Một Cửa'}`,
+        avatarText: initials || 'CB',
+      };
+
+      setOfficerProfile(newProfile);
+      localStorage.setItem(OFFICER_PROFILE_KEY, JSON.stringify(newProfile));
+      localStorage.setItem(OFFICER_BADGE_KEY, normalizedBadge);
+      localStorage.setItem(OFFICER_TOKEN_KEY, data.token);
+      setRoleState('OFFICER');
+      localStorage.setItem(ROLE_STORAGE_KEY, 'OFFICER');
+      setAuthModalOpen(false);
+      return true;
+    } catch (err) {
+      console.warn('Officer authentication network error:', err);
+      return false;
+    }
   };
 
   const logoutToCitizen = () => {
@@ -150,6 +159,7 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     localStorage.setItem(ROLE_STORAGE_KEY, 'CITIZEN');
     localStorage.removeItem(OFFICER_TOKEN_KEY);
     localStorage.removeItem(OFFICER_BADGE_KEY);
+    localStorage.removeItem(OFFICER_PROFILE_KEY);
     navigate('/citizen');
   };
 

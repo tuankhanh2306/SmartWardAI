@@ -67,12 +67,19 @@ public class RagController {
     )
     public ResponseEntity<ApiResponse<HitlGrayZoneItemDto>> resolveHitlItem(
             @PathVariable("id") String id,
-            @Valid @RequestBody HitlResolveRequest request) {
-        log.info("Officer '{}' resolving HITL gray-zone item '{}'", request.getOfficerName(), id);
+            @Valid @RequestBody HitlResolveRequest request,
+            HttpServletRequest httpRequest) {
+        vn.edu.uth.smartward.security.OfficerAuthService.OfficerPrincipal principal =
+                (vn.edu.uth.smartward.security.OfficerAuthService.OfficerPrincipal) httpRequest.getAttribute("officerPrincipal");
+        String effectiveOfficerName = (principal != null && principal.fullName() != null && !principal.fullName().isBlank())
+                ? principal.fullName()
+                : request.getOfficerName();
+
+        log.info("Officer '{}' resolving HITL gray-zone item '{}'", effectiveOfficerName, id);
         HitlGrayZoneItemDto resolved = ragQueryService.resolveHitlItem(
                 id,
                 request.getApprovedAnswer(),
-                request.getOfficerName()
+                effectiveOfficerName
         );
         return ResponseEntity.ok(ApiResponse.ok(resolved));
     }

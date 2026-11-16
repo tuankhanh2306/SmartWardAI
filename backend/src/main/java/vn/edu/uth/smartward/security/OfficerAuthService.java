@@ -87,9 +87,12 @@ public class OfficerAuthService {
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "Mã công chức hoặc mã PIN không hợp lệ.");
         }
 
-        String wardCode = (requestedWardCode != null && !requestedWardCode.isBlank())
-                ? requestedWardCode.trim()
-                : account.wardCode();
+        // SEC-09: Fast ward scope isolation - server is source of truth, client requestedWardCode is strictly ignored
+        String wardCode = account.wardCode();
+        if (requestedWardCode != null && !requestedWardCode.isBlank() && !requestedWardCode.trim().equalsIgnoreCase(wardCode)) {
+            log.warn("SEC-09: Client submitted requestedWardCode '{}' but officer '{}' is assigned to '{}'. Overriding with account ward.",
+                    requestedWardCode.trim(), account.badgeId(), wardCode);
+        }
 
         long nowSec = Instant.now().getEpochSecond();
         long expSec = nowSec + (tokenTtlHours * 3600L);
@@ -221,13 +224,20 @@ public class OfficerAuthService {
     }
 
     private byte[] resolveSigningSecret() {
-        String effective = (jwtSecret != null && !jwtSecret.isBlank())
-                ? jwtSecret.trim()
-                : "SmartWardAI_Fallback_DevOnly_Secret_32B!";
+        if (jwtSecret == null || jwtSecret.isBlank()) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
+                    "Cấu hình smartward.security.jwt-secret không được để trống.");
+        }
+        String effective = jwtSecret.trim();
         byte[] bytes = effective.getBytes(StandardCharsets.UTF_8);
         if (bytes.length < 32) {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
                     "Cấu hình smartward.security.jwt-secret phải có độ dài tối thiểu 32 bytes.");
+        }
+        String lower = effective.toLowerCase();
+        if (lower.contains("changeme") || lower.contains("devtest") || lower.contains("fallback")) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
+                    "smartward.security.jwt-secret không được chứa từ khóa placeholder (ChangeMe, DevTest, Fallback).");
         }
         return bytes;
     }
