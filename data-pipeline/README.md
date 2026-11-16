@@ -87,9 +87,29 @@ SmartWardAI/data-pipeline/
 
 ## 5. HƯỚNG DẪN CHẠY CÁC PIPELINE
 
-### A. Pipeline 1: Dữ liệu Thủ tục Hành chính (40 TTHC)
+### A. Pipeline Hợp Nhất & Đồng Bộ Dữ Liệu TTHC (Single Source of Truth - SSOT)
+> [!IMPORTANT]
+> **RÀNG BUỘC KIẾN TRÚC BẮT BUỘC (0 MB RAM PRODUCTION):**
+> Pipeline Firecrawl + Header-Aware Chunking **chỉ được phép chạy Offline** trên máy Dev hoặc CI để tạo dữ liệu tĩnh.
+> **TUYỆT ĐỐI KHÔNG** đóng gói Firecrawl (cần Playwright/Chromium) vào `docker-compose.yml` trên máy chủ Production để đảm bảo ngân sách RAM cứng $\le 2048\text{ MiB}$.
+
 ```bash
-# Chạy toàn bộ luồng thu thập & kiểm định 40 thủ tục:
+# 1. Chạy toàn bộ pipeline hợp nhất (Firecrawl Ingestion -> Markdown Header Chunking -> SSOT Audit):
+python data-pipeline/sync_tthc_pipeline.py
+
+# 2. Chạy riêng bộ cào & chuyển đổi Markdown (Hỗ trợ cào live nếu có FIRECRAWL_API_KEY):
+python data-pipeline/procedure-crawler/firecrawl_scraper.py
+
+# 3. Chạy riêng bộ chia tách văn bản theo cấu trúc tiêu đề (# / ## / ###):
+python data-pipeline/rag-dataset/markdown_header_chunker.py
+
+# 4. Đánh giá chất lượng RAG bằng Ragas Harness (Zero-cost với Gemini 2.5 Flash Free Tier hoặc Deterministic Judge):
+python data-pipeline/rag-dataset/ragas_eval_harness.py
+```
+
+### B. Pipeline 1: Dữ liệu Thủ tục Hành chính (40 TTHC)
+```bash
+# Chạy luồng thu thập & kiểm định 40 thủ tục cũ:
 python data-pipeline/scripts/run_pipeline.py
 ```
 
