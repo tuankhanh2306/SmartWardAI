@@ -53,7 +53,7 @@ public class FormCheckController {
             @RequestParam(value = "formType", defaultValue = "CT01_RESIDENCE_DECLARATION") String formType) {
 
         log.info("Received form precheck request for formType: '{}', file: '{}' (size: {} bytes)",
-                formType, file.getOriginalFilename(), file.getSize());
+                formType, vn.edu.uth.smartward.common.FilenameUtils.sanitizeFilename(file.getOriginalFilename()), file.getSize());
 
         FormPrecheckReport report = formPrecheckService.precheckForm(file, formType);
         return ResponseEntity.ok(ApiResponse.ok(report));

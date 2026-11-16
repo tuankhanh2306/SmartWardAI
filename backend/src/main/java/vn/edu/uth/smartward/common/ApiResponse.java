@@ -12,6 +12,7 @@ public record ApiResponse<T>(
         String message,
         T data,
         String errorCode,
+        String correlationId,
         Instant timestamp
 ) {
     public static <T> ApiResponse<T> ok(T data) {
@@ -37,6 +38,16 @@ public record ApiResponse<T>(
                 .success(false)
                 .message(message)
                 .errorCode(errorCode)
+                .timestamp(Instant.now())
+                .build();
+    }
+
+    public static <T> ApiResponse<T> error(String message, String errorCode, String correlationId) {
+        return ApiResponse.<T>builder()
+                .success(false)
+                .message(message)
+                .errorCode(errorCode)
+                .correlationId(correlationId)
                 .timestamp(Instant.now())
                 .build();
     }

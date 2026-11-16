@@ -108,7 +108,7 @@ public class ZeroTrustVaultService {
         String redisKey = REDIS_TOKEN_PREFIX + oneTimeToken;
         try {
             stringRedisTemplate.opsForValue().set(redisKey, docCode, Duration.ofHours(tokenTtlHours));
-            log.info("Stored one-time token in Redis: key={}, TTL={}h", redisKey, tokenTtlHours);
+            log.info("Stored one-time vault token in Redis for docCode={}, TTL={}h", docCode, tokenTtlHours);
         } catch (Exception e) {
             if (failClosed) {
                 log.error("Redis unavailable while issuing one-time vault token (fail-closed): {}", e.getMessage());
