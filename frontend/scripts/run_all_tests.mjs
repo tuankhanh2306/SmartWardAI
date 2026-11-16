@@ -59,13 +59,19 @@ const suites = [
     cwd: rootDir,
   },
   {
-    name: '9. Frontend TypeScript & Production Build (Vite)',
+    name: '9. Voice Input Speech-to-Text Normalization Suite (17 assertions)',
+    cmd: process.execPath,
+    args: [path.join(currentDir, 'test_voice_input_normalization.mjs')],
+    cwd: rootDir,
+  },
+  {
+    name: '10. Frontend TypeScript & Production Build (Vite)',
     cmd: process.platform === 'win32' ? 'cmd.exe' : 'npm',
     args: process.platform === 'win32' ? ['/c', 'npm --prefix frontend run build'] : ['--prefix', 'frontend', 'run', 'build'],
     cwd: rootDir,
   },
   {
-    name: '10. Backend JUnit RAG Query Service Test (16 assertions)',
+    name: '11. Backend JUnit RAG Query Service Test (16 assertions)',
     cmd: process.platform === 'win32' ? 'cmd.exe' : './mvnw',
     args: process.platform === 'win32' ? ['/c', 'cd backend && mvnw.cmd test -Dtest=RagQueryServiceTest'] : ['test', '-Dtest=RagQueryServiceTest'],
     cwd: rootDir,

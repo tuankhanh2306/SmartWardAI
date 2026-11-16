@@ -3,6 +3,7 @@ import { askLegalRag, type RagResponse, type LegalCitation } from '../api/client
 import { useNavigate } from 'react-router-dom';
 import { useWard } from '../context/WardContext';
 import { useAccessibility } from '../context/AccessibilityContext';
+import { useVoiceInput } from '../hooks/useVoiceInput';
 import {
   Send,
   Bot,
@@ -14,6 +15,7 @@ import {
   Check,
   RotateCcw,
   Mic,
+  MicOff,
   AlertTriangle,
   Clock,
   HelpCircle,
@@ -457,10 +459,21 @@ export const CitizenPortal: React.FC = () => {
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [activeCitation, setActiveCitation] = useState<LegalCitation | null>(null);
-  const [isMicActive, setIsMicActive] = useState(false);
   const [isChatExpanded, setIsChatExpanded] = useState<boolean>(false);
   const [showScrollBottom, setShowScrollBottom] = useState<boolean>(false);
-  const recognitionRef = useRef<any>(null);
+
+  // Speech-to-Text 2-Way Voice Input Hook (Web Speech API)
+  const {
+    isListening: isVoiceListening,
+    interimText: voiceInterimText,
+    voiceError,
+    startListening: startVoiceInput,
+    stopListening: stopVoiceInput,
+    clearVoiceError,
+  } = useVoiceInput((finalText) => {
+    // KHÔNG tự động gửi ngay — điền vào ô input để dân xem lại, tự bấm Gửi
+    setQuery((prev) => (prev ? `${prev} ${finalText}` : finalText));
+  });
 
   // Scroll listener to detect when user has scrolled away from bottom
   const handleScroll = useCallback(() => {
@@ -732,62 +745,6 @@ export const CitizenPortal: React.FC = () => {
     navigator.clipboard.writeText(text);
     setCopiedId(id);
     setTimeout(() => setCopiedId(null), 2000);
-  };
-
-  const toggleMic = () => {
-    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      // Graceful fallback simulation if browser does not support Web Speech API
-      setIsMicActive(true);
-      setQuery(`Tôi muốn làm thủ tục đăng ký khai sinh cho con tại ${currentWard.name}`);
-      setTimeout(() => {
-        setIsMicActive(false);
-      }, 1500);
-      return;
-    }
-
-    if (isMicActive) {
-      if (recognitionRef.current) {
-        try {
-          recognitionRef.current.stop();
-        } catch {
-          // ignore
-        }
-      }
-      setIsMicActive(false);
-      return;
-    }
-
-    try {
-      const recognition = new SpeechRecognition();
-      recognition.lang = 'vi-VN';
-      recognition.continuous = false;
-      recognition.interimResults = false;
-
-      recognition.onstart = () => {
-        setIsMicActive(true);
-      };
-
-      recognition.onresult = (event: any) => {
-        const transcript = event.results?.[0]?.[0]?.transcript;
-        if (transcript) {
-          setQuery((prev) => (prev ? `${prev} ${transcript}` : transcript));
-        }
-      };
-
-      recognition.onerror = () => {
-        setIsMicActive(false);
-      };
-
-      recognition.onend = () => {
-        setIsMicActive(false);
-      };
-
-      recognitionRef.current = recognition;
-      recognition.start();
-    } catch {
-      setIsMicActive(false);
-    }
   };
 
   // BƯỚC 4: Gợi ý nhanh 2-3 nút theo ngữ cảnh câu vừa hỏi (thay vì cố định 5 nút)
@@ -1521,6 +1478,59 @@ export const CitizenPortal: React.FC = () => {
 
           {/* Interactive Chat Input Dock with Large Accessible Buttons */}
           <div className="p-3.5 bg-white border-t border-slate-200">
+            {/* Step 3: Simple Mode Guidance Banner */}
+            {isSimpleMode && (
+              <div className="mb-2.5 p-2.5 px-3 rounded-xl bg-emerald-50/90 border border-emerald-200/90 text-[#00695C] text-xs sm:text-sm font-bold flex items-center gap-2 shadow-2xs">
+                <span className="text-base">💡</span>
+                <span>Bấm vào biểu tượng micro 🎙️ để nói câu hỏi thay vì gõ chữ.</span>
+              </div>
+            )}
+
+            {/* Step 1 & 2: Inline Voice Error Alert Banner */}
+            {voiceError && (
+              <div className="mb-2.5 p-2.5 px-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs sm:text-sm flex items-center justify-between gap-2 shadow-2xs animate-fadeIn">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>{voiceError}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={clearVoiceError}
+                  className="text-amber-600 hover:text-amber-800 p-1 cursor-pointer"
+                  title="Đóng thông báo"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Step 1 & 2: Active Listening Indicator Bar */}
+            {isVoiceListening && (
+              <div className="mb-2.5 p-2.5 px-3.5 rounded-xl bg-red-50 border border-red-200 text-red-900 flex items-center justify-between gap-2 shadow-2xs animate-pulse">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="relative flex h-3 w-3 shrink-0">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
+                  </span>
+                  <span className={`font-bold ${isSimpleMode ? 'text-sm sm:text-base text-red-950' : 'text-xs text-red-900'}`}>
+                    🎙️ Đang nghe... hãy nói rõ câu hỏi
+                  </span>
+                  {voiceInterimText && (
+                    <span className="text-xs italic text-red-700 truncate max-w-[200px] sm:max-w-[360px]">
+                      "{voiceInterimText}"
+                    </span>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={stopVoiceInput}
+                  className="px-2.5 py-1 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition cursor-pointer shrink-0 shadow-2xs active:scale-95"
+                >
+                  Dừng nghe
+                </button>
+              </div>
+            )}
+
             <form
               onSubmit={(e) => {
                 e.preventDefault();
@@ -1528,35 +1538,63 @@ export const CitizenPortal: React.FC = () => {
               }}
               className="flex items-center gap-2"
             >
-              {/* Dictation Simulation Button for Voice Input */}
+              {/* Mic Button: Speech-to-Text Button */}
               <button
                 type="button"
-                onClick={toggleMic}
-                title="Bấm để nói câu hỏi (Nhận diện giọng nói tiếng Việt)"
-                className={`p-3 rounded-xl border transition-all active:scale-90 cursor-pointer min-h-[46px] min-w-[46px] flex items-center justify-center ${
-                  isMicActive
-                    ? 'bg-[#DC2626] text-white border-[#DC2626] animate-pulse'
-                    : 'bg-[#F8FAFC] hover:bg-teal-50 text-[#00796B] border-slate-200'
+                onClick={isVoiceListening ? stopVoiceInput : startVoiceInput}
+                title={
+                  isVoiceListening
+                    ? 'Đang nghe... Bấm để dừng nhận diện giọng nói'
+                    : isSimpleMode
+                    ? 'Bấm vào đây để nói câu hỏi (Không cần gõ chữ)'
+                    : 'Bấm để nói câu hỏi (Nhận diện giọng nói tiếng Việt)'
+                }
+                aria-label={isVoiceListening ? 'Dừng nghe' : 'Nói câu hỏi'}
+                className={`transition-all active:scale-95 cursor-pointer flex items-center justify-center shrink-0 ${
+                  isSimpleMode
+                    ? isVoiceListening
+                      ? 'min-h-[52px] min-w-[52px] p-3 rounded-2xl bg-[#DC2626] text-white border-2 border-[#DC2626] ring-4 ring-red-200 animate-pulse shadow-md'
+                      : 'min-h-[52px] min-w-[52px] p-3 rounded-2xl bg-emerald-50 hover:bg-emerald-100 text-[#00695C] border-2 border-emerald-400 ring-2 ring-emerald-200/50 shadow-md font-bold'
+                    : isVoiceListening
+                    ? 'min-h-[46px] min-w-[46px] p-3 rounded-xl bg-[#DC2626] text-white border-[#DC2626] ring-4 ring-red-200 animate-pulse'
+                    : 'min-h-[46px] min-w-[46px] p-3 rounded-xl bg-[#F8FAFC] hover:bg-teal-50 text-[#00796B] border border-slate-200'
                 }`}
               >
-                <Mic className="w-5 h-5" />
+                {isVoiceListening ? (
+                  <MicOff className={`${isSimpleMode ? 'w-6 h-6' : 'w-5 h-5'} text-white`} />
+                ) : (
+                  <Mic className={`${isSimpleMode ? 'w-6 h-6 text-[#00695C]' : 'w-5 h-5'}`} />
+                )}
               </button>
 
               {/* Text Input Field */}
               <div className="flex-1 relative">
                 <input
                   type="text"
-                  value={query}
+                  value={
+                    isVoiceListening && voiceInterimText
+                      ? query
+                        ? `${query} ${voiceInterimText}`
+                        : voiceInterimText
+                      : query
+                  }
                   maxLength={1000}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder="Nhập câu hỏi thủ tục (ví dụ: làm khai sinh, kết hôn, CT01)..."
-                  className="w-full h-12 pl-4 pr-10 rounded-xl bg-[#F8FAFC] border border-slate-200 focus:border-[#00796B] focus:bg-white text-sm sm:text-base text-[#0F172A] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00796B]/15 transition-all"
+                  placeholder={
+                    isSimpleMode
+                      ? 'Nói vào micro hoặc gõ câu hỏi tại đây...'
+                      : 'Nhập câu hỏi thủ tục (ví dụ: làm khai sinh, kết hôn, CT01)...'
+                  }
+                  className={`w-full h-12 pl-4 pr-10 rounded-xl bg-[#F8FAFC] border border-slate-200 focus:border-[#00796B] focus:bg-white text-[#0F172A] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00796B]/15 transition-all ${
+                    isSimpleMode ? 'text-base sm:text-lg font-medium' : 'text-sm sm:text-base'
+                  }`}
                 />
                 {query && (
                   <button
                     type="button"
                     onClick={() => setQuery('')}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer p-1"
+                    title="Xóa chữ"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -1567,7 +1605,9 @@ export const CitizenPortal: React.FC = () => {
               <button
                 type="submit"
                 disabled={loading || !query.trim()}
-                className="h-12 px-5 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white font-bold text-sm shadow-xs hover:shadow-md disabled:opacity-40 disabled:hover:bg-[#00796B] disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 shrink-0 active:scale-95 cursor-pointer"
+                className={`h-12 px-5 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white font-bold text-sm shadow-xs hover:shadow-md disabled:opacity-40 disabled:hover:bg-[#00796B] disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2 shrink-0 active:scale-95 cursor-pointer ${
+                  isSimpleMode ? 'min-w-[70px]' : ''
+                }`}
               >
                 <span className="hidden sm:inline">Gửi</span>
                 <Send className="w-4 h-4" />
