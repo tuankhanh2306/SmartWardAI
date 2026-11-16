@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.uth.smartward.common.ApiResponse;
@@ -12,9 +13,11 @@ import vn.edu.uth.smartward.evaluation.dto.FullBenchmarkReport;
 
 /**
  * REST Controller for Scientific Benchmark Evaluation Runner.
+ * SEC-03: Enabled only on eval, dev, and test profiles. Requires ADMIN authority.
  */
 @Slf4j
 @RestController
+@Profile({"eval", "dev", "test"})
 @RequestMapping("/api/v1/evaluation")
 @RequiredArgsConstructor
 @Tag(name = "Scientific Evaluation", description = "Đánh giá Thực nghiệm Khoa học Đề tài Tốt nghiệp (Recall@3, MRR, F1-Score, Abstention Rate)")
@@ -40,7 +43,8 @@ public class EvaluationController {
     @GetMapping("/report")
     @Operation(summary = "Xem báo cáo số liệu thực nghiệm khoa học mới nhất")
     public ResponseEntity<ApiResponse<FullBenchmarkReport>> getLatestReport() {
-        FullBenchmarkReport report = experimentRunnerService.runAllBenchmarks();
+        // SEC-03: Reads cached benchmark results instead of re-running the entire suite
+        FullBenchmarkReport report = experimentRunnerService.getLatestReport();
         return ResponseEntity.ok(ApiResponse.ok(report));
     }
 }

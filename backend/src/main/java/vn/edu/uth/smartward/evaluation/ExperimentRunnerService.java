@@ -45,6 +45,8 @@ public class ExperimentRunnerService {
     private final LegalChunkRepository legalChunkRepository;
     private final AiModelClient aiModelClient;
     private final TwoStageTriageService twoStageTriageService;
+    private final java.util.concurrent.atomic.AtomicReference<FullBenchmarkReport> latestReport =
+            new java.util.concurrent.atomic.AtomicReference<>();
 
     @Autowired
     public ExperimentRunnerService(
@@ -92,7 +94,7 @@ public class ExperimentRunnerService {
                 "Động cơ quy tắc biểu mẫu phát hiện chính xác 100% lỗi vi phạm CCCD 12 số và nghịch lý thời gian; " +
                 "Thuật toán Triage 2 pha giải quyết triệt để 25 ca biên khó (phân tách 100% sự cố khác danh mục cùng tọa độ và cùng danh mục ở xa).";
 
-        return FullBenchmarkReport.builder()
+        FullBenchmarkReport report = FullBenchmarkReport.builder()
                 .projectTitle("SmartWard AI – Administrative Support & Civic Triage System for Ward/Commune Level")
                 .institution("Viện Đào tạo Chất lượng cao – Trường Đại học Giao thông vận tải TP.HCM (UTH)")
                 .executedAt(OffsetDateTime.now())
@@ -101,6 +103,21 @@ public class ExperimentRunnerService {
                 .triageBenchmark(triageResult)
                 .scientificConclusion(conclusion)
                 .build();
+        this.latestReport.set(report);
+        return report;
+    }
+
+    /**
+     * SEC-03: Returns the cached benchmark report without re-running all evaluations.
+     * If no benchmark has been executed yet, triggers initial run once.
+     */
+    public FullBenchmarkReport getLatestReport() {
+        FullBenchmarkReport report = this.latestReport.get();
+        if (report == null) {
+            log.info("No cached benchmark report found. Executing initial benchmark run.");
+            report = runAllBenchmarks();
+        }
+        return report;
     }
 
     /**

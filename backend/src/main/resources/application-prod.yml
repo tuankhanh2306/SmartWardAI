@@ -51,6 +51,13 @@ smartward:
   rate-limit:
     requests-per-minute: ${RATE_LIMIT_RPM:30}
 
+# Disable Swagger / OpenAPI Docs on Production (SEC-03 Surface Reduction)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
+
 logging:
   level:
     root: INFO

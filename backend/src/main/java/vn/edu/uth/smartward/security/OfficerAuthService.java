@@ -31,6 +31,7 @@ public class OfficerAuthService {
     private final ObjectMapper objectMapper;
     private final StringRedisTemplate stringRedisTemplate;
 
+    @Autowired
     public OfficerAuthService(ObjectMapper objectMapper, @Autowired(required = false) StringRedisTemplate stringRedisTemplate) {
         this.objectMapper = objectMapper;
         this.stringRedisTemplate = stringRedisTemplate;
@@ -68,6 +69,13 @@ public class OfficerAuthService {
                     "AG_P_LONGXUYEN",
                     "OFFICER",
                     sha256Hex("2026")
+            ),
+            "ADM-AG-0001", new OfficerAccount(
+                    "ADM-AG-0001",
+                    "Lê Văn Quản Trị — Quản trị viên hệ thống SmartWard",
+                    "AG_P_LONGXUYEN",
+                    "ADMIN",
+                    sha256Hex("9999")
             )
     );
 
@@ -156,8 +164,8 @@ public class OfficerAuthService {
             if (isRevoked || revokedTokenIds.contains(jti)) {
                 throw new BusinessException(ErrorCode.UNAUTHORIZED, "Phiên làm việc cán bộ đã đăng xuất.");
             }
-            if (!"OFFICER".equals(role) || !AUTHORIZED_OFFICERS.containsKey(sub)) {
-                throw new BusinessException(ErrorCode.FORBIDDEN, "Tài khoản không có quyền truy cập phân hệ cán bộ.");
+            if ((!"OFFICER".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) || !AUTHORIZED_OFFICERS.containsKey(sub)) {
+                throw new BusinessException(ErrorCode.FORBIDDEN, "Tài khoản không có quyền truy cập hệ thống cán bộ / quản trị.");
             }
 
             return new OfficerPrincipal(sub, name, wardCode, role, jti, exp);
