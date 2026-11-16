@@ -80,4 +80,55 @@ public class RedisRateLimiter {
             return maxRequestsPerMinute;
         }
     }
+
+    private final java.util.concurrent.ConcurrentHashMap<String, TrackingWindow> inMemoryTrackingLimits = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static class TrackingWindow {
+        int count;
+        long expiresAtEpochMs;
+    }
+
+    /**
+     * SEC-04 Rate limiting: 5 tracking attempts per 15 minutes per (IP, dossierCode).
+     * Atomic Redis INCR with automatic 15-minute expiration and resilient in-memory fallback.
+     */
+    public boolean allowDossierTracking(String clientIp, String dossierCode) {
+        String safeIp = (clientIp != null && !clientIp.isBlank()) ? clientIp.trim() : "anonymous";
+        String safeCode = (dossierCode != null && !dossierCode.isBlank()) ? dossierCode.trim().toUpperCase() : "empty";
+        String key = "smartward:ratelimit:track:" + safeIp + ":" + safeCode;
+
+        try {
+            if (stringRedisTemplate != null) {
+                Long currentCount = stringRedisTemplate.opsForValue().increment(key);
+                if (currentCount != null && currentCount == 1) {
+                    stringRedisTemplate.expire(key, Duration.ofMinutes(15));
+                }
+                if (currentCount != null && currentCount > 5) {
+                    log.warn("Dossier tracking rate limit EXCEEDED for IP: {} on dossier: {} (Count: {}/5)", safeIp, safeCode, currentCount);
+                    return false;
+                }
+                return true;
+            }
+        } catch (Exception e) {
+            log.warn("Redis unavailable for dossier tracking rate limit, using in-memory guard: {}", e.getMessage());
+        }
+
+        long now = System.currentTimeMillis();
+        TrackingWindow window = inMemoryTrackingLimits.compute(key, (k, existing) -> {
+            if (existing == null || existing.expiresAtEpochMs < now) {
+                TrackingWindow nw = new TrackingWindow();
+                nw.count = 1;
+                nw.expiresAtEpochMs = now + (15 * 60 * 1000L);
+                return nw;
+            }
+            existing.count++;
+            return existing;
+        });
+
+        if (window.count > 5) {
+            log.warn("In-memory tracking rate limit EXCEEDED for key {} (Count: {}/5)", key, window.count);
+            return false;
+        }
+        return true;
+    }
 }

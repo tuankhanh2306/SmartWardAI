@@ -26,7 +26,4 @@ public interface CitizenDossierRepository extends JpaRepository<CitizenDossier, 
     List<CitizenDossier> findByStatusIgnoreCaseOrderByCreatedAtDesc(String status);
 
     List<CitizenDossier> findAllByOrderByCreatedAtDesc();
-
-    @Query("SELECT d FROM CitizenDossier d WHERE LOWER(d.dossierCode) = LOWER(:dossierCode) AND TRIM(d.citizenCccd) LIKE CONCAT('%', :last4Cccd)")
-    Optional<CitizenDossier> findByDossierCodeAndLast4Cccd(@Param("dossierCode") String dossierCode, @Param("last4Cccd") String last4Cccd);
 }
