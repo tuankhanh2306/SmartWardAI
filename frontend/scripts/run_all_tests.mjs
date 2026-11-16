@@ -53,13 +53,19 @@ const suites = [
     cwd: rootDir,
   },
   {
-    name: '8. Frontend TypeScript & Production Build (Vite)',
+    name: '8. Intent Matching & Confidence Diacritics Regression Suite (49 assertions)',
+    cmd: process.execPath,
+    args: [path.join(currentDir, 'test_intent_matching_regression.mjs')],
+    cwd: rootDir,
+  },
+  {
+    name: '9. Frontend TypeScript & Production Build (Vite)',
     cmd: process.platform === 'win32' ? 'cmd.exe' : 'npm',
     args: process.platform === 'win32' ? ['/c', 'npm --prefix frontend run build'] : ['--prefix', 'frontend', 'run', 'build'],
     cwd: rootDir,
   },
   {
-    name: '9. Backend JUnit RAG Query Service Test (16 assertions)',
+    name: '10. Backend JUnit RAG Query Service Test (16 assertions)',
     cmd: process.platform === 'win32' ? 'cmd.exe' : './mvnw',
     args: process.platform === 'win32' ? ['/c', 'cd backend && mvnw.cmd test -Dtest=RagQueryServiceTest'] : ['test', '-Dtest=RagQueryServiceTest'],
     cwd: rootDir,
