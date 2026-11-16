@@ -674,19 +674,19 @@ export const CitizenPortal: React.FC = () => {
         </div>
       </div>
 
-      {/* MAIN INTERACTIVE WORKSPACE (Two-Column Desktop: 30% Info & Procedures, 70% Spacious Chat) */}
+      {/* MAIN INTERACTIVE WORKSPACE (Two-Column Desktop: Compact 280px Sidebar & Extra Spacious Chat +250px) */}
       <div
         className={`mx-auto px-2 sm:px-4 lg:px-6 transition-all duration-300 w-full ${
           isChatExpanded
-            ? 'max-w-full 2xl:max-w-[1920px] mt-2'
-            : 'max-w-[98vw] 2xl:max-w-[1920px] mt-3 sm:mt-4'
-        } grid grid-cols-1 lg:grid-cols-10 gap-3.5 lg:gap-4 xl:gap-5 lg:items-stretch`}
+            ? 'max-w-full 2xl:max-w-[2100px] mt-2'
+            : 'max-w-[99vw] 2xl:max-w-[2100px] mt-2.5 sm:mt-3.5'
+        } flex flex-col lg:flex-row gap-3.5 lg:gap-4 xl:gap-5 lg:items-stretch`}
       >
-        {/* LEFT COLUMN: 30% Khung Thông Tin Gọn & 4 Thủ Tục Trọng Tâm */}
+        {/* LEFT COLUMN: Gọn gàng (270px - 290px) giúp mở rộng +250px bề ngang cho Khung Chat */}
         <div
           className={`${
-            isChatExpanded ? 'hidden' : 'lg:col-span-3'
-          } flex flex-col justify-between gap-3 h-[calc(100vh-130px)] min-h-[620px] max-h-[92vh] ${
+            isChatExpanded ? 'hidden' : 'w-full lg:w-[270px] xl:w-[290px] 2xl:w-[310px] shrink-0'
+          } flex flex-col justify-between gap-3 h-[calc(100vh-125px)] min-h-[620px] max-h-[92vh] ${
             mobileTab === 'chat' ? 'hidden lg:flex' : 'flex'
           }`}
         >
@@ -781,14 +781,12 @@ export const CitizenPortal: React.FC = () => {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Interactive Legal RAG Chat Workspace (Chiếm 70% Khung Hình Ngang Để Chứa Tối Đa Thông Tin) */}
+        {/* RIGHT COLUMN: Interactive Legal RAG Chat Workspace (Mở rộng thêm +250px bề ngang để chứa tối đa thông tin) */}
         <div
-          className={`${
-            isChatExpanded ? 'lg:col-span-10' : 'lg:col-span-7'
-          } flex flex-col bg-white rounded-3xl border border-teal-100 shadow-[0_4px_24px_rgba(0,121,107,0.06)] overflow-hidden transition-all duration-300 relative ${
+          className={`flex-1 min-w-0 w-full flex flex-col bg-white rounded-3xl border border-teal-100 shadow-[0_4px_24px_rgba(0,121,107,0.06)] overflow-hidden transition-all duration-300 relative ${
             isChatExpanded
               ? 'h-[calc(100vh-110px)] min-h-[680px] max-h-[96vh]'
-              : 'h-[calc(100vh-130px)] min-h-[620px] max-h-[92vh]'
+              : 'h-[calc(100vh-125px)] min-h-[620px] max-h-[92vh]'
           } ${mobileTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`}
         >
           {/* Chat Workspace Header */}
