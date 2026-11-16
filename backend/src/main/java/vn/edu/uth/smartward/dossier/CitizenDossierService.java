@@ -3,15 +3,19 @@ package vn.edu.uth.smartward.dossier;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ErrorCode;
+import vn.edu.uth.smartward.common.RedisRateLimiter;
+import vn.edu.uth.smartward.rag.AdminProcedure;
 import vn.edu.uth.smartward.rag.AdminProcedureRepository;
 import vn.edu.uth.smartward.security.OfficerAuthService;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.time.DayOfWeek;
 import java.time.Instant;
 import java.time.ZoneOffset;
@@ -19,15 +23,34 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class CitizenDossierService {
 
     private final CitizenDossierRepository dossierRepository;
     private final AdminProcedureRepository procedureRepository;
     private final ObjectMapper objectMapper;
+    private final RedisRateLimiter rateLimiter;
+
+    @Autowired
+    public CitizenDossierService(CitizenDossierRepository dossierRepository,
+                                 AdminProcedureRepository procedureRepository,
+                                 ObjectMapper objectMapper,
+                                 @Autowired(required = false) RedisRateLimiter rateLimiter) {
+        this.dossierRepository = dossierRepository;
+        this.procedureRepository = procedureRepository;
+        this.objectMapper = objectMapper;
+        this.rateLimiter = rateLimiter;
+    }
+
+    public CitizenDossierService(CitizenDossierRepository dossierRepository,
+                                 AdminProcedureRepository procedureRepository,
+                                 ObjectMapper objectMapper) {
+        this(dossierRepository, procedureRepository, objectMapper, null);
+    }
 
     @Transactional
     public DossierSubmissionResponse submitDossier(SubmitDossierRequest req) {
@@ -42,14 +65,14 @@ public class CitizenDossierService {
         }
 
         String normalizedCccd = req.citizenCccd().trim();
-        String dossierCode = (req.dossierCode() != null && !req.dossierCode().isBlank())
-                ? req.dossierCode().trim()
-                : generateDossierCode(req.wardCode());
 
-        // Check uniqueness if client provided custom dossierCode
-        if (req.dossierCode() != null && !req.dossierCode().isBlank() && dossierRepository.existsByDossierCode(dossierCode)) {
-            throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã hồ sơ '" + dossierCode + "' đã tồn tại trên hệ thống.");
+        // Check duplicate if client passed a custom dossierCode
+        if (req.dossierCode() != null && !req.dossierCode().isBlank() && dossierRepository.existsByDossierCode(req.dossierCode().trim())) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã hồ sơ '" + req.dossierCode().trim() + "' đã tồn tại trên hệ thống.");
         }
+
+        // SEC-04: Server strictly generates dossier code with unpredictable suffix; client cannot dictate code
+        String dossierCode = generateDossierCode(req.wardCode());
 
         String procedureCode = req.procedureCode().trim();
         int workingDays = resolveStatutoryWorkingDays(procedureCode);
@@ -72,9 +95,8 @@ public class CitizenDossierService {
                 .build();
 
         CitizenDossier saved = dossierRepository.save(entity);
-        log.info("Citizen dossier submitted successfully: dossierCode={}, procedure={}, ward={}, cccd=****{}",
-                saved.getDossierCode(), saved.getProcedureCode(), saved.getWardCode(),
-                normalizedCccd.length() >= 4 ? normalizedCccd.substring(normalizedCccd.length() - 4) : normalizedCccd);
+        log.info("Citizen dossier submitted successfully: dossierCode={}, procedure={}, ward={}",
+                saved.getDossierCode(), saved.getProcedureCode(), saved.getWardCode());
 
         return DossierSubmissionResponse.builder()
                 .dossierCode(saved.getDossierCode())
@@ -87,32 +109,68 @@ public class CitizenDossierService {
     }
 
     @Transactional(readOnly = true)
-    public DossierTrackingResponse trackDossier(String dossierCode, String last4Cccd, String citizenCccd) {
+    public DossierTrackingResponse trackDossier(String dossierCode, String last4Cccd, String clientIpOrLegacyCccd) {
         if (dossierCode == null || dossierCode.isBlank()) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã hồ sơ không được để trống.");
         }
 
-        String cleanCode = dossierCode.trim();
-        CitizenDossier dossier = dossierRepository.findByDossierCodeIgnoreCase(cleanCode)
-                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,
-                        "Không tìm thấy hồ sơ với mã: " + cleanCode));
+        String effectiveLast4 = (last4Cccd != null && !last4Cccd.isBlank()) ? last4Cccd.trim() : null;
+        String clientIp = "127.0.0.1";
 
-        String targetLast4 = (last4Cccd != null && !last4Cccd.isBlank()) ? last4Cccd.trim() : null;
-        if (targetLast4 == null && citizenCccd != null && !citizenCccd.isBlank()) {
-            String cleanCccd = citizenCccd.trim();
-            targetLast4 = cleanCccd.length() > 4 ? cleanCccd.substring(cleanCccd.length() - 4) : cleanCccd;
+        if (clientIpOrLegacyCccd != null && !clientIpOrLegacyCccd.isBlank()) {
+            String trimmed = clientIpOrLegacyCccd.trim();
+            if (trimmed.length() >= 4 && trimmed.matches("^\\d+$")) {
+                if (effectiveLast4 == null) {
+                    effectiveLast4 = trimmed.substring(trimmed.length() - 4);
+                }
+            } else {
+                clientIp = trimmed;
+            }
         }
 
-        if (targetLast4 == null || targetLast4.isBlank()) {
+        if (effectiveLast4 == null || effectiveLast4.isBlank()) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Vui lòng cung cấp 4 số cuối CCCD để tra cứu bảo mật.");
         }
 
+        // SEC-04: Strict 4-digit regex validation
+        if (!effectiveLast4.matches("^\\d{4}$")) {
+            throw new BusinessException(ErrorCode.VALIDATION_FAILED, "4 số cuối CCCD phải bao gồm đúng 4 chữ số (0-9).");
+        }
+
+        String cleanCode = dossierCode.trim();
+
+        // SEC-04: Rate limiting 5 attempts per 15 minutes per (IP, dossierCode)
+        if (rateLimiter != null && !rateLimiter.allowDossierTracking(clientIp, cleanCode)) {
+            log.warn("Rate limit exceeded for dossier tracking from IP: {}", clientIp);
+            throw new BusinessException(ErrorCode.RATE_LIMIT_EXCEEDED,
+                    "Bạn đã tra cứu sai quá 5 lần trong 15 phút. Vui lòng thử lại sau 15 phút.");
+        }
+
+        final String GENERIC_NOT_FOUND_MSG = "Không tìm thấy hồ sơ hoặc 4 số cuối CCCD không trùng khớp với hồ sơ lưu trữ.";
+
+        Optional<CitizenDossier> optionalDossier = dossierRepository.findByDossierCodeIgnoreCase(cleanCode);
+        if (optionalDossier.isEmpty()) {
+            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, GENERIC_NOT_FOUND_MSG);
+        }
+
+        CitizenDossier dossier = optionalDossier.get();
         String entityCccd = dossier.getCitizenCccd() != null ? dossier.getCitizenCccd().trim() : "";
-        if (!entityCccd.endsWith(targetLast4)) {
-            log.warn("Unauthorized tracking attempt: dossierCode={}, inputLast4={}, entityCccdEnd={}",
-                    cleanCode, targetLast4, entityCccd.length() >= 4 ? entityCccd.substring(entityCccd.length() - 4) : "NONE");
-            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,
-                    "Không tìm thấy hồ sơ hoặc 4 số cuối CCCD không trùng khớp với hồ sơ lưu trữ.");
+        if (entityCccd.length() < 4) {
+            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, GENERIC_NOT_FOUND_MSG);
+        }
+
+        String entityLast4 = entityCccd.substring(entityCccd.length() - 4);
+
+        // SEC-04: Constant-time comparison to prevent timing attacks
+        boolean match = MessageDigest.isEqual(
+                entityLast4.getBytes(StandardCharsets.UTF_8),
+                effectiveLast4.getBytes(StandardCharsets.UTF_8)
+        );
+
+        if (!match) {
+            // SEC-04: Zero PII logging - never log input last4 or stored CCCD
+            log.warn("Dossier tracking verification failed: 4-digit CCCD mismatch for dossierCode={}", cleanCode);
+            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, GENERIC_NOT_FOUND_MSG);
         }
 
         String procedureName = resolveProcedureName(dossier.getProcedureCode());
@@ -136,6 +194,11 @@ public class CitizenDossierService {
                 .createdAt(dossier.getCreatedAt())
                 .updatedAt(dossier.getUpdatedAt())
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    public DossierTrackingResponse trackDossier(String dossierCode, String last4Cccd) {
+        return trackDossier(dossierCode, last4Cccd, "127.0.0.1");
     }
 
     @Transactional(readOnly = true)

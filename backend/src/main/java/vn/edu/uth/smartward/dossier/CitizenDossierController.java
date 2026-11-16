@@ -34,15 +34,32 @@ public class CitizenDossierController {
                 .body(ApiResponse.ok("DOSSIER_SUBMITTED", response));
     }
 
-    @GetMapping("/track")
-    @Operation(summary = "Tra cứu tiến độ hồ sơ bằng mã hồ sơ và 4 số cuối CCCD")
+    @PostMapping("/track")
+    @Operation(summary = "SEC-04: Tra cứu tiến độ hồ sơ an toàn qua POST body với 4 số cuối CCCD")
     public ResponseEntity<ApiResponse<DossierTrackingResponse>> trackDossier(
+            @Valid @RequestBody DossierTrackingRequest req,
+            HttpServletRequest request) {
+        String clientIp = extractClientIp(request);
+        log.info("SEC-04: Tracking dossier via POST: code='{}', clientIp='{}'", req.dossierCode(), clientIp);
+        DossierTrackingResponse response = dossierService.trackDossier(req.dossierCode(), req.last4Cccd(), clientIp);
+        return ResponseEntity.ok(ApiResponse.ok("Tra cứu hồ sơ thành công.", response));
+    }
+
+    @GetMapping("/track")
+    @Operation(summary = "Tra cứu tiến độ hồ sơ (hỗ trợ tương thích ngược qua GET query params)")
+    public ResponseEntity<ApiResponse<DossierTrackingResponse>> trackDossierGet(
             @RequestParam String dossierCode,
             @RequestParam(required = false) String last4Cccd,
-            @RequestParam(required = false) String citizenCccd) {
-        log.info("Tracking dossier: code='{}', hasLast4Cccd={}",
-                dossierCode, (last4Cccd != null && !last4Cccd.isBlank()));
-        DossierTrackingResponse response = dossierService.trackDossier(dossierCode, last4Cccd, citizenCccd);
+            @RequestParam(required = false) String citizenCccd,
+            HttpServletRequest request) {
+        String clientIp = extractClientIp(request);
+        String effectiveLast4 = (last4Cccd != null && !last4Cccd.isBlank())
+                ? last4Cccd
+                : (citizenCccd != null && citizenCccd.trim().length() >= 4
+                    ? citizenCccd.trim().substring(citizenCccd.trim().length() - 4)
+                    : null);
+        log.info("SEC-04: Tracking dossier via GET alias: code='{}', clientIp='{}'", dossierCode, clientIp);
+        DossierTrackingResponse response = dossierService.trackDossier(dossierCode, effectiveLast4, clientIp);
         return ResponseEntity.ok(ApiResponse.ok("Tra cứu hồ sơ thành công.", response));
     }
 
@@ -85,5 +102,14 @@ public class CitizenDossierController {
         CitizenDossier updated = dossierService.reviewDossier(dossierCode, req, principal);
         return ResponseEntity.ok(ApiResponse.ok("Cập nhật trạng thái hồ sơ thành công.",
                 dossierService.mapToOfficerDto(updated)));
+    }
+
+    private String extractClientIp(HttpServletRequest request) {
+        if (request == null) return "127.0.0.1";
+        String xForwardedFor = request.getHeader("X-Forwarded-For");
+        if (xForwardedFor != null && !xForwardedFor.isBlank()) {
+            return xForwardedFor.split(",")[0].trim();
+        }
+        return request.getRemoteAddr() != null ? request.getRemoteAddr() : "127.0.0.1";
     }
 }

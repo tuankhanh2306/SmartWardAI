@@ -743,11 +743,18 @@ export const trackDossier = async (
   last4Cccd?: string,
   citizenCccd?: string
 ): Promise<DossierTrackingResponse> => {
-  const params: Record<string, string> = { dossierCode: dossierCode.trim() };
-  if (last4Cccd) params.last4Cccd = last4Cccd.trim();
-  if (citizenCccd) params.citizenCccd = citizenCccd.trim();
+  const cleanCode = dossierCode.trim();
+  const cleanLast4 = (last4Cccd && last4Cccd.trim().length === 4)
+    ? last4Cccd.trim()
+    : (citizenCccd && citizenCccd.trim().length >= 4
+        ? citizenCccd.trim().substring(citizenCccd.trim().length - 4)
+        : (last4Cccd || '').trim());
 
-  const resp = await api.get<any>('/dossiers/track', { params });
+  // SEC-04: Secure dossier tracking via POST body with 4-digit last4Cccd
+  const resp = await api.post<any>('/dossiers/track', {
+    dossierCode: cleanCode,
+    last4Cccd: cleanLast4,
+  });
   const data = resp.data?.data ? resp.data.data : resp.data;
   return data as DossierTrackingResponse;
 };
