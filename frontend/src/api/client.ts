@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { PROCEDURES_CATALOG } from '../data/proceduresCatalog';
 import { isGeminiConfigured, askGeminiWithRAG, buildStructuredProcedureResponse } from '../services/geminiClient';
-import { searchLegalKnowledge } from '../services/legalKnowledgeBase';
+import { searchLegalKnowledge, normalizeVietnameseQuery } from '../services/legalKnowledgeBase';
 import {
   isWardOfficeQuery,
   checkOutOfScopeQuery,
@@ -470,27 +470,10 @@ export const askLegalRag = async (
     }
 
     // 6. Local Intelligent Fallback Simulation (Unified Knowledge Base & Resilience)
-    let normalizedQuery = effectiveQuery.toLowerCase();
+    let normalizedQuery = normalizeVietnameseQuery(effectiveQuery);
     if (normalizedQuery.includes('cư trú') && normalizedQuery.includes('tthc-ct-01')) {
       normalizedQuery = normalizedQuery.replaceAll('tthc-ct-01', 'mẫu ct01');
     }
-    normalizedQuery = normalizedQuery
-      .replaceAll('giấy khai sanh', 'giấy khai sinh')
-      .replaceAll('chứng sanh', 'chứng sinh')
-      .replaceAll('khai sanh', 'khai sinh')
-      .replaceAll('sanh con', 'sinh con')
-      .replaceAll('mới sanh', 'mới sinh')
-      .replaceAll(/\bsanh\b/g, 'sinh')
-      .replaceAll('mần giấy giá thú', 'đăng ký kết hôn')
-      .replaceAll('giá thú', 'kết hôn')
-      .replaceAll('hôn thư', 'kết hôn')
-      .replaceAll('chế độ tiền già', 'trợ cấp xã hội người cao tuổi')
-      .replaceAll('lãnh tiền già', 'trợ cấp xã hội người cao tuổi')
-      .replaceAll('tiền già', 'trợ cấp xã hội người cao tuổi')
-      .replaceAll('mần giấy tử', 'khai tử')
-      .replaceAll('chứng giấy tờ', 'chứng thực sao y')
-      .replaceAll('chứng giấy', 'chứng thực sao y')
-      .replaceAll('mần giấy', 'chứng thực sao y');
 
     const searchResult = searchLegalKnowledge(normalizedQuery, 3);
     if (searchResult.isInScope && searchResult.items.length > 0) {

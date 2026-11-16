@@ -6,7 +6,7 @@
  * when running offline.
  */
 
-import { searchLegalKnowledge, type LegalProcedureItem } from './legalKnowledgeBase';
+import { searchLegalKnowledge, normalizeVietnameseQuery, type LegalProcedureItem } from './legalKnowledgeBase';
 import {
   isWardOfficeQuery,
   checkOutOfScopeQuery,
@@ -267,27 +267,10 @@ export async function askGeminiWithRAG(
   }
 
   // 6. Semantic Retrieval over SmartWard AI Local Legal Knowledge Base
-  let normalizedSearchQuery = query.toLowerCase();
+  let normalizedSearchQuery = normalizeVietnameseQuery(query);
   if (normalizedSearchQuery.includes('cư trú') && normalizedSearchQuery.includes('tthc-ct-01')) {
     normalizedSearchQuery = normalizedSearchQuery.replaceAll('tthc-ct-01', 'mẫu ct01');
   }
-  normalizedSearchQuery = normalizedSearchQuery
-    .replaceAll('giấy khai sanh', 'giấy khai sinh')
-    .replaceAll('chứng sanh', 'chứng sinh')
-    .replaceAll('khai sanh', 'khai sinh')
-    .replaceAll('sanh con', 'sinh con')
-    .replaceAll('mới sanh', 'mới sinh')
-    .replaceAll(/\bsanh\b/g, 'sinh')
-    .replaceAll('mần giấy giá thú', 'đăng ký kết hôn')
-    .replaceAll('giá thú', 'kết hôn')
-    .replaceAll('hôn thư', 'kết hôn')
-    .replaceAll('chế độ tiền già', 'trợ cấp xã hội người cao tuổi')
-    .replaceAll('lãnh tiền già', 'trợ cấp xã hội người cao tuổi')
-    .replaceAll('tiền già', 'trợ cấp xã hội người cao tuổi')
-    .replaceAll('mần giấy tử', 'khai tử')
-    .replaceAll('chứng giấy tờ', 'chứng thực sao y')
-    .replaceAll('chứng giấy', 'chứng thực sao y')
-    .replaceAll('mần giấy', 'chứng thực sao y');
 
   const searchResult = searchLegalKnowledge(normalizedSearchQuery, 3);
 

@@ -31,7 +31,10 @@ import {
   ClipboardList,
   Users,
   HeartHandshake,
-  Stamp
+  Stamp,
+  Maximize2,
+  Minimize2,
+  ChevronDown
 } from 'lucide-react';
 
 interface ChatMessage {
@@ -48,13 +51,26 @@ export const CitizenPortal: React.FC = () => {
   const { currentWard, isOfficeOpen, officeStatusLabel } = useWard();
   const { isAudioAutoPlay, setIsAudioAutoPlay } = useAccessibility();
   const chatBottomRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const latestBotMsgRef = useRef<HTMLDivElement>(null);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [activeCitation, setActiveCitation] = useState<LegalCitation | null>(null);
   const [isMicActive, setIsMicActive] = useState(false);
+  const [isChatExpanded, setIsChatExpanded] = useState<boolean>(false);
+  const [showScrollBottom, setShowScrollBottom] = useState<boolean>(false);
   const recognitionRef = useRef<any>(null);
+
+  // Scroll listener to detect when user has scrolled away from bottom
+  const handleScroll = useCallback(() => {
+    if (!scrollContainerRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
+    // Show quick scroll-to-bottom button when user scrolls up > 120px
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 120;
+    setShowScrollBottom(!isNearBottom);
+  }, []);
 
   // Mobile tab switcher ('chat' vs 'catalog') for small screens
   const [mobileTab, setMobileTab] = useState<'chat' | 'catalog'>('chat');
@@ -106,6 +122,11 @@ export const CitizenPortal: React.FC = () => {
     },
   ]);
 
+  // Index of latest bot message for smart top-anchored scrolling
+  const latestBotIdx = useMemo(() => {
+    return messages.map((m) => m.sender).lastIndexOf('bot');
+  }, [messages]);
+
   // Keep seed welcome message synchronized when citizen switches Ward/Commune
   useEffect(() => {
     setMessages((prev) =>
@@ -120,11 +141,23 @@ export const CitizenPortal: React.FC = () => {
     );
   }, [currentWard.code, currentWard.name, currentWard.officeAddress]);
 
-  // Auto scroll to chat bottom
+  // Smart Auto Scroll:
+  // - Khi người dân vừa gửi hoặc AI đang xử lý (loading=true): cuộn xuống dưới để thấy câu hỏi và hiệu ứng đang soạn
+  // - Khi AI hoàn tất câu trả lời: cuộn mượt đến ĐẦU câu trả lời của Bot (Mục 1. TÓM TẮT THỦ TỤC)
+  //   giúp người dân đọc ngay từ đầu, không bị che khuất và không cần lướt ngược lên!
   useEffect(() => {
     const timer = setTimeout(() => {
-      chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 100);
+      if (loading) {
+        chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+      } else {
+        const lastMsg = messages[messages.length - 1];
+        if (lastMsg && lastMsg.sender === 'bot') {
+          latestBotMsgRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        } else {
+          chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
+    }, 120);
     return () => clearTimeout(timer);
   }, [messages, loading]);
 
@@ -471,7 +504,7 @@ export const CitizenPortal: React.FC = () => {
     };
 
     return (
-      <div className="flex flex-col gap-3 text-sm md:text-base leading-relaxed text-[#0F172A]">
+      <div className="flex flex-col gap-2.5 text-sm md:text-base leading-relaxed text-[#0F172A]">
         {lines.map((line, lIdx) => {
           const trimmed = line.trim();
           const foundHeader = sectionHeaders.find((h) => trimmed.startsWith(h.key));
@@ -479,22 +512,47 @@ export const CitizenPortal: React.FC = () => {
             const rest = trimmed.substring(foundHeader.key.length).trim();
             const HeaderIcon = foundHeader.Icon;
             return (
-              <div key={lIdx} className="mt-3.5 pt-3 border-t border-[#E2E8F0] first:mt-0 first:pt-0 first:border-0">
+              <div key={lIdx} className="mt-3.5 pt-2.5 border-t border-slate-200/80 first:mt-0 first:pt-0 first:border-0">
                 <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold border ${foundHeader.badgeColor} shadow-2xs`}>
                   <HeaderIcon className="w-3.5 h-3.5 shrink-0" />
                   <span>{foundHeader.title}</span>
                 </div>
                 {rest && (
-                  <p className="mt-2.5 pl-1 font-medium text-[#1E293B] leading-relaxed">
+                  <p className="mt-2 pl-1 font-medium text-[#1E293B] leading-relaxed">
                     {renderTextWithCitations(rest)}
                   </p>
                 )}
               </div>
             );
           }
-          if (!trimmed) {
-            return <div key={lIdx} className="h-1" />;
+
+          // Disclaimer / Note box
+          if (trimmed.startsWith('*Lưu ý:') || trimmed.startsWith('Lưu ý:')) {
+            return (
+              <div key={lIdx} className="mt-2.5 p-3 rounded-xl bg-amber-50/90 border border-amber-200/90 text-amber-900 text-xs flex items-start gap-2.5 shadow-2xs">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="flex-1 leading-relaxed italic">{renderTextWithCitations(trimmed.replace(/^\*+|\*+$/g, ''))}</div>
+              </div>
+            );
           }
+
+          // Checklist bullet styling for documents and requirements
+          if (trimmed.startsWith('•') || trimmed.startsWith('- ')) {
+            const content = trimmed.replace(/^[•\-]\s*/, '');
+            return (
+              <div key={lIdx} className="flex items-start gap-2.5 py-1 px-2 rounded-lg bg-slate-50/60 hover:bg-slate-50/90 border border-slate-100 transition-colors">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#00796B] shrink-0 mt-2" />
+                <div className="leading-relaxed text-[#1E293B] flex-1">
+                  {renderTextWithCitations(content)}
+                </div>
+              </div>
+            );
+          }
+
+          if (!trimmed) {
+            return <div key={lIdx} className="h-0.5" />;
+          }
+
           return (
             <p key={lIdx} className="pl-1 leading-relaxed text-[#1E293B]">
               {renderTextWithCitations(line)}
@@ -617,9 +675,21 @@ export const CitizenPortal: React.FC = () => {
       </div>
 
       {/* MAIN INTERACTIVE WORKSPACE (Two-Column Desktop: 1/4 Info & Procedures, 3/4 Spacious Chat) */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 md:px-8 mt-5 grid grid-cols-1 lg:grid-cols-12 gap-5 w-full lg:items-stretch">
+      <div
+        className={`mx-auto px-3 sm:px-6 md:px-8 transition-all duration-300 w-full ${
+          isChatExpanded
+            ? 'max-w-full 2xl:max-w-[1720px] mt-2'
+            : 'max-w-7xl 2xl:max-w-[1536px] mt-5'
+        } grid grid-cols-1 lg:grid-cols-12 gap-5 lg:items-stretch`}
+      >
         {/* LEFT COLUMN: 1/4 Khung Thông Tin Gọn & 4 Thủ Tục Trọng Tâm */}
-        <div className={`lg:col-span-4 xl:col-span-3 flex flex-col justify-between gap-3.5 lg:h-[750px] ${mobileTab === 'chat' ? 'hidden lg:flex' : 'flex'}`}>
+        <div
+          className={`${
+            isChatExpanded ? 'hidden' : 'lg:col-span-4 xl:col-span-3'
+          } flex flex-col justify-between gap-3.5 h-[calc(100vh-140px)] min-h-[620px] max-h-[92vh] ${
+            mobileTab === 'chat' ? 'hidden lg:flex' : 'flex'
+          }`}
+        >
           <div className="flex flex-col gap-3 flex-1 min-h-0">
             {/* Dedicated Link Banner to the new Dedicated 40 Procedures Page */}
             <div className="p-3.5 rounded-2xl bg-white border border-teal-200/90 shadow-[0_2px_12px_rgba(0,121,107,0.06)] flex flex-col gap-2 shrink-0">
@@ -711,10 +781,18 @@ export const CitizenPortal: React.FC = () => {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Interactive Legal RAG Chat Workspace (Chiếm 3/4 Khung: To Rộng & Thoáng Đãng) */}
-        <div className={`lg:col-span-8 xl:col-span-9 flex flex-col bg-white rounded-3xl border border-teal-100 shadow-[0_4px_24px_rgba(0,121,107,0.06)] overflow-hidden min-h-[580px] lg:h-[750px] ${mobileTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`}>
+        {/* RIGHT COLUMN: Interactive Legal RAG Chat Workspace (Chiếm 3/4 Khung hoặc Toàn Màn Hình Khi Phóng To) */}
+        <div
+          className={`${
+            isChatExpanded ? 'lg:col-span-12' : 'lg:col-span-8 xl:col-span-9'
+          } flex flex-col bg-white rounded-3xl border border-teal-100 shadow-[0_4px_24px_rgba(0,121,107,0.06)] overflow-hidden transition-all duration-300 relative ${
+            isChatExpanded
+              ? 'h-[calc(100vh-115px)] min-h-[680px] max-h-[96vh]'
+              : 'h-[calc(100vh-140px)] min-h-[620px] max-h-[92vh]'
+          } ${mobileTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`}
+        >
           {/* Chat Workspace Header */}
-          <div className="px-5 py-3.5 bg-[#00796B] text-white flex items-center justify-between border-b border-[#004D40]">
+          <div className="px-5 py-3.5 bg-[#00796B] text-white flex items-center justify-between border-b border-[#004D40] shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center text-white border border-white/20 shadow-2xs">
                 <Bot className="w-5 h-5 text-teal-100" />
@@ -723,6 +801,11 @@ export const CitizenPortal: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <span className="text-sm sm:text-base font-bold tracking-tight">Trợ Lý Pháp Lý Một Cửa</span>
                   <span className="w-2 h-2 rounded-full bg-emerald-300" />
+                  {isChatExpanded && (
+                    <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white tracking-wide uppercase">
+                      Toàn màn hình
+                    </span>
+                  )}
                 </div>
                 <span className="text-[11px] text-teal-100">
                   Tra cứu 40 TTHC UBND {currentWard.name}
@@ -731,7 +814,32 @@ export const CitizenPortal: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2">
+              {/* Nút Phóng to / Thu nhỏ Khung Chat Pro Max */}
               <button
+                type="button"
+                onClick={() => setIsChatExpanded((prev) => !prev)}
+                title={isChatExpanded ? 'Thu nhỏ khung chat về mặc định' : 'Phóng to khung chat toàn màn hình (UI/UX Pro Max)'}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-2xs ${
+                  isChatExpanded
+                    ? 'bg-emerald-400/30 text-white border border-emerald-300/50 hover:bg-emerald-400/40 ring-1 ring-emerald-300/40'
+                    : 'bg-white/15 hover:bg-white/25 text-white border border-white/20'
+                }`}
+              >
+                {isChatExpanded ? (
+                  <>
+                    <Minimize2 className="w-3.5 h-3.5 text-emerald-200" />
+                    <span className="hidden sm:inline font-bold">Thu nhỏ</span>
+                  </>
+                ) : (
+                  <>
+                    <Maximize2 className="w-3.5 h-3.5 text-teal-200" />
+                    <span className="hidden sm:inline font-bold">Phóng to</span>
+                  </>
+                )}
+              </button>
+
+              <button
+                type="button"
                 onClick={() => {
                   if (confirm('Bà con có chắc muốn xóa lịch sử cuộc trò chuyện này để bắt đầu lại?')) {
                     if ('speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -740,7 +848,7 @@ export const CitizenPortal: React.FC = () => {
                   }
                 }}
                 title="Làm mới cuộc trò chuyện"
-                className="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-2xs"
+                className="px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-2xs border border-white/20"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Làm mới</span>
@@ -749,7 +857,11 @@ export const CitizenPortal: React.FC = () => {
           </div>
 
           {/* Messages Scroll Viewport */}
-          <div className="flex-1 p-4 md:p-5 overflow-y-auto space-y-4 bg-[#F8FAFC]">
+          <div
+            ref={scrollContainerRef}
+            onScroll={handleScroll}
+            className="flex-1 p-4 md:p-5 overflow-y-auto space-y-4 bg-[#F8FAFC] relative scroll-smooth"
+          >
             {messages.length === 0 && (
               <div className="h-full flex flex-col items-center justify-center text-center p-8 text-[#64748B]">
                 <Bot className="w-12 h-12 text-teal-300 mb-3" />
@@ -771,24 +883,31 @@ export const CitizenPortal: React.FC = () => {
               </div>
             )}
 
-            {messages.map((msg) => (
-              <div
-                key={msg.id}
-                className={`flex gap-3 ${msg.sender === 'citizen' ? 'justify-end' : 'justify-start'}`}
-              >
-                {msg.sender === 'bot' && (
-                  <div className="w-8 h-8 rounded-full bg-[#00796B] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
-                    <Bot className="w-4 h-4 text-teal-100" />
-                  </div>
-                )}
-
+            {messages.map((msg, idx) => {
+              const isLatestBot = idx === latestBotIdx;
+              return (
                 <div
-                  className={`max-w-[88%] sm:max-w-[82%] flex flex-col gap-2 rounded-2xl p-4 transition-all ${
-                    msg.sender === 'citizen'
-                      ? 'bg-[#00796B] text-white rounded-br-xs shadow-xs'
-                      : 'bg-white text-[#0F172A] border border-teal-100/90 rounded-bl-xs shadow-2xs'
-                  }`}
+                  key={msg.id}
+                  ref={isLatestBot ? latestBotMsgRef : undefined}
+                  className={`flex gap-3 ${msg.sender === 'citizen' ? 'justify-end' : 'justify-start'}`}
                 >
+                  {msg.sender === 'bot' && (
+                    <div className="w-8 h-8 rounded-full bg-[#00796B] text-white flex items-center justify-center shrink-0 mt-0.5 shadow-2xs">
+                      <Bot className="w-4 h-4 text-teal-100" />
+                    </div>
+                  )}
+
+                  <div
+                    className={`${
+                      isChatExpanded
+                        ? 'max-w-[94%] xl:max-w-[88%]'
+                        : 'max-w-[88%] sm:max-w-[82%]'
+                    } flex flex-col gap-2 rounded-2xl p-4 transition-all ${
+                      msg.sender === 'citizen'
+                        ? 'bg-[#00796B] text-white rounded-br-xs shadow-xs'
+                        : 'bg-white text-[#0F172A] border border-teal-100/90 rounded-bl-xs shadow-2xs'
+                    }`}
+                  >
                   {/* Message body text with 5-section badge highlights */}
                   {msg.sender === 'bot' ? (
                     renderMessageContent(msg)
@@ -945,7 +1064,8 @@ export const CitizenPortal: React.FC = () => {
                   </div>
                 )}
               </div>
-            ))}
+            );
+          })}
 
             {/* Staggered Typing Indicator */}
             {loading && (
@@ -964,7 +1084,22 @@ export const CitizenPortal: React.FC = () => {
               </div>
             )}
 
-            <div ref={chatBottomRef} className="h-6 shrink-0" />
+            {/* Quick Scroll To Bottom Floating Action Button */}
+            {showScrollBottom && (
+              <div className="sticky bottom-2 right-2 flex justify-end z-20 pointer-events-none">
+                <button
+                  type="button"
+                  onClick={() => chatBottomRef.current?.scrollIntoView({ behavior: 'smooth' })}
+                  className="pointer-events-auto inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold shadow-lg border border-teal-300/40 cursor-pointer transition-all hover:scale-105 active:scale-95 animate-fadeIn"
+                  title="Cuộn nhanh xuống cuối để xem câu trả lời mới nhất"
+                >
+                  <ChevronDown className="w-3.5 h-3.5 text-emerald-200 animate-bounce" />
+                  <span>Cuộn xuống cuối</span>
+                </button>
+              </div>
+            )}
+
+            <div ref={chatBottomRef} className="h-4 shrink-0" />
           </div>
 
           {/* Quick Prompts Carousel Bar */}

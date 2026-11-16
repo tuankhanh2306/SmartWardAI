@@ -222,7 +222,14 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
       'Đối tượng được hưởng: Trẻ em dưới 16 tuổi không có nguồn nuôi dưỡng; Người cao tuổi thuộc hộ nghèo không có người phụng dưỡng; Người khuyết tật nặng và đặc biệt nặng; Người đơn thân nghèo đang nuôi con.',
       'Thời hạn giải quyết: 10 ngày làm việc theo Nghị định 335/2026/NĐ-CP và Quyết định 4595/QĐ-UBND tỉnh An Giang.',
     ],
-    keywords: ['trợ cấp xã hội', 'bảo trợ xã hội', 'tiền trợ cấp', 'người khuyết tật', 'người già neo đơn', 'mồ côi', 'trợ cấp hàng tháng', 'tiền già', 'lãnh tiền già', 'người cao tuổi', 'chế độ người cao tuổi', 'xã / phường / đặc khu thuộc tỉnh an giang'],
+    keywords: [
+      'trợ cấp xã hội', 'bảo trợ xã hội', 'chế độ chính sách bảo trợ xã hội', 'chính sách bảo trợ xã hội',
+      'chế độ bảo trợ xã hội', 'chính sách bảo trợ', 'chế độ chính sách', 'chế độ bảo trợ', 'bảo trợ',
+      'tiền trợ cấp', 'người khuyết tật', 'người già neo đơn', 'mồ côi', 'trợ cấp hàng tháng', 'tiền già',
+      'lãnh tiền già', 'người cao tuổi', 'chế độ người cao tuổi', 'bao tro xa boi', 'bao tro xa hoi',
+      'chinh sach bao tro', 'che do chinh sach bao tro', 'tro cap xa hoi', 'tro cap xa boi',
+      'xã / phường / đặc khu thuộc tỉnh an giang'
+    ],
   },
   {
     code: 'TTHC-BT-02',
@@ -285,6 +292,64 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
 
 import { isGreetingQuery, isProcedureListQuery, checkOutOfScopeQuery, removeVietnameseAccents } from './intentClassifier';
 
+/**
+ * Word-boundary aware phrase matcher to eliminate false-positive substring collisions
+ * (e.g. prevents "bao tro" from matching "o tro" in temporary residence TTHC-CR-03).
+ */
+export function matchesPhrase(text: string, phrase: string): boolean {
+  if (!text || !phrase) return false;
+  const t = text.toLowerCase();
+  const p = phrase.toLowerCase().trim();
+  if (!p) return false;
+  if (t === p) return true;
+  const escaped = p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const boundaryRegex = new RegExp(`(^|[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ])${escaped}($|[^a-z0-9àáạảãâầấậẩẫăằắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ])`, 'i');
+  return boundaryRegex.test(t);
+}
+
+/**
+ * Pre-processes accentless Vietnamese, typo/telex slips and Southern civic dialects
+ */
+export function normalizeVietnameseQuery(raw: string): string {
+  let q = (raw || '').toLowerCase().trim();
+
+  // 1. Phổ biến lỗi gõ phím / telex gần kề (phím 'b' cạnh 'h' ở hàng giữa bàn phím QWERTY):
+  // 'xa boi' -> 'xã hội', 'bao tro xa boi' -> 'bảo trợ xã hội'
+  q = q.replace(/\bxa boi\b/gi, 'xã hội');
+  q = q.replace(/\bxã bôi\b/gi, 'xã hội');
+  q = q.replace(/\bxã bởi\b/gi, 'xã hội');
+  q = q.replace(/\bbao tro xa boi\b/gi, 'bảo trợ xã hội');
+  q = q.replace(/\bche do chinh sach bao tro\b/gi, 'chế độ chính sách bảo trợ xã hội');
+  q = q.replace(/\bchinh sach bao tro\b/gi, 'chính sách bảo trợ xã hội');
+  q = q.replace(/\bche do bao tro\b/gi, 'chế độ bảo trợ xã hội');
+  q = q.replace(/\bbao tro xa hoi\b/gi, 'bảo trợ xã hội');
+  q = q.replace(/\btro cap xa hoi\b/gi, 'trợ cấp xã hội');
+  q = q.replace(/\btro cap xa boi\b/gi, 'trợ cấp xã hội');
+  q = q.replace(/\btien gia\b/gi, 'trợ cấp xã hội người cao tuổi');
+  q = q.replace(/\btien giang\b/gi, 'trợ cấp xã hội người cao tuổi');
+
+  // 2. Các cụm từ địa phương Nam Bộ / tiếng lóng hành chính
+  q = q
+    .replaceAll('giấy khai sanh', 'giấy khai sinh')
+    .replaceAll('chứng sanh', 'chứng sinh')
+    .replaceAll('khai sanh', 'khai sinh')
+    .replaceAll('sanh con', 'sinh con')
+    .replaceAll('mới sanh', 'mới sinh')
+    .replaceAll(/\bsanh\b/g, 'sinh')
+    .replaceAll('mần giấy giá thú', 'đăng ký kết hôn')
+    .replaceAll('giá thú', 'kết hôn')
+    .replaceAll('hôn thư', 'kết hôn')
+    .replaceAll('chế độ tiền già', 'trợ cấp xã hội người cao tuổi')
+    .replaceAll('lãnh tiền già', 'trợ cấp xã hội người cao tuổi')
+    .replaceAll('tiền già', 'trợ cấp xã hội người cao tuổi')
+    .replaceAll('mần giấy tử', 'khai tử')
+    .replaceAll('chứng giấy tờ', 'chứng thực sao y')
+    .replaceAll('chứng giấy', 'chứng thực sao y')
+    .replaceAll('mần giấy', 'chứng thực sao y');
+
+  return q;
+}
+
 const STOP_WORDS = new Set([
   'la', 'là', 'va', 'và', 'cua', 'của', 'cho', 'co', 'có', 'tai', 'tại', 'o', 'ở',
   'gi', 'gì', 'nao', 'nào', 'dau', 'đâu', 'duoc', 'được', 'nhu', 'như', 'the', 'thế',
@@ -302,7 +367,8 @@ export function searchLegalKnowledge(query: string, topK: number = 3): {
   maxScore: number;
   isInScope: boolean;
 } {
-  const q = query.toLowerCase().trim();
+  const cleanRaw = normalizeVietnameseQuery(query);
+  const q = cleanRaw.toLowerCase().trim();
   const qNoAccent = removeVietnameseAccents(q);
 
   // 1. Check if greeting, small talk, or asking for full procedure catalog
@@ -325,18 +391,18 @@ export function searchLegalKnowledge(query: string, topK: number = 3): {
   const scored = LEGAL_KNOWLEDGE_BASE.map((item) => {
     let score = 0;
 
-    // Check exact keyword match (highest confidence)
+    // Check exact keyword match with boundary awareness (highest confidence)
     for (const kw of item.keywords) {
       const kwNoAccent = removeVietnameseAccents(kw);
-      if (q.includes(kw) || qNoAccent.includes(kwNoAccent)) {
+      if (matchesPhrase(q, kw) || matchesPhrase(qNoAccent, kwNoAccent)) {
         score += 0.50;
         break;
       }
     }
 
-    // Check procedure name
+    // Check procedure name with boundary awareness
     const nameNoAccent = removeVietnameseAccents(item.name);
-    if (q.includes(item.name.toLowerCase()) || qNoAccent.includes(nameNoAccent)) {
+    if (matchesPhrase(q, item.name) || matchesPhrase(qNoAccent, nameNoAccent)) {
       score += 0.40;
     }
 
