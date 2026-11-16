@@ -87,7 +87,14 @@ public class TriageController {
     )
     public ResponseEntity<ApiResponse<IssueClusterDto>> updateClusterStatus(
             @PathVariable("clusterCode") String clusterCode,
-            @RequestBody(required = false) java.util.Map<String, String> body) {
+            @RequestBody(required = false) java.util.Map<String, String> body,
+            jakarta.servlet.http.HttpServletRequest httpRequest) {
+        vn.edu.uth.smartward.security.OfficerAuthService.OfficerPrincipal principal =
+                (vn.edu.uth.smartward.security.OfficerAuthService.OfficerPrincipal) httpRequest.getAttribute("officerPrincipal");
+        if (principal != null) {
+            log.info("SEC-09: Officer '{}' from ward '{}' updating cluster '{}' status",
+                    principal.badgeId(), principal.wardCode(), clusterCode);
+        }
         String newStatus = (body != null && body.containsKey("status")) ? body.get("status") : "RESOLVED";
         IssueClusterDto updated = triageService.updateClusterStatus(clusterCode, newStatus);
         return ResponseEntity.ok(ApiResponse.ok(updated));

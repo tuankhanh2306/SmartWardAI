@@ -21,33 +21,51 @@ export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onCl
   const [pin, setPin] = useState('8942');
   const [error, setError] = useState<string | null>(null);
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const navigateToOfficerDeskIfNeeded = () => {
     if (!location.pathname.startsWith('/officer/ward/')) {
       navigate(`/officer/ward/${currentWard.code}`);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!badgeId.trim()) {
       setError('Vui lòng nhập Mã số thẻ công chức.');
       return;
     }
-    const success = loginAsOfficer(badgeId, pin);
-    if (success) {
-      if (onSuccess) onSuccess();
-      onClose();
-      navigateToOfficerDeskIfNeeded();
-    } else {
-      setError('Mã thẻ hoặc mã PIN không hợp lệ.');
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      const success = await loginAsOfficer(badgeId, pin);
+      if (success) {
+        if (onSuccess) onSuccess();
+        onClose();
+        navigateToOfficerDeskIfNeeded();
+      } else {
+        setError('Mã thẻ hoặc mã PIN không hợp lệ (hoặc máy chủ không phản hồi).');
+      }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleQuickDemoLogin = () => {
-    loginAsOfficer('CC-AG-8942', '8942');
-    if (onSuccess) onSuccess();
-    onClose();
-    navigateToOfficerDeskIfNeeded();
+  const handleQuickDemoLogin = async () => {
+    setError(null);
+    setIsSubmitting(true);
+    try {
+      const success = await loginAsOfficer('CC-AG-8942', '8942');
+      if (success) {
+        if (onSuccess) onSuccess();
+        onClose();
+        navigateToOfficerDeskIfNeeded();
+      } else {
+        setError('Không thể đăng nhập tài khoản mẫu. Vui lòng kiểm tra kết nối máy chủ.');
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -131,17 +149,19 @@ export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onCl
           {/* Quick Demo Login Option */}
           <button
             type="button"
+            disabled={isSubmitting}
             onClick={handleQuickDemoLogin}
-            className="w-full py-2.5 px-3 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#0F2942] text-xs font-bold border border-[#CBD5E1] flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer"
+            className="w-full py-2.5 px-3 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#0F2942] text-xs font-bold border border-[#CBD5E1] flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer disabled:opacity-50"
           >
             <Check className="w-4 h-4 text-[#0F766E]" />
-            <span>Đăng Nhập Nhanh: Thẻ Cán Bộ Mẫu (Trần Thị Hương)</span>
+            <span>{isSubmitting ? 'Đang xác thực...' : 'Đăng Nhập Nhanh: Thẻ Cán Bộ Mẫu (Trần Thị Hương)'}</span>
           </button>
 
           {/* Action Buttons */}
           <div className="flex items-center justify-end gap-2.5 pt-2">
             <button
               type="button"
+              disabled={isSubmitting}
               onClick={onClose}
               className="px-4 py-2 rounded-xl text-xs font-bold text-[#64748B] hover:bg-[#F1F5F9] transition cursor-pointer"
             >
@@ -149,9 +169,10 @@ export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onCl
             </button>
             <button
               type="submit"
-              className="px-5 py-2.5 rounded-xl bg-[#0F2942] hover:bg-[#1E3A5F] text-white text-xs font-bold shadow-sm flex items-center gap-2 transition active:scale-95 cursor-pointer"
+              disabled={isSubmitting}
+              className="px-5 py-2.5 rounded-xl bg-[#0F2942] hover:bg-[#1E3A5F] text-white text-xs font-bold shadow-sm flex items-center gap-2 transition active:scale-95 cursor-pointer disabled:opacity-50"
             >
-              <span>Vào Bàn Cán Bộ</span>
+              <span>{isSubmitting ? 'Đang xác thực...' : 'Vào Bàn Cán Bộ'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

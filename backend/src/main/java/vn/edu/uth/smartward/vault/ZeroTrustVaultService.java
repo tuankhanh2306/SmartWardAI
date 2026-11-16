@@ -324,10 +324,16 @@ public class ZeroTrustVaultService {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
                     "Chưa cấu hình khóa mã hóa VAULT_ENCRYPTION_KEY (smartward.vault.encryption-key). Bắt buộc cấu hình khóa 256-bit (32 bytes).");
         }
-        byte[] keyBytes = rawEncryptionKey.getBytes(StandardCharsets.UTF_8);
+        String effective = rawEncryptionKey.trim();
+        byte[] keyBytes = effective.getBytes(StandardCharsets.UTF_8);
         if (keyBytes.length < 32) {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
                     "Khóa mã hóa VAULT_ENCRYPTION_KEY không đủ độ dài an toàn (yêu cầu tối thiểu 32 bytes cho AES-256-GCM).");
+        }
+        String lower = effective.toLowerCase();
+        if (lower.contains("changeme") || lower.contains("devtest") || lower.contains("fallback")) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
+                    "VAULT_ENCRYPTION_KEY không được chứa từ khóa placeholder mẫu (ChangeMe, DevTest, Fallback).");
         }
         byte[] finalKey = new byte[32]; // 256 bits
         System.arraycopy(keyBytes, 0, finalKey, 0, 32);

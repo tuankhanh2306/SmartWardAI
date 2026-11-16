@@ -50,9 +50,25 @@ public class CitizenDossierController {
     @Operation(summary = "Danh sách hồ sơ nộp trực tuyến dành cho Cán bộ Một Cửa thụ lý")
     public ResponseEntity<ApiResponse<List<OfficerDossierDto>>> getOfficerDossiers(
             @RequestParam(required = false) String wardCode,
-            @RequestParam(required = false) String status) {
-        log.info("Officer fetching dossiers: wardCode='{}', status='{}'", wardCode, status);
-        List<OfficerDossierDto> list = dossierService.getOfficerDossiers(wardCode, status);
+            @RequestParam(required = false) String status,
+            HttpServletRequest request) {
+        OfficerAuthService.OfficerPrincipal principal =
+                (OfficerAuthService.OfficerPrincipal) request.getAttribute("officerPrincipal");
+
+        // SEC-09: Fast ward scope isolation - server strictly enforces principal's wardCode
+        String effectiveWardCode;
+        if (principal != null && principal.wardCode() != null && !principal.wardCode().isBlank()) {
+            effectiveWardCode = principal.wardCode().trim();
+            if (wardCode != null && !wardCode.isBlank() && !wardCode.equalsIgnoreCase(effectiveWardCode)) {
+                log.warn("SEC-09: Client attempted to override officer wardCode '{}' with '{}'. Enforcing principal wardCode.",
+                        effectiveWardCode, wardCode);
+            }
+        } else {
+            effectiveWardCode = (wardCode != null && !wardCode.isBlank()) ? wardCode.trim() : null;
+        }
+
+        log.info("Officer fetching dossiers: effectiveWardCode='{}', status='{}'", effectiveWardCode, status);
+        List<OfficerDossierDto> list = dossierService.getOfficerDossiers(effectiveWardCode, status);
         return ResponseEntity.ok(ApiResponse.ok("Lấy danh sách hồ sơ thành công.", list));
     }
 
