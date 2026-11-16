@@ -9,6 +9,8 @@ interface AccessibilityContextType {
   setIsHighContrast: (val: boolean) => void;
   isAudioAutoPlay: boolean;
   setIsAudioAutoPlay: (val: boolean) => void;
+  isSimpleMode: boolean;
+  setIsSimpleMode: (val: boolean) => void;
 }
 
 const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined);
@@ -41,6 +43,14 @@ export const AccessibilityProvider: React.FC<{ children: ReactNode }> = ({ child
     }
   });
 
+  const [isSimpleMode, setIsSimpleModeState] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(`${STORAGE_KEY}_simple`) === 'true';
+    } catch {
+      return false;
+    }
+  });
+
   const setTextScale = (scale: TextScale) => {
     setTextScaleState(scale);
     try {
@@ -59,6 +69,13 @@ export const AccessibilityProvider: React.FC<{ children: ReactNode }> = ({ child
     setIsAudioAutoPlayState(val);
     try {
       localStorage.setItem(`${STORAGE_KEY}_audio`, String(val));
+    } catch {}
+  };
+
+  const setIsSimpleMode = (val: boolean) => {
+    setIsSimpleModeState(val);
+    try {
+      localStorage.setItem(`${STORAGE_KEY}_simple`, String(val));
     } catch {}
   };
 
@@ -81,6 +98,8 @@ export const AccessibilityProvider: React.FC<{ children: ReactNode }> = ({ child
         setIsHighContrast,
         isAudioAutoPlay,
         setIsAudioAutoPlay,
+        isSimpleMode,
+        setIsSimpleMode,
       }}
     >
       {children}
