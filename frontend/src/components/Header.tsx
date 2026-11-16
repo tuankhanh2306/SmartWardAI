@@ -70,7 +70,7 @@ export const Header: React.FC = () => {
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
-        <div className="h-14 sm:h-16 w-full max-w-[1536px] mx-auto px-3 sm:px-6 flex items-center justify-between gap-2 xl:gap-4">
+        <div className="h-14 sm:h-16 w-full max-w-[98vw] 2xl:max-w-[1920px] mx-auto px-3 sm:px-6 flex items-center justify-between gap-2 xl:gap-4">
           {/* Brand Identity & Ward Switcher */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             <Link

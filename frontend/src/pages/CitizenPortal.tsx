@@ -566,8 +566,8 @@ export const CitizenPortal: React.FC = () => {
   return (
     <div className="flex flex-col w-full pb-12 bg-uth-canvas bg-uth-watermark min-h-[calc(100vh-4rem)]">
       {/* SINGLE-LINE CIVIC STATUS STRIP (No Duplicate Header / No Duplicate CTA) */}
-      <section className="w-full bg-white px-4 md:px-8 py-2.5 border-b border-teal-100/80">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2.5 text-xs">
+      <section className="w-full bg-white px-3 sm:px-6 lg:px-8 py-2.5 border-b border-teal-100/80">
+        <div className="max-w-[98vw] 2xl:max-w-[1920px] mx-auto flex flex-wrap items-center justify-between gap-2.5 text-xs">
           {/* Left: Real-Time Working Hours Status + Office Address + Hotline */}
           <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-[#475569]">
             <span
@@ -640,7 +640,7 @@ export const CitizenPortal: React.FC = () => {
       </section>
 
       {/* MOBILE RESPONSIVE SEGMENTED SWITCHER (< lg screens) */}
-      <div className="lg:hidden max-w-7xl mx-auto w-full px-4 mt-3">
+      <div className="lg:hidden max-w-[98vw] 2xl:max-w-[1920px] mx-auto w-full px-3 mt-3">
         <div className="flex rounded-xl bg-[#E2E8F0]/70 p-1 border border-[#CBD5E1]">
           <button
             type="button"
@@ -674,19 +674,19 @@ export const CitizenPortal: React.FC = () => {
         </div>
       </div>
 
-      {/* MAIN INTERACTIVE WORKSPACE (Two-Column Desktop: 1/4 Info & Procedures, 3/4 Spacious Chat) */}
+      {/* MAIN INTERACTIVE WORKSPACE (Two-Column Desktop: 30% Info & Procedures, 70% Spacious Chat) */}
       <div
-        className={`mx-auto px-3 sm:px-6 md:px-8 transition-all duration-300 w-full ${
+        className={`mx-auto px-2 sm:px-4 lg:px-6 transition-all duration-300 w-full ${
           isChatExpanded
-            ? 'max-w-full 2xl:max-w-[1720px] mt-2'
-            : 'max-w-7xl 2xl:max-w-[1536px] mt-5'
-        } grid grid-cols-1 lg:grid-cols-12 gap-5 lg:items-stretch`}
+            ? 'max-w-full 2xl:max-w-[1920px] mt-2'
+            : 'max-w-[98vw] 2xl:max-w-[1920px] mt-3 sm:mt-4'
+        } grid grid-cols-1 lg:grid-cols-10 gap-3.5 lg:gap-4 xl:gap-5 lg:items-stretch`}
       >
-        {/* LEFT COLUMN: 1/4 Khung Thông Tin Gọn & 4 Thủ Tục Trọng Tâm */}
+        {/* LEFT COLUMN: 30% Khung Thông Tin Gọn & 4 Thủ Tục Trọng Tâm */}
         <div
           className={`${
-            isChatExpanded ? 'hidden' : 'lg:col-span-4 xl:col-span-3'
-          } flex flex-col justify-between gap-3.5 h-[calc(100vh-140px)] min-h-[620px] max-h-[92vh] ${
+            isChatExpanded ? 'hidden' : 'lg:col-span-3'
+          } flex flex-col justify-between gap-3 h-[calc(100vh-130px)] min-h-[620px] max-h-[92vh] ${
             mobileTab === 'chat' ? 'hidden lg:flex' : 'flex'
           }`}
         >
@@ -781,14 +781,14 @@ export const CitizenPortal: React.FC = () => {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Interactive Legal RAG Chat Workspace (Chiếm 3/4 Khung hoặc Toàn Màn Hình Khi Phóng To) */}
+        {/* RIGHT COLUMN: Interactive Legal RAG Chat Workspace (Chiếm 70% Khung Hình Ngang Để Chứa Tối Đa Thông Tin) */}
         <div
           className={`${
-            isChatExpanded ? 'lg:col-span-12' : 'lg:col-span-8 xl:col-span-9'
+            isChatExpanded ? 'lg:col-span-10' : 'lg:col-span-7'
           } flex flex-col bg-white rounded-3xl border border-teal-100 shadow-[0_4px_24px_rgba(0,121,107,0.06)] overflow-hidden transition-all duration-300 relative ${
             isChatExpanded
-              ? 'h-[calc(100vh-115px)] min-h-[680px] max-h-[96vh]'
-              : 'h-[calc(100vh-140px)] min-h-[620px] max-h-[92vh]'
+              ? 'h-[calc(100vh-110px)] min-h-[680px] max-h-[96vh]'
+              : 'h-[calc(100vh-130px)] min-h-[620px] max-h-[92vh]'
           } ${mobileTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`}
         >
           {/* Chat Workspace Header */}
@@ -899,10 +899,12 @@ export const CitizenPortal: React.FC = () => {
 
                   <div
                     className={`${
-                      isChatExpanded
-                        ? 'max-w-[94%] xl:max-w-[88%]'
-                        : 'max-w-[88%] sm:max-w-[82%]'
-                    } flex flex-col gap-2 rounded-2xl p-4 transition-all ${
+                      msg.sender === 'bot'
+                        ? 'w-full max-w-full sm:max-w-[97%]'
+                        : isChatExpanded
+                        ? 'max-w-[85%] sm:max-w-[70%] md:max-w-[60%]'
+                        : 'max-w-[88%] sm:max-w-[75%] md:max-w-[65%]'
+                    } flex flex-col gap-2 rounded-2xl p-4 sm:p-5 transition-all ${
                       msg.sender === 'citizen'
                         ? 'bg-[#00796B] text-white rounded-br-xs shadow-xs'
                         : 'bg-white text-[#0F172A] border border-teal-100/90 rounded-bl-xs shadow-2xs'
