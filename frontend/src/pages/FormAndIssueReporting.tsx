@@ -27,12 +27,12 @@ import A4DocumentModal from '../components/A4DocumentModal';
 import { CccdQrScannerModal } from '../components/CccdQrScannerModal';
 import { type DecodedCccdQr, type QrFieldDiscrepancy } from '../utils/cccdQrParser';
 import { decodeQrFromImageFile } from '../utils/qrImageDecoder';
+import { AN_GIANG_WARDS, type WardItem } from '../data/anGiangWards';
 import {
-  AN_GIANG_WARDS,
   findNearestWardByCoords,
   resolveWardFromLocationBox,
-  type WardItem,
-} from '../data/anGiangWards';
+  validateWardPoint,
+} from '../utils/geoUtils';
 
 import {
   FileCheck2,
@@ -327,7 +327,8 @@ export const FormAndIssueReporting: React.FC = () => {
   const [addressText, setAddressText] = useState(`${currentWard.officeAddress}`);
   const [latitude, setLatitude] = useState(currentWard.lat);
   const [longitude, setLongitude] = useState(currentWard.lon);
-  const [, setGpsAccuracy] = useState<number | null>(8);
+  const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
+  const [locationSource, setLocationSource] = useState<'gps' | 'manual_pin' | 'address_geocode'>('gps');
   const [gpsScanBanner, setGpsScanBanner] = useState<string | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [reportLoading, setReportLoading] = useState(false);
@@ -556,7 +557,7 @@ export const FormAndIssueReporting: React.FC = () => {
 
     const tileLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=vi', {
       subdomains: ['0', '1', '2', '3'],
-      attribution: '&copy; Google Maps &bull; GIS Hành chính An Giang',
+      attribution: '&copy; OpenStreetMap contributors &bull; Dữ liệu GIS Hành chính An Giang 2026 (ODbL)',
       maxZoom: 20,
       keepBuffer: 4,
     });
@@ -601,12 +602,16 @@ export const FormAndIssueReporting: React.FC = () => {
 
     marker.on('dragend', (e) => {
       const pos = e.target.getLatLng();
+      setLocationSource('manual_pin');
+      setGpsAccuracy(5);
       reverseGeocodeAndMap(pos.lat, pos.lng, 5);
     });
 
     map.on('click', (e) => {
       marker.setLatLng(e.latlng);
       radiusCircle.setLatLng(e.latlng);
+      setLocationSource('manual_pin');
+      setGpsAccuracy(5);
       reverseGeocodeAndMap(e.latlng.lat, e.latlng.lng, 5);
     });
 
@@ -1339,8 +1344,9 @@ export const FormAndIssueReporting: React.FC = () => {
   const handleGetLocation = useCallback(
     (isAutoScan: boolean = false) => {
       if (!navigator.geolocation) {
+        setLocationSource('manual_pin');
         if (!isAutoScan) {
-          alert('Trình duyệt của bạn không hỗ trợ định vị GPS. Bạn có thể nhập hoặc chỉnh địa chỉ trực tiếp tại ô vị trí.');
+          alert('Trình duyệt của bạn không hỗ trợ định vị GPS. Bạn có thể bấm chọn vị trí trực tiếp trên bản đồ.');
         } else {
           reverseGeocodeAndMap(latitude, longitude, 8, currentWard.officeAddress);
         }
@@ -1351,15 +1357,23 @@ export const FormAndIssueReporting: React.FC = () => {
         (pos) => {
           const { latitude: lat, longitude: lon, accuracy } = pos.coords;
           const nearest = findNearestWardByCoords(lat, lon);
+          const acc = Math.round(accuracy || 8);
+          setGpsAccuracy(acc);
+          setLocationSource('gps');
           // If auto-scanning on a desktop PC far outside An Giang (> 80km), keep current ward coords unless user clicked manual GPS scan
           if (isAutoScan && nearest.distanceMeters > 80000) {
             reverseGeocodeAndMap(currentWard.lat, currentWard.lon, 8, currentWard.officeAddress);
           } else {
-            reverseGeocodeAndMap(lat, lon, accuracy || 8);
+            reverseGeocodeAndMap(lat, lon, acc);
+          }
+          if (acc > 100) {
+            setGpsScanBanner(`Vị trí định vị có sai số ±${acc}m do tín hiệu yếu. Vui lòng kéo ghim trên bản đồ để chỉnh lại vị trí chính xác.`);
           }
           setGpsLoading(false);
         },
         () => {
+          setLocationSource('manual_pin');
+          setGpsScanBanner('Không thể lấy GPS thiết bị (bị từ chối hoặc lỗi tín hiệu). Vui lòng chọn hoặc kéo ghim trên bản đồ.');
           reverseGeocodeAndMap(latitude, longitude, 10, addressText || currentWard.officeAddress);
           setGpsLoading(false);
         },
@@ -1428,6 +1442,13 @@ export const FormAndIssueReporting: React.FC = () => {
 
     const targetWard: WardItem = resolvedJurisdiction.ward;
 
+    // BƯỚC 4: Client-side validator before submission
+    const geoValidation = validateWardPoint(latitude, longitude, targetWard.code);
+    if (!geoValidation.valid) {
+      alert(`Vị trí phản ánh không hợp lệ [${geoValidation.errorCode}]: ${geoValidation.message}`);
+      return;
+    }
+
     setReportLoading(true);
     try {
       const res = await reportIssue({
@@ -1441,6 +1462,8 @@ export const FormAndIssueReporting: React.FC = () => {
         wardName: targetWard.name,
         reporterHomeWardName: currentWard.name,
         urgency,
+        locationAccuracyM: gpsAccuracy || undefined,
+        locationSource,
       });
       setReportResult(res);
       setMyIncidents(getLiveSubmittedIncidents());
@@ -3744,6 +3767,16 @@ export const FormAndIssueReporting: React.FC = () => {
                   <div className="p-2.5 rounded-xl bg-[#ECFDF5] border border-[#86EFAC] text-[11px] text-[#166534] font-medium flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-[#16A34A] shrink-0" />
                     <span>{gpsScanBanner}</span>
+                  </div>
+                )}
+
+                {/* Low GPS Accuracy Warning (BƯỚC 4: accuracy > 100m) */}
+                {gpsAccuracy && gpsAccuracy > 100 && (
+                  <div className="p-2.5 rounded-xl bg-[#FEF3C7] border border-[#F59E0B] text-[11px] text-[#92400E] font-medium flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-[#D97706] shrink-0" />
+                    <span>
+                      Vị trí chưa chính xác (sai số ±{gpsAccuracy}m). Bạn có thể kéo ghim trên bản đồ dưới đây để chỉnh lại vị trí hiện trường.
+                    </span>
                   </div>
                 )}
 

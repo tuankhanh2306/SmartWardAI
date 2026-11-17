@@ -56,6 +56,13 @@
             <version>${pgvector.version}</version>
         </dependency>
 
+        <!-- GIS & Spatial Point-in-Polygon (Lightweight Topology) -->
+        <dependency>
+            <groupId>org.locationtech.jts</groupId>
+            <artifactId>jts-core</artifactId>
+            <version>1.19.0</version>
+        </dependency>
+
         <!-- Database Migration: Flyway -->
         <dependency>
             <groupId>org.flywaydb</groupId>

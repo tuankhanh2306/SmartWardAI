@@ -3,6 +3,7 @@ import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { useWard } from '../context/WardContext';
 import { useRole } from '../context/RoleContext';
 import { AN_GIANG_WARDS, type WardItem } from '../data/anGiangWards';
+import { calculateHaversineMeters, toLeafletLatLng } from '../utils/geoUtils';
 import Pagination from '../components/Pagination';
 import {
   getHitlQueue,
@@ -23,6 +24,7 @@ import {
 } from '../api/client';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { generateValidWardMockIncidents } from '../utils/mockIncidentGenerator';
 import {
   MapPin,
   AlertTriangle,
@@ -62,6 +64,7 @@ interface LocalIncident {
   reporterPhone?: string;
   reporterHomeWardName?: string;
   officerNote?: string;
+  is_mock?: boolean;
 }
 
 interface QuickDossierItem {
@@ -140,6 +143,7 @@ export const PerWardDashboard: React.FC = () => {
 
   // Progressive Disclosure: Drawer / Modal States (Only open when needed!)
   const [selectedIncident, setSelectedIncident] = useState<LocalIncident | null>(null);
+  const [expandedClusterId, setExpandedClusterId] = useState<string | null>(null);
   const [selectedHitlItem, setSelectedHitlItem] = useState<HitlGrayZoneItem | null>(null);
   const [selectedDossier, setSelectedDossier] = useState<QuickDossierItem | null>(null);
   const [showVaultScan, setShowVaultScan] = useState<boolean>(false);
@@ -323,124 +327,8 @@ export const PerWardDashboard: React.FC = () => {
   };
 
   // Build ward-scoped default incidents around the selected ward's coordinates
-  const buildDefaultWardIncidents = (targetWard: WardItem): LocalIncident[] => [
-    {
-      id: `INC-${targetWard.code}-001`,
-      category: 'Cơ sở hạ tầng',
-      title: 'Đường sạt lở mé sông, xuất hiện ổ gà lớn sau mưa lớn',
-      description: 'Đoạn đường ven mé sông sạt lở ăn sâu vào lòng đường khoảng 1.2m, tiềm ẩn nguy cơ tai nạn giao thông vào ban đêm. Đã có 3 người dân cùng phản ánh trong sáng nay.',
-      address: `Gần cầu ngã ba, ${targetWard.name}, ${targetWard.province}`,
-      lat: targetWard.lat + 0.0022,
-      lon: targetWard.lon + 0.0018,
-      reportedTime: '08:15 Sáng nay',
-      status: 'IN_PROGRESS',
-      urgency: 'HIGH',
-      duplicatesMerged: 3,
-      reporterPhone: '0918.***.214',
-      officerNote: 'Đã cử cán bộ Địa chính - Xây dựng xuống khảo sát, căng dây cảnh báo nguy hiểm.',
-    },
-    {
-      id: `INC-${targetWard.code}-002`,
-      category: 'Chiếu sáng đô thị',
-      title: 'Hệ thống đèn đường chập chờn đoạn trước trường học',
-      description: 'Trụ đèn số 04 trước cổng trường tiểu học bị chập chớp tắt liên tục, học sinh tan học buổi tối gặp khó khăn khi qua đường.',
-      address: `Trục đường chính, ${targetWard.name}, ${targetWard.province}`,
-      lat: targetWard.lat - 0.0018,
-      lon: targetWard.lon + 0.0028,
-      reportedTime: 'Hôm qua, 18:30',
-      status: 'PENDING',
-      urgency: 'MEDIUM',
-      duplicatesMerged: 1,
-      reporterPhone: '0903.***.882',
-    },
-    {
-      id: `INC-${targetWard.code}-003`,
-      category: 'Môi trường & Rác thải',
-      title: 'Ùn ứ rác sinh hoạt tại khu vực chợ dân sinh',
-      description: 'Điểm tập kết rác tạm sau phiên chợ chiều chưa được xe thu gom chuyển đi, gây mùi khó chịu.',
-      address: `Cổng chợ địa phương, ${targetWard.name}, ${targetWard.province}`,
-      lat: targetWard.lat + 0.0012,
-      lon: targetWard.lon - 0.0024,
-      reportedTime: 'Hôm qua, 09:00',
-      status: 'RESOLVED',
-      urgency: 'LOW',
-      duplicatesMerged: 2,
-      reporterPhone: '0977.***.119',
-      officerNote: 'Đội vệ sinh môi trường đã hoàn tất thu dọn và phun tiêu độc khử trùng lúc 10h30.',
-    },
-    {
-      id: `INC-${targetWard.code}-004`,
-      category: 'Cơ sở hạ tầng',
-      title: 'Cầu dân sinh bắc qua mương rạch bị hư hỏng mặt cầu',
-      description: 'Mặt cầu qua kênh rạch có nhịp bị nứt gãy, xe máy qua lại nguy hiểm. Cần bố trí gia cố gấp.',
-      address: `Tổ 4, Khu dân cư trung tâm, ${targetWard.name}, ${targetWard.province}`,
-      lat: targetWard.lat + 0.0031,
-      lon: targetWard.lon - 0.0012,
-      reportedTime: '2 ngày trước',
-      status: 'IN_PROGRESS',
-      urgency: 'HIGH',
-      duplicatesMerged: 4,
-      reporterPhone: '0939.***.672',
-      officerNote: 'Tổ công tác đã tạm thời rào chắn và liên hệ đơn vị sửa chữa dân sinh.',
-    },
-    {
-      id: `INC-${targetWard.code}-005`,
-      category: 'An ninh trật tự',
-      title: 'Tụ tập hát karaoke loa kéo công suất lớn quá giờ quy định',
-      description: 'Hát loa kéo mở âm lượng lớn từ 22h30 đến khuya gây mất trật tự giấc ngủ khu dân cư.',
-      address: `Khu dân cư kênh mới, ${targetWard.name}, ${targetWard.province}`,
-      lat: targetWard.lat - 0.0025,
-      lon: targetWard.lon - 0.0019,
-      reportedTime: '3 ngày trước',
-      status: 'RESOLVED',
-      urgency: 'MEDIUM',
-      duplicatesMerged: 2,
-      reporterPhone: '0988.***.543',
-      officerNote: 'Công an địa phương đã xuống nhắc nhở, hộ gia đình đã ký cam kết không tái phạm.',
-    },
-    {
-      id: `INC-${targetWard.code}-006`,
-      category: 'Môi trường & Rác thải',
-      title: 'Cống thoát nước trục lộ chính bị tắc nghẽn sau mưa',
-      description: 'Rác và lục bình dồn ứ sau đợt mưa lớn làm nghẽn dòng chảy tiêu thoát nước.',
-      address: `Tuyến đường liên khóm/ấp, ${targetWard.name}, ${targetWard.province}`,
-      lat: targetWard.lat + 0.0019,
-      lon: targetWard.lon + 0.0026,
-      reportedTime: '3 ngày trước',
-      status: 'RESOLVED',
-      urgency: 'LOW',
-      duplicatesMerged: 1,
-      reporterPhone: '0912.***.334',
-    },
-    {
-      id: `INC-${targetWard.code}-007`,
-      category: 'Cơ sở hạ tầng',
-      title: 'Biển báo giao thông khúc cua bị cây cối che khuất',
-      description: 'Cành cây mọc sum sê che mất biển báo giao thông trên tuyến lộ chính.',
-      address: `Đoạn giao lộ trung tâm, ${targetWard.name}, ${targetWard.province}`,
-      lat: targetWard.lat - 0.0011,
-      lon: targetWard.lon + 0.0014,
-      reportedTime: '4 ngày trước',
-      status: 'PENDING',
-      urgency: 'MEDIUM',
-      duplicatesMerged: 1,
-      reporterPhone: '0966.***.990',
-    },
-    {
-      id: `INC-${targetWard.code}-008`,
-      category: 'Chiếu sáng đô thị',
-      title: 'Đèn đường chiếu sáng khu vực nhà sinh hoạt cộng đồng bị cháy',
-      description: 'Bóng đèn cao áp trước sân nhà sinh hoạt cộng đồng bị cháy bóng 3 ngày nay.',
-      address: `Nhà sinh hoạt cộng đồng, ${targetWard.name}, ${targetWard.province}`,
-      lat: targetWard.lat + 0.0036,
-      lon: targetWard.lon - 0.0031,
-      reportedTime: '5 ngày trước',
-      status: 'RESOLVED',
-      urgency: 'LOW',
-      duplicatesMerged: 2,
-      reporterPhone: '0944.***.765',
-    },
-  ];
+  // BƯỚC 3: Geo-validated reproducible mock generator with R=25m clustering
+  const buildDefaultWardIncidents = (targetWard: WardItem): LocalIncident[] => generateValidWardMockIncidents(targetWard);
 
   // Incidents Dataset with Rich Context for Progressive Disclosure (Unified single loader below)
   const [incidents, setIncidents] = useState<LocalIncident[]>(() => buildDefaultWardIncidents(ward));
@@ -760,7 +648,7 @@ export const PerWardDashboard: React.FC = () => {
 
       const tileLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=vi', {
         subdomains: ['0', '1', '2', '3'],
-        attribution: '&copy; Google Maps &bull; Dữ liệu GIS Hành chính An Giang',
+        attribution: '&copy; OpenStreetMap contributors &bull; Dữ liệu GIS Hành chính An Giang 2026 (ODbL)',
         maxZoom: 20,
         keepBuffer: 4,
       });
@@ -821,74 +709,223 @@ export const PerWardDashboard: React.FC = () => {
     const markersLayer = markersLayerRef.current;
 
     markersLayer.clearLayers();
-    map.setView([ward.lat, ward.lon], 15, { animate: false });
+
+    // 0. BƯỚC 5: fitBounds to ward administrative boundary polygon (never zoom out to ocean for inland wards)
+    if (ward.boundary && ward.boundary.length >= 3) {
+      const latLngs = ward.boundary.map((coord) => toLeafletLatLng(coord));
+      const polygonBounds = L.latLngBounds(latLngs);
+      map.fitBounds(polygonBounds, { padding: [24, 24], maxZoom: 16 });
+
+      // Render administrative boundary polygon line
+      L.polygon(latLngs, {
+        color: '#00236F',
+        weight: 1.5,
+        dashArray: '6, 6',
+        fillColor: '#38BDF8',
+        fillOpacity: 0.05,
+      }).addTo(markersLayer);
+    } else {
+      map.setView([ward.lat, ward.lon], 15, { animate: false });
+    }
     map.invalidateSize({ animate: false });
 
-    // 1. Add Ward Administrative Coverage Circle (R = 500m overview) & HQ Marker
+    // 1. Add Ward Administrative Coverage Circle & Distinct HQ Marker
     L.circle([ward.lat, ward.lon], {
-      radius: 450,
+      radius: 400,
       color: '#00236F',
       weight: 1.5,
-      dashArray: '6, 6',
+      dashArray: '4, 4',
       fillColor: '#38BDF8',
-      fillOpacity: 0.07,
+      fillOpacity: 0.06,
     }).addTo(markersLayer);
 
+    const isUnverified = ward.coordSource === 'unverified';
     const hqIcon = L.divIcon({
       className: 'custom-hq-marker',
-      html: `<div class="px-3 py-1 rounded-xl bg-[#00236F] text-white border-2 border-white shadow-lg text-[11px] font-bold text-center whitespace-nowrap">UBND ${ward.name}</div>`,
-      iconSize: [145, 28],
-      iconAnchor: [72, 14],
+      html: `
+        <div class="flex flex-col items-center">
+          <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-[#00236F] text-white border-2 border-white shadow-xl text-xs font-bold text-center whitespace-nowrap cursor-pointer hover:bg-[#00174F] transition-all">
+            <span class="text-sm">🏛️</span>
+            <span>UBND ${ward.name}</span>
+            ${isUnverified ? '<span class="ml-1 px-1.5 py-0.5 rounded bg-amber-500 text-[9px] font-black uppercase text-black">Tọa độ chưa xác thực</span>' : ''}
+          </div>
+          <div class="w-2.5 h-2.5 bg-[#00236F] rotate-45 -mt-1 border-r border-b border-white"></div>
+        </div>
+      `,
+      iconSize: [220, 42],
+      iconAnchor: [110, 42],
     });
+
     L.marker([ward.lat, ward.lon], { icon: hqIcon })
       .addTo(markersLayer)
       .bindPopup(
-        `<div class="p-2 text-xs font-sans">
-          <b class="text-[#00236F] block mb-1">Trụ sở UBND ${ward.name}</b>
-          <span class="text-[#64748B] block mb-1">${ward.officeAddress}</span>
-          <span class="text-[11px] font-bold text-[#00687A]">Đường dây nóng: ${ward.phoneNumber}</span>
+        `<div class="p-2 text-xs font-sans min-w-[200px]">
+          <div class="flex items-center gap-1.5 mb-1.5">
+            <span class="text-base">🏛️</span>
+            <b class="text-[#00236F] text-sm">Trụ sở UBND ${ward.name}</b>
+          </div>
+          ${isUnverified ? '<div class="p-1 px-2 mb-1.5 rounded bg-amber-100 text-amber-900 font-bold text-[10px]">⚠️ Tọa độ chưa qua kiểm tra thực địa (unverified)</div>' : ''}
+          <span class="text-[#64748B] block mb-1">📍 ${ward.officeAddress}</span>
+          <span class="text-[11px] font-bold text-[#00687A] block mb-1">📞 Hotline: ${ward.phoneNumber}</span>
+          <span class="text-[10px] text-slate-400 block">Nguồn tọa độ: ${ward.coordSource || 'official_gis'}</span>
         </div>`
       );
 
-    // 2. Add Incident Markers + R=25m Spatial Deduplication Circles
+    // 2. BƯỚC 5: Spatial Clustering (< 35m) & Spiderfy on click
+    const CLUSTER_DISTANCE_METERS = 35;
+    interface IncidentCluster {
+      id: string;
+      centroidLat: number;
+      centroidLon: number;
+      items: LocalIncident[];
+    }
+
+    const clusters: IncidentCluster[] = [];
     incidents.forEach((inc) => {
-      const markerColor =
-        inc.urgency === 'HIGH' ? '#DC2626' : inc.urgency === 'MEDIUM' ? '#D97706' : '#00687A';
-
-      // R = 25m spatial clustering radius ring around each incident hotspot
-      L.circle([inc.lat, inc.lon], {
-        radius: 25,
-        color: markerColor,
-        weight: 1.5,
-        fillColor: markerColor,
-        fillOpacity: 0.2,
-      }).addTo(markersLayer);
-
-      const incIcon = L.divIcon({
-        className: 'custom-inc-marker',
-        html: `<div style="background-color: ${markerColor}" class="w-7 h-7 rounded-full border-2 border-white shadow-md flex items-center justify-center text-white text-xs font-bold cursor-pointer hover:scale-110 transition-transform">!</div>`,
-        iconSize: [28, 28],
-        iconAnchor: [14, 14],
-      });
-
-      const marker = L.marker([inc.lat, inc.lon], { icon: incIcon })
-        .addTo(markersLayer)
-        .bindPopup(
-          `<div class="p-2 text-xs font-sans">
-            <b class="text-[#0F2942] block mb-1">${inc.title}</b>
-            <span class="text-[#64748B] block mb-1">${inc.address}</span>
-            <div class="flex items-center gap-2 mt-1">
-              <span class="px-2 py-0.5 rounded text-[10px] font-bold text-white" style="background:${markerColor}">${inc.urgency}</span>
-              <span class="text-[10px] text-[#334155] font-semibold">${inc.duplicatesMerged} phản ánh cùng điểm</span>
-            </div>
-          </div>`
-        );
-
-      marker.on('dblclick', () => {
-        setSelectedIncident(inc);
-      });
+      let matched: IncidentCluster | null = null;
+      for (const cl of clusters) {
+        const dist = calculateHaversineMeters(inc.lat, inc.lon, cl.centroidLat, cl.centroidLon);
+        if (dist <= CLUSTER_DISTANCE_METERS) {
+          matched = cl;
+          break;
+        }
+      }
+      if (matched) {
+        matched.items.push(inc);
+      } else {
+        clusters.push({
+          id: `cl-${inc.id}`,
+          centroidLat: inc.lat,
+          centroidLon: inc.lon,
+          items: [inc],
+        });
+      }
     });
-  }, [activeTab, ward.code, ward.lat, ward.lon, ward.name, ward.officeAddress, ward.phoneNumber, incidents]);
+
+    clusters.forEach((cluster) => {
+      if (cluster.items.length === 1) {
+        // Single isolated incident
+        const inc = cluster.items[0];
+        const markerColor =
+          inc.urgency === 'HIGH' ? '#DC2626' : inc.urgency === 'MEDIUM' ? '#D97706' : '#00687A';
+
+        // R = 25m spatial deduplication ring
+        L.circle([inc.lat, inc.lon], {
+          radius: 25,
+          color: markerColor,
+          weight: 1.5,
+          fillColor: markerColor,
+          fillOpacity: 0.15,
+        }).addTo(markersLayer);
+
+        const incIcon = L.divIcon({
+          className: 'custom-inc-marker',
+          html: `<div style="background-color: ${markerColor}" class="w-7 h-7 rounded-full border-2 border-white shadow-md flex items-center justify-center text-white text-xs font-bold cursor-pointer hover:scale-110 transition-transform">!</div>`,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14],
+        });
+
+        const marker = L.marker([inc.lat, inc.lon], { icon: incIcon })
+          .addTo(markersLayer)
+          .bindPopup(
+            `<div class="p-2 text-xs font-sans">
+              <b class="text-[#0F2942] block mb-1">${inc.title}</b>
+              <span class="text-[#64748B] block mb-1">${inc.address}</span>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold text-white" style="background:${markerColor}">${inc.urgency}</span>
+                <span class="text-[10px] text-[#334155] font-semibold">${inc.duplicatesMerged} phản ánh</span>
+              </div>
+            </div>`
+          );
+
+        marker.on('dblclick', () => {
+          setSelectedIncident(inc);
+        });
+      } else {
+        // Multi-incident cluster (< 35m)
+        const isExpanded = expandedClusterId === cluster.id;
+        const count = cluster.items.length;
+
+        const clusterIcon = L.divIcon({
+          className: 'custom-cluster-marker',
+          html: `
+            <div class="relative flex items-center justify-center cursor-pointer group hover:scale-110 transition-transform">
+              <div class="w-8 h-8 rounded-full bg-[#BA1A1A] text-white border-2 border-white shadow-xl flex items-center justify-center font-extrabold text-xs ring-2 ring-red-300">
+                ${count}
+              </div>
+              <div class="absolute -bottom-4 px-1.5 py-0.5 rounded-full bg-slate-900/80 text-white text-[8px] font-bold whitespace-nowrap">
+                ${isExpanded ? 'Đang mở' : 'Gộp ' + count}
+              </div>
+            </div>
+          `,
+          iconSize: [32, 32],
+          iconAnchor: [16, 16],
+        });
+
+        const clusterMarker = L.marker([cluster.centroidLat, cluster.centroidLon], { icon: clusterIcon })
+          .addTo(markersLayer);
+
+        clusterMarker.on('click', () => {
+          setExpandedClusterId((prev) => (prev === cluster.id ? null : cluster.id));
+        });
+
+        if (isExpanded) {
+          // Bung nan hoa (radial spiderfy)
+          const spiderRadiusDeg = 0.00035; // ~38m spread
+          cluster.items.forEach((inc, idx) => {
+            const angle = (2 * Math.PI * idx) / count - Math.PI / 2;
+            const sLat = cluster.centroidLat + spiderRadiusDeg * Math.sin(angle);
+            const sLon = cluster.centroidLon + (spiderRadiusDeg * Math.cos(angle)) / Math.cos((cluster.centroidLat * Math.PI) / 180);
+
+            // Connective line to cluster center
+            L.polyline([[cluster.centroidLat, cluster.centroidLon], [sLat, sLon]], {
+              color: '#DC2626',
+              weight: 1.5,
+              dashArray: '3, 3',
+              opacity: 0.8,
+            }).addTo(markersLayer);
+
+            const markerColor =
+              inc.urgency === 'HIGH' ? '#DC2626' : inc.urgency === 'MEDIUM' ? '#D97706' : '#00687A';
+
+            const leafIcon = L.divIcon({
+              className: 'custom-spider-leaf-marker',
+              html: `<div style="background-color: ${markerColor}" class="w-6 h-6 rounded-full border-2 border-white shadow-md flex items-center justify-center text-white text-[10px] font-bold cursor-pointer hover:scale-125 transition-transform">!</div>`,
+              iconSize: [24, 24],
+              iconAnchor: [12, 12],
+            });
+
+            const leafMarker = L.marker([sLat, sLon], { icon: leafIcon })
+              .addTo(markersLayer)
+              .bindPopup(
+                `<div class="p-2 text-xs font-sans">
+                  <div class="text-[10px] font-bold text-red-600 mb-0.5">Sự cố trong cụm #${idx + 1}</div>
+                  <b class="text-[#0F2942] block mb-1">${inc.title}</b>
+                  <span class="text-[#64748B] block mb-1">${inc.address}</span>
+                  <div class="flex items-center gap-2 mt-1">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-bold text-white" style="background:${markerColor}">${inc.urgency}</span>
+                  </div>
+                </div>`
+              );
+
+            leafMarker.on('dblclick', () => {
+              setSelectedIncident(inc);
+            });
+          });
+        } else {
+          // Collapsed cluster ring
+          L.circle([cluster.centroidLat, cluster.centroidLon], {
+            radius: 35,
+            color: '#BA1A1A',
+            weight: 1.5,
+            dashArray: '4, 4',
+            fillColor: '#FCA5A5',
+            fillOpacity: 0.2,
+          }).addTo(markersLayer);
+        }
+      }
+    });
+  }, [activeTab, ward.code, ward.lat, ward.lon, ward.name, ward.officeAddress, ward.phoneNumber, ward.boundary, ward.coordSource, incidents, expandedClusterId]);
 
   // Clean up map instance on component unmount
   useEffect(() => {
