@@ -27,6 +27,13 @@ public class OfficerAuthController {
             String wardCode
     ) {}
 
+    public record OfficerChangePinRequest(
+            @NotBlank(message = "Mã công chức không được để trống") String badgeId,
+            @NotBlank(message = "Mã PIN hiện tại không được để trống") String currentPin,
+            @NotBlank(message = "Mã PIN mới không được để trống") String newPin,
+            @NotBlank(message = "Xác nhận mã PIN mới không được để trống") String confirmPin
+    ) {}
+
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<OfficerAuthService.LoginResponse>> login(
             @Valid @RequestBody OfficerLoginRequest request) {
@@ -36,6 +43,20 @@ public class OfficerAuthController {
                 request.wardCode()
         );
         return ResponseEntity.ok(ApiResponse.ok("Xác thực cán bộ thành công.", response));
+    }
+
+    @PostMapping("/change-pin")
+    public ResponseEntity<ApiResponse<OfficerAuthService.ChangePinResponse>> changePin(
+            @Valid @RequestBody OfficerChangePinRequest request,
+            @RequestHeader(value = "Authorization", required = false) String authorization) {
+        OfficerAuthService.ChangePinResponse response = officerAuthService.changePin(
+                request.badgeId(),
+                request.currentPin(),
+                request.newPin(),
+                request.confirmPin(),
+                authorization
+        );
+        return ResponseEntity.ok(ApiResponse.ok("Đổi mã PIN cán bộ thành công.", response));
     }
 
     @GetMapping("/me")

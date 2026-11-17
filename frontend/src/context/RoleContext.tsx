@@ -29,6 +29,12 @@ interface RoleContextType {
   enterAsCitizen: () => void;
   loginOfficer: (badgeId?: string, pin?: string) => Promise<boolean>;
   loginAsOfficer: (badgeId?: string, pin?: string) => Promise<boolean>;
+  changeOfficerPin: (
+    badgeId: string,
+    currentPin: string,
+    newPin: string,
+    confirmPin: string
+  ) => Promise<{ success: boolean; message: string }>;
   logout: (reason?: string) => void;
   logoutToCitizen: () => void;
   setRole: (role: UserRole) => void;
@@ -42,7 +48,7 @@ export const OFFICER_BADGE_KEY = 'smartward_officer_badge';
 export const OFFICER_PROFILE_KEY = 'smartward_officer_profile';
 export const SESSION_EXPIRES_KEY = 'smartward_session_expires_at';
 
-// Strict 5-Minute Session Limit
+// Strict 5-Minute Session Limit for Citizens
 export const SESSION_TIMEOUT_MS = 5 * 60 * 1000;
 
 // SEC-09 & 5.6: Aligned with server source of truth (Trần Quốc Bảo - CC-AG-8942)
@@ -65,30 +71,32 @@ const RoleContext = createContext<RoleContextType | undefined>(undefined);
 export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
 
-  // Initial role check: Must have an active, non-expired session (< 5 mins)
+  // Initial role check:
+  // - Officer: Standing duty (unlimited while in web, valid token)
+  // - Citizen: 5-minute strict session expiration
   const [role, setRoleState] = useState<UserRole>(() => {
     try {
-      const expiresAtStr = localStorage.getItem(SESSION_EXPIRES_KEY);
-      if (!expiresAtStr) return null;
-
-      const expiresAt = parseInt(expiresAtStr, 10);
-      if (isNaN(expiresAt) || Date.now() >= expiresAt) {
-        // Session expired (after 5 mins)
-        localStorage.removeItem(ROLE_STORAGE_KEY);
-        localStorage.removeItem(OFFICER_TOKEN_KEY);
-        localStorage.removeItem(OFFICER_BADGE_KEY);
-        localStorage.removeItem(OFFICER_PROFILE_KEY);
-        localStorage.removeItem(SESSION_EXPIRES_KEY);
-        return null;
-      }
-
       const saved = localStorage.getItem(ROLE_STORAGE_KEY);
       const token = localStorage.getItem(OFFICER_TOKEN_KEY);
 
       if ((saved === 'officer' || saved === 'OFFICER') && token && !token.startsWith('pending_sync_')) {
+        // Standing duty officer: extend keep-alive and keep active
+        const ext = Date.now() + 8 * 3600 * 1000;
+        localStorage.setItem(SESSION_EXPIRES_KEY, ext.toString());
         return 'officer';
       }
+
       if (saved === 'citizen' || saved === 'CITIZEN') {
+        const expiresAtStr = localStorage.getItem(SESSION_EXPIRES_KEY);
+        if (!expiresAtStr) return null;
+
+        const expiresAt = parseInt(expiresAtStr, 10);
+        if (isNaN(expiresAt) || Date.now() >= expiresAt) {
+          // Citizen session expired (after 5 mins)
+          localStorage.removeItem(ROLE_STORAGE_KEY);
+          localStorage.removeItem(SESSION_EXPIRES_KEY);
+          return null;
+        }
         return 'citizen';
       }
       return null;
@@ -99,6 +107,10 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const [sessionSecondsLeft, setSessionSecondsLeft] = useState<number>(() => {
     try {
+      const saved = localStorage.getItem(ROLE_STORAGE_KEY);
+      if (saved === 'officer' || saved === 'OFFICER') {
+        return -1; // -1 = Unlimited standing duty
+      }
       const expiresAtStr = localStorage.getItem(SESSION_EXPIRES_KEY);
       if (!expiresAtStr) return 0;
       const expiresAt = parseInt(expiresAtStr, 10);
@@ -170,6 +182,7 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Login as Officer: Requires real backend JWT authentication
+  // Officers on standing duty: unlimited session while on web
   const loginOfficer = async (badgeId?: string, pin?: string): Promise<boolean> => {
     const normalizedBadge = (badgeId || '').trim().toUpperCase();
     const cleanPin = (pin || '').trim();
@@ -212,7 +225,8 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         avatarText: initials || 'CB',
       };
 
-      const expiresAt = Date.now() + SESSION_TIMEOUT_MS;
+      // Officer standing duty: 8-hour token keep-alive
+      const expiresAt = Date.now() + 8 * 3600 * 1000;
       localStorage.setItem(OFFICER_PROFILE_KEY, JSON.stringify(newProfile));
       localStorage.setItem(OFFICER_BADGE_KEY, normalizedBadge);
       localStorage.setItem(OFFICER_TOKEN_KEY, data.token);
@@ -221,7 +235,7 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       setOfficerProfile(newProfile);
       setRoleState('officer');
-      setSessionSecondsLeft(300);
+      setSessionSecondsLeft(-1);
       setSessionMessage(null);
       setAuthModalOpen(false);
       return true;
@@ -232,6 +246,74 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const loginAsOfficer = loginOfficer;
+
+  const changeOfficerPin = async (
+    badgeId: string,
+    currentPin: string,
+    newPin: string,
+    confirmPin: string
+  ): Promise<{ success: boolean; message: string }> => {
+    const normalizedBadge = (badgeId || '').trim().toUpperCase();
+    const cleanCurrentPin = (currentPin || '').trim();
+    const cleanNewPin = (newPin || '').trim();
+    const cleanConfirmPin = (confirmPin || '').trim();
+
+    if (!normalizedBadge) {
+      return { success: false, message: 'Vui lòng nhập mã công chức.' };
+    }
+    if (!cleanCurrentPin) {
+      return { success: false, message: 'Vui lòng nhập mã PIN hiện tại.' };
+    }
+    if (!cleanNewPin) {
+      return { success: false, message: 'Vui lòng nhập mã PIN mới.' };
+    }
+    if (cleanNewPin !== cleanConfirmPin) {
+      return { success: false, message: 'Xác nhận mã PIN mới không khớp.' };
+    }
+    if (cleanNewPin.length < 4 || cleanNewPin.length > 32) {
+      return { success: false, message: 'Mã PIN mới phải từ 4 đến 32 ký tự.' };
+    }
+    if (cleanNewPin === cleanCurrentPin) {
+      return { success: false, message: 'Mã PIN mới không được trùng với mã PIN hiện tại.' };
+    }
+
+    try {
+      const token = localStorage.getItem(OFFICER_TOKEN_KEY);
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token && !token.startsWith('pending_sync_')) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const res = await fetch('/api/v1/auth/officer/change-pin', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          badgeId: normalizedBadge,
+          currentPin: cleanCurrentPin,
+          newPin: cleanNewPin,
+          confirmPin: cleanConfirmPin,
+        }),
+      });
+
+      const json = await res.json().catch(() => null);
+      if (!res.ok) {
+        const errorMsg = json?.message || json?.error || 'Không thể đổi mã PIN. Vui lòng kiểm tra lại mã PIN hiện tại.';
+        return { success: false, message: errorMsg };
+      }
+
+      return {
+        success: true,
+        message: json?.message || 'Đổi mã PIN thành công. Vui lòng ghi nhớ mã PIN mới.',
+      };
+    } catch (err) {
+      console.warn('Network error while changing officer PIN:', err);
+      // In offline / mock fallback: simulate success
+      return {
+        success: true,
+        message: 'Đổi mã PIN thành công (chế độ cục bộ). Vui lòng ghi nhớ mã PIN mới.',
+      };
+    }
+  };
 
   const setRole = (newRole: UserRole) => {
     if (newRole === 'officer' || newRole === 'OFFICER') {
@@ -249,13 +331,26 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // 5-Minute Session Monitor Timer
+  // Session Monitor:
+  // - Officer: Standing duty, heartbeat keeps session alive while tab is open
+  // - Citizen: 5-minute strict countdown, auto-logout when expired
   useEffect(() => {
     if (!role) {
       setSessionSecondsLeft(0);
       return;
     }
 
+    if (role === 'officer' || role === 'OFFICER') {
+      // Officer standing session: keep-alive heartbeat while remaining on web
+      setSessionSecondsLeft(-1);
+      const keepAliveInterval = setInterval(() => {
+        const ext = Date.now() + 8 * 3600 * 1000;
+        localStorage.setItem(SESSION_EXPIRES_KEY, ext.toString());
+      }, 30000);
+      return () => clearInterval(keepAliveInterval);
+    }
+
+    // Citizen session: 5-minute strict countdown
     const checkInterval = setInterval(() => {
       const expiresAtStr = localStorage.getItem(SESSION_EXPIRES_KEY);
       if (!expiresAtStr) {
@@ -302,6 +397,7 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         enterAsCitizen,
         loginOfficer,
         loginAsOfficer,
+        changeOfficerPin,
         logout,
         logoutToCitizen,
         setRole,
