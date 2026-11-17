@@ -53,6 +53,13 @@ public class AdminProcedure {
     @Builder.Default
     private String status = "ACTIVE";
 
+    @Column(name = "current_version_id")
+    private Long currentVersionId;
+
+    @Column(name = "form_template_key", nullable = false, length = 32)
+    @Builder.Default
+    private String formTemplateKey = "GENERAL";
+
     @OneToMany(mappedBy = "procedure", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<LegalChunk> chunks = new ArrayList<>();

@@ -16,6 +16,19 @@ public class AuditService {
     }
 
     public void logAction(String who, String ward, String action, String entity, String entityId, String ip, String userAgent) {
+        logProcedureAction(who, ward, action, entity, entityId, null, null, null, ip, userAgent);
+    }
+
+    public void logProcedureAction(String who,
+                                   String ward,
+                                   String action,
+                                   String entity,
+                                   String entityId,
+                                   Integer versionNo,
+                                   String beforeSnapshot,
+                                   String afterSnapshot,
+                                   String ip,
+                                   String userAgent) {
         try {
             if (auditLogRepository != null) {
                 AuditLog logEntry = AuditLog.builder()
@@ -24,12 +37,16 @@ public class AuditService {
                         .action(action)
                         .entity(entity)
                         .entityId(entityId)
+                        .versionNo(versionNo)
+                        .beforeSnapshot(beforeSnapshot)
+                        .afterSnapshot(afterSnapshot)
                         .ip(ip != null && !ip.isBlank() ? ip : "127.0.0.1")
                         .userAgent(userAgent)
                         .build();
                 auditLogRepository.save(logEntry);
             }
-            log.info("[AUDIT] who='{}' ward='{}' action='{}' entity='{}' entityId='{}' ip='{}'", who, ward, action, entity, entityId, ip);
+            log.info("[AUDIT] who='{}' ward='{}' action='{}' entity='{}' entityId='{}' versionNo={} ip='{}'",
+                    who, ward, action, entity, entityId, versionNo, ip);
         } catch (Exception e) {
             log.warn("Failed to persist audit log entry: {}", e.getMessage());
         }
