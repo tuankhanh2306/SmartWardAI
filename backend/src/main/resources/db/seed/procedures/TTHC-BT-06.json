@@ -1,0 +1,61 @@
+{
+  "procedureCode": "TTHC-BT-06",
+  "procedureName": "Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội",
+  "process": "- Bước 1: Cá nhân, cơ quan, đơn vị chịu trách nhiệm mai táng cho đối tượng làm hồ sơ theo quy định gửi Chủ tịch Ủy ban nhân dân cấp xã nơi cư trú hoặc Chủ tịch Ủy ban nhân dân cấp xã nơi đối tượng chết, nơi tổ chức mai táng cho đối tượng (đối với trường hợp trợ giúp khẩn cấp).\n\n- Bước 2: Trong thời hạn 03 ngày làm việc, kể từ ngày nhận được Tờ khai của cá nhân, cơ quan, đơn vị tổ chức đứng ra mai táng cho đối tượng, Chủ tịch Ủy ban nhân dân cấp xã xem xét, quyết định hỗ trợ chi phí mai táng và thực hiện chi trả kinh phí hỗ trợ theo quy định.\n- Trường hợp thực hiện liên thông điện tử nhóm thủ tục hành chính đăng ký khai tử, xoá đăng ký thường trú, giải quyết mai táng phí, tử tuất thì thủ tục hỗ trợ chi phí mai táng thực hiện theo quy định tại Điều 11, Điều 12, Điều 13, Điều 14 và Điều 15 Nghị định số 63/2024/NĐ-CP của Chính phủ quy định việc thực hiện liên thông điện tử 02 nhóm thủ tục hành chính: đăng ký khai sinh, đăng ký thường trú, cấp thẻ bảo hiểm y tế cho trẻ em dưới 6 tuổi; đăng ký khai tử, xoá đăng ký thường trú, giải quyết mai táng phí, tử tuất, được sửa đổi, bổ sung bởi Nghị định số 301/2026/NĐ-CP (Quyết định số 1868/QĐ-BTP ngày 10/8/2026 của Bộ trưởng Bộ Tư pháp về việc công bố 02 nhóm thủ tục hành chính liên thông điện tử được thay thế: Đăng ký khai sinh, đăng ký thường trú, cấp thẻ bảo hiểm y tế, cấp thẻ căn cước cho trẻ em dưới 6 tuổi; đăng ký khai tử, xoá đăng ký thường trú, giải quyết mai táng phí, tử tuất).\n- Việc tiếp nhận thủ tục hành chính không phụ thuộc vào địa giới hành chính thực hiện theo quy định của pháp luật về thực hiện thủ tục hành chính không phụ thuộc địa giới hành chính.",
+  "processingTime": "Thủ tục: Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội. Cơ quan có thẩm quyền giải quyết: Bộ Y tế. Thời hạn giải quyết: DIRECT: 03 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ | ONLINE: 03 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ | POSTAL: 03 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ. Mức phí/lệ phí: Theo quy định của HĐND cấp tỉnh/thành phố.",
+  "agency": "- Cơ quan có thẩm quyền giải quyết: Bộ Y tế\n- Cơ quan trực tiếp thực hiện: Bộ phận Tiếp nhận và Trả kết quả (Một cửa) cấp Xã/Phường.",
+  "lastApprovedAt": "2026-11-17T03:03:10.627534+00:00",
+  "contentHash": "14a0e0a5ed9173de3cb9739b8b709719c85b9ede3b1178fd5be61b8816883f74",
+  "chunks": [
+    {
+      "chunkId": "TTHC-BT-06_HCHK_001",
+      "chunkType": "GENERAL_SECTION",
+      "title": "Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội - Trình tự thực hiện",
+      "headerPath": "TTHC-BT-06 > Trình tự thực hiện",
+      "content": "- Bước 1: Cá nhân, cơ quan, đơn vị chịu trách nhiệm mai táng cho đối tượng làm hồ sơ theo quy định gửi Chủ tịch Ủy ban nhân dân cấp xã nơi cư trú hoặc Chủ tịch Ủy ban nhân dân cấp xã nơi đối tượng chết, nơi tổ chức mai táng cho đối tượng (đối với trường hợp trợ giúp khẩn cấp).\n\n- Bước 2: Trong thời hạn 03 ngày làm việc, kể từ ngày nhận được Tờ khai của cá nhân, cơ quan, đơn vị tổ chức đứng ra mai táng cho đối tượng, Chủ tịch Ủy ban nhân dân cấp xã xem xét, quyết định hỗ trợ chi phí mai táng và thực hiện chi trả kinh phí hỗ trợ theo quy định.\n- Trường hợp thực hiện liên thông điện tử nhóm thủ tục hành chính đăng ký khai tử, xoá đăng ký thường trú, giải quyết mai táng phí, tử tuất thì thủ tục hỗ trợ chi phí mai táng thực hiện theo quy định tại Điều 11, Điều 12, Điều 13, Điều 14 và Điều 15 Nghị định số 63/2024/NĐ-CP của Chính phủ quy định việc thực hiện liên thông điện tử 02 nhóm thủ tục hành chính: đăng ký khai sinh, đăng ký thường trú, cấp thẻ bảo hiểm y tế cho trẻ em dưới 6 tuổi; đăng ký khai tử, xoá đăng ký thường trú, giải quyết mai táng phí, tử tuất, được sửa đổi, bổ sung bởi Nghị định số 301/2026/NĐ-CP (Quyết định số 1868/QĐ-BTP ngày 10/8/2026 của Bộ trưởng Bộ Tư pháp về việc công bố 02 nhóm thủ tục hành chính liên thông điện tử được thay thế: Đăng ký khai sinh, đăng ký thường trú, cấp thẻ bảo hiểm y tế, cấp thẻ căn cước cho trẻ em dưới 6 tuổi; đăng ký khai tử, xoá đăng ký thường trú, giải quyết mai táng phí, tử tuất).\n- Việc tiếp nhận thủ tục hành chính không phụ thuộc vào địa giới hành chính thực hiện theo quy định của pháp luật về thực hiện thủ tục hành chính không phụ thuộc địa giới hành chính.",
+      "contentHash": "ffc094b41efafe64b59585a7ee33f3371c561d5bbe489dfd730e41625d0f0941",
+      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.116910",
+      "pipelineVersion": "1.0"
+    },
+    {
+      "chunkId": "TTHC-BT-06_HCHK_002",
+      "chunkType": "GENERAL_SECTION",
+      "title": "Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội - Thành phần hồ sơ",
+      "headerPath": "TTHC-BT-06 > Thành phần hồ sơ",
+      "content": "- **Tài liệu 1:** Tờ khai đề nghị hỗ trợ chi phí mai táng (Mẫu số 03 ban hành kèm theo Nghị định số 335/2026/NĐ-CP) (1 bản chính)",
+      "contentHash": "0c14b304affabf3fa02a52ccecbae07799fcd5c582789a2875e5b66b8bb315ae",
+      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.116910",
+      "pipelineVersion": "1.0"
+    },
+    {
+      "chunkId": "TTHC-BT-06_HCHK_003",
+      "chunkType": "GENERAL_SECTION",
+      "title": "Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội - Thời hạn và lệ phí",
+      "headerPath": "TTHC-BT-06 > Thời hạn và lệ phí",
+      "content": "Thủ tục: Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội. Cơ quan có thẩm quyền giải quyết: Bộ Y tế. Thời hạn giải quyết: DIRECT: 03 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ | ONLINE: 03 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ | POSTAL: 03 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ. Mức phí/lệ phí: Theo quy định của HĐND cấp tỉnh/thành phố.",
+      "contentHash": "2c6faf9dd740069966406e9afedab2d6f806af1508e78c18b6d58c64ef9c28e7",
+      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.116910",
+      "pipelineVersion": "1.0"
+    },
+    {
+      "chunkId": "TTHC-BT-06_HCHK_004",
+      "chunkType": "GENERAL_SECTION",
+      "title": "Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội - Cơ quan thực hiện",
+      "headerPath": "TTHC-BT-06 > Cơ quan thực hiện",
+      "content": "- Cơ quan có thẩm quyền giải quyết: Bộ Y tế\n- Cơ quan trực tiếp thực hiện: Bộ phận Tiếp nhận và Trả kết quả (Một cửa) cấp Xã/Phường.",
+      "contentHash": "e16fbeb656c53af7b8be11a2b3f1f8b8824ef8a59771a5a0fde0d07e94e8b14e",
+      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.116910",
+      "pipelineVersion": "1.0"
+    },
+    {
+      "chunkId": "TTHC-BT-06_HCHK_005",
+      "chunkType": "GENERAL_SECTION",
+      "title": "Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội - Căn cứ pháp lý",
+      "headerPath": "TTHC-BT-06 > Căn cứ pháp lý",
+      "content": "- Luật Tiếp cận thông tin 2016; Nghị định 61/2018/NĐ-CP; Quyết định công bố TTHC của UBND Tỉnh An Giang.",
+      "contentHash": "ad7877dd369587c156ae4ca3d37d2c8cca1c6fe812096721562f894aef9b296c",
+      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.116910",
+      "pipelineVersion": "1.0"
+    }
+  ]
+}

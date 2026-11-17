@@ -87,6 +87,7 @@ public class OfficerSecurityConfig {
 
                         // 4. Admin Privileged Operations (SEC-03: ADMIN only)
                         .requestMatchers(HttpMethod.POST, "/api/v1/issues/clusters/rebuild-index").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/procedures/reindex").hasRole("ADMIN")
                         .requestMatchers("/api/v1/evaluation/**").hasRole("ADMIN")
 
                         // 5. Officer Protected Operations (SEC-02: OFFICER role)

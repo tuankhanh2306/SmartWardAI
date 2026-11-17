@@ -1,0 +1,61 @@
+{
+  "procedureCode": "TTHC-CT-03",
+  "procedureName": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận",
+  "process": "1.2. Cơ quan đại diện tiếp nhận hồ sơ, xem xét giải quyết.\n1.3. Nhận kết quả trực tiếp tại trụ sở cơ quan theo phiếu hẹn hồ sơ.\n\n- Khi tiếp nhận hồ sơ, Cơ quan đại diện cấp phiếu hẹn cho Người yêu cầu chứng nhận giấy tờ, trong đó ghi rõ địa điểm, thời gian tiếp nhận hồ sơ, giấy tờ kèm theo và thời gian trả lời kết quả.",
+  "processingTime": "Thủ tục: Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận. Cơ quan có thẩm quyền giải quyết: Bộ Ngoại giao. Thời hạn giải quyết: DIRECT: Thời hạn thực hiện yêu cầu chứng thực phải được đảm bảo ngay trong ngày CQĐD tiếp nhận yêu cầu hoặc trong ngày làm việc tiếp theo nếu tiếp nhận yêu cầu sau 15 giờ; trừ trường hợp cùng một lúc yêu cầu chứng thực bản sao từ nhiều loại giấy tờ, văn bản; bản chính có nhiều trang; yêu cầu số lượng nhiều bản sao; nội dung giấy tờ, văn bản phức tạp khó kiểm tra, đối chiếu mà cơ quan, tổ chức thực hiện chứng thực không thể đáp ứng được thời hạn quy định thì thời hạn chứng thực được kéo dài thêm không quá 02 (hai) ngày làm việc hoặc có thể dài hơn theo thỏa thuận bằng văn bản với người yêu cầu chứng thực.. Mức phí/lệ phí: Miễn phí / Không thu lệ phí.",
+  "agency": "- Cơ quan có thẩm quyền giải quyết: Bộ Ngoại giao\n- Cơ quan trực tiếp thực hiện: Bộ phận Tiếp nhận và Trả kết quả (Một cửa) cấp Xã/Phường.",
+  "lastApprovedAt": "2026-11-17T03:03:10.645605+00:00",
+  "contentHash": "5f5bc77ceeee6363804327a8a5be510b3fdf1017945560db0df79d2a847da1b7",
+  "chunks": [
+    {
+      "chunkId": "TTHC-CT-03_HCHK_001",
+      "chunkType": "GENERAL_SECTION",
+      "title": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận - Trình tự thực hiện",
+      "headerPath": "TTHC-CT-03 > Trình tự thực hiện",
+      "content": "1.2. Cơ quan đại diện tiếp nhận hồ sơ, xem xét giải quyết.\n1.3. Nhận kết quả trực tiếp tại trụ sở cơ quan theo phiếu hẹn hồ sơ.\n\n- Khi tiếp nhận hồ sơ, Cơ quan đại diện cấp phiếu hẹn cho Người yêu cầu chứng nhận giấy tờ, trong đó ghi rõ địa điểm, thời gian tiếp nhận hồ sơ, giấy tờ kèm theo và thời gian trả lời kết quả.",
+      "contentHash": "7e2ce8211a33ecc0e22d7fe4f18d1d59628d5baf754ca857cc08907860c7e004",
+      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.001606",
+      "pipelineVersion": "1.0"
+    },
+    {
+      "chunkId": "TTHC-CT-03_HCHK_002",
+      "chunkType": "GENERAL_SECTION",
+      "title": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận - Thành phần hồ sơ",
+      "headerPath": "TTHC-CT-03 > Thành phần hồ sơ",
+      "content": "- **Tài liệu 1:** bản chính giấy tờ, văn bản làm cơ sở để chứng thực bản sao và bản sao cần chứng thực. Trong trường hợp bản chính giấy tờ, văn bản do cơ quan, tổ chức có thẩm quyền của nước ngoài cấp, công chứng hoặc chứng nhận thì phải được hợp pháp hóa lãnh sự theo quy định của pháp luật trước khi yêu cầu chứng thực bản sao; trừ trường hợp được miễn hợp pháp hóa lãnh sự theo điều ước quốc tế mà Việt Nam là thành viên hoặc theo nguyên tắc có đi, có lại. (1 bản chính)",
+      "contentHash": "ca926bab921b38b3444f7bac5140d7e68b43036828f5e0277415c2649a985094",
+      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.001606",
+      "pipelineVersion": "1.0"
+    },
+    {
+      "chunkId": "TTHC-CT-03_HCHK_003",
+      "chunkType": "GENERAL_SECTION",
+      "title": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận - Thời hạn và lệ phí",
+      "headerPath": "TTHC-CT-03 > Thời hạn và lệ phí",
+      "content": "Thủ tục: Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận. Cơ quan có thẩm quyền giải quyết: Bộ Ngoại giao. Thời hạn giải quyết: DIRECT: Thời hạn thực hiện yêu cầu chứng thực phải được đảm bảo ngay trong ngày CQĐD tiếp nhận yêu cầu hoặc trong ngày làm việc tiếp theo nếu tiếp nhận yêu cầu sau 15 giờ; trừ trường hợp cùng một lúc yêu cầu chứng thực bản sao từ nhiều loại giấy tờ, văn bản; bản chính có nhiều trang; yêu cầu số lượng nhiều bản sao; nội dung giấy tờ, văn bản phức tạp khó kiểm tra, đối chiếu mà cơ quan, tổ chức thực hiện chứng thực không thể đáp ứng được thời hạn quy định thì thời hạn chứng thực được kéo dài thêm không quá 02 (hai) ngày làm việc hoặc có thể dài hơn theo thỏa thuận bằng văn bản với người yêu cầu chứng thực.. Mức phí/lệ phí: Miễn phí / Không thu lệ phí.",
+      "contentHash": "e456c43001b42f43cdd6b9ff699fd697cd48bffb998783a62dd7bc28f64bba41",
+      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.001606",
+      "pipelineVersion": "1.0"
+    },
+    {
+      "chunkId": "TTHC-CT-03_HCHK_004",
+      "chunkType": "GENERAL_SECTION",
+      "title": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận - Cơ quan thực hiện",
+      "headerPath": "TTHC-CT-03 > Cơ quan thực hiện",
+      "content": "- Cơ quan có thẩm quyền giải quyết: Bộ Ngoại giao\n- Cơ quan trực tiếp thực hiện: Bộ phận Tiếp nhận và Trả kết quả (Một cửa) cấp Xã/Phường.",
+      "contentHash": "bd2e34d0d5b38b66f90e4110581b07f3b00b28c975a700673b44a34df40c8994",
+      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.001606",
+      "pipelineVersion": "1.0"
+    },
+    {
+      "chunkId": "TTHC-CT-03_HCHK_005",
+      "chunkType": "GENERAL_SECTION",
+      "title": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận - Căn cứ pháp lý",
+      "headerPath": "TTHC-CT-03 > Căn cứ pháp lý",
+      "content": "- Luật Tiếp cận thông tin 2016; Nghị định 61/2018/NĐ-CP; Quyết định công bố TTHC của UBND Tỉnh An Giang.",
+      "contentHash": "ad7877dd369587c156ae4ca3d37d2c8cca1c6fe812096721562f894aef9b296c",
+      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.001606",
+      "pipelineVersion": "1.0"
+    }
+  ]
+}

@@ -45,4 +45,53 @@ class LegalChunkingServiceTest {
         assertTrue(chunks.get(3).getContent().contains("Giấy chứng sinh"));
         assertTrue(chunks.get(4).getContent().contains("Luật Hộ tịch 2014"));
     }
+
+    @Test
+    void testChunkMarkdownDocument_headerAwareAndProvenance() {
+        AdminProcedure procedure = AdminProcedure.builder()
+                .procedureCode("TTHC-CR-01")
+                .procedureName("Thủ tục đăng ký thường trú")
+                .build();
+
+        String sampleMarkdown = """
+                # Thủ tục đăng ký thường trú
+                
+                ## Trình tự thực hiện
+                - Bước 1: Công dân nộp hồ sơ tại Công an cấp xã hoặc qua Cổng DVC.
+                - Bước 2: Cán bộ tiếp nhận và đối soát thông tin cư trú trên CSDL Quốc gia về dân cư.
+                
+                ## Thành phần hồ sơ
+                - Tờ khai thay đổi thông tin cư trú (Mẫu CT01).
+                - Giấy tờ, tài liệu chứng minh chỗ ở hợp pháp.
+                
+                ## Thời hạn và lệ phí
+                Thời hạn giải quyết: 07 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ.
+                Lệ phí: 20.000 đồng khi nộp trực tiếp, 10.000 đồng khi nộp trực tuyến.
+                
+                ## Cơ quan thực hiện
+                - Cơ quan có thẩm quyền: Công an cấp Xã/Phường.
+                
+                ## Căn cứ pháp lý
+                - Luật Cư trú năm 2020.
+                - Thông tư số 55/2021/TT-BCA của Bộ Công an.
+                """;
+
+        List<LegalChunk> chunks = chunkingService.chunkMarkdownDocument(
+                procedure, sampleMarkdown, "https://dichvucong.gov.vn", null, "1.0");
+
+        assertNotNull(chunks);
+        assertEquals(5, chunks.size());
+
+        for (LegalChunk chunk : chunks) {
+            assertNotNull(chunk.getHeaderPath(), "HeaderPath must not be null");
+            assertTrue(chunk.getHeaderPath().startsWith("TTHC-CR-01 > "));
+            assertNotNull(chunk.getContentHash(), "ContentHash must not be null");
+            assertEquals(64, chunk.getContentHash().length(), "ContentHash must be SHA-256 (64 hex chars)");
+            assertEquals("https://dichvucong.gov.vn", chunk.getSourceUrl());
+            assertEquals("1.0", chunk.getPipelineVersion());
+
+            String embedText = chunkingService.prepareTextForEmbedding(chunk);
+            assertTrue(embedText.startsWith("[TTHC-CR-01 > "));
+        }
+    }
 }
