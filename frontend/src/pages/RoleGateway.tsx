@@ -78,6 +78,8 @@ export const RoleGateway: React.FC = () => {
       } else {
         setOfficerError('Mã thẻ hoặc mã PIN không chính xác.');
       }
+    } catch {
+      setOfficerError('Đã xảy ra lỗi khi khởi tạo phiên đăng nhập. Vui lòng thử lại.');
     } finally {
       setIsLoggingIn(false);
     }
@@ -92,6 +94,12 @@ export const RoleGateway: React.FC = () => {
   const handleFillLeadOfficer = () => {
     setBadgeId('CC-AG-8942');
     setPin('8942');
+    setOfficerError(null);
+  };
+
+  const handleFillAdminOfficer = () => {
+    setBadgeId('ADM-AG-0001');
+    setPin('9999');
     setOfficerError(null);
   };
 
@@ -157,7 +165,7 @@ export const RoleGateway: React.FC = () => {
                 </div>
                 <div>
                   <div className="font-bold text-sm">Đăng nhập với tư cách Người dân</div>
-                  <div className="text-xs text-teal-100/80 font-normal">Vào thẳng hệ thống • Phiên 5 phút</div>
+                  <div className="text-xs text-teal-50 font-normal">Vào thẳng hệ thống • Phiên 5 phút</div>
                 </div>
               </div>
               <ArrowRight className="w-5 h-5 text-teal-200 group-hover:translate-x-0.5 transition-transform shrink-0" />
@@ -276,7 +284,7 @@ export const RoleGateway: React.FC = () => {
               )}
 
               {/* Quick Fill Helpers */}
-              <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 pt-0.5">
                 <button
                   type="button"
                   onClick={handleFillWardOfficer}
@@ -289,7 +297,14 @@ export const RoleGateway: React.FC = () => {
                   onClick={handleFillLeadOfficer}
                   className="text-slate-600 hover:underline font-semibold cursor-pointer"
                 >
-                  Mẫu: CC-AG-8942
+                  Cán bộ: CC-AG-8942
+                </button>
+                <button
+                  type="button"
+                  onClick={handleFillAdminOfficer}
+                  className="text-amber-700 hover:underline font-bold cursor-pointer"
+                >
+                  Admin: ADM-AG-0001
                 </button>
               </div>
 
@@ -327,7 +342,7 @@ export const RoleGateway: React.FC = () => {
         )}
 
         {/* Security Caption */}
-        <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-400 text-center">
+        <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-600 text-center">
           <Clock className="w-3.5 h-3.5 shrink-0" />
           <span>Cán bộ: Thường trực không giới hạn • Dân: Phiên 5 phút an toàn</span>
         </div>

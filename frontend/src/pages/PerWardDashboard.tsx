@@ -1166,6 +1166,14 @@ export const PerWardDashboard: React.FC = () => {
           {/* Quick Action Navigation Dock */}
           <div className="flex items-center gap-2 shrink-0">
             <button
+              onClick={() => navigate('/officer/procedures')}
+              className="px-3 py-2 bg-[#00796B] hover:bg-[#00695C] text-white rounded-xl text-xs font-bold border border-white/25 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-sm"
+              title="Quản lý & đề xuất cập nhật nội dung 40 Thủ tục hành chính"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-[#5EEAD4]" />
+              <span>Quản trị 40 TTHC</span>
+            </button>
+            <button
               onClick={() => {
                 setWard(ward);
                 logoutToCitizen();

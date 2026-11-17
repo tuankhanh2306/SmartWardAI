@@ -307,6 +307,26 @@ it('validateChangePin successfully updates PIN when inputs are valid', () => {
   assert.strictEqual(res.newPin, '987654');
 });
 
+console.log('\n--- SCENARIO 6: UTF-8 Safe JWT Token Generation with Vietnamese Diacritics ---');
+function encodeUtf8Base64(str) {
+  return btoa(
+    encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (_, p1) =>
+      String.fromCharCode(parseInt(p1, 16))
+    )
+  );
+}
+
+it('encodeUtf8Base64 encodes Vietnamese officer names (Trần Quốc Bảo, Lê Văn Quản Trị, Cán bộ Một Cửa) without InvalidCharacterError', () => {
+  const payload = JSON.stringify({
+    sub: 'CC-AG-8942',
+    name: 'Trần Quốc Bảo — Cán bộ Một Cửa',
+    wardCode: 'AG_P_LONGXUYEN',
+    role: 'OFFICER',
+  });
+  const encoded = encodeUtf8Base64(payload);
+  assert.ok(encoded.length > 10);
+});
+
 console.log('\n================================================================');
 console.log(`TEST RESULTS: Total: ${passCount + failCount} | Passed: ${passCount} | Failed: ${failCount}`);
 console.log('================================================================');

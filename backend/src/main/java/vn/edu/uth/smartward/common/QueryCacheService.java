@@ -138,6 +138,23 @@ public class QueryCacheService {
         putResponse(cacheKey, response, ttlSeconds);
     }
 
+    /**
+     * Evicts all cached RAG responses when procedure legal content is newly published.
+     */
+    public void clearAllRagCache() {
+        try {
+            if (stringRedisTemplate != null) {
+                var keys = stringRedisTemplate.keys(CACHE_PREFIX + "*");
+                if (keys != null && !keys.isEmpty()) {
+                    stringRedisTemplate.delete(keys);
+                    log.info("Evicted {} cached RAG responses after procedure update", keys.size());
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to evict RAG cache keys: {}", e.getMessage());
+        }
+    }
+
     private String hashString(String input) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");

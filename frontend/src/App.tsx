@@ -14,6 +14,7 @@ const FormAndIssueReporting = lazy(() => import('./pages/FormAndIssueReporting')
 const ProceduresCatalogPage = lazy(() => import('./pages/ProceduresCatalogPage'));
 const WardOnboarding = lazy(() => import('./pages/WardOnboarding'));
 const PerWardDashboard = lazy(() => import('./pages/PerWardDashboard'));
+const ProcedureGovernancePage = lazy(() => import('./pages/ProcedureGovernancePage'));
 
 const RouteLoadingSpinner: React.FC = () => (
   <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] gap-3">
@@ -102,6 +103,14 @@ const AppContent: React.FC = () => {
               element={
                 <OfficerGuard>
                   <PerWardDashboard />
+                </OfficerGuard>
+              }
+            />
+            <Route
+              path="/officer/procedures"
+              element={
+                <OfficerGuard>
+                  <ProcedureGovernancePage />
                 </OfficerGuard>
               }
             />
