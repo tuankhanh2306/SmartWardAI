@@ -38,11 +38,11 @@ export const WardOnboarding: React.FC = () => {
       const map = L.map(container, {
         zoomControl: false,
         preferCanvas: true,
-      }).setView([selected.lat, selected.lon], 14);
+      }).setView([selected.lat, selected.lon], 16);
 
       const tileLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=vi', {
         subdomains: ['0', '1', '2', '3'],
-        attribution: '&copy; Google Maps &bull; GIS Hành chính An Giang',
+        attribution: '&copy; OpenStreetMap contributors &bull; Dữ liệu GIS Hành chính An Giang 2026 (ODbL)',
         maxZoom: 20,
         keepBuffer: 4,
       });
@@ -113,9 +113,9 @@ export const WardOnboarding: React.FC = () => {
         }
       };
     } else {
-      // Smooth camera flight to selected ward
+      // Smooth camera flight to selected ward at street-level zoom 16
       const map = mapInstanceRef.current;
-      map.flyTo([selected.lat, selected.lon], 15, {
+      map.flyTo([selected.lat, selected.lon], 16, {
         duration: 1.2,
         easeLinearity: 0.25,
       });
@@ -279,7 +279,7 @@ export const WardOnboarding: React.FC = () => {
             <div className="absolute top-3 left-3 z-20 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border border-[#CBD5E1] shadow-sm flex items-center gap-2 text-xs">
               <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
               <span className="font-bold text-[#0F2942]">UBND {selected.name}</span>
-              <span className="text-[#64748B]">({selected.lat.toFixed(4)}, {selected.lon.toFixed(4)})</span>
+              <span className="text-[#64748B] font-mono">({selected.lat.toFixed(6)}, {selected.lon.toFixed(6)})</span>
             </div>
           </div>
 

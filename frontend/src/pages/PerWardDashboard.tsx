@@ -710,13 +710,9 @@ export const PerWardDashboard: React.FC = () => {
 
     markersLayer.clearLayers();
 
-    // 0. BƯỚC 5: fitBounds to ward administrative boundary polygon (never zoom out to ocean for inland wards)
+    // 0. BƯỚC 5: Render ward administrative boundary polygon & fitBounds to active HQ + incident cluster at street-level zoom
     if (ward.boundary && ward.boundary.length >= 3) {
       const latLngs = ward.boundary.map((coord) => toLeafletLatLng(coord));
-      const polygonBounds = L.latLngBounds(latLngs);
-      map.fitBounds(polygonBounds, { padding: [24, 24], maxZoom: 16 });
-
-      // Render administrative boundary polygon line
       L.polygon(latLngs, {
         color: '#00236F',
         weight: 1.5,
@@ -724,8 +720,18 @@ export const PerWardDashboard: React.FC = () => {
         fillColor: '#38BDF8',
         fillOpacity: 0.05,
       }).addTo(markersLayer);
+    }
+
+    const focusPoints: [number, number][] = [[ward.lat, ward.lon]];
+    incidents.forEach((inc) => {
+      if (Math.abs(inc.lat - ward.lat) < 0.02 && Math.abs(inc.lon - ward.lon) < 0.02) {
+        focusPoints.push([inc.lat, inc.lon]);
+      }
+    });
+    if (focusPoints.length > 1) {
+      map.fitBounds(L.latLngBounds(focusPoints), { padding: [40, 40], maxZoom: 16 });
     } else {
-      map.setView([ward.lat, ward.lon], 15, { animate: false });
+      map.setView([ward.lat, ward.lon], 16, { animate: false });
     }
     map.invalidateSize({ animate: false });
 
@@ -941,7 +947,7 @@ export const PerWardDashboard: React.FC = () => {
   // Sync incidents from ward defaults, localStorage, live citizen reports, and Backend Clusters API
   useEffect(() => {
     let mounted = true;
-    const storageKey = `smartward_incidents_${ward.code}`;
+    const storageKey = `smartward_incidents_v2_${ward.code}`;
     let baseIncidents = buildDefaultWardIncidents(ward);
 
     const saved = localStorage.getItem(storageKey);
@@ -949,13 +955,13 @@ export const PerWardDashboard: React.FC = () => {
       try {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length > 0) {
-          // Verify saved incidents actually belong near this ward (within ~0.08 deg ~ 8km)
+          // Verify saved incidents belong to the calibrated town center (within ~0.004 deg ~ 400m)
           const belongsToWard = parsed.some(
             (p: any) =>
               typeof p.lat === 'number' &&
               typeof p.lon === 'number' &&
-              Math.abs(p.lat - ward.lat) < 0.08 &&
-              Math.abs(p.lon - ward.lon) < 0.08
+              Math.abs(p.lat - ward.lat) < 0.004 &&
+              Math.abs(p.lon - ward.lon) < 0.004
           );
           if (belongsToWard) {
             baseIncidents = parsed;
