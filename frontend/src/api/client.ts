@@ -458,28 +458,34 @@ export const askLegalRag = async (
     }
   }
 
-  // 4. Attempt to invoke Spring Boot Backend (/api/v1/rag/ask)
+  // 4. Attempt to invoke Spring Boot Backend (/api/v1/rag/ask) with fast 3500ms timeout for cold start resilience
   try {
     const historyPayload = conversationHistory.slice(-5).map(h => ({
       role: h.sender === 'citizen' || h.sender === 'user' ? 'citizen' : 'assistant',
       content: h.text,
       procedureCode: h.procedureCode
     }));
-    const resp = await api.post<any>('/rag/ask', {
-      question: effectiveQuery,
-      query: effectiveQuery,
-      topK,
-      wardName: wardContext.wardName,
-      officeAddress: wardContext.officeAddress,
-      history: historyPayload
-    });
+    const resp = await api.post<any>(
+      '/rag/ask',
+      {
+        question: effectiveQuery,
+        query: effectiveQuery,
+        topK,
+        wardName: wardContext.wardName,
+        officeAddress: wardContext.officeAddress,
+        history: historyPayload
+      },
+      {
+        timeout: 3500 // Fast 3.5s timeout: if Render container is in cold start, fall back to 40 TTHC local engine immediately
+      }
+    );
     const result = resp.data?.data ? resp.data.data : resp.data;
     if (result && result.answer) {
       return result as RagResponse;
     }
     console.info('Backend did not return answer, attempting in-app legal knowledge fallback for query:', effectiveQuery);
   } catch (backendError: any) {
-    console.warn('Backend call failed or timed out, executing in-app fallback:', backendError);
+    console.warn('Backend call failed or timed out (Render cold-start), executing in-app fallback:', backendError);
   }
 
   // 5. If Backend is offline or returned no answer, check if Gemini Live RAG is configured

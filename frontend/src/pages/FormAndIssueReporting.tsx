@@ -763,7 +763,7 @@ export const FormAndIssueReporting: React.FC = () => {
       const reason = !visionGateResult.templateMatched
         ? visionGateResult.templateMessage
         : visionGateResult.qualityMessage;
-      alert(`❌ CHỐT CHẶN AI THỊ GIÁC TỪ CHỐI GỬI CÁN BỘ:\n\n${reason}\n\n👉 Vui lòng chụp lại ảnh rõ nét hoặc chọn đúng biểu mẫu trước khi gửi lên cán bộ sơ duyệt!`);
+      alert(`CHỐT CHẶN AI THỊ GIÁC — TỪ CHỐI TIẾP NHẬN:\n\n${reason}\n\nVui lòng chụp lại ảnh rõ nét hoặc chọn đúng biểu mẫu trước khi gửi lên cán bộ sơ duyệt.`);
       return;
     }
 
@@ -2063,7 +2063,7 @@ export const FormAndIssueReporting: React.FC = () => {
                           <div className="flex flex-col gap-0.5">
                             <span className="font-bold">Không thể tự động đọc thông tin từ tệp này</span>
                             <span className="text-[11px] text-[#B91C1C]">{ocrError}</span>
-                            <span className="text-[11px] text-[#7F1D1D] mt-1 font-medium">👉 Quý công dân vui lòng nhập trực tiếp thông tin vào các ô bên dưới để tiếp tục kiểm tra.</span>
+                            <span className="text-[11px] text-[#7F1D1D] mt-1 font-medium">Quý công dân vui lòng nhập trực tiếp thông tin vào các ô bên dưới để tiếp tục kiểm tra.</span>
                           </div>
                         </div>
                       )}
@@ -3717,7 +3717,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     }
                     className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#00796B] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer"
                   >
-                    🚗 Phường Châu Đốc
+                    Phường Châu Đốc
                   </button>
                   <button
                     type="button"
@@ -3726,7 +3726,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     }
                     className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#00796B] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer"
                   >
-                    🚗 Phường Long Xuyên
+                    Phường Long Xuyên
                   </button>
                   <button
                     type="button"
@@ -3735,7 +3735,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     }
                     className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#00796B] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer"
                   >
-                    🏠 Xã An Phú
+                    Xã An Phú
                   </button>
                 </div>
 
@@ -3784,7 +3784,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         </strong>
                       </span>
                     </span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-white border border-current/20">
+                    <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white border border-current/20">
                       {resolvedJurisdiction.matchedBy === 'TEXT_BOX'
                         ? 'Theo địa chỉ đã nhập'
                         : 'Theo định vị bản đồ'}
@@ -3792,7 +3792,7 @@ export const FormAndIssueReporting: React.FC = () => {
                   </div>
                   {resolvedJurisdiction.ward.code !== currentWard.code ? (
                     <p className="text-[11px] leading-relaxed mt-0.5">
-                      🔄 <strong>Báo sự cố khác địa bàn:</strong> Vị trí sự cố thuộc{' '}
+                      <strong>Báo sự cố khác địa bàn:</strong> Vị trí sự cố thuộc{' '}
                       <strong>{resolvedJurisdiction.ward.name}</strong>. Khi bấm gửi, tin báo sẽ được chuyển thẳng về{' '}
                       <strong>UBND {resolvedJurisdiction.ward.name}</strong> (Trực ban:{' '}
                       {resolvedJurisdiction.ward.phoneNumber}) để xử lý kịp thời.
@@ -3807,7 +3807,7 @@ export const FormAndIssueReporting: React.FC = () => {
                 {/* Interactive Mini-Map */}
                 <div className="flex items-center justify-between gap-2 text-xs text-[#64748B] px-1 pt-1">
                   <span className="text-[11px] text-[#0F766E] font-semibold">
-                    💡 Bấm hoặc kéo ghim đỏ trên bản đồ để chọn chính xác vị trí sự cố
+                    Bấm hoặc kéo ghim đỏ trên bản đồ để chọn chính xác vị trí sự cố
                   </span>
                 </div>
 
