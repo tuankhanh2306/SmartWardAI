@@ -23,7 +23,7 @@ import vn.edu.uth.smartward.vault.dto.VaultUploadResponse;
 @RestController
 @RequestMapping("/api/v1/vault")
 @RequiredArgsConstructor
-@Tag(name = "Document Vault", description = "Kho Hồ sơ Không Tin Cậy (Zero-Trust Document Vault) Tuân thủ Nghị định 13/2023/NĐ-CP")
+@Tag(name = "Document Vault", description = "Kho Hồ sơ Không Tin Cậy (Zero-Trust Document Vault) - Áp dụng các biện pháp kỹ thuật bảo vệ dữ liệu theo định hướng Nghị định 13/2023/NĐ-CP")
 public class VaultController {
 
     private final ZeroTrustVaultService vaultService;
@@ -57,7 +57,7 @@ public class VaultController {
     @Operation(
             summary = "Xem tài liệu một lần duy nhất (One-Time View Link)",
             description = "Truy xuất tài liệu từ MinIO, giải mã AES-256 và xóa vĩnh viễn token khỏi Redis bằng lệnh nguyên tử GETDEL. " +
-                          "Lần truy cập thứ hai trở đi sẽ bị chặn và trả về HTTP 410 GONE theo quy chuẩn Nghị định 13/2023/NĐ-CP."
+                          "Lần truy cập thứ hai trở đi sẽ bị chặn và trả về HTTP 410 GONE nhằm hạn chế lưu trữ và ngăn ngừa tái sử dụng liên kết."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Truy xuất và giải mã thành công (Token bị hủy ngay lập tức)"),

@@ -37,7 +37,7 @@ public class FormCheckController {
             summary = "Sơ duyệt tờ khai hành chính (Mẫu CT01 cư trú, CCCD, Hộ tịch)",
             description = "Tiếp nhận ảnh chụp tờ khai hành chính (ảnh in hoặc viết tay), trích xuất thông tin qua Vision OCR " +
                           "và thực thi bộ quy tắc định thức (CCCD 12 số, logic ngày tháng, trường bắt buộc, cảnh báo độ tin cậy thấp). " +
-                          "Hệ thống chỉ cảnh báo lỗi để công dân sửa trên giấy trước khi nộp, bảo đảm tuân thủ Nghị định 13/2023/NĐ-CP."
+                          "Hệ thống chỉ cảnh báo lỗi để công dân sửa trên giấy trước khi nộp, bảo đảm nguyên tắc bảo vệ quyền tự quyết của công dân đối với dữ liệu cá nhân."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Kiểm định hoàn tất, trả về báo cáo chi tiết từng trường",

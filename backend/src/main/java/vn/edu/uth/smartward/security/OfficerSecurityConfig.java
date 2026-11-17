@@ -14,6 +14,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.context.SecurityContextHolderFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -35,6 +36,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class OfficerSecurityConfig {
 
+    private final CorrelationIdFilter correlationIdFilter;
     private final OfficerTokenAuthenticationFilter tokenFilter;
     private final ObjectMapper objectMapper;
 
@@ -60,6 +62,7 @@ public class OfficerSecurityConfig {
                             response.getWriter().write(objectMapper.writeValueAsString(apiResp));
                         })
                 )
+                .addFilterBefore(correlationIdFilter, SecurityContextHolderFilter.class)
                 .addFilterBefore(tokenFilter, UsernamePasswordAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         // 1. CORS Preflight
@@ -111,6 +114,7 @@ public class OfficerSecurityConfig {
         config.setAllowedOriginPatterns(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("X-Correlation-ID", "Content-Disposition"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

@@ -54,6 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         EvaluationController.class
 })
 @Import({
+        CorrelationIdFilter.class,
         OfficerSecurityConfig.class,
         OfficerTokenAuthenticationFilter.class,
         OfficerAuthService.class
