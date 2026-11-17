@@ -70,7 +70,10 @@ public class OfficerSecurityConfig {
 
                         // 2. Public Minimal Surface (SEC-02 allowlist)
                         .requestMatchers(HttpMethod.GET, "/api/v1/health").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/officer/login", "/api/v1/officer/login", "/api/v1/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.POST,
+                                "/api/v1/auth/officer/login", "/api/v1/officer/login", "/api/v1/auth/login",
+                                "/api/v1/auth/officer/change-pin", "/api/v1/officer/change-pin", "/api/v1/auth/change-pin"
+                        ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/rag/ask", "/api/v1/rag/feedback").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/procedures/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/issues/report").permitAll()
