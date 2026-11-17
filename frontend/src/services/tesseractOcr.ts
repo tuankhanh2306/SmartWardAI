@@ -9,9 +9,11 @@ export interface TesseractOcrProgress {
 export interface VisionQualityGateResult {
   sharpnessScore: number; // 0 - 100
   brightnessScore: number; // 0 - 255
+  glareScore?: number; // 0 - 100 (%)
   isBlurry: boolean;
   isTooDark: boolean;
-  qualityStatus: 'GOOD' | 'BLURRY' | 'TOO_DARK';
+  isGlared?: boolean;
+  qualityStatus: 'GOOD' | 'BLURRY' | 'TOO_DARK' | 'GLARED';
   qualityMessage: string;
   templateMatched: boolean;
   detectedFormCode: 'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH' | 'UNKNOWN';
@@ -20,17 +22,19 @@ export interface VisionQualityGateResult {
 }
 
 /**
- * Phân tích độ sắc nét (Laplacian Variance) và độ sáng của ảnh chụp tờ khai
- * nhằm chặn ảnh bị mờ nhòe, rung tay hoặc quá tối trước khi gửi lên cán bộ.
+ * Phân tích độ sắc nét (Laplacian Variance), thiếu sáng và lóa sáng trên HTML5 Canvas tại trình duyệt
+ * nhằm chặn ảnh bị mờ nhòe, thiếu sáng hoặc lóa đèn flash trước khi gửi lên máy chủ.
  */
 export async function analyzeImageQuality(
   file: File | Blob
 ): Promise<{
   sharpnessScore: number;
   brightnessScore: number;
+  glareScore?: number;
   isBlurry: boolean;
   isTooDark: boolean;
-  qualityStatus: 'GOOD' | 'BLURRY' | 'TOO_DARK';
+  isGlared?: boolean;
+  qualityStatus: 'GOOD' | 'BLURRY' | 'TOO_DARK' | 'GLARED';
   qualityMessage: string;
 }> {
   const fileName = (file as File).name?.toLowerCase() || '';

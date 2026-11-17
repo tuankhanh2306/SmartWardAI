@@ -1,97 +1,97 @@
 ﻿code,name,type,lat,lng,in_boundary,is_on_land,dist_to_centroid_m,centroid_lat,centroid_lng,coord_source,accuracy_note
-AG_DK_PHUQUOC,Đặc khu Phú Quốc,Đặc khu,10.2175,103.961,True,True,150.8,10.216626,103.962054,manual_verified,Trụ sở UBND đặc khu Phú Quốc tại Phường Dương Đông
-AG_DK_KIENHAI,Đặc khu Kiên Hải,Đặc khu,9.9678,104.8415,True,True,80.4,9.967334,104.842062,manual_verified,Đã hiệu chỉnh từ tọa độ biển cũ (9.7915) về Trụ sở UBND xã Hòn Tre trên đảo
-AG_DK_THOCHAU,Đặc khu Thổ Châu,Đặc khu,9.3045,103.4885,True,True,70.4,9.304092,103.488991,manual_verified,"Trụ sở UBND xã Thổ Châu tại Bãi Ngự, đảo Thổ Chu"
-AG_P_LONGXUYEN,Phường Long Xuyên,Phường,10.3812,105.4345,True,True,75.4,10.380763,105.435027,official_gis,"Số 01 Lê Triệu Kiết, Phường Long Xuyên"
-AG_P_BINHDUC,Phường Bình Đức,Phường,10.4125,105.398,True,True,75.4,10.412063,105.398527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_P_MYTHOI,Phường Mỹ Thới,Phường,10.334,105.472,True,True,75.4,10.333563,105.472527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_P_CHAUDOC,Phường Châu Đốc,Phường,10.7025,105.118,True,True,88.0,10.70199,105.118616,official_gis,"Số 02 Phan Văn Vàng, Phường Châu Đốc"
-AG_P_VINHTE,Phường Vĩnh Tế,Phường,10.665,105.085,True,True,75.4,10.664563,105.085528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_P_TANCHAU,Phường Tân Châu,Phường,10.8015,105.234,True,True,88.0,10.80099,105.234616,official_gis,"Đường Trần Hưng Đạo, Phường Tân Châu"
-AG_P_LONGPHU,Phường Long Phú,Phường,10.785,105.215,True,True,75.4,10.784563,105.215528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_P_TINHBIEN,Phường Tịnh Biên,Phường,10.612,104.945,True,True,100.5,10.611418,104.945704,official_gis,Khu vực đô thị biên giới Tịnh Biên
-AG_P_THOISON,Phường Thới Sơn,Phường,10.589,105.002,True,True,75.4,10.588563,105.002528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_P_CHILANG,Phường Chi Lăng,Phường,10.542,105.015,True,True,75.4,10.541563,105.015528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_P_VINHTHONG,Phường Vĩnh Thông,Phường,10.045,105.112,True,True,75.4,10.044563,105.112527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_P_RACHGIA,Phường Rạch Giá,Phường,10.0125,105.081,True,True,100.5,10.011918,105.081702,official_gis,"Đường Trần Phú, Đô thị Rạch Giá"
-AG_P_HATIEN,Phường Hà Tiên,Phường,10.383,104.482,True,True,88.0,10.38249,104.482615,official_gis,"Đường Mạc Cửu, Đô thị Hà Tiên"
-AG_P_TOCHAU,Phường Tô Châu,Phường,10.371,104.491,True,True,75.4,10.370563,104.491527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_ANPHU,Xã An Phú,Xã,10.785,105.092,True,True,75.4,10.784563,105.092528,official_gis,"Đường Thoại Ngọc Hầu, Xã An Phú"
-AG_X_VINHHAU,Xã Vĩnh Hậu,Xã,10.795,105.145,True,True,75.4,10.794563,105.145528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_NHONHOI,Xã Nhơn Hội,Xã,10.842,105.105,True,True,75.4,10.841563,105.105528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_KHANHBINH,Xã Khánh Bình,Xã,10.915,105.122,True,True,75.4,10.914563,105.122528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_PHUHUU,Xã Phú Hữu,Xã,10.865,105.145,True,True,75.4,10.864563,105.145528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_TANAN,Xã Tân An,Xã,10.812,105.265,True,True,75.4,10.811563,105.265528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_CHAUPHONG,Xã Châu Phong,Xã,10.735,105.172,True,True,75.4,10.734563,105.172528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_VINHXUONG,Xã Vĩnh Xương,Xã,10.902,105.195,True,True,75.4,10.901563,105.195528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_PHUTAN,Xã Phú Tân,Xã,10.635,105.312,True,True,75.4,10.634563,105.312528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_PHUAN,Xã Phú An,Xã,10.615,105.335,True,True,75.4,10.614563,105.335528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_BINHTHANHDONG,Xã Bình Thạnh Đông,Xã,10.585,105.295,True,True,75.4,10.584563,105.295528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_CHOVAM,Xã Chợ Vàm,Xã,10.742,105.285,True,True,75.4,10.741563,105.285528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_HOALAC,Xã Hòa Lạc,Xã,10.692,105.275,True,True,75.4,10.691563,105.275528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_PHULAM,Xã Phú Lâm,Xã,10.672,105.355,True,True,75.4,10.671563,105.355528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_CHAUPHU,Xã Châu Phú,Xã,10.562,105.195,True,True,75.4,10.561563,105.195528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_MYDUC,Xã Mỹ Đức,Xã,10.605,105.155,True,True,75.4,10.604563,105.155528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_VINHTHANHTRUNG,Xã Vĩnh Thạnh Trung,Xã,10.545,105.225,True,True,75.4,10.544563,105.225528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_BINHMY,Xã Bình Mỹ,Xã,10.495,105.295,True,True,75.4,10.494563,105.295527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_THANHMYTAY,Xã Thạnh Mỹ Tây,Xã,10.525,105.165,True,True,75.4,10.524563,105.165528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_ANCU,Xã An Cư,Xã,10.525,104.985,True,True,75.4,10.524563,104.985528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_NUICAM,Xã Núi Cấm,Xã,10.505,104.995,True,True,75.4,10.504563,104.995528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_BACHUC,Xã Ba Chúc,Xã,10.535,104.905,True,True,75.4,10.534563,104.905528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_TRITON,Xã Tri Tôn,Xã,10.425,104.995,True,True,75.4,10.424563,104.995528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_OLAM,Xã Ô Lâm,Xã,10.395,104.965,True,True,75.4,10.394563,104.965527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_COTO,Xã Cô Tô,Xã,10.365,105.015,True,True,75.4,10.364563,105.015528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_VINHGIA,Xã Vĩnh Gia,Xã,10.585,104.885,True,True,75.4,10.584563,104.885528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_ANCHAU,Xã An Châu,Xã,10.435,105.375,True,True,75.4,10.434563,105.375527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_BINHHOA,Xã Bình Hòa,Xã,10.455,105.335,True,True,75.4,10.454563,105.335527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_CANDANG,Xã Cần Đăng,Xã,10.415,105.305,True,True,75.4,10.414563,105.305527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_VINHHANH,Xã Vĩnh Hanh,Xã,10.465,105.265,True,True,75.4,10.464563,105.265528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_VINHAN,Xã Vĩnh An,Xã,10.375,105.245,True,True,75.4,10.374563,105.245527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_CHOMOI,Xã Chợ Mới,Xã,10.545,105.415,True,True,75.4,10.544563,105.415528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_CULAOGIENG,Xã Cù Lao Giêng,Xã,10.515,105.485,True,True,75.4,10.514563,105.485527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_HOIAN,Xã Hội An,Xã,10.425,105.545,True,True,75.4,10.424563,105.545527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_LONGDIEN,Xã Long Điền,Xã,10.485,105.455,True,True,75.4,10.484563,105.455528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_NHONMY,Xã Nhơn Mỹ,Xã,10.565,105.385,True,True,75.4,10.564563,105.385528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_LONGKIEN,Xã Long Kiến,Xã,10.505,105.435,True,True,75.4,10.504563,105.435528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_THOAISON,Xã Thoại Sơn,Xã,10.275,105.265,True,True,75.4,10.274563,105.265527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_OCEO,Xã Óc Eo,Xã,10.215,105.155,True,True,75.4,10.214563,105.155527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_DINHMY,Xã Định Mỹ,Xã,10.295,105.215,True,True,75.4,10.294563,105.215527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_PHUHOA,Xã Phú Hòa,Xã,10.335,105.335,True,True,75.4,10.334563,105.335527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_VINHTRACH,Xã Vĩnh Trạch,Xã,10.315,105.295,True,True,75.4,10.314563,105.295527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_TAYPHU,Xã Tây Phú,Xã,10.255,105.185,True,True,75.4,10.254563,105.185527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_VINHBINH,Xã Vĩnh Bình,Xã,10.355,105.215,True,True,75.4,10.354563,105.215527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_VINHTHUAN,Xã Vĩnh Thuận,Xã,9.535,105.255,True,True,75.4,9.534563,105.255526,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_VINHPHONG,Xã Vĩnh Phong,Xã,9.485,105.285,True,True,75.4,9.484563,105.285526,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_VINHHOA,Xã Vĩnh Hòa,Xã,9.575,105.215,True,True,75.4,9.574563,105.215526,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_UMINHTHUONG,Xã U Minh Thượng,Xã,9.685,105.105,True,True,75.4,9.684563,105.105526,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_DONGHOA,Xã Đông Hòa,Xã,9.725,105.075,True,True,75.4,9.724563,105.075526,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_TANTHANH,Xã Tân Thạnh,Xã,9.645,105.145,True,True,75.4,9.644563,105.145526,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_DONGHUNG,Xã Đông Hưng,Xã,9.615,105.055,True,True,75.4,9.614563,105.055526,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_ANMINH,Xã An Minh,Xã,9.785,104.995,True,True,75.4,9.784563,104.995526,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_VANKHANH,Xã Vân Khánh,Xã,9.685,104.915,True,True,88.0,9.68449,104.915614,manual_verified,Đã hiệu chỉnh vào vùng đất liền đê biển Tây Vân Khánh
-AG_X_TAYYEN,Xã Tây Yên,Xã,9.855,105.015,True,True,75.4,9.854563,105.015527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_DONGTHAI,Xã Đông Thái,Xã,9.825,105.065,True,True,75.4,9.824563,105.065526,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_ANBIEN,Xã An Biên,Xã,9.885,105.085,True,True,75.4,9.884563,105.085527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_DINHHOA,Xã Định Hòa,Xã,9.845,105.145,True,True,75.4,9.844563,105.145527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_GOQUAO,Xã Gò Quao,Xã,9.755,105.285,True,True,75.4,9.754563,105.285526,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_VINHHOAHUNG,Xã Vĩnh Hòa Hưng,Xã,9.715,105.345,True,True,75.4,9.714563,105.345526,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_VINHTUY,Xã Vĩnh Tuy,Xã,9.695,105.395,True,True,75.4,9.694563,105.395526,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_GIONGRIENG,Xã Giồng Riềng,Xã,9.915,105.315,True,True,75.4,9.914563,105.315527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_THANHHUNG,Xã Thạnh Hưng,Xã,9.945,105.275,True,True,75.4,9.944563,105.275527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_LONGTHANH,Xã Long Thạnh,Xã,9.885,105.355,True,True,75.4,9.884563,105.355527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_HOAHUNG,Xã Hòa Hưng,Xã,9.975,105.385,True,True,75.4,9.974563,105.385527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_NGOCCHUC,Xã Ngọc Chúc,Xã,9.865,105.295,True,True,75.4,9.864563,105.295526,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_HOATHUAN,Xã Hòa Thuận,Xã,9.925,105.245,True,True,75.4,9.924563,105.245527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_TANHOI,Xã Tân Hội,Xã,9.995,105.195,True,True,75.4,9.994563,105.195527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_TANHIEP,Xã Tân Hiệp,Xã,10.115,105.295,True,True,75.4,10.114563,105.295527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_THANHDONG,Xã Thạnh Đông,Xã,10.085,105.255,True,True,75.4,10.084563,105.255527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_THANHLOC,Xã Thạnh Lộc,Xã,10.145,105.225,True,True,75.4,10.144563,105.225527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_CHAUTHANH,Xã Châu Thành,Xã,9.955,105.145,True,True,75.4,9.954563,105.145527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_BINHAN,Xã Bình An,Xã,9.985,105.105,True,True,75.4,9.984563,105.105527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_HONDAT,Xã Hòn Đất,Xã,10.185,104.975,True,True,75.4,10.184563,104.975527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_SONKIEN,Xã Sơn Kiên,Xã,10.225,105.035,True,True,75.4,10.224563,105.035527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_MYTHUAN,Xã Mỹ Thuận,Xã,10.155,104.915,True,True,75.4,10.154563,104.915527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_HOADIEN,Xã Hòa Điền,Xã,10.295,104.685,True,True,75.4,10.294563,104.685527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_KIENLUONG,Xã Kiên Lương,Xã,10.255,104.605,True,True,75.4,10.254563,104.605527,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_GIANGTHANH,Xã Giang Thành,Xã,10.475,104.535,True,True,75.4,10.474563,104.535528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
-AG_X_VINHDIEU,Xã Vĩnh Điều,Xã,10.515,104.595,True,True,75.4,10.514563,104.595528,osm,Tọa độ trích xuất từ dữ liệu danh mục hành chính An Giang
+AG_DK_PHUQUOC,Đặc khu Phú Quốc,Đặc khu,10.217512,103.960985,True,True,75.4,10.217075,103.961512,manual_verified,Trụ sở UBND Đặc khu Phú Quốc (Dương Đông)
+AG_DK_KIENHAI,Đặc khu Kiên Hải,Đặc khu,9.967815,104.841524,True,True,75.4,9.967378,104.842051,manual_verified,Trụ sở UBND Đặc khu Kiên Hải trên đảo Hòn Tre
+AG_DK_THOCHAU,Đặc khu Thổ Châu,Đặc khu,9.304518,103.488512,True,True,75.4,9.304081,103.489038,manual_verified,Trụ sở UBND Đặc khu Thổ Châu tại Bãi Ngự
+AG_P_LONGXUYEN,Phường Long Xuyên,Phường,10.383965,105.426716,True,True,75.4,10.383528,105.427243,official_gis,Thành ủy - HĐND - UBND Long Xuyên (OSM verified)
+AG_P_BINHDUC,Phường Bình Đức,Phường,10.392393,105.420637,True,True,75.4,10.391956,105.421164,osm,Trung tâm Bình Đức (suburb) • Bám trục Trịnh Hoài Đức
+AG_P_MYTHOI,Phường Mỹ Thới,Phường,10.345866,105.458181,True,True,75.4,10.345429,105.458708,osm,Trung tâm Mỹ Thới (suburb) • Bám trục Trần Quang Khải
+AG_P_CHAUDOC,Phường Châu Đốc,Phường,10.706842,105.118526,True,True,75.4,10.706405,105.119054,official_gis,Trung tâm Hành chính Phường Châu Đốc
+AG_P_VINHTE,Phường Vĩnh Tế,Phường,10.681492,105.081847,True,True,75.4,10.681055,105.082375,osm,Trung tâm Vĩnh Tế (suburb)
+AG_P_TANCHAU,Phường Tân Châu,Phường,10.798461,105.232748,True,True,75.4,10.798024,105.233276,official_gis,Trung tâm Hành chính Công Tân Châu (OSM verified)
+AG_P_LONGPHU,Phường Long Phú,Phường,10.79884,105.233306,True,True,75.4,10.798403,105.233834,osm,Trung tâm Long Phú (suburb) • Bám trục Trần Phú
+AG_P_TINHBIEN,Phường Tịnh Biên,Phường,10.599164,104.950574,True,True,75.4,10.598727,104.951102,official_gis,UBND Tịnh Biên trên trục Quốc lộ 91 (OSM verified)
+AG_P_THOISON,Phường Thới Sơn,Phường,10.61685,105.000796,True,True,75.4,10.616413,105.001324,osm,Trung tâm Thới Sơn (suburb) • Bám trục Đoàn Minh Huyên
+AG_P_CHILANG,Phường Chi Lăng,Phường,10.529159,105.024796,True,True,75.4,10.528722,105.025324,official_gis,UBND thị trấn Chi Lăng (OSM townhall/government) • Bám trục Đường tỉnh 948
+AG_P_VINHTHONG,Phường Vĩnh Thông,Phường,10.0192,105.093257,True,True,75.4,10.018763,105.093784,osm,Trung tâm Vĩnh Thông (suburb)
+AG_P_RACHGIA,Phường Rạch Giá,Phường,10.009074,105.083079,True,True,75.4,10.008637,105.083606,official_gis,UBND Rạch Giá (OSM verified)
+AG_P_HATIEN,Phường Hà Tiên,Phường,10.382615,104.486512,True,True,75.4,10.382178,104.487039,official_gis,Trung tâm Hành chính Phường Hà Tiên
+AG_P_TOCHAU,Phường Tô Châu,Phường,10.377655,104.490538,True,True,75.4,10.377218,104.491065,osm,Trung tâm Tô Châu (suburb)
+AG_X_ANPHU,Xã An Phú,Xã,10.815686,105.090647,True,True,75.4,10.815249,105.091175,official_gis,Trung tâm Hành chính An Phú trên trục QL91C (OSM verified)
+AG_X_VINHHAU,Xã Vĩnh Hậu,Xã,10.769172,105.110386,True,True,75.4,10.768735,105.110914,osm,Tâm hành chính Xã Vĩnh Hậu • Bám trục Quốc lộ 91C
+AG_X_NHONHOI,Xã Nhơn Hội,Xã,10.876165,105.048308,True,True,75.4,10.875728,105.048836,osm,Tâm hành chính Xã Nhơn Hội • Bám trục Đường tỉnh 957
+AG_X_KHANHBINH,Xã Khánh Bình,Xã,10.938392,105.081602,True,True,75.4,10.937955,105.08213,osm,Tâm hành chính Xã Khánh Bình • Bám trục Đường tỉnh 957
+AG_X_PHUHUU,Xã Phú Hữu,Xã,10.876395,105.089448,True,True,75.4,10.875958,105.089976,osm,Tâm hành chính Xã Phú Hữu • Bám trục Quốc lộ 91C
+AG_X_TANAN,Xã Tân An,Xã,10.804436,105.198161,True,True,75.4,10.803999,105.198689,osm,Tâm hành chính Xã Tân An • Bám trục Quốc lộ 80B
+AG_X_CHAUPHONG,Xã Châu Phong,Xã,10.718575,105.136076,True,True,75.4,10.718138,105.136604,osm,Khu hành chính gần Trường Trung học cơ sở Châu Phong • Bám trục Đường tỉnh 953
+AG_X_VINHXUONG,Xã Vĩnh Xương,Xã,10.873657,105.177875,True,True,75.4,10.87322,105.178403,osm,Tâm hành chính Xã Vĩnh Xương • Bám trục Quốc lộ 80B
+AG_X_PHUTAN,Xã Phú Tân,Xã,10.581267,105.358533,True,True,75.4,10.58083,105.359061,official_gis,Huyện ủy Phú Tân (OSM townhall/government) • Bám trục Trương Định
+AG_X_PHUAN,Xã Phú An,Xã,10.657101,105.287188,True,True,75.4,10.656664,105.287716,osm,Tâm hành chính Xã Phú An • Bám trục Đường trục (tertiary)
+AG_X_BINHTHANHDONG,Xã Bình Thạnh Đông,Xã,10.595639,105.255978,True,True,75.4,10.595202,105.256506,osm,Tâm hành chính Xã Bình Thạnh Đông • Bám trục Đường trục (tertiary)
+AG_X_CHOVAM,Xã Chợ Vàm,Xã,10.728282,105.345689,True,True,75.4,10.727845,105.346217,osm,Trung tâm Chợ Vàm (town) • Bám trục Đường trục (tertiary)
+AG_X_HOALAC,Xã Hòa Lạc,Xã,10.683898,105.202855,True,True,75.4,10.683461,105.203383,osm,Tâm hành chính Xã Hòa Lạc • Bám trục Đường tỉnh 951
+AG_X_PHULAM,Xã Phú Lâm,Xã,10.740924,105.24516,True,True,75.4,10.740487,105.245688,osm,Tâm hành chính Xã Phú Lâm • Bám trục Đường trục (tertiary)
+AG_X_CHAUPHU,Xã Châu Phú,Xã,10.582862,105.230851,True,True,75.4,10.582425,105.231379,official_gis,UBND huyện Châu Phú (OSM townhall/government) • Bám trục Cầu Chữ S
+AG_X_MYDUC,Xã Mỹ Đức,Xã,10.661838,105.186163,True,True,75.4,10.661401,105.186691,official_gis,UBND xã Mỹ Đức (OSM townhall/government) • Bám trục Lý Thường Kiệt
+AG_X_VINHTHANHTRUNG,Xã Vĩnh Thạnh Trung,Xã,10.582862,105.230851,True,True,75.4,10.582425,105.231379,osm,Trung tâm Vĩnh Thạnh Trung (town) • Bám trục Cầu Chữ S
+AG_X_BINHMY,Xã Bình Mỹ,Xã,10.54411,105.297825,True,True,75.4,10.543673,105.298353,osm,Khu hành chính gần Trường Trung học cơ sở Bình Mỹ • Bám trục Đường trục (tertiary)
+AG_X_THANHMYTAY,Xã Thạnh Mỹ Tây,Xã,10.53269,105.13698,True,True,75.4,10.532253,105.137508,osm,Tâm hành chính Xã Thạnh Mỹ Tây • Bám trục Đường trục (tertiary)
+AG_X_ANCU,Xã An Cư,Xã,10.547783,105.000199,True,True,75.4,10.547346,105.000726,osm,Tâm hành chính Xã An Cư • Bám trục Đường trục (tertiary)
+AG_X_NUICAM,Xã Núi Cấm,Xã,10.489747,105.022941,True,True,75.4,10.48931,105.023469,official_gis,UBND xã Núi Cấm (OSM townhall/government) • Bám trục Đường trục (tertiary)
+AG_X_BACHUC,Xã Ba Chúc,Xã,10.494332,104.908983,True,True,75.4,10.493895,104.909511,osm,Trung tâm Ba Chúc (town)
+AG_X_TRITON,Xã Tri Tôn,Xã,10.421095,105.00016,True,True,75.4,10.420658,105.000688,official_gis,UBND huyện Tri Tôn (OSM townhall/government) • Bám trục Nguyễn Trãi
+AG_X_OLAM,Xã Ô Lâm,Xã,10.420269,104.938119,True,True,75.4,10.419832,104.938646,osm,Tâm hành chính Xã Ô Lâm • Bám trục Đường tỉnh 958
+AG_X_COTO,Xã Cô Tô,Xã,10.363137,105.017413,True,True,75.4,10.3627,105.01794,osm,Trung tâm Cô Tô (town) • Bám trục Đường tỉnh 943
+AG_X_VINHGIA,Xã Vĩnh Gia,Xã,10.505949,104.799143,True,True,75.4,10.505512,104.799671,official_gis,UBND xã Vĩnh Gia (OSM townhall/government)
+AG_X_ANCHAU,Xã An Châu,Xã,10.444118,105.387152,True,True,75.4,10.443681,105.387679,official_gis,UBND Xã An Châu (OSM townhall/government)
+AG_X_BINHHOA,Xã Bình Hòa,Xã,10.464357,105.34067,True,True,75.4,10.46392,105.341198,osm,Tâm hành chính Xã Bình Hòa • Bám trục Đường trục (tertiary)
+AG_X_CANDANG,Xã Cần Đăng,Xã,10.459287,105.297528,True,True,75.4,10.45885,105.298055,osm,Khu hành chính gần Chợ Cần Đăng mới
+AG_X_VINHHANH,Xã Vĩnh Hanh,Xã,10.431263,105.22874,True,True,75.4,10.430826,105.229268,osm,Tâm hành chính Xã Vĩnh Hanh • Bám trục Đường trục (tertiary)
+AG_X_VINHAN,Xã Vĩnh An,Xã,10.427843,105.167699,True,True,75.4,10.427406,105.168226,osm,Tâm hành chính Xã Vĩnh An • Bám trục Cầu Kênh Cũ
+AG_X_CHOMOI,Xã Chợ Mới,Xã,10.551309,105.404061,True,True,75.4,10.550872,105.404589,official_gis,UBND huyện Chợ Mới (OSM townhall/government) • Bám trục Nguyễn Hữu Cảnh
+AG_X_CULAOGIENG,Xã Cù Lao Giêng,Xã,10.498342,105.529846,True,True,75.4,10.497905,105.530373,osm,Tâm hành chính Xã Cù Lao Giêng • Bám trục Đường trục (tertiary)
+AG_X_HOIAN,Xã Hội An,Xã,10.431198,105.549814,True,True,75.4,10.430761,105.550342,official_gis,UBND xã Hội An (OSM townhall/government) • Bám trục Đường huyện 17
+AG_X_LONGDIEN,Xã Long Điền,Xã,10.508439,105.461333,True,True,75.4,10.508002,105.461861,osm,Tâm hành chính Xã Long Điền • Bám trục Đường trục (tertiary)
+AG_X_NHONMY,Xã Nhơn Mỹ,Xã,10.452405,105.401773,True,True,75.4,10.451968,105.4023,osm,Khu hành chính gần Tiểu học B Nhơn Mỹ
+AG_X_LONGKIEN,Xã Long Kiến,Xã,10.461823,105.449683,True,True,75.4,10.461386,105.450211,osm,Khu hành chính gần Trường Trung học phổ thông Ung Văn Khiêm (Long Kiến) • Bám trục Đường trục (tertiary)
+AG_X_THOAISON,Xã Thoại Sơn,Xã,10.264361,105.266793,True,True,75.4,10.263924,105.26732,osm,Trung tâm Thoại Sơn (town)
+AG_X_OCEO,Xã Óc Eo,Xã,10.256986,105.152743,True,True,75.4,10.256549,105.15327,osm,Trung tâm Óc Eo (town) • Bám trục Đường số 4
+AG_X_DINHMY,Xã Định Mỹ,Xã,10.32198,105.261387,True,True,75.4,10.321543,105.261914,osm,Tâm hành chính Xã Định Mỹ • Bám trục Câu Kênh Ba Thước
+AG_X_PHUHOA,Xã Phú Hòa,Xã,10.35796,105.37459,True,True,75.4,10.357523,105.375117,osm,Trung tâm Phú Hòa (town) • Bám trục Trần Phú
+AG_X_VINHTRACH,Xã Vĩnh Trạch,Xã,10.351315,105.316839,True,True,75.4,10.350878,105.317366,osm,Khu hành chính gần Trường Trung học phổ thông Vĩnh Trạch • Bám trục Đường trục (tertiary)
+AG_X_TAYPHU,Xã Tây Phú,Xã,10.32668,105.180243,True,True,75.4,10.326243,105.18077,osm,Tâm hành chính Xã Tây Phú • Bám trục Đường huyện 76
+AG_X_VINHBINH,Xã Vĩnh Bình,Xã,10.4414,105.170732,True,True,75.4,10.440963,105.17126,osm,Trung tâm Vĩnh Bình (town) • Bám trục Đường tỉnh 947
+AG_X_VINHTHUAN,Xã Vĩnh Thuận,Xã,9.516426,105.250377,True,True,75.4,9.515989,105.250903,osm,Khu hành chính gần Trung tâm Y tế Vĩnh Thuận • Bám trục Lưu Nhơn Sâm
+AG_X_VINHPHONG,Xã Vĩnh Phong,Xã,9.508826,105.256754,True,True,75.4,9.508389,105.25728,osm,Trung tâm Vĩnh Phong (town) • Bám trục Cầu Vĩnh Thuận
+AG_X_VINHHOA,Xã Vĩnh Hòa,Xã,9.7003,105.178692,True,True,75.4,9.699863,105.179218,osm,Tâm hành chính Xã Vĩnh Hòa • Bám trục Cầu Hai Ịch
+AG_X_UMINHTHUONG,Xã U Minh Thượng,Xã,9.674136,105.122613,True,True,75.4,9.673699,105.123139,osm,Khu hành chính gần Trung tâm Y tế U Minh Thượng • Bám trục Đường tỉnh 966C
+AG_X_DONGHOA,Xã Đông Hòa,Xã,9.729499,104.972659,True,True,75.4,9.729062,104.973185,osm,Khu hành chính gần Trường Trung học cơ sở Đông Hoà 1 • Bám trục ĐT. 967
+AG_X_TANTHANH,Xã Tân Thạnh,Xã,9.64883,105.146922,True,True,75.4,9.648393,105.147448,osm,"Trục đường chính Quốc lộ 63, Xã Tân Thạnh"
+AG_X_DONGHUNG,Xã Đông Hưng,Xã,9.658374,104.947616,True,True,75.4,9.657937,104.948142,osm,Khu hành chính gần Trường Trung học cơ sở Đông Hưng • Bám trục ĐT. 967
+AG_X_ANMINH,Xã An Minh,Xã,9.635403,104.940122,True,True,75.4,9.634966,104.940648,osm,Khu hành chính gần Trường Trung học phổ thông An Minh • Bám trục Đường tỉnh 967
+AG_X_VANKHANH,Xã Vân Khánh,Xã,9.575195,104.859629,True,True,75.4,9.574758,104.860155,osm,Khu hành chính gần Trường Trung học cơ sở & Trung học phổ thông Vân Khánh • Bám trục Cầu Kim Quy
+AG_X_TAYYEN,Xã Tây Yên,Xã,9.893126,105.052998,True,True,75.4,9.892689,105.053524,osm,Tâm hành chính Xã Tây Yên • Bám trục Cầu Xẻo Già
+AG_X_DONGTHAI,Xã Đông Thái,Xã,9.758139,105.010511,True,True,75.4,9.757702,105.011037,osm,Khu hành chính gần Trường Trung học cơ sở & Trung học phổ thông Đông Thái • Bám trục Hành lang ven biển phía Nam
+AG_X_ANBIEN,Xã An Biên,Xã,9.814954,105.062143,True,True,75.4,9.814517,105.06267,official_gis,UBND huyện An Biên (OSM townhall/government) • Bám trục Đường Nam Kỳ Khởi Nghĩa
+AG_X_DINHHOA,Xã Định Hòa,Xã,9.785955,105.215197,True,True,75.4,9.785518,105.215723,osm,Tâm hành chính Xã Định Hòa
+AG_X_GOQUAO,Xã Gò Quao,Xã,9.728064,105.276639,True,True,75.4,9.727627,105.277165,osm,Trung tâm Gò Quao (town)
+AG_X_VINHHOAHUNG,Xã Vĩnh Hòa Hưng,Xã,9.764573,105.372249,True,True,75.4,9.764136,105.372775,osm,Tâm hành chính Xã Vĩnh Hòa Hưng • Bám trục Đường trục (tertiary)
+AG_X_VINHTUY,Xã Vĩnh Tuy,Xã,9.657843,105.341177,True,True,75.4,9.657406,105.341703,osm,Tâm hành chính Xã Vĩnh Tuy • Bám trục Đường tỉnh 962
+AG_X_GIONGRIENG,Xã Giồng Riềng,Xã,9.90963,105.312652,True,True,75.4,9.909193,105.313179,osm,Trung tâm Giồng Riềng (town) • Bám trục Mai Hồng Hạnh
+AG_X_THANHHUNG,Xã Thạnh Hưng,Xã,10.034283,105.126295,True,True,75.4,10.033846,105.126822,osm,Trung tâm Thạnh Hưng (village) • Bám trục Nguyễn Hữu Cảnh
+AG_X_LONGTHANH,Xã Long Thạnh,Xã,9.833043,105.283244,True,True,75.4,9.832606,105.283771,osm,Tâm hành chính Xã Long Thạnh • Bám trục Đường trục (tertiary)
+AG_X_HOAHUNG,Xã Hòa Hưng,Xã,9.888773,105.478325,True,True,75.4,9.888336,105.478852,osm,Khu hành chính gần Trường Trung học cơ sở - Trung học phổ thông Hoà Hưng • Bám trục Đường tỉnh 963D
+AG_X_NGOCCHUC,Xã Ngọc Chúc,Xã,9.927226,105.388896,True,True,75.4,9.926789,105.389423,osm,Tâm hành chính Xã Ngọc Chúc • Bám trục Đường trục (tertiary)
+AG_X_HOATHUAN,Xã Hòa Thuận,Xã,9.929272,105.138867,True,True,75.4,9.928835,105.139394,osm,Trung tâm Hòa Thuận (village) • Bám trục Võ Văn Kiệt
+AG_X_TANHOI,Xã Tân Hội,Xã,10.146088,105.185763,True,True,75.4,10.145651,105.18629,osm,Tâm hành chính Xã Tân Hội • Bám trục Kinh 2B
+AG_X_TANHIEP,Xã Tân Hiệp,Xã,10.115157,105.284987,True,True,75.4,10.11472,105.285514,official_gis,UBND Thị Trấn Tân Hiệp (OSM townhall/government) • Bám trục Cao Văn Lầu
+AG_X_THANHDONG,Xã Thạnh Đông,Xã,10.070818,105.349223,True,True,75.4,10.070381,105.34975,osm,Trung tâm Thạnh Đông (village)
+AG_X_THANHLOC,Xã Thạnh Lộc,Xã,10.013119,105.314796,True,True,75.4,10.012682,105.315323,osm,Trung tâm Thạnh Lộc (village) • Bám trục Đường trục (tertiary)
+AG_X_CHAUTHANH,Xã Châu Thành,Xã,9.904144,105.159376,True,True,75.4,9.903707,105.159903,osm,Trung tâm Châu Thành (town) • Bám trục Võ Văn Kiệt
+AG_X_BINHAN,Xã Bình An,Xã,10.003544,105.086358,True,True,75.4,10.003107,105.086885,osm,Khu hành chính gần Bệnh viện Bình An • Bám trục Phan Đình Phùng
+AG_X_HONDAT,Xã Hòn Đất,Xã,10.185208,104.929774,True,True,75.4,10.184771,104.930301,official_gis,HĐND-UBND Huyện Hòn Đất (OSM townhall/government) • Bám trục Đường tỉnh 969
+AG_X_SONKIEN,Xã Sơn Kiên,Xã,10.147879,104.987586,True,True,75.4,10.147442,104.988113,official_gis,HĐND-UBND Xã Sơn Kiên (OSM townhall/government) • Bám trục Quốc lộ 80
+AG_X_MYTHUAN,Xã Mỹ Thuận,Xã,10.180666,105.065635,True,True,75.4,10.180229,105.066162,osm,Tâm hành chính Xã Mỹ Thuận • Bám trục Cầu Kênh 5
+AG_X_HOADIEN,Xã Hòa Điền,Xã,10.332109,104.667149,True,True,75.4,10.331672,104.667676,osm,Tâm hành chính Xã Hòa Điền • Bám trục Kiên Lương - Vĩnh Điều
+AG_X_KIENLUONG,Xã Kiên Lương,Xã,10.243633,104.590816,True,True,75.4,10.243196,104.591343,official_gis,UBND H Kiên Lương (OSM townhall/government) • Bám trục Trần Hưng Đạo
+AG_X_GIANGTHANH,Xã Giang Thành,Xã,10.515327,104.633263,True,True,75.4,10.51489,104.63379,osm,Trung tâm Giang Thành (town)
+AG_X_VINHDIEU,Xã Vĩnh Điều,Xã,10.460946,104.733836,True,True,75.4,10.460509,104.734364,osm,Tâm hành chính Xã Vĩnh Điều • Bám trục Kiên Lương - Vĩnh Điều

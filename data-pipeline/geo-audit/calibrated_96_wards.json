@@ -1,0 +1,674 @@
+{
+  "AG_DK_PHUQUOC": {
+    "lat": 10.217512,
+    "lng": 103.960985,
+    "officeAddress": "Số 04 Đường 30/4, Phường Dương Đông, Đặc khu Phú Quốc, Tỉnh An Giang",
+    "coord_source": "manual_verified",
+    "accuracy_note": "Trụ sở UBND Đặc khu Phú Quốc (Dương Đông)"
+  },
+  "AG_DK_KIENHAI": {
+    "lat": 9.967815,
+    "lng": 104.841524,
+    "officeAddress": "Trung tâm Hành chính Kiên Hải, Đảo Hòn Tre, Tỉnh An Giang",
+    "coord_source": "manual_verified",
+    "accuracy_note": "Trụ sở UBND Đặc khu Kiên Hải trên đảo Hòn Tre"
+  },
+  "AG_DK_THOCHAU": {
+    "lat": 9.304518,
+    "lng": 103.488512,
+    "officeAddress": "Trung tâm Bãi Ngự, Đảo Thổ Chu, Đặc khu Thổ Châu, Tỉnh An Giang",
+    "coord_source": "manual_verified",
+    "accuracy_note": "Trụ sở UBND Đặc khu Thổ Châu tại Bãi Ngự"
+  },
+  "AG_P_LONGXUYEN": {
+    "lat": 10.383965,
+    "lng": 105.426716,
+    "officeAddress": "Đường Nguyễn Văn Cưng, Phường Mỹ Long, Trung tâm Long Xuyên, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "Thành ủy - HĐND - UBND Long Xuyên (OSM verified)"
+  },
+  "AG_P_BINHDUC": {
+    "lat": 10.392393,
+    "lng": 105.420637,
+    "officeAddress": "Số 188 Quốc lộ 91, Phường Bình Đức, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Bình Đức (suburb) • Bám trục Trịnh Hoài Đức"
+  },
+  "AG_P_MYTHOI": {
+    "lat": 10.345866,
+    "lng": 105.458181,
+    "officeAddress": "Số 32 Trần Hưng Đạo, Phường Mỹ Thới, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Mỹ Thới (suburb) • Bám trục Trần Quang Khải"
+  },
+  "AG_P_CHAUDOC": {
+    "lat": 10.706842,
+    "lng": 105.118526,
+    "officeAddress": "Số 02 Đường Phan Văn Vàng, Trung tâm Châu Đốc, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "Trung tâm Hành chính Phường Châu Đốc"
+  },
+  "AG_P_VINHTE": {
+    "lat": 10.681492,
+    "lng": 105.081847,
+    "officeAddress": "Tỉnh lộ 955A, Phường Vĩnh Tế, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Vĩnh Tế (suburb)"
+  },
+  "AG_P_TANCHAU": {
+    "lat": 10.798461,
+    "lng": 105.232748,
+    "officeAddress": "Đường Trần Hưng Đạo, Trung tâm Tân Châu, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "Trung tâm Hành chính Công Tân Châu (OSM verified)"
+  },
+  "AG_P_LONGPHU": {
+    "lat": 10.79884,
+    "lng": 105.233306,
+    "officeAddress": "Đường Nguyễn Hữu Cảnh, Phường Long Phú, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Long Phú (suburb) • Bám trục Trần Phú"
+  },
+  "AG_P_TINHBIEN": {
+    "lat": 10.599164,
+    "lng": 104.950574,
+    "officeAddress": "Quốc lộ 91, Trung tâm Tịnh Biên, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "UBND Tịnh Biên trên trục Quốc lộ 91 (OSM verified)"
+  },
+  "AG_P_THOISON": {
+    "lat": 10.61685,
+    "lng": 105.000796,
+    "officeAddress": "Tỉnh lộ 948, Phường Thới Sơn, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Thới Sơn (suburb) • Bám trục Đoàn Minh Huyên"
+  },
+  "AG_P_CHILANG": {
+    "lat": 10.529159,
+    "lng": 105.024796,
+    "officeAddress": "Đường Lê Lợi, Phường Chi Lăng, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "UBND thị trấn Chi Lăng (OSM townhall/government) • Bám trục Đường tỉnh 948"
+  },
+  "AG_P_VINHTHONG": {
+    "lat": 10.0192,
+    "lng": 105.093257,
+    "officeAddress": "Tỉnh lộ 961, Phường Vĩnh Thông, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Vĩnh Thông (suburb)"
+  },
+  "AG_P_RACHGIA": {
+    "lat": 10.009074,
+    "lng": 105.083079,
+    "officeAddress": "Đường Nguyễn Trung Trực, Trung tâm Rạch Giá, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "UBND Rạch Giá (OSM verified)"
+  },
+  "AG_P_HATIEN": {
+    "lat": 10.382615,
+    "lng": 104.486512,
+    "officeAddress": "Đường Trần Hầu, Trung tâm Hà Tiên, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "Trung tâm Hành chính Phường Hà Tiên"
+  },
+  "AG_P_TOCHAU": {
+    "lat": 10.377655,
+    "lng": 104.490538,
+    "officeAddress": "Đường Kim Dữ, Phường Tô Châu, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Tô Châu (suburb)"
+  },
+  "AG_X_ANPHU": {
+    "lat": 10.815686,
+    "lng": 105.090647,
+    "officeAddress": "Đường Thoại Ngọc Hầu (QL91C), Trung tâm Xã An Phú, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "Trung tâm Hành chính An Phú trên trục QL91C (OSM verified)"
+  },
+  "AG_X_VINHHAU": {
+    "lat": 10.769172,
+    "lng": 105.110386,
+    "officeAddress": "Tỉnh lộ 957, Xã Vĩnh Hậu, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Vĩnh Hậu • Bám trục Quốc lộ 91C"
+  },
+  "AG_X_NHONHOI": {
+    "lat": 10.876165,
+    "lng": 105.048308,
+    "officeAddress": "Tỉnh lộ 957, Xã Nhơn Hội, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Nhơn Hội • Bám trục Đường tỉnh 957"
+  },
+  "AG_X_KHANHBINH": {
+    "lat": 10.938392,
+    "lng": 105.081602,
+    "officeAddress": "Khu vực Cửa khẩu Long Bình, Xã Khánh Bình, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Khánh Bình • Bám trục Đường tỉnh 957"
+  },
+  "AG_X_PHUHUU": {
+    "lat": 10.876395,
+    "lng": 105.089448,
+    "officeAddress": "Đường ĐT957, Xã Phú Hữu, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Phú Hữu • Bám trục Quốc lộ 91C"
+  },
+  "AG_X_TANAN": {
+    "lat": 10.804436,
+    "lng": 105.198161,
+    "officeAddress": "Đường Nguyễn Tri Phương, Xã Tân An, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Tân An • Bám trục Quốc lộ 80B"
+  },
+  "AG_X_CHAUPHONG": {
+    "lat": 10.718575,
+    "lng": 105.136076,
+    "officeAddress": "Đường ĐT953, Xã Châu Phong, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Khu hành chính gần Trường Trung học cơ sở Châu Phong • Bám trục Đường tỉnh 953"
+  },
+  "AG_X_VINHXUONG": {
+    "lat": 10.873657,
+    "lng": 105.177875,
+    "officeAddress": "Khu vực Cửa khẩu Quốc tế Vĩnh Xương, Xã Vĩnh Xương, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Vĩnh Xương • Bám trục Quốc lộ 80B"
+  },
+  "AG_X_PHUTAN": {
+    "lat": 10.581267,
+    "lng": 105.358533,
+    "officeAddress": "Trung tâm Hành chính Xã Phú Tân, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "Huyện ủy Phú Tân (OSM townhall/government) • Bám trục Trương Định"
+  },
+  "AG_X_PHUAN": {
+    "lat": 10.657101,
+    "lng": 105.287188,
+    "officeAddress": "Đường Tôn Đức Thắng, Xã Phú An, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Phú An • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_BINHTHANHDONG": {
+    "lat": 10.595639,
+    "lng": 105.255978,
+    "officeAddress": "Tỉnh lộ 954, Xã Bình Thạnh Đông, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Bình Thạnh Đông • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_CHOVAM": {
+    "lat": 10.728282,
+    "lng": 105.345689,
+    "officeAddress": "Đường Nguyễn Huệ, Xã Chợ Vàm, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Chợ Vàm (town) • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_HOALAC": {
+    "lat": 10.683898,
+    "lng": 105.202855,
+    "officeAddress": "Tỉnh lộ 954, Xã Hòa Lạc, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Hòa Lạc • Bám trục Đường tỉnh 951"
+  },
+  "AG_X_PHULAM": {
+    "lat": 10.740924,
+    "lng": 105.24516,
+    "officeAddress": "Đường ĐT951, Xã Phú Lâm, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Phú Lâm • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_CHAUPHU": {
+    "lat": 10.582862,
+    "lng": 105.230851,
+    "officeAddress": "Quốc lộ 91, Xã Châu Phú, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "UBND huyện Châu Phú (OSM townhall/government) • Bám trục Cầu Chữ S"
+  },
+  "AG_X_MYDUC": {
+    "lat": 10.661838,
+    "lng": 105.186163,
+    "officeAddress": "Quốc lộ 91, Xã Mỹ Đức, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "UBND xã Mỹ Đức (OSM townhall/government) • Bám trục Lý Thường Kiệt"
+  },
+  "AG_X_VINHTHANHTRUNG": {
+    "lat": 10.582862,
+    "lng": 105.230851,
+    "officeAddress": "Quốc lộ 91, Xã Vĩnh Thạnh Trung, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Vĩnh Thạnh Trung (town) • Bám trục Cầu Chữ S"
+  },
+  "AG_X_BINHMY": {
+    "lat": 10.54411,
+    "lng": 105.297825,
+    "officeAddress": "Quốc lộ 91, Xã Bình Mỹ, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Khu hành chính gần Trường Trung học cơ sở Bình Mỹ • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_THANHMYTAY": {
+    "lat": 10.53269,
+    "lng": 105.13698,
+    "officeAddress": "Tỉnh lộ 945, Xã Thạnh Mỹ Tây, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Thạnh Mỹ Tây • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_ANCU": {
+    "lat": 10.547783,
+    "lng": 105.000199,
+    "officeAddress": "Quốc lộ 91, Xã An Cư, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã An Cư • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_NUICAM": {
+    "lat": 10.489747,
+    "lng": 105.022941,
+    "officeAddress": "Khu du lịch Núi Cấm, Xã Núi Cấm, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "UBND xã Núi Cấm (OSM townhall/government) • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_BACHUC": {
+    "lat": 10.494332,
+    "lng": 104.908983,
+    "officeAddress": "Đường Ngô Tự Lợi, Xã Ba Chúc, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Ba Chúc (town)"
+  },
+  "AG_X_TRITON": {
+    "lat": 10.421095,
+    "lng": 105.00016,
+    "officeAddress": "Đường Trần Hưng Đạo, Xã Tri Tôn, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "UBND huyện Tri Tôn (OSM townhall/government) • Bám trục Nguyễn Trãi"
+  },
+  "AG_X_OLAM": {
+    "lat": 10.420269,
+    "lng": 104.938119,
+    "officeAddress": "Đường ĐT948, Xã Ô Lâm, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Ô Lâm • Bám trục Đường tỉnh 958"
+  },
+  "AG_X_COTO": {
+    "lat": 10.363137,
+    "lng": 105.017413,
+    "officeAddress": "Khu vực Đồi Tức Dụp, Xã Cô Tô, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Cô Tô (town) • Bám trục Đường tỉnh 943"
+  },
+  "AG_X_VINHGIA": {
+    "lat": 10.505949,
+    "lng": 104.799143,
+    "officeAddress": "Đường vành đai biên giới, Xã Vĩnh Gia, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "UBND xã Vĩnh Gia (OSM townhall/government)"
+  },
+  "AG_X_ANCHAU": {
+    "lat": 10.444118,
+    "lng": 105.387152,
+    "officeAddress": "Quốc lộ 91, Xã An Châu, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "UBND Xã An Châu (OSM townhall/government)"
+  },
+  "AG_X_BINHHOA": {
+    "lat": 10.464357,
+    "lng": 105.34067,
+    "officeAddress": "Đường ĐT941, Xã Bình Hòa, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Bình Hòa • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_CANDANG": {
+    "lat": 10.459287,
+    "lng": 105.297528,
+    "officeAddress": "Tỉnh lộ 941, Xã Cần Đăng, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Khu hành chính gần Chợ Cần Đăng mới"
+  },
+  "AG_X_VINHHANH": {
+    "lat": 10.431263,
+    "lng": 105.22874,
+    "officeAddress": "Tỉnh lộ 941, Xã Vĩnh Hanh, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Vĩnh Hanh • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_VINHAN": {
+    "lat": 10.427843,
+    "lng": 105.167699,
+    "officeAddress": "Đường kênh Mặc Cần Dưng, Xã Vĩnh An, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Vĩnh An • Bám trục Cầu Kênh Cũ"
+  },
+  "AG_X_CHOMOI": {
+    "lat": 10.551309,
+    "lng": 105.404061,
+    "officeAddress": "Đường Lê Lợi, Xã Chợ Mới, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "UBND huyện Chợ Mới (OSM townhall/government) • Bám trục Nguyễn Hữu Cảnh"
+  },
+  "AG_X_CULAOGIENG": {
+    "lat": 10.498342,
+    "lng": 105.529846,
+    "officeAddress": "Khu vực Cù Lao Giêng, Xã Cù Lao Giêng, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Cù Lao Giêng • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_HOIAN": {
+    "lat": 10.431198,
+    "lng": 105.549814,
+    "officeAddress": "Tỉnh lộ 942, Xã Hội An, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "UBND xã Hội An (OSM townhall/government) • Bám trục Đường huyện 17"
+  },
+  "AG_X_LONGDIEN": {
+    "lat": 10.508439,
+    "lng": 105.461333,
+    "officeAddress": "Đường ĐT942, Xã Long Điền, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Long Điền • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_NHONMY": {
+    "lat": 10.452405,
+    "lng": 105.401773,
+    "officeAddress": "Tỉnh lộ 946, Xã Nhơn Mỹ, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Khu hành chính gần Tiểu học B Nhơn Mỹ"
+  },
+  "AG_X_LONGKIEN": {
+    "lat": 10.461823,
+    "lng": 105.449683,
+    "officeAddress": "Tỉnh lộ 942, Xã Long Kiến, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Khu hành chính gần Trường Trung học phổ thông Ung Văn Khiêm (Long Kiến) • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_THOAISON": {
+    "lat": 10.264361,
+    "lng": 105.266793,
+    "officeAddress": "Đường Thoại Ngọc Hầu, Xã Thoại Sơn, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Thoại Sơn (town)"
+  },
+  "AG_X_OCEO": {
+    "lat": 10.256986,
+    "lng": 105.152743,
+    "officeAddress": "Khu di chỉ Óc Eo, Xã Óc Eo, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Óc Eo (town) • Bám trục Đường số 4"
+  },
+  "AG_X_DINHMY": {
+    "lat": 10.32198,
+    "lng": 105.261387,
+    "officeAddress": "Tỉnh lộ 943, Xã Định Mỹ, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Định Mỹ • Bám trục Câu Kênh Ba Thước"
+  },
+  "AG_X_PHUHOA": {
+    "lat": 10.35796,
+    "lng": 105.37459,
+    "officeAddress": "Tỉnh lộ 943, Xã Phú Hòa, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Phú Hòa (town) • Bám trục Trần Phú"
+  },
+  "AG_X_VINHTRACH": {
+    "lat": 10.351315,
+    "lng": 105.316839,
+    "officeAddress": "Đường ĐT943, Xã Vĩnh Trạch, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Khu hành chính gần Trường Trung học phổ thông Vĩnh Trạch • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_TAYPHU": {
+    "lat": 10.32668,
+    "lng": 105.180243,
+    "officeAddress": "Tỉnh lộ 943, Xã Tây Phú, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Tây Phú • Bám trục Đường huyện 76"
+  },
+  "AG_X_VINHBINH": {
+    "lat": 10.4414,
+    "lng": 105.170732,
+    "officeAddress": "Đường liên xã Vĩnh Bình, Xã Vĩnh Bình, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Vĩnh Bình (town) • Bám trục Đường tỉnh 947"
+  },
+  "AG_X_VINHTHUAN": {
+    "lat": 9.516426,
+    "lng": 105.250377,
+    "officeAddress": "Quốc lộ 63, Xã Vĩnh Thuận, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Khu hành chính gần Trung tâm Y tế Vĩnh Thuận • Bám trục Lưu Nhơn Sâm"
+  },
+  "AG_X_VINHPHONG": {
+    "lat": 9.508826,
+    "lng": 105.256754,
+    "officeAddress": "Tuyến đê bao Vĩnh Phong, Xã Vĩnh Phong, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Vĩnh Phong (town) • Bám trục Cầu Vĩnh Thuận"
+  },
+  "AG_X_VINHHOA": {
+    "lat": 9.7003,
+    "lng": 105.178692,
+    "officeAddress": "Đường ĐT965, Xã Vĩnh Hòa, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Vĩnh Hòa • Bám trục Cầu Hai Ịch"
+  },
+  "AG_X_UMINHTHUONG": {
+    "lat": 9.674136,
+    "lng": 105.122613,
+    "officeAddress": "Khu hành chính Vườn Quốc gia, Xã U Minh Thượng, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Khu hành chính gần Trung tâm Y tế U Minh Thượng • Bám trục Đường tỉnh 966C"
+  },
+  "AG_X_DONGHOA": {
+    "lat": 9.729499,
+    "lng": 104.972659,
+    "officeAddress": "Đường liên xã Đông Hòa, Xã Đông Hòa, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Khu hành chính gần Trường Trung học cơ sở Đông Hoà 1 • Bám trục ĐT. 967"
+  },
+  "AG_X_TANTHANH": {
+    "lat": 9.64883,
+    "lng": 105.146922,
+    "officeAddress": "Khu vực Kênh 11, Xã Tân Thạnh, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trục đường chính Quốc lộ 63, Xã Tân Thạnh"
+  },
+  "AG_X_DONGHUNG": {
+    "lat": 9.658374,
+    "lng": 104.947616,
+    "officeAddress": "Tuyến đường hành lang ven biển, Xã Đông Hưng, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Khu hành chính gần Trường Trung học cơ sở Đông Hưng • Bám trục ĐT. 967"
+  },
+  "AG_X_ANMINH": {
+    "lat": 9.635403,
+    "lng": 104.940122,
+    "officeAddress": "Đường ĐT967, Xã An Minh, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Khu hành chính gần Trường Trung học phổ thông An Minh • Bám trục Đường tỉnh 967"
+  },
+  "AG_X_VANKHANH": {
+    "lat": 9.575195,
+    "lng": 104.859629,
+    "officeAddress": "Tuyến đê biển Tây, Xã Vân Khánh, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Khu hành chính gần Trường Trung học cơ sở & Trung học phổ thông Vân Khánh • Bám trục Cầu Kim Quy"
+  },
+  "AG_X_TAYYEN": {
+    "lat": 9.893126,
+    "lng": 105.052998,
+    "officeAddress": "Quốc lộ 63, Xã Tây Yên, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Tây Yên • Bám trục Cầu Xẻo Già"
+  },
+  "AG_X_DONGTHAI": {
+    "lat": 9.758139,
+    "lng": 105.010511,
+    "officeAddress": "Đường liên xã Đông Thái, Xã Đông Thái, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Khu hành chính gần Trường Trung học cơ sở & Trung học phổ thông Đông Thái • Bám trục Hành lang ven biển phía Nam"
+  },
+  "AG_X_ANBIEN": {
+    "lat": 9.814954,
+    "lng": 105.062143,
+    "officeAddress": "Quốc lộ 63, Xã An Biên, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "UBND huyện An Biên (OSM townhall/government) • Bám trục Đường Nam Kỳ Khởi Nghĩa"
+  },
+  "AG_X_DINHHOA": {
+    "lat": 9.785955,
+    "lng": 105.215197,
+    "officeAddress": "Tỉnh lộ 962, Xã Định Hòa, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Định Hòa"
+  },
+  "AG_X_GOQUAO": {
+    "lat": 9.728064,
+    "lng": 105.276639,
+    "officeAddress": "Đường Hai Bà Trưng, Xã Gò Quao, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Gò Quao (town)"
+  },
+  "AG_X_VINHHOAHUNG": {
+    "lat": 9.764573,
+    "lng": 105.372249,
+    "officeAddress": "Đường ĐT962, Xã Vĩnh Hòa Hưng, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Vĩnh Hòa Hưng • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_VINHTUY": {
+    "lat": 9.657843,
+    "lng": 105.341177,
+    "officeAddress": "Đường liên xã Vĩnh Tuy, Xã Vĩnh Tuy, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Vĩnh Tuy • Bám trục Đường tỉnh 962"
+  },
+  "AG_X_GIONGRIENG": {
+    "lat": 9.90963,
+    "lng": 105.312652,
+    "officeAddress": "Đường Hùng Vương, Xã Giồng Riềng, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Giồng Riềng (town) • Bám trục Mai Hồng Hạnh"
+  },
+  "AG_X_THANHHUNG": {
+    "lat": 10.034283,
+    "lng": 105.126295,
+    "officeAddress": "Tỉnh lộ 963, Xã Thạnh Hưng, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Thạnh Hưng (village) • Bám trục Nguyễn Hữu Cảnh"
+  },
+  "AG_X_LONGTHANH": {
+    "lat": 9.833043,
+    "lng": 105.283244,
+    "officeAddress": "Đường ĐT963, Xã Long Thạnh, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Long Thạnh • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_HOAHUNG": {
+    "lat": 9.888773,
+    "lng": 105.478325,
+    "officeAddress": "Đường liên xã Hòa Hưng, Xã Hòa Hưng, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Khu hành chính gần Trường Trung học cơ sở - Trung học phổ thông Hoà Hưng • Bám trục Đường tỉnh 963D"
+  },
+  "AG_X_NGOCCHUC": {
+    "lat": 9.927226,
+    "lng": 105.388896,
+    "officeAddress": "Đường ven sông Cái Lớn, Xã Ngọc Chúc, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Ngọc Chúc • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_HOATHUAN": {
+    "lat": 9.929272,
+    "lng": 105.138867,
+    "officeAddress": "Tỉnh lộ 963B, Xã Hòa Thuận, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Hòa Thuận (village) • Bám trục Võ Văn Kiệt"
+  },
+  "AG_X_TANHOI": {
+    "lat": 10.146088,
+    "lng": 105.185763,
+    "officeAddress": "Quốc lộ 80, Xã Tân Hội, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Tân Hội • Bám trục Kinh 2B"
+  },
+  "AG_X_TANHIEP": {
+    "lat": 10.115157,
+    "lng": 105.284987,
+    "officeAddress": "Quốc lộ 80, Xã Tân Hiệp, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "UBND Thị Trấn Tân Hiệp (OSM townhall/government) • Bám trục Cao Văn Lầu"
+  },
+  "AG_X_THANHDONG": {
+    "lat": 10.070818,
+    "lng": 105.349223,
+    "officeAddress": "Tuyến Kinh A, Xã Thạnh Đông, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Thạnh Đông (village)"
+  },
+  "AG_X_THANHLOC": {
+    "lat": 10.013119,
+    "lng": 105.314796,
+    "officeAddress": "Quốc lộ 80, Xã Thạnh Lộc, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Thạnh Lộc (village) • Bám trục Đường trục (tertiary)"
+  },
+  "AG_X_CHAUTHANH": {
+    "lat": 9.904144,
+    "lng": 105.159376,
+    "officeAddress": "Quốc lộ 61, Xã Châu Thành, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Châu Thành (town) • Bám trục Võ Văn Kiệt"
+  },
+  "AG_X_BINHAN": {
+    "lat": 10.003544,
+    "lng": 105.086358,
+    "officeAddress": "Đường ĐT961, Xã Bình An, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Khu hành chính gần Bệnh viện Bình An • Bám trục Phan Đình Phùng"
+  },
+  "AG_X_HONDAT": {
+    "lat": 10.185208,
+    "lng": 104.929774,
+    "officeAddress": "Quốc lộ 80, Xã Hòn Đất, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "HĐND-UBND Huyện Hòn Đất (OSM townhall/government) • Bám trục Đường tỉnh 969"
+  },
+  "AG_X_SONKIEN": {
+    "lat": 10.147879,
+    "lng": 104.987586,
+    "officeAddress": "Khu di tích Ba Hòn, Xã Sơn Kiên, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "HĐND-UBND Xã Sơn Kiên (OSM townhall/government) • Bám trục Quốc lộ 80"
+  },
+  "AG_X_MYTHUAN": {
+    "lat": 10.180666,
+    "lng": 105.065635,
+    "officeAddress": "Đường liên xã Mỹ Thuận, Xã Mỹ Thuận, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Mỹ Thuận • Bám trục Cầu Kênh 5"
+  },
+  "AG_X_HOADIEN": {
+    "lat": 10.332109,
+    "lng": 104.667149,
+    "officeAddress": "Quốc lộ 80, Xã Hòa Điền, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Hòa Điền • Bám trục Kiên Lương - Vĩnh Điều"
+  },
+  "AG_X_KIENLUONG": {
+    "lat": 10.243633,
+    "lng": 104.590816,
+    "officeAddress": "Đường Nguyễn Trung Trực, Xã Kiên Lương, Tỉnh An Giang",
+    "coord_source": "official_gis",
+    "accuracy_note": "UBND H Kiên Lương (OSM townhall/government) • Bám trục Trần Hưng Đạo"
+  },
+  "AG_X_GIANGTHANH": {
+    "lat": 10.515327,
+    "lng": 104.633263,
+    "officeAddress": "Quốc lộ N1, Xã Giang Thành, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Trung tâm Giang Thành (town)"
+  },
+  "AG_X_VINHDIEU": {
+    "lat": 10.460946,
+    "lng": 104.733836,
+    "officeAddress": "Tỉnh lộ 955A, Xã Vĩnh Điều, Tỉnh An Giang",
+    "coord_source": "osm",
+    "accuracy_note": "Tâm hành chính Xã Vĩnh Điều • Bám trục Kiên Lương - Vĩnh Điều"
+  }
+}
