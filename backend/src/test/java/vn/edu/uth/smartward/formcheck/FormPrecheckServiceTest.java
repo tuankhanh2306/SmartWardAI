@@ -856,4 +856,106 @@ class FormPrecheckServiceTest {
         assertEquals(CrossCheckStatus.CONFLICT, resp.getPrimaryCrossCheck().getOverallStatus());
         assertTrue(resp.getPrimaryCrossCheck().isBlocking());
     }
+
+    @Test
+    void testPrecheckStructuredForm_ct01_hostUnder18_shouldFailWithInvalidHostAge() {
+        // Host born in 2010 (century/gender = 2 for male 2000-2099, year = 10 -> 2010)
+        // In 2026, age is 16 (< 18)
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-CR-01")
+                .formType("CT01")
+                .fullName("NGUYỄN VĂN AN")
+                .dateOfBirth("2000-01-01")
+                .gender("Nam")
+                .citizenCccd("089200001234")
+                .address("Số 10 Đường Lý Thường Kiệt, Phường Mỹ Bình, An Giang")
+                .phoneNumber("0912345678")
+                .hostRelation("Thuê nhà trọ")
+                .hostName("LÊ VĂN EM")
+                .hostCccdNumber("089210005678") // Born 2010 -> 16 years old
+                .declarationScope("Đăng ký thường trú")
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertFalse(resp.isOverallValid(), "Host under 18 must cause form to fail");
+        assertTrue(resp.getFieldValidations().stream().anyMatch(f ->
+                "INVALID_HOST_AGE".equals(f.getErrorCode()) && !f.isValid()),
+                "Must flag INVALID_HOST_AGE error when host is under 18");
+    }
+
+    @Test
+    void testPrecheckStructuredForm_ct01_hostOver18_shouldPass() {
+        // Host born in 1985 (century/gender = 0 for male 1900-1999, year = 85 -> 1985)
+        // In 2026, age is 41 (>= 18)
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-CR-01")
+                .formType("CT01")
+                .fullName("NGUYỄN VĂN AN")
+                .dateOfBirth("2000-01-01")
+                .gender("Nam")
+                .citizenCccd("089200001234")
+                .address("Số 10 Đường Lý Thường Kiệt, Phường Mỹ Bình, An Giang")
+                .phoneNumber("0912345678")
+                .hostRelation("Thuê nhà trọ")
+                .hostName("LÊ HOÀNG NAM")
+                .hostCccdNumber("089085005678") // Born 1985 -> 41 years old
+                .declarationScope("Đăng ký thường trú")
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertTrue(resp.isOverallValid(), "Host over 18 must pass validation");
+        assertFalse(resp.getFieldValidations().stream().anyMatch(f -> "INVALID_HOST_AGE".equals(f.getErrorCode())));
+    }
+
+    @Test
+    void testPrecheckStructuredForm_ct01_vneidHostConfirmed_shouldFlagPaperConsentExemption() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-CR-01")
+                .formType("CT01")
+                .fullName("NGUYỄN VĂN AN")
+                .dateOfBirth("2000-01-01")
+                .gender("Nam")
+                .citizenCccd("089200001234")
+                .address("Số 10 Đường Lý Thường Kiệt, Phường Mỹ Bình, An Giang")
+                .phoneNumber("0912345678")
+                .hostRelation("Thuê nhà trọ")
+                .hostName("LÊ HOÀNG NAM")
+                .hostCccdNumber("089085005678")
+                .declarationScope("Đăng ký thường trú")
+                .vneidHostConfirmed(true)
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertTrue(resp.isOverallValid());
+        assertTrue(resp.getWarnings().stream().anyMatch(w -> w.contains("ĐÃ XÁC NHẬN QUA VNEID")),
+                "Must flag host paper consent exemption notice in warnings");
+    }
+
+    @Test
+    void testPrecheckStructuredForm_scannedViaQrOrVneid_shouldTagVerifiedViaVneidQrAndExemptDocuments() {
+        StructuredFormPrecheckRequest req = StructuredFormPrecheckRequest.builder()
+                .procedureCode("TTHC-CR-01")
+                .formType("CT01")
+                .fullName("NGUYỄN VĂN AN")
+                .dateOfBirth("2000-01-01")
+                .gender("Nam")
+                .citizenCccd("089200001234")
+                .address("Số 10 Đường Lý Thường Kiệt, Phường Mỹ Bình, An Giang")
+                .phoneNumber("0912345678")
+                .verifiedViaVneidQr(true)
+                .build();
+
+        StructuredFormPrecheckResponse resp = formPrecheckService.precheckStructuredForm(req);
+
+        assertNotNull(resp);
+        assertTrue(Boolean.TRUE.equals(resp.getVerifiedViaVneidQr()), "Response must have verifiedViaVneidQr = true");
+        assertTrue(resp.getWarnings().stream().anyMatch(w -> w.contains("VERIFIED_VIA_VNEID_QR")),
+                "Warnings must include VERIFIED_VIA_VNEID_QR tag and Nghị định 309/2026/NĐ-CP exemption guidance");
+    }
 }

@@ -18,7 +18,7 @@ import java.math.BigDecimal;
 public class CivicReportRequest {
 
     @NotBlank(message = "Danh mục sự cố không được để trống")
-    @Schema(description = "Danh mục sự cố (ROAD_DAMAGE, FLOODING, GARBAGE, STREETLIGHT, ORDER_SECURITY)", example = "ROAD_DAMAGE")
+    @Schema(description = "Danh mục sự cố (ROAD_DAMAGE, FLOODING, ENVIRONMENT, LIGHTING_ELECTRICAL, ORDER_SECURITY)", example = "ROAD_DAMAGE")
     private String category;
 
     @NotBlank(message = "Mô tả chi tiết sự cố không được để trống")

@@ -15,6 +15,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
 public class StructuredFormPrecheckRequest {
     private String procedureCode;
     private String formType;
@@ -25,16 +26,27 @@ public class StructuredFormPrecheckRequest {
     private String cccdIssueDate;
     private String address;
     private Map<String, String> formData;
+    private Map<String, Object> fields;
 
     // ==========================================
     // 1. Trường bổ sung cho CT01 (Cư trú)
     // ==========================================
     private String hostName;
     private String hostCccd;
+    private String hostCccdNumber;
+    private Boolean vneidHostConfirmed;
+    private String hostBirthDate;
+    private String hostGender;
     private String hostRelation;
     private String declarationScope;
     private String phoneNumber;
     private String citizenEmail;
+
+    // VNeID / QR Scan verification (Nghị định 309/2026/NĐ-CP)
+    private Boolean verifiedViaVneidQr;
+    private Boolean citizenScanQr;
+    private Boolean verifiedViaVneid;
+    private String qrRawData;
 
     // ==========================================
     // 2. Trường bổ sung cho TK-KS (Khai sinh)
@@ -125,5 +137,56 @@ public class StructuredFormPrecheckRequest {
             }
         }
         return null;
+    }
+
+    public String getEffectiveHostCccd() {
+        if (hostCccdNumber != null && !hostCccdNumber.isBlank()) {
+            return hostCccdNumber.trim();
+        }
+        if (hostCccd != null && !hostCccd.isBlank()) {
+            return hostCccd.trim();
+        }
+        if (formData != null) {
+            String val = getFirstNonBlank("hostCccdNumber", "hostCccd", "host_cccd_number", "host_cccd");
+            if (val != null && !val.isBlank()) {
+                return val.trim();
+            }
+        }
+        return "";
+    }
+
+    public boolean isVneidHostConfirmed() {
+        if (Boolean.TRUE.equals(vneidHostConfirmed)) {
+            return true;
+        }
+        if (formData != null) {
+            String val = getFirstNonBlank("vneidHostConfirmed", "vneid_host_confirmed");
+            if (val != null && "true".equalsIgnoreCase(val.trim())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public boolean isVerifiedViaVneidOrQr() {
+        if (Boolean.TRUE.equals(verifiedViaVneidQr) || Boolean.TRUE.equals(citizenScanQr) || Boolean.TRUE.equals(verifiedViaVneid)) {
+            return true;
+        }
+        if (qrRawData != null && !qrRawData.isBlank()) {
+            return true;
+        }
+        if (formData != null) {
+            String val = getFirstNonBlank("verifiedViaVneidQr", "citizenScanQr", "verifiedViaVneid", "scannedViaQr", "isVneidVerified");
+            if (val != null && "true".equalsIgnoreCase(val.trim())) {
+                return true;
+            }
+            if (formData.containsKey("qrRawData") && formData.get("qrRawData") != null && !formData.get("qrRawData").isBlank()) {
+                return true;
+            }
+            if (formData.containsKey("qrCodeRaw") && formData.get("qrCodeRaw") != null && !formData.get("qrCodeRaw").isBlank()) {
+                return true;
+            }
+        }
+        return false;
     }
 }

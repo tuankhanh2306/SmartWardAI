@@ -63,4 +63,25 @@ class QueryCacheServiceTest {
         assertTrue(result.isPresent());
         assertEquals("Đáp án từ cache", result.get());
     }
+
+    @Test
+    void testBuildCacheKey_withWardAndCategory_shouldDifferentiateLocality() {
+        String query = "Thủ tục khai sinh";
+        String key1 = cacheService.buildCacheKey(query, "Phường Mỹ Long", "Hộ tịch");
+        String key2 = cacheService.buildCacheKey(query, "Phường Mỹ Bình", "Hộ tịch");
+        String key3 = cacheService.buildCacheKey(query, "Phường Mỹ Long", "Đất đai");
+
+        assertNotEquals(key1, key2, "Different wards should produce distinct cache keys");
+        assertNotEquals(key1, key3, "Different categories should produce distinct cache keys");
+        assertTrue(key1.startsWith("smartward:cache:rag:"));
+    }
+
+    @Test
+    void testBuildCacheKey_withNullWardAndCategory_shouldMatchSingleArgKey() {
+        String query = "Thủ tục làm căn cước";
+        String keySingle = cacheService.buildCacheKey(query);
+        String keyMulti = cacheService.buildCacheKey(query, null, null);
+
+        assertEquals(keySingle, keyMulti, "Single arg and null ward/category should produce identical cache keys");
+    }
 }

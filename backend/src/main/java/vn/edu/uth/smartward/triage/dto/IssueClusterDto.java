@@ -23,7 +23,7 @@ public class IssueClusterDto {
     @Schema(description = "Mã định danh cụm sự cố", example = "CLUST_20261104_001")
     private String clusterCode;
 
-    @Schema(description = "Lĩnh vực sự cố (ROAD_DAMAGE, FLOODING, GARBAGE...)", example = "ROAD_DAMAGE")
+    @Schema(description = "Lĩnh vực sự cố (ROAD_DAMAGE, FLOODING, ENVIRONMENT, LIGHTING_ELECTRICAL, ORDER_SECURITY)", example = "ROAD_DAMAGE")
     private String category;
 
     @Schema(description = "Tiêu đề tóm tắt sự cố", example = "Đoạn trước số 15 Võ Oanh có ổ gà khá sâu")

@@ -2,12 +2,15 @@ package vn.edu.uth.smartward.formcheck;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import vn.edu.uth.smartward.formcheck.dto.ExtractedFormFields;
 import vn.edu.uth.smartward.formcheck.dto.FormPrecheckReport;
+import vn.edu.uth.smartward.formcheck.dto.StructuredFormPrecheckResponse;
 
 import java.util.Collections;
 
@@ -15,9 +18,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(FormCheckController.class)
+@AutoConfigureMockMvc(addFilters = false)
 class FormCheckControllerTest {
 
     @Autowired
@@ -59,5 +64,34 @@ class FormCheckControllerTest {
                 .andExpect(jsonPath("$.data.submissionCode").value("FORM_20261104_TEST01"))
                 .andExpect(jsonPath("$.data.valid").value(true))
                 .andExpect(jsonPath("$.data.extractedFields.fullName").value("NGUYỄN VĂN AN"));
+    }
+
+    @Test
+    void testPrecheckStructuredForm_wrappedInApiResponse() throws Exception {
+        StructuredFormPrecheckResponse mockResp = StructuredFormPrecheckResponse.builder()
+                .submissionId("SUB_STRUCTURED_001")
+                .procedureCode("TTHC-CT-01")
+                .overallValid(true)
+                .fieldValidations(Collections.emptyList())
+                .build();
+
+        when(formPrecheckService.precheckStructuredForm(any())).thenReturn(mockResp);
+
+        String jsonPayload = """
+                {
+                    "procedureCode": "TTHC-CT-01",
+                    "formType": "CT01_RESIDENCE_DECLARATION",
+                    "fields": {}
+                }
+                """;
+
+        mockMvc.perform(post("/api/v1/forms/precheck")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonPayload))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.submissionId").value("SUB_STRUCTURED_001"))
+                .andExpect(jsonPath("$.data.overallValid").value(true))
+                .andExpect(jsonPath("$.data.procedureCode").value("TTHC-CT-01"));
     }
 }

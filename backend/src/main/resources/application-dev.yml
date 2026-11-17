@@ -41,10 +41,10 @@ minio:
 
 smartward:
   vault:
-    encryption-key: ${VAULT_ENCRYPTION_KEY:SmartWardAI_DevTest_VaultKey_32B}
+    encryption-key: ${VAULT_ENCRYPTION_KEY}
     fail-closed: ${VAULT_FAIL_CLOSED:true}
   security:
-    jwt-secret: ${JWT_SECRET:SmartWardAI_DevTest_JwtSecret_32B!}
+    jwt-secret: ${JWT_SECRET}
     token-ttl-hours: ${OFFICER_TOKEN_TTL_HOURS:8}
     enforce-officer-auth: ${ENFORCE_OFFICER_AUTH:true}
 

@@ -24,6 +24,7 @@ public class StructuredFormPrecheckResponse {
     private DocumentCrossCheckResult primaryCrossCheck;
     private String processedAt;
     private double processingTimeMs;
+    private Boolean verifiedViaVneidQr;
 
     @Data
     @Builder

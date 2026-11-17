@@ -288,9 +288,6 @@ class CitizenDossierAdversarialTest {
         @Test
         @DisplayName("Blank or missing 4 digits CCCD -> Throws INVALID_REQUEST (HTTP 400)")
         void trackDossier_missingLast4_throwsBadRequest() {
-            when(dossierRepository.findByDossierCodeIgnoreCase("HS-20261111-BENNGHE-0001"))
-                    .thenReturn(Optional.of(sampleDossier));
-
             assertThatThrownBy(() -> dossierService.trackDossier("HS-20261111-BENNGHE-0001", "   ", null))
                     .isInstanceOf(BusinessException.class)
                     .satisfies(ex -> {
@@ -320,16 +317,42 @@ class CitizenDossierAdversarialTest {
         }
 
         @Test
-        @DisplayName("Security Observation: partial CCCD input (e.g. '5' or '345') matches endsWith check")
+        @DisplayName("SEC-04: Partial or wildcard CCCD input (e.g. '5', '%') is strictly rejected by regex")
         void trackDossier_shortLast4Input_observesBehavior() {
-            when(dossierRepository.findByDossierCodeIgnoreCase("HS-20261111-BENNGHE-0001"))
+            // SEC-04: 1 character or wildcard '%' must be rejected
+            assertThatThrownBy(() -> dossierService.trackDossier("HS-20261111-BENNGHE-0001", "5", (String) null))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode()).isEqualTo(ErrorCode.VALIDATION_FAILED));
+
+            assertThatThrownBy(() -> dossierService.trackDossier("HS-20261111-BENNGHE-0001", "%", (String) null))
+                    .isInstanceOf(BusinessException.class)
+                    .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode()).isEqualTo(ErrorCode.VALIDATION_FAILED));
+        }
+
+        @Test
+        @DisplayName("SEC-04: Exceeding 5 tracking attempts on same dossier code triggers 429 RATE_LIMIT_EXCEEDED")
+        void trackDossier_rateLimitExceeded_returns429() {
+            vn.edu.uth.smartward.common.RedisRateLimiter inMemoryLimiter = new vn.edu.uth.smartward.common.RedisRateLimiter(null);
+            CitizenDossierService rateLimitedService = new CitizenDossierService(
+                    dossierRepository, procedureRepository, objectMapper, inMemoryLimiter
+            );
+
+            when(dossierRepository.findByDossierCodeIgnoreCase("HS-RATELIMIT-001"))
                     .thenReturn(Optional.of(sampleDossier));
 
-            // CCCD is 089095012345. If attacker inputs '5', endsWith('5') currently succeeds.
-            // This is documented as a security edge finding for input validation tightening.
-            DossierTrackingResponse res = dossierService.trackDossier("HS-20261111-BENNGHE-0001", "5", null);
-            assertThat(res).isNotNull();
-            assertThat(res.dossierCode()).isEqualTo("HS-20261111-BENNGHE-0001");
+            // Attempts 1 to 5: wrong PIN returns 404 RESOURCE_NOT_FOUND
+            for (int i = 0; i < 5; i++) {
+                assertThatThrownBy(() -> rateLimitedService.trackDossier("HS-RATELIMIT-001", "9999", "192.168.1.100"))
+                        .isInstanceOf(BusinessException.class)
+                        .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode()).isEqualTo(ErrorCode.RESOURCE_NOT_FOUND));
+            }
+
+            // 6th attempt onwards (up to 10): rate limit exceeded -> 429 RATE_LIMIT_EXCEEDED
+            for (int i = 6; i <= 10; i++) {
+                assertThatThrownBy(() -> rateLimitedService.trackDossier("HS-RATELIMIT-001", "9999", "192.168.1.100"))
+                        .isInstanceOf(BusinessException.class)
+                        .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode()).isEqualTo(ErrorCode.RATE_LIMIT_EXCEEDED));
+            }
         }
     }
 

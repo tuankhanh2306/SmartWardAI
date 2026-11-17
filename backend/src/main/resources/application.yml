@@ -1,8 +1,11 @@
+server:
+  forward-headers-strategy: NATIVE
+
 spring:
   application:
     name: smartward-backend
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:prod}
   servlet:
     multipart:
       enabled: true
@@ -21,7 +24,7 @@ springdoc:
 # Application specific settings (Single Source of Truth)
 smartward:
   security:
-    jwt-secret: ${JWT_SECRET:SmartWardAI_DevOnly_HmacSha256_SecretKey_2026_ChangeInProd}
+    jwt-secret: ${JWT_SECRET}
     token-ttl-hours: ${OFFICER_TOKEN_TTL_HOURS:8}
     enforce-officer-auth: ${ENFORCE_OFFICER_AUTH:true}
   rag:
@@ -56,7 +59,7 @@ smartward:
   vault:
     bucket-name: ${MINIO_BUCKET_NAME:smartward-vault}
     token-ttl-hours: ${VAULT_TOKEN_TTL_HOURS:24}
-    encryption-key: ${VAULT_ENCRYPTION_KEY:}
+    encryption-key: ${VAULT_ENCRYPTION_KEY}
     fail-closed: ${VAULT_FAIL_CLOSED:true}
     watermark-text: "CHỈ DÙNG ĐỂ SƠ DUYỆT HỒ SƠ TẠI UBND"
   rate-limit:

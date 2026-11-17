@@ -37,7 +37,7 @@ public class FormCheckController {
             summary = "Sơ duyệt tờ khai hành chính (Mẫu CT01 cư trú, CCCD, Hộ tịch)",
             description = "Tiếp nhận ảnh chụp tờ khai hành chính (ảnh in hoặc viết tay), trích xuất thông tin qua Vision OCR " +
                           "và thực thi bộ quy tắc định thức (CCCD 12 số, logic ngày tháng, trường bắt buộc, cảnh báo độ tin cậy thấp). " +
-                          "Hệ thống chỉ cảnh báo lỗi để công dân sửa trên giấy trước khi nộp, bảo đảm tuân thủ Nghị định 13/2023/NĐ-CP."
+                          "Hệ thống chỉ cảnh báo lỗi để công dân sửa trên giấy trước khi nộp, bảo đảm nguyên tắc bảo vệ quyền tự quyết của công dân đối với dữ liệu cá nhân."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Kiểm định hoàn tất, trả về báo cáo chi tiết từng trường",
@@ -53,7 +53,7 @@ public class FormCheckController {
             @RequestParam(value = "formType", defaultValue = "CT01_RESIDENCE_DECLARATION") String formType) {
 
         log.info("Received form precheck request for formType: '{}', file: '{}' (size: {} bytes)",
-                formType, file.getOriginalFilename(), file.getSize());
+                formType, vn.edu.uth.smartward.common.FilenameUtils.sanitizeFilename(file.getOriginalFilename()), file.getSize());
 
         FormPrecheckReport report = formPrecheckService.precheckForm(file, formType);
         return ResponseEntity.ok(ApiResponse.ok(report));
@@ -65,12 +65,12 @@ public class FormCheckController {
             description = "Đối chiếu chéo thông tin Tờ khai khai sinh với Giấy chứng sinh, kiểm tra mốc tuổi kết hôn hợp pháp (Nam >= 20, Nữ >= 18), " +
                           "kiểm tra mục đích xác nhận tình trạng hôn nhân, và kiểm tra điều kiện 80 tuổi trợ cấp xã hội."
     )
-    public ResponseEntity<StructuredFormPrecheckResponse> precheckStructuredForm(
+    public ResponseEntity<ApiResponse<StructuredFormPrecheckResponse>> precheckStructuredForm(
             @RequestBody StructuredFormPrecheckRequest request) {
         log.info("Received structured form precheck request for formType: '{}', procedureCode: '{}'",
                 request.getFormType(), request.getProcedureCode());
         StructuredFormPrecheckResponse response = formPrecheckService.precheckStructuredForm(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
     @GetMapping("/submissions")

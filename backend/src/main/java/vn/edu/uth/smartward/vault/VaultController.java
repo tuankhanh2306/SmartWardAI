@@ -23,7 +23,7 @@ import vn.edu.uth.smartward.vault.dto.VaultUploadResponse;
 @RestController
 @RequestMapping("/api/v1/vault")
 @RequiredArgsConstructor
-@Tag(name = "Document Vault", description = "Kho Hồ sơ Không Tin Cậy (Zero-Trust Document Vault) Tuân thủ Nghị định 13/2023/NĐ-CP")
+@Tag(name = "Document Vault", description = "Kho Hồ sơ Không Tin Cậy (Zero-Trust Document Vault) - Áp dụng các biện pháp kỹ thuật bảo vệ dữ liệu theo định hướng Nghị định 13/2023/NĐ-CP")
 public class VaultController {
 
     private final ZeroTrustVaultService vaultService;
@@ -47,7 +47,7 @@ public class VaultController {
             @RequestParam(value = "documentType", defaultValue = "CIVIC_DOCUMENT") String documentType) {
 
         log.info("Received document upload to Vault: filename='{}', type='{}', size={} bytes",
-                file.getOriginalFilename(), documentType, file.getSize());
+                vn.edu.uth.smartward.common.FilenameUtils.sanitizeFilename(file.getOriginalFilename()), documentType, file.getSize());
 
         VaultUploadResponse response = vaultService.storeDocument(file, documentType);
         return ResponseEntity.ok(ApiResponse.ok(response));
@@ -57,7 +57,7 @@ public class VaultController {
     @Operation(
             summary = "Xem tài liệu một lần duy nhất (One-Time View Link)",
             description = "Truy xuất tài liệu từ MinIO, giải mã AES-256 và xóa vĩnh viễn token khỏi Redis bằng lệnh nguyên tử GETDEL. " +
-                          "Lần truy cập thứ hai trở đi sẽ bị chặn và trả về HTTP 410 GONE theo quy chuẩn Nghị định 13/2023/NĐ-CP."
+                          "Lần truy cập thứ hai trở đi sẽ bị chặn và trả về HTTP 410 GONE nhằm hạn chế lưu trữ và ngăn ngừa tái sử dụng liên kết."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Truy xuất và giải mã thành công (Token bị hủy ngay lập tức)"),
@@ -67,15 +67,30 @@ public class VaultController {
             @Parameter(description = "Mã token xem 1 lần (bắt đầu bằng OTT_)", required = true)
             @PathVariable("token") String token) {
 
-        log.info("Requesting one-time view for token: {}", token);
+        log.info("Requesting one-time view for token: {}", vn.edu.uth.smartward.common.FilenameUtils.maskToken(token));
 
-        byte[] decryptedImageBytes = vaultService.consumeOneTimeDocument(token);
+        byte[] decryptedBytes = vaultService.consumeOneTimeDocument(token);
+
+        MediaType mediaType = MediaType.IMAGE_PNG;
+        String filename = "vault_document.png";
+
+        if (decryptedBytes != null && decryptedBytes.length >= 4) {
+            if (decryptedBytes[0] == 0x25 && decryptedBytes[1] == 0x50 
+                    && decryptedBytes[2] == 0x44 && decryptedBytes[3] == 0x46) {
+                mediaType = MediaType.APPLICATION_PDF;
+                filename = "vault_document.pdf";
+            } else if (decryptedBytes[0] == (byte) 0xFF && decryptedBytes[1] == (byte) 0xD8 
+                    && decryptedBytes[2] == (byte) 0xFF) {
+                mediaType = MediaType.IMAGE_JPEG;
+                filename = "vault_document.jpg";
+            }
+        }
 
         return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"vault_document.png\"")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + filename + "\"")
                 .header(HttpHeaders.CACHE_CONTROL, "no-store, no-cache, must-revalidate, max-age=0")
                 .header(HttpHeaders.PRAGMA, "no-cache")
-                .contentType(MediaType.IMAGE_PNG)
-                .body(decryptedImageBytes);
+                .contentType(mediaType)
+                .body(decryptedBytes);
     }
 }

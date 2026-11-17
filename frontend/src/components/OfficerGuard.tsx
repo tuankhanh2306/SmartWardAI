@@ -1,7 +1,7 @@
 import React from 'react';
 import { useRole } from '../context/RoleContext';
 import { useWard } from '../context/WardContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Navigate } from 'react-router-dom';
 import { ShieldAlert, ArrowLeft, KeyRound, CheckCircle2 } from 'lucide-react';
 
 interface OfficerGuardProps {
@@ -9,17 +9,24 @@ interface OfficerGuardProps {
 }
 
 export const OfficerGuard: React.FC<OfficerGuardProps> = ({ children }) => {
-  const { isOfficer, setAuthModalOpen } = useRole();
+  const { role, isOfficer } = useRole();
   const { currentWard } = useWard();
   const navigate = useNavigate();
 
+  // If unauthenticated (no role or session expired), redirect to gateway
+  if (!role) {
+    return <Navigate to="/" replace />;
+  }
+
+  // If officer with active session, allow access
   if (isOfficer) {
     return <>{children}</>;
   }
 
+  // If citizen, strictly block and provide return / authentication options
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-4 bg-[#F8FAFC]">
-      <div className="w-full max-w-lg rounded-2xl bg-white border border-[#CBD5E1] shadow-lg p-8 text-center flex flex-col items-center">
+      <div className="w-full max-w-lg rounded-2xl bg-white border border-[#CBD5E1] shadow-lg p-8 text-center flex flex-col items-center animate-fadeIn">
         {/* Shield Icon with official seal ring */}
         <div className="w-16 h-16 rounded-2xl bg-[#FEF2F2] border-2 border-[#FCA5A5] flex items-center justify-center text-[#DC2626] mb-5 shadow-sm">
           <ShieldAlert className="w-9 h-9" />
@@ -46,7 +53,7 @@ export const OfficerGuard: React.FC<OfficerGuardProps> = ({ children }) => {
           </div>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-[#16A34A] shrink-0" />
-            <span>Công chức tiếp nhận hồ sơ vui lòng bấm xác thực thẻ công vụ để tiếp tục tác nghiệp.</span>
+            <span>Công chức tiếp nhận hồ sơ vui lòng đăng nhập bằng thẻ công vụ để tiếp tục tác nghiệp.</span>
           </div>
         </div>
 
@@ -64,12 +71,12 @@ export const OfficerGuard: React.FC<OfficerGuardProps> = ({ children }) => {
           <button
             type="button"
             onClick={() => {
-              setAuthModalOpen(true);
+              navigate('/');
             }}
             className="w-full sm:w-1/2 py-2.5 px-4 rounded-xl bg-[#0F2942] hover:bg-[#1E3A5F] text-white text-xs font-bold shadow-sm flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer"
           >
             <KeyRound className="w-4 h-4 text-[#5EEAD4]" />
-            <span>Xác Thực Thẻ Cán Bộ</span>
+            <span>Đăng Nhập Thẻ Cán Bộ</span>
           </button>
         </div>
       </div>

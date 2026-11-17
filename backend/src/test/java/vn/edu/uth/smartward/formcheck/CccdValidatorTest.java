@@ -71,4 +71,13 @@ class CccdValidatorTest {
         assertEquals(1, issues.size());
         assertEquals("MISSING_MANDATORY_FIELD", issues.get(0).getErrorType());
     }
+
+    @Test
+    void testValidate_unparseableBirthDate_shouldEmitWarning() {
+        // Valid CCCD, but birthDateStr is unparseable
+        List<FormValidationIssue> issues = validator.validate("048184451695", "invalid-date", "Nữ");
+        assertEquals(1, issues.size());
+        assertEquals("CANNOT_VERIFY_CCCD_YEAR_GENDER", issues.get(0).getErrorType());
+        assertEquals("WARNING", issues.get(0).getSeverity());
+    }
 }

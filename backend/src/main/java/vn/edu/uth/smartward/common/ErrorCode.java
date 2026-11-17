@@ -13,6 +13,7 @@ public enum ErrorCode {
     FORBIDDEN("SW_403", "Không đủ thẩm quyền thực hiện tác vụ công vụ này.", HttpStatus.FORBIDDEN),
     VALIDATION_FAILED("SW_422", "Dữ liệu không thỏa mãn các quy tắc kiểm định.", HttpStatus.UNPROCESSABLE_ENTITY),
     RESOURCE_NOT_FOUND("SW_404", "Không tìm thấy tài nguyên yêu cầu.", HttpStatus.NOT_FOUND),
+    CONFLICT("SW_409", "Xung đột trạng thái hoặc phiên bản dữ liệu.", HttpStatus.CONFLICT),
     TOKEN_EXPIRED_OR_CONSUMED("SW_410", "Liên kết truy cập đã hết hạn hoặc đã được sử dụng một lần.", HttpStatus.GONE),
     RATE_LIMIT_EXCEEDED("SW_429", "Bạn đã vượt quá giới hạn 5 yêu cầu/phút. Vui lòng thử lại sau.", HttpStatus.TOO_MANY_REQUESTS),
     AI_SERVICE_UNAVAILABLE("SW_503", "Dịch vụ AI hiện không khả dụng. Vui lòng thử lại sau.", HttpStatus.SERVICE_UNAVAILABLE),

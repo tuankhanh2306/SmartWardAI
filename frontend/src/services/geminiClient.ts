@@ -6,7 +6,7 @@
  * when running offline.
  */
 
-import { searchLegalKnowledge, type LegalProcedureItem } from './legalKnowledgeBase';
+import { searchLegalKnowledge, normalizeVietnameseQuery, type LegalProcedureItem } from './legalKnowledgeBase';
 import {
   isWardOfficeQuery,
   checkOutOfScopeQuery,
@@ -267,31 +267,51 @@ export async function askGeminiWithRAG(
   }
 
   // 6. Semantic Retrieval over SmartWard AI Local Legal Knowledge Base
-  let normalizedSearchQuery = query.toLowerCase();
+  let normalizedSearchQuery = normalizeVietnameseQuery(query);
   if (normalizedSearchQuery.includes('cư trú') && normalizedSearchQuery.includes('tthc-ct-01')) {
     normalizedSearchQuery = normalizedSearchQuery.replaceAll('tthc-ct-01', 'mẫu ct01');
   }
-  normalizedSearchQuery = normalizedSearchQuery
-    .replaceAll('giấy khai sanh', 'giấy khai sinh')
-    .replaceAll('chứng sanh', 'chứng sinh')
-    .replaceAll('khai sanh', 'khai sinh')
-    .replaceAll('sanh con', 'sinh con')
-    .replaceAll('mới sanh', 'mới sinh')
-    .replaceAll(/\bsanh\b/g, 'sinh')
-    .replaceAll('mần giấy giá thú', 'đăng ký kết hôn')
-    .replaceAll('giá thú', 'kết hôn')
-    .replaceAll('hôn thư', 'kết hôn')
-    .replaceAll('chế độ tiền già', 'trợ cấp xã hội người cao tuổi')
-    .replaceAll('lãnh tiền già', 'trợ cấp xã hội người cao tuổi')
-    .replaceAll('tiền già', 'trợ cấp xã hội người cao tuổi')
-    .replaceAll('mần giấy tử', 'khai tử')
-    .replaceAll('chứng giấy tờ', 'chứng thực sao y')
-    .replaceAll('chứng giấy', 'chứng thực sao y')
-    .replaceAll('mần giấy', 'chứng thực sao y');
 
-  const searchResult = searchLegalKnowledge(normalizedSearchQuery, 3);
+  const searchResult = searchLegalKnowledge(normalizedSearchQuery, 3, wardName);
 
-  // 7. Semantic Retrieval Guardrail
+  // 7. Ambiguous Intent Resolution Guardrail (BƯỚC 1: Chủ động hỏi lại khi 2 thủ tục điểm sát nhau)
+  if (searchResult.decision.status === 'AMBIGUOUS' && searchResult.decision.top1 && searchResult.decision.top2) {
+    const top1 = searchResult.decision.top1.item;
+    const top2 = searchResult.decision.top2.item;
+    return {
+      answer: searchResult.decision.clarifyingQuestion || `Bạn đang hỏi về ${top1.name} hay ${top2.name}?`,
+      abstained: true,
+      abstentionReason: searchResult.decision.reason,
+      maxSimilarity: searchResult.maxScore,
+      appliedThreshold: 0.60,
+      responseTimeMs: Math.round(performance.now() - startTime),
+      cached: false,
+      disclaimer: mandatoryDisclaimer,
+      citations: [
+        {
+          chunkCode: `${top1.code}_CHK_001`,
+          procedureCode: top1.code,
+          procedureName: top1.name,
+          title: top1.name,
+          legalReference: top1.legalBasis,
+          content: top1.keyRules.join(' '),
+          relevanceScore: searchResult.decision.top1.score,
+        },
+        {
+          chunkCode: `${top2.code}_CHK_001`,
+          procedureCode: top2.code,
+          procedureName: top2.name,
+          title: top2.name,
+          legalReference: top2.legalBasis,
+          content: top2.keyRules.join(' '),
+          relevanceScore: searchResult.decision.top2.score,
+        },
+      ],
+      suggestions: searchResult.decision.clarifyingSuggestions || [`👉 ${top1.name}`, `👉 ${top2.name}`, '📋 Danh mục 40 thủ tục'],
+    };
+  }
+
+  // 7.1. Low Confidence / Safe Abstention Guardrail (S_max < 0.60)
   if (!searchResult.isInScope || searchResult.items.length === 0) {
     const isCivicQuery = /(?:thủ tục|giấy tờ|hồ sơ|đăng ký|ở đâu|làm sao|cách làm|lệ phí|bao nhiêu tiền|thời hạn|mất bao lâu|quy định|luật|nghĩa vụ|chế độ|trợ cấp|bảo hiểm|bhxh|bhyt|đất đai|sổ đỏ|hộ chiếu|căn cước|bằng lái|gplx|thuế|tòa án|khiếu nại|tố cáo|công chứng)/i.test(query);
 
@@ -307,17 +327,18 @@ export async function askGeminiWithRAG(
 
     return {
       answer:
+        searchResult.decision.abstentionMessage ||
         `Hệ thống SmartWard AI hiện chưa nhận diện rõ thủ tục hành chính mà bà con đang cần tìm hiểu. ` +
         `Bà con vui lòng nhập rõ tên thủ tục (ví dụ: "đăng ký khai sinh", "đăng ký kết hôn", "hướng dẫn nộp mẫu CT01", hoặc gõ "nêu 40 thủ tục" để xem danh mục) hoặc liên hệ Một cửa ${wardName} để được hướng dẫn chi tiết.`,
       abstained: true,
-      abstentionReason: 'Câu hỏi chưa chỉ định rõ tên thủ tục hành chính cụ thể trong phạm vi cấp xã.',
+      abstentionReason: searchResult.decision.reason || 'Câu hỏi chưa chỉ định rõ tên thủ tục hành chính cụ thể trong phạm vi cấp xã.',
       maxSimilarity: searchResult.maxScore,
-      appliedThreshold: 0.78,
+      appliedThreshold: 0.60,
       responseTimeMs: Math.round(performance.now() - startTime),
       cached: false,
       disclaimer: mandatoryDisclaimer,
       citations: [],
-      suggestions: ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📋 Xem 40 thủ tục'],
+      suggestions: searchResult.decision.clarifyingSuggestions || ['👶 Đăng ký khai sinh', '💍 Đăng ký kết hôn', '🏠 Đăng ký thường trú (CT01)', '📋 Xem 40 thủ tục'],
     };
   }
 

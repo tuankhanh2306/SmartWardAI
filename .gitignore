@@ -21,7 +21,9 @@ bin/
 *.war
 .gradle/
 
-# Node / Frontend
+# Temporary XML / Repomix dumps
+repomix*.xml
+
 node_modules/
 dist/
 .env.local
@@ -44,6 +46,7 @@ ENV/
 
 # Data Pipeline raw binaries & scrape caches (keep repo lightweight)
 data-pipeline/raw/
+data-pipeline/out/
 data-pipeline/**/originals/
 data-pipeline/**/*.pdf
 data-pipeline/**/*.html

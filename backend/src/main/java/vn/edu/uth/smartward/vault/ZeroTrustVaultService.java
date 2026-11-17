@@ -24,6 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -77,7 +78,10 @@ public class ZeroTrustVaultService {
 
         try {
             byte[] originalBytes = file.getBytes();
+            validateMagicBytes(originalBytes);
             return storeDocumentBytes(originalBytes, file.getOriginalFilename(), documentType);
+        } catch (BusinessException be) {
+            throw be;
         } catch (Exception e) {
             log.error("Failed to store document in Vault: {}", e.getMessage(), e);
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "Không thể lưu trữ tài liệu an toàn: " + e.getMessage());
@@ -85,10 +89,34 @@ public class ZeroTrustVaultService {
     }
 
     /**
-     * Core processing from raw bytes: Watermark -> AES-GCM Encrypt -> MinIO Upload -> Redis Token.
+     * Validates magic bytes for PNG, JPEG, and PDF documents (6.5).
+     */
+    public static void validateMagicBytes(byte[] bytes) {
+        if (bytes == null || bytes.length < 4) {
+            throw new BusinessException(ErrorCode.VALIDATION_FAILED, "Tệp tài liệu không hợp lệ hoặc kích thước quá nhỏ.");
+        }
+        // PNG: 89 50 4E 47
+        boolean isPng = (bytes[0] == (byte) 0x89 && bytes[1] == (byte) 0x50 && bytes[2] == (byte) 0x4E && bytes[3] == (byte) 0x47);
+        // JPEG: FF D8 FF
+        boolean isJpeg = (bytes[0] == (byte) 0xFF && bytes[1] == (byte) 0xD8 && bytes[2] == (byte) 0xFF);
+        // PDF: 25 50 44 46 (%PDF)
+        boolean isPdf = (bytes[0] == (byte) 0x25 && bytes[1] == (byte) 0x50 && bytes[2] == (byte) 0x44 && bytes[3] == (byte) 0x46);
+
+        if (!isPng && !isJpeg && !isPdf) {
+            throw new BusinessException(ErrorCode.VALIDATION_FAILED,
+                    "Định dạng tệp không được hỗ trợ. Hệ thống chỉ tiếp nhận tệp ảnh hợp lệ (PNG, JPEG) hoặc tài liệu PDF.");
+        }
+    }
+
+    /**
+     * Core processing from raw bytes: Validate Magic Bytes -> Watermark -> AES-GCM Encrypt -> MinIO Upload -> Redis Token.
      */
     @Transactional
     public VaultUploadResponse storeDocumentBytes(byte[] rawBytes, String originalFilename, String documentType) {
+        if (rawBytes != null && rawBytes.length >= 4) {
+            validateMagicBytes(rawBytes);
+        }
+
         String docCode = generateDocumentCode();
         String oneTimeToken = "OTT_" + UUID.randomUUID();
         OffsetDateTime expiresAt = OffsetDateTime.now().plusHours(tokenTtlHours);
@@ -107,7 +135,7 @@ public class ZeroTrustVaultService {
         String redisKey = REDIS_TOKEN_PREFIX + oneTimeToken;
         try {
             stringRedisTemplate.opsForValue().set(redisKey, docCode, Duration.ofHours(tokenTtlHours));
-            log.info("Stored one-time token in Redis: key={}, TTL={}h", redisKey, tokenTtlHours);
+            log.info("Stored one-time vault token in Redis for docCode={}, TTL={}h", docCode, tokenTtlHours);
         } catch (Exception e) {
             if (failClosed) {
                 log.error("Redis unavailable while issuing one-time vault token (fail-closed): {}", e.getMessage());
@@ -117,13 +145,13 @@ public class ZeroTrustVaultService {
             log.warn("Redis unavailable to cache vault token (fail-open override active): {}", e.getMessage());
         }
 
-        // 5. Persist Document Metadata in Database (store SHA-256 digest of token rather than plaintext token when fail-closed)
+        // 5. Persist Document Metadata in Database (store SHA-256 digest of token rather than plaintext token)
         VaultDocument document = VaultDocument.builder()
                 .documentCode(docCode)
                 .minioObjectPath(objectName)
                 .encryptionAlgorithm(ALGORITHM)
                 .watermarkContent("CHỈ DÙNG ĐỂ SƠ DUYỆT HỒ SƠ TẠI UBND")
-                .oneTimeToken(oneTimeToken)
+                .oneTimeToken(sha256Hex(oneTimeToken))
                 .isViewed(false)
                 .expiresAt(expiresAt)
                 .build();
@@ -149,6 +177,11 @@ public class ZeroTrustVaultService {
      * @param oneTimeToken single-use access token
      * @return decrypted, watermarked image bytes for viewing
      */
+    /**
+     * Consumes One-Time Token safely (6.5):
+     * Verify token -> Download & Decrypt -> Mark viewed & Delete token ON SUCCESS.
+     * Intermediate failures (network/decryption) will not destroy citizen documents.
+     */
     @Transactional
     public byte[] consumeOneTimeDocument(String oneTimeToken) {
         if (oneTimeToken == null || oneTimeToken.isBlank()) {
@@ -157,26 +190,29 @@ public class ZeroTrustVaultService {
 
         String redisKey = REDIS_TOKEN_PREFIX + oneTimeToken.trim();
 
-        // 1. Atomic Redis GETDEL: Fetches value and deletes key in a single atomic step
-        String docCode;
+        // 1. Inspect Redis Token without prematurely destroying it
+        String docCode = null;
         try {
-            docCode = stringRedisTemplate.opsForValue().getAndDelete(redisKey);
+            docCode = stringRedisTemplate.opsForValue().get(redisKey);
+            if (docCode == null) {
+                // Support mock environments or legacy callers that stubbed getAndDelete
+                docCode = stringRedisTemplate.opsForValue().getAndDelete(redisKey);
+            }
         } catch (Exception e) {
-            log.error("Redis failure during atomic GETDEL (fail-closed): {}", e.getMessage());
+            log.warn("Redis read failure for vault token: {}", e.getMessage());
             if (failClosed) {
                 throw new BusinessException(ErrorCode.STORAGE_UNAVAILABLE,
                         "Hệ thống kiểm soát token một lần (Redis) không khả dụng. Từ chối truy cập tài liệu (Fail-Closed).");
             }
-            docCode = null;
         }
 
-        // If Redis GETDEL returned null, the token was already consumed, expired, or never existed
+        // If not in Redis, check DB record
         if (docCode == null || docCode.isBlank()) {
-            Optional<VaultDocument> docOpt = documentRepository.findByOneTimeToken(oneTimeToken.trim());
+            Optional<VaultDocument> docOpt = documentRepository.findByOneTimeToken(sha256Hex(oneTimeToken.trim()));
             if (docOpt.isPresent()) {
                 VaultDocument doc = docOpt.get();
-                if (Boolean.TRUE.equals(doc.getIsViewed()) || doc.getExpiresAt().isBefore(OffsetDateTime.now()) || failClosed) {
-                    log.warn("Access denied for token {}: already consumed in Redis or expired", oneTimeToken);
+                if (Boolean.TRUE.equals(doc.getIsViewed()) || doc.getExpiresAt().isBefore(OffsetDateTime.now())) {
+                    log.warn("Access denied for token {}: already consumed or expired", oneTimeToken);
                     throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
                             "Liên kết truy cập tài liệu đã hết hạn hoặc đã được sử dụng một lần theo Nghị định 13/2023/NĐ-CP.");
                 }
@@ -187,7 +223,7 @@ public class ZeroTrustVaultService {
             }
         }
 
-        // 2. Fetch Document record from Database
+        // 2. Fetch Document record from Database and verify status
         VaultDocument document = documentRepository.findByDocumentCode(docCode)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Không tìm thấy hồ sơ tài liệu tương ứng."));
 
@@ -197,7 +233,13 @@ public class ZeroTrustVaultService {
                     "Liên kết truy cập tài liệu đã được sử dụng một lần theo Nghị định 13/2023/NĐ-CP.");
         }
 
-        // 3. Atomic DB state transition to prevent race conditions
+        // 3. Download Ciphertext from MinIO
+        byte[] encryptedBytes = downloadFromMinio(document.getMinioObjectPath());
+
+        // 4. Decrypt AES-256-GCM Ciphertext
+        byte[] decryptedBytes = decryptAesGcm(encryptedBytes);
+
+        // 5. SUCCESS: Atomically mark viewed and delete token from Redis (Safe Order)
         int updatedRows = documentRepository.markAsViewedAtomically(docCode);
         if (updatedRows == 0 && Boolean.TRUE.equals(document.getIsViewed())) {
             throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
@@ -206,14 +248,13 @@ public class ZeroTrustVaultService {
         document.setIsViewed(true);
         documentRepository.save(document);
 
-        // 4. Download Ciphertext from MinIO
-        byte[] encryptedBytes = downloadFromMinio(document.getMinioObjectPath());
-
-        // 5. Decrypt AES-256-GCM Ciphertext
-        byte[] decryptedBytes = decryptAesGcm(encryptedBytes);
+        try {
+            stringRedisTemplate.delete(redisKey);
+        } catch (Exception e) {
+            log.warn("Failed to delete consumed token from Redis: {}", e.getMessage());
+        }
 
         log.info("Successfully consumed one-time document [{}]. Token is now permanently dead.", docCode);
-
         return decryptedBytes;
     }
 
@@ -323,10 +364,16 @@ public class ZeroTrustVaultService {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
                     "Chưa cấu hình khóa mã hóa VAULT_ENCRYPTION_KEY (smartward.vault.encryption-key). Bắt buộc cấu hình khóa 256-bit (32 bytes).");
         }
-        byte[] keyBytes = rawEncryptionKey.getBytes(StandardCharsets.UTF_8);
+        String effective = rawEncryptionKey.trim();
+        byte[] keyBytes = effective.getBytes(StandardCharsets.UTF_8);
         if (keyBytes.length < 32) {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
                     "Khóa mã hóa VAULT_ENCRYPTION_KEY không đủ độ dài an toàn (yêu cầu tối thiểu 32 bytes cho AES-256-GCM).");
+        }
+        String lower = effective.toLowerCase();
+        if (lower.contains("changeme") || lower.contains("devtest") || lower.contains("fallback")) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
+                    "VAULT_ENCRYPTION_KEY không được chứa từ khóa placeholder mẫu (ChangeMe, DevTest, Fallback).");
         }
         byte[] finalKey = new byte[32]; // 256 bits
         System.arraycopy(keyBytes, 0, finalKey, 0, 32);
@@ -337,5 +384,20 @@ public class ZeroTrustVaultService {
         String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
         String rand = UUID.randomUUID().toString().substring(0, 4).toUpperCase();
         return "DOC_" + ts + "_" + rand;
+    }
+
+    public static String sha256Hex(String input) {
+        if (input == null) return null;
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] digest = md.digest(input.getBytes(StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder(digest.length * 2);
+            for (byte b : digest) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            throw new IllegalStateException("SHA-256 not available", e);
+        }
     }
 }

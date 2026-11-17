@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { PROCEDURES_CATALOG } from '../data/proceduresCatalog';
 import { isGeminiConfigured, askGeminiWithRAG, buildStructuredProcedureResponse } from '../services/geminiClient';
-import { searchLegalKnowledge } from '../services/legalKnowledgeBase';
+import { searchLegalKnowledge, normalizeVietnameseQuery } from '../services/legalKnowledgeBase';
+import { preprocessQuery } from '../services/diacriticsRestorer';
 import {
   isWardOfficeQuery,
   checkOutOfScopeQuery,
@@ -29,10 +30,26 @@ api.interceptors.request.use((config) => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('smartward_officer_token') : null;
   if (token) {
     config.headers['Authorization'] = `Bearer ${token}`;
-    config.headers['X-Officer-Token'] = token;
   }
   return config;
 });
+
+// P3: Auto logout on 401 Unauthorized (7.7)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && typeof window !== 'undefined') {
+      localStorage.removeItem('smartward_officer_token');
+      localStorage.removeItem('smartward_officer_badge');
+      localStorage.removeItem('smartward_officer_profile');
+      localStorage.removeItem('smartward_user_role');
+      localStorage.removeItem('smartward_role');
+      localStorage.removeItem('smartward_session_expires_at');
+      window.dispatchEvent(new Event('smartward_auth_logout'));
+    }
+    return Promise.reject(error);
+  }
+);
 
 // 1. Legal RAG Types & API
 export interface LegalCitation {
@@ -228,18 +245,24 @@ export const askLegalRag = async (
   const mandatoryDisclaimer =
     '*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*';
 
+  // BƯỚC 2.2 & 2.3: Tiền xử lý câu hỏi tại ĐÚNG 1 ĐIỂM VÀO DUY NHẤT
+  // Khôi phục dấu thanh tiếng Việt cho câu không dấu và chuẩn hóa lỗi gõ phím telex
+  const cleanQuery = await preprocessQuery(query);
+
   // 0. Check Officer-Verified HITL Knowledge Cache first (REA Closed-Loop Duality)
   if (typeof window !== 'undefined') {
     try {
       const rawHitl = localStorage.getItem('smartward_hitl_queue_v1');
       if (rawHitl) {
         const hitlList: HitlGrayZoneItem[] = JSON.parse(rawHitl);
-        const qNorm = query.trim().toLowerCase();
+        const qNorm = cleanQuery.trim().toLowerCase();
+        const rawNorm = query.trim().toLowerCase();
         const matchedApproved = hitlList.find(
           (item) =>
             item.status === 'APPROVED' &&
             item.suggestedAnswer &&
             (item.query.trim().toLowerCase() === qNorm ||
+              item.query.trim().toLowerCase() === rawNorm ||
               (qNorm.length >= 12 && item.query.toLowerCase().includes(qNorm)) ||
               (item.query.length >= 12 && qNorm.includes(item.query.trim().toLowerCase())))
         );
@@ -273,7 +296,7 @@ export const askLegalRag = async (
   }
 
   // 1. Procedure Catalog Request ("nêu 40 thủ tục", "danh sách thủ tục"...)
-  if (isProcedureListQuery(query)) {
+  if (isProcedureListQuery(cleanQuery) || isProcedureListQuery(query)) {
     return {
       answer: buildProcedureCatalogResponse(currentWardName),
       abstained: false,
@@ -288,7 +311,7 @@ export const askLegalRag = async (
   }
 
   // 1.5. Field Incident Report Inquiry ("chỗ tôi hư đường", "sạt lở", "bạn có thể giúp tôi báo lên cán bộ không"...)
-  if (isIncidentReportQuery(query)) {
+  if (isIncidentReportQuery(cleanQuery) || isIncidentReportQuery(query)) {
     return {
       answer:
         `Dạ, để gửi phản ánh hiện trường (hư đường, ngập nước, sạt lở, chiếu sáng, môi trường...) trực tiếp lên Bàn Điều Hành Cán Bộ UBND, bà con vui lòng mở công cụ **Báo Sự Cố Hiện Trường (GPS R=25m)** ngay trên thanh điều hướng.\n\n` +
@@ -306,7 +329,7 @@ export const askLegalRag = async (
   }
 
   // 2. Conversational Intent: Small Talk, Wellbeing, Gratitude, Farewell, Greeting
-  const smallTalk = classifySmallTalk(query);
+  const smallTalk = classifySmallTalk(cleanQuery) || classifySmallTalk(query);
   if (smallTalk.matched) {
     let reply = '';
     let suggestions = ['Đăng ký khai sinh', 'Đăng ký kết hôn', 'Đăng ký thường trú (CT01)', 'Xem 40 thủ tục'];
@@ -373,7 +396,7 @@ export const askLegalRag = async (
   }
 
   // 2. Pre-filter: Out-of-scope inquiry (Strictly <= 2 concise sentences with direct guidance)
-  const outOfScopeCheck = checkOutOfScopeQuery(query);
+  const outOfScopeCheck = checkOutOfScopeQuery(cleanQuery) || checkOutOfScopeQuery(query);
   if (outOfScopeCheck.isOutOfScope) {
     const authority = outOfScopeCheck.authority;
     const answer = authority
@@ -395,7 +418,7 @@ export const askLegalRag = async (
   }
 
   // 3. Pre-filter: Ward Office Information & Real-Time Working Hours / Weekend Check
-  if (isWardOfficeQuery(query)) {
+  if (isWardOfficeQuery(cleanQuery) || isWardOfficeQuery(query)) {
     const rt = getRealTimeScheduleContext();
     return {
       answer:
@@ -420,8 +443,8 @@ export const askLegalRag = async (
   }
 
   // 3.1. Contextual Query Rewriting for Follow-up Inquiries
-  let effectiveQuery = query;
-  if (conversationHistory.length > 0 && isFollowUpQuestion(query)) {
+  let effectiveQuery = cleanQuery;
+  if (conversationHistory.length > 0 && (isFollowUpQuestion(cleanQuery) || isFollowUpQuestion(query))) {
     for (let i = conversationHistory.length - 1; i >= Math.max(0, conversationHistory.length - 5); i--) {
       const turn = conversationHistory[i];
       let proc = mapProcedureCodeToName(turn.procedureCode);
@@ -429,34 +452,43 @@ export const askLegalRag = async (
         proc = extractProcedureFromText(turn.text);
       }
       if (proc) {
-        effectiveQuery = `[Thủ tục ${proc}] ${query}`;
+        effectiveQuery = `[Thủ tục ${proc}] ${cleanQuery}`;
         break;
       }
     }
   }
 
-  // 4. Attempt to invoke Spring Boot Backend (/api/v1/rag/ask)
+  // 4. Attempt to invoke Spring Boot Backend (/api/v1/rag/ask) with fast 3500ms timeout for cold start resilience
   try {
     const historyPayload = conversationHistory.slice(-5).map(h => ({
       role: h.sender === 'citizen' || h.sender === 'user' ? 'citizen' : 'assistant',
       content: h.text,
       procedureCode: h.procedureCode
     }));
-    const resp = await api.post<any>('/rag/ask', {
-      question: effectiveQuery,
-      query: effectiveQuery,
-      topK,
-      wardName: wardContext.wardName,
-      officeAddress: wardContext.officeAddress,
-      history: historyPayload
-    });
+    const resp = await api.post<any>(
+      '/rag/ask',
+      {
+        question: effectiveQuery,
+        query: effectiveQuery,
+        topK,
+        wardName: wardContext.wardName,
+        officeAddress: wardContext.officeAddress,
+        history: historyPayload
+      },
+      {
+        timeout: 3500 // Fast 3.5s timeout: if Render container is in cold start, fall back to 40 TTHC local engine immediately
+      }
+    );
     const result = resp.data?.data ? resp.data.data : resp.data;
-    if (result && result.answer && !result.abstained) {
+    if (result && result.answer) {
       return result as RagResponse;
     }
-    console.info('Backend abstained, attempting in-app legal knowledge fallback for query:', effectiveQuery);
+    console.info('Backend did not return answer, attempting in-app legal knowledge fallback for query:', effectiveQuery);
   } catch (backendError: any) {
-    // 5. If Backend is offline, check if Gemini Live RAG is configured
+    console.warn('Backend call failed or timed out (Render cold-start), executing in-app fallback:', backendError);
+  }
+
+  // 5. If Backend is offline or returned no answer, check if Gemini Live RAG is configured
     if (isGeminiConfigured()) {
       try {
         console.info('Invoking in-app Gemini Flash Live RAG Engine with Project Knowledge...');
@@ -467,30 +499,16 @@ export const askLegalRag = async (
     }
 
     // 6. Local Intelligent Fallback Simulation (Unified Knowledge Base & Resilience)
-    let normalizedQuery = effectiveQuery.toLowerCase();
+    let normalizedQuery = normalizeVietnameseQuery(effectiveQuery);
     if (normalizedQuery.includes('cư trú') && normalizedQuery.includes('tthc-ct-01')) {
       normalizedQuery = normalizedQuery.replaceAll('tthc-ct-01', 'mẫu ct01');
     }
-    normalizedQuery = normalizedQuery
-      .replaceAll('giấy khai sanh', 'giấy khai sinh')
-      .replaceAll('chứng sanh', 'chứng sinh')
-      .replaceAll('khai sanh', 'khai sinh')
-      .replaceAll('sanh con', 'sinh con')
-      .replaceAll('mới sanh', 'mới sinh')
-      .replaceAll(/\bsanh\b/g, 'sinh')
-      .replaceAll('mần giấy giá thú', 'đăng ký kết hôn')
-      .replaceAll('giá thú', 'kết hôn')
-      .replaceAll('hôn thư', 'kết hôn')
-      .replaceAll('chế độ tiền già', 'trợ cấp xã hội người cao tuổi')
-      .replaceAll('lãnh tiền già', 'trợ cấp xã hội người cao tuổi')
-      .replaceAll('tiền già', 'trợ cấp xã hội người cao tuổi')
-      .replaceAll('mần giấy tử', 'khai tử')
-      .replaceAll('chứng giấy tờ', 'chứng thực sao y')
-      .replaceAll('chứng giấy', 'chứng thực sao y')
-      .replaceAll('mần giấy', 'chứng thực sao y');
 
-    const searchResult = searchLegalKnowledge(normalizedQuery, 3);
-    if (searchResult.isInScope && searchResult.items.length > 0) {
+    const searchResult = searchLegalKnowledge(normalizedQuery, 3, currentWardName);
+    const { decision } = searchResult;
+
+    // 6.1. CONFIDENT MATCH (S_max >= 0.60 && Gap >= 0.12)
+    if (decision.status === 'CONFIDENT' && searchResult.items.length > 0) {
       const primaryItem = searchResult.items[0];
       const answer = buildStructuredProcedureResponse(
         primaryItem,
@@ -505,7 +523,7 @@ export const askLegalRag = async (
         title: `${item.name} - ${item.category}`,
         legalReference: item.legalBasis,
         content: item.keyRules.join(' '),
-        relevanceScore: searchResult.maxScore,
+        relevanceScore: decision.maxScore,
       }));
 
       const suggestions = getProcedureSuggestions(primaryItem.name);
@@ -513,8 +531,8 @@ export const askLegalRag = async (
       return {
         answer,
         abstained: false,
-        maxSimilarity: searchResult.maxScore,
-        appliedThreshold: 0.78,
+        maxSimilarity: decision.maxScore,
+        appliedThreshold: 0.60,
         responseTimeMs: 15.0,
         cached: true,
         disclaimer: mandatoryDisclaimer,
@@ -523,8 +541,75 @@ export const askLegalRag = async (
       };
     }
 
-    // Unmatched General Inquiry - Enqueue into Officer HITL Gray-Zone Queue & polite prompt
-    if (typeof window !== 'undefined' && query.trim().length >= 8) {
+    // 6.2. AMBIGUOUS MATCH (Gap < 0.12) - Chủ động hỏi lại công dân để xác nhận
+    if (decision.status === 'AMBIGUOUS' && decision.top1 && decision.top2) {
+      const top1 = decision.top1.item;
+      const top2 = decision.top2.item;
+
+      // Log và đẩy vào HITL Gray-zone queue
+      if (typeof window !== 'undefined' && query.trim().length >= 4) {
+        try {
+          const rawHitl = localStorage.getItem('smartward_hitl_queue_v1');
+          const currentQueue: HitlGrayZoneItem[] = rawHitl ? JSON.parse(rawHitl) : DEFAULT_FALLBACK_HITL_QUEUE;
+          const alreadyExists = currentQueue.some(
+            (i) => i.query.trim().toLowerCase() === query.trim().toLowerCase()
+          );
+          if (!alreadyExists) {
+            const newHitl: HitlGrayZoneItem = {
+              id: `HITL-AMB-${Math.floor(1000 + Math.random() * 9000)}`,
+              query: query.trim(),
+              wardName: `UBND ${currentWardName}`,
+              similarityScore: Number(decision.maxScore.toFixed(3)),
+              candidateChunkCode: top1.code,
+              candidateProcedureName: `${top1.name} / ${top2.name}`,
+              legalReference: `${top1.legalBasis} | ${top2.legalBasis}`,
+              suggestedAnswer: decision.clarifyingQuestion || `Làm rõ ý định giữa ${top1.name} và ${top2.name}`,
+              status: 'PENDING',
+              createdAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+              resolvedBy: null,
+            };
+            localStorage.setItem('smartward_hitl_queue_v1', JSON.stringify([newHitl, ...currentQueue].slice(0, 40)));
+          }
+        } catch {
+          // ignore storage errors
+        }
+      }
+
+      return {
+        answer: decision.clarifyingQuestion || `Bạn đang hỏi về ${top1.name} hay ${top2.name}?`,
+        abstained: true,
+        abstentionReason: decision.reason,
+        maxSimilarity: decision.maxScore,
+        appliedThreshold: 0.60,
+        responseTimeMs: 15.0,
+        cached: false,
+        disclaimer: mandatoryDisclaimer,
+        citations: [
+          {
+            chunkCode: `${top1.code}_CHK_001`,
+            procedureCode: top1.code,
+            procedureName: top1.name,
+            title: top1.name,
+            legalReference: top1.legalBasis,
+            content: top1.keyRules.join(' '),
+            relevanceScore: decision.top1.score,
+          },
+          {
+            chunkCode: `${top2.code}_CHK_001`,
+            procedureCode: top2.code,
+            procedureName: top2.name,
+            title: top2.name,
+            legalReference: top2.legalBasis,
+            content: top2.keyRules.join(' '),
+            relevanceScore: decision.top2.score,
+          },
+        ],
+        suggestions: decision.clarifyingSuggestions || [`👉 ${top1.name}`, `👉 ${top2.name}`, '📋 Danh mục 40 thủ tục'],
+      };
+    }
+
+    // 6.3. ABSTAIN MATCH (S_max < 0.60 hoặc câu hỏi vô nghĩa/ngoài phạm vi)
+    if (typeof window !== 'undefined' && query.trim().length >= 4) {
       try {
         const rawHitl = localStorage.getItem('smartward_hitl_queue_v1');
         const currentQueue: HitlGrayZoneItem[] = rawHitl ? JSON.parse(rawHitl) : DEFAULT_FALLBACK_HITL_QUEUE;
@@ -532,14 +617,15 @@ export const askLegalRag = async (
           (i) => i.query.trim().toLowerCase() === query.trim().toLowerCase()
         );
         if (!alreadyExists) {
+          const topItem = decision.top1?.item;
           const newHitl: HitlGrayZoneItem = {
-            id: `HITL-LIVE-${Math.floor(1000 + Math.random() * 9000)}`,
+            id: `HITL-LOW-${Math.floor(1000 + Math.random() * 9000)}`,
             query: query.trim(),
             wardName: `UBND ${currentWardName}`,
-            similarityScore: Number((searchResult.maxScore || 0.58).toFixed(3)),
-            candidateChunkCode: searchResult.items[0]?.code || 'TTHC-HT-01',
-            candidateProcedureName: searchResult.items[0]?.name || 'Thủ tục hành chính cấp xã',
-            legalReference: searchResult.items[0]?.legalBasis || 'Nghị định 61/2018/NĐ-CP về cơ chế Một cửa',
+            similarityScore: Number(decision.maxScore.toFixed(3)),
+            candidateChunkCode: topItem?.code || 'TTHC-HT-01',
+            candidateProcedureName: topItem?.name || 'Thủ tục hành chính cấp xã',
+            legalReference: topItem?.legalBasis || 'Nghị định 61/2018/NĐ-CP về cơ chế Một cửa',
             suggestedAnswer:
               `1. TÓM TẮT HƯỚNG DẪN: Đối với câu hỏi "${query.trim()}", công dân thực hiện tại Bộ phận Một cửa UBND ${currentWardName}.\n` +
               `2. THÀNH PHẦN HỒ SƠ: Xuất trình CCCD gắn chip (hoặc VNeID mức 2) và tờ khai mẫu quy định.\n` +
@@ -548,7 +634,7 @@ export const askLegalRag = async (
             createdAt: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
             resolvedBy: null,
           };
-          localStorage.setItem('smartward_hitl_queue_v1', JSON.stringify([newHitl, ...currentQueue].slice(0, 30)));
+          localStorage.setItem('smartward_hitl_queue_v1', JSON.stringify([newHitl, ...currentQueue].slice(0, 40)));
         }
       } catch {
         // ignore storage errors
@@ -557,19 +643,23 @@ export const askLegalRag = async (
 
     return {
       answer:
-        `Hệ thống SmartWard AI đã chuyển câu hỏi của bà con vào **Hàng đợi Cán bộ Một cửa (${currentWardName})** để kiểm duyệt chính xác. ` +
-        `Trong lúc chờ cán bộ xác thực, bà con có thể chọn nhanh tên thủ tục bên dưới (ví dụ: "đăng ký khai sinh", "đăng ký kết hôn", "mẫu CT01") hoặc liên hệ đường dây nóng ${currentPhone}.`,
+        decision.abstentionMessage ||
+        `Hệ thống chưa chắc chắn về câu hỏi này (${decision.reason}). Bà con vui lòng mô tả rõ hơn hoặc chọn đúng thủ tục từ danh mục 40 TTHC bên dưới.`,
       abstained: true,
-      abstentionReason: 'Câu hỏi thuộc vùng xám ngữ nghĩa — đã chuyển lên Bàn Cán Bộ Một Cửa để xác thực.',
-      maxSimilarity: searchResult.maxScore,
-      appliedThreshold: 0.78,
-      responseTimeMs: 10.0,
+      abstentionReason: decision.reason,
+      maxSimilarity: decision.maxScore,
+      appliedThreshold: 0.60,
+      responseTimeMs: 15.0,
       cached: false,
       disclaimer: mandatoryDisclaimer,
       citations: [],
-      suggestions: ['Đăng ký khai sinh', 'Đăng ký kết hôn', 'Đăng ký thường trú (CT01)', 'Xem 40 thủ tục'],
+      suggestions: decision.clarifyingSuggestions || [
+        '👶 Đăng ký khai sinh',
+        '💍 Đăng ký kết hôn',
+        '🏠 Đăng ký thường trú (CT01)',
+        '📋 Xem 40 thủ tục',
+      ],
     };
-  }
 };
 
 // 2. Form Precheck Types & API
@@ -604,6 +694,7 @@ export interface SubmitDossierPayload {
   formData: Record<string, any>;
   precheckReport?: Record<string, any>;
   vaultDocIds?: string[];
+  idempotencyKey?: string;
 }
 
 export interface DossierSubmissionResponse {
@@ -612,6 +703,16 @@ export interface DossierSubmissionResponse {
   wardCode: string;
   status: string;
   slaDeadline: string;
+  createdAt: string;
+}
+
+export interface DossierTimelineEvent {
+  id: number;
+  dossierCode: string;
+  who: string;
+  fromStatus?: string;
+  toStatus: string;
+  reason?: string;
   createdAt: string;
 }
 
@@ -629,6 +730,7 @@ export interface DossierTrackingResponse {
   vaultDocIds?: string[];
   createdAt: string;
   updatedAt: string;
+  timeline?: DossierTimelineEvent[];
 }
 
 export interface OfficerReviewPayload {
@@ -659,12 +761,29 @@ export interface OfficerDossierItem {
 }
 
 /**
- * Submit citizen dossier to PostgreSQL backend
+ * Submit citizen dossier to PostgreSQL backend with Idempotency Key (7.4)
  */
 export const submitDossier = async (payload: SubmitDossierPayload): Promise<DossierSubmissionResponse> => {
-  const resp = await api.post<any>('/dossiers', payload);
+  const idempotencyKey = payload.idempotencyKey || `IDEMP_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  const enrichedPayload = { ...payload, idempotencyKey };
+  const resp = await api.post<any>('/dossiers', enrichedPayload, {
+    headers: {
+      'Idempotency-Key': idempotencyKey,
+    },
+  });
   const data = resp.data?.data ? resp.data.data : resp.data;
   return data as DossierSubmissionResponse;
+};
+
+/**
+ * Submit citizen RAG answer feedback (useful / not useful) (7.4)
+ */
+export const submitRagFeedback = async (query: string, useful: boolean, comments?: string): Promise<void> => {
+  try {
+    await api.post('/rag/feedback', { query, useful, comments });
+  } catch {
+    // non-blocking
+  }
 };
 
 /**
@@ -675,11 +794,18 @@ export const trackDossier = async (
   last4Cccd?: string,
   citizenCccd?: string
 ): Promise<DossierTrackingResponse> => {
-  const params: Record<string, string> = { dossierCode: dossierCode.trim() };
-  if (last4Cccd) params.last4Cccd = last4Cccd.trim();
-  if (citizenCccd) params.citizenCccd = citizenCccd.trim();
+  const cleanCode = dossierCode.trim();
+  const cleanLast4 = (last4Cccd && last4Cccd.trim().length === 4)
+    ? last4Cccd.trim()
+    : (citizenCccd && citizenCccd.trim().length >= 4
+        ? citizenCccd.trim().substring(citizenCccd.trim().length - 4)
+        : (last4Cccd || '').trim());
 
-  const resp = await api.get<any>('/dossiers/track', { params });
+  // SEC-04: Secure dossier tracking via POST body with 4-digit last4Cccd
+  const resp = await api.post<any>('/dossiers/track', {
+    dossierCode: cleanCode,
+    last4Cccd: cleanLast4,
+  });
   const data = resp.data?.data ? resp.data.data : resp.data;
   return data as DossierTrackingResponse;
 };
@@ -801,8 +927,22 @@ export const getLiveSubmittedDossiers = (): LiveFormDossier[] => {
 export function saveLiveSubmittedDossier(dossier: LiveFormDossier) {
   if (typeof window === 'undefined') return;
   try {
+    // SEC-P3: Strip PII before persisting to local storage (7.3)
+    const cleanCccd = dossier.cccd ? (dossier.cccd.length >= 4 ? '********' + dossier.cccd.slice(-4) : '***') : '';
+    const sanitized: LiveFormDossier = {
+      ...dossier,
+      cccd: cleanCccd,
+      contactPhone: undefined,
+      citizenEmail: undefined,
+      vaultToken: undefined,
+      details: {
+        ...dossier.details,
+        address: '',
+        vaultToken: undefined,
+      },
+    };
     const existing = getLiveSubmittedDossiers();
-    const updated = [dossier, ...existing.filter((d) => d.id !== dossier.id)].slice(0, 50);
+    const updated = [sanitized, ...existing.filter((d) => d.id !== dossier.id)].slice(0, 50);
     localStorage.setItem(LIVE_DOSSIERS_STORAGE_KEY, JSON.stringify(updated));
   } catch {
     // ignore storage errors
@@ -846,15 +986,6 @@ export function updateLiveDossierStatus(
 export function consumeLiveDossierVaultToken(id: string): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    const usedKey = 'smartward_consumed_vault_tokens_v1';
-    const rawUsed = localStorage.getItem(usedKey);
-    const usedIds: string[] = rawUsed ? JSON.parse(rawUsed) : [];
-    if (usedIds.includes(id)) {
-      return false; // Already consumed!
-    }
-    usedIds.push(id);
-    localStorage.setItem(usedKey, JSON.stringify(usedIds));
-
     const existing = getLiveSubmittedDossiers();
     const next = existing.map((d) => (d.id === id ? { ...d, vaultViewUsed: true } : d));
     localStorage.setItem(LIVE_DOSSIERS_STORAGE_KEY, JSON.stringify(next));
@@ -864,16 +995,9 @@ export function consumeLiveDossierVaultToken(id: string): boolean {
   }
 }
 
-export function isVaultTokenConsumedForDossier(id: string): boolean {
-  if (typeof window === 'undefined') return false;
-  try {
-    const usedKey = 'smartward_consumed_vault_tokens_v1';
-    const rawUsed = localStorage.getItem(usedKey);
-    const usedIds: string[] = rawUsed ? JSON.parse(rawUsed) : [];
-    return usedIds.includes(id);
-  } catch {
-    return false;
-  }
+export function isVaultTokenConsumedForDossier(_id: string): boolean {
+  // P3: Authoritative consumption state is returned by the server API (HTTP 410) (7.3)
+  return false;
 }
 
 export const precheckForm = async (data: {
@@ -887,47 +1011,6 @@ export const precheckForm = async (data: {
   address: string;
   formData: Record<string, string>;
 }): Promise<FormPrecheckResponse> => {
-  const persistDossierToOfficerQueue = (res: FormPrecheckResponse) => {
-    const rawType = (data.formType || 'CT01').toUpperCase();
-    const formLabel: LiveFormDossier['formType'] =
-      rawType === 'TK-KS'
-        ? 'Khai sinh'
-        : rawType === 'TK-KH'
-        ? 'Kết hôn'
-        : rawType === 'TK-BTXH'
-        ? 'Bảo trợ'
-        : 'CT01';
-    const procLabel =
-      rawType === 'TK-KS'
-        ? 'Đăng ký khai sinh & đối chiếu Giấy chứng sinh'
-        : rawType === 'TK-KH'
-        ? 'Đăng ký kết hôn & Xác nhận độc thân'
-        : rawType === 'TK-BTXH'
-        ? 'Trợ cấp Bảo trợ xã hội hằng tháng (NĐ 20/2021)'
-        : 'Tờ khai thay đổi thông tin cư trú (Mẫu CT01)';
-    const issues = (res.fieldValidations || [])
-      .filter((f) => !f.valid && f.errorMessage)
-      .map((f) => `${f.fieldName}: ${f.errorMessage}`);
-    const nowTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-    saveLiveSubmittedDossier({
-      id: `${rawType}-${Math.floor(1000 + Math.random() * 9000)}`,
-      citizenName: (data.fullName || 'CÔNG DÂN KÊ KHAI').toUpperCase(),
-      procedure: procLabel,
-      formType: formLabel,
-      submittedAt: `Vừa kiểm tra (${nowTime})`,
-      status: res.overallValid ? 'VALID' : 'HAS_ERRORS',
-      cccd: data.citizenCccd || 'Chưa điền',
-      errorCount: issues.length,
-      details: {
-        dob: data.dateOfBirth || 'Chưa cung cấp',
-        gender: data.gender || 'Nam',
-        address: data.address || 'Tỉnh An Giang',
-        confidence: 98.8,
-        issues,
-      },
-    });
-  };
-
   try {
     const resp = await api.post<any>('/forms/precheck', data);
     const raw = resp.data?.data ?? resp.data;
@@ -952,10 +1035,9 @@ export const precheckForm = async (data: {
       processedAt: raw.processedAt || new Date().toISOString(),
       processingTimeMs: Number(raw.processingTimeMs ?? 12.4),
     };
-    persistDossierToOfficerQueue(normalized);
     return normalized;
   } catch {
-    // Client-side Deterministic Rule Engine Simulation across 4 Core Administrative Forms
+    // Client-side Deterministic Rule Engine Simulation across 4 Core Administrative Forms (7.2 Offline Draft)
     const fieldValidations: FieldValidation[] = [];
     const warnings: string[] = [];
     const formType = (data.formType || 'CT01').toUpperCase();
@@ -1273,18 +1355,21 @@ export const precheckForm = async (data: {
       );
     }
 
-    const overallValid = fieldValidations.every((f) => f.valid);
+    const overallValid = false; // Strict P3 (7.2): Offline mode never self-certifies valid
 
     const fallbackResponse: FormPrecheckResponse = {
-      submissionId: 'sub_' + Math.random().toString(36).substring(2, 10),
+      submissionId: 'DRAFT_' + Math.random().toString(36).substring(2, 10).toUpperCase(),
       procedureCode: data.procedureCode || 'TTHC-CT-01',
       overallValid,
       fieldValidations,
-      warnings,
+      warnings: [
+        '[CHẾ ĐỘ NGOẠI TUYẾN] Thiết bị hiện mất kết nối máy chủ. Báo cáo này chỉ là bản nháp nội bộ và CHƯA ĐƯỢC MÁY CHỦ XÁC THỰC.',
+        'Hệ thống không tự động nộp hồ sơ vào hàng đợi cán bộ khi chưa có xác thực từ máy chủ theo quy định.',
+        ...warnings,
+      ],
       processedAt: new Date().toISOString(),
-      processingTimeMs: 9.8,
+      processingTimeMs: 0,
     };
-    persistDossierToOfficerQueue(fallbackResponse);
     return fallbackResponse;
   }
 };
@@ -1734,37 +1819,15 @@ const DEFAULT_FALLBACK_HITL_QUEUE: HitlGrayZoneItem[] = [
 ];
 
 export const getHitlQueue = async (): Promise<HitlGrayZoneItem[]> => {
-  const getLocalHitl = (): HitlGrayZoneItem[] => {
-    if (typeof window === 'undefined') return DEFAULT_FALLBACK_HITL_QUEUE;
-    try {
-      const raw = localStorage.getItem('smartward_hitl_queue_v1');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-      localStorage.setItem('smartward_hitl_queue_v1', JSON.stringify(DEFAULT_FALLBACK_HITL_QUEUE));
-    } catch {
-      // ignore
-    }
-    return DEFAULT_FALLBACK_HITL_QUEUE;
-  };
-
   try {
     const resp = await api.get<any>('/rag/hitl-queue');
     const items = resp.data?.data ? resp.data.data : resp.data;
-    const localItems = getLocalHitl();
     if (Array.isArray(items) && items.length > 0) {
-      const merged = [
-        ...localItems.filter((l) => l.id.startsWith('HITL-LIVE-') || l.status === 'APPROVED'),
-        ...(items as HitlGrayZoneItem[]).filter(
-          (srv) => !localItems.some((l) => l.id === srv.id)
-        ),
-      ];
-      return merged;
+      return items as HitlGrayZoneItem[];
     }
-    return localItems;
+    return DEFAULT_FALLBACK_HITL_QUEUE;
   } catch {
-    return getLocalHitl();
+    return DEFAULT_FALLBACK_HITL_QUEUE;
   }
 };
 
@@ -1773,19 +1836,18 @@ export const resolveHitlItem = async (
   approvedAnswer: string,
   officerName: string
 ): Promise<HitlGrayZoneItem> => {
-  const persistResolvedLocally = (resolved: HitlGrayZoneItem) => {
-    if (typeof window === 'undefined') return;
-    try {
-      const raw = localStorage.getItem('smartward_hitl_queue_v1');
-      const current: HitlGrayZoneItem[] = raw ? JSON.parse(raw) : DEFAULT_FALLBACK_HITL_QUEUE;
-      const exists = current.some((i) => i.id === id);
-      const next = exists
-        ? current.map((i) => (i.id === id ? resolved : i))
-        : [resolved, ...current];
-      localStorage.setItem('smartward_hitl_queue_v1', JSON.stringify(next));
-    } catch {
-      // ignore
-    }
+  const fallbackItem: HitlGrayZoneItem = {
+    id,
+    query: 'Câu hỏi vùng xám cần phê duyệt',
+    wardName: 'UBND Cấp Xã',
+    similarityScore: 0.65,
+    candidateChunkCode: 'TTHC-RESOLVED',
+    candidateProcedureName: 'Thủ tục hành chính',
+    legalReference: 'Quy định pháp luật hiện hành',
+    suggestedAnswer: approvedAnswer,
+    status: 'APPROVED',
+    createdAt: new Date().toISOString(),
+    resolvedBy: officerName,
   };
 
   try {
@@ -1794,30 +1856,9 @@ export const resolveHitlItem = async (
       officerName,
     });
     const resItem = (resp.data?.data ? resp.data.data : resp.data) as HitlGrayZoneItem;
-    persistResolvedLocally(resItem);
-    return resItem;
+    return resItem || fallbackItem;
   } catch {
-    let baseItem = DEFAULT_FALLBACK_HITL_QUEUE.find((i) => i.id === id);
-    if (!baseItem && typeof window !== 'undefined') {
-      try {
-        const raw = localStorage.getItem('smartward_hitl_queue_v1');
-        if (raw) {
-          const list: HitlGrayZoneItem[] = JSON.parse(raw);
-          baseItem = list.find((i) => i.id === id);
-        }
-      } catch {
-        // ignore
-      }
-    }
-    const resolved: HitlGrayZoneItem = {
-      ...(baseItem || DEFAULT_FALLBACK_HITL_QUEUE[0]),
-      id,
-      suggestedAnswer: approvedAnswer,
-      status: 'APPROVED',
-      resolvedBy: officerName,
-    };
-    persistResolvedLocally(resolved);
-    return resolved;
+    return fallbackItem;
   }
 };
 

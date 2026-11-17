@@ -67,14 +67,75 @@ public class QueryCacheService {
     }
 
     /**
-     * Normalizes query and generates an MD5/SHA-256 cache key.
+     * Normalizes query and generates an SHA-256 cache key.
      */
     public String buildCacheKey(String query) {
-        String normalized = query == null ? "" : query.toLowerCase()
+        if (query != null && query.startsWith(CACHE_PREFIX)) {
+            return query;
+        }
+        return buildCacheKey(query, null, null);
+    }
+
+    /**
+     * Overloaded cache key builder incorporating wardName and category into SHA-256 hash.
+     */
+    public String buildCacheKey(String query, String wardName, String category) {
+        return buildCacheKey(query, null, wardName, category);
+    }
+
+    /**
+     * SEC-05: Scoped cache key builder incorporating wardCode, wardName, and category into SHA-256 hash.
+     * Prevents cache leakage across different administrative wards.
+     */
+    public String buildCacheKey(String query, String wardCode, String wardName, String category) {
+        String normQuery = query == null ? "" : query.toLowerCase()
                 .replaceAll("\\p{Punct}", "")
                 .replaceAll("\\s+", " ")
                 .trim();
-        return CACHE_PREFIX + hashString(normalized);
+        String normWardCode = wardCode == null ? "" : wardCode.trim().toUpperCase();
+        String normWard = wardName == null ? "" : wardName.toLowerCase()
+                .replaceAll("\\p{Punct}", "")
+                .replaceAll("\\s+", " ")
+                .trim();
+        String normCategory = category == null ? "" : category.toLowerCase()
+                .replaceAll("\\p{Punct}", "")
+                .replaceAll("\\s+", " ")
+                .trim();
+
+        StringBuilder sb = new StringBuilder(normQuery);
+        if (!normWardCode.isEmpty()) {
+            sb.append("::wardCode=").append(normWardCode);
+        }
+        if (!normWard.isEmpty()) {
+            sb.append("::wardName=").append(normWard);
+        }
+        if (!normCategory.isEmpty()) {
+            sb.append("::category=").append(normCategory);
+        }
+        return CACHE_PREFIX + hashString(sb.toString());
+    }
+
+    /**
+     * Retrieves cached RAG response for scoped query, ward, and category.
+     */
+    public <T> Optional<T> getCachedResponse(String query, String wardName, String category, Class<T> targetClass) {
+        String cacheKey = buildCacheKey(query, wardName, category);
+        return getCachedResponse(cacheKey, targetClass);
+    }
+
+    /**
+     * Stores a response in Redis cache for scoped query, ward, and category with default TTL.
+     */
+    public void putResponse(String query, String wardName, String category, Object response) {
+        putResponse(query, wardName, category, response, DEFAULT_TTL_SECONDS);
+    }
+
+    /**
+     * Stores a response in Redis cache for scoped query, ward, and category with explicit TTL.
+     */
+    public void putResponse(String query, String wardName, String category, Object response, long ttlSeconds) {
+        String cacheKey = buildCacheKey(query, wardName, category);
+        putResponse(cacheKey, response, ttlSeconds);
     }
 
     private String hashString(String input) {

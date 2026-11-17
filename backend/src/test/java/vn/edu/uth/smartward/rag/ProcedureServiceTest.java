@@ -49,8 +49,8 @@ class ProcedureServiceTest {
                 .build();
 
         when(procedureRepository.searchProcedures(any(), any())).thenReturn(List.of(proc1));
-        when(chunkRepository.findByProcedureId(1L)).thenReturn(List.of(
-                LegalChunk.builder().id(101L).chunkCode("TTHC-HT-01_CHUNK_001").build()
+        when(chunkRepository.countChunksByProcedure()).thenReturn(List.<Object[]>of(
+                new Object[]{1L, 1L}
         ));
 
         List<ProcedureDto> result = procedureService.getProcedures("Hộ tịch", "khai sinh");
@@ -62,6 +62,8 @@ class ProcedureServiceTest {
         assertEquals("Thủ tục đăng ký khai sinh", dto.getProcedureName());
         assertEquals(1, dto.getChunksCount());
         verify(procedureRepository, times(1)).searchProcedures("Hộ tịch", "khai sinh");
+        verify(chunkRepository, times(1)).countChunksByProcedure();
+        verify(chunkRepository, never()).findByProcedureId(anyLong());
     }
 
     @Test
@@ -119,5 +121,32 @@ class ProcedureServiceTest {
         );
 
         assertEquals(ErrorCode.INVALID_REQUEST, ex.getErrorCode());
+    }
+
+    @Test
+    void testReindexProcedures_idempotent() {
+        AdminProcedure proc = AdminProcedure.builder()
+                .id(1L)
+                .procedureCode("TTHC-HT-01")
+                .procedureName("Thủ tục đăng ký khai sinh")
+                .build();
+
+        LegalChunk chunk = LegalChunk.builder()
+                .id(101L)
+                .procedure(proc)
+                .chunkCode("TTHC-HT-01_CHK_001")
+                .content("Nội dung thủ tục khai sinh")
+                .embedding("[0.1, 0.2]")
+                .embeddingModel("bkai_pho_bert_ft_v1")
+                .build();
+
+        when(procedureRepository.findByProcedureCode("TTHC-HT-01")).thenReturn(Optional.of(proc));
+        when(chunkRepository.findByProcedureId(1L)).thenReturn(List.of(chunk));
+
+        var result = procedureService.reindexProcedures("TTHC-HT-01", false);
+
+        assertNotNull(result);
+        assertEquals(1, result.get("totalChunks"));
+        assertEquals(1, result.get("reindexed"));
     }
 }

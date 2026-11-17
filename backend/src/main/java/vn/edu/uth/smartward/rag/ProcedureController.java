@@ -34,4 +34,14 @@ public class ProcedureController {
         ProcedureDetailDto result = procedureService.getProcedureByCode(code);
         return ResponseEntity.ok(ApiResponse.ok(result));
     }
+
+    @PostMapping("/reindex")
+    public ResponseEntity<ApiResponse<java.util.Map<String, Object>>> reindexProcedures(
+            @RequestParam(required = false) String procedureCode,
+            @RequestParam(defaultValue = "false") boolean forceAll
+    ) {
+        log.info("Admin request to reindex procedures: code='{}', forceAll={}", procedureCode, forceAll);
+        java.util.Map<String, Object> result = procedureService.reindexProcedures(procedureCode, forceAll);
+        return ResponseEntity.ok(ApiResponse.ok("Tái lập chỉ mục thủ tục hành chính thành công", result));
+    }
 }

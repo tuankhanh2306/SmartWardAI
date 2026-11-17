@@ -204,6 +204,13 @@ public class FormPrecheckService {
             }
         }
 
+        // Paperless exemption rule (Nghị định 309/2026/NĐ-CP):
+        // If citizen scanned QR CCCD or verified via VNeID, tag VERIFIED_VIA_VNEID_QR in response and provide exemption notice
+        boolean isVerifiedViaQr = req.isVerifiedViaVneidOrQr();
+        if (isVerifiedViaQr) {
+            warnings.add("VERIFIED_VIA_VNEID_QR: Công dân đã xác thực điện tử qua VNeID / quét mã QR CCCD gắn chip. Theo Nghị định 309/2026/NĐ-CP (sửa đổi NĐ 118/2025/NĐ-CP), công dân được MIỄN nộp bản sao chứng thực Căn cước công dân và Giấy xác nhận thông tin về cư trú (Mẫu CT07).");
+        }
+
         boolean hasBlockingConflict = crossCheckResults.stream().anyMatch(DocumentCrossCheckResult::isBlocking);
         boolean overallValid = validations.stream().allMatch(FieldValidationItem::isValid) && !hasBlockingConflict;
         double elapsedMs = Math.round(((System.nanoTime() - startNs) / 1_000_000.0) * 10.0) / 10.0;
@@ -238,6 +245,7 @@ public class FormPrecheckService {
                 .primaryCrossCheck(primaryCross)
                 .processedAt(LocalDateTime.now().toString())
                 .processingTimeMs(elapsedMs)
+                .verifiedViaVneidQr(isVerifiedViaQr)
                 .build();
     }
 
@@ -329,16 +337,84 @@ public class FormPrecheckService {
                     .build());
         }
 
-        // Kiểm tra điều kiện thuê / mượn / ở nhờ theo Thông tư 66/2023/TT-BCA và Luật Cư trú 2020
+        // Kiểm tra điều kiện cư trú theo Thông tư 116/2026/TT-BCA (Mẫu CT01 mới) & Nghị định 154/2024/NĐ-CP
         String hostRelation = req.getFieldValue(req.getHostRelation(), "hostRelation");
         String declarationScope = req.getFieldValue(req.getDeclarationScope(), "declarationScope");
         String hostName = req.getFieldValue(req.getHostName(), "hostName");
-        String hostCccd = req.getFieldValue(req.getHostCccd(), "hostCccd");
+        String hostCccd = req.getEffectiveHostCccd();
 
         String lowerRelation = hostRelation.toLowerCase();
         boolean isRentingOrBorrowing = lowerRelation.contains("thuê")
                 || lowerRelation.contains("mượn")
                 || lowerRelation.contains("ở nhờ");
+
+        boolean hasHostCccd = !hostCccd.isEmpty();
+
+        // Rule Engine TT 116/2026/TT-BCA: Nếu hostCccdNumber được cung cấp
+        if (hasHostCccd) {
+            String hostDob = req.getFieldValue(req.getHostBirthDate(), "hostBirthDate");
+            if (hostDob.isEmpty()) {
+                hostDob = req.getFieldValue("", "hostDob");
+            }
+            if (hostDob.isEmpty()) {
+                hostDob = req.getFieldValue("", "hostDateOfBirth");
+            }
+            String hostGender = req.getFieldValue(req.getHostGender(), "hostGender");
+
+            // 1. Kiểm tra 12 chữ số CCCD chủ hộ qua CccdValidator
+            List<FormValidationIssue> hostCccdIssues = cccdValidator.validate(hostCccd, hostDob.isEmpty() ? null : hostDob, hostGender.isEmpty() ? null : hostGender);
+            boolean hostCccdValid = hostCccdIssues.isEmpty();
+            validations.add(FieldValidationItem.builder()
+                    .fieldName("Số định danh cá nhân / CCCD 12 số của chủ hộ (Mục 11 Mẫu CT01)")
+                    .providedValue(hostCccd)
+                    .valid(hostCccdValid)
+                    .errorCode(hostCccdValid ? null : "INVALID_HOST_CCCD")
+                    .errorMessage(hostCccdValid ? null : (hostCccdIssues.isEmpty() ? "Số định danh cá nhân / CCCD của chủ hộ không hợp lệ." : hostCccdIssues.get(0).getMessage()))
+                    .confidenceScore(hostCccdValid ? 0.99 : 0.30)
+                    .build());
+
+            // 2. Kiểm tra độ tuổi chủ hộ >= 18 tuổi
+            Integer hostBirthYear = null;
+            if (!hostDob.isEmpty()) {
+                LocalDate parsedDob = parseFlexibleDate(hostDob);
+                if (parsedDob != null) {
+                    hostBirthYear = parsedDob.getYear();
+                }
+            }
+            if (hostBirthYear == null && hostCccd.matches("^\\d{12}$")) {
+                int centuryDigit = Character.getNumericValue(hostCccd.charAt(3));
+                int century = switch (centuryDigit) {
+                    case 0, 1 -> 1900;
+                    case 2, 3 -> 2000;
+                    case 4, 5 -> 2100;
+                    case 6, 7 -> 2200;
+                    case 8, 9 -> 2300;
+                    default -> 1900;
+                };
+                try {
+                    hostBirthYear = century + Integer.parseInt(hostCccd.substring(4, 6));
+                } catch (Exception ignored) {}
+            }
+
+            if (hostBirthYear != null) {
+                int currentYear = LocalDate.now().getYear();
+                int hostAge = currentYear - hostBirthYear;
+                boolean hostAgeValid = hostAge >= 18;
+                validations.add(FieldValidationItem.builder()
+                        .fieldName("Độ tuổi của chủ hộ / chủ sở hữu chỗ ở hợp pháp (Mục 11 Mẫu CT01 - Thông tư 116/2026/TT-BCA)")
+                        .providedValue(hostAge + " tuổi (năm sinh: " + hostBirthYear + ")")
+                        .valid(hostAgeValid)
+                        .errorCode(hostAgeValid ? null : "INVALID_HOST_AGE")
+                        .errorMessage(hostAgeValid ? null : "Chủ hộ / chủ sở hữu chỗ ở hợp pháp chưa đủ 18 tuổi (yêu cầu từ đủ 18 tuổi trở lên theo Thông tư 116/2026/TT-BCA và Luật Cư trú).")
+                        .confidenceScore(hostAgeValid ? 0.99 : 0.40)
+                        .build());
+            }
+
+            // 3. Nếu vneidHostConfirmed == true: Miễn nộp bản giấy ý kiến chủ hộ
+            if (req.isVneidHostConfirmed()) {
+                warnings.add("ĐÃ XÁC NHẬN QUA VNEID: Chủ hộ đã xác nhận đồng ý cho đăng ký cư trú trực tiếp trên ứng dụng VNeID theo Thông tư 116/2026/TT-BCA. Miễn nộp văn bản đồng ý bằng giấy có chữ ký của chủ hộ.");
+            }
+        }
 
         if (isRentingOrBorrowing) {
             // 1. Kiểm tra Họ tên chủ hộ / chủ sở hữu chỗ ở
@@ -352,17 +428,17 @@ public class FormPrecheckService {
                     .confidenceScore(hostNameValid ? 0.99 : 0.35)
                     .build());
 
-            // 2. Kiểm tra CCCD 12 số của chủ hộ
-            List<FormValidationIssue> hostCccdIssues = cccdValidator.validate(hostCccd, null, null);
-            boolean hostCccdValid = !hostCccd.isEmpty() && hostCccdIssues.isEmpty();
-            validations.add(FieldValidationItem.builder()
-                    .fieldName("Số định danh cá nhân / CCCD 12 số của chủ hộ (Mục 11)")
-                    .providedValue(hostCccd.isEmpty() ? "(Để trống)" : hostCccd)
-                    .valid(hostCccdValid)
-                    .errorCode(hostCccdValid ? null : "INVALID_HOST_CCCD")
-                    .errorMessage(hostCccdValid ? null : "Số định danh cá nhân / CCCD của chủ hộ phải đủ 12 chữ số hợp lệ theo quy định của Bộ Công an.")
-                    .confidenceScore(hostCccdValid ? 0.99 : 0.30)
-                    .build());
+            // 2. Nếu chưa có hostCccd (để trống)
+            if (!hasHostCccd) {
+                validations.add(FieldValidationItem.builder()
+                        .fieldName("Số định danh cá nhân / CCCD 12 số của chủ hộ (Mục 11)")
+                        .providedValue("(Để trống)")
+                        .valid(false)
+                        .errorCode("INVALID_HOST_CCCD")
+                        .errorMessage("Số định danh cá nhân / CCCD của chủ hộ phải đủ 12 chữ số hợp lệ theo quy định của Bộ Công an.")
+                        .confidenceScore(0.30)
+                        .build());
+            }
 
             // 3. Quan hệ với chủ hộ
             boolean relationValid = !hostRelation.isBlank();
@@ -386,9 +462,13 @@ public class FormPrecheckService {
                     .confidenceScore(scopeValid ? 0.99 : 0.40)
                     .build());
 
-            warnings.add("Lưu ý Mẫu CT01 (Thông tư 66/2023/TT-BCA): Trường hợp đăng ký thường trú, tạm trú tại chỗ ở thuê, mượn, ở nhờ bắt buộc phải có chữ ký đồng ý của chủ hộ và chủ sở hữu chỗ ở hợp pháp tại Mục 11, Mục 12 và hợp đồng thuê mượn chỗ ở theo Điều 20 Luật Cư trú 2020.");
-        } else {
-            warnings.add("Lưu ý Mẫu CT01 (Thông tư 66/2023/TT-BCA): Nếu đăng ký thường trú/tạm trú tại nhà thuê, mượn, ở nhờ phải có chữ ký đồng ý của chủ hộ và chủ sở hữu chỗ ở hợp pháp tại Mục 11, 12.");
+            if (req.isVneidHostConfirmed()) {
+                warnings.add("Lưu ý Mẫu CT01 (Thông tư 116/2026/TT-BCA): Chủ hộ đã xác nhận đồng ý qua ứng dụng VNeID, công dân được miễn nộp văn bản đồng ý bằng giấy.");
+            } else {
+                warnings.add("Lưu ý Mẫu CT01 (Thông tư 116/2026/TT-BCA): Trường hợp đăng ký thường trú, tạm trú tại chỗ ở thuê, mượn, ở nhờ bắt buộc phải có chữ ký đồng ý của chủ hộ và chủ sở hữu chỗ ở hợp pháp tại Mục 11, Mục 12 và hợp đồng thuê mượn chỗ ở theo Điều 20 Luật Cư trú 2020.");
+            }
+        } else if (!hasHostCccd) {
+            warnings.add("Lưu ý Mẫu CT01 (Thông tư 116/2026/TT-BCA): Nếu đăng ký thường trú/tạm trú tại nhà thuê, mượn, ở nhờ phải có chữ ký đồng ý của chủ hộ và chủ sở hữu chỗ ở hợp pháp tại Mục 11, 12.");
         }
     }
 

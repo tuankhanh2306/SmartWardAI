@@ -49,7 +49,7 @@ class OfficerRbacAdversarialTest {
     @Mock
     private RagQueryService ragQueryService;
 
-    private static final String TEST_JWT_SECRET = "SmartWardAI_DevTest_JwtSecret_32B_Key_Strict_Security!";
+    private static final String TEST_JWT_SECRET = "SmartWardAI_UnitTest_JwtSecret_32B_Key_Strict_Security!";
     private String validOfficerToken;
 
     @BeforeEach
@@ -164,8 +164,8 @@ class OfficerRbacAdversarialTest {
         @Test
         @DisplayName("Protected endpoints with valid token -> 200 OK")
         void protectedEndpoints_withValidToken_shouldSucceed() throws Exception {
-            // Dossier officer list
-            when(dossierService.getOfficerDossiers(eq("WARD-AG-01"), any()))
+            // Dossier officer list: SEC-09 enforces principal's wardCode (AG_P_LONGXUYEN) and ignores client ?wardCode=WARD-AG-01
+            when(dossierService.getOfficerDossiers(eq("AG_P_LONGXUYEN"), any()))
                     .thenReturn(List.of(OfficerDossierDto.builder()
                             .id(1L)
                             .dossierCode("HS-20261111-BENNGHE-0001")

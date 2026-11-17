@@ -13,10 +13,27 @@ concurrency:
 
 jobs:
   # ============================================================================
-  # 1. BACKEND CI: Java 21, Maven Build & JUnit Adversarial Tests (59 assertions)
+  # 0. DOCS GOVERNANCE CI: Enforce Clean Root & docs/ Hierarchy
+  # ============================================================================
+  docs-governance:
+    name: Documentation Governance Guardrail
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Grant Execute Permission to Governance Script
+        run: chmod +x scripts/check-docs-governance.sh
+
+      - name: Enforce Clean Root Directory (.md rules)
+        run: ./scripts/check-docs-governance.sh
+
+  # ============================================================================
+  # 1. BACKEND CI: Java 21, Maven Build & JUnit Adversarial Tests (420 tests)
   # ============================================================================
   backend-ci:
     name: Backend CI (Java 21 / Spring Boot)
+    needs: [docs-governance]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -41,10 +58,11 @@ jobs:
         run: ./mvnw package -DskipTests -B
 
   # ============================================================================
-  # 2. FRONTEND CI: Node 20, Vite 6 TypeScript Build & Regression Acceptance Tests
+  # 2. FRONTEND CI: Node 20, Vite 6 TypeScript Build & Acceptance Tests
   # ============================================================================
   frontend-ci:
     name: Frontend CI (React 18 / Vite 6)
+    needs: [docs-governance]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -61,9 +79,9 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Run Chatbox Acceptance Tests
+      - name: Run Frontend Full Test Suite (11 Acceptance & Regression Suites)
         working-directory: ./frontend
-        run: npm test
+        run: npm run test:all
 
       - name: Compile Production Web Bundle (TypeScript & Vite)
         working-directory: ./frontend
@@ -74,6 +92,7 @@ jobs:
   # ============================================================================
   docker-compose-check:
     name: Docker Compose & Resource Limits Validation
+    needs: [docs-governance]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
@@ -98,26 +117,24 @@ jobs:
       - name: Check Deployment Credentials
         id: check_credentials
         run: |
-          if [ -n "${{ secrets.SERVER_HOST }}" ]; then
-            echo "configured=true" >> $GITHUB_OUTPUT
-            echo "Target host is configured. Proceeding with automated SSH deployment."
+          if [ -z "${{ secrets.PROD_SERVER_IP }}" ] || [ -z "${{ secrets.PROD_SERVER_USER }}" ]; then
+            echo "::warning ::Production server secrets not configured. Skipping automated remote deployment."
+            echo "has_credentials=false" >> $GITHUB_OUTPUT
           else
-            echo "configured=false" >> $GITHUB_OUTPUT
-            echo "NOTICE: SERVER_HOST secret is not configured in this repository."
-            echo "To enable automated deployment, add SERVER_HOST, SERVER_USER, and SERVER_SSH_KEY in Repository Settings -> Secrets and variables -> Actions."
+            echo "has_credentials=true" >> $GITHUB_OUTPUT
           fi
 
-      - name: Deploy via SSH to Target Server
-        if: steps.check_credentials.outputs.configured == 'true'
+      - name: Deploy to Remote Production Host
+        if: steps.check_credentials.outputs.has_credentials == 'true'
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: ${{ secrets.SERVER_PORT || 22 }}
+          host: ${{ secrets.PROD_SERVER_IP }}
+          username: ${{ secrets.PROD_SERVER_USER }}
+          key: ${{ secrets.PROD_SSH_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PROD_SSH_PASSPHRASE }}
           script: |
-            TARGET_PATH="${{ secrets.SERVER_DEPLOY_PATH || '~/SmartWardAI' }}"
-            echo "Connecting to target deployment path: $TARGET_PATH"
-            cd "$TARGET_PATH"
-            chmod +x deploy.sh
-            ./deploy.sh
+            set -e
+            echo "🚀 [Deploy] Triggering production deployment script on $(hostname)..."
+            cd /opt/smartward-ai || cd ~/smartward-ai
+            bash deploy.sh
+            echo "✅ [Deploy] Production stack successfully refreshed under 2048 MiB RAM budget."

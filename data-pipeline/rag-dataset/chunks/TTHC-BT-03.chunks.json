@@ -1,0 +1,70 @@
+[
+  {
+    "chunkId": "TTHC-BT-03_CHUNK_001",
+    "chunkCode": "TTHC-BT-03_CHUNK_001",
+    "procedureCode": "TTHC-BT-03",
+    "procedureName": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội",
+    "chunkType": "OVERVIEW",
+    "title": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội - Tổng quan, thời hạn & lệ phí",
+    "legalReference": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội - Tổng quan, thời hạn & lệ phí",
+    "breadcrumbs": [
+      "TTHC-BT-03",
+      "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội",
+      "Tổng quan, thời hạn & lệ phí"
+    ],
+    "content": "Thủ tục: Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội. Cơ quan có thẩm quyền giải quyết: Bộ Y tế. Thời hạn giải quyết: DIRECT: 05 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ | ONLINE: 05 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ | POSTAL: 05 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ. Mức phí/lệ phí: Theo quy định của HĐND cấp tỉnh/thành phố.",
+    "charCount": 400,
+    "estimatedTokens": 121
+  },
+  {
+    "chunkId": "TTHC-BT-03_CHUNK_002",
+    "chunkCode": "TTHC-BT-03_CHUNK_002",
+    "procedureCode": "TTHC-BT-03",
+    "procedureName": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội",
+    "chunkType": "PROCESS_STEP",
+    "title": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội - Trình tự giải quyết",
+    "legalReference": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội - Trình tự giải quyết",
+    "breadcrumbs": [
+      "TTHC-BT-03",
+      "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội",
+      "Trình tự giải quyết"
+    ],
+    "content": "- Bước 1: Đối tượng hoặc người giám hộ, nhân viên công tác xã hội chuẩn bị hồ sơ theo quy định gửi Chủ tịch Uỷ ban nhân dân xã, phường, đặc khu nơi cư trú (sau đây gọi chung là cấp xã).\n - Bước 2: Trong thời hạn 03 ngày làm việc, kể từ ngày nhận được hồ sơ của đối tượng, Chủ tịch Ủy ban nhân dân cấp xã thực hiện xác thực thông tin liên quan của đối tượng với Cơ sở dữ liệu quốc gia về dân cư, Cơ sở dữ liệu tổng hợp quốc gia, Cơ sở dữ liệu chuyên ngành dùng chung, xem xét điều kiện của đối tượng và có văn bản gửi cơ sở trợ giúp xã hội kèm theo hồ sơ của đối tượng. Trường hợp đối tượng không đủ điều kiện tiếp nhận chăm sóc, nuôi dưỡng tại cơ sở trợ giúp xã hội thì Chủ tịch Ủy ban nhân dân cấp xã trả lời bằng văn bản và nêu rõ lý do;\n - Bước 3: Trong thời hạn 02 ngày làm việc, kể từ ngày nhận được văn bản đề nghị của Chủ tịch Ủy ban nhân dân cấp xã và hồ sơ của đối tượng, người đứng đầu cơ sở trợ giúp xã hội xem xét, quyết định tiếp nhận đối tượng vào nuôi dưỡng, chăm sóc tại cơ sở trợ giúp xã hội hoặc cung cấp dịch vụ chăm sóc tại cộng đồng phù hợp.\n Trường hợp không đủ điều kiện chăm sóc, nuôi dưỡng tại cơ sở trợ giúp xã hội, thì trả lời bằng văn bản và nêu rõ lý do.\n - Việc tiếp nhận thủ tục hành chính không phụ thuộc vào địa giới hành chính thực hiện theo quy định của pháp luật về thực hiện thủ tục hành chính không phụ thuộc địa giới hành chính.",
+    "charCount": 1367,
+    "estimatedTokens": 408
+  },
+  {
+    "chunkId": "TTHC-BT-03_CHUNK_003",
+    "chunkCode": "TTHC-BT-03_CHUNK_003",
+    "procedureCode": "TTHC-BT-03",
+    "procedureName": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội",
+    "chunkType": "REQUIRED_DOCUMENTS",
+    "title": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội - Thành phần hồ sơ",
+    "legalReference": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội - Thành phần hồ sơ",
+    "breadcrumbs": [
+      "TTHC-BT-03",
+      "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội",
+      "Thành phần hồ sơ"
+    ],
+    "content": "- **Tài liệu 1:** Tờ khai đề nghị chăm sóc, nuôi dưỡng tại cơ sở trợ giúp xã hội (theo Mẫu số 04 ban hành kèm theo Nghị định số 335/2026/NĐ-CP). (1 bản chính)",
+    "charCount": 158,
+    "estimatedTokens": 44
+  },
+  {
+    "chunkId": "TTHC-BT-03_CHUNK_004",
+    "chunkCode": "TTHC-BT-03_CHUNK_004",
+    "procedureCode": "TTHC-BT-03",
+    "procedureName": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội",
+    "chunkType": "LEGAL_BASIS",
+    "title": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội - Văn bản quy phạm pháp luật",
+    "legalReference": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội - Văn bản quy phạm pháp luật",
+    "breadcrumbs": [
+      "TTHC-BT-03",
+      "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội",
+      "Văn bản quy phạm pháp luật"
+    ],
+    "content": "- Luật Tiếp cận thông tin 2016; Nghị định 61/2018/NĐ-CP; Quyết định công bố TTHC của UBND Tỉnh An Giang.",
+    "charCount": 104,
+    "estimatedTokens": 26
+  }
+]

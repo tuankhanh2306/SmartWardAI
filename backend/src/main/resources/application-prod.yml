@@ -1,5 +1,6 @@
 server:
   port: ${PORT:${SERVER_PORT:8080}}
+  forward-headers-strategy: NATIVE
 
 spring:
   datasource:
@@ -49,6 +50,13 @@ smartward:
     enforce-officer-auth: ${ENFORCE_OFFICER_AUTH:true}
   rate-limit:
     requests-per-minute: ${RATE_LIMIT_RPM:30}
+
+# Disable Swagger / OpenAPI Docs on Production (SEC-03 Surface Reduction)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 
 logging:
   level:

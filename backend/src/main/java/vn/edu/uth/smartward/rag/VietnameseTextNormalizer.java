@@ -18,6 +18,11 @@ public final class VietnameseTextNormalizer {
 
     private static final Pattern COMBINING_DIACRITICS_PATTERN =
             Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+    private static final Pattern WHITESPACE_PATTERN =
+            Pattern.compile("\\s+");
+
+    // Precompiled regex replacement map for high performance (sub-millisecond execution)
+    private static final Map<Pattern, String> PRECOMPILED_REPLACEMENTS = new LinkedHashMap<>();
 
     // Dialect mappings (Southern vernacular -> Standard administrative Vietnamese)
     private static final Map<String, String> DIALECT_MAP = new LinkedHashMap<>();
@@ -111,6 +116,22 @@ public final class VietnameseTextNormalizer {
         TELEX_CORRECTIONS.put("giaays towf", "giấy tờ");
         TELEX_CORRECTIONS.put("ho so", "hồ sơ");
         TELEX_CORRECTIONS.put("hoof sow", "hồ sơ");
+
+        // Precompile all regex patterns into static Map<Pattern, String>
+        for (Map.Entry<String, String> entry : TELEX_CORRECTIONS.entrySet()) {
+            PRECOMPILED_REPLACEMENTS.put(createWordOrPhrasePattern(entry.getKey()), entry.getValue());
+        }
+        for (Map.Entry<String, String> entry : DIALECT_MAP.entrySet()) {
+            PRECOMPILED_REPLACEMENTS.put(createWordOrPhrasePattern(entry.getKey()), entry.getValue());
+        }
+        for (Map.Entry<String, String> entry : ABBREVIATION_MAP.entrySet()) {
+            PRECOMPILED_REPLACEMENTS.put(createWordOrPhrasePattern(entry.getKey()), entry.getValue());
+        }
+    }
+
+    private static Pattern createWordOrPhrasePattern(String target) {
+        String regex = "(?i)(?<=^|[^\\p{L}\\p{N}])" + Pattern.quote(target) + "(?=[^\\p{L}\\p{N}]|$)";
+        return Pattern.compile(regex);
     }
 
     /**
@@ -139,26 +160,17 @@ public final class VietnameseTextNormalizer {
 
         String normalized = input.trim().toLowerCase();
 
-        // 1. Replace multi-word dialect & telex phrases first
-        for (Map.Entry<String, String> entry : TELEX_CORRECTIONS.entrySet()) {
-            normalized = replaceWordOrPhrase(normalized, entry.getKey(), entry.getValue());
+        // 1. Apply precompiled replacements (Telex -> Dialect -> Abbreviations)
+        for (Map.Entry<Pattern, String> entry : PRECOMPILED_REPLACEMENTS.entrySet()) {
+            normalized = entry.getKey().matcher(normalized).replaceAll(Matcher.quoteReplacement(entry.getValue()));
         }
 
-        for (Map.Entry<String, String> entry : DIALECT_MAP.entrySet()) {
-            normalized = replaceWordOrPhrase(normalized, entry.getKey(), entry.getValue());
-        }
-
-        for (Map.Entry<String, String> entry : ABBREVIATION_MAP.entrySet()) {
-            normalized = replaceWordOrPhrase(normalized, entry.getKey(), entry.getValue());
-        }
-
-        // Clean redundant whitespace
-        normalized = normalized.replaceAll("\\s+", " ").trim();
+        // 2. Clean redundant whitespace
+        normalized = WHITESPACE_PATTERN.matcher(normalized).replaceAll(" ").trim();
         return normalized;
     }
 
     private static String replaceWordOrPhrase(String text, String target, String replacement) {
-        String regex = "(?i)(?<=^|[^\\p{L}\\p{N}])" + Pattern.quote(target) + "(?=[^\\p{L}\\p{N}]|$)";
-        return text.replaceAll(regex, Matcher.quoteReplacement(replacement));
+        return createWordOrPhrasePattern(target).matcher(text).replaceAll(Matcher.quoteReplacement(replacement));
     }
 }

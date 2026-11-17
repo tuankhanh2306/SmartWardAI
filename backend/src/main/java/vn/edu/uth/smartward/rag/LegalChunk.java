@@ -50,6 +50,25 @@ public class LegalChunk {
     @Builder.Default
     private String status = "ACTIVE";
 
+    @Column(name = "header_path")
+    private String headerPath;
+
+    @Column(name = "section_name", length = 100)
+    private String sectionName;
+
+    @Column(name = "source_url", columnDefinition = "TEXT")
+    private String sourceUrl;
+
+    @Column(name = "scraped_at")
+    private OffsetDateTime scrapedAt;
+
+    @Column(name = "content_hash", length = 64)
+    private String contentHash;
+
+    @Column(name = "pipeline_version", length = 50)
+    @Builder.Default
+    private String pipelineVersion = "1.0";
+
     @Column(name = "effective_date", nullable = false)
     @Builder.Default
     private LocalDate effectiveDate = LocalDate.now();

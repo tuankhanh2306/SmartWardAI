@@ -79,7 +79,10 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
       'Nhờ kết nối Cơ sở dữ liệu hộ tịch điện tử toàn quốc, công dân có thể xin trích lục tại BẤT KỲ UBND phường/xã nào, không bắt buộc về nơi đã đăng ký trước đây.',
       'Bản sao trích lục có giá trị sử dụng thay thế bản chính trong các giao dịch dân sự và thủ tục hành chính.',
     ],
-    keywords: ['trích lục', 'bản sao khai sinh', 'trích lục kết hôn', 'trích lục khai tử', 'xin lại giấy khai sinh', 'cấp lại trích lục'],
+    keywords: [
+      'trích lục', 'trích lục khai sinh', 'trích lục khai sinh bị mất', 'mất giấy khai sinh', 'mất khai sinh',
+      'bản sao khai sinh', 'trích lục kết hôn', 'trích lục khai tử', 'xin lại giấy khai sinh', 'cấp lại trích lục'
+    ],
   },
   {
     code: 'TTHC-HT-11',
@@ -123,7 +126,7 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
       'Công dân có thể nộp hồ sơ trực tuyến tiện lợi qua Cổng Dịch vụ công Bộ Công an hoặc Ứng dụng VNeID.',
     ],
     keywords: [
-      'thường trú', 'nhập hộ khẩu', 'đăng ký thường trú', 'mẫu ct01', 'chuyển hộ khẩu', 'sổ hộ khẩu', 'nhập khẩu',
+      'thường trú', 'nhập hộ khẩu', 'đăng ký thường trú', 'mẫu ct01', 'chuyển hộ khẩu', 'chuyển khẩu', 'chuyển khẩu về nhà mới', 'sổ hộ khẩu', 'nhập khẩu',
       'cư trú', 'đăng ký cư trú', 'thủ tục cư trú', 'thủ tục đăng ký cư trú', 'luật cư trú', 'tờ khai cư trú', 'tthc-cr-01', 'ct01', 'tthc-ct-01'
     ],
   },
@@ -208,173 +211,234 @@ export const LEGAL_KNOWLEDGE_BASE: LegalProcedureItem[] = [
     code: 'TTHC-BT-01',
     name: 'Trợ cấp xã hội hàng tháng cho đối tượng bảo trợ xã hội',
     category: 'Bảo trợ xã hội',
-    legalBasis: 'Nghị định 20/2021/NĐ-CP của Chính phủ; Thông tư 02/2021/TT-BLĐTBXH',
-    timeLimit: '15 ngày làm việc (UBND cấp xã xem xét, niêm yết công khai và gửi Phòng LĐ-TB&XH cấp huyện ra quyết định)',
+    legalBasis: 'Nghị định 20/2021/NĐ-CP và Nghị định 335/2026/NĐ-CP (21/08/2026); Quyết định 4595/QĐ-UBND (07/10/2026) của UBND tỉnh An Giang',
+    timeLimit: '10 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ (Mẫu số 01 ban hành kèm theo Nghị định 335/2026/NĐ-CP)',
     fee: 'Miễn phí hoàn toàn',
-    authority: 'UBND cấp xã tiếp nhận hồ sơ xét duyệt ban đầu, Chủ tịch UBND cấp huyện quyết định chi trả',
+    authority: 'UBND cấp xã thuộc tỉnh An Giang tiếp nhận hồ sơ xét duyệt, Chủ tịch UBND cấp xã quyết định chi trả',
     dossier: [
-      'Tờ khai thông tin người được trợ cấp xã hội (theo mẫu quy định tại NĐ 20/2021/NĐ-CP)',
+      'Tờ khai thông tin người được trợ cấp xã hội (theo Mẫu số 01 ban hành kèm theo NĐ 335/2026/NĐ-CP)',
       'Bản sao Giấy khai sinh (đối với trẻ em mồ côi, trẻ khuyết tật)',
       'Bản sao Giấy xác nhận mức độ khuyết tật (đối với người khuyết tật nặng/đặc biệt nặng)',
       'Giấy tờ xác nhận đối tượng nhiễm HIV, hộ nghèo/cận nghèo (nếu thuộc diện tương ứng)',
     ],
     keyRules: [
       'Đối tượng được hưởng: Trẻ em dưới 16 tuổi không có nguồn nuôi dưỡng; Người cao tuổi thuộc hộ nghèo không có người phụng dưỡng; Người khuyết tật nặng và đặc biệt nặng; Người đơn thân nghèo đang nuôi con.',
-      'Mức chuẩn trợ giúp xã hội theo NĐ 20/2021/NĐ-CP là 360.000 đồng/tháng (được nhân với hệ số tương ứng từng nhóm đối tượng, TP.HCM áp dụng chuẩn riêng cao hơn theo Nghị quyết HĐND TP).',
+      'Thời hạn giải quyết: 10 ngày làm việc theo Nghị định 335/2026/NĐ-CP và Quyết định 4595/QĐ-UBND tỉnh An Giang.',
     ],
-    keywords: ['trợ cấp xã hội', 'bảo trợ xã hội', 'tiền trợ cấp', 'người khuyết tật', 'người già neo đơn', 'mồ côi', 'trợ cấp hàng tháng', 'tiền già', 'lãnh tiền già', 'người cao tuổi', 'chế độ người cao tuổi'],
+    keywords: [
+      'trợ cấp xã hội', 'bảo trợ xã hội', 'chế độ chính sách bảo trợ xã hội', 'chính sách bảo trợ xã hội',
+      'chế độ bảo trợ xã hội', 'chính sách bảo trợ', 'chế độ chính sách', 'chế độ bảo trợ', 'bảo trợ',
+      'tiền trợ cấp', 'người khuyết tật', 'người già neo đơn', 'mồ côi', 'trợ cấp hàng tháng', 'tiền già',
+      'lãnh tiền già', 'người cao tuổi', 'chế độ người cao tuổi', 'bao tro xa boi', 'bao tro xa hoi',
+      'chinh sach bao tro', 'che do chinh sach bao tro', 'tro cap xa hoi', 'tro cap xa boi',
+      'xã / phường / đặc khu thuộc tỉnh an giang'
+    ],
   },
   {
     code: 'TTHC-BT-02',
     name: 'Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội',
     category: 'Bảo trợ xã hội',
-    legalBasis: 'Điều 11 Nghị định 20/2021/NĐ-CP; Thông tư 02/2021/TT-BLĐTBXH',
-    timeLimit: '05 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ',
+    legalBasis: 'Nghị định 20/2021/NĐ-CP và Nghị định 335/2026/NĐ-CP (21/08/2026); Quyết định 4595/QĐ-UBND (07/10/2026) của UBND tỉnh An Giang',
+    timeLimit: '03 ngày làm việc kể từ ngày nhận đủ hồ sơ hợp lệ (Mẫu số 03 ban hành kèm theo Nghị định 335/2026/NĐ-CP)',
     fee: 'Miễn phí hoàn toàn',
-    authority: 'UBND cấp xã tiếp nhận, Chủ tịch UBND cấp huyện ra quyết định hỗ trợ',
+    authority: 'UBND cấp xã thuộc tỉnh An Giang tiếp nhận, Chủ tịch UBND cấp xã ra quyết định hỗ trợ',
     dossier: [
-      'Tờ khai đề nghị hỗ trợ chi phí mai táng theo mẫu',
+      'Tờ khai đề nghị hỗ trợ chi phí mai táng theo Mẫu số 03 (Nghị định 335/2026/NĐ-CP)',
       'Bản sao Giấy chứng tử của đối tượng qua đời',
-      'Bản sao sổ hộ khẩu hoặc xác nhận cư trú của người đứng ra tổ chức mai táng',
+      'Bản sao căn cước hoặc xác nhận cư trú của người đứng ra tổ chức mai táng (miễn nộp bản giấy nếu đã xác thực VNeID)',
     ],
     keyRules: [
-      'Áp dụng khi đối tượng đang hưởng trợ cấp xã hội hàng tháng qua đời, hoặc trẻ em/người lang thang cơ nhỡ qua đời trên địa bàn xã.',
-      'Mức hỗ trợ mai táng tối thiểu bằng 20 lần mức chuẩn trợ giúp xã hội (tối thiểu 7.200.000 đồng).',
+      'Áp dụng khi đối tượng đang hưởng trợ cấp xã hội hàng tháng qua đời (người cao tuổi, người khuyết tật, trẻ em mồ côi...), hoặc người lang thang cơ nhỡ qua đời trên địa bàn xã / phường / đặc khu thuộc tỉnh An Giang.',
+      'Thời hạn giải quyết rút gọn còn 03 ngày làm việc theo Nghị định 335/2026/NĐ-CP và QĐ 4595/QĐ-UBND của UBND tỉnh An Giang.',
     ],
-    keywords: ['tiền mai táng', 'hỗ trợ mai táng', 'mai táng phí', 'chi phí mai táng', 'chết có trợ cấp mai táng'],
+    keywords: [
+      'tiền mai táng', 'hỗ trợ mai táng', 'mai táng phí', 'chi phí mai táng', 'trợ cấp mai táng', 'trợ cấp mai táng phí',
+      'mai táng phí cho người cao tuổi', 'trợ cấp mai táng cho người cao tuổi', 'tiền mai táng người cao tuổi',
+      'chết có trợ cấp mai táng', 'tthc-bt-02', 'xã / phường / đặc khu thuộc tỉnh an giang'
+    ],
   },
   {
-    code: 'TTHC-HT-05',
+    code: 'TTHC-HT-03',
     name: 'Đăng ký khai tử',
     category: 'Hộ tịch',
-    legalBasis: 'Điều 32, 33, 34 Luật Hộ tịch 2014; Nghị định 123/2015/NĐ-CP; Thông tư 04/2020/TT-BTP',
+    legalBasis: 'Điều 32, 33, 34 Luật Hộ tịch 2014; Nghị định 123/2015/NĐ-CP; Quyết định 408/QĐ-UBND (29/01/2026) của UBND tỉnh An Giang; Nghị định 301/2026/NĐ-CP (liên thông 4 thủ tục Khai tử - Xóa thường trú - Mai táng phí - Tử tuất)',
     timeLimit: 'Giải quyết ngay trong ngày làm việc tiếp nhận hồ sơ',
     fee: 'Miễn phí hoàn toàn khi đăng ký đúng hạn (trong 15 ngày kể từ ngày chết)',
-    authority: 'UBND cấp xã nơi cư trú cuối cùng của người chết',
+    authority: 'UBND cấp xã thuộc tỉnh An Giang nơi cư trú cuối cùng của người chết',
     dossier: [
       'Tờ khai đăng ký khai tử theo mẫu',
       'Giấy báo tử hoặc giấy tờ thay thế Giấy báo tử do cơ sở y tế hoặc cơ quan có thẩm quyền cấp',
-      'Xuất trình CCCD của người đi khai tử',
+      'Xuất trình CCCD của người đi khai tử (miễn nộp giấy tờ đã có trên VNeID theo Nghị định 309/2026/NĐ-CP)',
     ],
     keyRules: [
       'Trách nhiệm đăng ký khai tử thuộc về vợ, chồng hoặc con, cha, mẹ hoặc người thân thích khác.',
       'Thời hạn đăng ký khai tử là trong vòng 15 ngày kể từ ngày có sự kiện chết.',
+      'Thực hiện liên thông điện tử 4 thủ tục (Khai tử - Xóa thường trú - Mai táng phí - Tử tuất) theo Nghị định 301/2026/NĐ-CP và Quyết định 408/QĐ-UBND tỉnh An Giang.',
     ],
-    keywords: ['khai tử', 'khai tu', 'chứng tử', 'giấy báo tử', 'người mất', 'người chết', 'mần giấy khai tử', 'mần giấy tử', 'báo tử'],
+    keywords: ['khai tử', 'khai tu', 'chứng tử', 'giấy báo tử', 'người mất', 'người chết', 'mần giấy khai tử', 'mần giấy tử', 'báo tử', 'tthc-ht-03', 'xã / phường / đặc khu thuộc tỉnh an giang'],
   },
   {
-    code: 'TTHC-CR-04',
+    code: 'TTHC-CR-07',
     name: 'Khai báo tạm vắng và thông báo lưu trú',
     category: 'Cư trú',
-    legalBasis: 'Điều 30, 31 Luật Cư trú số 68/2020/QH14; Thông tư 55/2021/TT-BCA',
+    legalBasis: 'Điều 30, 31 Luật Cư trú số 68/2020/QH14; Thông tư 116/2026/TT-BCA (Mẫu CT01 mới) & Nghị định 154/2024/NĐ-CP',
     timeLimit: 'Giải quyết ngay trong ngày làm việc',
     fee: 'Miễn phí hoàn toàn',
-    authority: 'Công an xã/phường/thị trấn',
+    authority: 'Công an xã, phường, đặc khu thuộc tỉnh An Giang',
     dossier: [
-      'Tờ khai thay đổi thông tin cư trú (Mẫu CT01)',
-      'Xuất trình CCCD hoặc giấy tờ chứng minh thông tin nhân thân',
+      'Tờ khai thay đổi thông tin cư trú (Mẫu CT01 mới ban hành kèm theo Thông tư 116/2026/TT-BCA)',
+      'Xuất trình CCCD hoặc thông tin định danh trên VNeID (miễn nộp bản giấy theo Nghị định 309/2026/NĐ-CP)',
     ],
     keyRules: [
       'Công dân vắng mặt tại nơi cư trú từ 12 tháng trở lên mà không đăng ký tạm trú tại nơi ở mới thì phải khai báo tạm vắng.',
-      'Có thể nộp trực tiếp tại Công an xã hoặc trực tuyến qua Cổng dịch vụ công quản lý cư trú.',
+      'Có thể nộp trực tiếp tại Công an xã / phường / đặc khu thuộc tỉnh An Giang hoặc trực tuyến qua Cổng dịch vụ công / ứng dụng VNeID.',
     ],
-    keywords: ['tạm vắng', 'khai báo tạm vắng', 'thông báo lưu trú', 'lưu trú', 'đi làm ăn xa', 'vang mat'],
+    keywords: ['tạm vắng', 'khai báo tạm vắng', 'thông báo lưu trú', 'lưu trú', 'đi làm ăn xa', 'vang mat', 'tthc-cr-07', 'xã / phường / đặc khu thuộc tỉnh an giang'],
   },
 ];
 
-import { isGreetingQuery, isProcedureListQuery, checkOutOfScopeQuery, removeVietnameseAccents } from './intentClassifier';
+import { isGreetingQuery, isProcedureListQuery, checkOutOfScopeQuery } from './intentClassifier';
+import {
+  FALLBACK_THRESHOLD,
+  FALLBACK_AMBIGUOUS_GAP,
+  FALLBACK_LOWER_BOUND,
+  scoreProcedureCatalog,
+  evaluateIntentDecision,
+  matchesPhrase,
+  type IntentDecision,
+  type ScoredProcedure,
+} from './intentScoring';
 
-const STOP_WORDS = new Set([
-  'la', 'là', 'va', 'và', 'cua', 'của', 'cho', 'co', 'có', 'tai', 'tại', 'o', 'ở',
-  'gi', 'gì', 'nao', 'nào', 'dau', 'đâu', 'duoc', 'được', 'nhu', 'như', 'the', 'thế',
-  'thi', 'thì', 'ra', 'sao', 'toi', 'tôi', 'muon', 'muốn', 'hay', 'hãy', 'lam', 'làm',
-  'can', 'cần', 'giup', 'giúp', 'em', 'anh', 'chi', 'chị', 'minh', 'mình', 'nay', 'này',
-  'do', 'đó', 'voi', 'với', 've', 'về', 'trong', 'cac', 'các', 'nhung', 'những', 'mot', 'một',
-  'da', 'dạ', 'a', 'ạ', 'nhe', 'nhé', 'nha', 'di', 'đi', 'giùm', 'dum', 'hi', 'hello', 'alo', 'chao', 'chào'
-]);
+export {
+  FALLBACK_THRESHOLD,
+  FALLBACK_AMBIGUOUS_GAP,
+  FALLBACK_LOWER_BOUND,
+  matchesPhrase,
+  type IntentDecision,
+  type ScoredProcedure,
+};
 
 /**
- * Searches the legal knowledge base using keyword / semantic scoring
+ * Pre-processes accentless Vietnamese, typo/telex slips and Southern civic dialects
  */
-export function searchLegalKnowledge(query: string, topK: number = 3): {
+export function normalizeVietnameseQuery(raw: string): string {
+  let q = (raw || '').toLowerCase().trim();
+
+  // 1. Phổ biến lỗi gõ phím / telex gần kề (phím 'b' cạnh 'h' ở hàng giữa bàn phím QWERTY):
+  // 'xa boi' -> 'xã hội', 'bao tro xa boi' -> 'bảo trợ xã hội'
+  q = q.replace(/\bxa boi\b/gi, 'xã hội');
+  q = q.replace(/\bxã bôi\b/gi, 'xã hội');
+  q = q.replace(/\bxã bởi\b/gi, 'xã hội');
+  q = q.replace(/\bbao tro xa boi\b/gi, 'bảo trợ xã hội');
+  q = q.replace(/\bche do chinh sach bao tro\b/gi, 'chế độ chính sách bảo trợ xã hội');
+  q = q.replace(/\bchinh sach bao tro\b/gi, 'chính sách bảo trợ xã hội');
+  q = q.replace(/\bche do bao tro\b/gi, 'chế độ bảo trợ xã hội');
+  q = q.replace(/\bbao tro xa hoi\b/gi, 'bảo trợ xã hội');
+  q = q.replace(/\btro cap xa hoi\b/gi, 'trợ cấp xã hội');
+  q = q.replace(/\btro cap xa boi\b/gi, 'trợ cấp xã hội');
+  q = q.replace(/\btien gia\b/gi, 'trợ cấp xã hội người cao tuổi');
+  q = q.replace(/\btien giang\b/gi, 'trợ cấp xã hội người cao tuổi');
+
+  // 2. Các cụm từ địa phương Nam Bộ / tiếng lóng hành chính
+  q = q
+    .replaceAll('giấy khai sanh', 'giấy khai sinh')
+    .replaceAll('chứng sanh', 'chứng sinh')
+    .replaceAll('khai sanh', 'khai sinh')
+    .replaceAll('sanh con', 'sinh con')
+    .replaceAll('mới sanh', 'mới sinh')
+    .replaceAll(/\bsanh\b/g, 'sinh')
+    .replaceAll('mần giấy giá thú', 'đăng ký kết hôn')
+    .replaceAll('giá thú', 'kết hôn')
+    .replaceAll('hôn thư', 'kết hôn')
+    .replaceAll('chế độ tiền già', 'trợ cấp xã hội người cao tuổi')
+    .replaceAll('lãnh tiền già', 'trợ cấp xã hội người cao tuổi')
+    .replaceAll('tiền già', 'trợ cấp xã hội người cao tuổi')
+    .replaceAll('mần giấy tử', 'khai tử')
+    .replaceAll('chứng giấy tờ', 'chứng thực sao y')
+    .replaceAll('chứng giấy', 'chứng thực sao y')
+    .replaceAll('mần giấy', 'chứng thực sao y');
+
+  return q;
+}
+
+/**
+ * Searches the legal knowledge base using shared intent scoring and confidence guardrails
+ */
+export function searchLegalKnowledge(
+  query: string,
+  topK: number = 3,
+  wardName: string = 'UBND cấp xã'
+): {
   items: LegalProcedureItem[];
   maxScore: number;
   isInScope: boolean;
+  decision: IntentDecision;
+  topItem?: LegalProcedureItem;
 } {
-  const q = query.toLowerCase().trim();
-  const qNoAccent = removeVietnameseAccents(q);
+  const cleanRaw = normalizeVietnameseQuery(query);
+  const q = cleanRaw.toLowerCase().trim();
 
   // 1. Check if greeting, small talk, or asking for full procedure catalog
   if (isGreetingQuery(q) || isProcedureListQuery(q)) {
-    return { items: [], maxScore: 0.0, isInScope: false };
+    const decision: IntentDecision = {
+      status: 'ABSTAIN',
+      maxScore: 0.0,
+      scoreGap: 0.0,
+      reason: 'Truy vấn chào hỏi hoặc yêu cầu danh mục chung.',
+    };
+    return { items: [], maxScore: 0.0, isInScope: false, decision };
   }
 
   // 2. Out of scope check (Forbidden / Non-commune domains)
   const outOfScopeCheck = checkOutOfScopeQuery(q);
   if (outOfScopeCheck.isOutOfScope) {
-    return { items: [], maxScore: 0.15, isInScope: false };
+    const decision: IntentDecision = {
+      status: 'ABSTAIN',
+      maxScore: 0.15,
+      scoreGap: 0.0,
+      reason: 'Truy vấn ngoài phạm vi thẩm quyền UBND cấp xã.',
+    };
+    return { items: [], maxScore: 0.15, isInScope: false, decision };
   }
 
-  // 3. Extract meaningful non-stop content tokens
-  const queryTokens = q
-    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
-    .split(/\s+/)
-    .filter((w) => w.length > 1 && !STOP_WORDS.has(w));
+  // 3. Score all 40 commune procedures using shared lexical & semantic scoring
+  const scored = scoreProcedureCatalog(q, LEGAL_KNOWLEDGE_BASE);
 
-  const scored = LEGAL_KNOWLEDGE_BASE.map((item) => {
-    let score = 0;
-
-    // Check exact keyword match (highest confidence)
-    for (const kw of item.keywords) {
-      const kwNoAccent = removeVietnameseAccents(kw);
-      if (q.includes(kw) || qNoAccent.includes(kwNoAccent)) {
-        score += 0.50;
-        break;
-      }
-    }
-
-    // Check procedure name
-    const nameNoAccent = removeVietnameseAccents(item.name);
-    if (q.includes(item.name.toLowerCase()) || qNoAccent.includes(nameNoAccent)) {
-      score += 0.40;
-    }
-
-    // Whole-word token intersection with procedure content
-    if (queryTokens.length > 0) {
-      const fullText = (
-        item.name + ' ' + item.category + ' ' + item.keyRules.join(' ') + ' ' + item.dossier.join(' ')
-      ).toLowerCase();
-      const docTokens = new Set(
-        fullText
-          .replace(/[^\p{L}\p{N}\s]/gu, ' ')
-          .split(/\s+/)
-          .filter(Boolean)
-      );
-
-      let matchedTokens = 0;
-      for (const token of queryTokens) {
-        if (docTokens.has(token)) {
-          matchedTokens++;
-        }
-      }
-      score += (matchedTokens / queryTokens.length) * 0.30;
-    }
-
-    // Normalize to [0, 0.99]
-    const normalizedScore = Math.min(0.98, Math.max(0.0, score));
-
-    return { item, score: normalizedScore };
-  });
-
-  scored.sort((a, b) => b.score - a.score);
+  // 4. Apply Confidence Guardrails: CONFIDENT (score>=0.60, gap>=0.12), AMBIGUOUS (gap<0.12), ABSTAIN (score<0.60)
+  const decision = evaluateIntentDecision(q, scored, wardName);
 
   const topItems = scored.slice(0, topK);
-  const maxScore = topItems.length > 0 ? topItems[0].score : 0.0;
-  const isInScope = maxScore >= 0.45; // Strict threshold for commune TTHC relevance
+  const isInScope = decision.status === 'CONFIDENT';
 
   return {
     items: isInScope ? topItems.map((s) => s.item) : [],
-    maxScore,
+    maxScore: decision.maxScore,
     isInScope,
+    decision,
+    topItem: decision.top1?.item,
   };
 }
+
+/**
+ * Trợ thủ tra cứu nhanh thủ tục phù hợp kèm đánh giá độ tin cậy
+ */
+export function findMatchingProcedure(query: string, wardName?: string): {
+  procedureCode: string;
+  procedureName: string;
+  score: number;
+  status: 'CONFIDENT' | 'AMBIGUOUS' | 'ABSTAIN';
+  decision: IntentDecision;
+} | null {
+  const result = searchLegalKnowledge(query, 3, wardName);
+  if (result.decision.top1) {
+    return {
+      procedureCode: result.decision.top1.item.code,
+      procedureName: result.decision.top1.item.name,
+      score: result.decision.top1.score,
+      status: result.decision.status,
+      decision: result.decision,
+    };
+  }
+  return null;
+}
+

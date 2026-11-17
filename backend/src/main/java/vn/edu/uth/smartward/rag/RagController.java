@@ -33,7 +33,7 @@ public class RagController {
     @Operation(
             summary = "Giải đáp thủ tục hành chính với căn cứ pháp lý và chốt chặn chống ảo giác",
             description = "Tiếp nhận câu hỏi của công dân, vector hóa 768 chiều, truy vấn HNSW Cosine Similarity trên pgvector. " +
-                          "Nếu S_max < 0.78, hệ thống tự động từ chối trả lời để bảo đảm an toàn thông tin theo Nghị định 13/2023/NĐ-CP."
+                          "Nếu S_max < 0.78, hệ thống tự động từ chối trả lời để bảo đảm độ chính xác thông tin và an toàn tra cứu pháp lý."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Tra cứu và phản hồi thành công (hoặc từ chối an toàn)"),
@@ -45,7 +45,7 @@ public class RagController {
             HttpServletRequest httpRequest) {
 
         String clientIp = extractClientIp(httpRequest);
-        log.info("Received RAG ask request from IP: '{}', query: '{}'", clientIp, request.getQuestion());
+        log.info("Received RAG ask request from IP: '{}', query: '{}'", clientIp, sanitizeForLog(request.getQuestion()));
 
         RagAskResponse response = ragQueryService.askQuestion(request, clientIp);
         return ResponseEntity.ok(ApiResponse.ok(response));
@@ -67,21 +67,52 @@ public class RagController {
     )
     public ResponseEntity<ApiResponse<HitlGrayZoneItemDto>> resolveHitlItem(
             @PathVariable("id") String id,
-            @Valid @RequestBody HitlResolveRequest request) {
-        log.info("Officer '{}' resolving HITL gray-zone item '{}'", request.getOfficerName(), id);
+            @Valid @RequestBody HitlResolveRequest request,
+            HttpServletRequest httpRequest) {
+        vn.edu.uth.smartward.security.OfficerAuthService.OfficerPrincipal principal =
+                (vn.edu.uth.smartward.security.OfficerAuthService.OfficerPrincipal) httpRequest.getAttribute("officerPrincipal");
+        String effectiveOfficerName = (principal != null && principal.fullName() != null && !principal.fullName().isBlank())
+                ? principal.fullName()
+                : request.getOfficerName();
+
+        log.info("Officer '{}' resolving HITL gray-zone item '{}'", effectiveOfficerName, id);
         HitlGrayZoneItemDto resolved = ragQueryService.resolveHitlItem(
                 id,
                 request.getApprovedAnswer(),
-                request.getOfficerName()
+                effectiveOfficerName
         );
         return ResponseEntity.ok(ApiResponse.ok(resolved));
     }
 
+    public record RagFeedbackRequest(String query, Boolean useful, String comments) {}
+
+    @PostMapping("/feedback")
+    @Operation(
+            summary = "Ghi nhận phản hồi của công dân về chất lượng câu trả lời RAG (hữu ích / không hữu ích)",
+            description = "Thu thập phản hồi để đánh giá chất lượng mô hình và bổ sung dữ liệu huấn luyện."
+    )
+    public ResponseEntity<ApiResponse<Void>> submitRagFeedback(
+            @RequestBody RagFeedbackRequest request,
+            HttpServletRequest httpRequest) {
+        String clientIp = extractClientIp(httpRequest);
+        log.info("Received RAG feedback from IP {}: query='{}', useful={}",
+                clientIp, sanitizeForLog(request != null ? request.query() : ""),
+                request != null ? request.useful() : null);
+        return ResponseEntity.ok(ApiResponse.ok("Cảm ơn bạn đã đóng góp phản hồi.", null));
+    }
+
     private String extractClientIp(HttpServletRequest request) {
-        String xfHeader = request.getHeader("X-Forwarded-For");
-        if (xfHeader == null || xfHeader.isBlank() || "unknown".equalsIgnoreCase(xfHeader)) {
-            return request.getRemoteAddr();
+        if (request == null) {
+            return "127.0.0.1";
         }
-        return xfHeader.split(",")[0].trim();
+        return request.getRemoteAddr();
+    }
+
+    private String sanitizeForLog(String text) {
+        if (text == null || text.isBlank()) {
+            return "";
+        }
+        String redacted = text.replaceAll("\\d{9,12}", "***REDACTED_ID***");
+        return redacted.length() > 60 ? redacted.substring(0, 60) : redacted;
     }
 }

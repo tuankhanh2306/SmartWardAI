@@ -113,6 +113,18 @@ public class ProcedureDataSeeder implements CommandLineRunner {
                                 chunk.setTitle(title);
                                 chunk.setContent(content);
                                 chunk.setLegalReference(legalRef);
+                                if (cNode.has("headerPath")) {
+                                    chunk.setHeaderPath(cNode.path("headerPath").asText());
+                                }
+                                if (cNode.has("contentHash")) {
+                                    chunk.setContentHash(cNode.path("contentHash").asText());
+                                }
+                                if (cNode.has("sourceUrl")) {
+                                    chunk.setSourceUrl(cNode.path("sourceUrl").asText());
+                                }
+                                if (cNode.has("pipelineVersion")) {
+                                    chunk.setPipelineVersion(cNode.path("pipelineVersion").asText());
+                                }
                                 chunk.setStatus("ACTIVE");
                                 if (chunk.getEffectiveDate() == null) {
                                     chunk.setEffectiveDate(LocalDate.now());

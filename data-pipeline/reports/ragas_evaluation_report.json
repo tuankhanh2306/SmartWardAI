@@ -1,0 +1,11 @@
+{
+  "timestamp": "2026-11-16T04:21:23.916094+00:00",
+  "totalEvaluatedCases": 40,
+  "metrics": {
+    "faithfulness": 0.3,
+    "answerRelevance": 0.5,
+    "contextPrecision": 1.0
+  },
+  "llmJudge": "Gemini 2.5 Flash Free Tier / Deterministic Lexical-Semantic Judge",
+  "notes": "Evaluation verified zero-cost execution without consuming production server RAM."
+}

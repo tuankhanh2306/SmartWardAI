@@ -73,6 +73,14 @@ public class CccdValidator {
         // Parse birth year from birthDateStr
         Integer birthYear = extractBirthYear(birthDateStr);
         if (birthYear == null) {
+            if (birthDateStr != null && !birthDateStr.isBlank()) {
+                issues.add(FormValidationIssue.builder()
+                        .field("cccdNumber")
+                        .errorType("CANNOT_VERIFY_CCCD_YEAR_GENDER")
+                        .message("Không thể đối soát năm sinh/giới tính trên CCCD do ngày sinh không hợp lệ hoặc thiếu thông tin năm sinh")
+                        .severity("WARNING")
+                        .build());
+            }
             return issues; // Cannot verify century or year without valid birth date
         }
 

@@ -1,127 +1,87 @@
-# 📚 TRUNG TÂM ĐIỀU HƯỚNG TÀI LIỆU DỰ ÁN (MASTER DOCUMENTATION PORTAL)
+# Master Documentation Index — SmartWard AI
 
-> **Dự án:** SmartWard AI — Hệ thống Hỗ trợ Thủ tục Hành chính & Phân luồng Phản ánh Cấp Phường/Xã  
-> **Đơn vị phát triển:** Viện Đào tạo Chất lượng cao — UTH  
-> **Cập nhật gần nhất:** Tháng 11/2026 — Phiên bản chuẩn hóa kỹ thuật
+> **Dự án:** Hệ sinh thái Hành chính công & Đô thị số cấp Xã/Phường SmartWard AI (Tỉnh An Giang, 96 xã/phường/đặc khu)  
+> **Phiên bản:** Production Hardening (Tháng 11/2026)  
+> **Tình trạng kiểm thử:** 420/420 Backend Maven Tests PASS | Frontend Build Clean (0 errors)
 
 ---
 
-## 🧭 1. Bản Đồ Tra Cứu Nhanh Cho Kỹ Sư & AI
+## 📜 Quy Ước Bắt Buộc Về Quản Trị Tài Liệu (Documentation Governance)
 
-Tùy theo tác vụ phát triển hoặc khi cần tra cứu đặc tả, hãy mở ngay tài liệu tương ứng:
+Để tránh tình trạng tài liệu bị phân mảnh, trùng lặp hoặc tạo file tùy tiện ở thư mục gốc, **mọi kỹ sư và AI Agent phải tuân thủ nghiêm ngặt bảng phân loại sau**:
+
+| Phân nhóm thư mục | Loại nội dung được phép đặt vào | Trách nhiệm & Bản chất tài liệu | Ví dụ tệp điển hình |
+| :--- | :--- | :--- | :--- |
+| **`docs/project/`** | Tổng quan đề tài, bối cảnh, yêu cầu gốc & milestone | Single Source of Truth cho toàn dự án | `PROJECT.md` |
+| **`docs/specs/`** | **Đặc tả tính năng / Sản phẩm** (Cái gì được xây, hành vi ra sao, payload, UI flow) | Đặc tả chức năng, hợp đồng giao diện, luồng màn hình | `MOBILE_APP_SPEC.md`, `SMARTWARD_SPEC_AND_DEPLOYMENT_ROADMAP.md` |
+| **`docs/architecture/`** | **Thiết kế kỹ thuật hệ thống** (Vì sao xây như vậy, kiến trúc, sơ đồ, bảo mật, RAM) | Thiết kế hệ thống, sơ đồ tuần tự, ràng buộc phần cứng, quy chuẩn Git | `SYSTEM_SPECIFICATION.md`, `ARCHITECTURE_AND_FLOWS.md`, `PROJECT_CONSTRAINTS.md` |
+| **`docs/roadmap/`** | **Kế hoạch theo thời gian dài hạn** (Khi nào làm gì, lộ trình chiến lược) | Kế hoạch dài hạn cố định, ít biến động | `ROADMAP.md`, `BASELINE_ROADMAP_12W.md`, `EXPANSION_ROADMAP_2.0.md` |
+| **`docs/` (Gốc docs)** | **Việc đang làm tuần này / hôm nay** (Sprint board sống, cập nhật liên tục) | Bảng theo dõi tiến độ công việc hàng ngày/tuần | `TODO_SPRINT_BOARD.md` |
+| **`docs/reports/`** | **Báo cáo kỹ thuật gửi Mentor / Giảng viên** | Báo cáo cột mốc quan trọng, đánh giá hiệu năng | `BAO_CAO_TIEN_DO_DEPLOY_MENTOR.md`, `MENTOR_TECHNICAL_BRIEFING.md` |
+| **`docs/weekly-reports/`** | **Nhật ký tuần đã qua** (Lịch sử đã xảy ra) | Báo cáo tiến độ từng tuần nộp doanh nghiệp/nhà trường | `week-01-report.md` .. `week-11-report.md` |
+| **`docs/testing/`** | **Bảo đảm chất lượng & Kiểm thử** | Hướng dẫn chạy test, E2E test suite, test harness | `TEST_READY.md`, `TEST_INFRA.md` |
+
+> ⚠️ **NGUYÊN TẮC BẤT BIẾN:**  
+> 1. **KHÔNG TẠO BẤT KỲ FILE `.md` NÀO Ở THƯ MỤC GỐC REPO** (Thư mục gốc chỉ duy trì đúng 2 file markdown: `README.md` và `AGENTS.md`).  
+> 2. Trước khi tạo file markdown mới, bắt buộc đối chiếu bảng phân loại trên và đặt đúng vào thư mục con phù hợp trong `docs/`.
+
+---
+
+## 🧭 1. Bản Đồ Tra Cứu Nhanh Cho Kỹ Sư & Giảng Viên
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│                                   BẢN ĐỒ TÀI LIỆU SMARTWARD AI                                         │
+│                                   BẢN ĐỒ TÀI LIỆU TOÀN DIỆN SMARTWARD AI                               │
 ├─────────────────────────┬─────────────────────────────────────────────────┬────────────────────────────┤
-│ Tác vụ cần làm          │ Mở tài liệu nào?                                │ Nội dung chính             │
+│ Tác vụ cần tra cứu      │ Mở tài liệu nào?                                │ Nội dung chính             │
 ├─────────────────────────┼─────────────────────────────────────────────────┼────────────────────────────┤
-│ 💻 LẬP TRÌNH & PHÁT     │ • docs/architecture/SYSTEM_SPECIFICATION.md     │ • Đặc tả 7 REST APIs & 4 Tờ khai│
-│    TRIỂN HỆ THỐNG       │ • docs/architecture/ARCHITECTURE_AND_FLOWS.md   │ • Luồng GPS 25m & Định tuyến xã │
-│    (Code Backend/Front) │ • docs/architecture/PROJECT_CONSTRAINTS.md      │ • Ràng buộc RAM ≤ 2.0GB         │
-│                         │ • docs/architecture/GIT_WORKFLOW.md             │ • Quy chuẩn Git commit          │
-├─────────────────────────┼─────────────────────────────────────────────────┼─────────────────────────────────┤
-│ 🚀 LỘ TRÌNH MỞ RỘNG     │ • docs/roadmap/EXPANSION_ROADMAP_2.0.md         │ • Multi-Ward 96 Xã/Phường       │
-│    (SmartWard AI 2.0    │ • docs/roadmap/BASELINE_ROADMAP_12W.md          │ • Quét QR CCCD thay vì NFC      │
-│    Giai đoạn 8 tuần)    │ • docs/roadmap/BUSINESS_AND_RESEARCH_PLAN.md    │ • Fine-tune Bi-Encoder T4       │
+│ 📋 TỔNG QUAN DỰ ÁN      │ • docs/project/PROJECT.md                       │ • Bối cảnh, Yêu cầu R1-R5, │
+│    & YÊU CẦU CỐT LÕI    │ • README.md (gốc repo)                          │   Bảng F1-F18 & Milestones │
 ├─────────────────────────┼─────────────────────────────────────────────────┼────────────────────────────┤
-│ 📅 BÁO CÁO TIẾN ĐỘ      │ • docs/weekly-reports/week-01 đến 11-report.md  │ • Nhật ký tiến độ 11 tuần  │
-│    (Nhật ký thực tập)   │ • docs/weekly-reports/chapter1-bao-cao-hkdn.md  │ • Báo cáo học kỳ DN        │
+│ 📐 ĐẶC TẢ TÍNH NĂNG     │ • docs/specs/MOBILE_APP_SPEC.md                 │ • Đặc tả Mobile Native App │
+│    & SẢN PHẨM           │ • docs/specs/SMARTWARD_UNIFIED_AGENT_AND_...    │ • Đặc tả tính năng hợp nhất│
+├─────────────────────────┼─────────────────────────────────────────────────┼────────────────────────────┤
+│ ⚙️ THIẾT KẾ KIẾN TRÚC   │ • docs/architecture/SYSTEM_SPECIFICATION.md     │ • 10 REST APIs & 4 Tờ khai │
+│    & KỸ THUẬT HỆ THỐNG  │ • docs/architecture/ARCHITECTURE_AND_FLOWS.md   │ • Luồng GPS 25m & Vault OTT│
+│                         │ • docs/architecture/PROJECT_CONSTRAINTS.md      │ • Trần RAM 2048MB & NĐ 13  │
+│                         │ • docs/architecture/GIT_WORKFLOW.md             │ • Chuẩn Git & Conventional │
+├─────────────────────────┼─────────────────────────────────────────────────┼────────────────────────────┤
+│ 🚀 LỘ TRÌNH CHIẾN LƯỢC  │ • docs/roadmap/ROADMAP.md                       │ • Lộ trình 2026 & M1–M4    │
+│    (Kế hoạch dài hạn)   │ • docs/roadmap/BASELINE_ROADMAP_12W.md          │ • Đề cương 12 tuần cơ sở   │
+│                         │ • docs/roadmap/EXPANSION_ROADMAP_2.0.md         │ • Kế hoạch mở rộng 2.0     │
+├─────────────────────────┼─────────────────────────────────────────────────┼────────────────────────────┤
+│ 📌 SPRINT BOARD SỐNG    │ • docs/TODO_SPRINT_BOARD.md                     │ • Đầu việc đang làm/đã xong│
+├─────────────────────────┼─────────────────────────────────────────────────┼────────────────────────────┤
+│ 🧪 KIỂM THỬ & CHẤT LƯỢNG│ • docs/testing/TEST_READY.md                    │ • 420 Unit & 161 E2E tests │
+│                         │ • docs/testing/TEST_INFRA.md                    │ • Hạ tầng test & fixtures  │
+├─────────────────────────┼─────────────────────────────────────────────────┼────────────────────────────┤
+│ 📑 BÁO CÁO THỰC TẾ      │ • docs/reports/MENTOR_TECHNICAL_BRIEFING.md     │ • Báo cáo Mentor Viettel   │
+│    (Đã hoàn thành)      │ • docs/reports/BAO_CAO_TIEN_DO_DEPLOY_MENTOR.md │ • Báo cáo Deploy Cloud     │
+│                         │ • docs/weekly-reports/                          │ • Nhật ký tuần W01–W11     │
 └─────────────────────────┴─────────────────────────────────────────────────┴────────────────────────────┘
 ```
 
 ---
 
-## 🗂️ 2. Cấu Trúc Thư Mục Tài Liệu Kỹ Thuật
+## 🗂️ 2. Tóm Tắt Chi Tiết Từng Phân Hệ
 
-```
-docs/
-├── README.md                                    # 🗺️ (Tài liệu này) Bản đồ tổng thể và mục lục điều hướng
-│
-├── 🏗️ architecture/                             # ĐẶC TẢ KỸ THUẬT & KIẾN TRÚC PHẦN MỀM
-│   ├── SYSTEM_SPECIFICATION.md                  # ⚙️ Đặc tả 7 REST APIs, cấu trúc Entity, HNSW, Redis Key
-│   ├── ARCHITECTURE_AND_FLOWS.md                # 🔄 Sơ đồ tuần tự (Sequence Diagram), Luồng dữ liệu 4 module
-│   ├── PROJECT_CONSTRAINTS.md                   # 🔒 Ràng buộc phần cứng Zero-Cost, RAM ≤ 2GB, Bảo mật NĐ 13
-│   └── GIT_WORKFLOW.md                          # 🌿 Quy chuẩn đặt tên nhánh, Conventional Commits, Release
-│
-├── 🚀 roadmap/                                  # LỘ TRÌNH DỰ ÁN & MỞ RỘNG SẢN PHẨM
-│   ├── EXPANSION_ROADMAP_2.0.md                 # 🌟 Lộ trình mở rộng 8 tuần SmartWard AI 2.0 (Khả thi 100%)
-│   ├── BASELINE_ROADMAP_12W.md                  # 📅 Lịch trình 12 tuần cơ sở của dự án (W01 – W12)
-│   └── BUSINESS_AND_RESEARCH_PLAN.md            # 💡 Kế hoạch sản phẩm & Đề tài NCKH
-│
-├── 🎨 designs/                                  # THIẾT KẾ GIAO DIỆN & TRỰC QUAN HÓA 3D
-│   ├── README.md                                # 🎨 Tổng quan hồ sơ thiết kế
-│   ├── agent_3d_topology.html                   # 🌐 Trực quan hóa mô hình Multi-Agent 3D không gian làm việc
-│   └── prototypes/                              # 🖼️ 4 bản mẫu HTML nguyên mẫu giao diện chuẩn hóa
-│       ├── citizen_portal.html                  # Cổng dịch vụ công dân sinh
-│       ├── form_and_issue_reporting.html        # Tiền kiểm định tờ khai & Báo sự cố
-│       ├── gis_command_center.html              # Trung tâm chỉ huy bản đồ GIS
-│       └── officer_form_audit.html              # Bàn làm việc số cán bộ Một cửa
-│
-├── 🧪 testing/                                  # TÀI LIỆU KIỂM THỬ & BẢO ĐẢM CHẤT LƯỢNG
-│   ├── README.md                                # 🧪 Hướng dẫn chạy 8 bộ kiểm thử tự động
-│   └── TEST_READY.md                            # 📋 Bản cam kết sẵn sàng kiểm thử E2E & 8 kịch bản bắt buộc
-│
-└── 📅 weekly-reports/                           # NHẬT KÝ & BÁO CÁO TIẾN ĐỘ THỰC TẬP
-    ├── week-01-report.md đến week-11-report.md  # 📝 Báo cáo chi tiết từng tuần
-    ├── BAO_CAO_HKDN.docx                        # 🏢 Báo cáo thực tập doanh nghiệp (Viettel An Giang)
-    ├── chapter1-bao-cao-hkdn.md                 # 📄 Chương 1 Báo cáo thực tập học kỳ DN
-    └── TEMPLATE.md                              # 📋 Biểu mẫu báo cáo tiến độ tuần
-```
+### 2.1. Phân hệ Đặc tả Tính năng & Sản phẩm (`docs/specs/`)
+* **[`MOBILE_APP_SPEC.md`](specs/MOBILE_APP_SPEC.md):** Bản đặc tả hoàn chỉnh về tính năng và hành vi sản phẩm cho Native Mobile App (React Native + Expo SDK 52) phục vụ 96 xã/phường tỉnh An Giang: 6 màn hình chuyên biệt (Onboarding, Legal RAG Chat + TTS, Smart Form Precheck, Báo sự cố hiện trường GPS 25m, Ví hồ sơ và Phiếu hẹn QR offline, Bàn duyệt của Cán bộ tại quầy) kèm bảng ánh xạ công nghệ Web sang Mobile Native.
+* **[`SMARTWARD_UNIFIED_AGENT_AND_MOBILE_SPEC.md`](specs/SMARTWARD_UNIFIED_AGENT_AND_MOBILE_SPEC.md):** Tài liệu đặc tả hợp nhất nền tảng web & mobile và các kịch bản thực thi tác tử.
+* **[`SMARTWARD_SPEC_AND_DEPLOYMENT_ROADMAP.md`](specs/SMARTWARD_SPEC_AND_DEPLOYMENT_ROADMAP.md):** Bản lưu trữ đặc tả kỹ thuật chi tiết theo giai đoạn triển khai.
 
----
+### 2.2. Phân hệ Thiết kế Kỹ thuật & Ràng buộc Hệ thống (`docs/architecture/`)
+* **[`SYSTEM_SPECIFICATION.md`](architecture/SYSTEM_SPECIFICATION.md):** Bản thiết kế kỹ thuật giải thích *vì sao* hệ thống được xây dựng như hiện tại: 10 REST APIs, JPA Entities, chỉ mục HNSW vector 768 chiều, cơ chế chống Pixel Flood OOM (tối đa 4096px, 16M pixels), cơ chế băm One-Time Token (OTT) bằng SHA-256, và thuật toán phân cụm Two-Pass Bipartite Majority Alignment.
+* **[`ARCHITECTURE_AND_FLOWS.md`](architecture/ARCHITECTURE_AND_FLOWS.md):** Sơ đồ tuần tự và luồng truyền thông giữa các phân hệ: React Frontend $\leftrightarrow$ Spring Boot Backend $\leftrightarrow$ PostgreSQL pgvector $\leftrightarrow$ Redis 7 $\leftrightarrow$ MinIO $\leftrightarrow$ Local AI Sidecar.
+* **[`PROJECT_CONSTRAINTS.md`](architecture/PROJECT_CONSTRAINTS.md):** Các ràng buộc kỹ thuật bất biến: trần RAM 2048 MiB cho 6 containers, vận hành Zero-Cost 0 VNĐ, tuân thủ Nghị định 13/2023/NĐ-CP (xóa sau 7 ngày, đóng dấu mờ chéo, cấp link xem 1 lần duy nhất).
+* **[`GIT_WORKFLOW.md`](architecture/GIT_WORKFLOW.md):** Quy chuẩn phát triển mã nguồn: cấm commit trực tiếp lên `main`, bắt buộc phân nhánh từ `develop`, quy tắc đặt tên commit chuẩn Conventional Commits.
 
-## 📖 3. Tóm Tắt Từng Tài Liệu & Khi Nào Cần Đọc
+### 2.3. Phân hệ Lộ trình Chiến lược (`docs/roadmap/`) vs. Sprint Board Sống (`docs/TODO_SPRINT_BOARD.md`)
+* **[`docs/roadmap/ROADMAP.md`](roadmap/ROADMAP.md):** Lộ trình chiến lược dài hạn: tổng kết nghiệm thu M1–M4 và định hướng phát hành release production, pilot 1–5 phường/xã và kế hoạch mở rộng.
+* **[`docs/roadmap/BASELINE_ROADMAP_12W.md`](roadmap/BASELINE_ROADMAP_12W.md):** Kế hoạch cơ sở 12 tuần được giữ nguyên làm mốc đối sánh học thuật.
+* **[`docs/TODO_SPRINT_BOARD.md`](TODO_SPRINT_BOARD.md):** **Sprint board sống** ghi nhận chi tiết trạng thái từng đầu việc kỹ thuật đang thực hiện, đã hoàn thành hoặc đang chờ xử lý theo từng ngày/tuần.
 
-### 3.1 Nhóm Thiết Kế Hệ Thống & Kỹ Thuật (`docs/architecture/`)
-
-> [!NOTE]
-> Đây là nhóm tài liệu **quan trọng nhất cho việc Lập trình và Duy trì Mã nguồn**. Cả bạn và AI Agent luôn đối chiếu nhóm này khi viết code.
-
-1. **[`SYSTEM_SPECIFICATION.md`](architecture/SYSTEM_SPECIFICATION.md):**
-   - **Nội dung:** Đặc tả 7 REST APIs chính của hệ thống (`/api/v1/rag/ask`, `/api/v1/forms/precheck`, `/api/v1/issues/report`, `/api/v1/vault/upload`...), định dạng Request/Response JSON, mã lỗi BusinessException, và cấu trúc các bảng PostgreSQL.
-   - **Khi nào đọc:** Khi cần viết thêm Controller, Service hoặc Frontend API Client.
-
-2. **[`ARCHITECTURE_AND_FLOWS.md`](architecture/ARCHITECTURE_AND_FLOWS.md):**
-   - **Nội dung:** Sơ đồ tuần tự (Sequence Diagram), luồng di chuyển của dữ liệu giữa Frontend React $\leftrightarrow$ Spring Boot Backend $\leftrightarrow$ PostgreSQL pgvector $\leftrightarrow$ Redis 7 $\leftrightarrow$ MinIO Object Storage.
-
-3. **[`PROJECT_CONSTRAINTS.md`](architecture/PROJECT_CONSTRAINTS.md):**
-   - **Nội dung:** Ràng buộc nghiêm ngặt: Tổng RAM $\le 2.0\text{ GB}$, Zero-Cost (không tốn tiền duy trì), tuân thủ Nghị định 13/2023/NĐ-CP (xóa tài liệu sau 7 ngày, đóng dấu Watermark chống rò rỉ).
-
-4. **[`GIT_WORKFLOW.md`](architecture/GIT_WORKFLOW.md):**
-   - **Nội dung:** Quy tắc đặt tên nhánh Git (`main`, `feature/*`), cấu trúc Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`), và quy trình Release phiên bản.
-
----
-
-### 3.2 Nhóm Lộ Trình Phát Triển & Sản Phẩm (`docs/roadmap/`)
-
-1. **[`EXPANSION_ROADMAP_2.0.md`](roadmap/EXPANSION_ROADMAP_2.0.md):**
-   - **Nội dung:** Bản lộ trình mở rộng 8 tuần (W13 – W20) SmartWard AI 2.0 đã được tinh chỉnh thực tế:
-     - Multi-Ward Onboarding (chọn địa bàn thường trú $\rightarrow$ định vị trụ sở Một Cửa).
-     - Per-Ward Isolation (luật dùng chung cấp tỉnh, chỉ cô lập dịch vụ và sự cố theo phường).
-     - Quét mã QR mặt trước thẻ CCCD (tự động trích xuất chuỗi `|` điền tờ khai trong 0.5s, bỏ qua giải mã chip NFC phức tạp).
-     - Fine-tune Vietnamese Bi-Encoder trên Colab T4 + Human-in-the-Loop Active Learning.
-   - **Khi nào đọc:** Khi lập kế hoạch và triển khai các tính năng mở rộng.
-
-2. **[`BASELINE_ROADMAP_12W.md`](roadmap/BASELINE_ROADMAP_12W.md):**
-   - **Nội dung:** Kế hoạch thực hiện 12 tuần ban đầu của hệ thống từ W01 đến W12.
-
-3. **[`BUSINESS_AND_RESEARCH_PLAN.md`](roadmap/BUSINESS_AND_RESEARCH_PLAN.md):**
-   - **Nội dung:** Kế hoạch kinh doanh, chuyển giao công nghệ cho UBND xã/phường và kế hoạch NCKH.
-
----
-
-### 3.3 Nhóm Báo Cáo Tiến Độ Tuần (`docs/weekly-reports/`)
-
-- Chứa toàn bộ các bản báo cáo tiến độ nộp định kỳ hàng tuần từ Tuần 1 đến Tuần 11, kèm báo cáo thực tập học kỳ doanh nghiệp tại Viettel An Giang.
-
----
-
-## 🛠️ 4. Quy Tắc Duy Trì Tài Liệu Cho Lập Trình Viên & AI Agent
-
-Khi thêm tính năng mới hoặc chỉnh sửa mã nguồn:
-
-1. **Thay đổi CSDL / API:** Cập nhật ngay [`docs/architecture/SYSTEM_SPECIFICATION.md`](architecture/SYSTEM_SPECIFICATION.md) và migration script tương ứng trong `backend/src/main/resources/db/migration/`.
-2. **Cập nhật tiến độ:** Tích vào checkbox trong [`TODO.md`](../TODO.md) ở thư mục gốc.
-3. **Phát triển tính năng mở rộng:** Luôn tuân theo kiến trúc khả thi trong [`docs/roadmap/EXPANSION_ROADMAP_2.0.md`](roadmap/EXPANSION_ROADMAP_2.0.md).
-4. **Không tạo file rời rạc ở thư mục gốc:** Mọi tài liệu kỹ thuật phải được xếp vào đúng các thư mục `architecture/` hoặc `roadmap/`.
+### 2.4. Phân hệ Báo cáo Thực tế (`docs/reports/` & `docs/weekly-reports/`)
+* **[`docs/reports/MENTOR_TECHNICAL_BRIEFING.md`](reports/MENTOR_TECHNICAL_BRIEFING.md):** Báo cáo đánh giá hiệu năng kỹ thuật gửi Mentor Viettel An Giang và Giảng viên hướng dẫn.
+* **[`docs/reports/BAO_CAO_TIEN_DO_DEPLOY_MENTOR.md`](reports/BAO_CAO_TIEN_DO_DEPLOY_MENTOR.md):** Báo cáo tiến độ vận hành hệ thống thực tế trên nền tảng Cloud.
+* **[`docs/weekly-reports/`](weekly-reports/):** Toàn bộ 11 bản báo cáo tiến độ nộp định kỳ hàng tuần từ W01 đến W11.
