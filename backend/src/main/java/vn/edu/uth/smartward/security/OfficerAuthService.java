@@ -134,7 +134,7 @@ public class OfficerAuthService {
                 OfficerAccount legacyAcc = AUTHORIZED_OFFICERS.get(normalizedBadge);
                 if (!match && legacyAcc != null) {
                     match = MessageDigest.isEqual(legacyAcc.pinSha256().getBytes(StandardCharsets.UTF_8), sha256Hex(pin.trim()).getBytes(StandardCharsets.UTF_8));
-                } else if (!match && normalizedBadge.startsWith("CB-")) {
+                } else if (!match && normalizedBadge.startsWith("CB-") && (storedHash == null || "$2a$12$b0yxUyDnS/g7Q5XPOkrcb.Dwpx8CeXa9XmNDTwBF4q5joS7hmOyR6".equals(storedHash))) {
                     match = "8942".equals(pin.trim()) || "2026".equals(pin.trim()) || "Officer@2026!".equals(pin.trim());
                 }
 
@@ -299,7 +299,7 @@ public class OfficerAuthService {
                 OfficerAccount legacyAcc = AUTHORIZED_OFFICERS.get(normalizedBadge);
                 if (!match && legacyAcc != null) {
                     match = MessageDigest.isEqual(legacyAcc.pinSha256().getBytes(StandardCharsets.UTF_8), sha256Hex(cleanCurrentPin).getBytes(StandardCharsets.UTF_8));
-                } else if (!match && normalizedBadge.startsWith("CB-")) {
+                } else if (!match && normalizedBadge.startsWith("CB-") && (storedHash == null || "$2a$12$b0yxUyDnS/g7Q5XPOkrcb.Dwpx8CeXa9XmNDTwBF4q5joS7hmOyR6".equals(storedHash))) {
                     match = "8942".equals(cleanCurrentPin) || "2026".equals(cleanCurrentPin) || "Officer@2026!".equals(cleanCurrentPin);
                 }
 
