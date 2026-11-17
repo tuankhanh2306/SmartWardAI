@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useRole } from '../context/RoleContext';
 import { useWard } from '../context/WardContext';
+import { ChangePinModal } from '../components/ChangePinModal';
 import {
   Landmark,
   UserCheck,
@@ -13,14 +14,15 @@ import {
   Clock,
   AlertCircle,
   MapPin,
+  Building2,
 } from 'lucide-react';
 
 export const RoleGateway: React.FC = () => {
   const { role, isOfficer, isCitizen, enterAsCitizen, loginOfficer, sessionMessage, clearSessionMessage } = useRole();
-  const { currentWard } = useWard();
+  const { currentWard, setWard, allWards } = useWard();
   const navigate = useNavigate();
 
-  // If already authenticated and within 5-min session, redirect to corresponding space
+  // If already authenticated and within session, redirect to corresponding space
   useEffect(() => {
     if (isOfficer) {
       navigate(`/officer/ward/${currentWard.code}`, { replace: true });
@@ -32,11 +34,12 @@ export const RoleGateway: React.FC = () => {
   // Mode: 'choice' (2 big buttons) or 'officer_form' (account inputs)
   const [mode, setMode] = useState<'choice' | 'officer_form'>('choice');
 
-  // Officer Form State
-  const [badgeId, setBadgeId] = useState('CC-AG-8942');
+  // Officer Form State - defaults to current ward
+  const [badgeId, setBadgeId] = useState(`CB-${currentWard.code}`);
   const [pin, setPin] = useState('8942');
   const [officerError, setOfficerError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [changePinOpen, setChangePinOpen] = useState(false);
 
   const handleOfficerLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +65,13 @@ export const RoleGateway: React.FC = () => {
     }
   };
 
-  const handleFillDemo = () => {
+  const handleFillWardOfficer = () => {
+    setBadgeId(`CB-${currentWard.code}`);
+    setPin('8942');
+    setOfficerError(null);
+  };
+
+  const handleFillLeadOfficer = () => {
     setBadgeId('CC-AG-8942');
     setPin('8942');
     setOfficerError(null);
@@ -96,7 +105,7 @@ export const RoleGateway: React.FC = () => {
           </div>
         </div>
 
-        {/* 5-Min Expiry Alert (If Triggered) */}
+        {/* 5-Min Expiry Alert (If Triggered for Citizen) */}
         {sessionMessage && (
           <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-3 flex items-start gap-2.5 text-xs text-amber-800 animate-fadeIn">
             <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
@@ -130,7 +139,7 @@ export const RoleGateway: React.FC = () => {
                 </div>
                 <div>
                   <div className="font-bold text-sm">Đăng nhập với tư cách Người dân</div>
-                  <div className="text-xs text-teal-100/80 font-normal">Vào thẳng hệ thống • Không cần tài khoản</div>
+                  <div className="text-xs text-teal-100/80 font-normal">Vào thẳng hệ thống • Phiên 5 phút</div>
                 </div>
               </div>
               <ArrowRight className="w-5 h-5 text-teal-200 group-hover:translate-x-0.5 transition-transform shrink-0" />
@@ -141,6 +150,8 @@ export const RoleGateway: React.FC = () => {
               type="button"
               onClick={() => {
                 setOfficerError(null);
+                setBadgeId(`CB-${currentWard.code}`);
+                setPin('8942');
                 setMode('officer_form');
               }}
               className="w-full p-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-xs flex items-center justify-between text-left transition-all active:scale-[0.99] cursor-pointer group"
@@ -151,7 +162,7 @@ export const RoleGateway: React.FC = () => {
                 </div>
                 <div>
                   <div className="font-bold text-sm">Đăng nhập với tư cách Cán bộ</div>
-                  <div className="text-xs text-slate-400 font-normal">Xác thực mã thẻ công chức & PIN</div>
+                  <div className="text-xs text-slate-400 font-normal">Phiên thường trực cho 96 xã/phường</div>
                 </div>
               </div>
               <ArrowRight className="w-5 h-5 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
@@ -168,17 +179,44 @@ export const RoleGateway: React.FC = () => {
             <button
               type="button"
               onClick={() => setMode('choice')}
-              className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 font-semibold mb-4 cursor-pointer"
+              className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 font-semibold mb-3 cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>Quay lại</span>
             </button>
 
-            <h2 className="text-base font-bold text-slate-900 mb-4">
+            <h2 className="text-base font-bold text-slate-900 mb-3">
               Xác thực quyền Cán bộ
             </h2>
 
-            <form onSubmit={handleOfficerLogin} className="space-y-3.5">
+            <form onSubmit={handleOfficerLogin} className="space-y-3">
+              {/* Quick Ward Selector */}
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
+                  <Building2 className="w-3.5 h-3.5 text-[#00796B]" />
+                  <span>Chọn địa bàn (Cấp đủ 96 xã/phường)</span>
+                </label>
+                <select
+                  value={currentWard.code}
+                  onChange={(e) => {
+                    const w = allWards.find((x) => x.code === e.target.value);
+                    if (w) {
+                      setWard(w);
+                      setBadgeId(`CB-${w.code}`);
+                      setPin('8942');
+                      setOfficerError(null);
+                    }
+                  }}
+                  className="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-slate-900"
+                >
+                  {allWards.map((w) => (
+                    <option key={w.code} value={w.code}>
+                      {w.name} ({w.code})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Mã thẻ công chức
@@ -188,9 +226,8 @@ export const RoleGateway: React.FC = () => {
                     type="text"
                     value={badgeId}
                     onChange={(e) => setBadgeId(e.target.value.toUpperCase())}
-                    placeholder="VD: CC-AG-8942"
+                    placeholder="VD: CB-AG_P_LONGXUYEN"
                     className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900 font-mono uppercase"
-                    autoFocus
                   />
                   <KeyRound className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
                 </div>
@@ -220,15 +257,21 @@ export const RoleGateway: React.FC = () => {
                 </div>
               )}
 
-              {/* Demo autofill */}
-              <div className="flex items-center justify-between text-xs text-slate-500 pt-0.5">
-                <span>Tài khoản mẫu: CC-AG-8942</span>
+              {/* Quick Fill Helpers */}
+              <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
                 <button
                   type="button"
-                  onClick={handleFillDemo}
+                  onClick={handleFillWardOfficer}
                   className="text-[#00796B] hover:underline font-semibold cursor-pointer"
                 >
-                  Điền nhanh
+                  Xã hiện tại (CB-{currentWard.code})
+                </button>
+                <button
+                  type="button"
+                  onClick={handleFillLeadOfficer}
+                  className="text-slate-600 hover:underline font-semibold cursor-pointer"
+                >
+                  Mẫu: CC-AG-8942
                 </button>
               </div>
 
@@ -249,16 +292,38 @@ export const RoleGateway: React.FC = () => {
                   </>
                 )}
               </button>
+
+              {/* Change PIN Action */}
+              <div className="pt-1 text-center">
+                <button
+                  type="button"
+                  onClick={() => setChangePinOpen(true)}
+                  className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 transition font-medium cursor-pointer"
+                >
+                  <KeyRound className="w-3.5 h-3.5 text-slate-400" />
+                  <span>Đổi mã PIN cán bộ</span>
+                </button>
+              </div>
             </form>
           </div>
         )}
 
         {/* Security Caption */}
-        <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-400">
-          <Clock className="w-3.5 h-3.5" />
-          <span>Phiên làm việc tự động hết hạn sau 5 phút</span>
+        <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-400 text-center">
+          <Clock className="w-3.5 h-3.5 shrink-0" />
+          <span>Cán bộ: Thường trực không giới hạn • Dân: Phiên 5 phút an toàn</span>
         </div>
       </div>
+
+      <ChangePinModal
+        isOpen={changePinOpen}
+        onClose={() => setChangePinOpen(false)}
+        defaultBadgeId={badgeId}
+        onSuccess={(newPin) => {
+          setPin(newPin);
+          setOfficerError(null);
+        }}
+      />
     </div>
   );
 };

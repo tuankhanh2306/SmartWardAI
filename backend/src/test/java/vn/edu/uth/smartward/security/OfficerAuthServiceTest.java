@@ -125,4 +125,88 @@ class OfficerAuthServiceTest {
         assertEquals(ErrorCode.INTERNAL_SERVER_ERROR, ex.getErrorCode());
         assertTrue(ex.getMessage().contains("placeholder"));
     }
+
+    @Test
+    void testAuthenticate_allWardsOfficerAccounts_success() {
+        // Test Phu Quoc Special Zone Officer
+        OfficerAuthService.LoginResponse loginPQ = officerAuthService.authenticate("CB-AG_DK_PHUQUOC", "8942", null);
+        assertNotNull(loginPQ.token());
+        assertEquals("CB-AG_DK_PHUQUOC", loginPQ.badgeId());
+        assertEquals("AG_DK_PHUQUOC", loginPQ.wardCode());
+        assertEquals("OFFICER", loginPQ.role());
+
+        // Test My Binh Ward Officer
+        OfficerAuthService.LoginResponse loginMB = officerAuthService.authenticate("CB-AG_P_MYBINH", "8942", null);
+        assertNotNull(loginMB.token());
+        assertEquals("AG_P_MYBINH", loginMB.wardCode());
+
+        // Test Vinh An Commune Officer with fallback PIN 2026
+        OfficerAuthService.LoginResponse loginVA = officerAuthService.authenticate("CB-AG_X_VINHAN", "2026", null);
+        assertNotNull(loginVA.token());
+        assertEquals("AG_X_VINHAN", loginVA.wardCode());
+
+        // Test invalid PIN rejection
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                officerAuthService.authenticate("CB-AG_DK_PHUQUOC", "9999", null)
+        );
+        assertEquals(ErrorCode.UNAUTHORIZED, ex.getErrorCode());
+    }
+
+    @Test
+    void testChangePin_success_andLoginWithNewPin() {
+        // Change PIN from default 8942 to new PIN 987654
+        OfficerAuthService.ChangePinResponse resp = officerAuthService.changePin(
+                "CB-AG_DK_PHUQUOC",
+                "8942",
+                "987654",
+                "987654",
+                null
+        );
+        assertNotNull(resp);
+        assertTrue(resp.success());
+        assertEquals("CB-AG_DK_PHUQUOC", resp.badgeId());
+
+        // Authenticate with new PIN must succeed
+        OfficerAuthService.LoginResponse newLogin = officerAuthService.authenticate("CB-AG_DK_PHUQUOC", "987654", null);
+        assertNotNull(newLogin.token());
+        assertEquals("CB-AG_DK_PHUQUOC", newLogin.badgeId());
+
+        // Old PIN must now fail
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                officerAuthService.authenticate("CB-AG_DK_PHUQUOC", "8942", null)
+        );
+        assertEquals(ErrorCode.UNAUTHORIZED, ex.getErrorCode());
+    }
+
+    @Test
+    void testChangePin_wrongCurrentPin_shouldReject() {
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                officerAuthService.changePin("CB-AG_DK_PHUQUOC", "0000", "987654", "987654", null)
+        );
+        assertEquals(ErrorCode.UNAUTHORIZED, ex.getErrorCode());
+    }
+
+    @Test
+    void testChangePin_mismatchedConfirmPin_shouldReject() {
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                officerAuthService.changePin("CB-AG_DK_PHUQUOC", "8942", "987654", "987655", null)
+        );
+        assertEquals(ErrorCode.INVALID_REQUEST, ex.getErrorCode());
+    }
+
+    @Test
+    void testChangePin_sameAsCurrentPin_shouldReject() {
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                officerAuthService.changePin("CB-AG_DK_PHUQUOC", "8942", "8942", "8942", null)
+        );
+        assertEquals(ErrorCode.INVALID_REQUEST, ex.getErrorCode());
+    }
+
+    @Test
+    void testChangePin_tooShortPin_shouldReject() {
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                officerAuthService.changePin("CB-AG_DK_PHUQUOC", "8942", "12", "12", null)
+        );
+        assertEquals(ErrorCode.INVALID_REQUEST, ex.getErrorCode());
+    }
 }

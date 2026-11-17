@@ -11,11 +11,13 @@ import {
   BookOpen,
   Clock,
   ArrowLeft,
+  KeyRound,
 } from 'lucide-react';
 import { useWard } from '../context/WardContext';
 import { useRole } from '../context/RoleContext';
 import { useAccessibility } from '../context/AccessibilityContext';
 import OfficerAuthModal from './OfficerAuthModal';
+import ChangePinModal from './ChangePinModal';
 
 export const Header: React.FC = () => {
   const location = useLocation();
@@ -26,6 +28,7 @@ export const Header: React.FC = () => {
   const { role, isOfficer, officerProfile, logout, sessionSecondsLeft, authModalOpen, setAuthModalOpen } =
     useRole();
   const { textScale, setTextScale } = useAccessibility();
+  const [changePinOpen, setChangePinOpen] = React.useState(false);
 
   // If on Gateway (/), hide standard app header so Gateway has clean view
   if (path === '/' || !role) {
@@ -163,24 +166,34 @@ export const Header: React.FC = () => {
             })}
           </nav>
 
-          {/* Right Actions: 5-Min Timer, Font Scale & Role Controls */}
+          {/* Right Actions: Session Status, Font Scale & Role Controls */}
           <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-            {/* 5-Minute Session Expiration Timer */}
-            <div
-              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-mono font-bold shadow-2xs ${
-                sessionSecondsLeft <= 60
-                  ? 'bg-red-50 text-red-700 border-red-300 animate-pulse'
-                  : 'bg-slate-50 text-slate-700 border-slate-200'
-              }`}
-              title="Thời gian phiên làm việc còn lại (Tự động kết thúc sau 5 phút)"
-            >
-              <Clock
-                className={`w-3.5 h-3.5 ${
-                  sessionSecondsLeft <= 60 ? 'text-red-600' : 'text-slate-500'
+            {/* Session Indicator: Officer = Standing Duty (Unlimited), Citizen = 5-Min Timer */}
+            {isOfficer ? (
+              <div
+                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-teal-200 bg-teal-50/80 text-[#00796B] text-xs font-semibold shadow-2xs"
+                title="Phiên làm việc cán bộ thường trực (Không giới hạn thời gian khi đang mở phiên làm việc)"
+              >
+                <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
+                <span className="hidden sm:inline">Thường Trực</span>
+              </div>
+            ) : (
+              <div
+                className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg border text-xs font-mono font-bold shadow-2xs ${
+                  sessionSecondsLeft <= 60
+                    ? 'bg-red-50 text-red-700 border-red-300 animate-pulse'
+                    : 'bg-slate-50 text-slate-700 border-slate-200'
                 }`}
-              />
-              <span className="text-[11px] sm:text-xs">{formattedCountdown}</span>
-            </div>
+                title="Thời gian phiên làm việc công dân còn lại (Tự động kết thúc sau 5 phút)"
+              >
+                <Clock
+                  className={`w-3.5 h-3.5 ${
+                    sessionSecondsLeft <= 60 ? 'text-red-600' : 'text-slate-500'
+                  }`}
+                />
+                <span className="text-[11px] sm:text-xs">{formattedCountdown}</span>
+              </div>
+            )}
 
             {/* Font Scale Switcher */}
             <button
@@ -216,6 +229,16 @@ export const Header: React.FC = () => {
                     {officerProfile.name}
                   </span>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => setChangePinOpen(true)}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold transition active:scale-95 cursor-pointer shadow-2xs"
+                  title="Đổi mã PIN cán bộ"
+                >
+                  <KeyRound className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="hidden sm:inline">Đổi PIN</span>
+                </button>
 
                 <button
                   type="button"
@@ -388,6 +411,7 @@ export const Header: React.FC = () => {
       </nav>
 
       <OfficerAuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
+      <ChangePinModal isOpen={changePinOpen} onClose={() => setChangePinOpen(false)} />
     </>
   );
 };
