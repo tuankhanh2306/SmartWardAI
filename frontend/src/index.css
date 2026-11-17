@@ -3,6 +3,49 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    /* Institutional Public-Admin Design Tokens (PLAN-UI-MODERNIZATION-2026 P1) */
+    --sw-primary: #00796B;
+    --sw-primary-hover: #00695C;
+    --sw-primary-dark: #004D40;
+    --sw-officer: #0F2942;
+    --sw-officer-hover: #1E3A5F;
+
+    --sw-surface: #F8FAFC;
+    --sw-surface-card: #FFFFFF;
+    --sw-surface-muted: #F1F5F9;
+
+    --sw-border: #E2E8F0;
+    --sw-border-strong: #CBD5E1;
+
+    --sw-ink: #0F172A;
+    --sw-ink-muted: #475569;
+    --sw-ink-subtle: #64748B;
+
+    /* Semantic SLA Status Tokens (WCAG 2.1 AA contrast) */
+    --sw-sla-normal-bg: #F0FDF4;
+    --sw-sla-normal-border: #BBF7D0;
+    --sw-sla-normal-text: #166534;
+    --sw-sla-warning-bg: #FEFCE8;
+    --sw-sla-warning-border: #FEF08A;
+    --sw-sla-warning-text: #854D0E;
+    --sw-sla-urgent-bg: #FFF7ED;
+    --sw-sla-urgent-border: #FED7AA;
+    --sw-sla-urgent-text: #9A3412;
+    --sw-sla-overdue-bg: #FEF2F2;
+    --sw-sla-overdue-border: #FECACA;
+    --sw-sla-overdue-text: #991B1B;
+
+    /* Standardized Institutional Radii & Shadows */
+    --sw-radius-container: 0.75rem; /* 12px - rounded-xl */
+    --sw-radius-card: 0.5rem;       /* 8px  - rounded-lg */
+    --sw-radius-control: 0.375rem;  /* 6px  - rounded-md */
+
+    --sw-shadow-2xs: 0 1px 1px 0 rgb(15 23 42 / 0.03);
+    --sw-shadow-xs: 0 1px 2px 0 rgb(15 23 42 / 0.05);
+    --sw-shadow-sm: 0 1px 3px 0 rgb(15 23 42 / 0.08), 0 1px 2px -1px rgb(15 23 42 / 0.04);
+  }
+
   html, body {
     margin: 0;
     padding: 0;
@@ -12,36 +55,32 @@
     scroll-behavior: smooth;
     font-variant-numeric: tabular-nums;
   }
-  
+
   body {
     overscroll-behavior: none;
-    background-color: #F8FAFC;
-    color: #0F172A;
+    background-color: var(--sw-surface);
+    color: var(--sw-ink);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-/* UTH & Civic Institutional Pattern & Watermark */
+/* Institutional Civic Surface (Clean Slate-50 canvas without distracting gradients/watermarks) */
 .bg-uth-canvas {
-  background-color: #E0F2F1;
-  background-image: 
-    radial-gradient(circle at 12% 18%, rgba(0, 121, 107, 0.12) 0%, transparent 35%),
-    radial-gradient(circle at 88% 82%, rgba(38, 166, 154, 0.14) 0%, transparent 40%),
-    linear-gradient(135deg, #E0F2F1 0%, #E6F4F1 50%, #ECFDF5 100%);
-  background-attachment: fixed;
+  background-color: var(--sw-surface);
 }
 
 .bg-uth-watermark {
   position: relative;
-}
-
-.bg-uth-watermark::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background-image: url("data:image/svg+xml,%3Csvg width='180' height='180' viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%2300796B' fill-opacity='0.035'%3E%3Cpath d='M90 35 L125 55 L90 75 L55 55 Z'/%3E%3Cpath d='M70 65 L70 85 C70 98 110 98 110 85 L110 65' fill='none' stroke='%2300796B' stroke-opacity='0.035' stroke-width='3'/%3E%3Cpath d='M125 55 L135 68 L135 85' fill='none' stroke='%2300796B' stroke-opacity='0.035' stroke-width='2'/%3E%3Ctext x='90' y='145' font-family='sans-serif' font-size='11' font-weight='bold' text-anchor='middle' fill='%2300796B' fill-opacity='0.03'%3EUTH - SMARTWARD%3C/text%3E%3C/g%3E%3C/svg%3E");
-  background-repeat: repeat;
-  z-index: 0;
 }
 
 /* Accessibility & Inclusive All-Ages Scaling (Phù hợp mọi lứa tuổi & người lớn tuổi) */
@@ -204,9 +243,9 @@ html.high-contrast-mode #root {
 }
 
 .leaflet-popup-content-wrapper {
-  border-radius: 16px !important;
-  box-shadow: 0 10px 25px -5px rgba(15, 41, 66, 0.15), 0 8px 10px -6px rgba(15, 41, 66, 0.1) !important;
-  border: 1px solid #CBD5E1 !important;
+  border-radius: var(--sw-radius-container) !important;
+  box-shadow: var(--sw-shadow-sm) !important;
+  border: 1px solid var(--sw-border-strong) !important;
   padding: 2px !important;
 }
 
@@ -217,52 +256,77 @@ html.high-contrast-mode #root {
 
 .leaflet-popup-tip {
   box-shadow: none !important;
-  border: 1px solid #CBD5E1;
+  border: 1px solid var(--sw-border-strong);
 }
 
-/* Modern Rounded Leaflet Controls */
+/* Institutional Leaflet Controls */
 .leaflet-bar {
-  border: 1px solid #CBD5E1 !important;
-  border-radius: 12px !important;
+  border: 1px solid var(--sw-border-strong) !important;
+  border-radius: var(--sw-radius-card) !important;
   overflow: hidden !important;
-  box-shadow: 0 4px 12px rgba(15, 41, 66, 0.08) !important;
+  box-shadow: var(--sw-shadow-xs) !important;
 }
 
 .leaflet-bar a {
-  background-color: #FFFFFF !important;
-  color: #0F2942 !important;
-  border-bottom: 1px solid #E2E8F0 !important;
+  background-color: var(--sw-surface-card) !important;
+  color: var(--sw-officer) !important;
+  border-bottom: 1px solid var(--sw-border) !important;
   width: 32px !important;
   height: 32px !important;
   line-height: 32px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   transition: all 0.15s ease !important;
 }
 
 .leaflet-bar a:hover {
-  background-color: #F8FAFC !important;
-  color: #0F172A !important;
+  background-color: var(--sw-surface) !important;
+  color: var(--sw-ink) !important;
 }
 
 .leaflet-bar a:last-child {
   border-bottom: none !important;
 }
 
-/* Button Micro-Interactions System-Wide */
-.btn-primary {
-  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#0F2942] hover:bg-[#1E3A5F] active:scale-[0.98] shadow-sm shadow-[#0F2942]/20 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#0F2942] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
-}
+/* ========================================================================= */
+/* INSTITUTIONAL DESIGN SYSTEM UTILITIES (PLAN-UI-MODERNIZATION-2026 P1)     */
+/* ========================================================================= */
+@layer components {
+  .gov-container {
+    @apply bg-white border border-slate-200 rounded-xl shadow-xs;
+  }
 
-.btn-secondary {
-  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-semibold text-xs sm:text-sm text-[#0F2942] bg-[#F8FAFC] hover:bg-[#F1F5F9] border border-[#CBD5E1] active:scale-[0.98] transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#0F2942] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
-}
+  .gov-card {
+    @apply bg-white border border-slate-200 rounded-lg shadow-2xs;
+  }
 
-.btn-danger {
-  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#DC2626] hover:bg-[#B91C1C] active:scale-[0.98] shadow-sm shadow-[#DC2626]/20 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#DC2626] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
-}
+  .gov-input {
+    @apply h-10 px-3.5 rounded-md bg-white border border-slate-300 text-sm text-slate-900 placeholder:text-slate-400 shadow-2xs focus:outline-none focus:ring-2 focus:ring-[#00796B]/20 focus:border-[#00796B] transition-colors;
+  }
 
-.btn-teal {
-  @apply inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm text-white bg-[#0F766E] hover:bg-[#115E59] active:scale-[0.98] shadow-sm shadow-[#0F766E]/20 transition-all duration-150 focus-visible:ring-2 focus-visible:ring-[#0F766E] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  .gov-badge {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium border;
+  }
+
+  .gov-focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00796B] focus-visible:ring-offset-2;
+  }
+
+  /* Button Micro-Interactions System-Wide (neutral shadow-xs, zero colored glow) */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md font-semibold text-xs sm:text-sm text-white bg-[#0F2942] hover:bg-[#1E3A5F] active:scale-[0.98] shadow-xs transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0F2942] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md font-semibold text-xs sm:text-sm text-[#0F2942] bg-[#F8FAFC] hover:bg-[#F1F5F9] border border-[#CBD5E1] active:scale-[0.98] shadow-2xs transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00796B] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md font-semibold text-xs sm:text-sm text-white bg-[#DC2626] hover:bg-[#B91C1C] active:scale-[0.98] shadow-xs transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#DC2626] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  }
+
+  .btn-teal {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 rounded-md font-semibold text-xs sm:text-sm text-white bg-[#00796B] hover:bg-[#00695C] active:scale-[0.98] shadow-xs transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#00796B] focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none;
+  }
 }
 
 /* ========================================================================= */
