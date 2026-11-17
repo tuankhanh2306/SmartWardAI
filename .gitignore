@@ -63,6 +63,7 @@ graphify-out/
 
 # Scratch & Temporary experiment scripts
 scratch/
+.tmp-ui-audit/
 
 # Large ML Model binaries (exceeds GitHub 100MB limit)
 ml/models/*.onnx
