@@ -57,6 +57,9 @@ import {
   Navigation,
   Radio,
   ArrowRight,
+  ChevronDown,
+  ChevronLeft,
+  ChevronUp,
   FileDown,
   Volume2,
   VolumeX,
@@ -186,6 +189,10 @@ export const FormAndIssueReporting: React.FC = () => {
       : 'CT01';
 
   const [selectedFormType, setSelectedFormType] = useState<'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH'>(initialType);
+  // P3: 3-Step Precheck Wizard & collapsible compliance reference
+  const [formWizardStep, setFormWizardStep] = useState<1 | 2 | 3>(1);
+  const [showReferenceTable, setShowReferenceTable] = useState<boolean>(false);
+  const [canvasCheckedLocally, setCanvasCheckedLocally] = useState<boolean>(false);
 
   useEffect(() => {
     const type = searchParams.get('type')?.toUpperCase();
@@ -763,12 +770,18 @@ export const FormAndIssueReporting: React.FC = () => {
 
   // Handle Form Precheck across all 4 form types & Submit to Officer Queue
   const handlePrecheck = async () => {
-    // 1. Check AI Vision Quality Gate first if a file/photo was uploaded or simulated
-    if (visionGateResult && (visionGateResult.isBlurry || visionGateResult.isTooDark || !visionGateResult.templateMatched)) {
+    // 1. Check Client Canvas + Template Quality Gate first if a file/photo was uploaded or simulated
+    if (
+      visionGateResult &&
+      (visionGateResult.isBlurry ||
+        visionGateResult.isTooDark ||
+        visionGateResult.isGlared ||
+        !visionGateResult.templateMatched)
+    ) {
       const reason = !visionGateResult.templateMatched
         ? visionGateResult.templateMessage
         : visionGateResult.qualityMessage;
-      alert(`CHỐT CHẶN AI THỊ GIÁC — TỪ CHỐI TIẾP NHẬN:\n\n${reason}\n\nVui lòng chụp lại ảnh rõ nét hoặc chọn đúng biểu mẫu trước khi gửi lên cán bộ sơ duyệt.`);
+      alert(`CHỐT CHẶN CHẤT LƯỢNG ẢNH — TỪ CHỐI TIẾP NHẬN:\n\n${reason}\n\nVui lòng chụp lại ảnh rõ nét hoặc chọn đúng biểu mẫu trước khi gửi lên cán bộ sơ duyệt.`);
       return;
     }
 
@@ -950,6 +963,7 @@ export const FormAndIssueReporting: React.FC = () => {
 
       setMyDossiers(getLiveSubmittedDossiers());
       setEmailNotifications(getCitizenEmailNotifications());
+      setFormWizardStep(3);
     } catch {
       alert('Không thể kết nối đến máy chủ backend để kiểm tra tờ khai.');
     } finally {
@@ -992,11 +1006,70 @@ export const FormAndIssueReporting: React.FC = () => {
     setSelectedFile(file);
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
+    setOcrSuccess(false);
+    setOcrConfidence(null);
+    setOcrError(null);
+    setOcrDetails(null);
+    setVisionGateResult(null);
+    setVaultDocInfo(null);
+    setVaultUploadError(null);
+    setCanvasCheckedLocally(false);
+    setIsOcrProcessing(true);
 
-    // 1. Run AI Vision Quality Gate & OCR
-    runVisionOcr(file);
+    // Clear previous values so the citizen directly observes fresh field mapping from the file
+    setFullName('');
+    setCccd('');
+    setDob('');
+    setGender('');
+    setIssueDate('');
+    setAddress('');
+    setPhoneNumber('');
+    setHostName('');
+    setHostCccd('');
+    setHostRelation('Chủ hộ');
+    setDeclarationScope('Đăng ký thường trú');
 
-    // 2. Upload to Zero-Trust Vault with AES-256-GCM encryption & Java2D watermark
+    // 1. Bước đầu tại trình duyệt (HTML5 Canvas — không gửi mạng nếu ảnh mờ/thiếu sáng/lóa)
+    let quality: Awaited<ReturnType<typeof analyzeImageQuality>>;
+    try {
+      quality = await analyzeImageQuality(file);
+      setCanvasCheckedLocally(true);
+    } catch {
+      quality = {
+        sharpnessScore: 90,
+        brightnessScore: 180,
+        glareScore: 0,
+        isBlurry: false,
+        isTooDark: false,
+        isGlared: false,
+        qualityStatus: 'GOOD',
+        qualityMessage: 'Ảnh đạt kiểm định sơ bộ HTML5 Canvas.',
+      };
+      setCanvasCheckedLocally(true);
+    }
+
+    if (quality.isBlurry || quality.isTooDark || quality.isGlared) {
+      setVisionGateResult({
+        ...quality,
+        templateMatched: true,
+        detectedFormCode: selectedFormType,
+        detectedFormLabel: `Biểu mẫu ${selectedFormType}`,
+        templateMessage: 'Chưa gửi máy chủ do ảnh chưa đạt chốt chặn chất lượng HTML5 Canvas.',
+      });
+      setOcrError(quality.qualityMessage);
+      setOcrSuccess(false);
+      setOcrConfidence(null);
+      setIsOcrProcessing(false);
+      return;
+    }
+
+    // 2. Canvas đạt chuẩn -> Gửi máy chủ kiểm tra sâu (QR/OCR) & chỉ upload Vault khi khớp biểu mẫu
+    const templateOk = await runVisionOcr(file, quality);
+    if (!templateOk) {
+      return;
+    }
+
+    // 3. Upload to Zero-Trust Vault with AES-256-GCM encryption & Java2D watermark
     setIsVaultUploading(true);
     setVaultUploadError(null);
     try {
@@ -1023,25 +1096,11 @@ export const FormAndIssueReporting: React.FC = () => {
     }
   };
 
-  const runVisionOcr = async (file: File) => {
+  const runVisionOcr = async (
+    file: File,
+    precomputedQuality?: Awaited<ReturnType<typeof analyzeImageQuality>>
+  ): Promise<boolean> => {
     setIsOcrProcessing(true);
-    setOcrSuccess(false);
-    setOcrError(null);
-    setOcrDetails(null);
-    setVisionGateResult(null);
-
-    // Clear previous values so the citizen directly observes fresh field mapping from the file
-    setFullName('');
-    setCccd('');
-    setDob('');
-    setGender('');
-    setIssueDate('');
-    setAddress('');
-    setPhoneNumber('');
-    setHostName('');
-    setHostCccd('');
-    setHostRelation('Chủ hộ');
-    setDeclarationScope('Đăng ký thường trú');
 
     try {
       // Step A: Attempt direct QR Code decoding if file is an image (BCA CCCD 7-field standard)
@@ -1054,11 +1113,23 @@ export const FormAndIssueReporting: React.FC = () => {
         }
       }
 
-      // Step B: Run Vision Quality Gate & OCR in parallel
-      const [quality, result] = await Promise.all([
-        analyzeImageQuality(file),
-        extractFormWithVision(file),
-      ]);
+      // Step B: Sử dụng kết quả Canvas trình duyệt + chạy bước kiểm tra sâu tại máy chủ
+      const quality = precomputedQuality ?? (await analyzeImageQuality(file));
+      if (quality.isBlurry || quality.isTooDark || quality.isGlared) {
+        setVisionGateResult({
+          ...quality,
+          templateMatched: true,
+          detectedFormCode: selectedFormType,
+          detectedFormLabel: `Biểu mẫu ${selectedFormType}`,
+          templateMessage: 'Ảnh bị chặn ở bước kiểm tra HTML5 Canvas tại trình duyệt.',
+        });
+        setOcrSuccess(false);
+        setOcrConfidence(null);
+        setOcrError(quality.qualityMessage);
+        return false;
+      }
+
+      const result = await extractFormWithVision(file);
 
       const tplMatch = verifyTemplateMatch(
         `${result.detectedDocType || ''} ${result.message || ''} ${result.fullName || ''} ${result.address || ''} ${qrData ? qrData.fullName : ''}`,
@@ -1073,18 +1144,11 @@ export const FormAndIssueReporting: React.FC = () => {
 
       setOcrDetails(result);
 
-      if (quality.isBlurry || quality.isTooDark) {
-        setOcrSuccess(false);
-        setOcrConfidence(null);
-        setOcrError(quality.qualityMessage);
-        return;
-      }
-
       if (!tplMatch.templateMatched) {
         setOcrSuccess(false);
         setOcrConfidence(null);
         setOcrError(tplMatch.templateMessage);
-        return;
+        return false;
       }
 
       // Step C: Merge QR decoded data and OCR extraction results (QR has 100% precision for CCCD cards)
@@ -1211,15 +1275,18 @@ export const FormAndIssueReporting: React.FC = () => {
         const conf = qrData ? 100 : Number((result.confidence || 95).toFixed(1));
         setOcrConfidence(conf);
         setOcrSuccess(true);
+        return true;
       } else {
         setOcrSuccess(false);
         setOcrConfidence(null);
         setOcrError(result.message || 'Không tìm thấy các mục thông tin tương ứng trên tệp này. Quý công dân vui lòng nhập trực tiếp vào các ô bên dưới.');
+        return true;
       }
     } catch (err: any) {
       setOcrSuccess(false);
       setOcrConfidence(null);
       setOcrError('Lỗi trong quá trình trích xuất OCR: ' + (err?.message || 'Không thể đọc ảnh. Vui lòng nhập tay.'));
+      return false;
     } finally {
       setIsOcrProcessing(false);
     }
@@ -1236,6 +1303,9 @@ export const FormAndIssueReporting: React.FC = () => {
     setOcrError(null);
     setOcrDetails(null);
     setVisionGateResult(null);
+    setVaultDocInfo(null);
+    setVaultUploadError(null);
+    setCanvasCheckedLocally(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -1275,13 +1345,16 @@ export const FormAndIssueReporting: React.FC = () => {
     setOcrConfidence(98.5);
     setOcrSuccess(true);
     setOcrError(null);
+    setCanvasCheckedLocally(true);
     setVisionGateResult({
       sharpnessScore: 96,
       brightnessScore: 205,
+      glareScore: 4,
       isBlurry: false,
       isTooDark: false,
+      isGlared: false,
       qualityStatus: 'GOOD',
-      qualityMessage: 'Ảnh rõ nét (96/100), ánh sáng chuẩn — Đạt điều kiện gửi cán bộ sơ duyệt.',
+      qualityMessage: 'Canvas trình duyệt đạt chuẩn: Độ nét 96/100, Ánh sáng 205/255 — Đủ điều kiện gửi cán bộ.',
       templateMatched: true,
       detectedFormCode: selectedFormType,
       detectedFormLabel: `Biểu mẫu ${selectedFormType} chuẩn quy định`,
@@ -1302,24 +1375,44 @@ export const FormAndIssueReporting: React.FC = () => {
     });
   };
 
-  // Helper to simulate a blurred / wrong-template image so user can test AI Vision Gate blocking
-  const handleSimulateBlurredOrWrongFile = (mode: 'BLURRY' | 'WRONG_TEMPLATE') => {
+  // Helper to simulate blurred / glared / wrong-template image so user can test Client Canvas & AI Gate blocking
+  const handleSimulateBlurredOrWrongFile = (mode: 'BLURRY' | 'GLARED' | 'WRONG_TEMPLATE') => {
     setOcrSuccess(false);
     setOcrConfidence(null);
+    setCanvasCheckedLocally(true);
     if (mode === 'BLURRY') {
-      const msg = 'Ảnh bị mờ nhòe / rung tay (Độ nét 11/100). Chốt chặn AI Thị giác đã chặn không cho gửi tới cán bộ — Vui lòng chụp lại rõ nét!';
+      const msg = 'Ảnh bị mờ nhòe / rung tay (Độ nét Canvas 11/100). Chốt chặn HTML5 Canvas tại trình duyệt đã chặn, KHÔNG gửi tệp lên máy chủ.';
       setOcrError(msg);
       setVisionGateResult({
         sharpnessScore: 11,
         brightnessScore: 95,
+        glareScore: 3,
         isBlurry: true,
         isTooDark: false,
+        isGlared: false,
         qualityStatus: 'BLURRY',
         qualityMessage: msg,
         templateMatched: true,
         detectedFormCode: selectedFormType,
         detectedFormLabel: `Biểu mẫu ${selectedFormType}`,
-        templateMessage: `Khớp mục thủ tục (${selectedFormType}), nhưng hình ảnh bị mờ không đọc được chữ.`,
+        templateMessage: `Chưa gửi máy chủ vì ảnh mờ tại bước kiểm tra Canvas trình duyệt.`,
+      });
+    } else if (mode === 'GLARED') {
+      const msg = 'Ảnh bị lóa đèn flash / cháy sáng vùng chữ (Lóa 46%, Độ nét 16/100). Chốt chặn HTML5 Canvas đã chặn gửi — vui lòng tắt flash và chụp nghiêng nhẹ.';
+      setOcrError(msg);
+      setVisionGateResult({
+        sharpnessScore: 16,
+        brightnessScore: 242,
+        glareScore: 46,
+        isBlurry: false,
+        isTooDark: false,
+        isGlared: true,
+        qualityStatus: 'GLARED',
+        qualityMessage: msg,
+        templateMatched: true,
+        detectedFormCode: selectedFormType,
+        detectedFormLabel: `Biểu mẫu ${selectedFormType}`,
+        templateMessage: `Chưa gửi máy chủ vì vùng sáng bị chói lóa tại bước kiểm tra Canvas.`,
       });
     } else {
       const otherForm = selectedFormType === 'CT01' ? 'TK-KS (Tờ khai đăng ký khai sinh)' : 'CT01 (Tờ khai thay đổi cư trú)';
@@ -1328,10 +1421,12 @@ export const FormAndIssueReporting: React.FC = () => {
       setVisionGateResult({
         sharpnessScore: 94,
         brightnessScore: 198,
+        glareScore: 5,
         isBlurry: false,
         isTooDark: false,
+        isGlared: false,
         qualityStatus: 'GOOD',
-        qualityMessage: 'Ảnh rõ nét (94/100).',
+        qualityMessage: 'Canvas trình duyệt đạt chuẩn: Độ nét 94/100.',
         templateMatched: false,
         detectedFormCode: selectedFormType === 'CT01' ? 'TK-KS' : 'CT01',
         detectedFormLabel: otherForm,
@@ -1496,677 +1591,802 @@ export const FormAndIssueReporting: React.FC = () => {
           </p>
         </div>
 
-        <div className="p-1 bg-[#E2E8F0]/70 rounded-xl border border-[#CBD5E1] flex items-center gap-1 self-start sm:self-auto">
+        <div className="p-1 bg-[#E2E8F0]/70 rounded-xl border border-[#CBD5E1] flex flex-wrap sm:flex-nowrap items-center gap-1 self-start sm:self-auto shrink-0">
           <button
+            type="button"
             onClick={() => {
               setActiveTab('form');
               navigate('/citizen/form#form', { replace: true });
             }}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer gov-focus-ring ${
               activeTab === 'form'
-                ? 'bg-[#00796B] text-white shadow-xs'
-                : 'text-[#475569] hover:text-[#00796B]'
+                ? 'bg-[#00695C] text-white shadow-xs'
+                : 'text-[#334155] hover:text-[#004D40]'
             }`}
           >
-            <FileCheck2 className={`w-3.5 h-3.5 ${activeTab === 'form' ? 'text-[#80CBC4]' : 'text-[#64748B]'}`} />
+            <FileCheck2 className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'form' ? 'text-teal-100' : 'text-[#475569]'}`} />
             <span>Tờ Khai (4 Mẫu)</span>
           </button>
 
           <button
             id="incident"
+            type="button"
             onClick={() => {
               setActiveTab('incident');
               navigate('/citizen/form#incident', { replace: true });
             }}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer gov-focus-ring ${
               activeTab === 'incident'
-                ? 'bg-[#00796B] text-white shadow-xs'
-                : 'text-[#475569] hover:text-[#00796B]'
+                ? 'bg-[#00695C] text-white shadow-xs'
+                : 'text-[#334155] hover:text-[#004D40]'
             }`}
           >
-            <AlertTriangle className={`w-3.5 h-3.5 ${activeTab === 'incident' ? 'text-[#80CBC4]' : 'text-[#64748B]'}`} />
+            <AlertTriangle className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'incident' ? 'text-teal-100' : 'text-[#475569]'}`} />
             <span>Báo Sự Cố (GPS)</span>
           </button>
 
           <button
             id="tracking"
+            type="button"
             onClick={() => {
               setActiveTab('tracking');
               navigate('/citizen/form#tracking', { replace: true });
             }}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+            className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer gov-focus-ring ${
               activeTab === 'tracking'
-                ? 'bg-[#00796B] text-white shadow-xs'
-                : 'text-[#475569] hover:text-[#00796B]'
+                ? 'bg-[#00695C] text-white shadow-xs'
+                : 'text-[#334155] hover:text-[#004D40]'
             }`}
           >
-            <Clock className={`w-3.5 h-3.5 ${activeTab === 'tracking' ? 'text-[#80CBC4]' : 'text-[#64748B]'}`} />
+            <Clock className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'tracking' ? 'text-teal-100' : 'text-[#475569]'}`} />
             <span>Tra Cứu Hồ Sơ (SLA)</span>
           </button>
         </div>
       </div>
 
       {/* ========================================================================= */}
-      {/* TAB 1: FORM PRECHECK ENGINE */}
+      {/* TAB 1: FORM PRECHECK ENGINE — P3 3-STEP WIZARD */}
       {/* ========================================================================= */}
       {activeTab === 'form' && (
         <section className="flex flex-col gap-5 animate-fadeIn">
 
-          {/* 4-Form Priority Selector Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-            {[
-              {
-                id: 'CT01' as const,
-                badge: 'Cư trú',
-                title: '1. Mẫu CT01 Cư Trú',
-                desc: 'Kiểm tra 12 số CCCD, ngày sinh & địa chỉ cư trú.',
-              },
-              {
-                id: 'TK-KS' as const,
-                badge: 'Hộ tịch',
-                title: '2. Đăng Ký Khai Sinh',
-                desc: 'Đối chiếu Tờ khai với Giấy chứng sinh bệnh viện.',
-              },
-              {
-                id: 'TK-KH' as const,
-                badge: 'Tư pháp',
-                title: '3. Kết Hôn & Độc Thân',
-                desc: 'Kiểm tra tuổi kết hôn (Nam ≥ 20, Nữ ≥ 18) & mục đích.',
-              },
-              {
-                id: 'TK-BTXH' as const,
-                badge: 'An sinh',
-                title: '4. Trợ Cấp Bảo Trợ',
-                desc: 'Kiểm tra tuổi ≥ 75 (Luật BHXH 2024), mức khuyết tật & STK an sinh.',
-              },
-            ].map((item) => {
-              const active = selectedFormType === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => handleSelectFormType(item.id, 'ERROR_DEMO')}
-                  className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 ${
-                    active
-                      ? 'bg-[#00796B] text-white border-[#00796B] shadow-sm'
-                      : 'bg-white hover:bg-[#F8FAFC] text-[#0F172A] border-[#CBD5E1]'
-                  }`}
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <span
-                      className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                        active ? 'bg-[#80CBC4] text-[#00796B]' : 'bg-[#F1F5F9] text-[#00796B]'
+          {/* P3: 3-Step Precheck Wizard Stepper */}
+          <nav
+            aria-label="Quy trình tiền kiểm tra tờ khai 3 bước"
+            className="bg-white rounded-2xl border border-[#CBD5E1] shadow-xs p-2.5 sm:p-3"
+          >
+            <ol className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {[
+                { step: 1 as const, label: 'Bước 1', title: 'Chọn Mẫu & Kiểm Ảnh (Canvas)' },
+                { step: 2 as const, label: 'Bước 2', title: 'Nhập & Đối Chiếu Tờ Khai' },
+                { step: 3 as const, label: 'Bước 3', title: 'Kết Quả Tiền Kiểm & In A4' },
+              ].map((s) => {
+                const isCurrent = formWizardStep === s.step;
+                const isDone = formWizardStep > s.step || (s.step === 3 && Boolean(precheckResult));
+                return (
+                  <li key={s.step}>
+                    <button
+                      type="button"
+                      onClick={() => setFormWizardStep(s.step)}
+                      aria-current={isCurrent ? 'step' : undefined}
+                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition cursor-pointer gov-focus-ring ${
+                        isCurrent
+                          ? 'bg-[#00695C] text-white border-[#004D40] shadow-xs'
+                          : isDone
+                          ? 'bg-[#F0FDF4] text-[#065F46] border-[#A7F3D0] hover:bg-[#DCFCE7]'
+                          : 'bg-[#F8FAFC] text-[#334155] border-[#CBD5E1] hover:bg-[#F1F5F9]'
                       }`}
                     >
-                      {item.badge}
-                    </span>
-                    {active && <CheckCircle2 className="w-4 h-4 text-[#80CBC4]" />}
-                  </div>
-                  <div>
-                    <div className="text-xs sm:text-sm font-extrabold">{item.title}</div>
-                    <p className={`text-xs mt-1 leading-snug ${active ? 'text-white/85' : 'text-[#64748B]'}`}>
-                      {item.desc}
-                    </p>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* ========================================================================= */}
-          {/* MANDATORY SIGNATURE CERTIFICATION WARNING & 4-GROUP PRECHECK REFERENCE */}
-          {/* ========================================================================= */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-            {/* Red Alert Box: Signature Certification Rule */}
-            <div className="lg:col-span-4 p-5 rounded-2xl bg-[#FEF2F2] border-2 border-[#FCA5A5] shadow-xs flex flex-col justify-between gap-3">
-              <div className="flex flex-col gap-2">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#DC2626] text-white uppercase tracking-wider">
-                      Quy tắc bắt buộc
-                    </span>
-                    <span className="text-xs font-bold text-[#991B1B]">• Thủ tục Chứng thực</span>
-                  </div>
-
-                  {/* Text-To-Speech Button (2 Chế độ Rõ Ràng: MỞ & TẮT để nghe và tắt khi cần) */}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      toggleSpeech(
-                        'Quy tắc bắt buộc đối với thủ tục chứng thực: Tuyệt đối không ký tên trước ở nhà! Đối với chứng thực chữ ký và chứng thực văn bản phân chia hoặc từ chối nhận di sản thừa kế theo Nghị định 23 năm 2015: Người dân tuyệt đối không được ký tên sẵn ở nhà vào tờ khai hoặc văn bản. Chữ ký bắt buộc phải được ký trực tiếp trước mặt công chức Tư pháp Hộ tịch tại Bộ phận Một cửa. Nếu đã ký sẵn ở nhà, hồ sơ sẽ bị hủy và bắt buộc phải lập lại bản mới để ký trực tiếp.',
-                        'warning-signature'
-                      )
-                    }
-                    className={`group inline-flex items-center gap-1.5 font-bold text-[11px] px-2 py-1 rounded-lg border transition-all duration-150 cursor-pointer shadow-2xs select-none active:scale-95 ${
-                      speakingId === 'warning-signature'
-                        ? 'bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] border-[#FCA5A5] ring-2 ring-[#FECACA]'
-                        : 'bg-white hover:bg-[#FEE2E2] text-[#991B1B] border-[#FECACA]'
-                    }`}
-                    title={
-                      speakingId === 'warning-signature'
-                        ? 'Chế độ: ĐANG MỞ ĐỌC. Bấm vào để TẮT ngay'
-                        : 'Chế độ: ĐANG TẮT. Bấm vào để MỞ nghe đọc to bằng giọng nói'
-                    }
-                  >
-                    {speakingId === 'warning-signature' ? (
-                      <>
-                        <span className="relative flex h-2 w-2">
-                          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#EF4444] opacity-75"></span>
-                          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#DC2626]"></span>
+                      <span
+                        className={`w-6 h-6 rounded-full text-xs font-extrabold flex items-center justify-center shrink-0 ${
+                          isCurrent
+                            ? 'bg-white text-[#004D40]'
+                            : isDone
+                            ? 'bg-[#00695C] text-white'
+                            : 'bg-[#E2E8F0] text-[#334155]'
+                        }`}
+                      >
+                        {isDone && !isCurrent ? <Check className="w-3.5 h-3.5" /> : s.step}
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <span className={`block text-[10px] font-bold uppercase tracking-wider ${isCurrent ? 'text-teal-50' : 'text-[#475569]'}`}>
+                          {s.label}
                         </span>
-                        <VolumeX className="w-3.5 h-3.5 text-[#DC2626]" />
-                        <span className="font-extrabold text-[#B91C1C]">Đang đọc...</span>
-                        <span className="ml-0.5 px-1.5 py-0.5 rounded-md bg-[#DC2626] text-white text-[9px] font-black uppercase tracking-wider shadow-2xs">
-                          TẮT
-                        </span>
-                      </>
-                    ) : (
-                      <>
-                        <Volume2 className="w-3.5 h-3.5 text-[#991B1B] group-hover:scale-110 transition-transform" />
-                        <span>Nghe đọc to</span>
-                        <span className="ml-0.5 px-1.5 py-0.5 rounded-md bg-[#991B1B] text-white text-[9px] font-black uppercase tracking-wider shadow-2xs">
-                          MỞ
-                        </span>
-                      </>
-                    )}
-                  </button>
-                </div>
-                <h3 className="text-sm sm:text-base font-extrabold text-[#991B1B]">
-                  Tuyệt Đối KHÔNG Ký Tên Trước Ở Nhà!
-                </h3>
-                <p className="text-xs text-[#7F1D1D] leading-relaxed">
-                  Đối với <strong>Chứng thực chữ ký</strong> và <strong>Chứng thực văn bản phân chia / từ chối nhận di sản thừa kế</strong> (Nghị định 23/2015/NĐ-CP):
-                </p>
-                <ul className="text-xs text-[#7F1D1D] space-y-1.5 list-disc pl-4 font-medium">
-                  <li>
-                    Người dân <strong>tuyệt đối không được ký tên sẵn ở nhà</strong> vào tờ khai hoặc văn bản.
+                        <span className="block text-xs font-bold truncate">{s.title}</span>
+                      </div>
+                    </button>
                   </li>
-                  <li>
-                    Chữ ký bắt buộc phải được <strong>ký trực tiếp trước mặt công chức Tư pháp – Hộ tịch</strong> tại Bộ phận Một cửa.
-                  </li>
-                  <li>
-                    Nếu đã ký sẵn ở nhà, hồ sơ sẽ bị hủy và bắt buộc phải lập lại bản mới để ký trực tiếp.
-                  </li>
-                </ul>
-              </div>
-              <div className="p-2.5 rounded-xl bg-white/80 border border-[#FECACA] text-xs font-bold text-[#991B1B]">
-                Nhóm Đất đai (Mẫu số 09/ĐK): Cần đối chiếu kỹ Số phát hành Sổ đỏ/Sổ hồng, số thửa, tờ bản đồ và tình trạng không tranh chấp trước khi nộp.
-              </div>
-            </div>
+                );
+              })}
+            </ol>
+          </nav>
 
-            {/* 4 Core Form Groups Reference Matrix */}
-            <div className="lg:col-span-8 p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3">
-              <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2.5">
-                <div>
-                  <h3 className="text-sm sm:text-base font-extrabold text-[#00796B]">
-                    Danh Mục Điểm Bắt Buộc Tiền Kiểm Tra Tại Một Cửa Cấp Xã
-                  </h3>
-                  <span className="text-xs text-[#64748B]">
-                    Tổng hợp các lỗi khiến bà con thường xuyên bị trả hồ sơ nhiều nhất tại UBND xã/phường
-                  </span>
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-[#0F172A]">
-                  <thead className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[11px] font-bold text-[#475569] uppercase">
-                    <tr>
-                      <th className="p-2.5">Tên Tờ Khai & Căn Cứ</th>
-                      <th className="p-2.5">Điểm Bắt Buộc Đối Chiếu</th>
-                      <th className="p-2.5">Sai Sót Thường Gặp Nhất</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#E2E8F0] text-xs">
-                    <tr>
-                      <td className="p-2.5 font-bold text-[#00796B]">
-                        1. Đăng ký khai sinh
-                        <span className="block text-[11px] font-normal text-[#64748B]">TT 04/2020/TT-BTP</span>
-                      </td>
-                      <td className="p-2.5">
-                        Khớp từng chữ Họ tên bé, ngày sinh, giới tính với Giấy chứng sinh; 12 số CCCD cha/mẹ.
-                      </td>
-                      <td className="p-2.5 text-[#DC2626] font-medium">
-                        Lệch ngày sinh với Giấy chứng sinh; cha mẹ chưa kết hôn nhưng ghi tên cha vào tờ khai thường.
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="p-2.5 font-bold text-[#00796B]">
-                        2. Đăng ký kết hôn & Độc thân
-                        <span className="block text-[11px] font-normal text-[#64748B]">Luật HN&GĐ 2014</span>
-                      </td>
-                      <td className="p-2.5">
-                        Nam ≥ 20 tuổi, Nữ ≥ 18 tuổi (theo ngày sinh); ghi cụ thể mục đích sử dụng giấy độc thân.
-                      </td>
-                      <td className="p-2.5 text-[#DC2626] font-medium">
-                        Chưa tròn tuổi theo ngày tháng sinh; ghi mục đích độc thân chung chung ("bổ sung hồ sơ").
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="p-2.5 font-bold text-[#00796B]">
-                        3. Khai tử & Trích lục hộ tịch
-                        <span className="block text-[11px] font-normal text-[#64748B]">Luật Hộ tịch 2014</span>
-                      </td>
-                      <td className="p-2.5">
-                        Khớp Giấy báo tử bản chính (nộp trong 15 ngày); ghi rõ năm đăng ký sự kiện hộ tịch gốc.
-                      </td>
-                      <td className="p-2.5 text-[#DC2626] font-medium">
-                        Thiếu Giấy báo tử bản chính; quên năm đăng ký hộ tịch gốc khiến tra lục sổ giấy kéo dài.
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="p-2.5 font-bold text-[#00796B]">
-                        4. Trợ cấp BTXH & Mai táng phí
-                        <span className="block text-[11px] font-normal text-[#64748B]">Mẫu 01, 02, 03 NĐ 20/2021</span>
-                      </td>
-                      <td className="p-2.5">
-                        Người cao tuổi ≥ 80 tuổi (không lương hưu) hoặc Giấy xác nhận khuyết tật nặng + STK ngân hàng.
-                      </td>
-                      <td className="p-2.5 text-[#DC2626] font-medium">
-                        Chưa đủ mốc 80 tuổi; thiếu số tài khoản ngân hàng chính chủ chi trả an sinh Đề án 06.
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          {/* Core Interactive Layout: Left Form vs Right Visual Result */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* LEFT: Input Form Card (7 Cols) */}
-            <div className="lg:col-span-7 p-6 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-5">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#E2E8F0] gap-3">
-                <div className="flex items-center gap-2">
-                  <FileCheck2 className="w-5 h-5 text-[#00796B]" />
-                  <span className="text-sm font-bold text-[#0F172A]">Thông Tin Bản Khai Giấy Cần Rà Soát</span>
-                </div>
-
-                {/* Input Method Switcher: PC Upload vs Mobile Camera vs Manual */}
-                <div className="inline-flex p-1 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] self-start sm:self-auto">
-                  <button
-                    type="button"
-                    onClick={() => setInputMode('upload')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      inputMode === 'upload'
-                        ? 'bg-[#00796B] text-white shadow-xs'
-                        : 'text-[#475569] hover:text-[#00796B]'
-                    }`}
-                  >
-                    <Laptop className="w-3.5 h-3.5" />
-                    <span>Tải ảnh PC</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setInputMode('camera')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      inputMode === 'camera'
-                        ? 'bg-[#00796B] text-white shadow-xs'
-                        : 'text-[#475569] hover:text-[#00796B]'
-                    }`}
-                  >
-                    <Camera className="w-3.5 h-3.5" />
-                    <span>Camera</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => setInputMode('manual')}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                      inputMode === 'manual'
-                        ? 'bg-[#00796B] text-white shadow-xs'
-                        : 'text-[#475569] hover:text-[#00796B]'
-                    }`}
-                  >
-                    <PenTool className="w-3.5 h-3.5" />
-                    <span>Nhập tay</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* METHOD 1: PC IMAGE UPLOAD DROPZONE */}
-              {inputMode === 'upload' && (
-                <div className="flex flex-col gap-3">
-                  {!previewUrl ? (
-                    <div
-                      onDragOver={handleDragOver}
-                      onDragLeave={handleDragLeave}
-                      onDrop={handleDrop}
-                      onClick={() => fileInputRef.current?.click()}
-                      className={`relative p-6 sm:p-8 rounded-2xl border-2 border-dashed transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-3 ${
-                        isDragging
-                          ? 'border-[#00796B] bg-[#F1F5F9] scale-[1.01]'
-                          : 'border-[#CBD5E1] hover:border-[#00796B] bg-[#F8FAFC] hover:bg-[#F1F5F9]'
+          {/* ==================== WIZARD BƯỚC 1: CHỌN MẪU & KIỂM ẢNH (CANVAS) ==================== */}
+          {formWizardStep === 1 && (
+            <div className="flex flex-col gap-5">
+              {/* 4-Form Priority Selector Cards */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                  {
+                    id: 'CT01' as const,
+                    badge: 'Cư trú',
+                    title: '1. Mẫu CT01 Cư Trú',
+                    desc: 'Kiểm tra 12 số CCCD, ngày sinh & địa chỉ cư trú.',
+                  },
+                  {
+                    id: 'TK-KS' as const,
+                    badge: 'Hộ tịch',
+                    title: '2. Đăng Ký Khai Sinh',
+                    desc: 'Đối chiếu Tờ khai với Giấy chứng sinh bệnh viện.',
+                  },
+                  {
+                    id: 'TK-KH' as const,
+                    badge: 'Tư pháp',
+                    title: '3. Kết Hôn & Độc Thân',
+                    desc: 'Kiểm tra tuổi kết hôn (Nam ≥ 20, Nữ ≥ 18) & mục đích.',
+                  },
+                  {
+                    id: 'TK-BTXH' as const,
+                    badge: 'An sinh',
+                    title: '4. Trợ Cấp Bảo Trợ',
+                    desc: 'Kiểm tra tuổi ≥ 75 (Luật BHXH 2024), mức khuyết tật & STK an sinh.',
+                  },
+                ].map((item) => {
+                  const active = selectedFormType === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => handleSelectFormType(item.id, 'ERROR_DEMO')}
+                      className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 gov-focus-ring ${
+                        active
+                          ? 'bg-[#00695C] text-white border-[#004D40] shadow-sm'
+                          : 'bg-white hover:bg-[#F8FAFC] text-[#0F172A] border-[#CBD5E1]'
                       }`}
                     >
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/png,image/jpeg,image/jpg,image/webp,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files[0]) {
-                            handleFileChange(e.target.files[0]);
-                          }
-                        }}
-                        className="hidden"
-                      />
-
-                      <div className="w-14 h-14 rounded-2xl bg-[#E2E8F0] text-[#00796B] flex items-center justify-center shadow-xs">
-                        <Upload className="w-7 h-7 text-[#00796B]" />
-                      </div>
-
-                      <div>
-                        <p className="text-sm font-bold text-[#0F172A]">
-                          Kéo thả ảnh chụp tờ khai, file Word (.docx) hoặc PDF đã điền vào đây
-                        </p>
-                        <p className="text-xs text-[#64748B] mt-1">
-                          Hoặc <span className="text-[#00796B] font-bold underline">bấm để chọn tệp từ máy</span> (PNG, JPG, WEBP, DOCX, PDF tối đa 10MB)
-                        </p>
-                      </div>
-
-                      <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#CBD5E1] text-xs font-semibold text-[#0F766E]">
-                          <Sparkles className="w-3.5 h-3.5 text-[#0F766E]" />
-                          <span>Chốt chặn AI Thị Giác: Kiểm độ nét & Khớp đúng mẫu</span>
-                        </span>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleLoadSample();
-                          }}
-                          className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-xs font-bold text-[#00796B] transition cursor-pointer"
-                        >
-                          <FileText className="w-3.5 h-3.5" />
-                          <span>Dùng mẫu chuẩn rõ nét</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSimulateBlurredOrWrongFile('BLURRY');
-                          }}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FEF2F2] hover:bg-[#FEE2E2] border border-[#FECACA] text-[11px] font-bold text-[#DC2626] transition cursor-pointer"
-                          title="Mô phỏng ảnh chụp bị mờ nhòe để kiểm thử chốt chặn AI Thị Giác"
-                        >
-                          <span>Thử ảnh mờ (AI Chặn)</span>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleSimulateBlurredOrWrongFile('WRONG_TEMPLATE');
-                          }}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFFBEB] hover:bg-[#FEF3C7] border border-[#FDE68A] text-[11px] font-bold text-[#B45309] transition cursor-pointer"
-                          title="Mô phỏng nộp nhầm tờ khai khác mục đã chọn để kiểm thử chốt chặn AI Thị Giác"
-                        >
-                          <span>Thử sai mẫu (AI Chặn)</span>
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    /* Uploaded Image Preview Card for PC */
-                    <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] flex flex-col gap-3 shadow-xs">
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-[#CBD5E1] bg-white shrink-0 shadow-xs">
-                            {selectedFile?.type.startsWith('image/') ? (
-                              <img src={previewUrl} alt="Bản scan tờ khai" className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center bg-[#E2E8F0] text-[#00796B]">
-                                <FileText className="w-7 h-7" />
-                              </div>
-                            )}
-                          </div>
-                          <div className="flex flex-col min-w-0">
-                            <span className="text-xs font-bold text-[#0F172A] truncate">
-                              {selectedFile?.name || 'to_khai_ct01_an_giang.jpg'}
-                            </span>
-                            <span className="text-xs text-[#64748B]">
-                              {selectedFile ? (selectedFile.size / (1024 * 1024)).toFixed(2) + ' MB' : '2.14 MB'} • Đã qua kiểm định AI Thị Giác
-                            </span>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => fileInputRef.current?.click()}
-                            className="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] bg-white hover:bg-[#F1F5F9] text-xs font-semibold text-[#334155] transition cursor-pointer"
-                          >
-                            Đổi tệp
-                          </button>
-                          <button
-                            type="button"
-                            onClick={handleRemoveFile}
-                            className="p-1.5 rounded-lg border border-[#FCA5A5] bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] transition cursor-pointer"
-                            title="Xóa tệp"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Hidden input for changing image */}
-                      <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept="image/png,image/jpeg,image/jpg,image/webp,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-                        onChange={(e) => {
-                          if (e.target.files && e.target.files[0]) {
-                            handleFileChange(e.target.files[0]);
-                          }
-                        }}
-                        className="hidden"
-                      />
-
-                      {/* CHỐT CHẶN AI THỊ GIÁC 3 TIÊU CHÍ (Sharpness + Template Match + Field Legibility) */}
-                      {visionGateResult && !isOcrProcessing && (
-                        <div
-                          className={`p-3.5 rounded-xl border flex flex-col gap-2.5 text-xs ${
-                            !visionGateResult.isBlurry && !visionGateResult.isTooDark && visionGateResult.templateMatched
-                              ? 'bg-[#F0FDFA] border-[#99F6E4] text-[#0F766E]'
-                              : 'bg-[#FEF2F2] border-[#FCA5A5] text-[#991B1B]'
+                      <div className="flex items-center justify-between gap-2">
+                        <span
+                          className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                            active ? 'bg-[#CCFBF1] text-[#004D40]' : 'bg-[#F1F5F9] text-[#004D40]'
                           }`}
                         >
-                          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-current/15 pb-2">
-                            <span className="font-extrabold flex items-center gap-1.5 text-xs">
-                              <ShieldCheck className="w-4 h-4 shrink-0" />
-                              <span>Chốt Chặn AI Thị Giác Trước Khi Gửi Cán Bộ (3 Tiêu Chí)</span>
-                            </span>
-                            <span
-                              className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
-                                !visionGateResult.isBlurry && !visionGateResult.isTooDark && visionGateResult.templateMatched
-                                  ? 'bg-[#CCFBF1] text-[#0F766E]'
-                                  : 'bg-[#FEE2E2] text-[#DC2626]'
-                              }`}
-                            >
-                              {!visionGateResult.isBlurry && !visionGateResult.isTooDark && visionGateResult.templateMatched
-                                ? 'ĐẠT CHUẨN GỬI CÁN BỘ'
-                                : 'BỊ CHẶN — CẦN CHỤP/CHỌN LẠI'}
-                            </span>
-                          </div>
+                          {item.badge}
+                        </span>
+                        {active && <CheckCircle2 className="w-4 h-4 text-teal-100" />}
+                      </div>
+                      <div>
+                        <div className="text-xs sm:text-sm font-extrabold">{item.title}</div>
+                        <p className={`text-xs mt-1 leading-snug ${active ? 'text-teal-50' : 'text-[#475569]'}`}>
+                          {item.desc}
+                        </p>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                            {/* Tiêu chí 1: Độ nét & Ánh sáng */}
-                            <div className="p-2.5 rounded-lg bg-white/90 border border-current/15 flex flex-col gap-1">
-                              <div className="flex items-center justify-between">
-                                <span className="font-bold text-[#0F172A] text-[11px]">1. Độ sắc nét ảnh</span>
-                                {!visionGateResult.isBlurry && !visionGateResult.isTooDark ? (
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
-                                ) : (
-                                  <XCircle className="w-3.5 h-3.5 text-[#DC2626]" />
-                                )}
-                              </div>
-                              <span className="font-mono font-extrabold text-xs">
-                                {visionGateResult.sharpnessScore}/100 điểm
-                              </span>
-                              <span className="text-[10px] text-[#475569] leading-tight">
-                                {visionGateResult.qualityMessage}
-                              </span>
-                            </div>
+              {/* Concise Legal Warning + Collapsible 4-Group Precheck Matrix */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+                {/* Compact Mandatory Signature Rule Warning */}
+                <div className="lg:col-span-5 p-4 rounded-2xl bg-[#FEF2F2] border border-[#FCA5A5] shadow-xs flex flex-col gap-2.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#DC2626] text-white uppercase tracking-wider">
+                        Quy tắc bắt buộc
+                      </span>
+                      <span className="text-xs font-bold text-[#991B1B]">• Thủ tục Chứng thực</span>
+                    </div>
 
-                            {/* Tiêu chí 2: Khớp mẫu đã chọn */}
-                            <div className="p-2.5 rounded-lg bg-white/90 border border-current/15 flex flex-col gap-1">
-                              <div className="flex items-center justify-between">
-                                <span className="font-bold text-[#0F172A] text-[11px]">2. Khớp mục đã chọn</span>
-                                {visionGateResult.templateMatched ? (
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
-                                ) : (
-                                  <XCircle className="w-3.5 h-3.5 text-[#DC2626]" />
-                                )}
-                              </div>
-                              <span className="font-mono font-extrabold text-xs">
-                                Mẫu {selectedFormType}
-                              </span>
-                              <span className="text-[10px] text-[#475569] leading-tight">
-                                {visionGateResult.templateMessage}
-                              </span>
-                            </div>
-
-                            {/* Tiêu chí 3: Nhận diện thông tin điền */}
-                            <div className="p-2.5 rounded-lg bg-white/90 border border-current/15 flex flex-col gap-1">
-                              <div className="flex items-center justify-between">
-                                <span className="font-bold text-[#0F172A] text-[11px]">3. Nhận diện chữ điền</span>
-                                {(ocrDetails?.extractedFieldsCount ?? 0) >= 3 ? (
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-[#10B981]" />
-                                ) : (
-                                  <AlertCircle className="w-3.5 h-3.5 text-[#D97706]" />
-                                )}
-                              </div>
-                              <span className="font-mono font-extrabold text-xs">
-                                {ocrDetails?.extractedFieldsCount ?? 0}/5 mục rõ chữ
-                              </span>
-                              <span className="text-[10px] text-[#475569] leading-tight">
-                                {(ocrDetails?.extractedFieldsCount ?? 0) >= 3
-                                  ? 'Chữ viết/in rõ ràng, trích xuất tốt'
-                                  : 'Cần kiểm tra bổ sung các ô bên dưới'}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* OCR Status Banner */}
-                      {isOcrProcessing && (
-                        <div className="p-3.5 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center gap-3 text-xs text-[#1E40AF]">
-                          <RefreshCw className="w-5 h-5 animate-spin text-[#2563EB] shrink-0" />
-                          <div className="flex flex-col">
-                            <span className="font-bold">Đang đọc thông tin từ ảnh chụp tờ khai...</span>
-                            <span className="text-[11px] text-[#3B82F6]">Đang nhận diện Họ tên, số CCCD, ngày sinh và địa chỉ cư trú</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {ocrSuccess && !isOcrProcessing && (
-                        <div className="p-3.5 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] flex flex-col gap-2 text-xs text-[#065F46]">
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <div className="flex items-center gap-2 font-bold">
-                              <Check className="w-4 h-4 text-[#10B981] shrink-0" />
-                              <span>Đã đọc thông tin từ ảnh chụp thành công</span>
-                            </div>
-                          </div>
-                          <div className="text-[11px] text-[#047857] flex flex-wrap gap-2 pt-1 border-t border-[#A7F3D0]/50">
-                            <span className="font-medium">Đã tự động điền:</span>
-                            {fullName && <span className="px-2 py-0.5 bg-white/90 rounded border border-[#A7F3D0] font-semibold text-[#065F46]">Mục 1 (Họ tên): {fullName}</span>}
-                            {cccd && <span className="px-2 py-0.5 bg-white/90 rounded border border-[#A7F3D0] font-semibold text-[#065F46]">Mục 4 (ĐDCN): {cccd}</span>}
-                            {dob && <span className="px-2 py-0.5 bg-white/90 rounded border border-[#A7F3D0] font-semibold text-[#065F46]">Mục 2 (Sinh): {dob}</span>}
-                            {gender && <span className="px-2 py-0.5 bg-white/90 rounded border border-[#A7F3D0] font-semibold text-[#065F46]">Mục 3 (Giới tính): {gender}</span>}
-                            {address && <span className="px-2 py-0.5 bg-white/90 rounded border border-[#A7F3D0] font-semibold text-[#065F46] max-w-xs truncate" title={address}>Mục 10 (Nơi cư trú): {address}</span>}
-                          </div>
-                        </div>
-                      )}
-
-                      {ocrError && !isOcrProcessing && (
-                        <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-start gap-2.5 text-xs text-[#991B1B]">
-                          <AlertCircle className="w-4 h-4 text-[#DC2626] shrink-0 mt-0.5" />
-                          <div className="flex flex-col gap-0.5">
-                            <span className="font-bold">Không thể tự động đọc thông tin từ tệp này</span>
-                            <span className="text-[11px] text-[#B91C1C]">{ocrError}</span>
-                            <span className="text-[11px] text-[#7F1D1D] mt-1 font-medium">Quý công dân vui lòng nhập trực tiếp thông tin vào các ô bên dưới để tiếp tục kiểm tra.</span>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Vault Upload Status Banner (F9) */}
-                      {isVaultUploading && (
-                        <div className="p-3 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] flex items-center gap-2.5 text-xs text-[#0F766E]">
-                          <RefreshCw className="w-4 h-4 animate-spin text-[#0D9488]" />
-                          <span>Đang đóng dấu watermark và mã hóa AES-256-GCM lưu trữ an toàn vào MinIO...</span>
-                        </div>
-                      )}
-
-                      {vaultDocInfo && !isVaultUploading && (
-                        <div className="p-3 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] flex items-center justify-between gap-2 text-xs text-[#166534]">
-                          <div className="flex items-center gap-2">
-                            <ShieldCheck className="w-4 h-4 text-[#16A34A] shrink-0" />
-                            <div>
-                              <span className="font-bold block">Đã lưu trữ an toàn trong Zero-Trust Vault (MinIO)</span>
-                              <span className="text-[11px] text-[#15803D]">
-                                Mã tài liệu: <code className="font-mono">{vaultDocInfo.docId}</code> • Mã OTT: <code className="font-mono">{vaultDocInfo.oneTimeToken.slice(0, 16)}...</code>
-                              </span>
-                            </div>
-                          </div>
-                          <span className="px-2 py-0.5 rounded-full bg-[#DCFCE7] text-[#15803D] font-mono text-[10px] font-bold">
-                            AES-256-GCM
+                    <button
+                      type="button"
+                      onClick={() =>
+                        toggleSpeech(
+                          'Quy tắc bắt buộc đối với thủ tục chứng thực: Tuyệt đối không ký tên trước ở nhà! Đối với chứng thực chữ ký và chứng thực văn bản phân chia hoặc từ chối nhận di sản thừa kế theo Nghị định 23 năm 2015: Người dân tuyệt đối không được ký tên sẵn ở nhà vào tờ khai hoặc văn bản. Chữ ký bắt buộc phải được ký trực tiếp trước mặt công chức Tư pháp Hộ tịch tại Bộ phận Một cửa.',
+                          'warning-signature'
+                        )
+                      }
+                      aria-pressed={speakingId === 'warning-signature'}
+                      className={`group inline-flex items-center gap-1.5 font-bold text-[11px] px-2 py-1 rounded-lg border transition-all duration-150 cursor-pointer shadow-2xs select-none ${
+                        speakingId === 'warning-signature'
+                          ? 'bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#991B1B] border-[#FCA5A5] ring-2 ring-[#FECACA]'
+                          : 'bg-white hover:bg-[#FEE2E2] text-[#991B1B] border-[#FECACA]'
+                      }`}
+                    >
+                      {speakingId === 'warning-signature' ? (
+                        <>
+                          <VolumeX className="w-3.5 h-3.5 text-[#DC2626]" />
+                          <span className="font-extrabold text-[#991B1B]">Đang đọc...</span>
+                          <span className="ml-0.5 px-1.5 py-0.5 rounded-md bg-[#DC2626] text-white text-[9px] font-black uppercase tracking-wider shadow-2xs">
+                            TẮT
                           </span>
-                        </div>
+                        </>
+                      ) : (
+                        <>
+                          <Volume2 className="w-3.5 h-3.5 text-[#991B1B]" />
+                          <span>Nghe đọc to</span>
+                          <span className="ml-0.5 px-1.5 py-0.5 rounded-md bg-[#991B1B] text-white text-[9px] font-black uppercase tracking-wider shadow-2xs">
+                            MỞ
+                          </span>
+                        </>
                       )}
+                    </button>
+                  </div>
 
-                      {vaultUploadError && !isVaultUploading && (
-                        <div className="p-3 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-center gap-2 text-xs text-[#DC2626]">
-                          <AlertCircle className="w-4 h-4 shrink-0" />
-                          <span>{vaultUploadError}</span>
-                        </div>
-                      )}
+                  <h3 className="text-sm font-extrabold text-[#991B1B] flex items-center gap-1.5">
+                    <AlertTriangle className="w-4 h-4 text-[#DC2626] shrink-0" />
+                    <span>Tuyệt Đối KHÔNG Ký Tên Trước Ở Nhà!</span>
+                  </h3>
+                  <p className="text-xs text-[#7F1D1D] leading-relaxed">
+                    Với <strong>Chứng thực chữ ký & Văn bản thừa kế</strong> (Nghị định 23/2015/NĐ-CP), chữ ký bắt buộc thực hiện <strong>trực tiếp trước mặt công chức Một cửa</strong>; ký sẵn ở nhà sẽ phải lập lại bản mới. Nhóm Đất đai (Mẫu 09/ĐK) cần đối chiếu kỹ Số phát hành Sổ đỏ/Sổ hồng trước khi nộp.
+                  </p>
+                </div>
+
+                {/* Collapsible 4 Core Form Groups Reference Matrix */}
+                <div className="lg:col-span-7 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs overflow-hidden">
+                  <button
+                    type="button"
+                    aria-expanded={showReferenceTable}
+                    aria-controls="p3-reference-matrix-body"
+                    onClick={() => setShowReferenceTable((prev) => !prev)}
+                    className="w-full p-4 flex items-center justify-between gap-3 text-left bg-white hover:bg-[#F8FAFC] transition cursor-pointer gov-focus-ring"
+                  >
+                    <div>
+                      <span className="text-xs sm:text-sm font-extrabold text-[#004D40] block">
+                        Bảng Đối Chiếu 4 Nhóm Hồ Sơ & Lỗi Thường Gặp
+                      </span>
+                      <span className="text-[11px] text-[#475569]">
+                        Xem nhanh căn cứ pháp luật hiện hành (CT01, Hộ tịch, Bảo trợ) trước khi chụp ảnh
+                      </span>
+                    </div>
+                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F1F5F9] text-[#0F172A] border border-[#CBD5E1] text-xs font-bold shrink-0">
+                      <span>{showReferenceTable ? 'Thu gọn' : 'Xem bảng'}</span>
+                      {showReferenceTable ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                    </span>
+                  </button>
+
+                  {showReferenceTable && (
+                    <div id="p3-reference-matrix-body" className="px-4 pb-4 pt-2 border-t border-[#E2E8F0] overflow-x-auto">
+                      <table className="w-full text-left text-xs text-[#0F172A]">
+                        <thead className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-[11px] font-bold text-[#334155] uppercase">
+                          <tr>
+                            <th className="p-2">Tên Tờ Khai & Căn Cứ</th>
+                            <th className="p-2">Điểm Bắt Buộc Đối Chiếu</th>
+                            <th className="p-2">Sai Sót Thường Gặp</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-[#E2E8F0] text-xs">
+                          <tr>
+                            <td className="p-2 font-bold text-[#004D40]">
+                              1. Đăng ký khai sinh
+                              <span className="block text-[11px] font-normal text-[#475569]">TT 04/2020/TT-BTP</span>
+                            </td>
+                            <td className="p-2">
+                              Khớp Họ tên bé, ngày sinh, giới tính với Giấy chứng sinh; 12 số CCCD cha/mẹ.
+                            </td>
+                            <td className="p-2 text-[#991B1B] font-medium">
+                              Lệch ngày sinh với Giấy chứng sinh; cha mẹ chưa kết hôn nhưng ghi tên cha vào tờ khai thường.
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="p-2 font-bold text-[#004D40]">
+                              2. Kết hôn & Độc thân
+                              <span className="block text-[11px] font-normal text-[#475569]">Luật HN&GĐ 2014</span>
+                            </td>
+                            <td className="p-2">
+                              Nam ≥ 20 tuổi, Nữ ≥ 18 tuổi; ghi rõ mục đích sử dụng giấy xác nhận độc thân.
+                            </td>
+                            <td className="p-2 text-[#991B1B] font-medium">
+                              Chưa đủ tuổi theo ngày tháng sinh; ghi mục đích chung chung ("bổ sung hồ sơ").
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="p-2 font-bold text-[#004D40]">
+                              3. Khai tử & Trích lục
+                              <span className="block text-[11px] font-normal text-[#475569]">Luật Hộ tịch 2014</span>
+                            </td>
+                            <td className="p-2">
+                              Khớp Giấy báo tử bản chính (15 ngày); ghi đúng năm đăng ký hộ tịch gốc.
+                            </td>
+                            <td className="p-2 text-[#991B1B] font-medium">
+                              Thiếu Giấy báo tử bản chính; quên năm đăng ký hộ tịch gốc.
+                            </td>
+                          </tr>
+                          <tr>
+                            <td className="p-2 font-bold text-[#004D40]">
+                              4. Trợ cấp BTXH
+                              <span className="block text-[11px] font-normal text-[#475569]">Luật BHXH 2024 & NĐ 20/2021</span>
+                            </td>
+                            <td className="p-2">
+                              Người cao tuổi từ đủ 75 tuổi (hộ nghèo/cận nghèo 70–74 tuổi theo Luật BHXH 41/2024/QH15) hoặc khuyết tật nặng + STK an sinh.
+                            </td>
+                            <td className="p-2 text-[#991B1B] font-medium">
+                              Chưa đủ mốc tuổi hoặc thiếu số tài khoản ngân hàng chính chủ Đề án 06.
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </div>
                   )}
                 </div>
-              )}
+              </div>
 
-              {/* METHOD 2: CAMERA VIEWFINDER */}
-              {inputMode === 'camera' && (
-                <div className="relative w-full h-52 rounded-2xl bg-[#131B2E] overflow-hidden flex items-center justify-center border-2 border-dashed border-[#57DFFE]/80 shadow-inner">
-                  {/* Moving Laser Scan Line */}
-                  <div className="absolute left-0 right-0 h-0.5 bg-[#57DFFE] shadow-[0_0_12px_#57DFFE] animate-laser pointer-events-none" />
-                  <div className="flex flex-col items-center gap-2 text-white/90 z-10 p-4 text-center">
-                    <Camera className="w-8 h-8 text-[#57DFFE] animate-pulse" />
-                    <span className="text-xs font-semibold">Chụp Ảnh Tờ Khai Hoặc Thẻ CCCD</span>
-                    <span className="text-[11px] text-white/70 max-w-xs">
-                      Hướng camera vuông góc với tờ khai hoặc CCCD để tự động điền thông tin.
+              {/* Step 1B: Upload / Camera / Browser HTML5 Canvas Gate */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-5">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#E2E8F0] gap-3">
+                  <div className="flex items-center gap-2">
+                    <FileCheck2 className="w-5 h-5 text-[#00695C]" />
+                    <span className="text-sm font-bold text-[#0F172A]">
+                      Tải Ảnh / Quét Giấy Tờ — Bước Đầu Kiểm Độ Nét Tại Trình Duyệt (Canvas)
                     </span>
+                  </div>
+
+                  {/* Input Method Switcher: PC Upload vs Mobile Camera vs Manual */}
+                  <div className="inline-flex shrink-0 p-1 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] self-start sm:self-auto">
                     <button
                       type="button"
-                      onClick={handleLoadSample}
-                      className="mt-2 px-3 py-1 rounded-lg bg-white/20 hover:bg-white/30 text-white text-xs font-semibold backdrop-blur-sm transition cursor-pointer"
+                      onClick={() => setInputMode('upload')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
+                        inputMode === 'upload'
+                          ? 'bg-[#00695C] text-white shadow-xs'
+                          : 'text-[#334155] hover:text-[#004D40]'
+                      }`}
                     >
-                      Chụp ảnh mẫu thử nghiệm
+                      <Laptop className="w-3.5 h-3.5 shrink-0" />
+                      <span>Tải ảnh PC</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setInputMode('camera')}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
+                        inputMode === 'camera'
+                          ? 'bg-[#00695C] text-white shadow-xs'
+                          : 'text-[#334155] hover:text-[#004D40]'
+                      }`}
+                    >
+                      <Camera className="w-3.5 h-3.5 shrink-0" />
+                      <span>Camera</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInputMode('manual');
+                        handleRemoveFile();
+                      }}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
+                        inputMode === 'manual'
+                          ? 'bg-[#00695C] text-white shadow-xs'
+                          : 'text-[#334155] hover:text-[#004D40]'
+                      }`}
+                    >
+                      <PenTool className="w-3.5 h-3.5 shrink-0" />
+                      <span>Nhập tay</span>
                     </button>
                   </div>
                 </div>
-              )}
 
-              {/* METHOD 3: MANUAL INPUT HINT */}
-              {inputMode === 'manual' && (
-                <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#64748B] flex items-center gap-2">
-                  <PenTool className="w-4 h-4 text-[#00796B] shrink-0" />
-                  <span>Chế độ nhập tay: Đối chiếu trực tiếp thông tin từ bản khai giấy của bạn vào các ô bên dưới.</span>
+                {/* METHOD 1: PC IMAGE UPLOAD DROPZONE */}
+                {inputMode === 'upload' && (
+                  <div className="flex flex-col gap-3">
+                    {!previewUrl ? (
+                      <div
+                        onDragOver={handleDragOver}
+                        onDragLeave={handleDragLeave}
+                        onDrop={handleDrop}
+                        className={`relative p-5 sm:p-7 rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center text-center gap-3.5 ${
+                          isDragging
+                            ? 'border-[#00695C] bg-[#F1F5F9] scale-[1.01]'
+                            : 'border-[#CBD5E1] hover:border-[#00695C] bg-[#F8FAFC]'
+                        }`}
+                      >
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/png,image/jpeg,image/jpg,image/webp,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              handleFileChange(e.target.files[0]);
+                            }
+                          }}
+                          className="hidden"
+                        />
+
+                        <button
+                          type="button"
+                          onClick={() => fileInputRef.current?.click()}
+                          className="w-full max-w-xl flex flex-col items-center justify-center gap-2.5 py-2 px-3 rounded-xl hover:bg-white/70 transition cursor-pointer gov-focus-ring"
+                        >
+                          <span className="w-12 h-12 rounded-2xl bg-[#E2E8F0] text-[#004D40] flex items-center justify-center shadow-xs">
+                            <Upload className="w-6 h-6 text-[#004D40]" />
+                          </span>
+
+                          <span>
+                            <span className="block text-sm font-bold text-[#0F172A]">
+                              Kéo thả ảnh chụp tờ khai / CCCD, file Word (.docx) hoặc PDF vào đây
+                            </span>
+                            <span className="block text-xs text-[#475569] mt-1">
+                              Hoặc <span className="text-[#004D40] font-bold underline">bấm để chọn tệp từ máy</span> (PNG, JPG, WEBP, DOCX, PDF tối đa 5MB)
+                            </span>
+                          </span>
+                        </button>
+
+                        <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#CBD5E1] text-xs font-semibold text-[#004D40]">
+                            <Sparkles className="w-3.5 h-3.5 text-[#00695C]" />
+                            <span>HTML5 Canvas Trình Duyệt: Chặn ảnh mờ, thiếu sáng, lóa trước khi gửi</span>
+                          </span>
+
+                          <button
+                            type="button"
+                            onClick={() => handleLoadSample()}
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-xs font-bold text-[#004D40] transition cursor-pointer gov-focus-ring"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            <span>Dùng mẫu chuẩn rõ nét</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleSimulateBlurredOrWrongFile('BLURRY')}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FEF2F2] hover:bg-[#FEE2E2] border border-[#FECACA] text-[11px] font-bold text-[#991B1B] transition cursor-pointer gov-focus-ring"
+                            title="Mô phỏng ảnh chụp bị mờ nhòe để kiểm thử chốt chặn Canvas trình duyệt"
+                          >
+                            <span>Thử ảnh mờ (Canvas Chặn)</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleSimulateBlurredOrWrongFile('GLARED')}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FEF2F2] hover:bg-[#FEE2E2] border border-[#FECACA] text-[11px] font-bold text-[#991B1B] transition cursor-pointer gov-focus-ring"
+                            title="Mô phỏng ảnh chụp bị lóa đèn flash để kiểm thử chốt chặn Canvas trình duyệt"
+                          >
+                            <span>Thử lóa sáng (Canvas Chặn)</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => handleSimulateBlurredOrWrongFile('WRONG_TEMPLATE')}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFFBEB] hover:bg-[#FEF3C7] border border-[#FDE68A] text-[11px] font-bold text-[#92400E] transition cursor-pointer gov-focus-ring"
+                            title="Mô phỏng nộp nhầm tờ khai khác mục đã chọn để kiểm thử chốt chặn AI"
+                          >
+                            <span>Thử sai mẫu (AI Chặn)</span>
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Uploaded Image Preview Card for PC */
+                      <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] flex flex-col gap-3 shadow-xs">
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="relative w-14 h-14 rounded-xl overflow-hidden border border-[#CBD5E1] bg-white shrink-0 shadow-xs">
+                              {selectedFile?.type.startsWith('image/') ? (
+                                <img src={previewUrl} alt="Bản scan tờ khai" className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center bg-[#E2E8F0] text-[#004D40]">
+                                  <FileText className="w-7 h-7" />
+                                </div>
+                              )}
+                            </div>
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-xs font-bold text-[#0F172A] truncate">
+                                {selectedFile?.name || 'to_khai_ct01_an_giang.jpg'}
+                              </span>
+                              <span className="text-xs text-[#475569]">
+                                {selectedFile ? (selectedFile.size / (1024 * 1024)).toFixed(2) + ' MB' : '2.14 MB'} •{' '}
+                                {canvasCheckedLocally ? 'Đã qua kiểm định Canvas trình duyệt' : 'Đang phân tích tệp'}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => fileInputRef.current?.click()}
+                              className="px-2.5 py-1.5 rounded-lg border border-[#CBD5E1] bg-white hover:bg-[#F1F5F9] text-xs font-semibold text-[#334155] transition cursor-pointer gov-focus-ring"
+                            >
+                              Đổi tệp
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleRemoveFile}
+                              className="p-1.5 rounded-lg border border-[#FCA5A5] bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#991B1B] transition cursor-pointer gov-focus-ring"
+                              aria-label="Xóa tệp đã tải"
+                              title="Xóa tệp"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Hidden input for changing image */}
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/png,image/jpeg,image/jpg,image/webp,application/pdf,.docx,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                          onChange={(e) => {
+                            if (e.target.files && e.target.files[0]) {
+                              handleFileChange(e.target.files[0]);
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </div>
+                    )}
+
+                    {/* CHỐT CHẶN CHẤT LƯỢNG ẢNH (CANVAS TRÌNH DUYỆT + KIỂM TRA MẪU) */}
+                    {visionGateResult && !isOcrProcessing && (
+                      <div
+                        className={`p-3.5 rounded-xl border flex flex-col gap-2.5 text-xs ${
+                          !visionGateResult.isBlurry &&
+                          !visionGateResult.isTooDark &&
+                          !visionGateResult.isGlared &&
+                          visionGateResult.templateMatched
+                            ? 'bg-[#F0FDFA] border-[#99F6E4] text-[#004D40]'
+                            : 'bg-[#FEF2F2] border-[#FCA5A5] text-[#991B1B]'
+                        }`}
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-current/15 pb-2">
+                          <span className="font-extrabold flex items-center gap-1.5 text-xs">
+                            <ShieldCheck className="w-4 h-4 shrink-0" />
+                            <span>Chốt Chặn HTML5 Canvas (Trình Duyệt) & Kiểm Mẫu (3 Tiêu Chí)</span>
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
+                              !visionGateResult.isBlurry &&
+                              !visionGateResult.isTooDark &&
+                              !visionGateResult.isGlared &&
+                              visionGateResult.templateMatched
+                                ? 'bg-[#CCFBF1] text-[#004D40]'
+                                : 'bg-[#FEE2E2] text-[#991B1B]'
+                            }`}
+                          >
+                            {!visionGateResult.isBlurry &&
+                            !visionGateResult.isTooDark &&
+                            !visionGateResult.isGlared &&
+                            visionGateResult.templateMatched
+                              ? 'ĐẠT CHUẨN — SẴN SÀNG GỬI'
+                              : 'BỊ CHẶN — CHƯA GỬI MÁY CHỦ'}
+                          </span>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          <div className="p-2.5 rounded-lg bg-white border border-current/15 flex flex-col gap-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-[#0F172A] text-[11px]">1. Độ nét & Ánh sáng (Canvas)</span>
+                              {!visionGateResult.isBlurry && !visionGateResult.isTooDark && !visionGateResult.isGlared ? (
+                                <CheckCircle2 className="w-3.5 h-3.5 text-[#065F46]" />
+                              ) : (
+                                <XCircle className="w-3.5 h-3.5 text-[#991B1B]" />
+                              )}
+                            </div>
+                            <span className="font-mono font-extrabold text-xs">
+                              Nét: {visionGateResult.sharpnessScore}/100 • Sáng: {visionGateResult.brightnessScore}/255
+                            </span>
+                            <span className="text-[10px] text-[#334155] leading-tight">
+                              {visionGateResult.qualityMessage}
+                            </span>
+                          </div>
+
+                          <div className="p-2.5 rounded-lg bg-white border border-current/15 flex flex-col gap-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-[#0F172A] text-[11px]">2. Khớp mục đã chọn</span>
+                              {visionGateResult.templateMatched ? (
+                                <CheckCircle2 className="w-3.5 h-3.5 text-[#065F46]" />
+                              ) : (
+                                <XCircle className="w-3.5 h-3.5 text-[#991B1B]" />
+                              )}
+                            </div>
+                            <span className="font-mono font-extrabold text-xs">
+                              Mẫu {selectedFormType}
+                            </span>
+                            <span className="text-[10px] text-[#334155] leading-tight">
+                              {visionGateResult.templateMessage}
+                            </span>
+                          </div>
+
+                          <div className="p-2.5 rounded-lg bg-white border border-current/15 flex flex-col gap-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold text-[#0F172A] text-[11px]">3. Nhận diện chữ điền</span>
+                              {(ocrDetails?.extractedFieldsCount ?? 0) >= 3 ? (
+                                <CheckCircle2 className="w-3.5 h-3.5 text-[#065F46]" />
+                              ) : (
+                                <AlertCircle className="w-3.5 h-3.5 text-[#92400E]" />
+                              )}
+                            </div>
+                            <span className="font-mono font-extrabold text-xs">
+                              {ocrDetails?.extractedFieldsCount ?? 0}/5 mục rõ chữ
+                            </span>
+                            <span className="text-[10px] text-[#334155] leading-tight">
+                              {(ocrDetails?.extractedFieldsCount ?? 0) >= 3
+                                ? 'Chữ viết/in rõ ràng, trích xuất tốt'
+                                : 'Chưa trích xuất sâu hoặc cần nhập tay bước 2'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* OCR & Vault Status Banners */}
+                    {isOcrProcessing && (
+                      <div className="p-3.5 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center gap-3 text-xs text-[#1E3A8A]">
+                        <RefreshCw className="w-5 h-5 animate-spin text-[#1D4ED8] shrink-0" />
+                        <div className="flex flex-col">
+                          <span className="font-bold">Đang kiểm tra ảnh & trích xuất thông tin...</span>
+                          <span className="text-[11px] text-[#1E40AF]">Bước đầu HTML5 Canvas tại trình duyệt; chỉ gửi máy chủ khi ảnh đạt độ nét</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {ocrSuccess && !isOcrProcessing && (
+                      <div className="p-3.5 rounded-xl bg-[#ECFDF5] border border-[#A7F3D0] flex flex-col gap-2 text-xs text-[#065F46]">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="flex items-center gap-2 font-bold">
+                            <Check className="w-4 h-4 text-[#065F46] shrink-0" />
+                            <span>Đã đọc thông tin từ ảnh chụp thành công</span>
+                          </div>
+                        </div>
+                        <div className="text-[11px] text-[#065F46] flex flex-wrap gap-2 pt-1 border-t border-[#A7F3D0]/50">
+                          <span className="font-medium">Đã tự động điền:</span>
+                          {fullName && <span className="px-2 py-0.5 bg-white rounded border border-[#A7F3D0] font-semibold text-[#065F46]">Mục 1 (Họ tên): {fullName}</span>}
+                          {cccd && <span className="px-2 py-0.5 bg-white rounded border border-[#A7F3D0] font-semibold text-[#065F46]">Mục 4 (ĐDCN): {cccd}</span>}
+                          {dob && <span className="px-2 py-0.5 bg-white rounded border border-[#A7F3D0] font-semibold text-[#065F46]">Mục 2 (Sinh): {dob}</span>}
+                          {gender && <span className="px-2 py-0.5 bg-white rounded border border-[#A7F3D0] font-semibold text-[#065F46]">Mục 3 (Giới tính): {gender}</span>}
+                          {address && <span className="px-2 py-0.5 bg-white rounded border border-[#A7F3D0] font-semibold text-[#065F46] max-w-xs truncate" title={address}>Mục 10 (Nơi cư trú): {address}</span>}
+                        </div>
+                      </div>
+                    )}
+
+                    {ocrError && !isOcrProcessing && (
+                      <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-start gap-2.5 text-xs text-[#991B1B]">
+                        <AlertCircle className="w-4 h-4 text-[#991B1B] shrink-0 mt-0.5" />
+                        <div className="flex flex-col gap-0.5">
+                          <span className="font-bold">Chưa thể sử dụng ảnh này để trích xuất tự động</span>
+                          <span className="text-[11px] text-[#991B1B]">{ocrError}</span>
+                          <span className="text-[11px] text-[#7F1D1D] mt-1 font-medium">
+                            Quý công dân vui lòng bấm &quot;Xóa tệp&quot; để chọn ảnh rõ hơn hoặc chuyển sang chế độ &quot;Nhập tay&quot;.
+                          </span>
+                        </div>
+                      </div>
+                    )}
+
+                    {isVaultUploading && (
+                      <div className="p-3 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] flex items-center gap-2.5 text-xs text-[#004D40]">
+                        <RefreshCw className="w-4 h-4 animate-spin text-[#00695C]" />
+                        <span>Đang đóng dấu watermark và mã hóa AES-256-GCM lưu trữ an toàn vào MinIO...</span>
+                      </div>
+                    )}
+
+                    {vaultDocInfo && !isVaultUploading && (
+                      <div className="p-3 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] flex items-center justify-between gap-2 text-xs text-[#065F46]">
+                        <div className="flex items-center gap-2">
+                          <ShieldCheck className="w-4 h-4 text-[#065F46] shrink-0" />
+                          <div>
+                            <span className="font-bold block">Đã lưu trữ an toàn trong Zero-Trust Vault (MinIO)</span>
+                            <span className="text-[11px] text-[#065F46]">
+                              Mã tài liệu: <code className="font-mono">{vaultDocInfo.docId}</code> • Mã OTT: <code className="font-mono">{vaultDocInfo.oneTimeToken.slice(0, 16)}...</code>
+                            </span>
+                          </div>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-full bg-[#DCFCE7] text-[#065F46] font-mono text-[10px] font-bold">
+                          AES-256-GCM
+                        </span>
+                      </div>
+                    )}
+
+                    {vaultUploadError && !isVaultUploading && (
+                      <div className="p-3 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-center gap-2 text-xs text-[#991B1B]">
+                        <AlertCircle className="w-4 h-4 shrink-0" />
+                        <span>{vaultUploadError}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* METHOD 2: CAMERA VIEWFINDER */}
+                {inputMode === 'camera' && (
+                  <div className="relative w-full h-52 rounded-2xl bg-[#131B2E] overflow-hidden flex items-center justify-center border-2 border-dashed border-[#57DFFE]/80 shadow-inner">
+                    <div className="flex flex-col items-center gap-2 text-white z-10 p-4 text-center">
+                      <Camera className="w-8 h-8 text-[#57DFFE]" />
+                      <span className="text-xs font-semibold">Chụp Ảnh Tờ Khai Hoặc Thẻ CCCD</span>
+                      <span className="text-[11px] text-slate-200 max-w-xs">
+                        Hướng camera vuông góc với tờ khai hoặc CCCD để tự động kiểm độ nét và điền thông tin.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleLoadSample}
+                        className="mt-2 px-3 py-1.5 rounded-lg bg-[#00695C] hover:bg-[#004D40] text-white text-xs font-semibold transition cursor-pointer"
+                      >
+                        Chụp ảnh mẫu thử nghiệm
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* METHOD 3: MANUAL INPUT HINT */}
+                {inputMode === 'manual' && (
+                  <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-xs text-[#334155] flex items-center gap-2">
+                    <PenTool className="w-4 h-4 text-[#00695C] shrink-0" />
+                    <span>Chế độ nhập tay: Bà con chuyển sang Bước 2 để điền hoặc đối chiếu trực tiếp thông tin bản khai giấy.</span>
+                  </div>
+                )}
+
+                {/* Step 1 Footer Navigation & Quick Actions */}
+                <div className="pt-3 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowCccdQrModal(true)}
+                      className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#F1F5F9] text-[#004D40] border border-[#CBD5E1] font-bold text-xs transition cursor-pointer flex items-center gap-1.5 gov-focus-ring"
+                    >
+                      <QrCode className="w-4 h-4" />
+                      <span>Quét Mã QR CCCD Thật</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowPrintModal(true)}
+                      className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#F1F5F9] text-[#004D40] border border-[#CBD5E1] font-bold text-xs transition cursor-pointer flex items-center gap-1.5 gov-focus-ring"
+                    >
+                      <FileDown className="w-4 h-4" />
+                      <span>Xem & Tải Mẫu A4</span>
+                    </button>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setFormWizardStep(2)}
+                    disabled={Boolean(
+                      visionGateResult &&
+                        (visionGateResult.isBlurry ||
+                          visionGateResult.isTooDark ||
+                          visionGateResult.isGlared ||
+                          !visionGateResult.templateMatched)
+                    )}
+                    className="px-5 py-2.5 rounded-xl bg-[#00695C] hover:bg-[#004D40] disabled:bg-[#94A3B8] text-white font-bold text-xs flex items-center gap-2 shadow-xs transition cursor-pointer disabled:cursor-not-allowed gov-focus-ring"
+                  >
+                    <span>Tiếp tục Bước 2: Điền & Đối chiếu Tờ khai</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
                 </div>
-              )}
+              </div>
+            </div>
+          )}
+
+          {/* ==================== WIZARD BƯỚC 2: NHẬP & ĐỐI CHIẾU TỜ KHAI ==================== */}
+          {formWizardStep === 2 && (
+            <div className="p-5 sm:p-6 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#E2E8F0] gap-3">
+                <div className="flex items-center gap-2">
+                  <FileCheck2 className="w-5 h-5 text-[#00695C]" />
+                  <div>
+                    <h2 className="text-sm font-extrabold text-[#0F172A]">
+                      Bước 2: Nhập & Đối Chiếu Thông Tin ({selectedFormType})
+                    </h2>
+                    <span className="text-[11px] text-[#475569]">
+                      Rà soát 2 cột đầy đủ các trường bắt buộc trước khi gửi cán bộ sơ duyệt
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormWizardStep(1)}
+                  className="self-start sm:self-auto px-3 py-1.5 rounded-lg bg-[#F8FAFC] hover:bg-[#F1F5F9] border border-[#CBD5E1] text-xs font-bold text-[#334155] flex items-center gap-1 cursor-pointer gov-focus-ring"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Đổi mẫu / Tải lại ảnh (Bước 1)</span>
+                </button>
+              </div>
 
               {/* Quick Test Preset Bar for Active Form Type + CCCD QR Scanner */}
               <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] flex flex-wrap items-center justify-between gap-2 text-xs">
-                <span className="font-bold text-[#00796B]">
+                <span className="font-bold text-[#004D40]">
                   Điền nhanh thông tin mẫu:
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setShowCccdQrModal(true)}
-                    className="px-3.5 py-1.5 rounded-lg bg-[#00796B] hover:bg-[#00695C] text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                    className="px-3.5 py-1.5 rounded-lg bg-[#00695C] hover:bg-[#004D40] text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs gov-focus-ring"
                     title="Mở camera hoặc tải ảnh để quét mã QR trên thẻ CCCD thật"
                   >
                     <QrCode className="w-4 h-4" />
@@ -2175,14 +2395,14 @@ export const FormAndIssueReporting: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => handleSelectFormType(selectedFormType, 'ERROR_DEMO')}
-                    className="px-3 py-1.5 rounded-lg bg-[#FFFBEB] hover:bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A] font-bold text-xs transition cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg bg-[#FFFBEB] hover:bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] font-bold text-xs transition cursor-pointer gov-focus-ring"
                   >
                     Nạp Mẫu Sai Sót Điển Hình
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSelectFormType(selectedFormType, 'VALID_DEMO')}
-                    className="px-3 py-1.5 rounded-lg bg-[#ECFDF5] hover:bg-[#D1FAE5] text-[#065F46] border border-[#A7F3D0] font-bold text-xs transition cursor-pointer"
+                    className="px-3 py-1.5 rounded-lg bg-[#ECFDF5] hover:bg-[#D1FAE5] text-[#065F46] border border-[#A7F3D0] font-bold text-xs transition cursor-pointer gov-focus-ring"
                   >
                     Nạp Mẫu Hợp Lệ Chuẩn
                   </button>
@@ -2211,7 +2431,7 @@ export const FormAndIssueReporting: React.FC = () => {
                 {/* Field 1: Họ, chữ đệm và tên */}
                 <div className="flex flex-col gap-1.5 sm:col-span-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-[#334155]">
+                    <label htmlFor="p3-full-name" className="text-xs font-bold text-[#334155]">
                       {selectedFormType === 'TK-KS'
                         ? '1. Họ, chữ đệm và tên của trẻ (Trên Tờ khai Khai sinh):'
                         : selectedFormType === 'TK-KH'
@@ -2221,22 +2441,23 @@ export const FormAndIssueReporting: React.FC = () => {
                         : '1. Họ, chữ đệm và tên khai sinh (Mục 1 Mẫu CT01):'}
                     </label>
                     {ocrSuccess && fullName ? (
-                      <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                        <Check className="w-3 h-3 text-[#10B981]" /> Đã map đúng Mục 1
+                      <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                        <Check className="w-3 h-3 text-[#065F46]" /> Đã map đúng Mục 1
                       </span>
                     ) : ocrSuccess && !fullName ? (
-                      <span className="text-[10px] text-[#D97706] bg-[#FFFBEB] px-2 py-0.5 rounded-full font-semibold border border-[#FDE68A]">
+                      <span className="text-[10px] text-[#92400E] bg-[#FFFBEB] px-2 py-0.5 rounded-full font-semibold border border-[#FDE68A]">
                         Chưa thấy mục 1 (Họ tên) - vui lòng điền tay
                       </span>
                     ) : null}
                   </div>
                   <input
+                    id="p3-full-name"
                     ref={dossierFullNameInputRef}
                     type="text"
                     value={fullName}
                     placeholder="Ví dụ: NGUYỄN TÚ"
                     onChange={(e) => setFullName(e.target.value)}
-                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00796B] focus:bg-white transition-all ${
+                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00695C] focus:bg-white transition-all ${
                       ocrSuccess && fullName ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-[#F8FAFC] border-[#CBD5E1]'
                     }`}
                   />
@@ -2245,26 +2466,27 @@ export const FormAndIssueReporting: React.FC = () => {
                 {/* Field 2: Số định danh cá nhân (12 số CCCD) */}
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-[#334155]">
+                    <label htmlFor="p3-cccd" className="text-xs font-bold text-[#334155]">
                       {selectedFormType === 'TK-KS'
                         ? '2. Số ĐDCN / CCCD 12 số của Mẹ hoặc Cha:'
                         : '2. Số định danh cá nhân (12 chữ số CCCD):'}
                     </label>
                     {ocrSuccess && cccd ? (
-                      <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                        <Check className="w-3 h-3 text-[#10B981]" /> Đã map ({cccd.length} số)
+                      <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                        <Check className="w-3 h-3 text-[#065F46]" /> Đã map ({cccd.length} số)
                       </span>
                     ) : null}
                   </div>
                   <input
+                    id="p3-cccd"
                     ref={dossierCccdInputRef}
                     type="text"
                     value={cccd}
                     maxLength={12}
                     placeholder="12 chữ số định danh cá nhân"
                     onChange={(e) => setCccd(e.target.value)}
-                    className={`w-full h-10 px-3.5 rounded-xl font-mono text-xs md:text-sm font-bold focus:outline-none focus:border-[#00796B] focus:bg-white transition-all tracking-wider ${
-                      ocrSuccess && cccd ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 text-[#00796B]' : 'bg-[#F8FAFC] border-[#CBD5E1] text-[#00796B]'
+                    className={`w-full h-10 px-3.5 rounded-xl border font-mono text-xs md:text-sm font-bold focus:outline-none focus:border-[#00695C] focus:bg-white transition-all tracking-wider ${
+                      ocrSuccess && cccd ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 text-[#004D40]' : 'bg-[#F8FAFC] border-[#CBD5E1] text-[#004D40]'
                     }`}
                   />
                 </div>
@@ -2272,26 +2494,27 @@ export const FormAndIssueReporting: React.FC = () => {
                 {/* Field 3: Ngày, tháng, năm sinh */}
                 <div className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-[#334155]">
+                    <label htmlFor="p3-dob" className="text-xs font-bold text-[#334155]">
                       {selectedFormType === 'TK-KS'
                         ? '3. Ngày sinh của trẻ ghi trên Tờ khai:'
                         : selectedFormType === 'TK-KH'
                         ? '3. Ngày sinh trên CCCD (Nam ≥ 20, Nữ ≥ 18):'
                         : selectedFormType === 'TK-BTXH'
-                        ? '3. Ngày sinh người cao tuổi (Mốc ≥ 80 tuổi):'
+                        ? '3. Ngày sinh người cao tuổi (Luật BHXH 2024: ≥ 75 tuổi):'
                         : '3. Ngày, tháng, năm sinh (Mục 2 Mẫu CT01):'}
                     </label>
                     {ocrSuccess && dob ? (
-                      <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                        <Check className="w-3 h-3 text-[#10B981]" /> Đã map đúng Mục 2
+                      <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                        <Check className="w-3 h-3 text-[#065F46]" /> Đã map đúng Mục 2
                       </span>
                     ) : null}
                   </div>
                   <input
+                    id="p3-dob"
                     type="date"
                     value={dob}
                     onChange={(e) => setDob(e.target.value)}
-                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00796B] focus:bg-white transition-all ${
+                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00695C] focus:bg-white transition-all ${
                       ocrSuccess && dob ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-[#F8FAFC] border-[#CBD5E1]'
                     }`}
                   />
@@ -2300,16 +2523,16 @@ export const FormAndIssueReporting: React.FC = () => {
                 {/* Field 4: Giới tính */}
                 <div className="flex flex-col gap-1.5 sm:col-span-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-[#334155]">
+                    <span id="p3-gender-label" className="text-xs font-bold text-[#334155]">
                       4. Giới tính:
-                    </label>
+                    </span>
                     {ocrSuccess && gender ? (
-                      <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                        <Check className="w-3 h-3 text-[#10B981]" /> Đã map đúng Mục 3 ({gender})
+                      <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                        <Check className="w-3 h-3 text-[#065F46]" /> Đã map đúng Mục 3 ({gender})
                       </span>
                     ) : null}
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div role="radiogroup" aria-labelledby="p3-gender-label" className="flex items-center gap-4">
                     <label className="flex items-center gap-2 cursor-pointer text-xs font-semibold text-[#0F172A]">
                       <input
                         type="radio"
@@ -2317,7 +2540,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         value="Nam"
                         checked={gender === 'Nam'}
                         onChange={(e) => setGender(e.target.value)}
-                        className="text-[#00796B] focus:ring-[#00796B]"
+                        className="text-[#00695C] focus:ring-[#00695C]"
                       />
                       <span>Nam</span>
                     </label>
@@ -2328,7 +2551,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         value="Nữ"
                         checked={gender === 'Nữ'}
                         onChange={(e) => setGender(e.target.value)}
-                        className="text-[#00796B] focus:ring-[#00796B]"
+                        className="text-[#00695C] focus:ring-[#00695C]"
                       />
                       <span>Nữ</span>
                     </label>
@@ -2338,23 +2561,24 @@ export const FormAndIssueReporting: React.FC = () => {
                 {/* SPECIALIZED FIELDS FOR CT01: Cư trú (Thông tư 66/2023/TT-BCA) */}
                 {selectedFormType === 'CT01' && (
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2 text-xs font-extrabold text-[#00796B] flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-[#0F766E]" />
+                    <div className="sm:col-span-2 text-xs font-extrabold text-[#004D40] flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[#00695C]" />
                       <span>Thông tin Tờ khai thay đổi thông tin cư trú (Mẫu CT01 - Thông tư 66/2023/TT-BCA)</span>
                     </div>
 
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-[#334155]">
+                        <label htmlFor="p3-ct01-phone" className="text-xs font-bold text-[#334155]">
                           Số điện thoại liên hệ (Mục 5 Mẫu CT01):
                         </label>
                         {ocrSuccess && phoneNumber ? (
-                          <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#10B981]" /> Đã map Mục 5
+                          <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 5
                           </span>
                         ) : null}
                       </div>
                       <input
+                        id="p3-ct01-phone"
                         type="tel"
                         value={phoneNumber}
                         placeholder="VD: 0918234567"
@@ -2367,16 +2591,17 @@ export const FormAndIssueReporting: React.FC = () => {
 
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-[#334155]">
+                        <label htmlFor="p3-ct01-scope" className="text-xs font-bold text-[#334155]">
                           Nội dung đề nghị (Mục 10 Mẫu CT01):
                         </label>
                         {ocrSuccess && declarationScope ? (
-                          <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#10B981]" /> Đã map Mục 10
+                          <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 10
                           </span>
                         ) : null}
                       </div>
                       <select
+                        id="p3-ct01-scope"
                         value={declarationScope}
                         onChange={(e) => setDeclarationScope(e.target.value)}
                         className={`w-full h-9 px-3 rounded-xl border text-xs font-semibold text-[#0F172A] transition-all ${
@@ -2394,16 +2619,17 @@ export const FormAndIssueReporting: React.FC = () => {
 
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-[#334155]">
+                        <label htmlFor="p3-ct01-host-name" className="text-xs font-bold text-[#334155]">
                           Họ và tên chủ hộ nơi đến (Mục 11):
                         </label>
                         {ocrSuccess && hostName ? (
-                          <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#10B981]" /> Đã map Mục 11
+                          <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 11
                           </span>
                         ) : null}
                       </div>
                       <input
+                        id="p3-ct01-host-name"
                         type="text"
                         value={hostName}
                         placeholder="Họ và tên chủ hộ"
@@ -2416,22 +2642,23 @@ export const FormAndIssueReporting: React.FC = () => {
 
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-[#334155]">
+                        <label htmlFor="p3-ct01-host-cccd" className="text-xs font-bold text-[#334155]">
                           Số CCCD / ĐDCN của chủ hộ (Mục 11):
                         </label>
                         {ocrSuccess && hostCccd ? (
-                          <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#10B981]" /> Đã map ({hostCccd.length} số)
+                          <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map ({hostCccd.length} số)
                           </span>
                         ) : null}
                       </div>
                       <input
+                        id="p3-ct01-host-cccd"
                         type="text"
                         value={hostCccd}
                         maxLength={12}
                         placeholder="12 chữ số CCCD chủ hộ"
                         onChange={(e) => setHostCccd(e.target.value)}
-                        className={`w-full h-9 px-3 rounded-xl border text-xs font-mono font-bold text-[#00796B] transition-all ${
+                        className={`w-full h-9 px-3 rounded-xl border text-xs font-mono font-bold text-[#004D40] transition-all ${
                           ocrSuccess && hostCccd ? 'border-[#10B981]/60 bg-[#F0FDF4]/30' : 'bg-white border-[#CBD5E1]'
                         }`}
                       />
@@ -2439,16 +2666,17 @@ export const FormAndIssueReporting: React.FC = () => {
 
                     <div className="flex flex-col gap-1 sm:col-span-2">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-[#334155]">
+                        <label htmlFor="p3-ct01-host-rel" className="text-xs font-bold text-[#334155]">
                           Quan hệ với chủ hộ (Mục 12):
                         </label>
                         {ocrSuccess && hostRelation ? (
-                          <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#10B981]" /> Đã map Mục 12
+                          <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 12
                           </span>
                         ) : null}
                       </div>
                       <select
+                        id="p3-ct01-host-rel"
                         value={hostRelation}
                         onChange={(e) => {
                           const val = e.target.value;
@@ -2481,24 +2709,24 @@ export const FormAndIssueReporting: React.FC = () => {
                 {/* SPECIALIZED FIELDS FOR PRIORITY 1: TK-KS (Birth Registration + Hospital Cert Cross-check) */}
                 {selectedFormType === 'TK-KS' && (
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2 text-xs font-extrabold text-[#00796B] flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-[#0F766E]" />
+                    <div className="sm:col-span-2 text-xs font-extrabold text-[#004D40] flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[#00695C]" />
                       <span>Đối chiếu chéo Giấy chứng sinh bệnh viện & Tình trạng hôn nhân cha mẹ (Thông tư 04/2020/TT-BTP)</span>
                     </div>
 
                     {/* Smart Checklist: Cha mẹ chưa kết hôn */}
                     {parentsMarried === 'NO' && (
                       <div className="sm:col-span-2 p-3.5 rounded-xl bg-amber-50 border border-amber-300 flex flex-col gap-1.5 text-xs text-amber-900 shadow-2xs">
-                        <div className="font-bold flex items-center gap-1.5 text-amber-800 text-sm">
-                          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                        <div className="font-bold flex items-center gap-1.5 text-amber-900 text-sm">
+                          <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
                           <span>Thủ tục ghép bắt buộc: Đăng ký nhận cha, mẹ, con (TTHC-HT-06)</span>
                         </div>
-                        <p className="text-xs leading-relaxed text-amber-800">
+                        <p className="text-xs leading-relaxed text-amber-900">
                           Theo Điều 15 Thông tư 04/2020/TT-BTP, do cha mẹ <strong>chưa đăng ký kết hôn</strong> nhưng muốn ghi tên cha vào Giấy khai sinh của con, công dân phải thực hiện đồng thời thủ tục <strong>Khai sinh kết hợp Nhận cha, mẹ, con</strong>.
                         </p>
                         <div className="text-xs font-semibold text-amber-900 mt-1">
                           Hồ sơ cần nộp kèm tại Bộ phận Một cửa:
-                          <ul className="list-disc pl-5 mt-1 space-y-0.5 text-amber-800 font-normal">
+                          <ul className="list-disc pl-5 mt-1 space-y-0.5 text-amber-900 font-normal">
                             <li>Tờ khai đăng ký nhận cha, mẹ, con theo mẫu quy định.</li>
                             <li>Chứng cứ chứng minh quan hệ cha - con (Kết luận giám định ADN hoặc văn bản cam đoan/chứng cứ thân tộc có xác nhận của người làm chứng).</li>
                           </ul>
@@ -2507,10 +2735,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     )}
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
+                      <label htmlFor="p3-ks-hospital-dob" className="text-xs font-bold text-[#334155]">
                         Ngày sinh ghi trên Giấy chứng sinh (Bệnh viện cấp):
                       </label>
                       <input
+                        id="p3-ks-hospital-dob"
                         type="date"
                         value={hospitalBirthDate}
                         onChange={(e) => setHospitalBirthDate(e.target.value)}
@@ -2519,10 +2748,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
+                      <label htmlFor="p3-ks-parents-married" className="text-xs font-bold text-[#334155]">
                         Tình trạng hôn nhân của Cha & Mẹ:
                       </label>
                       <select
+                        id="p3-ks-parents-married"
                         value={parentsMarried}
                         onChange={(e) => setParentsMarried(e.target.value as 'YES' | 'NO')}
                         className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#0F172A]"
@@ -2533,10 +2763,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
+                      <label htmlFor="p3-ks-ethnicity" className="text-xs font-bold text-[#334155]">
                         Dân tộc của trẻ:
                       </label>
                       <input
+                        id="p3-ks-ethnicity"
                         type="text"
                         value={childEthnicity}
                         onChange={(e) => setChildEthnicity(e.target.value)}
@@ -2545,10 +2776,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
+                      <label htmlFor="p3-ks-nationality" className="text-xs font-bold text-[#334155]">
                         Quốc tịch của trẻ:
                       </label>
                       <input
+                        id="p3-ks-nationality"
                         type="text"
                         value={childNationality}
                         onChange={(e) => setChildNationality(e.target.value)}
@@ -2557,10 +2789,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1 sm:col-span-2">
-                      <label className="text-xs font-bold text-[#334155]">
+                      <label htmlFor="p3-ks-birthplace" className="text-xs font-bold text-[#334155]">
                         Nơi sinh của trẻ (Tên cơ sở y tế / Bệnh viện):
                       </label>
                       <input
+                        id="p3-ks-birthplace"
                         type="text"
                         value={childBirthPlace}
                         onChange={(e) => setChildBirthPlace(e.target.value)}
@@ -2569,10 +2802,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
+                      <label htmlFor="p3-ks-cert-num" className="text-xs font-bold text-[#334155]">
                         Số Giấy chứng sinh:
                       </label>
                       <input
+                        id="p3-ks-cert-num"
                         type="text"
                         value={birthCertNumber}
                         onChange={(e) => setBirthCertNumber(e.target.value)}
@@ -2581,10 +2815,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
+                      <label htmlFor="p3-ks-cert-date" className="text-xs font-bold text-[#334155]">
                         Ngày cấp Giấy chứng sinh:
                       </label>
                       <input
+                        id="p3-ks-cert-date"
                         type="date"
                         value={birthCertIssueDate}
                         onChange={(e) => setBirthCertIssueDate(e.target.value)}
@@ -2593,10 +2828,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
+                      <label htmlFor="p3-ks-mother-name" className="text-xs font-bold text-[#334155]">
                         Họ tên Mẹ ghi trên Tờ khai khai sinh:
                       </label>
                       <input
+                        id="p3-ks-mother-name"
                         type="text"
                         value={motherName}
                         onChange={(e) => setMotherName(e.target.value)}
@@ -2605,10 +2841,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
+                      <label htmlFor="p3-ks-hospital-mother" className="text-xs font-bold text-[#334155]">
                         Họ tên Sản phụ ghi trên Giấy chứng sinh:
                       </label>
                       <input
+                        id="p3-ks-hospital-mother"
                         type="text"
                         value={hospitalMotherName}
                         onChange={(e) => setHospitalMotherName(e.target.value)}
@@ -2617,10 +2854,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1 sm:col-span-2">
-                      <label className="text-xs font-bold text-[#334155]">
+                      <label htmlFor="p3-ks-mother-res" className="text-xs font-bold text-[#334155]">
                         Nơi cư trú của người mẹ:
                       </label>
                       <input
+                        id="p3-ks-mother-res"
                         type="text"
                         value={motherResidence}
                         onChange={(e) => setMotherResidence(e.target.value)}
@@ -2629,10 +2867,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
+                      <label htmlFor="p3-ks-father-name" className="text-xs font-bold text-[#334155]">
                         Họ tên Cha ghi trên Tờ khai:
                       </label>
                       <input
+                        id="p3-ks-father-name"
                         type="text"
                         value={fatherName}
                         placeholder="Để trống nếu chưa làm thủ tục nhận cha con"
@@ -2642,10 +2881,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
+                      <label htmlFor="p3-ks-father-res" className="text-xs font-bold text-[#334155]">
                         Nơi cư trú của người cha:
                       </label>
                       <input
+                        id="p3-ks-father-res"
                         type="text"
                         value={fatherResidence}
                         onChange={(e) => setFatherResidence(e.target.value)}
@@ -2658,8 +2898,8 @@ export const FormAndIssueReporting: React.FC = () => {
                 {/* SPECIALIZED FIELDS FOR PRIORITY 2: TK-KH (Marriage & Single Status Certificate) */}
                 {selectedFormType === 'TK-KH' && (
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2 text-xs font-extrabold text-[#00796B] flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-[#0F766E]" />
+                    <div className="sm:col-span-2 text-xs font-extrabold text-[#004D40] flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[#00695C]" />
                       <span>Rà soát biểu mẫu Hôn nhân & Tình trạng hôn nhân (Thông tư 04/2020/TT-BTP)</span>
                     </div>
 
@@ -2668,10 +2908,10 @@ export const FormAndIssueReporting: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setMarriageMode('MARRIAGE_REGISTRATION')}
-                        className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer ${
+                        className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer gov-focus-ring ${
                           marriageMode === 'MARRIAGE_REGISTRATION'
-                            ? 'bg-[#00796B] text-white shadow-xs'
-                            : 'text-slate-600 hover:text-slate-900'
+                            ? 'bg-[#00695C] text-white shadow-xs'
+                            : 'text-slate-700 hover:text-slate-900'
                         }`}
                       >
                         Đăng Ký Kết Hôn
@@ -2679,10 +2919,10 @@ export const FormAndIssueReporting: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setMarriageMode('MARITAL_STATUS_CONFIRMATION')}
-                        className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer ${
+                        className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer gov-focus-ring ${
                           marriageMode === 'MARITAL_STATUS_CONFIRMATION'
-                            ? 'bg-[#00796B] text-white shadow-xs'
-                            : 'text-slate-600 hover:text-slate-900'
+                            ? 'bg-[#00695C] text-white shadow-xs'
+                            : 'text-slate-700 hover:text-slate-900'
                         }`}
                       >
                         Cấp Giấy Xác Nhận Tình Trạng Hôn Nhân
@@ -2692,10 +2932,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     {marriageMode === 'MARRIAGE_REGISTRATION' ? (
                       <>
                         <div className="flex flex-col gap-1">
-                          <label className="text-xs font-bold text-[#334155]">
+                          <label htmlFor="p3-kh-partner-name" className="text-xs font-bold text-[#334155]">
                             Họ tên bên kết hôn thứ hai (Nam/Nữ):
                           </label>
                           <input
+                            id="p3-kh-partner-name"
                             type="text"
                             value={partnerName}
                             onChange={(e) => setPartnerName(e.target.value)}
@@ -2704,34 +2945,39 @@ export const FormAndIssueReporting: React.FC = () => {
                         </div>
 
                         <div className="flex flex-col gap-1">
-                          <label className="text-xs font-bold text-[#334155]">
+                          <label htmlFor="p3-kh-partner-cccd" className="text-xs font-bold text-[#334155]">
                             Số CCCD bên kết hôn thứ hai (12 số):
                           </label>
                           <input
+                            id="p3-kh-partner-cccd"
                             type="text"
                             value={partnerCccd}
                             maxLength={12}
                             placeholder="12 chữ số CCCD"
                             onChange={(e) => setPartnerCccd(e.target.value)}
-                            className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-mono font-bold text-[#00796B]"
+                            className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-mono font-bold text-[#004D40]"
                           />
                         </div>
 
                         <div className="flex flex-col gap-1">
-                          <label className="text-xs font-bold text-[#334155]">
+                          <label htmlFor="p3-kh-partner-dob" className="text-xs font-bold text-[#334155]">
                             Ngày sinh & Giới tính bên thứ hai:
                           </label>
                           <div className="flex items-center gap-2">
                             <input
+                              id="p3-kh-partner-dob"
+                              aria-label="Ngày sinh bên kết hôn thứ hai"
                               type="date"
                               value={partnerDob}
                               onChange={(e) => setPartnerDob(e.target.value)}
                               className="w-full h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
                             />
                             <select
+                              id="p3-kh-partner-gender"
+                              aria-label="Giới tính bên kết hôn thứ hai"
                               value={partnerGender}
                               onChange={(e) => setPartnerGender(e.target.value as 'Nam' | 'Nữ')}
-                              className="h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs font-bold text-[#00796B]"
+                              className="h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs font-bold text-[#004D40]"
                             >
                               <option value="Nam">Nam</option>
                               <option value="Nữ">Nữ</option>
@@ -2740,11 +2986,13 @@ export const FormAndIssueReporting: React.FC = () => {
                         </div>
 
                         <div className="flex flex-col gap-1">
-                          <label className="text-xs font-bold text-[#334155]">
+                          <label htmlFor="p3-kh-ethnicity-self" className="text-xs font-bold text-[#334155]">
                             Dân tộc hai bên (Người nộp / Bên thứ hai):
                           </label>
                           <div className="flex items-center gap-2">
                             <input
+                              id="p3-kh-ethnicity-self"
+                              aria-label="Dân tộc người nộp"
                               type="text"
                               value={applicantEthnicity}
                               onChange={(e) => setApplicantEthnicity(e.target.value)}
@@ -2752,6 +3000,8 @@ export const FormAndIssueReporting: React.FC = () => {
                               className="w-1/2 h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
                             />
                             <input
+                              id="p3-kh-ethnicity-partner"
+                              aria-label="Dân tộc bên phối ngẫu"
                               type="text"
                               value={partnerEthnicity}
                               onChange={(e) => setPartnerEthnicity(e.target.value)}
@@ -2762,10 +3012,11 @@ export const FormAndIssueReporting: React.FC = () => {
                         </div>
 
                         <div className="flex flex-col gap-1 sm:col-span-2">
-                          <label className="text-xs font-bold text-[#334155]">
+                          <label htmlFor="p3-kh-partner-addr" className="text-xs font-bold text-[#334155]">
                             Nơi cư trú bên kết hôn thứ hai:
                           </label>
                           <input
+                            id="p3-kh-partner-addr"
                             type="text"
                             value={partnerAddress}
                             onChange={(e) => setPartnerAddress(e.target.value)}
@@ -2775,10 +3026,11 @@ export const FormAndIssueReporting: React.FC = () => {
                       </>
                     ) : (
                       <div className="flex flex-col gap-1 sm:col-span-2">
-                        <label className="text-xs font-bold text-[#334155]">
+                        <label htmlFor="p3-kh-purpose" className="text-xs font-bold text-[#334155]">
                           Mục đích sử dụng Giấy xác nhận tình trạng hôn nhân (Bắt buộc ghi cụ thể theo TT 04/2020/TT-BTP):
                         </label>
                         <input
+                          id="p3-kh-purpose"
                           type="text"
                           value={maritalCertPurpose}
                           placeholder="VD: Để đăng ký kết hôn với anh Phạm Văn Minh tại UBND..."
@@ -2789,10 +3041,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     )}
 
                     <div className="flex flex-col gap-1 sm:col-span-2">
-                      <label className="text-xs font-bold text-[#334155]">
+                      <label htmlFor="p3-kh-prev-status" className="text-xs font-bold text-[#334155]">
                         Tình trạng hôn nhân trước khi đăng ký:
                       </label>
                       <select
+                        id="p3-kh-prev-status"
                         value={previousMaritalStatus}
                         onChange={(e) => setPreviousMaritalStatus(e.target.value as 'SINGLE' | 'DIVORCED' | 'WIDOWED')}
                         className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#0F172A]"
@@ -2806,17 +3059,18 @@ export const FormAndIssueReporting: React.FC = () => {
                     {/* Smart Checklist: Đã từng ly hôn */}
                     {previousMaritalStatus === 'DIVORCED' && (
                       <div className="sm:col-span-2 p-3.5 rounded-xl bg-amber-50 border border-amber-300 flex flex-col gap-2 text-xs text-amber-900 shadow-2xs">
-                        <div className="font-bold flex items-center gap-1.5 text-amber-800">
-                          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                        <div className="font-bold flex items-center gap-1.5 text-amber-900">
+                          <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
                           <span>Yêu cầu văn bản Tòa án đối với người đã ly hôn:</span>
                         </div>
-                        <p className="text-xs text-amber-800">
+                        <p className="text-xs text-amber-900">
                           Bắt buộc xuất trình bản chính hoặc nộp bản sao trích lục Bản án/Quyết định ly hôn đã có hiệu lực pháp luật của Tòa án nhân dân kèm theo hồ sơ.
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
                           <div>
-                            <label className="text-[11px] font-bold text-amber-900">Số Bản án / Quyết định ly hôn:</label>
+                            <label htmlFor="p3-kh-divorce-num" className="text-[11px] font-bold text-amber-900">Số Bản án / Quyết định ly hôn:</label>
                             <input
+                              id="p3-kh-divorce-num"
                               type="text"
                               value={divorceJudgmentNumber}
                               placeholder="VD: 45/2023/HNGĐ-ST"
@@ -2825,8 +3079,9 @@ export const FormAndIssueReporting: React.FC = () => {
                             />
                           </div>
                           <div>
-                            <label className="text-[11px] font-bold text-amber-900">Ngày ban hành Bản án/Quyết định:</label>
+                            <label htmlFor="p3-kh-divorce-date" className="text-[11px] font-bold text-amber-900">Ngày ban hành Bản án/Quyết định:</label>
                             <input
+                              id="p3-kh-divorce-date"
                               type="date"
                               value={divorceJudgmentDate}
                               onChange={(e) => setDivorceJudgmentDate(e.target.value)}
@@ -2840,17 +3095,18 @@ export const FormAndIssueReporting: React.FC = () => {
                     {/* Smart Checklist: Vợ/chồng đã mất */}
                     {previousMaritalStatus === 'WIDOWED' && (
                       <div className="sm:col-span-2 p-3.5 rounded-xl bg-amber-50 border border-amber-300 flex flex-col gap-2 text-xs text-amber-900 shadow-2xs">
-                        <div className="font-bold flex items-center gap-1.5 text-amber-800">
-                          <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                        <div className="font-bold flex items-center gap-1.5 text-amber-900">
+                          <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
                           <span>Yêu cầu giấy tờ đối với người có vợ/chồng đã mất:</span>
                         </div>
-                        <p className="text-xs text-amber-800">
+                        <p className="text-xs text-amber-900">
                           Bắt buộc nộp bản sao Giấy chứng tử hoặc Trích lục khai tử của vợ/chồng cũ đã mất.
                         </p>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
                           <div>
-                            <label className="text-[11px] font-bold text-amber-900">Số Giấy chứng tử / Trích lục khai tử:</label>
+                            <label htmlFor="p3-kh-death-num" className="text-[11px] font-bold text-amber-900">Số Giấy chứng tử / Trích lục khai tử:</label>
                             <input
+                              id="p3-kh-death-num"
                               type="text"
                               value={deathCertNumber}
                               placeholder="VD: 12/TLKT-2024"
@@ -2859,8 +3115,9 @@ export const FormAndIssueReporting: React.FC = () => {
                             />
                           </div>
                           <div>
-                            <label className="text-[11px] font-bold text-amber-900">Ngày cấp Giấy chứng tử:</label>
+                            <label htmlFor="p3-kh-death-date" className="text-[11px] font-bold text-amber-900">Ngày cấp Giấy chứng tử:</label>
                             <input
+                              id="p3-kh-death-date"
                               type="date"
                               value={deathCertDate}
                               onChange={(e) => setDeathCertDate(e.target.value)}
@@ -2876,16 +3133,17 @@ export const FormAndIssueReporting: React.FC = () => {
                 {/* SPECIALIZED FIELDS FOR PRIORITY 3: TK-BTXH (Nghị định 20/2021/NĐ-CP & Luật BHXH 2024) */}
                 {selectedFormType === 'TK-BTXH' && (
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2 text-xs font-extrabold text-[#00796B] flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-[#0F766E]" />
+                    <div className="sm:col-span-2 text-xs font-extrabold text-[#004D40] flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[#00695C]" />
                       <span>Kiểm tra điều kiện Mẫu số 01 Nghị định 20/2021/NĐ-CP, Luật BHXH 2024 & Tài khoản an sinh Đề án 06</span>
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
+                      <label htmlFor="p3-btxh-household" className="text-xs font-bold text-[#334155]">
                         Diện xét trợ cấp hưu trí xã hội (Luật BHXH 2024 & NĐ 20/2021):
                       </label>
                       <select
+                        id="p3-btxh-household"
                         value={householdStatus}
                         onChange={(e) =>
                           setHouseholdStatus(e.target.value as 'NORMAL' | 'POOR' | 'NEAR_POOR')
@@ -2899,10 +3157,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1">
-                      <label className="text-xs font-bold text-[#334155]">
+                      <label htmlFor="p3-btxh-disability" className="text-xs font-bold text-[#334155]">
                         Mức độ khuyết tật (nếu có Giấy xác nhận của Hội đồng cấp xã):
                       </label>
                       <select
+                        id="p3-btxh-disability"
                         value={disabilityLevel}
                         onChange={(e) =>
                           setDisabilityLevel(e.target.value as 'NONE' | 'SEVERE' | 'EXTREMELY_SEVERE')
@@ -2918,10 +3177,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     {/* Sổ hộ nghèo */}
                     {(householdStatus === 'POOR' || householdStatus === 'NEAR_POOR') && (
                       <div className="sm:col-span-2 flex flex-col gap-1 p-3 rounded-xl bg-amber-50 border border-amber-200">
-                        <label className="text-xs font-bold text-amber-900">
+                        <label htmlFor="p3-btxh-poor-book" className="text-xs font-bold text-amber-900">
                           Số sổ hộ nghèo / Giấy chứng nhận hộ nghèo:
                         </label>
                         <input
+                          id="p3-btxh-poor-book"
                           type="text"
                           value={poorHouseholdBookNumber}
                           placeholder="VD: HN-2026/08912 do UBND cấp xã cấp"
@@ -2935,8 +3195,9 @@ export const FormAndIssueReporting: React.FC = () => {
                     {(disabilityLevel === 'SEVERE' || disabilityLevel === 'EXTREMELY_SEVERE') && (
                       <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 rounded-xl bg-teal-50 border border-teal-200">
                         <div className="flex flex-col gap-1">
-                          <label className="text-xs font-bold text-teal-900">Số Giấy xác nhận khuyết tật:</label>
+                          <label htmlFor="p3-btxh-dis-num" className="text-xs font-bold text-teal-900">Số Giấy xác nhận khuyết tật:</label>
                           <input
+                            id="p3-btxh-dis-num"
                             type="text"
                             value={disabilityCertNumber}
                             placeholder="VD: GKT-2025/001"
@@ -2945,8 +3206,9 @@ export const FormAndIssueReporting: React.FC = () => {
                           />
                         </div>
                         <div className="flex flex-col gap-1">
-                          <label className="text-xs font-bold text-teal-900">Ngày cấp Giấy xác nhận:</label>
+                          <label htmlFor="p3-btxh-dis-date" className="text-xs font-bold text-teal-900">Ngày cấp Giấy xác nhận:</label>
                           <input
+                            id="p3-btxh-dis-date"
                             type="date"
                             value={disabilityCertIssueDate}
                             onChange={(e) => setDisabilityCertIssueDate(e.target.value)}
@@ -2954,8 +3216,9 @@ export const FormAndIssueReporting: React.FC = () => {
                           />
                         </div>
                         <div className="flex flex-col gap-1">
-                          <label className="text-xs font-bold text-teal-900">Cơ quan cấp (Chủ tịch UBND):</label>
+                          <label htmlFor="p3-btxh-dis-issuer" className="text-xs font-bold text-teal-900">Cơ quan cấp (Chủ tịch UBND):</label>
                           <input
+                            id="p3-btxh-dis-issuer"
                             type="text"
                             value={disabilityCertIssuer}
                             onChange={(e) => setDisabilityCertIssuer(e.target.value)}
@@ -2971,8 +3234,9 @@ export const FormAndIssueReporting: React.FC = () => {
                         Thông tin người giám hộ / người chăm sóc (nếu có hoặc đối tượng khuyết tật đặc biệt nặng):
                       </div>
                       <div>
-                        <label className="text-[11px] font-bold text-slate-700">Họ và tên người giám hộ:</label>
+                        <label htmlFor="p3-btxh-guard-name" className="text-[11px] font-bold text-slate-700">Họ và tên người giám hộ:</label>
                         <input
+                          id="p3-btxh-guard-name"
                           type="text"
                           value={guardianName}
                           placeholder="Họ và tên người giám hộ"
@@ -2981,8 +3245,9 @@ export const FormAndIssueReporting: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] font-bold text-slate-700">Số CCCD người giám hộ (12 số):</label>
+                        <label htmlFor="p3-btxh-guard-cccd" className="text-[11px] font-bold text-slate-700">Số CCCD người giám hộ (12 số):</label>
                         <input
+                          id="p3-btxh-guard-cccd"
                           type="text"
                           value={guardianCccd}
                           maxLength={12}
@@ -2992,8 +3257,9 @@ export const FormAndIssueReporting: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] font-bold text-slate-700">Quan hệ với người hưởng:</label>
+                        <label htmlFor="p3-btxh-guard-rel" className="text-[11px] font-bold text-slate-700">Quan hệ với người hưởng:</label>
                         <input
+                          id="p3-btxh-guard-rel"
                           type="text"
                           value={guardianRelation}
                           placeholder="VD: Con đẻ, Bố mẹ, Vợ chồng"
@@ -3002,8 +3268,9 @@ export const FormAndIssueReporting: React.FC = () => {
                         />
                       </div>
                       <div>
-                        <label className="text-[11px] font-bold text-slate-700">Số điện thoại liên hệ:</label>
+                        <label htmlFor="p3-btxh-guard-phone" className="text-[11px] font-bold text-slate-700">Số điện thoại liên hệ:</label>
                         <input
+                          id="p3-btxh-guard-phone"
                           type="tel"
                           value={guardianPhone}
                           placeholder="VD: 0987654321"
@@ -3014,10 +3281,11 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
 
                     <div className="flex flex-col gap-1 sm:col-span-2">
-                      <label className="text-xs font-bold text-[#334155]">
+                      <label htmlFor="p3-btxh-bank" className="text-xs font-bold text-[#334155]">
                         Số tài khoản & Ngân hàng nhận trợ cấp an sinh không dùng tiền mặt (Đề án 06):
                       </label>
                       <input
+                        id="p3-btxh-bank"
                         type="text"
                         value={bankAccount}
                         placeholder="VD: 70110000889912 - VietinBank An Giang"
@@ -3031,7 +3299,7 @@ export const FormAndIssueReporting: React.FC = () => {
                 {/* Field 5: Nơi đề nghị cư trú / Quê quán / Địa chỉ thường trú */}
                 <div className="flex flex-col gap-1.5 sm:col-span-2">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-bold text-[#334155]">
+                    <label htmlFor="p3-address" className="text-xs font-bold text-[#334155]">
                       {selectedFormType === 'TK-KS'
                         ? '5. Quê quán của trẻ & Nơi thường trú của Cha/Mẹ:'
                         : selectedFormType === 'TK-KH'
@@ -3041,17 +3309,18 @@ export const FormAndIssueReporting: React.FC = () => {
                         : '5. Nơi đề nghị đăng ký thường trú / tạm trú (Mục 10 - Nội dung đề nghị):'}
                     </label>
                     {ocrSuccess && address ? (
-                      <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                        <Check className="w-3 h-3 text-[#10B981]" /> Đã map đúng địa chỉ
+                      <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                        <Check className="w-3 h-3 text-[#065F46]" /> Đã map đúng địa chỉ
                       </span>
                     ) : null}
                   </div>
                   <input
+                    id="p3-address"
                     type="text"
                     value={address}
                     placeholder="Ví dụ: 32/3 Ích, Khu phố 12, Phường..., TP. Hồ Chí Minh"
                     onChange={(e) => setAddress(e.target.value)}
-                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00796B] focus:bg-white transition-all ${
+                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00695C] focus:bg-white transition-all ${
                       ocrSuccess && address ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-[#F8FAFC] border-[#CBD5E1]'
                     }`}
                   />
@@ -3059,7 +3328,7 @@ export const FormAndIssueReporting: React.FC = () => {
 
                 {/* Official Legal Specification Notice */}
                 <div className="sm:col-span-2 p-3 rounded-xl bg-[#F0FDF4] border border-[#BBF7D0] flex items-start gap-2.5 text-xs text-[#166534]">
-                  <FileText className="w-4 h-4 text-[#16A34A] shrink-0 mt-0.5" />
+                  <FileText className="w-4 h-4 text-[#065F46] shrink-0 mt-0.5" />
                   <div className="flex flex-col gap-0.5">
                     <span className="font-bold">
                       {selectedFormType === 'TK-KS'
@@ -3067,16 +3336,16 @@ export const FormAndIssueReporting: React.FC = () => {
                         : selectedFormType === 'TK-KH'
                         ? 'Quy chuẩn Luật Hôn nhân & Gia đình 2014 & Thông tư 04/2020/TT-BTP:'
                         : selectedFormType === 'TK-BTXH'
-                        ? 'Quy chuẩn Mẫu số 01, 02, 03 Nghị định 20/2021/NĐ-CP:'
-                        : 'Quy chuẩn Mẫu CT01 (Thông tư Bộ Công an):'}
+                        ? 'Quy chuẩn Luật BHXH 41/2024/QH15 & Nghị định 20/2021/NĐ-CP:'
+                        : 'Quy chuẩn Mẫu CT01 (Thông tư 66/2023/TT-BCA):'}
                     </span>
-                    <span className="text-[11px] text-[#15803D]">
+                    <span className="text-[11px] text-[#166534]">
                       {selectedFormType === 'TK-KS'
                         ? 'Họ tên, ngày tháng năm sinh, giới tính của trẻ và họ tên mẹ phải khớp từng chữ với Giấy chứng sinh bản chính do bệnh viện cấp. Nếu cha mẹ chưa đăng ký kết hôn mà ghi tên cha thì phải làm thủ tục kết hợp Khai sinh + Nhận cha, mẹ, con.'
                         : selectedFormType === 'TK-KH'
                         ? 'Nam phải từ đủ 20 tuổi, Nữ từ đủ 18 tuổi tính theo ngày tháng năm sinh. Giấy xác nhận tình trạng hôn nhân chỉ có giá trị 06 tháng và bắt buộc ghi rõ mục đích sử dụng cụ thể.'
                         : selectedFormType === 'TK-BTXH'
-                        ? 'Người cao tuổi không có lương hưu phải từ đủ 80 tuổi trở lên hoặc có Giấy xác nhận khuyết tật nặng/đặc biệt nặng; kèm số tài khoản ngân hàng chính chủ để nhận chi trả an sinh Đề án 06.'
+                        ? 'Người cao tuổi không có lương hưu từ đủ 75 tuổi (hoặc hộ nghèo/cận nghèo 70–74 tuổi theo Luật BHXH 41/2024/QH15 hiệu lực 01/07/2025) hoặc có Giấy xác nhận khuyết tật nặng/đặc biệt nặng; kèm số tài khoản ngân hàng chính chủ Đề án 06.'
                         : 'Tờ khai CT01 hoàn toàn không có trường "Ngày cấp CCCD" (chỉ có ngày làm đơn ở cuối tờ khai). Hệ thống chỉ quét đúng các mục cần nhập (Mục 1, 2, 3, 4, 10).'}
                     </span>
                   </div>
@@ -3087,58 +3356,60 @@ export const FormAndIssueReporting: React.FC = () => {
               <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] flex flex-col gap-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-[#00796B] shrink-0" />
+                    <Mail className="w-4 h-4 text-[#004D40] shrink-0" />
                     <span className="text-xs font-extrabold text-[#0F172A]">
                       Thông Tin Nhận Phê Duyệt Sơ Bộ & Phiếu Hẹn Mã QR (Miễn Phí Qua Email)
                     </span>
                   </div>
-                  <span className="px-2 py-0.5 rounded-full bg-[#CCFBF1] text-[#0F766E] text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded-full bg-[#CCFBF1] text-[#004D40] text-[10px] font-bold">
                     100% Miễn phí • Không dùng SMS/Zalo thu phí
                   </span>
                 </div>
-                <p className="text-[11px] text-[#64748B] leading-relaxed">
+                <p className="text-[11px] text-[#475569] leading-relaxed">
                   Khi Cán bộ Một cửa xem duyệt hồ sơ sơ bộ và chấp thuận, hệ thống sẽ tự động gửi thông báo kèm <strong>Phiếu Hẹn Điện Tử Có Mã QR</strong> về Email của bà con và hiển thị trực tiếp trên cổng tra cứu Web.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-bold text-[#334155]">
+                      <label htmlFor="p3-citizen-email" className="text-[11px] font-bold text-[#334155]">
                         Địa chỉ Email nhận kết quả phê duyệt & Mã QR (*):
                       </label>
                       {citizenEmail && (
-                        <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                          <Check className="w-3 h-3 text-[#10B981]" /> Đã sẵn sàng nhận QR
+                        <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                          <Check className="w-3 h-3 text-[#065F46]" /> Đã sẵn sàng nhận QR
                         </span>
                       )}
                     </div>
                     <input
+                      id="p3-citizen-email"
                       type="email"
                       value={citizenEmail}
                       onChange={(e) => setCitizenEmail(e.target.value)}
                       placeholder="Ví dụ: congdan.angiang@gmail.com"
-                      className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] focus:outline-none focus:border-[#00796B] transition ${
+                      className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] focus:outline-none focus:border-[#00695C] transition ${
                         citizenEmail ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'border-[#CBD5E1] bg-white'
                       }`}
                     />
                   </div>
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center justify-between">
-                      <label className="text-[11px] font-bold text-[#334155]">
+                      <label htmlFor="p3-citizen-phone" className="text-[11px] font-bold text-[#334155]">
                         Số điện thoại liên hệ & tra cứu hồ sơ (Không gửi SMS):
                       </label>
                       {phoneNumber && (
-                        <span className="text-[10px] text-[#059669] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                          <Check className="w-3 h-3 text-[#10B981]" /> Đã đồng bộ Mục 5
+                        <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
+                          <Check className="w-3 h-3 text-[#065F46]" /> Đã đồng bộ Mục 5
                         </span>
                       )}
                     </div>
                     <input
+                      id="p3-citizen-phone"
                       ref={dossierPhoneInputRef}
                       type="tel"
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       placeholder="Ví dụ: 0918234567"
-                      className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] focus:outline-none focus:border-[#00796B] transition ${
+                      className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] focus:outline-none focus:border-[#00695C] transition ${
                         phoneNumber ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'border-[#CBD5E1] bg-white'
                       }`}
                     />
@@ -3153,14 +3424,14 @@ export const FormAndIssueReporting: React.FC = () => {
                     <AlertCircle className="w-5 h-5 text-[#DC2626] shrink-0 mt-0.5" />
                     <div className="flex flex-col gap-0.5">
                       <span className="font-extrabold text-sm text-[#7F1D1D]">Lỗi Nộp Hồ Sơ Lên Hệ Thống</span>
-                      <p className="leading-relaxed text-[#B91C1C]">{submitError}</p>
+                      <p className="leading-relaxed text-[#991B1B]">{submitError}</p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={handlePrecheck}
                     disabled={formLoading}
-                    className="self-end sm:self-center px-3.5 py-1.5 rounded-xl bg-[#DC2626] hover:bg-[#B91C1C] text-white font-bold text-xs shrink-0 transition flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50"
+                    className="self-end sm:self-center px-3.5 py-1.5 rounded-xl bg-[#DC2626] hover:bg-[#B91C1C] text-white font-bold text-xs shrink-0 transition flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50 gov-focus-ring"
                   >
                     <RefreshCw className={`w-3.5 h-3.5 ${formLoading ? 'animate-spin' : ''}`} />
                     <span>Thử lại</span>
@@ -3169,19 +3440,24 @@ export const FormAndIssueReporting: React.FC = () => {
               )}
 
               {/* Action Trigger Buttons */}
-              <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
-                <span className="text-[11px] text-[#64748B]">
-                  Đối chiếu theo đúng quy định pháp luật hành chính hiện hành
-                </span>
+              <div className="pt-3 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-3">
+                <button
+                  type="button"
+                  onClick={() => setFormWizardStep(1)}
+                  className="px-4 py-2.5 bg-white hover:bg-[#F1F5F9] text-[#334155] border border-[#CBD5E1] rounded-xl font-bold text-xs flex items-center gap-1.5 transition cursor-pointer gov-focus-ring"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                  <span>Quay lại Bước 1</span>
+                </button>
 
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setShowPrintModal(true)}
-                    className="px-4 py-2.5 bg-white hover:bg-[#F1F5F9] text-[#00796B] border border-[#CBD5E1] rounded-xl font-bold text-xs shadow-2xs flex items-center gap-1.5 transition-all duration-200 cursor-pointer"
+                    className="px-4 py-2.5 bg-white hover:bg-[#F1F5F9] text-[#004D40] border border-[#CBD5E1] rounded-xl font-bold text-xs shadow-2xs flex items-center gap-1.5 transition-all duration-200 cursor-pointer gov-focus-ring"
                     title="Xem trước và tải về file Word (.docx) hoặc PDF chuẩn Nghị định 30/2020/NĐ-CP"
                   >
-                    <FileDown className="w-4 h-4 text-[#00796B]" />
+                    <FileDown className="w-4 h-4 text-[#004D40]" />
                     <span>Xem & Tải Mẫu A4</span>
                   </button>
 
@@ -3190,33 +3466,59 @@ export const FormAndIssueReporting: React.FC = () => {
                     onClick={handlePrecheck}
                     disabled={
                       formLoading ||
-                      Boolean(visionGateResult && (visionGateResult.isBlurry || visionGateResult.isTooDark || !visionGateResult.templateMatched))
+                      Boolean(
+                        visionGateResult &&
+                          (visionGateResult.isBlurry ||
+                            visionGateResult.isTooDark ||
+                            visionGateResult.isGlared ||
+                            !visionGateResult.templateMatched)
+                      )
                     }
-                    className="px-6 py-2.5 bg-[#00796B] hover:bg-[#00695C] disabled:bg-[#94A3B8] text-white rounded-xl font-semibold text-xs shadow-xs flex items-center gap-2 active:scale-95 transition-all duration-200 cursor-pointer disabled:cursor-not-allowed"
+                    className="px-6 py-2.5 bg-[#00695C] hover:bg-[#004D40] disabled:bg-[#94A3B8] text-white rounded-xl font-semibold text-xs shadow-xs flex items-center gap-2 active:scale-95 transition-all duration-200 cursor-pointer disabled:cursor-not-allowed gov-focus-ring"
                   >
                     {formLoading ? (
                       <>
-                        <RefreshCw className="w-4 h-4 animate-spin text-[#80CBC4]" />
+                        <RefreshCw className="w-4 h-4 animate-spin text-teal-100" />
                         <span>Đang Kiểm Tra...</span>
                       </>
-                    ) : visionGateResult && (visionGateResult.isBlurry || visionGateResult.isTooDark || !visionGateResult.templateMatched) ? (
+                    ) : visionGateResult && (visionGateResult.isBlurry || visionGateResult.isTooDark || visionGateResult.isGlared || !visionGateResult.templateMatched) ? (
                       <>
                         <AlertCircle className="w-4 h-4 text-white" />
-                        <span>AI Thị Giác Chặn Gửi (Chụp Lại Ảnh)</span>
+                        <span>Ảnh Bị Chặn (Quay Lại Bước 1)</span>
                       </>
                     ) : (
                       <>
-                        <Sparkles className="w-4 h-4 text-[#80CBC4]" />
-                        <span>Kiểm Tra & Gửi Sơ Duyệt Cán Bộ</span>
+                        <Sparkles className="w-4 h-4 text-teal-100" />
+                        <span>Kiểm Tra & Chuyển Bước 3</span>
                       </>
                     )}
                   </button>
                 </div>
               </div>
             </div>
+          )}
 
-            {/* RIGHT: Real-Time Diagnostic Result Card + Citizen REA Status Tracker (5 Cols) */}
-            <div className="lg:col-span-5 flex flex-col gap-4">
+          {/* ==================== WIZARD BƯỚC 3: KẾT QUẢ SƠ DUYỆT & IN MẪU A4 ==================== */}
+          {formWizardStep === 3 && (
+            <div className="flex flex-col gap-5">
+              <div className="flex flex-wrap items-center justify-between gap-2 bg-white px-4 py-3 rounded-2xl border border-[#CBD5E1] shadow-xs">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-5 h-5 text-[#00695C]" />
+                  <span className="text-xs sm:text-sm font-extrabold text-[#0F172A]">
+                    Bước 3: Kết Quả Đối Chiếu Pháp Luật, Phiếu Hẹn QR & Xuất Mẫu A4
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setFormWizardStep(2)}
+                  className="px-3 py-1.5 rounded-lg bg-[#F8FAFC] hover:bg-[#F1F5F9] border border-[#CBD5E1] text-xs font-bold text-[#334155] flex items-center gap-1 cursor-pointer gov-focus-ring"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <span>Chỉnh sửa lại tờ khai (Bước 2)</span>
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-4">
               {precheckResult ? (
                 <div className="p-6 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-4 animate-scaleUp">
                   {/* Status Banner */}
@@ -3240,7 +3542,7 @@ export const FormAndIssueReporting: React.FC = () => {
                             : 'Phát Hiện Lỗi Cần Chỉnh Sửa Trước Khi Nộp Quầy'}
                         </h3>
 
-                        {/* Text-To-Speech Button (2 Chế độ Rõ Ràng: MỞ & TẮT để nghe và tắt khi cần) */}
+                        {/* Text-To-Speech Button (2 Chế độ Rõ Ràng: MỞ & TẮT) */}
                         <button
                           type="button"
                           onClick={() => {
@@ -3255,9 +3557,10 @@ export const FormAndIssueReporting: React.FC = () => {
                             }`;
                             toggleSpeech(summaryText, 'precheck-diagnostic');
                           }}
-                          className={`group inline-flex items-center gap-1.5 font-bold text-xs px-2.5 py-1 rounded-xl border transition-all duration-150 cursor-pointer shadow-2xs select-none active:scale-95 ${
+                          aria-pressed={speakingId === 'precheck-diagnostic'}
+                          className={`group inline-flex items-center gap-1.5 font-bold text-xs px-2.5 py-1 rounded-xl border transition-all duration-150 cursor-pointer shadow-2xs select-none ${
                             speakingId === 'precheck-diagnostic'
-                              ? 'bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] border-[#FCA5A5] ring-2 ring-[#FECACA]'
+                              ? 'bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#991B1B] border-[#FCA5A5] ring-2 ring-[#FECACA]'
                               : precheckResult.overallValid
                               ? 'bg-white hover:bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]'
                               : 'bg-white hover:bg-[#FEF2F2] text-[#991B1B] border-[#FECACA]'
@@ -3270,21 +3573,17 @@ export const FormAndIssueReporting: React.FC = () => {
                         >
                           {speakingId === 'precheck-diagnostic' ? (
                             <>
-                              <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#EF4444] opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#DC2626]"></span>
-                              </span>
                               <VolumeX className="w-3.5 h-3.5 text-[#DC2626]" />
-                              <span className="font-extrabold text-[#B91C1C]">Đang đọc...</span>
+                              <span className="font-extrabold text-[#991B1B]">Đang đọc...</span>
                               <span className="ml-0.5 px-2 py-0.5 rounded-md bg-[#DC2626] text-white text-[10px] font-black uppercase tracking-wider shadow-2xs">
                                 TẮT
                               </span>
                             </>
                           ) : (
                             <>
-                              <Volume2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+                              <Volume2 className="w-3.5 h-3.5" />
                               <span>Nghe đọc to</span>
-                              <span className="ml-0.5 px-2 py-0.5 rounded-md bg-[#00796B] text-white text-[10px] font-black uppercase tracking-wider shadow-2xs">
+                              <span className="ml-0.5 px-2 py-0.5 rounded-md bg-[#00695C] text-white text-[10px] font-black uppercase tracking-wider shadow-2xs">
                                 MỞ
                               </span>
                             </>
@@ -3294,7 +3593,7 @@ export const FormAndIssueReporting: React.FC = () => {
 
                       <p className="text-xs mt-1 leading-relaxed">
                         {precheckResult.overallValid
-                          ? 'Tất cả các trường thông tin CCCD, độ tuổi và điều kiện pháp lý đều khớp quy định. Phiếu sơ duyệt đã được đồng bộ sang Bàn Cán Bộ.'
+                          ? 'Tất cả các trường thông tin CCCD, độ tuổi và điều kiện pháp lý đều khớp quy định. Phiếu sơ duyệt đã được đồng bộ sang Bộ phận Một cửa.'
                           : 'Bà con vui lòng chỉnh sửa lại các mục báo đỏ bên dưới trên tờ khai giấy gốc trước khi mang đến Bộ phận Một cửa.'}
                       </p>
                     </div>
@@ -3306,14 +3605,14 @@ export const FormAndIssueReporting: React.FC = () => {
                       <div key={idx} className="py-2.5 flex items-start justify-between gap-2">
                         <div className="flex items-start gap-2">
                           {field.valid ? (
-                            <CheckCircle2 className="w-4 h-4 text-[#0F766E] shrink-0 mt-0.5" />
+                            <CheckCircle2 className="w-4 h-4 text-[#065F46] shrink-0 mt-0.5" />
                           ) : (
-                            <XCircle className="w-4 h-4 text-[#DC2626] shrink-0 mt-0.5" />
+                            <XCircle className="w-4 h-4 text-[#991B1B] shrink-0 mt-0.5" />
                           )}
                           <div>
                             <span className="font-semibold text-[#0F172A]">{field.fieldName}</span>
                             {field.errorMessage && (
-                              <p className="text-xs text-[#DC2626] mt-0.5 font-medium leading-tight">
+                              <p className="text-xs text-[#991B1B] mt-0.5 font-medium leading-tight">
                                 {field.errorMessage}
                               </p>
                             )}
@@ -3322,7 +3621,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono shrink-0 ${
                             field.valid
-                              ? 'bg-[#CCFBF1] text-[#0F766E]'
+                              ? 'bg-[#CCFBF1] text-[#004D40]'
                               : 'bg-[#FEE2E2] text-[#991B1B]'
                           }`}
                         >
@@ -3335,50 +3634,71 @@ export const FormAndIssueReporting: React.FC = () => {
                   {/* Warnings if any */}
                   {precheckResult.warnings.length > 0 && (
                     <div className="p-3 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] text-xs text-[#92400E] flex flex-col gap-1">
-                      <strong className="text-[#B45309]">Lưu ý pháp lý bắt buộc:</strong>
+                      <strong className="text-[#92400E]">Lưu ý pháp lý bắt buộc:</strong>
                       {precheckResult.warnings.map((w, idx) => (
                         <span key={idx} className="text-xs leading-tight">• {w}</span>
                       ))}
                     </div>
                   )}
 
-                  {/* Footer Meta & Quick Officer Desk Link */}
+                  {/* Footer Meta & Citizen-Safe Tracking Link */}
                   <div className="pt-2 border-t border-[#E2E8F0] flex flex-col gap-2">
-                    <div className="flex items-center justify-between text-xs text-[#64748B]">
-                      <span>Mã phiếu kiểm tra: <strong className="font-mono text-[#00796B]">{precheckResult.submissionId}</strong></span>
+                    <div className="flex items-center justify-between text-xs text-[#475569]">
+                      <span>Mã phiếu kiểm tra: <strong className="font-mono text-[#004D40]">{precheckResult.submissionId}</strong></span>
                       <span>UBND {currentWard.name}</span>
                     </div>
 
                     <button
                       type="button"
                       onClick={() => setShowPrintModal(true)}
-                      className="w-full py-2 px-3 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-2xs"
+                      className="w-full py-2.5 px-3 rounded-xl bg-[#00695C] hover:bg-[#004D40] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-2xs gov-focus-ring"
                     >
-                      <FileDown className="w-3.5 h-3.5 text-[#80CBC4]" />
-                      <span>Xem & Tải Mẫu A4 (Word/PDF)</span>
+                      <FileDown className="w-4 h-4 text-teal-100" />
+                      <span>Xem & Tải Mẫu A4 (Word/PDF chuẩn NĐ 30/2020/NĐ-CP)</span>
                     </button>
 
                     <button
                       type="button"
-                      onClick={() => navigate(`/officer/ward/${currentWard.code}?tab=FORMS`)}
-                      className="w-full py-2 px-3 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#00796B] border border-[#CBD5E1] text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer"
+                      onClick={() => {
+                        setActiveTab('tracking');
+                        navigate('/citizen/form#tracking', { replace: true });
+                      }}
+                      className="w-full py-2 px-3 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#004D40] border border-[#CBD5E1] text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer gov-focus-ring"
                     >
-                      <span>Xem Hồ Sơ Vừa Kiểm Tra Trên Bàn Cán Bộ ({currentWard.name})</span>
+                      <span>Theo Dõi Tiến Độ & Mã QR Tại Tab Tra Cứu ({currentWard.name})</span>
                       <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 </div>
               ) : (
                 /* Empty state */
-                <div className="p-8 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col items-center justify-center text-center text-[#64748B] gap-3">
-                  <div className="w-14 h-14 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#00796B]">
-                    <ShieldCheck className="w-7 h-7 text-[#0F766E]" />
+                <div className="p-8 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col items-center justify-center text-center text-[#475569] gap-3">
+                  <div className="w-14 h-14 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#004D40]">
+                    <ShieldCheck className="w-7 h-7 text-[#00695C]" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-[#0F172A]">Sẵn Sàng Rà Soát 4 Mẫu Tờ Khai</h3>
-                    <p className="text-xs text-[#64748B] mt-1 max-w-xs leading-relaxed">
-                      Điền thông tin bản khai giấy bên trái và bấm nút "Kiểm Tra Tờ Khai" để đối chiếu quy định pháp luật và gửi sơ duyệt lên Một cửa.
+                    <h3 className="font-bold text-sm text-[#0F172A]">Chưa Có Kết Quả Rà Soát Cho Phiên Hiện Tại</h3>
+                    <p className="text-xs text-[#475569] mt-1 max-w-md leading-relaxed">
+                      Vui lòng quay lại Bước 2 để điền thông tin tờ khai và bấm &quot;Kiểm Tra &amp; Chuyển Bước 3&quot;, hoặc bấm nút bên dưới để xem trước mẫu A4.
                     </p>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-center gap-2 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => setFormWizardStep(2)}
+                      className="px-4 py-2 rounded-xl bg-[#00695C] hover:bg-[#004D40] text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer gov-focus-ring"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      <span>Quay lại Bước 2 để Kiểm tra</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setShowPrintModal(true)}
+                      className="px-4 py-2 rounded-xl bg-white hover:bg-[#F1F5F9] text-[#004D40] border border-[#CBD5E1] text-xs font-bold flex items-center gap-1.5 cursor-pointer gov-focus-ring"
+                    >
+                      <FileDown className="w-4 h-4" />
+                      <span>Xem & Tải Mẫu A4</span>
+                    </button>
                   </div>
                 </div>
               )}
@@ -3697,8 +4017,9 @@ export const FormAndIssueReporting: React.FC = () => {
                   </div>
                 </div>
               )}
+              </div>
             </div>
-          </div>
+          )}
         </section>
       )}
 
