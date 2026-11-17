@@ -33,7 +33,7 @@ public class RagController {
     @Operation(
             summary = "Giải đáp thủ tục hành chính với căn cứ pháp lý và chốt chặn chống ảo giác",
             description = "Tiếp nhận câu hỏi của công dân, vector hóa 768 chiều, truy vấn HNSW Cosine Similarity trên pgvector. " +
-                          "Nếu S_max < 0.78, hệ thống tự động từ chối trả lời để bảo đảm an toàn thông tin theo Nghị định 13/2023/NĐ-CP."
+                          "Nếu S_max < 0.78, hệ thống tự động từ chối trả lời để bảo đảm độ chính xác thông tin và an toàn tra cứu pháp lý."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Tra cứu và phản hồi thành công (hoặc từ chối an toàn)"),

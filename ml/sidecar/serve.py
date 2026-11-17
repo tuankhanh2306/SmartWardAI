@@ -21,7 +21,7 @@ import numpy as np
 import onnxruntime as ort
 from transformers import AutoTokenizer
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 import uvicorn
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -30,7 +30,7 @@ sys.path.append(str(BASE_DIR / 'ml' / 'src'))
 from enhanced_pipeline import VietnameseTextNormalizer, CLASSES
 
 class TextInput(BaseModel):
-    text: str
+    text: str = Field(..., min_length=1, max_length=2000, description="Input text to process (max 2000 characters)")
 
 class EmbedResponse(BaseModel):
     embedding: list[float]

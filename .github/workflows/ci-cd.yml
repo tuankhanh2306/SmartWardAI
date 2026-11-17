@@ -79,9 +79,9 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Run Chatbox Acceptance Tests
+      - name: Run Frontend Full Test Suite (11 Acceptance & Regression Suites)
         working-directory: ./frontend
-        run: npm test
+        run: npm run test:all
 
       - name: Compile Production Web Bundle (TypeScript & Vite)
         working-directory: ./frontend
