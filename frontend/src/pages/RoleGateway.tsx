@@ -157,7 +157,7 @@ export const RoleGateway: React.FC = () => {
                 </div>
                 <div>
                   <div className="font-bold text-sm">Đăng nhập với tư cách Người dân</div>
-                  <div className="text-xs text-teal-100/80 font-normal">Vào thẳng hệ thống • Phiên 5 phút</div>
+                  <div className="text-xs text-teal-50 font-normal">Vào thẳng hệ thống • Phiên 5 phút</div>
                 </div>
               </div>
               <ArrowRight className="w-5 h-5 text-teal-200 group-hover:translate-x-0.5 transition-transform shrink-0" />
@@ -327,7 +327,7 @@ export const RoleGateway: React.FC = () => {
         )}
 
         {/* Security Caption */}
-        <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-400 text-center">
+        <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-600 text-center">
           <Clock className="w-3.5 h-3.5 shrink-0" />
           <span>Cán bộ: Thường trực không giới hạn • Dân: Phiên 5 phút an toàn</span>
         </div>
