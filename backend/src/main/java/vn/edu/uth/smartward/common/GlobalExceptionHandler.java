@@ -126,6 +126,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 ));
     }
 
+    @ExceptionHandler(org.springframework.dao.OptimisticLockingFailureException.class)
+    public ResponseEntity<ApiResponse<Void>> handleOptimisticLockingFailure(org.springframework.dao.OptimisticLockingFailureException ex) {
+        String correlationId = UUID.randomUUID().toString();
+        log.warn("Optimistic locking conflict detected [correlationId={}]: {}", correlationId, ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(
+                        "Dữ liệu đã được một cán bộ khác cập nhật đồng thời. Vui lòng tải lại trang và thử lại.",
+                        "SW_409_CONFLICT",
+                        correlationId
+                ));
+    }
+
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse<Void>> handleGenericException(Exception ex) {
         String correlationId = UUID.randomUUID().toString();

@@ -67,7 +67,7 @@ public class OfficerSecurityConfig {
 
                         // 2. Public Minimal Surface (SEC-02 allowlist)
                         .requestMatchers(HttpMethod.GET, "/api/v1/health").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/officer/login", "/api/v1/officer/login").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/auth/officer/login", "/api/v1/officer/login", "/api/v1/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/rag/ask").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/procedures/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/issues/report").permitAll()
@@ -95,7 +95,8 @@ public class OfficerSecurityConfig {
                         .requestMatchers("/api/v1/forms/submissions/**").hasRole("OFFICER")
                         .requestMatchers("/api/v1/vault/**").hasRole("OFFICER")
                         .requestMatchers("/api/v1/auth/officer/me", "/api/v1/auth/officer/logout",
-                                         "/api/v1/officer/me", "/api/v1/officer/logout").hasRole("OFFICER")
+                                         "/api/v1/officer/me", "/api/v1/officer/logout",
+                                         "/api/v1/auth/me", "/api/v1/auth/logout").hasAnyRole("OFFICER", "ADMIN")
 
                         // 6. Strict Deny All on Everything Else
                         .anyRequest().denyAll()

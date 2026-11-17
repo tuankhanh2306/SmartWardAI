@@ -35,13 +35,13 @@ const OFFICER_TOKEN_KEY = 'smartward_officer_token';
 const OFFICER_BADGE_KEY = 'smartward_officer_badge';
 const OFFICER_PROFILE_KEY = 'smartward_officer_profile';
 
-// SEC-09: AUTHORIZED_OFFICER_CREDENTIALS removed from client code. Server is the sole authority for authentication.
+// SEC-09 & 5.6: Aligned with server source of truth (Trần Quốc Bảo - CC-AG-8942)
 const DEFAULT_OFFICER_PROFILE: OfficerProfile = {
-  name: 'Cán bộ Một Cửa',
-  title: 'Chuyên viên Tiếp nhận & Trả kết quả',
+  name: 'Trần Quốc Bảo',
+  title: 'Cán bộ Tư pháp - Hộ tịch',
   badgeId: 'CC-AG-8942',
-  department: 'Bộ phận Một Cửa',
-  avatarText: 'CB',
+  department: 'Bộ phận Tiếp nhận & Trả kết quả (Một Cửa)',
+  avatarText: 'QB',
 };
 
 const DEFAULT_CITIZEN_PROFILE: CitizenProfile = {

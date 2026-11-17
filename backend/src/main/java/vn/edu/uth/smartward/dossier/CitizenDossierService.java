@@ -34,22 +34,35 @@ public class CitizenDossierService {
     private final AdminProcedureRepository procedureRepository;
     private final ObjectMapper objectMapper;
     private final RedisRateLimiter rateLimiter;
+    private final DossierEventRepository dossierEventRepository;
+    private final vn.edu.uth.smartward.audit.AuditService auditService;
 
     @Autowired
     public CitizenDossierService(CitizenDossierRepository dossierRepository,
                                  AdminProcedureRepository procedureRepository,
                                  ObjectMapper objectMapper,
-                                 @Autowired(required = false) RedisRateLimiter rateLimiter) {
+                                 @Autowired(required = false) RedisRateLimiter rateLimiter,
+                                 @Autowired(required = false) DossierEventRepository dossierEventRepository,
+                                 @Autowired(required = false) vn.edu.uth.smartward.audit.AuditService auditService) {
         this.dossierRepository = dossierRepository;
         this.procedureRepository = procedureRepository;
         this.objectMapper = objectMapper;
         this.rateLimiter = rateLimiter;
+        this.dossierEventRepository = dossierEventRepository;
+        this.auditService = auditService;
+    }
+
+    public CitizenDossierService(CitizenDossierRepository dossierRepository,
+                                 AdminProcedureRepository procedureRepository,
+                                 ObjectMapper objectMapper,
+                                 RedisRateLimiter rateLimiter) {
+        this(dossierRepository, procedureRepository, objectMapper, rateLimiter, null, null);
     }
 
     public CitizenDossierService(CitizenDossierRepository dossierRepository,
                                  AdminProcedureRepository procedureRepository,
                                  ObjectMapper objectMapper) {
-        this(dossierRepository, procedureRepository, objectMapper, null);
+        this(dossierRepository, procedureRepository, objectMapper, null, null, null);
     }
 
     @Transactional
@@ -217,6 +230,18 @@ public class CitizenDossierService {
             list = dossierRepository.findAllByOrderByCreatedAtDesc();
         }
 
+        if (auditService != null) {
+            auditService.logAction(
+                    wardCode != null ? wardCode.trim() : "OFFICER",
+                    wardCode != null ? wardCode.trim() : "ALL",
+                    "DOSSIER_LIST_VIEW",
+                    "DOSSIER",
+                    null,
+                    "127.0.0.1",
+                    null
+            );
+        }
+
         return list.stream().map(this::mapToOfficerDto).toList();
     }
 
@@ -230,21 +255,35 @@ public class CitizenDossierService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,
                         "Không tìm thấy hồ sơ: " + dossierCode));
 
-        // Cross-ward tenant isolation defense
+        // 1. Cross-ward tenant isolation defense (SEC-09 & 5.3)
         if (principal != null && principal.wardCode() != null && !principal.wardCode().isBlank()) {
             String officerWard = principal.wardCode().trim();
             String dossierWard = dossier.getWardCode() != null ? dossier.getWardCode().trim() : "";
             if (!officerWard.equalsIgnoreCase(dossierWard)) {
                 log.warn("Cross-ward unauthorized review blocked: officerWard={}, dossierWard={}", officerWard, dossierWard);
+                if (auditService != null) {
+                    auditService.logAction(principal.badgeId(), officerWard, "CROSS_WARD_REVIEW_BLOCKED", "DOSSIER", dossierCode, "127.0.0.1", null);
+                }
                 throw new BusinessException(ErrorCode.FORBIDDEN,
                         "Cán bộ thuộc đơn vị " + officerWard + " không có thẩm quyền xử lý hồ sơ thuộc " + dossierWard + ".");
             }
         }
 
         String effectiveStatus = req.getEffectiveStatus();
-        if (effectiveStatus == null || (!effectiveStatus.equals("APPROVED") && !effectiveStatus.equals("SUPPLEMENT_REQUIRED") && !effectiveStatus.equals("REJECTED"))) {
+        if (effectiveStatus == null || (!effectiveStatus.equals("RECEIVED") && !effectiveStatus.equals("APPROVED") && !effectiveStatus.equals("SUPPLEMENT_REQUIRED") && !effectiveStatus.equals("REJECTED"))) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST,
-                    "Trạng thái phê duyệt không hợp lệ. Phải là APPROVED, SUPPLEMENT_REQUIRED hoặc REJECTED.");
+                    "Trạng thái phê duyệt không hợp lệ. Phải là RECEIVED, APPROVED, SUPPLEMENT_REQUIRED hoặc REJECTED.");
+        }
+
+        // 2. Strict State Machine Transition Rules (5.5)
+        String oldStatus = dossier.getStatus() != null ? dossier.getStatus().trim().toUpperCase() : "PENDING";
+        if ("APPROVED".equals(oldStatus) || "REJECTED".equals(oldStatus)) {
+            throw new BusinessException(ErrorCode.CONFLICT,
+                    "Hồ sơ đã ở trạng thái kết thúc (" + oldStatus + "), không thể tiếp tục thay đổi trạng thái.");
+        }
+        if (oldStatus.equals(effectiveStatus)) {
+            throw new BusinessException(ErrorCode.CONFLICT,
+                    "Hồ sơ hiện đã ở trạng thái " + effectiveStatus + ".");
         }
 
         String effectiveFeedback = req.getEffectiveFeedback();
@@ -260,8 +299,34 @@ public class CitizenDossierService {
         }
 
         CitizenDossier saved = dossierRepository.save(dossier);
-        log.info("Officer updated dossier: code={}, newStatus={}, appointment={}",
-                saved.getDossierCode(), saved.getStatus(), saved.getAppointmentCode());
+        log.info("Officer updated dossier: code={}, fromStatus={}, toStatus={}, appointment={}",
+                saved.getDossierCode(), oldStatus, saved.getStatus(), saved.getAppointmentCode());
+
+        // 3. Record Dossier Event History (5.5)
+        if (dossierEventRepository != null) {
+            DossierEvent event = DossierEvent.builder()
+                    .dossierCode(saved.getDossierCode())
+                    .who(principal != null ? principal.badgeId() : "OFFICER")
+                    .fromStatus(oldStatus)
+                    .toStatus(effectiveStatus)
+                    .reason(effectiveFeedback)
+                    .build();
+            dossierEventRepository.save(event);
+        }
+
+        // 4. Record Immutable Audit Log (5.4)
+        if (auditService != null) {
+            auditService.logAction(
+                    principal != null ? principal.badgeId() : "OFFICER",
+                    saved.getWardCode(),
+                    "DOSSIER_REVIEW_" + effectiveStatus,
+                    "DOSSIER",
+                    saved.getDossierCode(),
+                    "127.0.0.1",
+                    null
+            );
+        }
+
         return saved;
     }
 

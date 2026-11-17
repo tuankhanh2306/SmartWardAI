@@ -6,7 +6,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import vn.edu.uth.smartward.audit.AuditService;
 import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ErrorCode;
 
@@ -30,15 +33,27 @@ public class OfficerAuthService {
     private static final String HMAC_ALGO = "HmacSHA256";
     private final ObjectMapper objectMapper;
     private final StringRedisTemplate stringRedisTemplate;
+    private final OfficerRepository officerRepository;
+    private final AuditService auditService;
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(12);
 
     @Autowired
-    public OfficerAuthService(ObjectMapper objectMapper, @Autowired(required = false) StringRedisTemplate stringRedisTemplate) {
+    public OfficerAuthService(ObjectMapper objectMapper,
+                              @Autowired(required = false) StringRedisTemplate stringRedisTemplate,
+                              @Autowired(required = false) OfficerRepository officerRepository,
+                              @Autowired(required = false) AuditService auditService) {
         this.objectMapper = objectMapper;
         this.stringRedisTemplate = stringRedisTemplate;
+        this.officerRepository = officerRepository;
+        this.auditService = auditService;
+    }
+
+    public OfficerAuthService(ObjectMapper objectMapper, StringRedisTemplate stringRedisTemplate) {
+        this(objectMapper, stringRedisTemplate, null, null);
     }
 
     public OfficerAuthService(ObjectMapper objectMapper) {
-        this(objectMapper, null);
+        this(objectMapper, null, null, null);
     }
 
     @Value("${smartward.security.jwt-secret:}")
@@ -81,10 +96,73 @@ public class OfficerAuthService {
 
     public LoginResponse authenticate(String badgeId, String pin, String requestedWardCode) {
         if (badgeId == null || badgeId.isBlank() || pin == null || pin.isBlank()) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED, "Vui lòng nhập đầy đủ mã công chức và mã PIN.");
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "Vui lòng nhập đầy đủ mã công chức và mật khẩu/mã PIN.");
         }
 
         String normalizedBadge = badgeId.trim().toUpperCase();
+
+        // 1. Database-backed Officer validation with brute-force lockout defense (5.1)
+        if (officerRepository != null) {
+            var dbOfficerOpt = officerRepository.findByBadgeIdIgnoreCase(normalizedBadge);
+            if (dbOfficerOpt.isPresent()) {
+                Officer officer = dbOfficerOpt.get();
+                if (Boolean.FALSE.equals(officer.getActive())) {
+                    throw new BusinessException(ErrorCode.UNAUTHORIZED, "Tài khoản cán bộ đã bị vô hiệu hóa.");
+                }
+
+                // Check 15-minute temporary lockout
+                if (officer.getLockedUntil() != null && officer.getLockedUntil().isAfter(Instant.now())) {
+                    if (auditService != null) {
+                        auditService.logAction(normalizedBadge, officer.getWardCode(), "LOGIN_LOCKED", "OFFICER", normalizedBadge, "127.0.0.1", null);
+                    }
+                    throw new BusinessException(ErrorCode.UNAUTHORIZED,
+                            "Tài khoản bị tạm khóa 15 phút do nhập sai thông tin 5 lần liên tiếp.");
+                }
+
+                boolean match = false;
+                String storedHash = officer.getPasswordHash();
+                if (storedHash != null && (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$"))) {
+                    match = passwordEncoder.matches(pin.trim(), storedHash);
+                } else if (storedHash != null) {
+                    match = MessageDigest.isEqual(storedHash.getBytes(StandardCharsets.UTF_8), sha256Hex(pin.trim()).getBytes(StandardCharsets.UTF_8));
+                }
+
+                // Fallback to legacy seed PIN if existing test
+                OfficerAccount legacyAcc = AUTHORIZED_OFFICERS.get(normalizedBadge);
+                if (!match && legacyAcc != null) {
+                    match = MessageDigest.isEqual(legacyAcc.pinSha256().getBytes(StandardCharsets.UTF_8), sha256Hex(pin.trim()).getBytes(StandardCharsets.UTF_8));
+                }
+
+                if (!match) {
+                    int failed = (officer.getFailedAttempts() != null ? officer.getFailedAttempts() : 0) + 1;
+                    if (failed >= 5) {
+                        officer.setLockedUntil(Instant.now().plus(Duration.ofMinutes(15)));
+                        officer.setFailedAttempts(0);
+                    } else {
+                        officer.setFailedAttempts(failed);
+                    }
+                    officerRepository.save(officer);
+                    if (auditService != null) {
+                        auditService.logAction(normalizedBadge, officer.getWardCode(), "LOGIN_FAILED", "OFFICER", normalizedBadge, "127.0.0.1", null);
+                    }
+                    throw new BusinessException(ErrorCode.UNAUTHORIZED, "Mã công chức hoặc mật khẩu không hợp lệ.");
+                }
+
+                // Success: reset failed attempts
+                officer.setFailedAttempts(0);
+                officer.setLockedUntil(null);
+                officer.setLastLogin(Instant.now());
+                officerRepository.save(officer);
+
+                if (auditService != null) {
+                    auditService.logAction(normalizedBadge, officer.getWardCode(), "LOGIN_SUCCESS", "OFFICER", normalizedBadge, "127.0.0.1", null);
+                }
+
+                return issueSessionToken(officer.getBadgeId(), officer.getFullName(), officer.getWardCode(), officer.getRole(), requestedWardCode);
+            }
+        }
+
+        // 2. In-memory fallback if officer repository is empty/unconfigured
         OfficerAccount account = AUTHORIZED_OFFICERS.get(normalizedBadge);
         String candidateHash = sha256Hex(pin.trim());
 
@@ -92,24 +170,34 @@ public class OfficerAuthService {
                 account.pinSha256().getBytes(StandardCharsets.UTF_8),
                 candidateHash.getBytes(StandardCharsets.UTF_8))) {
             log.warn("Failed officer authentication attempt for badgeId={}", normalizedBadge);
+            if (auditService != null) {
+                auditService.logAction(normalizedBadge, "UNKNOWN", "LOGIN_FAILED", "OFFICER", normalizedBadge, "127.0.0.1", null);
+            }
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "Mã công chức hoặc mã PIN không hợp lệ.");
         }
 
+        if (auditService != null) {
+            auditService.logAction(normalizedBadge, account.wardCode(), "LOGIN_SUCCESS", "OFFICER", normalizedBadge, "127.0.0.1", null);
+        }
+
+        return issueSessionToken(account.badgeId(), account.fullName(), account.wardCode(), account.role(), requestedWardCode);
+    }
+
+    private LoginResponse issueSessionToken(String badgeId, String fullName, String wardCode, String role, String requestedWardCode) {
         // SEC-09: Fast ward scope isolation - server is source of truth, client requestedWardCode is strictly ignored
-        String wardCode = account.wardCode();
         if (requestedWardCode != null && !requestedWardCode.isBlank() && !requestedWardCode.trim().equalsIgnoreCase(wardCode)) {
             log.warn("SEC-09: Client submitted requestedWardCode '{}' but officer '{}' is assigned to '{}'. Overriding with account ward.",
-                    requestedWardCode.trim(), account.badgeId(), wardCode);
+                    requestedWardCode.trim(), badgeId, wardCode);
         }
 
         long nowSec = Instant.now().getEpochSecond();
         long expSec = nowSec + (tokenTtlHours * 3600L);
         String jti = UUID.randomUUID().toString();
 
-        String token = signToken(account.badgeId(), account.fullName(), wardCode, account.role(), jti, nowSec, expSec);
-        log.info("Issued verified officer session token for badgeId={}, wardCode={}, jti={}", account.badgeId(), wardCode, jti);
+        String token = signToken(badgeId, fullName, wardCode, role, jti, nowSec, expSec);
+        log.info("Issued verified officer session token for badgeId={}, wardCode={}, jti={}", badgeId, wardCode, jti);
 
-        return new LoginResponse(token, account.badgeId(), account.fullName(), wardCode, account.role(), expSec);
+        return new LoginResponse(token, badgeId, fullName, wardCode, role, expSec);
     }
 
     public OfficerPrincipal verifyToken(String rawBearerOrToken) {
@@ -164,7 +252,9 @@ public class OfficerAuthService {
             if (isRevoked || revokedTokenIds.contains(jti)) {
                 throw new BusinessException(ErrorCode.UNAUTHORIZED, "Phiên làm việc cán bộ đã đăng xuất.");
             }
-            if ((!"OFFICER".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) || !AUTHORIZED_OFFICERS.containsKey(sub)) {
+            boolean isKnownOfficer = AUTHORIZED_OFFICERS.containsKey(sub)
+                    || (officerRepository != null && officerRepository.findByBadgeIdIgnoreCase(sub).isPresent());
+            if ((!"OFFICER".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) || !isKnownOfficer) {
                 throw new BusinessException(ErrorCode.FORBIDDEN, "Tài khoản không có quyền truy cập hệ thống cán bộ / quản trị.");
             }
 

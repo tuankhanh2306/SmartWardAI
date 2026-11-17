@@ -3597,7 +3597,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         <div>
                           <span className="text-[10px] text-[#64748B] block">Cán bộ duyệt sơ bộ:</span>
                           <strong className="text-[#065F46]">
-                            {targetDossier.reviewedBy || 'Trần Thị Hương (Một cửa)'}
+                            {targetDossier.reviewedBy || 'Trần Quốc Bảo (Một cửa)'}
                           </strong>
                         </div>
                       </div>

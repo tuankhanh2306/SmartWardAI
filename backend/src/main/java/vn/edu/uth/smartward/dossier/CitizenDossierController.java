@@ -72,9 +72,9 @@ public class CitizenDossierController {
         OfficerAuthService.OfficerPrincipal principal =
                 (OfficerAuthService.OfficerPrincipal) request.getAttribute("officerPrincipal");
 
-        // SEC-09: Fast ward scope isolation - server strictly enforces principal's wardCode
+        // SEC-09 & 5.3: Ward scope isolation - server strictly enforces principal's wardCode (ADMIN can query any ward)
         String effectiveWardCode;
-        if (principal != null && principal.wardCode() != null && !principal.wardCode().isBlank()) {
+        if (principal != null && !"ADMIN".equalsIgnoreCase(principal.role()) && principal.wardCode() != null && !principal.wardCode().isBlank()) {
             effectiveWardCode = principal.wardCode().trim();
             if (wardCode != null && !wardCode.isBlank() && !wardCode.equalsIgnoreCase(effectiveWardCode)) {
                 log.warn("SEC-09: Client attempted to override officer wardCode '{}' with '{}'. Enforcing principal wardCode.",
