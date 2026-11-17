@@ -3,6 +3,7 @@ package vn.edu.uth.smartward.dossier;
 import lombok.Builder;
 
 import java.time.Instant;
+import java.util.List;
 
 @Builder
 public record DossierTrackingResponse(
@@ -18,5 +19,6 @@ public record DossierTrackingResponse(
         Object precheckReport,
         Object vaultDocIds,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        List<DossierEvent> timeline
 ) {}

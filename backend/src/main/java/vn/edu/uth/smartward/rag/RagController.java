@@ -84,6 +84,23 @@ public class RagController {
         return ResponseEntity.ok(ApiResponse.ok(resolved));
     }
 
+    public record RagFeedbackRequest(String query, Boolean useful, String comments) {}
+
+    @PostMapping("/feedback")
+    @Operation(
+            summary = "Ghi nhận phản hồi của công dân về chất lượng câu trả lời RAG (hữu ích / không hữu ích)",
+            description = "Thu thập phản hồi để đánh giá chất lượng mô hình và bổ sung dữ liệu huấn luyện."
+    )
+    public ResponseEntity<ApiResponse<Void>> submitRagFeedback(
+            @RequestBody RagFeedbackRequest request,
+            HttpServletRequest httpRequest) {
+        String clientIp = extractClientIp(httpRequest);
+        log.info("Received RAG feedback from IP {}: query='{}', useful={}",
+                clientIp, sanitizeForLog(request != null ? request.query() : ""),
+                request != null ? request.useful() : null);
+        return ResponseEntity.ok(ApiResponse.ok("Cảm ơn bạn đã đóng góp phản hồi.", null));
+    }
+
     private String extractClientIp(HttpServletRequest request) {
         if (request == null) {
             return "127.0.0.1";

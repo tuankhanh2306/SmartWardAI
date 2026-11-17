@@ -319,12 +319,7 @@ export const FormAndIssueReporting: React.FC = () => {
   // Civic Incident Reporting State
   const [category, setCategory] = useState('ROAD_DAMAGE');
   const [urgency, setUrgency] = useState<'HIGH' | 'MEDIUM' | 'LOW'>('HIGH');
-  const [reporterPhone, setReporterPhone] = useState<string>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('smartward_citizen_phone') || '';
-    }
-    return '';
-  });
+  const [reporterPhone, setReporterPhone] = useState<string>('');
   const [phoneError, setPhoneError] = useState<string | null>(null);
   const [description, setDescription] = useState(
     `[Tại: Khu vực trung tâm ${currentWard.name}, Tỉnh An Giang] Đoạn đường gần ${currentWard.officeAddress} bị sụt lún ổ gà sâu gây nguy hiểm cho người đi đường, cần cán bộ giám sát kiểm tra xử lý khẩn cấp.`
@@ -867,12 +862,24 @@ export const FormAndIssueReporting: React.FC = () => {
         'TK-KH': 'TTHC-CR-03',
         'TK-BTXH': 'TTHC-BT-01',
       };
+      // P3: Chặn nộp chính thức khi ngoại tuyến hoặc chưa được máy chủ xác thực (7.2)
+      if (res.submissionId.startsWith('DRAFT_')) {
+        setFormLoading(false);
+        setSubmitError(
+          'Thiết bị đang ở chế độ ngoại tuyến. Bản sơ duyệt hiện tại chỉ là bản nháp nội bộ và chưa được máy chủ xác thực. ' +
+          'Vui lòng kết nối Internet để nộp chính thức lên Bộ phận Một cửa UBND xã/phường.'
+        );
+        return;
+      }
+
       let submitRes: DossierSubmissionResponse;
       try {
+        const idempKey = `IDEMP_${cleanCccd}_${procCodeMap[selectedFormType]}_${Date.now()}`;
         submitRes = await submitDossier({
           procedureCode: procCodeMap[selectedFormType],
           wardCode: currentWard.code,
           citizenCccd: cleanCccd,
+          idempotencyKey: idempKey,
           formData: {
             fullName: cleanFullName,
             dob: dob || '1990-01-01',
@@ -1417,10 +1424,6 @@ export const FormAndIssueReporting: React.FC = () => {
     if (!description.trim()) {
       alert('Vui lòng nhập mô tả sự cố hiện trường.');
       return;
-    }
-
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('smartward_citizen_phone', cleanPhone);
     }
 
     const targetWard: WardItem = resolvedJurisdiction.ward;
@@ -4310,6 +4313,35 @@ export const FormAndIssueReporting: React.FC = () => {
                       <span>Thời điểm nộp: {new Date(trackingResult.createdAt).toLocaleString('vi-VN')}</span>
                       <span>Cập nhật: {new Date(trackingResult.updatedAt).toLocaleString('vi-VN')}</span>
                     </div>
+
+                    {/* P3: Timeline lấy từ dossier_events (7.4) */}
+                    {trackingResult.timeline && trackingResult.timeline.length > 0 && (
+                      <div className="mt-3 pt-3 border-t border-[#E2E8F0] flex flex-col gap-2">
+                        <span className="font-bold text-xs text-[#0F172A] flex items-center gap-1.5">
+                          <Clock className="w-3.5 h-3.5 text-[#00796B]" />
+                          <span>Lịch sử xử lý hồ sơ (Tiến trình Một cửa):</span>
+                        </span>
+                        <div className="space-y-2">
+                          {trackingResult.timeline.map((evt, idx) => (
+                            <div key={idx} className="flex items-start gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200">
+                              <div className="w-2 h-2 rounded-full bg-[#00796B] mt-1.5 shrink-0" />
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="font-semibold text-slate-800">{evt.toStatus}</span>
+                                  <span className="text-[10px] text-slate-500 font-mono">
+                                    {new Date(evt.createdAt).toLocaleString('vi-VN')}
+                                  </span>
+                                </div>
+                                {evt.reason && (
+                                  <p className="text-slate-600 text-[11px] mt-0.5">{evt.reason}</p>
+                                )}
+                                <span className="text-[10px] text-slate-400">Cán bộ phụ trách: {evt.who}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : (
