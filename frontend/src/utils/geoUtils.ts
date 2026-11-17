@@ -278,3 +278,87 @@ export function resolveWardFromLocationBox(
     distanceMeters: nearest.distanceMeters,
   };
 }
+
+export function isWardCoordVerified(ward?: WardItem | null): boolean {
+  return Boolean(ward && ward.coordSource && ward.coordSource !== 'unverified');
+}
+
+export interface JurisdictionResolution {
+  ward: WardItem | null;
+  matchedBy: 'MANUAL_SELECT' | 'TEXT_BOX' | 'GPS_COORDS' | 'UNDETERMINED';
+  distanceMeters: number;
+  isVerified: boolean;
+  canAutoRoute: boolean;
+  statusReason: string;
+}
+
+/**
+ * Resolves verified target jurisdiction from Single Source of Truth (AN_GIANG_WARDS).
+ * Never auto-routes when coordinate data is 'unverified' or outside province boundaries
+ * unless citizen explicitly picks the administrative unit manually.
+ */
+export function resolveVerifiedJurisdiction(
+  addressText: string,
+  descriptionText: string,
+  lat: number,
+  lon: number,
+  manualWardCode?: string
+): JurisdictionResolution {
+  if (manualWardCode) {
+    const manualWard = AN_GIANG_WARDS.find((w) => w.code === manualWardCode);
+    if (manualWard) {
+      const dist = calculateHaversineMeters(lat, lon, manualWard.lat, manualWard.lon);
+      return {
+        ward: manualWard,
+        matchedBy: 'MANUAL_SELECT',
+        distanceMeters: Math.round(dist),
+        isVerified: isWardCoordVerified(manualWard),
+        canAutoRoute: true,
+        statusReason: 'Công dân đã chọn trực tiếp đơn vị tiếp nhận từ danh mục An Giang.',
+      };
+    }
+  }
+
+  const inProvinceBbox =
+    lat >= BBOX_AN_GIANG.minLat &&
+    lat <= BBOX_AN_GIANG.maxLat &&
+    lon >= BBOX_AN_GIANG.minLng &&
+    lon <= BBOX_AN_GIANG.maxLng;
+
+  const raw = resolveWardFromLocationBox(addressText, descriptionText, lat, lon);
+
+  if (raw.matchedBy === 'GPS_COORDS' && !inProvinceBbox) {
+    return {
+      ward: null,
+      matchedBy: 'UNDETERMINED',
+      distanceMeters: raw.distanceMeters,
+      isVerified: false,
+      canAutoRoute: false,
+      statusReason: 'Vị trí GPS nằm ngoài phạm vi địa bàn Tỉnh An Giang.',
+    };
+  }
+
+  const verified = isWardCoordVerified(raw.ward);
+  if (!verified) {
+    return {
+      ward: raw.ward,
+      matchedBy: raw.matchedBy,
+      distanceMeters: raw.distanceMeters,
+      isVerified: false,
+      canAutoRoute: false,
+      statusReason: `Dữ liệu tọa độ của ${raw.ward.name} đang ở trạng thái "unverified", không tự động chuyển tuyến.`,
+    };
+  }
+
+  return {
+    ward: raw.ward,
+    matchedBy: raw.matchedBy,
+    distanceMeters: raw.distanceMeters,
+    isVerified: true,
+    canAutoRoute: true,
+    statusReason:
+      raw.matchedBy === 'TEXT_BOX'
+        ? 'Xác định theo địa chỉ nhập từ nguồn dữ liệu đã xác minh.'
+        : 'Xác định theo định vị bản đồ GIS từ nguồn đã xác minh.',
+  };
+}
