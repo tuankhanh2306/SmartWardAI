@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, type ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export type UserRole = 'CITIZEN' | 'OFFICER';
+export type UserRole = 'citizen' | 'officer' | 'CITIZEN' | 'OFFICER' | null;
 
 export interface OfficerProfile {
   name: string;
@@ -23,17 +23,27 @@ interface RoleContextType {
   isCitizen: boolean;
   officerProfile: OfficerProfile;
   citizenProfile: CitizenProfile;
-  setRole: (role: UserRole) => void;
+  sessionSecondsLeft: number;
+  sessionMessage: string | null;
+  clearSessionMessage: () => void;
+  enterAsCitizen: () => void;
+  loginOfficer: (badgeId?: string, pin?: string) => Promise<boolean>;
   loginAsOfficer: (badgeId?: string, pin?: string) => Promise<boolean>;
+  logout: (reason?: string) => void;
   logoutToCitizen: () => void;
+  setRole: (role: UserRole) => void;
   authModalOpen: boolean;
   setAuthModalOpen: (open: boolean) => void;
 }
 
-const ROLE_STORAGE_KEY = 'smartward_user_role';
-const OFFICER_TOKEN_KEY = 'smartward_officer_token';
-const OFFICER_BADGE_KEY = 'smartward_officer_badge';
-const OFFICER_PROFILE_KEY = 'smartward_officer_profile';
+export const ROLE_STORAGE_KEY = 'smartward_user_role';
+export const OFFICER_TOKEN_KEY = 'smartward_officer_token';
+export const OFFICER_BADGE_KEY = 'smartward_officer_badge';
+export const OFFICER_PROFILE_KEY = 'smartward_officer_profile';
+export const SESSION_EXPIRES_KEY = 'smartward_session_expires_at';
+
+// Strict 5-Minute Session Limit
+export const SESSION_TIMEOUT_MS = 5 * 60 * 1000;
 
 // SEC-09 & 5.6: Aligned with server source of truth (Trần Quốc Bảo - CC-AG-8942)
 const DEFAULT_OFFICER_PROFILE: OfficerProfile = {
@@ -55,43 +65,112 @@ const RoleContext = createContext<RoleContextType | undefined>(undefined);
 export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
 
-  // Strictly require an existing verified session in localStorage; never auto-elevate from URL pathname
+  // Initial role check: Must have an active, non-expired session (< 5 mins)
   const [role, setRoleState] = useState<UserRole>(() => {
-    const saved = localStorage.getItem(ROLE_STORAGE_KEY);
-    const token = localStorage.getItem(OFFICER_TOKEN_KEY);
-    if (saved === 'OFFICER' && token && !token.startsWith('pending_sync_')) {
-      return 'OFFICER';
+    try {
+      const expiresAtStr = localStorage.getItem(SESSION_EXPIRES_KEY);
+      if (!expiresAtStr) return null;
+
+      const expiresAt = parseInt(expiresAtStr, 10);
+      if (isNaN(expiresAt) || Date.now() >= expiresAt) {
+        // Session expired (after 5 mins)
+        localStorage.removeItem(ROLE_STORAGE_KEY);
+        localStorage.removeItem(OFFICER_TOKEN_KEY);
+        localStorage.removeItem(OFFICER_BADGE_KEY);
+        localStorage.removeItem(OFFICER_PROFILE_KEY);
+        localStorage.removeItem(SESSION_EXPIRES_KEY);
+        return null;
+      }
+
+      const saved = localStorage.getItem(ROLE_STORAGE_KEY);
+      const token = localStorage.getItem(OFFICER_TOKEN_KEY);
+
+      if ((saved === 'officer' || saved === 'OFFICER') && token && !token.startsWith('pending_sync_')) {
+        return 'officer';
+      }
+      if (saved === 'citizen' || saved === 'CITIZEN') {
+        return 'citizen';
+      }
+      return null;
+    } catch {
+      return null;
     }
-    return 'CITIZEN';
   });
 
+  const [sessionSecondsLeft, setSessionSecondsLeft] = useState<number>(() => {
+    try {
+      const expiresAtStr = localStorage.getItem(SESSION_EXPIRES_KEY);
+      if (!expiresAtStr) return 0;
+      const expiresAt = parseInt(expiresAtStr, 10);
+      if (isNaN(expiresAt) || Date.now() >= expiresAt) return 0;
+      return Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+    } catch {
+      return 0;
+    }
+  });
+
+  const [sessionMessage, setSessionMessage] = useState<string | null>(null);
   const [authModalOpen, setAuthModalOpen] = useState(false);
+
   const [officerProfile, setOfficerProfile] = useState<OfficerProfile>(() => {
-    const saved = localStorage.getItem(OFFICER_PROFILE_KEY);
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        // fallback below
-      }
+    try {
+      const saved = localStorage.getItem(OFFICER_PROFILE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch {
+      // fallback below
     }
     return DEFAULT_OFFICER_PROFILE;
   });
+
   const [citizenProfile] = useState<CitizenProfile>(DEFAULT_CITIZEN_PROFILE);
 
-  const setRole = (newRole: UserRole) => {
-    if (newRole === 'OFFICER') {
-      const token = localStorage.getItem(OFFICER_TOKEN_KEY);
-      if (!token || token.startsWith('pending_sync_')) {
-        setAuthModalOpen(true);
-        return;
-      }
+  const clearSessionMessage = () => setSessionMessage(null);
+
+  // Full logout: clears tokens & role, navigates to Gateway (/)
+  const logout = (reason?: string) => {
+    const token = localStorage.getItem(OFFICER_TOKEN_KEY);
+    if (token) {
+      fetch('/api/v1/auth/officer/logout', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => {});
     }
-    setRoleState(newRole);
-    localStorage.setItem(ROLE_STORAGE_KEY, newRole);
+
+    localStorage.removeItem(ROLE_STORAGE_KEY);
+    localStorage.removeItem(OFFICER_TOKEN_KEY);
+    localStorage.removeItem(OFFICER_BADGE_KEY);
+    localStorage.removeItem(OFFICER_PROFILE_KEY);
+    localStorage.removeItem(SESSION_EXPIRES_KEY);
+
+    setRoleState(null);
+    setSessionSecondsLeft(0);
+    if (reason) {
+      setSessionMessage(reason);
+    }
+    navigate('/', { replace: true });
   };
 
-  const loginAsOfficer = async (badgeId?: string, pin?: string): Promise<boolean> => {
+  const logoutToCitizen = () => logout();
+
+  // Enter as Citizen: 0 inputs required, valid for 5 minutes
+  const enterAsCitizen = () => {
+    const expiresAt = Date.now() + SESSION_TIMEOUT_MS;
+    localStorage.setItem(ROLE_STORAGE_KEY, 'citizen');
+    localStorage.setItem(SESSION_EXPIRES_KEY, expiresAt.toString());
+
+    // Purge any lingering officer credentials
+    localStorage.removeItem(OFFICER_TOKEN_KEY);
+    localStorage.removeItem(OFFICER_BADGE_KEY);
+    localStorage.removeItem(OFFICER_PROFILE_KEY);
+
+    setRoleState('citizen');
+    setSessionSecondsLeft(300);
+    setSessionMessage(null);
+    navigate('/citizen', { replace: true });
+  };
+
+  // Login as Officer: Requires real backend JWT authentication
+  const loginOfficer = async (badgeId?: string, pin?: string): Promise<boolean> => {
     const normalizedBadge = (badgeId || '').trim().toUpperCase();
     const cleanPin = (pin || '').trim();
 
@@ -100,7 +179,7 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     try {
-      // SEC-09: Authenticate directly against backend server. Do NOT pass client wardCode!
+      // SEC-09: Authenticate directly against backend server
       const res = await fetch('/api/v1/auth/officer/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -113,7 +192,7 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       const json = await res.json();
       const data = json?.data;
-      if (!data || !data.token) {
+      if (!data || !data.token || data.token.startsWith('pending_sync_')) {
         return false;
       }
 
@@ -133,12 +212,17 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         avatarText: initials || 'CB',
       };
 
-      setOfficerProfile(newProfile);
+      const expiresAt = Date.now() + SESSION_TIMEOUT_MS;
       localStorage.setItem(OFFICER_PROFILE_KEY, JSON.stringify(newProfile));
       localStorage.setItem(OFFICER_BADGE_KEY, normalizedBadge);
       localStorage.setItem(OFFICER_TOKEN_KEY, data.token);
-      setRoleState('OFFICER');
-      localStorage.setItem(ROLE_STORAGE_KEY, 'OFFICER');
+      localStorage.setItem(ROLE_STORAGE_KEY, 'officer');
+      localStorage.setItem(SESSION_EXPIRES_KEY, expiresAt.toString());
+
+      setOfficerProfile(newProfile);
+      setRoleState('officer');
+      setSessionSecondsLeft(300);
+      setSessionMessage(null);
       setAuthModalOpen(false);
       return true;
     } catch (err) {
@@ -147,33 +231,80 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const logoutToCitizen = () => {
-    const token = localStorage.getItem(OFFICER_TOKEN_KEY);
-    if (token) {
-      fetch('/api/v1/auth/officer/logout', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => {});
+  const loginAsOfficer = loginOfficer;
+
+  const setRole = (newRole: UserRole) => {
+    if (newRole === 'officer' || newRole === 'OFFICER') {
+      const token = localStorage.getItem(OFFICER_TOKEN_KEY);
+      if (!token || token.startsWith('pending_sync_')) {
+        setAuthModalOpen(true);
+        return;
+      }
+      setRoleState('officer');
+      localStorage.setItem(ROLE_STORAGE_KEY, 'officer');
+    } else if (newRole === 'citizen' || newRole === 'CITIZEN') {
+      enterAsCitizen();
+    } else {
+      logout();
     }
-    setRoleState('CITIZEN');
-    localStorage.setItem(ROLE_STORAGE_KEY, 'CITIZEN');
-    localStorage.removeItem(OFFICER_TOKEN_KEY);
-    localStorage.removeItem(OFFICER_BADGE_KEY);
-    localStorage.removeItem(OFFICER_PROFILE_KEY);
-    navigate('/citizen');
   };
+
+  // 5-Minute Session Monitor Timer
+  useEffect(() => {
+    if (!role) {
+      setSessionSecondsLeft(0);
+      return;
+    }
+
+    const checkInterval = setInterval(() => {
+      const expiresAtStr = localStorage.getItem(SESSION_EXPIRES_KEY);
+      if (!expiresAtStr) {
+        logout('Phiên làm việc đã kết thúc. Vui lòng chọn lại vai trò tại Cổng vào.');
+        return;
+      }
+
+      const expiresAt = parseInt(expiresAtStr, 10);
+      const remainingSeconds = Math.max(0, Math.floor((expiresAt - Date.now()) / 1000));
+      setSessionSecondsLeft(remainingSeconds);
+
+      if (remainingSeconds <= 0) {
+        clearInterval(checkInterval);
+        logout('Phiên làm việc 5 phút đã hết hạn để đảm bảo an toàn thông tin. Vui lòng chọn lại vai trò tại Cổng vào.');
+      }
+    }, 1000);
+
+    return () => clearInterval(checkInterval);
+  }, [role]);
+
+  // Handle global 401 logout events from Axios client
+  useEffect(() => {
+    const handleRemoteLogout = () => {
+      logout('Phiên làm việc đã bị thu hồi hoặc hết hạn (401 Unauthorized). Vui lòng đăng nhập lại.');
+    };
+    window.addEventListener('smartward_auth_logout', handleRemoteLogout);
+    return () => window.removeEventListener('smartward_auth_logout', handleRemoteLogout);
+  }, []);
+
+  const isOfficer = role === 'officer' || role === 'OFFICER';
+  const isCitizen = role === 'citizen' || role === 'CITIZEN';
 
   return (
     <RoleContext.Provider
       value={{
         role,
-        isOfficer: role === 'OFFICER',
-        isCitizen: role === 'CITIZEN',
+        isOfficer,
+        isCitizen,
         officerProfile,
         citizenProfile,
-        setRole,
+        sessionSecondsLeft,
+        sessionMessage,
+        clearSessionMessage,
+        enterAsCitizen,
+        loginOfficer,
         loginAsOfficer,
+        logout,
         logoutToCitizen,
+        setRole,
         authModalOpen,
         setAuthModalOpen,
       }}

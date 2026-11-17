@@ -65,13 +65,19 @@ const suites = [
     cwd: rootDir,
   },
   {
-    name: '10. Frontend TypeScript & Production Build (Vite)',
+    name: '10. Role Gateway & 5-Min Session Boundary Suite (13 assertions)',
+    cmd: process.execPath,
+    args: [path.join(currentDir, 'test_role_gateway_regression.mjs')],
+    cwd: rootDir,
+  },
+  {
+    name: '11. Frontend TypeScript & Production Build (Vite)',
     cmd: process.platform === 'win32' ? 'cmd.exe' : 'npm',
     args: process.platform === 'win32' ? ['/c', 'npm --prefix frontend run build'] : ['--prefix', 'frontend', 'run', 'build'],
     cwd: rootDir,
   },
   {
-    name: '11. Backend JUnit RAG Query Service Test (16 assertions)',
+    name: '12. Backend JUnit RAG Query Service Test (16 assertions)',
     cmd: process.platform === 'win32' ? 'cmd.exe' : './mvnw',
     args: process.platform === 'win32' ? ['/c', 'cd backend && mvnw.cmd test -Dtest=RagQueryServiceTest'] : ['test', '-Dtest=RagQueryServiceTest'],
     cwd: rootDir,

@@ -42,7 +42,9 @@ api.interceptors.response.use(
       localStorage.removeItem('smartward_officer_token');
       localStorage.removeItem('smartward_officer_badge');
       localStorage.removeItem('smartward_officer_profile');
-      localStorage.setItem('smartward_role', 'CITIZEN');
+      localStorage.removeItem('smartward_user_role');
+      localStorage.removeItem('smartward_role');
+      localStorage.removeItem('smartward_session_expires_at');
       window.dispatchEvent(new Event('smartward_auth_logout'));
     }
     return Promise.reject(error);
