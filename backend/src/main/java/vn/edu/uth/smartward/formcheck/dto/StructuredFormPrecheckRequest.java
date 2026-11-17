@@ -15,6 +15,7 @@ import java.util.Map;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@com.fasterxml.jackson.annotation.JsonIgnoreProperties(ignoreUnknown = true)
 public class StructuredFormPrecheckRequest {
     private String procedureCode;
     private String formType;
@@ -25,6 +26,7 @@ public class StructuredFormPrecheckRequest {
     private String cccdIssueDate;
     private String address;
     private Map<String, String> formData;
+    private Map<String, Object> fields;
 
     // ==========================================
     // 1. Trường bổ sung cho CT01 (Cư trú)

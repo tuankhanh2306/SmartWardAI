@@ -123,6 +123,13 @@ public class TwoStageTriageService {
         }
 
         // 4. CLUSTERING DECISION (Sim >= tau -> MERGE; else CREATE NEW)
+        // Anti-drift guard (6.4): check distance to cluster anchor <= 2R
+        if (bestCluster != null && bestDistance > (defaultRadiusMeters * 2.0)) {
+            log.warn("Cluster {} anchor drift prevented: distance {}m exceeds max drift threshold {}m. Spawning new cluster.",
+                    bestCluster.getClusterCode(), bestDistance, (defaultRadiusMeters * 2.0));
+            bestCluster = null;
+        }
+
         if (bestCluster != null && bestSimilarity >= defaultSimilarityThreshold) {
             // MERGE INTO EXISTING CLUSTER
             int oldCount = bestCluster.getReportCount() != null ? bestCluster.getReportCount() : 1;
@@ -274,22 +281,31 @@ public class TwoStageTriageService {
     }
 
     /**
-     * Updates an incident cluster status (OPEN, IN_PROGRESS, RESOLVED).
-     * If RESOLVED, the cluster is automatically expunged from the Redis GEO index.
+     * Updates an incident cluster status (OPEN, IN_PROGRESS, RESOLVED, REJECTED).
+     * If RESOLVED or REJECTED, the cluster is automatically expunged from the Redis GEO index.
      */
     @Transactional
     public IssueClusterDto updateClusterStatus(String clusterCode, String newStatus) {
         IssueCluster cluster = clusterRepository.findByClusterCode(clusterCode)
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Không tìm thấy cụm sự cố: " + clusterCode));
 
+        Set<String> validStatuses = Set.of("OPEN", "IN_PROGRESS", "RESOLVED", "REJECTED");
         String upperStatus = (newStatus != null && !newStatus.isBlank()) ? newStatus.trim().toUpperCase() : "RESOLVED";
-        cluster.setStatus(upperStatus);
-        cluster.setLastReportedAt(OffsetDateTime.now());
-        IssueCluster saved = clusterRepository.save(cluster);
+        if (!validStatuses.contains(upperStatus)) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST,
+                    "Trạng thái cụm sự cố không hợp lệ. Phải là OPEN, IN_PROGRESS, RESOLVED hoặc REJECTED.");
+        }
 
-        if ("RESOLVED".equals(upperStatus)) {
+        cluster.setStatus(upperStatus);
+        // Do NOT overwrite citizen lastReportedAt on administrative status change (6.4)
+        IssueCluster saved = clusterRepository.save(cluster);
+        if (saved == null) {
+            saved = cluster;
+        }
+
+        if ("RESOLVED".equals(upperStatus) || "REJECTED".equals(upperStatus)) {
             spatialIndexService.removeClusterLocation(clusterCode);
-            log.info("Cluster {} marked as RESOLVED and removed from Redis GEO index", clusterCode);
+            log.info("Cluster {} marked as {} and removed from Redis GEO index", clusterCode, upperStatus);
         } else {
             spatialIndexService.addClusterLocation(clusterCode, saved.getCenterLongitude().doubleValue(), saved.getCenterLatitude().doubleValue());
             log.info("Cluster {} updated to status {} in DB and Redis GEO", clusterCode, upperStatus);

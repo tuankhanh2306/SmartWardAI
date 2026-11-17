@@ -15,5 +15,6 @@ public record SubmitDossierRequest(
         @NotBlank(message = "Số định danh/CCCD công dân không được để trống") String citizenCccd,
         Object formData,
         Object precheckReport,
-        List<String> vaultDocIds
+        List<String> vaultDocIds,
+        String idempotencyKey
 ) {}
