@@ -1,0 +1,325 @@
+version: '1.0'
+updated_at: '2026-11-17'
+procedures:
+- code: TTHC-HT-01
+  name: Thủ tục đăng ký khai sinh
+  category: Hộ tịch
+  official_code: '1.001193'
+  portal_id: 019d2bfd-3fe0-70ac-b9d6-5e9e20d6eef7
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.001193
+  mode: auto
+  legal_basis: Luật Hộ tịch 2014; Nghị định 123/2015/NĐ-CP
+- code: TTHC-HT-02
+  name: Thủ tục đăng ký kết hôn
+  category: Hộ tịch
+  official_code: '1.000894'
+  portal_id: 019d2bfd-3fac-7489-b53b-a15eb239a6fe
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.000894
+  mode: auto
+  legal_basis: Luật Hộ tịch 2014; Nghị định 123/2015/NĐ-CP
+- code: TTHC-HT-03
+  name: Thủ tục đăng ký khai tử
+  category: Hộ tịch
+  official_code: '1.004827'
+  portal_id: 019d2bfd-670b-779a-a843-4c518c4ec075
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.004827
+  mode: auto
+  legal_basis: Luật Hộ tịch 2014; Nghị định 123/2015/NĐ-CP
+- code: TTHC-HT-04
+  name: Cấp bản sao Trích lục hộ tịch
+  category: Hộ tịch
+  official_code: '2.000635'
+  portal_id: 019d2bfd-867c-72db-b6a7-dcbd8c763807
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=2.000635
+  mode: auto
+  legal_basis: Luật Hộ tịch 2014; Nghị định 123/2015/NĐ-CP
+- code: TTHC-HT-05
+  name: Thủ tục đăng ký nhận cha mẹ con
+  category: Hộ tịch
+  official_code: '2.000779'
+  portal_id: 019d2bfd-8dff-7296-94d7-25b5966319d5
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=2.000779
+  mode: auto
+  legal_basis: Luật Hộ tịch 2014
+- code: TTHC-HT-06
+  name: Thủ tục đăng ký giám hộ
+  category: Hộ tịch
+  official_code: '1.004837'
+  portal_id: 019d2bfd-671b-75fa-82fb-8ad05a37f638
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.004837
+  mode: auto
+  legal_basis: Luật Hộ tịch 2014
+- code: TTHC-HT-07
+  name: Thủ tục chấm dứt giám hộ
+  category: Hộ tịch
+  official_code: '2.000756'
+  portal_id: 019d2bfd-8e04-756b-bf4f-2a70964e4c40
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=2.000756
+  mode: auto
+  legal_basis: Luật Hộ tịch 2014
+- code: TTHC-HT-08
+  name: Thủ tục đăng ký lại khai sinh
+  category: Hộ tịch
+  official_code: '2.000522'
+  portal_id: 019d2bfd-867a-70eb-bc54-effd523ebc99
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=2.000522
+  mode: auto
+  legal_basis: Luật Hộ tịch 2014; Nghị định 123/2015/NĐ-CP
+- code: TTHC-HT-09
+  name: Thủ tục đăng ký lại kết hôn
+  category: Hộ tịch
+  official_code: '2.000513'
+  portal_id: 019d2bfd-866c-706d-945a-a09ce8c74047
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=2.000513
+  mode: auto
+  legal_basis: Luật Hộ tịch 2014; Nghị định 123/2015/NĐ-CP
+- code: TTHC-HT-10
+  name: Thủ tục đăng ký lại khai tử
+  category: Hộ tịch
+  official_code: '2.000497'
+  portal_id: 019d2bfd-8651-7749-bf4c-8444ae336e6c
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=2.000497
+  mode: auto
+  legal_basis: Luật Hộ tịch 2014; Nghị định 123/2015/NĐ-CP
+- code: TTHC-HT-11
+  name: Cấp Giấy xác nhận tình trạng hôn nhân
+  category: Hộ tịch
+  official_code: '1.004873'
+  portal_id: 019d2bfd-6eb3-7019-bf3f-fc58c9ee44b9
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.004873
+  mode: auto
+  legal_basis: Nghị định 123/2015/NĐ-CP; Thông tư 04/2020/TT-BTP
+- code: TTHC-HT-12
+  name: Thủ tục đăng ký thay đổi cải chính bổ sung hộ tịch xác định lại dân tộc
+  category: Hộ tịch
+  official_code: '2.000748'
+  portal_id: 019d2bfd-8e02-7590-b74b-fb572a57eda2
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=2.000748
+  mode: auto
+  legal_basis: Luật Hộ tịch 2014
+- code: TTHC-CR-01
+  name: Thủ tục đăng ký thường trú
+  category: Cư trú
+  official_code: '1.116788'
+  portal_id: 01a0e614-34b3-7355-929c-9f54d24e6bc0
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.116788
+  mode: auto
+  legal_basis: Luật Cư trú 2020; Thông tư 55/2021/TT-BCA
+- code: TTHC-CR-02
+  name: Thủ tục xóa đăng ký thường trú
+  category: Cư trú
+  official_code: '2.002913'
+  portal_id: 01a03d95-035a-701a-af30-45899ccb145c
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=2.002913
+  mode: auto
+  legal_basis: Luật Cư trú 2020
+- code: TTHC-CR-03
+  name: Thủ tục đăng ký tạm trú
+  category: Cư trú
+  official_code: '1.116789'
+  portal_id: 01a0f011-315c-7373-9678-d13f6e83bbb3
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.116789
+  mode: auto
+  legal_basis: Luật Cư trú 2020
+- code: TTHC-CR-04
+  name: Thủ tục gia hạn tạm trú
+  category: Cư trú
+  official_code: '1.000039'
+  portal_id: 019d2bf9-e9b9-754f-b246-98f868065e48
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.000039
+  mode: auto
+  legal_basis: Luật Cư trú 2020
+- code: TTHC-CR-05
+  name: Thủ tục xóa đăng ký tạm trú
+  category: Cư trú
+  official_code: '2.002913'
+  portal_id: 01a03d95-035a-701a-af30-45899ccb145c
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=2.002913
+  mode: auto
+  legal_basis: Luật Cư trú 2020
+- code: TTHC-CR-06
+  name: Thủ tục thông báo lưu trú
+  category: Cư trú
+  official_code: '2.001159'
+  portal_id: 019d2bf7-adb7-7329-8d7c-db89ef073ced
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=2.001159
+  mode: auto
+  legal_basis: Luật Cư trú 2020
+- code: TTHC-CR-07
+  name: Thủ tục khai báo tạm vắng
+  category: Cư trú
+  official_code: '1.003677'
+  portal_id: 019d2bf7-6f56-704f-95b8-8d949272c6ad
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.003677
+  mode: auto
+  legal_basis: Luật Cư trú 2020
+- code: TTHC-CR-08
+  name: Xác nhận thông tin về cư trú
+  category: Cư trú
+  official_code: '1.010041'
+  portal_id: 019ff40e-c013-704a-be47-cee8794be2e2
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.010041
+  mode: auto
+  legal_basis: Thông tư 55/2021/TT-BCA
+- code: TTHC-CR-09
+  name: Khai báo thông tin về cư trú đối với người chưa đủ điều kiện đăng ký thường
+    trú tạm trú
+  category: Cư trú
+  official_code: '1.117007'
+  portal_id: 01a11463-3eeb-776b-a646-9a9f0b5bb740
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.117007
+  mode: auto
+  legal_basis: Luật Cư trú 2020
+- code: TTHC-CR-10
+  name: Điều chỉnh thông tin về cư trú trong Cơ sở dữ liệu về cư trú
+  category: Cư trú
+  official_code: '2.002516'
+  portal_id: 019d2bfd-a586-71fe-8c10-836e09f0a879
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=2.002516
+  mode: auto
+  legal_basis: Luật Cư trú 2020
+- code: TTHC-CT-01
+  name: Thủ tục Chứng thực bản sao từ bản chính các giấy tờ văn bản
+  category: Chứng thực
+  official_code: '1.001606'
+  portal_id: 019d2bf9-f18f-72ee-9d48-c87af3909b19
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.001606
+  mode: auto
+  legal_basis: Nghị định 23/2015/NĐ-CP
+- code: TTHC-CT-02
+  name: Thủ tục Chứng thực chữ ký trong các giấy tờ văn bản
+  category: Chứng thực
+  official_code: '1.001590'
+  portal_id: 019d2bfd-95fa-70ca-93fd-4cab11b87897
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.001590
+  mode: auto
+  legal_basis: Nghị định 23/2015/NĐ-CP
+- code: TTHC-CT-03
+  name: Thủ tục Chứng thực điểm chỉ trong các giấy tờ văn bản
+  category: Chứng thực
+  official_code: '1.001606'
+  portal_id: 019d2bf9-f18f-72ee-9d48-c87af3909b19
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.001606
+  mode: auto
+  legal_basis: Nghị định 23/2015/NĐ-CP
+- code: TTHC-CT-04
+  name: Thủ tục Chứng thực hợp đồng giao dịch liên quan đến tài sản
+  category: Chứng thực
+  official_code: '2.001406'
+  portal_id: 019d2bfd-9daf-70da-8f48-223498332346
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=2.001406
+  mode: auto
+  legal_basis: Nghị định 23/2015/NĐ-CP
+- code: TTHC-CT-05
+  name: Thủ tục Chứng thực văn bản thỏa thuận phân chia di sản
+  category: Chứng thực
+  official_code: '2.000554'
+  portal_id: 019d2bfd-867a-70eb-bc54-e836b23a4649
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=2.000554
+  mode: auto
+  legal_basis: Nghị định 23/2015/NĐ-CP
+- code: TTHC-CT-06
+  name: Thủ tục Chứng thực văn bản khai nhận di sản
+  category: Chứng thực
+  official_code: '2.000547'
+  portal_id: 019d2bfd-8661-77ca-9811-6106ea8c43db
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=2.000547
+  mode: auto
+  legal_basis: Nghị định 23/2015/NĐ-CP
+- code: TTHC-CT-07
+  name: Thủ tục Chứng thực văn bản từ chối nhận di sản
+  category: Chứng thực
+  official_code: '2.001016'
+  portal_id: 019d2bfd-95e6-7578-ba2d-d1b4373cd174
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=2.001016
+  mode: auto
+  legal_basis: Nghị định 23/2015/NĐ-CP
+- code: TTHC-CT-08
+  name: Thủ tục Chứng thực di chúc
+  category: Chứng thực
+  official_code: '2.001019'
+  portal_id: 019d2bfd-95f0-7610-845f-c097f144bd55
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=2.001019
+  mode: auto
+  legal_basis: Nghị định 23/2015/NĐ-CP
+- code: TTHC-BT-01
+  name: Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng
+  category: Bảo trợ xã hội
+  official_code: '3.000733'
+  portal_id: 01a0b2bc-2e8b-72af-9807-ba861ba3eeec
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=3.000733
+  mode: auto
+  legal_basis: Nghị định 20/2021/NĐ-CP
+- code: TTHC-BT-02
+  name: Thủ tục hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội
+  category: Bảo trợ xã hội
+  official_code: '1.116910'
+  portal_id: 01a0f66e-63a3-749a-a9d8-2dcbeda6af79
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.116910
+  mode: auto
+  legal_basis: Nghị định 20/2021/NĐ-CP
+- code: TTHC-BT-03
+  name: Thủ tục hỗ trợ kinh phí chăm sóc hàng tháng cho người khuyết tật đặc biệt
+    nặng
+  category: Bảo trợ xã hội
+  official_code: '1.116907'
+  portal_id: 01a0f653-8729-706c-9cc8-c3234469d7cf
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.116907
+  mode: auto
+  legal_basis: Nghị định 20/2021/NĐ-CP
+- code: TTHC-BT-04
+  name: Thủ tục xác định mức độ khuyết tật và cấp Giấy xác nhận mức độ khuyết tật
+  category: Bảo trợ xã hội
+  official_code: '1.014028'
+  portal_id: 019d2bff-3508-7268-b54b-6ce79a8cbf0e
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.014028
+  mode: auto
+  legal_basis: Luật Người khuyết tật 2010
+- code: TTHC-BT-05
+  name: Thủ tục chi trả trợ cấp xã hội một lần
+  category: Bảo trợ xã hội
+  official_code: '3.000731'
+  portal_id: 01a09f35-59a6-7010-addd-5274bbb2cf7a
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=3.000731
+  mode: auto
+  legal_basis: Nghị định 20/2021/NĐ-CP
+- code: TTHC-BT-06
+  name: Tiếp nhận đối tượng bảo trợ xã hội vào cơ sở trợ giúp xã hội
+  category: Bảo trợ xã hội
+  official_code: '1.116910'
+  portal_id: 01a0f66e-63a3-749a-a9d8-2dcbeda6af79
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=1.116910
+  mode: auto
+  legal_basis: Nghị định 20/2021/NĐ-CP
+- code: TTHC-DC-01
+  name: Đăng ký biến động quyền sử dụng đất quyền sở hữu tài sản gắn liền với đất
+  category: Địa chính
+  official_code: '3.000758'
+  portal_id: 01a1627e-0f42-746c-99ef-2582b59912d1
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=3.000758
+  mode: auto
+  legal_basis: Luật Đất đai 2024
+- code: TTHC-DC-02
+  name: Xác nhận hiện trạng sử dụng đất nhà ở không có tranh chấp
+  category: Địa chính
+  official_code: '3.000780'
+  portal_id: 01a167a5-ec40-74dd-9cf8-de2f64dbe624
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=3.000780
+  mode: auto
+  legal_basis: Luật Đất đai 2024
+- code: TTHC-XD-01
+  name: Cấp giấy phép xây dựng nhà ở riêng lẻ
+  category: Xây dựng
+  official_code: '3.000761'
+  portal_id: 01a162bf-fe10-768f-b3d3-3f1d94c0e9ad
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=3.000761
+  mode: auto
+  legal_basis: Luật Xây dựng 2020
+- code: TTHC-XD-02
+  name: Thông báo khởi công xây dựng công trình nhà ở riêng lẻ
+  category: Xây dựng
+  official_code: '3.000785'
+  portal_id: 01a1692f-998c-761a-bb0d-2e60b8387c52
+  source_url: https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=3.000785
+  mode: auto
+  legal_basis: Luật Xây dựng 2020

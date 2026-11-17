@@ -1,0 +1,6 @@
+# SmartWard AI - Procedure Crawler & Knowledge Pipeline Dependencies
+# Pinned versions for deterministic offline & CI execution
+firecrawl-py==1.1.0
+pyyaml==6.0.2
+requests==2.32.3
+pydantic==2.10.3

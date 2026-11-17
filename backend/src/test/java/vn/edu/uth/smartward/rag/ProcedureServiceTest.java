@@ -122,4 +122,31 @@ class ProcedureServiceTest {
 
         assertEquals(ErrorCode.INVALID_REQUEST, ex.getErrorCode());
     }
+
+    @Test
+    void testReindexProcedures_idempotent() {
+        AdminProcedure proc = AdminProcedure.builder()
+                .id(1L)
+                .procedureCode("TTHC-HT-01")
+                .procedureName("Thủ tục đăng ký khai sinh")
+                .build();
+
+        LegalChunk chunk = LegalChunk.builder()
+                .id(101L)
+                .procedure(proc)
+                .chunkCode("TTHC-HT-01_CHK_001")
+                .content("Nội dung thủ tục khai sinh")
+                .embedding("[0.1, 0.2]")
+                .embeddingModel("bkai_pho_bert_ft_v1")
+                .build();
+
+        when(procedureRepository.findByProcedureCode("TTHC-HT-01")).thenReturn(Optional.of(proc));
+        when(chunkRepository.findByProcedureId(1L)).thenReturn(List.of(chunk));
+
+        var result = procedureService.reindexProcedures("TTHC-HT-01", false);
+
+        assertNotNull(result);
+        assertEquals(1, result.get("totalChunks"));
+        assertEquals(1, result.get("reindexed"));
+    }
 }

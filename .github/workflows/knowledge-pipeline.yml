@@ -1,0 +1,82 @@
+name: Knowledge Pipeline (TTHC Crawler & Diff Gate)
+
+on:
+  schedule:
+    # Run monthly on the 1st day of every month at 02:00 UTC
+    - cron: '0 2 1 * *'
+  workflow_dispatch:
+    inputs:
+      procedure_codes:
+        description: 'Specific comma-separated procedure codes to crawl (e.g. TTHC-HT-01,TTHC-CR-01). Leave blank for all 40.'
+        required: false
+        default: ''
+      force_recrawl:
+        description: 'Force re-crawl even if SHA256 content hash has not changed'
+        type: boolean
+        required: false
+        default: false
+
+concurrency:
+  group: knowledge-pipeline-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  crawl-and-diff:
+    name: Crawl, Normalize & Audit Knowledge Diff
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+          cache-dependency-path: 'data-pipeline/procedure-crawler/requirements.txt'
+
+      - name: Install Python Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r data-pipeline/procedure-crawler/requirements.txt
+
+      - name: Step 1 - Crawl TTHC from Official Portal
+        env:
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.procedure_codes }}" ]; then
+            ARGS="$ARGS --codes ${{ github.event.inputs.procedure_codes }}"
+          fi
+          if [ "${{ github.event.inputs.force_recrawl }}" = "true" ]; then
+            ARGS="$ARGS --force"
+          fi
+          python data-pipeline/procedure-crawler/crawl.py $ARGS
+
+      - name: Step 2 - Normalize & Validate 5-Section Architecture
+        run: |
+          ARGS=""
+          if [ -n "${{ github.event.inputs.procedure_codes }}" ]; then
+            ARGS="$ARGS --codes ${{ github.event.inputs.procedure_codes }}"
+          fi
+          python data-pipeline/procedure-crawler/normalize.py $ARGS
+
+      - name: Step 4 - Human-in-the-Loop Diff Gate & Drift Analysis
+        run: |
+          python data-pipeline/procedure-crawler/diff.py
+
+      - name: Publish Diff Report to GitHub Step Summary
+        run: |
+          if [ -f data-pipeline/out/diff_report.md ]; then
+            cat data-pipeline/out/diff_report.md >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Upload Diff Report & Normalized Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: tthc-knowledge-diff-report
+          path: |
+            data-pipeline/out/diff_report.md
+            data-pipeline/out/normalized/
+          retention-days: 30
