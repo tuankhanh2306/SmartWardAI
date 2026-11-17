@@ -36,6 +36,9 @@ public class CitizenDossierService {
     private final RedisRateLimiter rateLimiter;
     private final DossierEventRepository dossierEventRepository;
     private final vn.edu.uth.smartward.audit.AuditService auditService;
+    private final Map<String, DossierSubmissionResponse> idempotencyCache = new java.util.concurrent.ConcurrentHashMap<>();
+
+    public static final java.time.ZoneId VN_ZONE = java.time.ZoneId.of("Asia/Ho_Chi_Minh");
 
     @Autowired
     public CitizenDossierService(CitizenDossierRepository dossierRepository,
@@ -67,6 +70,15 @@ public class CitizenDossierService {
 
     @Transactional
     public DossierSubmissionResponse submitDossier(SubmitDossierRequest req) {
+        if (req.idempotencyKey() != null && !req.idempotencyKey().isBlank()) {
+            String cleanKey = req.idempotencyKey().trim();
+            DossierSubmissionResponse cached = idempotencyCache.get(cleanKey);
+            if (cached != null) {
+                log.info("Returning idempotent response for key={}", cleanKey);
+                return cached;
+            }
+        }
+
         if (req.procedureCode() == null || req.procedureCode().isBlank()) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã thủ tục hành chính không được để trống.");
         }
@@ -89,7 +101,7 @@ public class CitizenDossierService {
 
         String procedureCode = req.procedureCode().trim();
         int workingDays = resolveStatutoryWorkingDays(procedureCode);
-        Instant slaDeadline = calculateWorkingDayDeadline(Instant.now(), workingDays);
+        Instant slaDeadline = calculateWorkingDayDeadline(Instant.now(), workingDays, VN_ZONE);
 
         String formDataJson = serializeToJson(req.formData(), "{}");
         String precheckReportJson = serializeToJson(req.precheckReport(), null);
@@ -111,7 +123,7 @@ public class CitizenDossierService {
         log.info("Citizen dossier submitted successfully: dossierCode={}, procedure={}, ward={}",
                 saved.getDossierCode(), saved.getProcedureCode(), saved.getWardCode());
 
-        return DossierSubmissionResponse.builder()
+        DossierSubmissionResponse response = DossierSubmissionResponse.builder()
                 .dossierCode(saved.getDossierCode())
                 .procedureCode(saved.getProcedureCode())
                 .wardCode(saved.getWardCode())
@@ -119,6 +131,12 @@ public class CitizenDossierService {
                 .slaDeadline(saved.getSlaDeadline())
                 .createdAt(saved.getCreatedAt() != null ? saved.getCreatedAt() : Instant.now())
                 .build();
+
+        if (req.idempotencyKey() != null && !req.idempotencyKey().isBlank()) {
+            idempotencyCache.put(req.idempotencyKey().trim(), response);
+        }
+
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -380,17 +398,40 @@ public class CitizenDossierService {
     }
 
     public static Instant calculateWorkingDayDeadline(Instant submissionTime, int workingDays) {
-        ZonedDateTime current = submissionTime.atZone(ZoneOffset.UTC);
+        return calculateWorkingDayDeadline(submissionTime, workingDays, ZoneOffset.UTC);
+    }
+
+    public static Instant calculateWorkingDayDeadline(Instant submissionTime, int workingDays, java.time.ZoneId zoneId) {
+        if (submissionTime == null) {
+            submissionTime = Instant.now();
+        }
+        if (workingDays <= 0) {
+            workingDays = 1;
+        }
+        if (zoneId == null) {
+            zoneId = ZoneOffset.UTC;
+        }
+
+        ZonedDateTime current = submissionTime.atZone(zoneId);
         int added = 0;
         while (added < workingDays) {
             current = current.plusDays(1);
             DayOfWeek dow = current.getDayOfWeek();
             boolean isWeekend = (dow == DayOfWeek.SATURDAY || dow == DayOfWeek.SUNDAY);
-            boolean isNewYearDay = (current.getMonthValue() == 1 && current.getDayOfMonth() == 1);
-            if (!isWeekend && !isNewYearDay) {
+
+            // Statutory Vietnamese Public Holidays: 1/1, 30/4, 1/5, 2/9 (6.2)
+            int month = current.getMonthValue();
+            int day = current.getDayOfMonth();
+            boolean isHoliday = (month == 1 && day == 1)
+                    || (month == 4 && day == 30)
+                    || (month == 5 && day == 1)
+                    || (month == 9 && (day == 2 || day == 3));
+
+            if (!isWeekend && !isHoliday) {
                 added++;
             }
         }
+        // Strict 17:00:00 (5:00 PM) business day cutoff (6.2)
         return current.withHour(17).withMinute(0).withSecond(0).withNano(0).toInstant();
     }
 

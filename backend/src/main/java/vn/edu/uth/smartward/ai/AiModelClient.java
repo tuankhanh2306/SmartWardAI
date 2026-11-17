@@ -7,12 +7,64 @@ package vn.edu.uth.smartward.ai;
 public interface AiModelClient {
 
     /**
+     * Immutable embedding generation result containing vector, model ID, and dimension (6.3).
+     * Eliminates shared state between concurrent threads.
+     */
+    record EmbeddingResult(float[] vector, String modelId, int dim) {}
+
+    /**
      * Generates a 768-dimensional normalized embedding vector for the given text.
      *
      * @param text input text to embed
      * @return 768-dimensional float array with unit L2 norm
      */
     float[] generateEmbedding(String text);
+
+    /**
+     * Generates atomic EmbeddingResult with vector, canonical model ID, and dimension.
+     */
+    default EmbeddingResult generateEmbeddingResult(String text) {
+        float[] vector = generateEmbedding(text);
+        float[] normalized = normalizeL2(vector);
+        return new EmbeddingResult(normalized, getEmbeddingModelId(), normalized != null ? normalized.length : 0);
+    }
+
+    /**
+     * Normalizes an embedding vector to unit L2 norm.
+     */
+    static float[] normalizeL2(float[] vector) {
+        if (vector == null || vector.length == 0) return vector;
+        double sumSq = 0.0;
+        for (float v : vector) {
+            sumSq += v * v;
+        }
+        if (sumSq == 0.0) return vector;
+        float norm = (float) Math.sqrt(sumSq);
+        float[] normalized = new float[vector.length];
+        for (int i = 0; i < vector.length; i++) {
+            normalized[i] = vector[i] / norm;
+        }
+        return normalized;
+    }
+
+    /**
+     * Computes cosine similarity between two float vectors.
+     */
+    static double cosineSimilarity(float[] v1, float[] v2) {
+        if (v1 == null || v2 == null || v1.length != v2.length || v1.length == 0) {
+            return 0.0;
+        }
+        double dot = 0.0;
+        double normA = 0.0;
+        double normB = 0.0;
+        for (int i = 0; i < v1.length; i++) {
+            dot += v1[i] * v2[i];
+            normA += v1[i] * v1[i];
+            normB += v2[i] * v2[i];
+        }
+        if (normA == 0.0 || normB == 0.0) return 0.0;
+        return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+    }
 
     /**
      * Returns the canonical identifier of the embedding model that produced the vector space
