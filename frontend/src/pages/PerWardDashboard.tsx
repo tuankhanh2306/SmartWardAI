@@ -836,7 +836,7 @@ export const PerWardDashboard: React.FC = () => {
 
     const hqIcon = L.divIcon({
       className: 'custom-hq-marker',
-      html: `<div class="px-3 py-1 rounded-xl bg-[#00236F] text-white border-2 border-white shadow-lg text-[11px] font-bold text-center whitespace-nowrap">🏛️ UBND ${ward.name}</div>`,
+      html: `<div class="px-3 py-1 rounded-xl bg-[#00236F] text-white border-2 border-white shadow-lg text-[11px] font-bold text-center whitespace-nowrap">UBND ${ward.name}</div>`,
       iconSize: [145, 28],
       iconAnchor: [72, 14],
     });
@@ -846,7 +846,7 @@ export const PerWardDashboard: React.FC = () => {
         `<div class="p-2 text-xs font-sans">
           <b class="text-[#00236F] block mb-1">Trụ sở UBND ${ward.name}</b>
           <span class="text-[#64748B] block mb-1">${ward.officeAddress}</span>
-          <span class="text-[11px] font-bold text-[#00687A]">📞 Hotline: ${ward.phoneNumber}</span>
+          <span class="text-[11px] font-bold text-[#00687A]">Đường dây nóng: ${ward.phoneNumber}</span>
         </div>`
       );
 

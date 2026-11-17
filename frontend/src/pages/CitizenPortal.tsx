@@ -39,7 +39,8 @@ import {
   ChevronDown,
   ChevronUp,
   ArrowLeft,
-  Eye
+  Eye,
+  Info
 } from 'lucide-react';
 
 interface ChatMessage {
@@ -253,13 +254,13 @@ const StructuredBotMessage: React.FC<StructuredBotMessageProps> = ({
         )}
 
         {/* Wizard Step Indicator Card */}
-        <div className="p-3.5 rounded-2xl bg-amber-50/90 border border-amber-200 shadow-2xs">
+        <div className="p-3.5 rounded-xl bg-amber-50/90 border border-amber-200 shadow-xs">
           <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-amber-950 mb-2">
             <span className="flex items-center gap-1.5">
-              <span className="text-base">👵</span>
+              <Eye className="w-4 h-4 text-amber-800" />
               <span>Chế độ đơn giản — Mục {validStep + 1} / {parsedSections.length}</span>
             </span>
-            <span className="text-xs font-semibold text-amber-800 bg-amber-100/90 px-2.5 py-0.5 rounded-full border border-amber-200">
+            <span className="text-xs font-semibold text-amber-800 bg-amber-100/90 px-2.5 py-0.5 rounded-md border border-amber-200">
               {activeSection.title}
             </span>
           </div>
@@ -272,7 +273,7 @@ const StructuredBotMessage: React.FC<StructuredBotMessageProps> = ({
         </div>
 
         {/* Active Step Content */}
-        <div className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-2xs flex flex-col gap-3 min-h-[140px]">
+        <div className="p-4 rounded-xl bg-white border border-slate-200/90 shadow-xs flex flex-col gap-3 min-h-[140px]">
           <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-bold border ${activeSection.badgeColor} w-fit`}>
             <ActiveIcon className="w-4 h-4 shrink-0" />
             <span>{activeSection.title}</span>
@@ -380,7 +381,7 @@ const StructuredBotMessage: React.FC<StructuredBotMessageProps> = ({
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 hover:bg-teal-100 text-[#00796B] text-xs font-bold border border-teal-200 transition cursor-pointer active:scale-95 shadow-2xs"
                 >
                   <BookOpen className="w-3.5 h-3.5" />
-                  <span>📖 Xem đầy đủ cả 5 mục (Thời hạn, Lệ phí, Nơi nộp, Căn cứ)</span>
+                  <span>Xem đầy đủ cả 5 mục (Thời hạn, Lệ phí, Nơi nộp, Căn cứ)</span>
                 </button>
               ) : (
                 <button
@@ -727,7 +728,8 @@ export const CitizenPortal: React.FC = () => {
           toggleSpeech(resp.answer, botMsgId);
         }, 300);
       }
-    } catch {
+    } catch (err) {
+      console.warn('CitizenPortal RAG fallback activated:', err);
       const errorMsg: ChatMessage = {
         id: `msg-${Date.now()}-err`,
         sender: 'bot',
@@ -1070,9 +1072,9 @@ export const CitizenPortal: React.FC = () => {
           </div>
 
           {/* Quick Guidance Box Gọn Nhẹ */}
-          <div className="p-3 rounded-2xl bg-teal-50/60 border border-teal-200 flex items-start gap-2 shrink-0">
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2 shrink-0">
             <HelpCircle className="w-4 h-4 text-[#00796B] shrink-0 mt-0.5" />
-            <div className="text-[11px] text-teal-900 leading-snug">
+            <div className="text-[11px] text-slate-800 leading-snug">
               <strong>Tiếp dân Một cửa:</strong> UBND {currentWard.name}. ĐT: <strong>{currentWard.phoneNumber}</strong>.
             </div>
           </div>
@@ -1080,7 +1082,7 @@ export const CitizenPortal: React.FC = () => {
 
         {/* RIGHT COLUMN: Interactive Legal RAG Chat Workspace (Mở rộng thêm +250px bề ngang để chứa tối đa thông tin) */}
         <div
-          className={`flex-1 min-w-0 w-full flex flex-col bg-white rounded-3xl border border-teal-100 shadow-[0_4px_24px_rgba(0,121,107,0.06)] overflow-hidden transition-all duration-300 relative ${
+          className={`flex-1 min-w-0 w-full flex flex-col bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden transition-all duration-300 relative ${
             isChatExpanded
               ? 'h-[calc(100vh-110px)] min-h-[680px] max-h-[96vh]'
               : 'h-[calc(100vh-125px)] min-h-[620px] max-h-[92vh]'
@@ -1089,7 +1091,7 @@ export const CitizenPortal: React.FC = () => {
           {/* Chat Workspace Header */}
           <div className="px-5 py-3.5 bg-[#00796B] text-white flex items-center justify-between border-b border-[#004D40] shrink-0">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center text-white border border-white/20 shadow-2xs">
+              <div className="w-9 h-9 rounded-xl bg-white/15 flex items-center justify-center text-white border border-white/20 shadow-xs">
                 <Bot className="w-5 h-5 text-teal-100" />
               </div>
               <div className="flex flex-col">
@@ -1097,7 +1099,7 @@ export const CitizenPortal: React.FC = () => {
                   <span className="text-sm sm:text-base font-bold tracking-tight">Trợ Lý Pháp Lý Một Cửa</span>
                   <span className="w-2 h-2 rounded-full bg-emerald-300" />
                   {isChatExpanded && (
-                    <span className="hidden sm:inline-block px-2 py-0.5 rounded-full text-[10px] font-bold bg-white/20 text-white tracking-wide uppercase">
+                    <span className="hidden sm:inline-block px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/20 text-white tracking-wide uppercase">
                       Toàn màn hình
                     </span>
                   )}
@@ -1120,7 +1122,7 @@ export const CitizenPortal: React.FC = () => {
                   }
                 }}
                 title="Bật hoặc Tắt chế độ giao diện đơn giản, chữ to, chia từng bước cho người cao tuổi"
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-2xs ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition active:scale-95 cursor-pointer shadow-xs ${
                   isSimpleMode
                     ? 'bg-amber-400 text-slate-900 border border-amber-300 font-bold shadow-xs ring-1 ring-amber-300'
                     : 'bg-white/15 hover:bg-white/25 text-white border border-white/20'
@@ -1128,7 +1130,7 @@ export const CitizenPortal: React.FC = () => {
               >
                 {isSimpleMode ? (
                   <>
-                    <span className="text-sm">👵</span>
+                    <Eye className="w-3.5 h-3.5 text-slate-900" />
                     <span className="font-bold">Đơn giản: BẬT</span>
                   </>
                 ) : (
@@ -1229,10 +1231,10 @@ export const CitizenPortal: React.FC = () => {
                         : isChatExpanded
                         ? 'max-w-[85%] sm:max-w-[70%] md:max-w-[60%]'
                         : 'max-w-[88%] sm:max-w-[75%] md:max-w-[65%]'
-                    } flex flex-col gap-2 rounded-2xl p-4 sm:p-5 transition-all ${
+                    } flex flex-col gap-2 rounded-xl p-4 sm:p-5 transition-all ${
                       msg.sender === 'citizen'
-                        ? 'bg-[#00796B] text-white rounded-br-xs shadow-xs'
-                        : 'bg-white text-[#0F172A] border border-teal-100/90 rounded-bl-xs shadow-2xs'
+                        ? 'bg-[#00796B] text-white shadow-xs'
+                        : 'bg-white text-[#0F172A] border border-slate-200/90 shadow-xs'
                     }`}
                   >
                   {/* Message body text with 5-section badge highlights */}
@@ -1304,7 +1306,8 @@ export const CitizenPortal: React.FC = () => {
                   {msg.sender === 'bot' && msg.suggestions && msg.suggestions.length > 0 && !isSimpleMode && (
                     <div className="mt-2.5 pt-2 border-t border-teal-100/70 text-xs flex flex-wrap items-center gap-1.5 text-slate-600">
                       <span className="font-semibold text-[#00796B] flex items-center gap-1">
-                        💬 Bà con có thể cũng cần:
+                        <HelpCircle className="w-3.5 h-3.5 text-[#00796B]" />
+                        <span>Thủ tục liên quan:</span>
                       </span>
                       {msg.suggestions.map((sug, sIdx) => {
                         const clean = sug.replace(/^[👉👶💍🏠📋\s]+/, '').trim();
@@ -1480,15 +1483,15 @@ export const CitizenPortal: React.FC = () => {
           <div className="p-3.5 bg-white border-t border-slate-200">
             {/* Step 3: Simple Mode Guidance Banner */}
             {isSimpleMode && (
-              <div className="mb-2.5 p-2.5 px-3 rounded-xl bg-emerald-50/90 border border-emerald-200/90 text-[#00695C] text-xs sm:text-sm font-bold flex items-center gap-2 shadow-2xs">
-                <span className="text-base">💡</span>
-                <span>Bấm vào biểu tượng micro 🎙️ để nói câu hỏi thay vì gõ chữ.</span>
+              <div className="mb-2.5 p-2.5 px-3 rounded-xl bg-emerald-50/90 border border-emerald-200/90 text-[#00695C] text-xs sm:text-sm font-bold flex items-center gap-2 shadow-xs">
+                <Info className="w-4 h-4 text-emerald-700 shrink-0" />
+                <span>Bấm vào biểu tượng micro để đọc câu hỏi bằng giọng nói thay vì gõ chữ.</span>
               </div>
             )}
 
             {/* Step 1 & 2: Inline Voice Error Alert Banner */}
             {voiceError && (
-              <div className="mb-2.5 p-2.5 px-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs sm:text-sm flex items-center justify-between gap-2 shadow-2xs animate-fadeIn">
+              <div className="mb-2.5 p-2.5 px-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs sm:text-sm flex items-center justify-between gap-2 shadow-xs animate-fadeIn">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
                   <span>{voiceError}</span>
@@ -1506,14 +1509,14 @@ export const CitizenPortal: React.FC = () => {
 
             {/* Step 1 & 2: Active Listening Indicator Bar */}
             {isVoiceListening && (
-              <div className="mb-2.5 p-2.5 px-3.5 rounded-xl bg-red-50 border border-red-200 text-red-900 flex items-center justify-between gap-2 shadow-2xs animate-pulse">
+              <div className="mb-2.5 p-2.5 px-3.5 rounded-xl bg-red-50 border border-red-200 text-red-900 flex items-center justify-between gap-2 shadow-xs animate-pulse">
                 <div className="flex items-center gap-2 min-w-0">
                   <span className="relative flex h-3 w-3 shrink-0">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-3 w-3 bg-red-600"></span>
                   </span>
                   <span className={`font-bold ${isSimpleMode ? 'text-sm sm:text-base text-red-950' : 'text-xs text-red-900'}`}>
-                    🎙️ Đang nghe... hãy nói rõ câu hỏi
+                    Đang ghi nhận giọng nói... vui lòng đặt câu hỏi
                   </span>
                   {voiceInterimText && (
                     <span className="text-xs italic text-red-700 truncate max-w-[200px] sm:max-w-[360px]">
