@@ -52,4 +52,10 @@ public class CivicReportRequest {
 
     @Schema(description = "Tên đơn vị hành chính cấp xã/phường tiếp nhận theo vị trí", example = "Phường Châu Đốc")
     private String wardName;
+
+    @Schema(description = "Độ chính xác định vị GPS theo mét (accuracy > 100m cần cảnh báo kiểm tra)", example = "15.0")
+    private Double locationAccuracyM;
+
+    @Schema(description = "Nguồn gốc xác định tọa độ ('gps' | 'manual_pin')", example = "gps")
+    private String locationSource;
 }

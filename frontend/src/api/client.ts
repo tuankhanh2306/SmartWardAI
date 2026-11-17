@@ -1524,6 +1524,8 @@ export const reportIssue = async (data: {
   wardName?: string;
   reporterHomeWardName?: string;
   urgency?: 'HIGH' | 'MEDIUM' | 'LOW';
+  locationAccuracyM?: number;
+  locationSource?: 'gps' | 'manual_pin' | 'address_geocode';
 }): Promise<IssueReportResponse> => {
   const currentWardLabel = data.wardName || 'UBND cấp Xã/Phường';
   const targetWardCode = data.wardCode || 'AG_P_LONGXUYEN';
@@ -1569,6 +1571,8 @@ export const reportIssue = async (data: {
       addressText: addr,
       wardCode: targetWardCode,
       wardName: currentWardLabel,
+      locationAccuracyM: data.locationAccuracyM,
+      locationSource: data.locationSource || 'gps',
     });
     const payload = resp.data?.data ?? resp.data;
     const result: IssueReportResponse = {

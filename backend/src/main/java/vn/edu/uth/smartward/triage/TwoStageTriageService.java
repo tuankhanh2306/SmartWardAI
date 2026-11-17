@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import vn.edu.uth.smartward.ai.AiModelClient;
 import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ErrorCode;
+import vn.edu.uth.smartward.geo.GeoValidationResult;
+import vn.edu.uth.smartward.geo.GeoValidatorService;
 import vn.edu.uth.smartward.triage.dto.CivicReportRequest;
 import vn.edu.uth.smartward.triage.dto.CivicReportResponse;
 import vn.edu.uth.smartward.triage.dto.IssueClusterDto;
@@ -28,13 +30,32 @@ import java.util.*;
  */
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class TwoStageTriageService {
 
     private final SpatialIndexService spatialIndexService;
     private final IssueClusterRepository clusterRepository;
     private final CivicReportRepository reportRepository;
     private final AiModelClient aiModelClient;
+    private final GeoValidatorService geoValidatorService;
+
+    public TwoStageTriageService(SpatialIndexService spatialIndexService,
+                                IssueClusterRepository clusterRepository,
+                                CivicReportRepository reportRepository,
+                                AiModelClient aiModelClient) {
+        this(spatialIndexService, clusterRepository, reportRepository, aiModelClient, null);
+    }
+
+    public TwoStageTriageService(SpatialIndexService spatialIndexService,
+                                IssueClusterRepository clusterRepository,
+                                CivicReportRepository reportRepository,
+                                AiModelClient aiModelClient,
+                                GeoValidatorService geoValidatorService) {
+        this.spatialIndexService = spatialIndexService;
+        this.clusterRepository = clusterRepository;
+        this.reportRepository = reportRepository;
+        this.aiModelClient = aiModelClient;
+        this.geoValidatorService = geoValidatorService;
+    }
 
     @Value("${smartward.triage.default-radius-meters:25.0}")
     private double defaultRadiusMeters;
@@ -50,12 +71,25 @@ public class TwoStageTriageService {
      */
     @Transactional
     public CivicReportResponse processReport(CivicReportRequest request) {
-        log.info("Processing civic report in category '{}' at [{}, {}]",
-                request.getCategory(), request.getLatitude(), request.getLongitude());
-
-        String reportCode = generateReportCode();
         double lon = request.getLongitude().doubleValue();
         double lat = request.getLatitude().doubleValue();
+
+        // Privacy protection: log coarse/masked location only (BƯỚC 4)
+        log.info("Processing civic report in category '{}' for ward '{}' near coarse [{}, {}]",
+                request.getCategory(), request.getWardCode(),
+                String.format(java.util.Locale.US, "%.3f", lat),
+                String.format(java.util.Locale.US, "%.3f", lon));
+
+        // BƯỚC 2 & BƯỚC 4: Strict Territorial & Geographic Boundary Validation
+        if (geoValidatorService != null) {
+            GeoValidationResult geoResult = geoValidatorService.validateWardPoint(lat, lon, request.getWardCode());
+            if (!geoResult.valid()) {
+                log.warn("Civic report rejected due to geo validation error {}: {}", geoResult.errorCode(), geoResult.message());
+                throw new BusinessException(ErrorCode.INVALID_REQUEST, geoResult.message());
+            }
+        }
+
+        String reportCode = generateReportCode();
 
         // 1. Compute Semantic Vector for the report description
         float[] reportEmbedding = aiModelClient.generateEmbedding(request.getDescription());
@@ -170,6 +204,8 @@ public class TwoStageTriageService {
                     .latitude(request.getLatitude())
                     .longitude(request.getLongitude())
                     .imageUrl(request.getImageUrl())
+                    .locationAccuracyM(request.getLocationAccuracyM())
+                    .locationSource(request.getLocationSource() != null ? request.getLocationSource() : "gps")
                     .status("SUBMITTED")
                     .build();
 
@@ -228,6 +264,8 @@ public class TwoStageTriageService {
                     .latitude(request.getLatitude())
                     .longitude(request.getLongitude())
                     .imageUrl(request.getImageUrl())
+                    .locationAccuracyM(request.getLocationAccuracyM())
+                    .locationSource(request.getLocationSource() != null ? request.getLocationSource() : "gps")
                     .status("SUBMITTED")
                     .build();
 
