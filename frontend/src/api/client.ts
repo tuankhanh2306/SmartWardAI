@@ -1990,4 +1990,156 @@ export const getProcedureByCode = async (code: string): Promise<ProcedureDetail 
   };
 };
 
+// 7. Procedure Governance Workflow APIs (Soạn -> Chờ duyệt -> Duyệt -> Công bố)
+export interface ProcedureContentFiveSections {
+  trinh_tu: string;
+  thanh_phan_ho_so: string;
+  thoi_han_le_phi: string;
+  co_quan_thuc_hien: string;
+  can_cu_phap_ly: string;
+}
+
+export interface AdminProcedureSummaryItem {
+  id: number;
+  procedureCode: string;
+  portalCode?: string;
+  procedureName: string;
+  category: string;
+  status: string;
+  formTemplateKey: string;
+  currentVersionNo: number;
+  publishedAt?: string;
+  completeness: number;
+  complete: boolean;
+  pendingProposalsCount: number;
+  draftProposalsCount: number;
+  fee?: string;
+  processingTime?: string;
+  agency?: string;
+}
+
+export interface ProcedureVersionItem {
+  id: number;
+  procedureCode: string;
+  procedureName: string;
+  category: string;
+  versionNo: number;
+  content: ProcedureContentFiveSections;
+  contentHash: string;
+  state: 'DRAFT' | 'PENDING_REVIEW' | 'PUBLISHED' | 'REJECTED' | 'SUPERSEDED';
+  createdBy: string;
+  createdAt?: string;
+  submittedAt?: string;
+  reviewedBy?: string | null;
+  reviewedAt?: string | null;
+  reviewNote?: string | null;
+  publishedAt?: string | null;
+  source: string;
+  sourceRef?: string | null;
+}
+
+export interface AdminProcedureDetailResponse {
+  summary: AdminProcedureSummaryItem;
+  publishedVersion: ProcedureVersionItem;
+  versions: ProcedureVersionItem[];
+}
+
+export interface ProposalFieldDiffItem {
+  fieldKey: keyof ProcedureContentFiveSections;
+  fieldLabel: string;
+  oldValue: string;
+  newValue: string;
+  changed: boolean;
+}
+
+export interface ProposalDiffResponse {
+  proposalId: number;
+  procedureCode: string;
+  procedureName: string;
+  fromVersionNo: number;
+  toVersionNo: number;
+  state: string;
+  createdBy: string;
+  submittedAt?: string;
+  fields: ProposalFieldDiffItem[];
+}
+
+export const getAdminProcedures = async (params?: {
+  state?: string;
+  keyword?: string;
+}): Promise<AdminProcedureSummaryItem[]> => {
+  const resp = await api.get<{ success: boolean; data: AdminProcedureSummaryItem[] }>('/admin/procedures', {
+    params,
+  });
+  return resp.data?.data ?? [];
+};
+
+export const getAdminProcedureDetail = async (code: string): Promise<AdminProcedureDetailResponse> => {
+  const resp = await api.get<{ success: boolean; data: AdminProcedureDetailResponse }>(
+    `/admin/procedures/${encodeURIComponent(code)}`
+  );
+  return resp.data.data;
+};
+
+export const saveProcedureDraftProposal = async (
+  code: string,
+  payload: {
+    proposalId?: number | null;
+    content: ProcedureContentFiveSections;
+    source?: string;
+    sourceRef?: string;
+  }
+): Promise<ProcedureVersionItem> => {
+  const resp = await api.post<{ success: boolean; data: ProcedureVersionItem }>(
+    `/admin/procedures/${encodeURIComponent(code)}/proposals`,
+    payload
+  );
+  return resp.data.data;
+};
+
+export const submitProcedureProposal = async (proposalId: number): Promise<ProcedureVersionItem> => {
+  const resp = await api.post<{ success: boolean; data: ProcedureVersionItem }>(
+    `/admin/proposals/${proposalId}/submit`
+  );
+  return resp.data.data;
+};
+
+export const getAdminProposalsQueue = async (
+  state: string = 'PENDING_REVIEW'
+): Promise<ProcedureVersionItem[]> => {
+  const resp = await api.get<{ success: boolean; data: ProcedureVersionItem[] }>('/admin/proposals', {
+    params: { state },
+  });
+  return resp.data?.data ?? [];
+};
+
+export const getAdminProposalDiff = async (proposalId: number): Promise<ProposalDiffResponse> => {
+  const resp = await api.get<{ success: boolean; data: ProposalDiffResponse }>(
+    `/admin/proposals/${proposalId}/diff`
+  );
+  return resp.data.data;
+};
+
+export const approveProcedureProposal = async (
+  proposalId: number,
+  reviewNote?: string
+): Promise<ProcedureVersionItem> => {
+  const resp = await api.post<{ success: boolean; data: ProcedureVersionItem }>(
+    `/admin/proposals/${proposalId}/approve`,
+    { reviewNote }
+  );
+  return resp.data.data;
+};
+
+export const rejectProcedureProposal = async (
+  proposalId: number,
+  reviewNote: string
+): Promise<ProcedureVersionItem> => {
+  const resp = await api.post<{ success: boolean; data: ProcedureVersionItem }>(
+    `/admin/proposals/${proposalId}/reject`,
+    { reviewNote }
+  );
+  return resp.data.data;
+};
+
 export default api;

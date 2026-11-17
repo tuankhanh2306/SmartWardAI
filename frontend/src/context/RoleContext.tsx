@@ -102,7 +102,7 @@ export const verifyOfficerCredentials = (
     isPinMatch = cleanPin === '8942';
   } else if (normalizedBadge === 'CC-AG-1001') {
     isPinMatch = cleanPin === '2026';
-  } else if (normalizedBadge === 'ADM-AG-0001') {
+  } else if (normalizedBadge === 'ADM-AG-0001' || normalizedBadge === 'ADM-AG-0002') {
     isPinMatch = cleanPin === '9999';
   } else if (normalizedBadge.startsWith('CB-')) {
     isPinMatch = cleanPin === '8942' || cleanPin === '2026';

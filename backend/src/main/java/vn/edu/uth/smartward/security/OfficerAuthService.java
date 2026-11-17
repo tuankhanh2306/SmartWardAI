@@ -94,6 +94,13 @@ public class OfficerAuthService {
                     "AG_P_LONGXUYEN",
                     "ADMIN",
                     sha256Hex("9999")
+            ),
+            "ADM-AG-0002", new OfficerAccount(
+                    "ADM-AG-0002",
+                    "Phạm Minh Quân — Phó Quản trị viên Kiểm soát TTHC",
+                    "AG_P_LONGXUYEN",
+                    "ADMIN",
+                    sha256Hex("9999")
             )
     );
 
