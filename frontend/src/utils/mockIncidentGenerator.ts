@@ -128,17 +128,17 @@ export function generateValidWardMockIncidents(ward: WardItem): LocalIncident[] 
   const latDegPerMeter = 1.0 / 111000.0;
   const lonDegPerMeter = 1.0 / (111000.0 * Math.cos((ward.lat * Math.PI) / 180.0));
 
-  // Anchor point for the deliberate cluster: 350m offset from UBND on land
+  // Anchor point for the deliberate cluster: 95m - 135m offset from UBND along main road corridor
   const clusterAnchorAngle = rng.next() * 2 * Math.PI;
-  const clusterAnchorDistMeters = 300 + rng.next() * 200; // 300 - 500m from HQ
+  const clusterAnchorDistMeters = 95 + rng.next() * 40; // 95 - 135m from HQ in populated center
   let clusterLat = ward.lat + clusterAnchorDistMeters * Math.sin(clusterAnchorAngle) * latDegPerMeter;
   let clusterLon = ward.lon + clusterAnchorDistMeters * Math.cos(clusterAnchorAngle) * lonDegPerMeter;
 
   // Validate anchor point
-  let anchorCheck = validateWardPoint(clusterLat, clusterLon, ward.code);
+  const anchorCheck = validateWardPoint(clusterLat, clusterLon, ward.code);
   if (!anchorCheck.valid) {
-    clusterLat = ward.lat + 100 * latDegPerMeter;
-    clusterLon = ward.lon + 100 * lonDegPerMeter;
+    clusterLat = ward.lat + 80 * latDegPerMeter;
+    clusterLon = ward.lon + 80 * lonDegPerMeter;
   }
 
   // 1. Generate deliberate cluster (#0, #1, #2 within 25m radius)
@@ -159,7 +159,7 @@ export function generateValidWardMockIncidents(ward: WardItem): LocalIncident[] 
       category: tpl.category,
       title: tpl.title,
       description: tpl.description,
-      address: `Khu vực gần Cụm dân cư số ${i + 1}, ${ward.name}`,
+      address: `Khu vực gần Cụm dân cư trung tâm số ${i + 1}, ${ward.name}`,
       lat: Number(pLat.toFixed(6)),
       lon: Number(pLon.toFixed(6)),
       reportedTime: `${8 + i}:15 Sáng nay`,
@@ -172,7 +172,7 @@ export function generateValidWardMockIncidents(ward: WardItem): LocalIncident[] 
     });
   }
 
-  // 2. Generate separated points (#3..#7 separated by >= 150m)
+  // 2. Generate separated points (#3..#7 separated by >= 45m within populated road corridor 80m - 260m)
   const separatedAngles = [
     (1 * Math.PI) / 4,
     (3 * Math.PI) / 4,
@@ -183,8 +183,8 @@ export function generateValidWardMockIncidents(ward: WardItem): LocalIncident[] 
 
   for (let i = 3; i < 8; i++) {
     const tpl = TEMPLATE_INCIDENTS[i];
-    const angle = separatedAngles[i - 3] + (rng.next() - 0.5) * 0.3;
-    const distMeters = 400 + (i - 2) * 180 + rng.next() * 100; // 500m - 1400m
+    const angle = separatedAngles[i - 3] + (rng.next() - 0.5) * 0.25;
+    const distMeters = 75 + (i - 2) * 35 + rng.next() * 20; // 110m - 270m along town center roads
 
     let pLat = ward.lat + distMeters * Math.sin(angle) * latDegPerMeter;
     let pLon = ward.lon + distMeters * Math.cos(angle) * lonDegPerMeter;

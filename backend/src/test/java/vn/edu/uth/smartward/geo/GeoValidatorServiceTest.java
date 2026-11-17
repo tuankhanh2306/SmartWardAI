@@ -22,20 +22,20 @@ class GeoValidatorServiceTest {
     @DisplayName("1. Valid ward headquarters coordinates must PASS validation")
     void testValidWardHeadquarters() {
         // Phường Long Xuyên
-        GeoValidationResult r1 = geoValidatorService.validateWardPoint(10.3812, 105.4345, "AG_P_LONGXUYEN");
+        GeoValidationResult r1 = geoValidatorService.validateWardPoint(10.383965, 105.426716, "AG_P_LONGXUYEN");
         assertTrue(r1.valid(), "Long Xuyên HQ must be valid");
         assertNull(r1.errorCode());
 
         // Đặc khu Phú Quốc
-        GeoValidationResult r2 = geoValidatorService.validateWardPoint(10.2175, 103.9610, "AG_DK_PHUQUOC");
+        GeoValidationResult r2 = geoValidatorService.validateWardPoint(10.217512, 103.960985, "AG_DK_PHUQUOC");
         assertTrue(r2.valid(), "Phú Quốc HQ must be valid on land");
 
         // Đặc khu Kiên Hải (Hòn Tre)
-        GeoValidationResult r3 = geoValidatorService.validateWardPoint(9.9678, 104.8415, "AG_DK_KIENHAI");
+        GeoValidationResult r3 = geoValidatorService.validateWardPoint(9.967815, 104.841524, "AG_DK_KIENHAI");
         assertTrue(r3.valid(), "Kiên Hải Hòn Tre HQ must be valid on land");
 
-        // Xã An Phú
-        GeoValidationResult r4 = geoValidatorService.validateWardPoint(10.7850, 105.0920, "AG_X_ANPHU");
+        // Xã An Phú (Trung tâm QL91C)
+        GeoValidationResult r4 = geoValidatorService.validateWardPoint(10.815686, 105.090647, "AG_X_ANPHU");
         assertTrue(r4.valid(), "An Phú HQ must be valid");
     }
 
