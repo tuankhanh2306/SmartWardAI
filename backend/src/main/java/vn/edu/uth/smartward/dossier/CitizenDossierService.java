@@ -210,6 +210,10 @@ public class CitizenDossierService {
         Object precheckObj = deserializeFromJson(dossier.getPrecheckReport());
         Object vaultObj = deserializeFromJson(dossier.getVaultDocIds());
 
+        List<DossierEvent> timeline = (dossierEventRepository != null)
+                ? dossierEventRepository.findByDossierCodeOrderByCreatedAtAsc(cleanCode)
+                : java.util.Collections.emptyList();
+
         return DossierTrackingResponse.builder()
                 .dossierCode(dossier.getDossierCode())
                 .procedureCode(dossier.getProcedureCode())
@@ -224,6 +228,7 @@ public class CitizenDossierService {
                 .vaultDocIds(vaultObj)
                 .createdAt(dossier.getCreatedAt())
                 .updatedAt(dossier.getUpdatedAt())
+                .timeline(timeline)
                 .build();
     }
 

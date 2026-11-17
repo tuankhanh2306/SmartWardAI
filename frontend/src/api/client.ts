@@ -30,10 +30,24 @@ api.interceptors.request.use((config) => {
   const token = typeof window !== 'undefined' ? localStorage.getItem('smartward_officer_token') : null;
   if (token) {
     config.headers['Authorization'] = `Bearer ${token}`;
-    config.headers['X-Officer-Token'] = token;
   }
   return config;
 });
+
+// P3: Auto logout on 401 Unauthorized (7.7)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && typeof window !== 'undefined') {
+      localStorage.removeItem('smartward_officer_token');
+      localStorage.removeItem('smartward_officer_badge');
+      localStorage.removeItem('smartward_officer_profile');
+      localStorage.setItem('smartward_role', 'CITIZEN');
+      window.dispatchEvent(new Event('smartward_auth_logout'));
+    }
+    return Promise.reject(error);
+  }
+);
 
 // 1. Legal RAG Types & API
 export interface LegalCitation {
@@ -672,6 +686,7 @@ export interface SubmitDossierPayload {
   formData: Record<string, any>;
   precheckReport?: Record<string, any>;
   vaultDocIds?: string[];
+  idempotencyKey?: string;
 }
 
 export interface DossierSubmissionResponse {
@@ -680,6 +695,16 @@ export interface DossierSubmissionResponse {
   wardCode: string;
   status: string;
   slaDeadline: string;
+  createdAt: string;
+}
+
+export interface DossierTimelineEvent {
+  id: number;
+  dossierCode: string;
+  who: string;
+  fromStatus?: string;
+  toStatus: string;
+  reason?: string;
   createdAt: string;
 }
 
@@ -697,6 +722,7 @@ export interface DossierTrackingResponse {
   vaultDocIds?: string[];
   createdAt: string;
   updatedAt: string;
+  timeline?: DossierTimelineEvent[];
 }
 
 export interface OfficerReviewPayload {
@@ -727,12 +753,29 @@ export interface OfficerDossierItem {
 }
 
 /**
- * Submit citizen dossier to PostgreSQL backend
+ * Submit citizen dossier to PostgreSQL backend with Idempotency Key (7.4)
  */
 export const submitDossier = async (payload: SubmitDossierPayload): Promise<DossierSubmissionResponse> => {
-  const resp = await api.post<any>('/dossiers', payload);
+  const idempotencyKey = payload.idempotencyKey || `IDEMP_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+  const enrichedPayload = { ...payload, idempotencyKey };
+  const resp = await api.post<any>('/dossiers', enrichedPayload, {
+    headers: {
+      'Idempotency-Key': idempotencyKey,
+    },
+  });
   const data = resp.data?.data ? resp.data.data : resp.data;
   return data as DossierSubmissionResponse;
+};
+
+/**
+ * Submit citizen RAG answer feedback (useful / not useful) (7.4)
+ */
+export const submitRagFeedback = async (query: string, useful: boolean, comments?: string): Promise<void> => {
+  try {
+    await api.post('/rag/feedback', { query, useful, comments });
+  } catch {
+    // non-blocking
+  }
 };
 
 /**
@@ -876,8 +919,22 @@ export const getLiveSubmittedDossiers = (): LiveFormDossier[] => {
 export function saveLiveSubmittedDossier(dossier: LiveFormDossier) {
   if (typeof window === 'undefined') return;
   try {
+    // SEC-P3: Strip PII before persisting to local storage (7.3)
+    const cleanCccd = dossier.cccd ? (dossier.cccd.length >= 4 ? '********' + dossier.cccd.slice(-4) : '***') : '';
+    const sanitized: LiveFormDossier = {
+      ...dossier,
+      cccd: cleanCccd,
+      contactPhone: undefined,
+      citizenEmail: undefined,
+      vaultToken: undefined,
+      details: {
+        ...dossier.details,
+        address: '',
+        vaultToken: undefined,
+      },
+    };
     const existing = getLiveSubmittedDossiers();
-    const updated = [dossier, ...existing.filter((d) => d.id !== dossier.id)].slice(0, 50);
+    const updated = [sanitized, ...existing.filter((d) => d.id !== dossier.id)].slice(0, 50);
     localStorage.setItem(LIVE_DOSSIERS_STORAGE_KEY, JSON.stringify(updated));
   } catch {
     // ignore storage errors
@@ -921,15 +978,6 @@ export function updateLiveDossierStatus(
 export function consumeLiveDossierVaultToken(id: string): boolean {
   if (typeof window === 'undefined') return false;
   try {
-    const usedKey = 'smartward_consumed_vault_tokens_v1';
-    const rawUsed = localStorage.getItem(usedKey);
-    const usedIds: string[] = rawUsed ? JSON.parse(rawUsed) : [];
-    if (usedIds.includes(id)) {
-      return false; // Already consumed!
-    }
-    usedIds.push(id);
-    localStorage.setItem(usedKey, JSON.stringify(usedIds));
-
     const existing = getLiveSubmittedDossiers();
     const next = existing.map((d) => (d.id === id ? { ...d, vaultViewUsed: true } : d));
     localStorage.setItem(LIVE_DOSSIERS_STORAGE_KEY, JSON.stringify(next));
@@ -939,16 +987,9 @@ export function consumeLiveDossierVaultToken(id: string): boolean {
   }
 }
 
-export function isVaultTokenConsumedForDossier(id: string): boolean {
-  if (typeof window === 'undefined') return false;
-  try {
-    const usedKey = 'smartward_consumed_vault_tokens_v1';
-    const rawUsed = localStorage.getItem(usedKey);
-    const usedIds: string[] = rawUsed ? JSON.parse(rawUsed) : [];
-    return usedIds.includes(id);
-  } catch {
-    return false;
-  }
+export function isVaultTokenConsumedForDossier(_id: string): boolean {
+  // P3: Authoritative consumption state is returned by the server API (HTTP 410) (7.3)
+  return false;
 }
 
 export const precheckForm = async (data: {
@@ -962,47 +1003,6 @@ export const precheckForm = async (data: {
   address: string;
   formData: Record<string, string>;
 }): Promise<FormPrecheckResponse> => {
-  const persistDossierToOfficerQueue = (res: FormPrecheckResponse) => {
-    const rawType = (data.formType || 'CT01').toUpperCase();
-    const formLabel: LiveFormDossier['formType'] =
-      rawType === 'TK-KS'
-        ? 'Khai sinh'
-        : rawType === 'TK-KH'
-        ? 'Kết hôn'
-        : rawType === 'TK-BTXH'
-        ? 'Bảo trợ'
-        : 'CT01';
-    const procLabel =
-      rawType === 'TK-KS'
-        ? 'Đăng ký khai sinh & đối chiếu Giấy chứng sinh'
-        : rawType === 'TK-KH'
-        ? 'Đăng ký kết hôn & Xác nhận độc thân'
-        : rawType === 'TK-BTXH'
-        ? 'Trợ cấp Bảo trợ xã hội hằng tháng (NĐ 20/2021)'
-        : 'Tờ khai thay đổi thông tin cư trú (Mẫu CT01)';
-    const issues = (res.fieldValidations || [])
-      .filter((f) => !f.valid && f.errorMessage)
-      .map((f) => `${f.fieldName}: ${f.errorMessage}`);
-    const nowTime = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-    saveLiveSubmittedDossier({
-      id: `${rawType}-${Math.floor(1000 + Math.random() * 9000)}`,
-      citizenName: (data.fullName || 'CÔNG DÂN KÊ KHAI').toUpperCase(),
-      procedure: procLabel,
-      formType: formLabel,
-      submittedAt: `Vừa kiểm tra (${nowTime})`,
-      status: res.overallValid ? 'VALID' : 'HAS_ERRORS',
-      cccd: data.citizenCccd || 'Chưa điền',
-      errorCount: issues.length,
-      details: {
-        dob: data.dateOfBirth || 'Chưa cung cấp',
-        gender: data.gender || 'Nam',
-        address: data.address || 'Tỉnh An Giang',
-        confidence: 98.8,
-        issues,
-      },
-    });
-  };
-
   try {
     const resp = await api.post<any>('/forms/precheck', data);
     const raw = resp.data?.data ?? resp.data;
@@ -1027,10 +1027,9 @@ export const precheckForm = async (data: {
       processedAt: raw.processedAt || new Date().toISOString(),
       processingTimeMs: Number(raw.processingTimeMs ?? 12.4),
     };
-    persistDossierToOfficerQueue(normalized);
     return normalized;
   } catch {
-    // Client-side Deterministic Rule Engine Simulation across 4 Core Administrative Forms
+    // Client-side Deterministic Rule Engine Simulation across 4 Core Administrative Forms (7.2 Offline Draft)
     const fieldValidations: FieldValidation[] = [];
     const warnings: string[] = [];
     const formType = (data.formType || 'CT01').toUpperCase();
@@ -1348,18 +1347,21 @@ export const precheckForm = async (data: {
       );
     }
 
-    const overallValid = fieldValidations.every((f) => f.valid);
+    const overallValid = false; // Strict P3 (7.2): Offline mode never self-certifies valid
 
     const fallbackResponse: FormPrecheckResponse = {
-      submissionId: 'sub_' + Math.random().toString(36).substring(2, 10),
+      submissionId: 'DRAFT_' + Math.random().toString(36).substring(2, 10).toUpperCase(),
       procedureCode: data.procedureCode || 'TTHC-CT-01',
       overallValid,
       fieldValidations,
-      warnings,
+      warnings: [
+        '[CHẾ ĐỘ NGOẠI TUYẾN] Thiết bị hiện mất kết nối máy chủ. Báo cáo này chỉ là bản nháp nội bộ và CHƯA ĐƯỢC MÁY CHỦ XÁC THỰC.',
+        'Hệ thống không tự động nộp hồ sơ vào hàng đợi cán bộ khi chưa có xác thực từ máy chủ theo quy định.',
+        ...warnings,
+      ],
       processedAt: new Date().toISOString(),
-      processingTimeMs: 9.8,
+      processingTimeMs: 0,
     };
-    persistDossierToOfficerQueue(fallbackResponse);
     return fallbackResponse;
   }
 };
@@ -1809,37 +1811,15 @@ const DEFAULT_FALLBACK_HITL_QUEUE: HitlGrayZoneItem[] = [
 ];
 
 export const getHitlQueue = async (): Promise<HitlGrayZoneItem[]> => {
-  const getLocalHitl = (): HitlGrayZoneItem[] => {
-    if (typeof window === 'undefined') return DEFAULT_FALLBACK_HITL_QUEUE;
-    try {
-      const raw = localStorage.getItem('smartward_hitl_queue_v1');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-      }
-      localStorage.setItem('smartward_hitl_queue_v1', JSON.stringify(DEFAULT_FALLBACK_HITL_QUEUE));
-    } catch {
-      // ignore
-    }
-    return DEFAULT_FALLBACK_HITL_QUEUE;
-  };
-
   try {
     const resp = await api.get<any>('/rag/hitl-queue');
     const items = resp.data?.data ? resp.data.data : resp.data;
-    const localItems = getLocalHitl();
     if (Array.isArray(items) && items.length > 0) {
-      const merged = [
-        ...localItems.filter((l) => l.id.startsWith('HITL-LIVE-') || l.status === 'APPROVED'),
-        ...(items as HitlGrayZoneItem[]).filter(
-          (srv) => !localItems.some((l) => l.id === srv.id)
-        ),
-      ];
-      return merged;
+      return items as HitlGrayZoneItem[];
     }
-    return localItems;
+    return DEFAULT_FALLBACK_HITL_QUEUE;
   } catch {
-    return getLocalHitl();
+    return DEFAULT_FALLBACK_HITL_QUEUE;
   }
 };
 
@@ -1848,19 +1828,18 @@ export const resolveHitlItem = async (
   approvedAnswer: string,
   officerName: string
 ): Promise<HitlGrayZoneItem> => {
-  const persistResolvedLocally = (resolved: HitlGrayZoneItem) => {
-    if (typeof window === 'undefined') return;
-    try {
-      const raw = localStorage.getItem('smartward_hitl_queue_v1');
-      const current: HitlGrayZoneItem[] = raw ? JSON.parse(raw) : DEFAULT_FALLBACK_HITL_QUEUE;
-      const exists = current.some((i) => i.id === id);
-      const next = exists
-        ? current.map((i) => (i.id === id ? resolved : i))
-        : [resolved, ...current];
-      localStorage.setItem('smartward_hitl_queue_v1', JSON.stringify(next));
-    } catch {
-      // ignore
-    }
+  const fallbackItem: HitlGrayZoneItem = {
+    id,
+    query: 'Câu hỏi vùng xám cần phê duyệt',
+    wardName: 'UBND Cấp Xã',
+    similarityScore: 0.65,
+    candidateChunkCode: 'TTHC-RESOLVED',
+    candidateProcedureName: 'Thủ tục hành chính',
+    legalReference: 'Quy định pháp luật hiện hành',
+    suggestedAnswer: approvedAnswer,
+    status: 'APPROVED',
+    createdAt: new Date().toISOString(),
+    resolvedBy: officerName,
   };
 
   try {
@@ -1869,30 +1848,9 @@ export const resolveHitlItem = async (
       officerName,
     });
     const resItem = (resp.data?.data ? resp.data.data : resp.data) as HitlGrayZoneItem;
-    persistResolvedLocally(resItem);
-    return resItem;
+    return resItem || fallbackItem;
   } catch {
-    let baseItem = DEFAULT_FALLBACK_HITL_QUEUE.find((i) => i.id === id);
-    if (!baseItem && typeof window !== 'undefined') {
-      try {
-        const raw = localStorage.getItem('smartward_hitl_queue_v1');
-        if (raw) {
-          const list: HitlGrayZoneItem[] = JSON.parse(raw);
-          baseItem = list.find((i) => i.id === id);
-        }
-      } catch {
-        // ignore
-      }
-    }
-    const resolved: HitlGrayZoneItem = {
-      ...(baseItem || DEFAULT_FALLBACK_HITL_QUEUE[0]),
-      id,
-      suggestedAnswer: approvedAnswer,
-      status: 'APPROVED',
-      resolvedBy: officerName,
-    };
-    persistResolvedLocally(resolved);
-    return resolved;
+    return fallbackItem;
   }
 };
 

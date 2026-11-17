@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { askLegalRag, type RagResponse, type LegalCitation } from '../api/client';
+import { askLegalRag, submitRagFeedback, type RagResponse, type LegalCitation } from '../api/client';
 import { useNavigate } from 'react-router-dom';
 import { useWard } from '../context/WardContext';
 import { useAccessibility } from '../context/AccessibilityContext';
@@ -26,6 +26,9 @@ import {
   Layers,
   ExternalLink,
   PhoneCall,
+  Phone,
+  ThumbsUp,
+  ThumbsDown,
   Calendar,
   FileText,
   Scale,
@@ -49,6 +52,7 @@ interface ChatMessage {
   ragData?: RagResponse;
   timestamp: string;
   suggestions?: string[];
+  feedbackSent?: 'useful' | 'not-useful';
 }
 
 interface StructuredBotMessageProps {
@@ -1325,90 +1329,163 @@ export const CitizenPortal: React.FC = () => {
 
                   {/* Bot Interactive Action Dock & Citations */}
                   {msg.sender === 'bot' && (
-                    <div className="mt-2.5 pt-2 border-t border-teal-100 flex flex-wrap items-center justify-between gap-2 text-xs text-[#64748B]">
-                      {/* Clean Timestamp */}
-                      <span className="flex items-center gap-1.5 font-mono text-[11px] text-[#00796B]">
-                        <Clock className="w-3.5 h-3.5 text-[#00796B]" />
-                        {msg.timestamp}
-                      </span>
+                    <>
+                      {/* P3: Clear Safe Abstention State Banner with Direct Call & Map Links (7.4) */}
+                      {msg.ragData?.abstained && (
+                        <div className="mt-2.5 p-3 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                            <span>Hệ thống chưa đủ căn cứ pháp lý để trả lời. Bà con vui lòng liên hệ Bộ phận Một cửa:</span>
+                          </div>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <a
+                              href={`tel:${currentWard.phoneNumber}`}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 font-semibold text-amber-900 transition"
+                            >
+                              <Phone className="w-3.5 h-3.5" />
+                              <span>{currentWard.phoneNumber}</span>
+                            </a>
+                            <a
+                              href={`https://maps.google.com/?q=${encodeURIComponent(currentWard.officeAddress)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white border border-amber-300 hover:bg-amber-100 font-semibold text-amber-900 transition"
+                            >
+                              <MapPin className="w-3.5 h-3.5" />
+                              <span>Chỉ đường</span>
+                            </a>
+                          </div>
+                        </div>
+                      )}
 
-                      {/* Action Buttons: Citations (if present), TTS & Copy */}
-                      <div className="flex items-center gap-2">
-                        {/* Legal Citations Drawer Button */}
-                        {msg.ragData?.citations && msg.ragData.citations.length > 0 && (
+                      <div className="mt-2.5 pt-2 border-t border-teal-100 flex flex-wrap items-center justify-between gap-2 text-xs text-[#64748B]">
+                        {/* Clean Timestamp */}
+                        <span className="flex items-center gap-1.5 font-mono text-[11px] text-[#00796B]">
+                          <Clock className="w-3.5 h-3.5 text-[#00796B]" />
+                          {msg.timestamp}
+                        </span>
+
+                        {/* Action Buttons: Citations, TTS, Feedback & Copy */}
+                        <div className="flex items-center gap-2">
+                          {/* Legal Citations Drawer Button */}
+                          {msg.ragData?.citations && msg.ragData.citations.length > 0 && (
+                            <button
+                              type="button"
+                              onClick={() => setActiveCitation(msg.ragData!.citations[0])}
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-[#00796B] text-xs font-semibold transition active:scale-95 cursor-pointer shadow-2xs border border-teal-200"
+                            >
+                              <BookOpen className="w-3.5 h-3.5" />
+                              <span>Căn cứ pháp lý ({msg.ragData.citations.length})</span>
+                            </button>
+                          )}
+
+                          {/* Text-To-Speech Button */}
                           <button
                             type="button"
-                            onClick={() => setActiveCitation(msg.ragData!.citations[0])}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-teal-50 hover:bg-teal-100 text-[#00796B] text-xs font-semibold transition active:scale-95 cursor-pointer shadow-2xs border border-teal-200"
+                            onClick={() => toggleSpeech(msg.text, msg.id)}
+                            className={`group inline-flex items-center gap-1.5 font-bold text-xs px-2.5 py-1.5 rounded-xl border transition-all duration-150 cursor-pointer shadow-2xs select-none active:scale-95 ${
+                              speakingId === msg.id
+                                ? 'bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] border-[#FCA5A5] ring-2 ring-[#FECACA]'
+                                : 'bg-[#F0FDFA] hover:bg-[#CCFBF1] text-[#00796B] border-[#99F6E4]'
+                            }`}
+                            title={
+                              speakingId === msg.id
+                                ? 'Chế độ: ĐANG MỞ ĐỌC. Bấm vào để TẮT ngay'
+                                : 'Chế độ: ĐANG TẮT. Bấm vào để MỞ nghe đọc to bằng giọng nói tiếng Việt'
+                            }
+                            aria-label={
+                              speakingId === msg.id
+                                ? 'Tắt nghe đọc to'
+                                : 'Mở nghe đọc to'
+                            }
                           >
-                            <BookOpen className="w-3.5 h-3.5" />
-                            <span>Căn cứ pháp lý ({msg.ragData.citations.length})</span>
+                            {speakingId === msg.id ? (
+                              <>
+                                <span className="relative flex h-2 w-2">
+                                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#EF4444] opacity-75"></span>
+                                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#DC2626]"></span>
+                                </span>
+                                <VolumeX className="w-3.5 h-3.5 text-[#DC2626]" />
+                                <span className="font-extrabold text-[#B91C1C]">Đang đọc...</span>
+                                <span className="ml-0.5 px-2 py-0.5 rounded-md bg-[#DC2626] text-white text-[10px] font-black uppercase tracking-wider shadow-2xs">
+                                  TẮT
+                                </span>
+                              </>
+                            ) : (
+                              <>
+                                <Volume2 className="w-3.5 h-3.5 text-[#00796B] group-hover:scale-110 transition-transform" />
+                                <span>Nghe đọc to</span>
+                                <span className="ml-0.5 px-2 py-0.5 rounded-md bg-[#00796B] text-white text-[10px] font-black uppercase tracking-wider shadow-2xs">
+                                  MỞ
+                                </span>
+                              </>
+                            )}
                           </button>
-                        )}
 
-                        {/* Text-To-Speech Button (2 Chế độ Rõ Ràng: MỞ & TẮT để nghe và tắt khi cần) */}
-                        <button
-                          type="button"
-                          onClick={() => toggleSpeech(msg.text, msg.id)}
-                          className={`group inline-flex items-center gap-1.5 font-bold text-xs px-2.5 py-1.5 rounded-xl border transition-all duration-150 cursor-pointer shadow-2xs select-none active:scale-95 ${
-                            speakingId === msg.id
-                              ? 'bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#DC2626] border-[#FCA5A5] ring-2 ring-[#FECACA]'
-                              : 'bg-[#F0FDFA] hover:bg-[#CCFBF1] text-[#00796B] border-[#99F6E4]'
-                          }`}
-                          title={
-                            speakingId === msg.id
-                              ? 'Chế độ: ĐANG MỞ ĐỌC. Bấm vào để TẮT ngay'
-                              : 'Chế độ: ĐANG TẮT. Bấm vào để MỞ nghe đọc to bằng giọng nói tiếng Việt'
-                          }
-                          aria-label={
-                            speakingId === msg.id
-                              ? 'Tắt nghe đọc to'
-                              : 'Mở nghe đọc to'
-                          }
-                        >
-                          {speakingId === msg.id ? (
-                            <>
-                              <span className="relative flex h-2 w-2">
-                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#EF4444] opacity-75"></span>
-                                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#DC2626]"></span>
-                              </span>
-                              <VolumeX className="w-3.5 h-3.5 text-[#DC2626]" />
-                              <span className="font-extrabold text-[#B91C1C]">Đang đọc...</span>
-                              <span className="ml-0.5 px-2 py-0.5 rounded-md bg-[#DC2626] text-white text-[10px] font-black uppercase tracking-wider shadow-2xs">
-                                TẮT
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              <Volume2 className="w-3.5 h-3.5 text-[#00796B] group-hover:scale-110 transition-transform" />
-                              <span>Nghe đọc to</span>
-                              <span className="ml-0.5 px-2 py-0.5 rounded-md bg-[#00796B] text-white text-[10px] font-black uppercase tracking-wider shadow-2xs">
-                                MỞ
-                              </span>
-                            </>
-                          )}
-                        </button>
+                          {/* P3: RAG Feedback Buttons 👍 / 👎 (7.4) */}
+                          <div className="flex items-center gap-1 pl-1.5 border-l border-teal-200">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                submitRagFeedback(msg.text, true);
+                                setMessages((prev) =>
+                                  prev.map((m) => (m.id === msg.id ? { ...m, feedbackSent: 'useful' } : m))
+                                );
+                              }}
+                              className={`p-1 rounded-md transition cursor-pointer ${
+                                msg.feedbackSent === 'useful'
+                                  ? 'bg-teal-100 text-[#00796B]'
+                                  : 'hover:bg-slate-100 text-slate-500 hover:text-[#00796B]'
+                              }`}
+                              title="Câu trả lời hữu ích"
+                              aria-label="Câu trả lời hữu ích"
+                            >
+                              <ThumbsUp className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                submitRagFeedback(msg.text, false);
+                                setMessages((prev) =>
+                                  prev.map((m) => (m.id === msg.id ? { ...m, feedbackSent: 'not-useful' } : m))
+                                );
+                              }}
+                              className={`p-1 rounded-md transition cursor-pointer ${
+                                msg.feedbackSent === 'not-useful'
+                                  ? 'bg-rose-100 text-rose-600'
+                                  : 'hover:bg-slate-100 text-slate-500 hover:text-rose-600'
+                              }`}
+                              title="Câu trả lời chưa đúng ý"
+                              aria-label="Câu trả lời chưa đúng ý"
+                            >
+                              <ThumbsDown className="w-3.5 h-3.5" />
+                            </button>
+                            {msg.feedbackSent && (
+                              <span className="text-[10px] text-teal-700 font-medium ml-0.5">Cảm ơn!</span>
+                            )}
+                          </div>
 
-                        {/* Copy to clipboard */}
-                        <button
-                          type="button"
-                          onClick={() => copyToClipboard(msg.text, msg.id)}
-                          className="hover:text-[#00796B] flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-slate-100 active:scale-90 transition font-medium cursor-pointer"
-                        >
-                          {copiedId === msg.id ? (
-                            <>
-                              <Check className="w-3.5 h-3.5 text-[#10B981]" />
-                              <span className="text-[#10B981] font-bold">Đã chép</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3.5 h-3.5" />
-                              <span>Sao chép</span>
-                            </>
-                          )}
-                        </button>
+                          {/* Copy to clipboard */}
+                          <button
+                            type="button"
+                            onClick={() => copyToClipboard(msg.text, msg.id)}
+                            className="hover:text-[#00796B] flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-slate-100 active:scale-90 transition font-medium cursor-pointer"
+                          >
+                            {copiedId === msg.id ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-[#10B981]" />
+                                <span className="text-[#10B981] font-bold">Đã chép</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3.5 h-3.5" />
+                                <span>Sao chép</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
                       </div>
-                    </div>
+                    </>
                   )}
                 </div>
 
