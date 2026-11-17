@@ -25,11 +25,20 @@ export const RoleGateway: React.FC = () => {
   // If already authenticated and within session, redirect to corresponding space
   useEffect(() => {
     if (isOfficer) {
-      navigate(`/officer/ward/${currentWard.code}`, { replace: true });
+      const savedBadge = localStorage.getItem('smartward_officer_badge') || '';
+      let targetCode = currentWard.code;
+      if (savedBadge.startsWith('CB-')) {
+        targetCode = savedBadge.substring(3);
+        const w = allWards.find((x) => x.code === targetCode);
+        if (w && w.code !== currentWard.code) {
+          setWard(w);
+        }
+      }
+      navigate(`/officer/ward/${targetCode}`, { replace: true });
     } else if (isCitizen) {
       navigate('/citizen', { replace: true });
     }
-  }, [role, isOfficer, isCitizen, currentWard.code, navigate]);
+  }, [role, isOfficer, isCitizen, currentWard.code, allWards, setWard, navigate]);
 
   // Mode: 'choice' (2 big buttons) or 'officer_form' (account inputs)
   const [mode, setMode] = useState<'choice' | 'officer_form'>('choice');
@@ -56,7 +65,16 @@ export const RoleGateway: React.FC = () => {
     try {
       const ok = await loginOfficer(badgeId, pin);
       if (ok) {
-        navigate(`/officer/ward/${currentWard.code}`, { replace: true });
+        const norm = badgeId.trim().toUpperCase();
+        let targetCode = currentWard.code;
+        if (norm.startsWith('CB-')) {
+          targetCode = norm.substring(3);
+          const w = allWards.find((x) => x.code === targetCode);
+          if (w && w.code !== currentWard.code) {
+            setWard(w);
+          }
+        }
+        navigate(`/officer/ward/${targetCode}`, { replace: true });
       } else {
         setOfficerError('Mã thẻ hoặc mã PIN không chính xác.');
       }
