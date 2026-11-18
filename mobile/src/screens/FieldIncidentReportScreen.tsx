@@ -1,10 +1,10 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { MapPinned } from 'lucide-react-native';
+import { MapPin } from 'lucide-react-native';
 import { useAccessibility } from '../context/AccessibilityContext';
 import { useWard } from '../context/WardContext';
 import { useResponsivePhone } from '../theme/responsive';
-import { COLORS, DOMAIN_THRESHOLDS, RADIUS, SPACING } from '../theme/tokens';
+import { COLORS, RADIUS, SPACING } from '../theme/tokens';
 
 export const FieldIncidentReportScreen: React.FC = () => {
   const { currentWard } = useWard();
@@ -20,23 +20,14 @@ export const FieldIncidentReportScreen: React.FC = () => {
       ]}
     >
       <View style={[styles.card, { padding: responsive.cardPadding }]}>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>CHẶNG M4 • GPS TRIAGE 25M</Text>
-        </View>
         <View style={styles.iconRow}>
           <View style={styles.iconBox}>
-            <MapPinned size={20} color={COLORS.citizenCrimson} />
+            <MapPin size={20} color={COLORS.citizenCrimson} />
           </View>
-          <Text style={[styles.title, typography.headingLg]}>
-            Báo Cáo Sự Cố Hiện Trường GPS 25m
-          </Text>
+          <Text style={[styles.title, typography.headingLg]}>Báo cáo sự cố</Text>
         </View>
         <Text style={[styles.body, typography.bodyMd]}>
-          Tự động định tuyến liên xã/phường theo tọa độ thực tế hoặc ô địa chỉ về đúng UBND tiếp nhận (mặc định {currentWard.name}).
-        </Text>
-        <Text style={[styles.meta, typography.captionSm]}>
-          Gom cụm không gian R = {DOMAIN_THRESHOLDS.gpsClusterRadiusMeters}m • Ngữ nghĩa τ ={' '}
-          {DOMAIN_THRESHOLDS.semanticClusterThreshold} • Hàng đợi Offline khi mất sóng 4G.
+          Gửi phản ánh đường hư hỏng, ngập nước, đèn đường hoặc môi trường kèm vị trí GPS về {currentWard.name}.
         </Text>
       </View>
     </ScrollView>
@@ -45,7 +36,7 @@ export const FieldIncidentReportScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: COLORS.citizenSurface },
-  content: { paddingVertical: SPACING.md, gap: SPACING.md },
+  content: { paddingVertical: SPACING.md },
   card: {
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.xl,
@@ -53,16 +44,6 @@ const styles = StyleSheet.create({
     borderColor: COLORS.borderSubtle,
     gap: SPACING.sm,
   },
-  badge: {
-    alignSelf: 'flex-start',
-    backgroundColor: COLORS.citizenCrimsonSoftBg,
-    borderWidth: 1,
-    borderColor: COLORS.citizenCrimsonSoftBorder,
-    borderRadius: RADIUS.full,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-  },
-  badgeText: { color: COLORS.citizenBubble, fontSize: 11, fontWeight: '800' },
   iconRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
   iconBox: {
     width: 36,
@@ -74,5 +55,4 @@ const styles = StyleSheet.create({
   },
   title: { color: COLORS.textPrimary, flex: 1 },
   body: { color: COLORS.textSecondary },
-  meta: { color: COLORS.citizenBubble, fontWeight: '700' },
 });

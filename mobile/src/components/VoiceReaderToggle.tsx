@@ -1,14 +1,14 @@
 /**
- * SmartWard AI Mobile — Nút Đọc Giọng Nói Tiếng Việt 2 Chế độ (VoiceReaderToggle)
- * - Trạng thái 1 (OFF — Mặc định): Nền #FFFFFF, viền #A7F3D0, chữ #065F46, nhãn "🔊 Nghe đọc to" + badge #00796B chữ trắng "MỞ"
- * - Trạng thái 2 (ON — Đang đọc):  Nền #FEF2F2, viền #FCA5A5, chữ #DC2626, nhãn "🔇 Đang đọc..." + badge #DC2626 chữ trắng "TẮT"
+ * SmartWard AI Mobile — Nút Đọc Giọng Nói Tiếng Việt 2 Chế độ (Tối giản, gọn đẹp)
+ * - OFF: Nền #FFFFFF, viền #A7F3D0, chữ #065F46, badge #00796B "MỞ"
+ * - ON:  Nền #FEF2F2, viền #FCA5A5, chữ #DC2626, badge #DC2626 "TẮT"
  */
 
 import React, { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Volume2, VolumeX } from 'lucide-react-native';
 import { useAccessibility } from '../context/AccessibilityContext';
-import { COLORS, MIN_TOUCH_TARGET, RADIUS, SPACING } from '../theme/tokens';
+import { COLORS, RADIUS, SPACING } from '../theme/tokens';
 
 export interface VoiceReaderToggleProps {
   itemId: string;
@@ -19,12 +19,11 @@ export const VoiceReaderToggle: React.FC<VoiceReaderToggleProps> = ({
   itemId,
   textToRead,
 }) => {
-  const { isSpeaking, speakingId, speakVietnamese, stopSpeaking, typography } =
+  const { isSpeaking, speakingId, speakVietnamese, stopSpeaking } =
     useAccessibility();
 
   const isActive = isSpeaking && speakingId === itemId;
 
-  // Cleanup: never leave TTS speaking after component unmounts
   useEffect(() => {
     return () => {
       if (speakingId === itemId) {
@@ -45,9 +44,7 @@ export const VoiceReaderToggle: React.FC<VoiceReaderToggleProps> = ({
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ selected: isActive }}
-      accessibilityLabel={
-        isActive ? 'Đang đọc to câu trả lời. Nhấn để tắt.' : 'Nghe đọc to câu trả lời bằng tiếng Việt.'
-      }
+      accessibilityLabel={isActive ? 'Tắt đọc giọng nói' : 'Nghe đọc to tiếng Việt'}
       onPress={handleToggle}
       style={({ pressed }) => [
         styles.button,
@@ -55,22 +52,14 @@ export const VoiceReaderToggle: React.FC<VoiceReaderToggleProps> = ({
         pressed && styles.buttonPressed,
       ]}
     >
-      <View style={styles.leftRow}>
-        {isActive ? (
-          <VolumeX size={18} color={COLORS.errorAccent} />
-        ) : (
-          <Volume2 size={18} color={COLORS.successText} />
-        )}
-        <Text
-          style={[
-            typography.bodyBold,
-            isActive ? styles.labelActive : styles.labelIdle,
-          ]}
-        >
-          {isActive ? '🔇 Đang đọc...' : '🔊 Nghe đọc to'}
-        </Text>
-      </View>
-
+      {isActive ? (
+        <VolumeX size={15} color={COLORS.errorAccent} />
+      ) : (
+        <Volume2 size={15} color={COLORS.successText} />
+      )}
+      <Text style={[styles.label, isActive ? styles.labelActive : styles.labelIdle]}>
+        {isActive ? 'Đang đọc' : 'Nghe'}
+      </Text>
       <View style={[styles.badge, isActive ? styles.badgeActive : styles.badgeIdle]}>
         <Text style={styles.badgeText}>{isActive ? 'TẮT' : 'MỞ'}</Text>
       </View>
@@ -80,52 +69,52 @@ export const VoiceReaderToggle: React.FC<VoiceReaderToggleProps> = ({
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: MIN_TOUCH_TARGET,
+    minHeight: 36,
     borderRadius: RADIUS.full,
-    borderWidth: 1.25,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.xs,
+    borderWidth: 1,
+    paddingLeft: SPACING.sm + 2,
+    paddingRight: 4,
+    paddingVertical: 3,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: SPACING.sm,
+    gap: 6,
+    alignSelf: 'flex-start',
   },
   buttonIdle: {
     backgroundColor: COLORS.card,
-    borderColor: COLORS.successBorder, // #A7F3D0
+    borderColor: COLORS.successBorder,
   },
   buttonActive: {
-    backgroundColor: COLORS.errorBg, // #FEF2F2
-    borderColor: COLORS.errorBorder, // #FCA5A5
+    backgroundColor: COLORS.errorBg,
+    borderColor: COLORS.errorBorder,
   },
   buttonPressed: {
     opacity: 0.85,
   },
-  leftRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: SPACING.xs,
+  label: {
+    fontSize: 12.5,
+    fontWeight: '700',
   },
   labelIdle: {
-    color: COLORS.successText, // #065F46
+    color: COLORS.successText,
   },
   labelActive: {
-    color: COLORS.errorAccent, // #DC2626
+    color: COLORS.errorAccent,
   },
   badge: {
     borderRadius: RADIUS.full,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
   badgeIdle: {
-    backgroundColor: COLORS.primary, // #00796B
+    backgroundColor: COLORS.primary,
   },
   badgeActive: {
-    backgroundColor: COLORS.errorAccent, // #DC2626
+    backgroundColor: COLORS.errorAccent,
   },
   badgeText: {
     color: COLORS.onPrimary,
-    fontSize: 12,
+    fontSize: 10.5,
     fontWeight: '800',
   },
 });

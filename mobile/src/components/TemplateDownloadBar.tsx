@@ -1,19 +1,16 @@
 /**
  * SmartWard AI Mobile — Thanh Tải Biểu Mẫu Trực Tiếp (.DOCX & .PDF)
- * Responsive cho mọi cỡ màn hình (tự xếp dọc trên Tiny Phone < 350dp hoặc cỡ chữ A++ để không bao giờ cắt chữ)
- * TUYỆT ĐỐI KHÔNG có nút In (No Print Dialogs).
+ * Gọn nhẹ 1 hàng, 0 chữ mô tả rườm rà, TUYỆT ĐỐI 0 nút In (No Print Dialogs).
  */
 
 import React, { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Download, FileText } from 'lucide-react-native';
-import { useAccessibility } from '../context/AccessibilityContext';
 import {
   exportTemplateDocument,
   getTemplateFileDescriptor,
 } from '../core/templateExporter';
-import { useResponsivePhone } from '../theme/responsive';
-import { COLORS, MIN_TOUCH_TARGET, RADIUS, SPACING } from '../theme/tokens';
+import { COLORS, RADIUS, SPACING } from '../theme/tokens';
 import type { CoreFormType } from '../types/api.types';
 
 export interface TemplateDownloadBarProps {
@@ -31,8 +28,6 @@ export const TemplateDownloadBar: React.FC<TemplateDownloadBarProps> = ({
   formType,
   legalBasis,
 }) => {
-  const { typography, fontScaleMode } = useAccessibility();
-  const responsive = useResponsivePhone(fontScaleMode);
   const [busyFormat, setBusyFormat] = useState<'DOCX' | 'PDF' | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -42,8 +37,6 @@ export const TemplateDownloadBar: React.FC<TemplateDownloadBarProps> = ({
     formType,
     legalBasis
   );
-
-  const stackVertically = responsive.isTinyPhone || fontScaleMode === 'A++';
 
   const handleDownload = async (format: 'DOCX' | 'PDF') => {
     setBusyFormat(format);
@@ -55,11 +48,7 @@ export const TemplateDownloadBar: React.FC<TemplateDownloadBarProps> = ({
 
   return (
     <View style={styles.wrapper}>
-      <Text style={[styles.caption, typography.captionSm]}>
-        Tải trực tiếp biểu mẫu chuẩn Nghị định 30/2020/NĐ-CP về máy (Miễn phí 100%):
-      </Text>
-
-      <View style={[styles.row, stackVertically && styles.column]}>
+      <View style={styles.row}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Tải mẫu DOCX ${descriptor.docxFileName}`}
@@ -67,18 +56,15 @@ export const TemplateDownloadBar: React.FC<TemplateDownloadBarProps> = ({
           onPress={() => {
             void handleDownload('DOCX');
           }}
-          style={({ pressed }) => [
-            styles.btnDocx,
-            pressed && styles.btnPressed,
-          ]}
+          style={({ pressed }) => [styles.btnDocx, pressed && styles.btnPressed]}
         >
           {busyFormat === 'DOCX' ? (
             <ActivityIndicator size="small" color={COLORS.primary} />
           ) : (
-            <FileText size={16} color={COLORS.primary} />
+            <FileText size={15} color={COLORS.primary} />
           )}
-          <Text style={[styles.btnDocxText, typography.bodyBold]} numberOfLines={1}>
-            📄 Tải Mẫu .DOCX
+          <Text style={styles.btnDocxText} numberOfLines={1}>
+            Tải .DOCX
           </Text>
         </Pressable>
 
@@ -89,24 +75,21 @@ export const TemplateDownloadBar: React.FC<TemplateDownloadBarProps> = ({
           onPress={() => {
             void handleDownload('PDF');
           }}
-          style={({ pressed }) => [
-            styles.btnPdf,
-            pressed && styles.btnPressed,
-          ]}
+          style={({ pressed }) => [styles.btnPdf, pressed && styles.btnPressed]}
         >
           {busyFormat === 'PDF' ? (
             <ActivityIndicator size="small" color={COLORS.onPrimary} />
           ) : (
-            <Download size={16} color={COLORS.onPrimary} />
+            <Download size={15} color={COLORS.onPrimary} />
           )}
-          <Text style={[styles.btnPdfText, typography.bodyBold]} numberOfLines={1}>
-            📥 Tải Mẫu .PDF
+          <Text style={styles.btnPdfText} numberOfLines={1}>
+            Tải .PDF
           </Text>
         </Pressable>
       </View>
 
       {statusMessage ? (
-        <Text style={[styles.statusText, typography.captionSm]}>
+        <Text style={styles.statusText} numberOfLines={2}>
           ✓ {statusMessage}
         </Text>
       ) : null}
@@ -116,22 +99,15 @@ export const TemplateDownloadBar: React.FC<TemplateDownloadBarProps> = ({
 
 const styles = StyleSheet.create({
   wrapper: {
-    gap: SPACING.sm,
-    marginTop: SPACING.xs,
-  },
-  caption: {
-    color: COLORS.textMuted,
+    gap: 6,
   },
   row: {
     flexDirection: 'row',
     gap: SPACING.sm,
   },
-  column: {
-    flexDirection: 'column',
-  },
   btnDocx: {
     flex: 1,
-    minHeight: MIN_TOUCH_TARGET,
+    minHeight: 42,
     backgroundColor: COLORS.primarySubtle,
     borderWidth: 1,
     borderColor: COLORS.primaryBorder,
@@ -144,7 +120,7 @@ const styles = StyleSheet.create({
   },
   btnPdf: {
     flex: 1,
-    minHeight: MIN_TOUCH_TARGET,
+    minHeight: 42,
     backgroundColor: COLORS.primary,
     borderRadius: RADIUS.md,
     paddingHorizontal: SPACING.sm,
@@ -158,12 +134,17 @@ const styles = StyleSheet.create({
   },
   btnDocxText: {
     color: COLORS.primary,
+    fontSize: 13,
+    fontWeight: '700',
   },
   btnPdfText: {
     color: COLORS.onPrimary,
+    fontSize: 13,
+    fontWeight: '700',
   },
   statusText: {
     color: COLORS.successText,
+    fontSize: 12,
     fontWeight: '600',
   },
 });
