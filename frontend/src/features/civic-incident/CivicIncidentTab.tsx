@@ -59,12 +59,12 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
         <section className="flex flex-col gap-5 animate-fadeIn">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
             {/* LEFT COLUMN (6 Cols / 50%): Compact Citizen Incident Form */}
-            <div className="lg:col-span-6 p-5 sm:p-6 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-5">
+            <div className="lg:col-span-6 p-5 sm:p-6 rounded-2xl bg-white border border-slate-200/80 shadow-[0_6px_28px_rgba(15,23,42,0.05)] flex flex-col gap-5">
               {/* STEP 1: LOCATION & MANUAL OVERRIDE GUARD */}
               <div className="flex flex-col gap-3 p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="text-xs sm:text-sm font-extrabold text-[#004D40] flex items-center gap-1.5">
-                    <Navigation className="w-4 h-4 text-[#991B1B]" />
+                  <div className="text-xs sm:text-sm font-extrabold text-[#881320] flex items-center gap-1.5">
+                    <Navigation className="w-4 h-4 text-[#B90E23]" />
                     <span>1. Địa Điểm Sự Cố Hiện Trường</span>
                   </div>
                   <button
@@ -74,7 +74,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                       handleGetLocation(false);
                     }}
                     disabled={gpsLoading}
-                    className="px-3 py-1.5 rounded-xl bg-[#00695C] hover:bg-[#004D40] text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition cursor-pointer disabled:opacity-60 gov-focus-ring"
+                    className="px-3 py-1.5 rounded-xl bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition cursor-pointer disabled:opacity-60 gov-focus-ring"
                   >
                     <MapPin className="w-3.5 h-3.5" />
                     <span>{gpsLoading ? 'Đang định vị...' : 'Lấy Lại Vị Trí GPS'}</span>
@@ -94,7 +94,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                         key={w.code}
                         type="button"
                         onClick={() => handleSimulateCrossWardGps(w.code, w.officeAddress)}
-                        className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#004D40] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer gov-focus-ring"
+                        className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#FEF2F2] text-[#750715] border border-[#CBD5E1] hover:border-[#FECACA] text-[11px] font-bold transition cursor-pointer gov-focus-ring"
                       >
                         {w.name}
                       </button>
@@ -123,7 +123,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                     <label htmlFor="p4-address-text" className="font-bold">
                       Địa chỉ sự cố (Tự động điền từ GPS — có thể sửa tay):
                     </label>
-                    <span className="text-[#004D40] font-semibold">
+                    <span className="text-[#9F0C1E] font-semibold">
                       {locationSource === 'manual_pin' ? 'Đã kéo ghim bản đồ' : 'Định vị GIS'}
                     </span>
                   </div>
@@ -133,7 +133,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                     value={addressText}
                     onChange={(e) => setAddressText(e.target.value)}
                     placeholder="Nhập địa chỉ cụ thể kèm tên Xã/Phường (VD: Đường Phan Văn Vàng, Phường Châu Đốc)..."
-                    className="w-full h-10 px-3.5 rounded-xl bg-white border border-[#CBD5E1] text-xs md:text-sm font-semibold text-[#0F172A] focus:outline-none focus:border-[#00695C] shadow-2xs"
+                    className="w-full h-10 px-3.5 rounded-xl bg-white border border-[#CBD5E1] text-xs md:text-sm font-semibold text-[#0F172A] focus:outline-none focus:border-[#B90E23] shadow-2xs"
                   />
                 </div>
 
@@ -155,7 +155,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                       <button
                         type="button"
                         onClick={() => setManualWardCode('')}
-                        className="text-[11px] font-bold text-[#004D40] underline cursor-pointer"
+                        className="text-[11px] font-bold text-[#9F0C1E] underline cursor-pointer"
                       >
                         Dùng định vị tự động lại
                       </button>
@@ -209,8 +209,8 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                         onClick={() => setCategory(cat.id)}
                         className={`py-2 px-2.5 rounded-xl text-xs font-semibold border transition cursor-pointer gov-focus-ring ${
                           category === cat.id
-                            ? 'bg-[#00695C] text-white border-[#00695C] shadow-xs'
-                            : 'bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#334155] border-[#CBD5E1]'
+                            ? 'bg-[#B90E23] text-white border-[#8F0A1B] shadow-xs'
+                            : 'bg-[#F8FAFC] hover:bg-[#FEF2F2] text-[#334155] border-[#CBD5E1]'
                         }`}
                       >
                         {cat.label}
@@ -238,7 +238,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                           urgency === u.id
                             ? u.id === 'HIGH'
                               ? 'bg-[#DC2626] text-white border-[#DC2626] shadow-xs'
-                              : 'bg-[#00695C] text-white border-[#00695C] shadow-xs'
+                              : 'bg-[#B90E23] text-white border-[#8F0A1B] shadow-xs'
                             : 'bg-white text-[#334155] border-[#CBD5E1] hover:bg-[#F8FAFC]'
                         }`}
                       >
@@ -258,7 +258,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
-                    className="w-full p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00695C] focus:bg-white resize-none transition-all"
+                    className="w-full p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#B90E23] focus:bg-white resize-none transition-all"
                     placeholder="Mô tả mức độ nguy hiểm, kích thước, ảnh hưởng đến người đi đường..."
                   />
                 </div>
@@ -268,10 +268,10 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
               <div className="flex flex-col gap-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1]">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <label htmlFor="p4-reporter-phone" className="text-xs sm:text-sm font-extrabold text-[#0F172A] flex items-center gap-1.5">
-                    <PhoneCall className="w-4 h-4 text-[#00695C]" />
+                    <PhoneCall className="w-4 h-4 text-[#B90E23]" />
                     <span>3. Số Điện Thoại Liên Hệ</span>
                   </label>
-                  <span className="px-2 py-0.5 rounded-full bg-[#CCFBF1] text-[#004D40] text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded-full bg-[#F7EEDF] text-[#750715] border border-[#E5D4B3] text-[10px] font-bold">
                     Tùy chọn • Không bắt buộc
                   </span>
                 </div>
@@ -294,7 +294,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                       ? 'border-[#DC2626] ring-2 ring-[#FECACA]'
                       : reporterPhone.trim() && isValidPhone(reporterPhone)
                       ? 'border-[#16A34A]'
-                      : 'border-[#CBD5E1] focus:border-[#00695C]'
+                      : 'border-[#CBD5E1] focus:border-[#B90E23]'
                   }`}
                 />
 
@@ -318,7 +318,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                 <span className="text-xs text-[#475569] font-medium">
                   {resolvedJurisdiction.canAutoRoute && resolvedJurisdiction.ward ? (
                     <>
-                      Nơi nhận: <strong className="text-[#004D40]">UBND {resolvedJurisdiction.ward.name}</strong>
+                      Nơi nhận: <strong className="text-[#750715]">UBND {resolvedJurisdiction.ward.name}</strong>
                     </>
                   ) : (
                     <strong className="text-[#92400E]">Chưa xác định được xã, vui lòng chọn thủ công</strong>
@@ -328,7 +328,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                   type="button"
                   onClick={handleReport}
                   disabled={reportLoading || !resolvedJurisdiction.canAutoRoute || !resolvedJurisdiction.ward}
-                  className="w-full sm:w-auto px-6 py-3 bg-[#DC2626] hover:bg-[#B91C1C] disabled:bg-[#94A3B8] active:scale-[0.98] text-white rounded-xl font-bold text-xs sm:text-sm shadow-sm flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:cursor-not-allowed gov-focus-ring"
+                  className="w-full sm:w-auto px-6 py-3 bg-[#B90E23] hover:bg-[#8F0A1B] disabled:bg-[#94A3B8] active:scale-[0.98] text-white rounded-xl font-bold text-xs sm:text-sm shadow-sm flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:cursor-not-allowed gov-focus-ring"
                 >
                   {reportLoading ? (
                     <>
@@ -351,23 +351,23 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
             </div>
 
             {/* RIGHT COLUMN (6 Cols / 50%): Verified Jurisdiction Routing Card + GIS R=25m Map + Live Results */}
-            <div className="lg:col-span-6 flex flex-col gap-4 lg:sticky lg:top-20">
+            <div className="lg:col-span-6 flex flex-col gap-4 lg:sticky lg:top-28">
               {/* Dynamic SSOT Jurisdiction Routing Card (No Hardcoded Names/Hotlines) */}
-              <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3.5">
+              <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_6px_28px_rgba(15,23,42,0.05)] flex flex-col gap-3.5">
                 {resolvedJurisdiction.canAutoRoute && resolvedJurisdiction.ward ? (
                   <div
                     className={`p-3.5 rounded-xl border text-xs flex flex-col gap-1.5 transition-all ${
                       resolvedJurisdiction.ward.code !== currentWard.code
                         ? 'bg-[#FFFBEB] border-[#FDE68A] text-[#92400E]'
-                        : 'bg-[#F0FDFA] border-[#99F6E4] text-[#004D40]'
+                        : 'bg-[#F7EEDF] border-[#E5D4B3] text-[#750715]'
                     }`}
                   >
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <span className="font-bold flex items-center gap-1.5">
-                        <Radio className="w-3.5 h-3.5 text-[#DC2626] shrink-0" />
+                        <Radio className="w-3.5 h-3.5 text-[#B90E23] shrink-0" />
                         <span>
                           Đơn vị tiếp nhận:{' '}
-                          <strong className="underline text-[#004D40]">
+                          <strong className="underline text-[#750715]">
                             UBND {resolvedJurisdiction.ward.name}
                           </strong>
                         </span>
@@ -421,7 +421,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
 
                 {/* Leaflet GIS R=25m Interactive Map */}
                 <div className="flex items-center justify-between text-xs px-0.5">
-                  <span className="text-[11px] text-[#004D40] font-semibold">
+                  <span className="text-[11px] text-[#750715] font-semibold">
                     Bản đồ GIS R=25m: Bấm hoặc kéo ghim đỏ để chọn đúng điểm sự cố
                   </span>
                   <span className="text-[10px] font-mono text-[#475569]">
@@ -436,11 +436,11 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
 
               {/* Live Incident Report Result Card */}
               {reportResult ? (
-                <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3.5 animate-scaleUp">
+                <div className="p-5 rounded-2xl bg-white border border-slate-200/80 shadow-[0_6px_28px_rgba(15,23,42,0.05)] flex flex-col gap-3.5 animate-scaleUp">
                   <div
                     className={`p-3.5 rounded-xl flex items-start gap-3 ${
                       reportResult.assignedAction === 'MERGED_INTO_EXISTING_CLUSTER'
-                        ? 'bg-[#E0F7FA] border border-[#80DEEA] text-[#004D40]'
+                        ? 'bg-[#F7EEDF] border border-[#E5D4B3] text-[#750715]'
                         : 'bg-[#ECFDF5] border border-[#86EFAC] text-[#065F46]'
                     }`}
                   >
@@ -458,7 +458,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                   <div className="flex flex-col gap-2 p-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-xs">
                     <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0]">
                       <span className="text-[#475569]">Đơn vị tiếp nhận:</span>
-                      <strong className="text-[#004D40] font-extrabold">
+                      <strong className="text-[#750715] font-extrabold">
                         UBND {reportResult.targetWardName || resolvedJurisdiction.ward?.name || ''}
                       </strong>
                     </div>
@@ -476,17 +476,17 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-[#475569]">Mã hồ sơ sự cố:</span>
-                      <strong className="font-mono text-[#004D40]">{reportResult.clusterCode}</strong>
+                      <strong className="font-mono text-[#9F0C1E]">{reportResult.clusterCode}</strong>
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-[#475569]">Số phản ánh tại điểm này:</span>
-                      <span className="font-bold text-[#004D40]">{reportResult.totalReportsInCluster} phản ánh</span>
+                      <span className="font-bold text-[#750715]">{reportResult.totalReportsInCluster} phản ánh</span>
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#00695C] shrink-0">
+                <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-center text-[#9F0C1E] shrink-0">
                     <Layers className="w-5 h-5" />
                   </div>
                   <div className="text-xs text-[#334155] space-y-1 leading-relaxed">
@@ -500,10 +500,10 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
 
               {/* CITIZEN INCIDENT TRACKER */}
               {myIncidents.length > 0 && (
-                <div className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3">
+                <div className="p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex flex-col gap-3">
                   <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
-                    <span className="text-xs font-extrabold text-[#004D40] flex items-center gap-1.5">
-                      <Radio className="w-4 h-4 text-[#00695C]" />
+                    <span className="text-xs font-extrabold text-[#881320] flex items-center gap-1.5 uppercase tracking-wide">
+                      <Radio className="w-4 h-4 text-[#B90E23]" />
                       <span>Tiến Độ Xử Lý Sự Cố Đã Báo ({myIncidents.length})</span>
                     </span>
                     <span className="text-[11px] text-[#475569]">Đồng bộ theo dõi</span>
@@ -533,7 +533,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                           UBND {inc.wardName} • {inc.address}
                         </span>
                         {inc.officerNote && (
-                          <div className="mt-1 p-2 rounded-lg bg-white border border-[#CBD5E1] text-[11px] text-[#004D40] font-medium">
+                          <div className="mt-1 p-2 rounded-lg bg-white border border-[#CBD5E1] text-[11px] text-[#750715] font-medium">
                             <strong>Ghi nhận xử lý:</strong> {inc.officerNote}
                           </div>
                         )}

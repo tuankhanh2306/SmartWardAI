@@ -29,54 +29,61 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
         <section className="flex flex-col gap-5 animate-fadeIn">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             {/* Left: Tracking Form & Query Box (6 Cols) */}
-            <div className="lg:col-span-6 p-6 rounded-3xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-5">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-[#E2E8F0]">
-                <div className="w-10 h-10 rounded-xl bg-[#00796B]/10 flex items-center justify-center text-[#00796B]">
-                  <Search className="w-5 h-5 text-[#0F766E]" />
+            <div className="lg:col-span-6 p-6 rounded-2xl bg-white border border-slate-200/80 shadow-[0_6px_28px_rgba(15,23,42,0.05)] flex flex-col gap-5">
+              <div className="border-b border-slate-200 pb-0">
+                <div className="flex items-center gap-3 pb-2.5">
+                  <div className="w-10 h-10 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-center text-[#9F0C1E] shrink-0">
+                    <Search className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h2 className="text-sm sm:text-base font-extrabold text-[#881320] uppercase tracking-wide">
+                      Tra Cứu Tiến Độ Giải Quyết Hồ Sơ
+                    </h2>
+                    <p className="text-xs text-slate-600 mt-0.5">
+                      Truy vấn dữ liệu thời gian thực Một cửa UBND {currentWard.name}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h2 className="text-base font-bold text-[#0F172A]">Tra Cứu Tiến Độ Giải Quyết Hồ Sơ</h2>
-                  <p className="text-xs text-[#64748B]">
-                    Truy vấn dữ liệu thời gian thực từ cơ sở dữ liệu PostgreSQL Một cửa UBND {currentWard.name}
-                  </p>
-                </div>
+                <span className="block w-14 h-[3px] bg-[#B90E23]" />
               </div>
 
               <form onSubmit={handleTrackDossier} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-[#334155] flex items-center justify-between">
+                  <label htmlFor="tracking-dossier-code" className="text-xs font-bold text-[#334155] flex items-center justify-between">
                     <span>Mã số hồ sơ (In trên biên nhận hoặc cấp khi nộp):</span>
-                    <span className="text-[10px] text-[#DC2626] font-semibold">* Bắt buộc</span>
+                    <span className="text-[10px] text-[#991B1B] font-semibold">* Bắt buộc</span>
                   </label>
                   <input
+                    id="tracking-dossier-code"
                     type="text"
                     value={trackingDossierCode}
                     onChange={(e) => setTrackingDossierCode(e.target.value)}
                     placeholder="Ví dụ: HS-20261111-BENNGHE-0001"
-                    className="w-full h-11 px-3.5 rounded-xl border border-[#CBD5E1] font-mono text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00796B] focus:bg-white transition-all bg-[#F8FAFC]"
+                    className="w-full h-11 px-3.5 rounded-xl border border-[#CBD5E1] font-mono text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#B90E23] focus:bg-white transition-all bg-[#F8FAFC]"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-[#334155] flex items-center justify-between">
+                  <label htmlFor="tracking-last4-cccd" className="text-xs font-bold text-[#334155] flex items-center justify-between">
                     <span>4 số cuối CCCD / Số định danh công dân:</span>
-                    <span className="text-[10px] text-[#DC2626] font-semibold">* Xác thực bảo mật</span>
+                    <span className="text-[10px] text-[#991B1B] font-semibold">* Xác thực bảo mật</span>
                   </label>
                   <input
+                    id="tracking-last4-cccd"
                     type="text"
                     maxLength={12}
                     value={trackingLast4Cccd}
                     onChange={(e) => setTrackingLast4Cccd(e.target.value)}
                     placeholder="Ví dụ: 1234 (hoặc đủ 12 số CCCD)"
-                    className="w-full h-11 px-3.5 rounded-xl border border-[#CBD5E1] font-mono text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00796B] focus:bg-white transition-all bg-[#F8FAFC]"
+                    className="w-full h-11 px-3.5 rounded-xl border border-[#CBD5E1] font-mono text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#B90E23] focus:bg-white transition-all bg-[#F8FAFC]"
                   />
-                  <span className="text-[11px] text-[#64748B]">
+                  <span className="text-[11px] text-slate-600">
                     Hệ thống đối soát 4 số cuối với hồ sơ lưu trữ để bảo vệ bí mật đời tư công dân theo Nghị định 13/2023/NĐ-CP.
                   </span>
                 </div>
 
                 {trackingError && (
-                  <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-start gap-2.5 text-xs text-[#DC2626]">
+                  <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-start gap-2.5 text-xs text-[#991B1B]">
                     <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
                     <span>{trackingError}</span>
                   </div>
@@ -85,7 +92,7 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                 <button
                   type="submit"
                   disabled={trackingLoading}
-                  className="w-full h-11 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold transition active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 shadow-xs disabled:opacity-60"
+                  className="w-full h-11 rounded-xl bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs sm:text-sm font-bold transition active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 shadow-xs disabled:opacity-60 gov-focus-ring"
                 >
                   {trackingLoading ? (
                     <>
@@ -129,11 +136,13 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
             {/* Right: Detailed Progress Result Card (6 Cols) */}
             <div className="lg:col-span-6 flex flex-col gap-4">
               {trackingResult ? (
-                <div className="p-6 rounded-3xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-4">
+                <div className="p-6 rounded-2xl bg-white border border-slate-200/80 shadow-[0_6px_28px_rgba(15,23,42,0.05)] flex flex-col gap-4">
                   <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
                     <div className="flex items-center gap-2">
-                      <FileCheck2 className="w-5 h-5 text-[#00796B]" />
-                      <h3 className="font-bold text-sm text-[#0F172A]">Thông Tin Hồ Sơ & Kết Quả Thụ Lý</h3>
+                      <FileCheck2 className="w-5 h-5 text-[#B90E23]" />
+                      <h3 className="font-extrabold text-sm text-[#881320] uppercase tracking-wide">
+                        Thông Tin Hồ Sơ &amp; Kết Quả Thụ Lý
+                      </h3>
                     </div>
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wide border ${
@@ -169,8 +178,8 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                         <span className="font-bold text-[#0F172A] text-right max-w-xs">{trackingResult.procedureName}</span>
                       </div>
                       <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Số định danh công dân:</span>
-                        <code className="font-mono font-bold text-[#00796B]">{trackingResult.citizenCccd}</code>
+                        <span className="text-slate-600">Số định danh công dân:</span>
+                        <code className="font-mono font-bold text-[#9F0C1E]">{trackingResult.citizenCccd}</code>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-[#64748B]">Đơn vị thụ lý:</span>
@@ -229,13 +238,13 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                     {trackingResult.timeline && trackingResult.timeline.length > 0 && (
                       <div className="mt-3 pt-3 border-t border-[#E2E8F0] flex flex-col gap-2">
                         <span className="font-bold text-xs text-[#0F172A] flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-[#00796B]" />
+                          <Clock className="w-3.5 h-3.5 text-[#B90E23]" />
                           <span>Lịch sử xử lý hồ sơ (Tiến trình Một cửa):</span>
                         </span>
                         <div className="space-y-2">
                           {trackingResult.timeline.map((evt, idx) => (
                             <div key={idx} className="flex items-start gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                              <div className="w-2 h-2 rounded-full bg-[#00796B] mt-1.5 shrink-0" />
+                              <div className="w-2 h-2 rounded-full bg-[#B90E23] mt-1.5 shrink-0" />
                               <div className="flex-1">
                                 <div className="flex items-center justify-between">
                                   <span className="font-semibold text-slate-800">{evt.toStatus}</span>
@@ -256,9 +265,9 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                   </div>
                 </div>
               ) : (
-                <div className="p-8 rounded-3xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col items-center justify-center text-center text-[#64748B] gap-3">
-                  <div className="w-14 h-14 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#00796B]">
-                    <Clock className="w-7 h-7 text-[#0F766E]" />
+                <div className="p-8 rounded-2xl bg-white border border-slate-200/80 shadow-[0_6px_28px_rgba(15,23,42,0.05)] flex flex-col items-center justify-center text-center text-slate-600 gap-3">
+                  <div className="w-14 h-14 rounded-2xl bg-[#FEF2F2] border border-[#FECACA] flex items-center justify-center text-[#9F0C1E]">
+                    <Clock className="w-7 h-7" />
                   </div>
                   <div>
                     <h3 className="font-bold text-sm text-[#0F172A]">Chưa Có Kết Quả Tra Cứu</h3>
