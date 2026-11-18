@@ -1,10 +1,10 @@
 /**
  * SmartWard AI Mobile — Root Application Entrypoint
- * Expo SDK 52 + TypeScript + React Navigation + TanStack Query + SQLite Offline Layer
+ * Expo SDK 52 + TypeScript + Multi-Phone Responsive Preview Bar (Web) + Native SafeArea
  */
 
 import React, { useEffect, useState } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
@@ -17,7 +17,7 @@ import { useWard, WardProvider } from './src/context/WardContext';
 import { BottomTabNavigator } from './src/navigation/BottomTabNavigator';
 import { OnboardingWardScreen } from './src/screens/OnboardingWardScreen';
 import { initLocalDatabase } from './src/storage/sqliteDb';
-import { COLORS } from './src/theme/tokens';
+import { COLORS, RADIUS, SPACING } from './src/theme/tokens';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -27,6 +27,21 @@ const queryClient = new QueryClient({
     },
   },
 });
+
+type WebPhonePresetKey = 'se' | 'android' | 'iphone' | 'promax' | 'full';
+
+const WEB_PHONE_PRESETS: Array<{
+  key: WebPhonePresetKey;
+  label: string;
+  width?: number;
+  height?: number;
+}> = [
+  { key: 'se', label: 'SE 320px', width: 320, height: 667 },
+  { key: 'android', label: 'Android 360px', width: 360, height: 800 },
+  { key: 'iphone', label: 'iPhone 390px', width: 390, height: 844 },
+  { key: 'promax', label: 'Pro Max 430px', width: 430, height: 932 },
+  { key: 'full', label: 'Toàn màn hình' },
+];
 
 const AppShell: React.FC = () => {
   const { hasCompletedOnboarding } = useWard();
@@ -57,13 +72,15 @@ const AppShell: React.FC = () => {
 };
 
 export default function App() {
-  const content = (
+  const [webPreset, setWebPreset] = useState<WebPhonePresetKey>('iphone');
+
+  const appTree = (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AccessibilityProvider>
           <WardProvider>
             <OfficerAuthProvider>
-              <StatusBar style="dark" backgroundColor={COLORS.card} />
+              <StatusBar style="light" backgroundColor={COLORS.citizenCrimson} />
               <AppShell />
             </OfficerAuthProvider>
           </WardProvider>
@@ -73,40 +90,109 @@ export default function App() {
   );
 
   if (Platform.OS === 'web') {
+    const activePreset =
+      WEB_PHONE_PRESETS.find((p) => p.key === webPreset) || WEB_PHONE_PRESETS[2];
+    const isFull = activePreset.key === 'full';
+
     return (
       <View style={styles.webViewport}>
-        <View style={styles.webPhoneFrame}>{content}</View>
+        <View style={styles.webToolbar}>
+          {WEB_PHONE_PRESETS.map((preset) => {
+            const active = preset.key === webPreset;
+            return (
+              <Pressable
+                key={preset.key}
+                onPress={() => setWebPreset(preset.key)}
+                style={[styles.presetBtn, active && styles.presetBtnActive]}
+              >
+                <Text
+                  style={[styles.presetBtnText, active && styles.presetBtnTextActive]}
+                >
+                  {preset.label}
+                </Text>
+              </Pressable>
+            );
+          })}
+        </View>
+
+        <View
+          style={[
+            styles.webPhoneFrame,
+            isFull
+              ? styles.webPhoneFrameFull
+              : {
+                  maxWidth: activePreset.width,
+                  maxHeight: activePreset.height,
+                },
+          ]}
+        >
+          {appTree}
+        </View>
       </View>
     );
   }
 
-  return content;
+  return appTree;
 }
 
 const styles = StyleSheet.create({
   webViewport: {
     flex: 1,
-    backgroundColor: '#E2E8F0',
+    backgroundColor: '#0F172A',
     alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingHorizontal: SPACING.sm,
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.md,
+    gap: SPACING.sm,
+  },
+  webToolbar: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     justifyContent: 'center',
-    paddingVertical: 12,
+    gap: 6,
+  },
+  presetBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: RADIUS.full,
+    backgroundColor: '#1E293B',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  presetBtnActive: {
+    backgroundColor: COLORS.citizenCrimson,
+    borderColor: COLORS.citizenGoldBorder,
+  },
+  presetBtnText: {
+    color: '#CBD5E1',
+    fontSize: 11.5,
+    fontWeight: '700',
+  },
+  presetBtnTextActive: {
+    color: '#FFFFFF',
   },
   webPhoneFrame: {
     flex: 1,
     width: '100%',
-    maxWidth: 420,
-    maxHeight: 860,
-    backgroundColor: COLORS.canvas,
-    borderRadius: 24,
+    backgroundColor: COLORS.citizenSurface,
+    borderRadius: 26,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
+    borderWidth: 2,
+    borderColor: '#334155',
+  },
+  webPhoneFrameFull: {
+    maxWidth: '100%',
+    maxHeight: '100%',
+    borderRadius: 0,
+    borderWidth: 0,
   },
   root: {
     flex: 1,
-    backgroundColor: COLORS.canvas,
+    backgroundColor: COLORS.citizenCrimson,
   },
   navigatorWrap: {
     flex: 1,
+    backgroundColor: COLORS.citizenSurface,
   },
 });

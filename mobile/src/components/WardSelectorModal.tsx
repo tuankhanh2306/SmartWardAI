@@ -1,7 +1,7 @@
 /**
  * SmartWard AI Mobile — Modal Chọn 96 Xã, Phường, Đặc khu Tỉnh An Giang
- * Tích hợp tìm kiếm không dấu, lọc 4 nhóm (Tất cả | Phường | Xã | Đặc khu),
- * định vị GPS 1 chạm và thẻ thông tin trụ sở UBND + SĐT Một cửa.
+ * Đồng bộ giao diện Web WardOnboarding.tsx (Navy #0F2942 + Civic Emerald #00796B + Tỷ lệ giải quyết %)
+ * Tối ưu Responsive cho tất cả kích thước màn hình điện thoại.
  */
 
 import React, { useMemo, useState } from 'react';
@@ -11,12 +11,20 @@ import {
   Modal,
   Pressable,
   SafeAreaView,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
-import { Check, MapPin, Navigation, Phone, Search, X } from 'lucide-react-native';
+import {
+  Building2,
+  Check,
+  Navigation,
+  Phone,
+  Search,
+  X,
+} from 'lucide-react-native';
 import {
   searchAnGiangWards,
   type WardFilterType,
@@ -24,6 +32,7 @@ import {
 } from '../core/angiangWards';
 import { useAccessibility } from '../context/AccessibilityContext';
 import { useWard } from '../context/WardContext';
+import { useResponsivePhone } from '../theme/responsive';
 import { COLORS, MIN_TOUCH_TARGET, RADIUS, SPACING } from '../theme/tokens';
 
 export interface WardSelectorModalProps {
@@ -44,7 +53,8 @@ export const WardSelectorModal: React.FC<WardSelectorModalProps> = ({
 }) => {
   const { currentWard, isDetectingGps, gpsError, selectWard, detectNearestWardByGps } =
     useWard();
-  const { typography } = useAccessibility();
+  const { typography, fontScaleMode } = useAccessibility();
+  const responsive = useResponsivePhone(fontScaleMode);
 
   const [keyword, setKeyword] = useState('');
   const [filterType, setFilterType] = useState<WardFilterType>('ALL');
@@ -83,12 +93,18 @@ export const WardSelectorModal: React.FC<WardSelectorModalProps> = ({
       onRequestClose={onClose}
     >
       <SafeAreaView style={styles.safeArea}>
-        <View style={styles.header}>
+        {/* Crimson Top Bar matching Web Citizen Portal */}
+        <View
+          style={[
+            styles.header,
+            { paddingHorizontal: responsive.horizontalPadding },
+          ]}
+        >
           <View style={styles.headerTitleBox}>
-            <Text style={[styles.title, typography.headingLg]}>
+            <Text style={[styles.title, typography.headingMd]} numberOfLines={1}>
               Chọn Xã / Phường / Đặc khu
             </Text>
-            <Text style={[styles.subtitle, typography.captionSm]}>
+            <Text style={styles.subtitle} numberOfLines={1}>
               96 Đơn vị hành chính Tỉnh An Giang chuẩn hóa 2026
             </Text>
           </View>
@@ -98,11 +114,16 @@ export const WardSelectorModal: React.FC<WardSelectorModalProps> = ({
             onPress={onClose}
             style={styles.closeBtn}
           >
-            <X size={22} color={COLORS.textPrimary} />
+            <X size={20} color={COLORS.onPrimary} />
           </Pressable>
         </View>
 
-        <View style={styles.controlsWrap}>
+        <View
+          style={[
+            styles.controlsWrap,
+            { paddingHorizontal: responsive.horizontalPadding },
+          ]}
+        >
           <Pressable
             accessibilityRole="button"
             onPress={() => {
@@ -114,10 +135,10 @@ export const WardSelectorModal: React.FC<WardSelectorModalProps> = ({
             {isDetectingGps ? (
               <ActivityIndicator size="small" color={COLORS.onPrimary} />
             ) : (
-              <Navigation size={18} color={COLORS.onPrimary} />
+              <Navigation size={17} color={COLORS.onPrimary} />
             )}
-            <Text style={[styles.gpsButtonText, typography.bodyBold]}>
-              {isDetectingGps ? 'Đang định vị GPS An Giang...' : '🎯 Định vị GPS tự động'}
+            <Text style={[styles.gpsButtonText, typography.bodyBold]} numberOfLines={1}>
+              {isDetectingGps ? 'Đang định vị GPS...' : '🎯 Định vị GPS tự động'}
             </Text>
           </Pressable>
 
@@ -136,7 +157,7 @@ export const WardSelectorModal: React.FC<WardSelectorModalProps> = ({
           ) : null}
 
           <View style={styles.searchBox}>
-            <Search size={18} color={COLORS.textMuted} />
+            <Search size={17} color={COLORS.textMuted} />
             <TextInput
               value={keyword}
               onChangeText={setKeyword}
@@ -152,7 +173,11 @@ export const WardSelectorModal: React.FC<WardSelectorModalProps> = ({
             ) : null}
           </View>
 
-          <View style={styles.filterRow}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterRow}
+          >
             {FILTER_OPTIONS.map((opt) => {
               const active = filterType === opt.key;
               return (
@@ -161,19 +186,27 @@ export const WardSelectorModal: React.FC<WardSelectorModalProps> = ({
                   onPress={() => setFilterType(opt.key)}
                   style={[styles.filterChip, active && styles.filterChipActive]}
                 >
-                  <Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      active && styles.filterChipTextActive,
+                    ]}
+                  >
                     {opt.label}
                   </Text>
                 </Pressable>
               );
             })}
-          </View>
+          </ScrollView>
         </View>
 
         <FlatList
           data={filteredWards}
           keyExtractor={(item) => item.code}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingHorizontal: responsive.horizontalPadding },
+          ]}
           keyboardShouldPersistTaps="handled"
           ListEmptyComponent={
             <View style={styles.emptyBox}>
@@ -191,41 +224,53 @@ export const WardSelectorModal: React.FC<WardSelectorModalProps> = ({
                 }}
                 style={({ pressed }) => [
                   styles.wardCard,
+                  { padding: responsive.cardPadding },
                   isSelected && styles.wardCardSelected,
                   pressed && styles.wardCardPressed,
                 ]}
               >
                 <View style={styles.wardCardTop}>
-                  <View style={styles.wardTitleRow}>
-                    <MapPin
+                  <View
+                    style={[
+                      styles.wardIconBox,
+                      isSelected ? styles.wardIconBoxActive : styles.wardIconBoxIdle,
+                    ]}
+                  >
+                    <Building2
                       size={16}
-                      color={isSelected ? COLORS.primary : COLORS.textMuted}
+                      color={isSelected ? COLORS.officerAccentSky : COLORS.primary}
                     />
-                    <Text style={[styles.wardName, typography.headingMd]}>
+                  </View>
+
+                  <View style={styles.wardTitleCol}>
+                    <Text style={[styles.wardName, typography.bodyBold]} numberOfLines={1}>
                       {item.name}
                     </Text>
+                    <Text style={[styles.wardAreaText, typography.captionSm]} numberOfLines={1}>
+                      {item.area} • {item.type}
+                    </Text>
                   </View>
+
                   <View style={styles.wardMetaRight}>
-                    <View style={styles.typeTag}>
-                      <Text style={styles.typeTagText}>{item.type}</Text>
+                    <View style={styles.rateTag}>
+                      <Text style={styles.rateTagText}>{item.solvedRate}%</Text>
                     </View>
-                    {isSelected ? <Check size={18} color={COLORS.primary} /> : null}
+                    {isSelected ? <Check size={18} color={COLORS.officerNavy} /> : null}
                   </View>
                 </View>
 
-                <Text style={[styles.wardAddress, typography.captionSm]}>
+                <Text style={[styles.wardAddress, typography.captionSm]} numberOfLines={2}>
                   🏛️ {item.officeAddress}
                 </Text>
+
                 <View style={styles.wardFooterRow}>
                   <View style={styles.phoneRow}>
-                    <Phone size={13} color={COLORS.primary} />
+                    <Phone size={12} color={COLORS.primary} />
                     <Text style={[styles.phoneText, typography.captionSm]}>
-                      Một cửa: {item.phoneNumber}
+                      {item.phoneNumber}
                     </Text>
                   </View>
-                  <Text style={[styles.wardCodeText, typography.captionSm]}>
-                    {item.code}
-                  </Text>
+                  <Text style={styles.wardCodeText}>{item.code}</Text>
                 </View>
               </Pressable>
             );
@@ -239,39 +284,40 @@ export const WardSelectorModal: React.FC<WardSelectorModalProps> = ({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: COLORS.canvas,
+    backgroundColor: COLORS.citizenSurface,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: SPACING.lg,
     paddingVertical: SPACING.md,
-    backgroundColor: COLORS.card,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.borderSubtle,
+    backgroundColor: COLORS.citizenCrimson,
+    gap: SPACING.sm,
   },
   headerTitleBox: {
     flex: 1,
+    minWidth: 0,
   },
   title: {
-    color: COLORS.textPrimary,
+    color: COLORS.onPrimary,
   },
   subtitle: {
-    color: COLORS.textMuted,
+    color: COLORS.citizenGoldSoft,
+    fontSize: 11.5,
+    fontWeight: '600',
     marginTop: 2,
   },
   closeBtn: {
-    width: MIN_TOUCH_TARGET,
-    height: MIN_TOUCH_TARGET,
+    width: MIN_TOUCH_TARGET - 4,
+    height: MIN_TOUCH_TARGET - 4,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: RADIUS.full,
-    backgroundColor: COLORS.mutedSurface,
+    backgroundColor: 'rgba(0, 0, 0, 0.22)',
   },
   controlsWrap: {
-    padding: SPACING.lg,
-    gap: SPACING.md,
+    paddingVertical: SPACING.md,
+    gap: SPACING.sm,
     backgroundColor: COLORS.card,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.borderSubtle,
@@ -325,50 +371,45 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     flex: 1,
+    minWidth: 0,
     color: COLORS.textPrimary,
   },
   filterRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: SPACING.sm,
+    gap: SPACING.xs,
+    paddingVertical: 2,
   },
   filterChip: {
     minHeight: 36,
     paddingHorizontal: SPACING.md,
-    borderRadius: RADIUS.full,
+    borderRadius: RADIUS.sm,
     backgroundColor: COLORS.mutedSurface,
-    borderWidth: 1,
-    borderColor: COLORS.borderDefault,
     justifyContent: 'center',
   },
   filterChipActive: {
-    backgroundColor: COLORS.primarySubtle,
-    borderColor: COLORS.primary,
+    backgroundColor: COLORS.officerNavy,
   },
   filterChipText: {
     color: COLORS.textSecondary,
-    fontSize: 12.5,
-    fontWeight: '600',
-  },
-  filterChipTextActive: {
-    color: COLORS.primary,
+    fontSize: 12,
     fontWeight: '700',
   },
+  filterChipTextActive: {
+    color: COLORS.onPrimary,
+  },
   listContent: {
-    padding: SPACING.lg,
-    gap: SPACING.md,
+    paddingVertical: SPACING.md,
+    gap: SPACING.sm,
   },
   wardCard: {
     backgroundColor: COLORS.card,
     borderWidth: 1,
-    borderColor: COLORS.borderDefault,
+    borderColor: COLORS.borderSubtle,
     borderRadius: RADIUS.lg,
-    padding: SPACING.lg,
     gap: SPACING.xs,
   },
   wardCardSelected: {
-    backgroundColor: COLORS.primarySubtle,
-    borderColor: COLORS.primary,
+    backgroundColor: COLORS.mutedSurface,
+    borderColor: COLORS.officerNavy,
     borderWidth: 1.5,
   },
   wardCardPressed: {
@@ -377,42 +418,58 @@ const styles = StyleSheet.create({
   wardCardTop: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     gap: SPACING.sm,
   },
-  wardTitleRow: {
-    flexDirection: 'row',
+  wardIconBox: {
+    width: 34,
+    height: 34,
+    borderRadius: RADIUS.sm,
     alignItems: 'center',
-    gap: SPACING.xs,
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  wardIconBoxActive: {
+    backgroundColor: COLORS.officerNavy,
+  },
+  wardIconBoxIdle: {
+    backgroundColor: COLORS.primarySubtle,
+  },
+  wardTitleCol: {
     flex: 1,
+    minWidth: 0,
   },
   wardName: {
     color: COLORS.textPrimary,
   },
+  wardAreaText: {
+    color: COLORS.textMuted,
+  },
   wardMetaRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: SPACING.xs,
+    gap: 6,
+    flexShrink: 0,
   },
-  typeTag: {
-    backgroundColor: COLORS.mutedSurface,
+  rateTag: {
+    backgroundColor: COLORS.successBg,
     borderRadius: RADIUS.xs,
-    paddingHorizontal: SPACING.sm,
+    paddingHorizontal: 7,
     paddingVertical: 2,
   },
-  typeTagText: {
-    color: COLORS.textSecondary,
+  rateTagText: {
+    color: COLORS.successText,
     fontSize: 11,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   wardAddress: {
     color: COLORS.textSecondary,
   },
   wardFooterRow: {
-    marginTop: 4,
+    marginTop: 2,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: SPACING.sm,
   },
   phoneRow: {
     flexDirection: 'row',
@@ -421,10 +478,11 @@ const styles = StyleSheet.create({
   },
   phoneText: {
     color: COLORS.primary,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   wardCodeText: {
     color: COLORS.textMuted,
+    fontSize: 11,
     fontWeight: '600',
   },
   emptyBox: {
