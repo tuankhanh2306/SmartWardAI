@@ -3,10 +3,10 @@ import type { A4FormTemplate } from './types';
 export const CIVIL_REGISTRY_TEMPLATES: Record<string, A4FormTemplate> = {
   "TTHC-CR-07": {
     "procedureCode": "TTHC-CR-07",
-    "formCode": "Mẫu CT03 - TT 66/2023/TT-BCA",
+    "formCode": "Mẫu CT03 - TT 66/2023/TT-BCA & TT 53/2025/TT-BCA",
     "agencyType": "POLICE",
-    "title": "TỜ KHAI KHAI BÁO TẠM VẮNG",
-    "legalNote": "(Ban hành kèm theo Thông tư số 66/2023/TT-BCA của Bộ Công an)",
+    "title": "PHIẾU KHAI BÁO TẠM VẮNG",
+    "legalNote": "(Ban hành kèm theo Thông tư số 66/2023/TT-BCA, sửa đổi bổ sung tại Thông tư số 53/2025/TT-BCA của Bộ Công an)",
     "recipient": "Công an {WARD_NAME}",
     "sections": [
       {
@@ -69,10 +69,10 @@ export const CIVIL_REGISTRY_TEMPLATES: Record<string, A4FormTemplate> = {
   },
   "TTHC-CR-08": {
     "procedureCode": "TTHC-CR-08",
-    "formCode": "Mẫu CT07 - TT 66/2023/TT-BCA",
+    "formCode": "Mẫu CT01 & Mẫu CT07 - TT 66/2023/TT-BCA & TT 53/2025/TT-BCA",
     "agencyType": "POLICE",
     "title": "GIẤY XÁC NHẬN THÔNG TIN VỀ CƯ TRÚ",
-    "legalNote": "(Ban hành kèm theo Thông tư số 66/2023/TT-BCA của Bộ Công an)",
+    "legalNote": "(Ban hành kèm theo Thông tư số 66/2023/TT-BCA, sửa đổi bổ sung tại Thông tư số 53/2025/TT-BCA của Bộ Công an)",
     "recipient": "Công an {WARD_NAME}",
     "sections": [
       {
@@ -189,10 +189,10 @@ export const CIVIL_REGISTRY_TEMPLATES: Record<string, A4FormTemplate> = {
   },
   "TTHC-CR-10": {
     "procedureCode": "TTHC-CR-10",
-    "formCode": "Mẫu Tờ khai - TT 04/2020/TT-BTP",
+    "formCode": "Phụ lục 5 - TT 04/2024/TT-BTP (sửa đổi TT 04/2020/TT-BTP)",
     "agencyType": "COMMUNE_UBND",
     "title": "TỜ KHAI XÁC NHẬN THÔNG TIN HỘ TỊCH",
-    "legalNote": "(Ban hành kèm theo Thông tư số 04/2020/TT-BTP ngày 28/05/2020 của Bộ Tư pháp)",
+    "legalNote": "(Ban hành kèm theo Thông tư số 04/2024/TT-BTP ngày 06/06/2024 sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP của Bộ Tư pháp)",
     "recipient": "Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {
@@ -245,108 +245,143 @@ export const CIVIL_REGISTRY_TEMPLATES: Record<string, A4FormTemplate> = {
   },
   "TTHC-CT-01": {
     "procedureCode": "TTHC-CT-01",
-    "formCode": "Mẫu Lời chứng - NĐ 23/2015/NĐ-CP",
+    "formCode": "Mẫu Lời chứng - NĐ 23/2015/NĐ-CP & TT 01/2020/TT-BTP",
     "agencyType": "COMMUNE_UBND",
-    "title": "MẪU LỜI CHỨNG CHỨNG THỰC BẢN SAO TỪ BẢN CHÍNH",
-    "legalNote": "(Ban hành kèm theo Nghị định số 23/2015/NĐ-CP ngày 16 tháng 02 năm 2015 của Chính phủ)",
-    "recipient": "Ủy ban nhân dân {WARD_NAME}",
+    "title": "VĂN BẢN YÊU CẦU CHỨNG THỰC CHỮ KÝ / HỢP ĐỒNG GIAO DỊCH",
+    "legalNote": "(Theo quy định tại Nghị định số 23/2015/NĐ-CP & Thông tư số 01/2020/TT-BTP của Bộ Tư pháp)",
+    "recipient": "Bộ phận Một cửa - Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {
-        "title": "NỘI DUNG LỜI CHỨNG CỦA CƠ QUAN CÓ THẨM QUYỀN CHỨNG THỰC",
+        "title": "I. THÔNG TIN NGƯỜI YÊU CẦU CHỨNG THỰC",
         "fields": [
           {
-            "label": "1. Ngày, tháng, năm thực hiện",
-            "placeholder": "Ngày ..... tháng ..... năm .........",
-            "type": "text"
+            "label": "1. Người yêu cầu chứng thực",
+            "placeholder": "TRẦN VĂN ĐỨC",
+            "type": "text",
+            "isBold": true
           },
           {
-            "label": "2. Địa điểm chứng thực",
-            "placeholder": "Tại Bộ phận Tiếp nhận và Trả kết quả (Một cửa) UBND {WARD_NAME}, Tỉnh An Giang",
-            "type": "text"
-          },
-          {
-            "label": "3. Người thực hiện chứng thực",
-            "placeholder": "Tôi: ....................................... - Chức vụ: .................................................",
-            "type": "text"
-          },
-          {
-            "label": "4. Chứng nhận",
-            "placeholder": "Chứng thực bản sao này đúng với bản chính văn bản, giấy tờ do cơ quan có thẩm quyền cấp.",
-            "type": "text"
-          },
-          {
-            "label": "5. Số chứng thực",
-            "placeholder": "Số: ............. quyển số: .......-SCT/BS",
+            "label": "Ngày sinh",
+            "placeholder": "25/11/1988",
             "type": "grid2",
-            "secondLabel": "6. Lệ phí chứng thực",
-            "secondPlaceholder": "2.000 đồng/trang (từ trang 3: 1.000 đ)"
+            "secondLabel": "CCCD số",
+            "secondPlaceholder": "089088005678"
+          },
+          {
+            "label": "Nơi cư trú",
+            "placeholder": "Số 78 Lý Tự Trọng, {WARD_NAME}, Tỉnh An Giang",
+            "type": "text"
+          },
+          {
+            "label": "2. Nội dung yêu cầu chứng thực",
+            "placeholder": "Chứng thực bản sao từ bản chính / Chứng thực chữ ký trên văn bản giấy tờ theo quy định pháp luật",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "title": "II. LỜI CHỨNG THỰC CHỮ KÝ (Mẫu chuẩn Nghị định 23/2015/NĐ-CP)",
+        "fields": [
+          {
+            "label": "Người thực hiện chứng thực",
+            "placeholder": "Chủ tịch / Phó Chủ tịch UBND {WARD_NAME}",
+            "type": "text"
+          },
+          {
+            "label": "CHỨNG THỰC Ông/Bà",
+            "placeholder": "TRẦN VĂN ĐỨC - Số CCCD: 089088005678 đã ký/điểm chỉ trước mặt tôi",
+            "type": "text"
+          },
+          {
+            "label": "Số chứng thực",
+            "placeholder": "........",
+            "type": "grid2",
+            "secondLabel": "Quyển số",
+            "secondPlaceholder": "........-SCT/CK,CĐ"
           }
         ]
       }
     ],
-    "commitText": "Người yêu cầu chứng thực xuất trình bản chính hợp lệ, không bị tẩy xóa, sửa chữa, chắp vá khống chỉ.",
+    "commitText": "LƯU Ý QUAN TRỌNG: Người yêu cầu chứng thực phải ký trực tiếp trước mặt người thực hiện chứng thực tại Bộ phận Một cửa UBND (Không ký trước ở nhà).",
     "signatures": [
       {
-        "role": "NGƯỜI THỰC HIỆN CHỨNG THỰC",
-        "note": "(Ký, ghi rõ họ tên, chức vụ và đóng dấu UBND)"
+        "role": "NGƯỜI YÊU CẦU CHỨNG THỰC",
+        "note": "(Ký trực tiếp trước mặt người chứng thực)"
       },
       {
-        "role": "NGƯỜI TIẾP NHẬN BẢN CHÍNH",
-        "note": "(Kiểm tra đối chiếu bản gốc)"
+        "role": "CHỦ TỊCH / PHÓ CHỦ TỊCH",
+        "note": "(Ký, ghi rõ họ tên và đóng dấu)"
       }
     ]
   },
   "TTHC-CT-02": {
     "procedureCode": "TTHC-CT-02",
-    "formCode": "Mẫu Lời chứng - NĐ 23/2015/NĐ-CP",
+    "formCode": "Mẫu Lời chứng - NĐ 23/2015/NĐ-CP & TT 01/2020/TT-BTP",
     "agencyType": "COMMUNE_UBND",
-    "title": "MẪU LỜI CHỨNG CHỨNG THỰC CHỮ KÝ TRONG GIẤY TỜ, VĂN BẢN",
-    "legalNote": "(Ban hành kèm theo Nghị định số 23/2015/NĐ-CP ngày 16/02/2015 của Chính phủ)",
-    "recipient": "Ủy ban nhân dân {WARD_NAME}",
+    "title": "BẢN DỊCH VÀ LỜI CHỨNG THỰC CHỮ KÝ NGƯỜI DỊCH",
+    "legalNote": "(Theo quy định tại Nghị định số 23/2015/NĐ-CP & Thông tư số 01/2020/TT-BTP của Bộ Tư pháp)",
+    "recipient": "Bộ phận Một cửa - Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {
-        "title": "NỘI DUNG LỜI CHỨNG CHỨNG THỰC CHỮ KÝ",
+        "title": "I. THÔNG TIN NGƯỜI YÊU CẦU / NGƯỜI DỊCH",
         "fields": [
           {
-            "label": "1. Thời gian, địa điểm chứng thực",
-            "placeholder": "Ngày ..... tháng ..... năm ......... tại UBND {WARD_NAME}, Tỉnh An Giang",
-            "type": "text"
-          },
-          {
-            "label": "2. Người chứng thực",
-            "placeholder": "Tôi: ....................................... - Chức vụ: .................................................",
-            "type": "text"
-          },
-          {
-            "label": "3. CHỨNG NHẬN Ông/Bà",
-            "placeholder": "Họ tên: ..................................................... - CCCD số: ................................",
+            "label": "1. Người yêu cầu chứng thực",
+            "placeholder": "LÊ HOÀNG KIM",
             "type": "text",
             "isBold": true
           },
           {
-            "label": "4. Cam kết minh mẫn & tự nguyện",
-            "placeholder": "Đã ký trước mặt tôi vào văn bản này; cam đoan nhận thức rõ quyền, nghĩa vụ và tự chịu trách nhiệm về nội dung của văn bản.",
+            "label": "Ngày sinh",
+            "placeholder": "25/11/1988",
+            "type": "grid2",
+            "secondLabel": "CCCD số",
+            "secondPlaceholder": "089088005678"
+          },
+          {
+            "label": "Nơi cư trú",
+            "placeholder": "{WARD_NAME}, Tỉnh An Giang",
             "type": "text"
           },
           {
-            "label": "5. Số chứng thực",
-            "placeholder": "Số: ............. quyển số: .......-SCT/CK",
+            "label": "2. Nội dung yêu cầu chứng thực",
+            "placeholder": "Chứng thực chữ ký người dịch văn bản, giấy tờ từ tiếng nước ngoài sang tiếng Việt (hoặc ngược lại)",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "title": "II. LỜI CHỨNG THỰC CHỮ KÝ (Mẫu chuẩn Nghị định 23/2015/NĐ-CP)",
+        "fields": [
+          {
+            "label": "Người thực hiện chứng thực",
+            "placeholder": "Chủ tịch / Phó Chủ tịch UBND {WARD_NAME}",
+            "type": "text"
+          },
+          {
+            "label": "CHỨNG THỰC Ông/Bà",
+            "placeholder": "LÊ HOÀNG KIM - Số CCCD: 089088005678 đã ký trước mặt tôi",
+            "type": "text"
+          },
+          {
+            "label": "Số chứng thực",
+            "placeholder": "........",
             "type": "grid2",
-            "secondLabel": "6. Lệ phí chứng thực",
-            "secondPlaceholder": "10.000 đồng/trường hợp"
+            "secondLabel": "Quyển số",
+            "secondPlaceholder": "........-SCT/CKND"
           }
         ]
       }
     ],
-    "commitText": "LƯU Ý ĐẶC BIỆT: Người yêu cầu tuyệt đối KHÔNG được ký tên trước ở nhà. Phải ký trực tiếp trước mặt người thực hiện chứng thực tại UBND cấp xã.",
+    "commitText": "Lời cam đoan của người dịch: \"Tôi cam đoan đã dịch chính xác nội dung từ tiếng nước ngoài sang tiếng Việt (hoặc ngược lại) và hoàn toàn chịu trách nhiệm trước pháp luật về tính chính xác của bản dịch.\"",
     "signatures": [
       {
-        "role": "NGƯỜI THỰC HIỆN CHỨNG THỰC",
-        "note": "(Ký, ghi rõ họ tên, chức vụ và đóng dấu UBND)"
+        "role": "NGƯỜI DỊCH / NGƯỜI YÊU CẦU",
+        "note": "(Ký trực tiếp trước mặt người chứng thực)"
       },
       {
-        "role": "NGƯỜI YÊU CẦU CHỨNG THỰC CHỮ KÝ",
-        "note": "(KÝ TRỰC TIẾP TRƯỚC MẶT CÔNG CHỨC)"
+        "role": "CHỦ TỊCH / PHÓ CHỦ TỊCH",
+        "note": "(Ký, ghi rõ họ tên và đóng dấu)"
       }
     ]
   },
@@ -413,10 +448,10 @@ export const CIVIL_REGISTRY_TEMPLATES: Record<string, A4FormTemplate> = {
   },
   "TTHC-CT-05": {
     "procedureCode": "TTHC-CT-05",
-    "formCode": "Mẫu Tờ khai ghi chú ly hôn - TT 04/2020/TT-BTP",
+    "formCode": "Phụ lục 5 - TT 04/2024/TT-BTP (sửa đổi TT 04/2020/TT-BTP)",
     "agencyType": "COMMUNE_UBND",
     "title": "TỜ KHAI GHI CHÚ VIỆC LY HÔN / HỦY VIỆC KẾT HÔN ĐÃ GIẢI QUYẾT Ở NƯỚC NGOÀI",
-    "legalNote": "(Ban hành kèm theo Thông tư số 04/2020/TT-BTP ngày 28/05/2020 của Bộ Tư pháp)",
+    "legalNote": "(Ban hành kèm theo Thông tư số 04/2024/TT-BTP ngày 06/06/2024 sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP của Bộ Tư pháp)",
     "recipient": "Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {
@@ -487,10 +522,10 @@ export const CIVIL_REGISTRY_TEMPLATES: Record<string, A4FormTemplate> = {
   },
   "TTHC-CT-06": {
     "procedureCode": "TTHC-CT-06",
-    "formCode": "Mẫu Tờ khai ghi chú hộ tịch - TT 04/2020/TT-BTP",
+    "formCode": "Phụ lục 5 - TT 04/2024/TT-BTP (sửa đổi TT 04/2020/TT-BTP)",
     "agencyType": "COMMUNE_UBND",
     "title": "TỜ KHAI GHI CHÚ SỰ KIỆN HỘ TỊCH ĐÃ GIẢI QUYẾT TẠI CƠ QUAN NƯỚC NGOÀI",
-    "legalNote": "(Ban hành kèm theo Thông tư số 04/2020/TT-BTP ngày 28/05/2020 của Bộ Tư pháp)",
+    "legalNote": "(Ban hành kèm theo Thông tư số 04/2024/TT-BTP ngày 06/06/2024 sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP của Bộ Tư pháp)",
     "recipient": "Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {

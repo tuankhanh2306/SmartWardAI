@@ -3487,27 +3487,29 @@ export const FormAndIssueReporting: React.FC = () => {
             : selectedFormType === 'TK-KS'
             ? 'TTHC-HT-01'
             : selectedFormType === 'TK-KH'
-            ? 'TTHC-HT-02'
+            ? (marriageMode === 'MARRIAGE_REGISTRATION' ? 'TTHC-HT-02' : 'TTHC-HT-11')
             : 'TTHC-BT-01'
         }
         marriageMode={marriageMode}
         procedureTitle={
           selectedFormType === 'CT01'
-            ? 'Tờ khai thay đổi thông tin cư trú (Mẫu CT01)'
+            ? 'Tờ khai thay đổi thông tin cư trú (Mẫu CT01 - TT 66/2023 & TT 53/2025/TT-BCA)'
             : selectedFormType === 'TK-KS'
-            ? 'Tờ khai đăng ký khai sinh (Thông tư 04/2020/TT-BTP)'
+            ? 'Tờ khai đăng ký khai sinh (Phụ lục 5 - Thông tư 04/2024/TT-BTP & TT 04/2020/TT-BTP)'
             : selectedFormType === 'TK-KH'
-            ? (marriageMode === 'MARRIAGE_REGISTRATION' ? 'Tờ khai đăng ký kết hôn' : 'Tờ khai cấp Giấy xác nhận tình trạng hôn nhân')
-            : 'Tờ khai thông tin đề nghị trợ cấp xã hội (Nghị định 20/2021/NĐ-CP)'
+            ? (marriageMode === 'MARRIAGE_REGISTRATION'
+                ? 'Tờ khai đăng ký kết hôn (Phụ lục 5 - Thông tư 04/2024/TT-BTP)'
+                : 'Tờ khai cấp Giấy xác nhận tình trạng hôn nhân (Phụ lục 5 - Thông tư 04/2024/TT-BTP)')
+            : 'Tờ khai thông tin đề nghị trợ cấp xã hội (Nghị định 20/2021/NĐ-CP, NĐ 76/2024 & Luật BHXH 2024)'
         }
         legalBasis={
           selectedFormType === 'CT01'
-            ? 'Theo Thông tư số 66/2023/TT-BCA của Bộ Công an'
+            ? 'Theo Thông tư số 66/2023/TT-BCA & Thông tư số 53/2025/TT-BCA của Bộ Công an'
             : selectedFormType === 'TK-KS'
-            ? 'Theo Thông tư số 04/2020/TT-BTP của Bộ Tư pháp'
+            ? 'Theo Thông tư số 04/2024/TT-BTP (sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP) của Bộ Tư pháp'
             : selectedFormType === 'TK-KH'
-            ? 'Theo Luật Hôn nhân và Gia đình 2014 & Thông tư 04/2020/TT-BTP'
-            : 'Theo Nghị định số 20/2021/NĐ-CP & Luật BHXH 2024'
+            ? 'Theo Luật Hôn nhân và Gia đình 2014 & Thông tư 04/2024/TT-BTP (sửa đổi TT 04/2020/TT-BTP)'
+            : 'Theo Nghị định số 20/2021/NĐ-CP, Nghị định số 76/2024/NĐ-CP & Luật BHXH 2024'
         }
         initialData={{
           fullName,
