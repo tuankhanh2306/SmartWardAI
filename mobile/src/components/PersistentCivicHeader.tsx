@@ -7,7 +7,7 @@
 
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { ChevronDown, Landmark, Type } from 'lucide-react-native';
+import { ChevronDown, Landmark, ShieldCheck, Type } from 'lucide-react-native';
 import { useAccessibility } from '../context/AccessibilityContext';
 import { useWard } from '../context/WardContext';
 import { useResponsivePhone } from '../theme/responsive';
@@ -15,10 +15,12 @@ import { COLORS, MIN_TOUCH_TARGET, RADIUS, SPACING } from '../theme/tokens';
 
 export interface PersistentCivicHeaderProps {
   onOpenWardSelector: () => void;
+  onOpenOfficerDesk?: () => void;
 }
 
 export const PersistentCivicHeader: React.FC<PersistentCivicHeaderProps> = ({
   onOpenWardSelector,
+  onOpenOfficerDesk,
 }) => {
   const { currentWard } = useWard();
   const { fontScaleMode, cycleFontMode } = useAccessibility();
@@ -46,17 +48,30 @@ export const PersistentCivicHeader: React.FC<PersistentCivicHeaderProps> = ({
         <ChevronDown size={16} color={COLORS.citizenGoldSoft} />
       </Pressable>
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Đổi cỡ chữ. Hiện tại: ${fontScaleMode}`}
-        onPress={() => {
-          void cycleFontMode();
-        }}
-        style={({ pressed }) => [styles.fontScalerBtn, pressed && styles.pressed]}
-      >
-        <Type size={14} color={COLORS.citizenGoldSoft} />
-        <Text style={styles.fontScalerText}>{fontScaleMode}</Text>
-      </Pressable>
+      <View style={styles.rightActions}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Đổi cỡ chữ. Hiện tại: ${fontScaleMode}`}
+          onPress={() => {
+            void cycleFontMode();
+          }}
+          style={({ pressed }) => [styles.fontScalerBtn, pressed && styles.pressed]}
+        >
+          <Type size={14} color={COLORS.citizenGoldSoft} />
+          <Text style={styles.fontScalerText}>{fontScaleMode}</Text>
+        </Pressable>
+
+        {onOpenOfficerDesk ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Mở Bàn Cán Bộ Một Cửa"
+            onPress={onOpenOfficerDesk}
+            style={({ pressed }) => [styles.officerIconBtn, pressed && styles.pressed]}
+          >
+            <ShieldCheck size={16} color={COLORS.citizenGoldLight} />
+          </Pressable>
+        ) : null}
+      </View>
     </View>
   );
 };
@@ -95,8 +110,14 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     flexShrink: 1,
   },
+  rightActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    flexShrink: 0,
+  },
   fontScalerBtn: {
-    minWidth: 54,
+    minWidth: 50,
     minHeight: 36,
     paddingHorizontal: 10,
     borderRadius: RADIUS.full,
@@ -108,6 +129,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 4,
     flexShrink: 0,
+  },
+  officerIconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.full,
+    backgroundColor: 'rgba(0, 0, 0, 0.22)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.28)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   fontScalerText: {
     color: COLORS.onPrimary,
