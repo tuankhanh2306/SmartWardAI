@@ -18,32 +18,40 @@ import {
 } from 'lucide-react';
 
 export const RoleGateway: React.FC = () => {
-  const { role, isOfficer, isCitizen, enterAsCitizen, loginOfficer, sessionMessage, clearSessionMessage } = useRole();
-  const { currentWard, setWard, allWards } = useWard();
+  const {
+    role,
+    isOfficer,
+    isAdmin,
+    isCitizen,
+    officerProfile,
+    enterAsCitizen,
+    loginOfficer,
+    sessionMessage,
+    clearSessionMessage,
+  } = useRole();
+  const { currentWard, setWard, allWards, totalWardsCount } = useWard();
   const navigate = useNavigate();
 
-  // If already authenticated and within session, redirect to corresponding space
+  // If already authenticated and within session, redirect to corresponding role workspace
   useEffect(() => {
-    if (isOfficer) {
-      const savedBadge = localStorage.getItem('smartward_officer_badge') || '';
-      let targetCode = currentWard.code;
-      if (savedBadge.startsWith('CB-')) {
-        targetCode = savedBadge.substring(3);
-        const w = allWards.find((x) => x.code === targetCode);
-        if (w && w.code !== currentWard.code) {
-          setWard(w);
-        }
+    if (isAdmin) {
+      navigate('/admin', { replace: true });
+    } else if (isOfficer) {
+      const targetCode =
+        officerProfile.wardCode && officerProfile.wardCode !== 'AG_PROVINCE'
+          ? officerProfile.wardCode
+          : currentWard.code;
+      const w = allWards.find((x) => x.code === targetCode);
+      if (w && w.code !== currentWard.code) {
+        setWard(w);
       }
       navigate(`/officer/ward/${targetCode}`, { replace: true });
     } else if (isCitizen) {
       navigate('/citizen', { replace: true });
     }
-  }, [role, isOfficer, isCitizen, currentWard.code, allWards, setWard, navigate]);
+  }, [role, isAdmin, isOfficer, isCitizen, officerProfile.wardCode, currentWard.code, allWards, setWard, navigate]);
 
-  // Mode: 'choice' (2 big buttons) or 'officer_form' (account inputs)
   const [mode, setMode] = useState<'choice' | 'officer_form'>('choice');
-
-  // Officer Form State - defaults to current ward
   const [badgeId, setBadgeId] = useState(`CB-${currentWard.code}`);
   const [pin, setPin] = useState('8942');
   const [officerError, setOfficerError] = useState<string | null>(null);
@@ -53,7 +61,7 @@ export const RoleGateway: React.FC = () => {
   const handleOfficerLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!badgeId.trim()) {
-      setOfficerError('Vui lòng nhập Mã số thẻ công chức.');
+      setOfficerError('Vui lòng nhập Mã số thẻ công chức / quản trị.');
       return;
     }
     if (!pin.trim()) {
@@ -66,13 +74,19 @@ export const RoleGateway: React.FC = () => {
       const ok = await loginOfficer(badgeId, pin);
       if (ok) {
         const norm = badgeId.trim().toUpperCase();
+        if (norm.startsWith('ADM-')) {
+          navigate('/admin', { replace: true });
+          return;
+        }
         let targetCode = currentWard.code;
-        if (norm.startsWith('CB-')) {
+        if (norm.startsWith('CB-') || norm.startsWith('CA-')) {
           targetCode = norm.substring(3);
           const w = allWards.find((x) => x.code === targetCode);
           if (w && w.code !== currentWard.code) {
             setWard(w);
           }
+        } else {
+          targetCode = 'AG_P_LONGXUYEN';
         }
         navigate(`/officer/ward/${targetCode}`, { replace: true });
       } else {
@@ -105,7 +119,6 @@ export const RoleGateway: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-100/80 flex flex-col items-center justify-center p-4 sm:p-6">
-      {/* Single Clean Container */}
       <div className="w-full max-w-[440px] bg-white rounded-2xl border border-slate-200/90 shadow-sm p-6 sm:p-8 flex flex-col animate-fadeIn">
         {/* Header Branding */}
         <div className="flex flex-col items-center text-center pb-6 border-b border-slate-100">
@@ -126,12 +139,12 @@ export const RoleGateway: React.FC = () => {
               onClick={() => navigate('/onboarding')}
               className="text-[#00796B] hover:underline font-medium cursor-pointer"
             >
-              Đổi xã
+              Đổi xã ({totalWardsCount} đơn vị)
             </button>
           </div>
         </div>
 
-        {/* 5-Min Expiry Alert (If Triggered for Citizen) */}
+        {/* Session Expiry / Lockout Alert */}
         {sessionMessage && (
           <div className="mt-4 rounded-xl bg-amber-50 border border-amber-200 p-3 flex items-start gap-2.5 text-xs text-amber-800 animate-fadeIn">
             <Clock className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
@@ -148,12 +161,9 @@ export const RoleGateway: React.FC = () => {
           </div>
         )}
 
-        {/* ==================================================================== */}
-        {/* VIEW 1: 2 NÚT BỰ ĐĂNG NHẬP (DEFAULT) */}
-        {/* ==================================================================== */}
+        {/* VIEW 1: Role Choice */}
         {mode === 'choice' && (
           <div className="pt-6 space-y-3.5">
-            {/* Button 1: Người Dân */}
             <button
               type="button"
               onClick={enterAsCitizen}
@@ -165,13 +175,14 @@ export const RoleGateway: React.FC = () => {
                 </div>
                 <div>
                   <div className="font-bold text-sm">Đăng nhập với tư cách Người dân</div>
-                  <div className="text-xs text-teal-50 font-normal">Vào thẳng hệ thống • Phiên 5 phút</div>
+                  <div className="text-xs text-teal-50 font-normal">
+                    Vào thẳng hệ thống • Phiên 5 phút trượt (hỏi Tiếp tục? trước khi hết)
+                  </div>
                 </div>
               </div>
               <ArrowRight className="w-5 h-5 text-teal-200 group-hover:translate-x-0.5 transition-transform shrink-0" />
             </button>
 
-            {/* Button 2: Cán Bộ */}
             <button
               type="button"
               onClick={() => {
@@ -187,8 +198,10 @@ export const RoleGateway: React.FC = () => {
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="font-bold text-sm">Đăng nhập với tư cách Cán bộ</div>
-                  <div className="text-xs text-slate-400 font-normal">Phiên thường trực cho 96 xã/phường</div>
+                  <div className="font-bold text-sm">Đăng nhập Cán bộ / Quản trị viên</div>
+                  <div className="text-xs text-slate-400 font-normal">
+                    Cán bộ ({totalWardsCount} đơn vị UBND/Công an xã) • Admin cấp tỉnh (AG_PROVINCE)
+                  </div>
                 </div>
               </div>
               <ArrowRight className="w-5 h-5 text-slate-400 group-hover:translate-x-0.5 transition-transform shrink-0" />
@@ -196,12 +209,9 @@ export const RoleGateway: React.FC = () => {
           </div>
         )}
 
-        {/* ==================================================================== */}
-        {/* VIEW 2: Ô NHẬP TÀI KHOẢN CÁN BỘ */}
-        {/* ==================================================================== */}
+        {/* VIEW 2: Officer / Admin Login Form */}
         {mode === 'officer_form' && (
           <div className="pt-5 animate-fadeIn">
-            {/* Back Button */}
             <button
               type="button"
               onClick={() => setMode('choice')}
@@ -212,15 +222,14 @@ export const RoleGateway: React.FC = () => {
             </button>
 
             <h2 className="text-base font-bold text-slate-900 mb-3">
-              Xác thực quyền Cán bộ
+              Xác thực Cán bộ Cấp Xã / Quản trị Cấp Tỉnh
             </h2>
 
             <form onSubmit={handleOfficerLogin} className="space-y-3">
-              {/* Quick Ward Selector */}
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center gap-1">
                   <Building2 className="w-3.5 h-3.5 text-[#00796B]" />
-                  <span>Chọn địa bàn (Cấp đủ 96 xã/phường)</span>
+                  <span>Chọn đơn vị hành chính ({totalWardsCount} đơn vị):</span>
                 </label>
                 <select
                   value={currentWard.code}
@@ -245,14 +254,14 @@ export const RoleGateway: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Mã thẻ công chức
+                  Mã thẻ công chức / Quản trị viên
                 </label>
                 <div className="relative">
                   <input
                     type="text"
                     value={badgeId}
                     onChange={(e) => setBadgeId(e.target.value.toUpperCase())}
-                    placeholder="VD: CB-AG_P_LONGXUYEN"
+                    placeholder="VD: CB-AG_P_LONGXUYEN hoặc ADM-AG-0001"
                     className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900 font-mono uppercase"
                   />
                   <KeyRound className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
@@ -261,21 +270,20 @@ export const RoleGateway: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
-                  Mã PIN bảo mật
+                  Mã PIN / Mật khẩu công vụ
                 </label>
                 <div className="relative">
                   <input
                     type="password"
                     value={pin}
                     onChange={(e) => setPin(e.target.value)}
-                    placeholder="Mã PIN 4 số"
+                    placeholder="Nhập mã PIN / mật khẩu"
                     className="w-full text-sm px-3.5 py-2.5 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-900 font-mono"
                   />
                   <Lock className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
                 </div>
               </div>
 
-              {/* Error Message */}
               {officerError && (
                 <div className="rounded-lg bg-red-50 border border-red-200 p-2.5 flex items-start gap-2 text-red-700 text-xs">
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
@@ -283,7 +291,6 @@ export const RoleGateway: React.FC = () => {
                 </div>
               )}
 
-              {/* Quick Fill Helpers */}
               <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 pt-0.5">
                 <button
                   type="button"
@@ -321,12 +328,11 @@ export const RoleGateway: React.FC = () => {
                 ) : (
                   <>
                     <ShieldCheck className="w-4 h-4 text-teal-300" />
-                    <span>Đăng nhập Cán bộ</span>
+                    <span>Đăng nhập Hệ thống</span>
                   </>
                 )}
               </button>
 
-              {/* Change PIN Action */}
               <div className="pt-1 text-center">
                 <button
                   type="button"
@@ -334,17 +340,16 @@ export const RoleGateway: React.FC = () => {
                   className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-800 transition font-medium cursor-pointer"
                 >
                   <KeyRound className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Đổi mã PIN cán bộ</span>
+                  <span>Đổi mã PIN công vụ (Tối thiểu 6 ký tự)</span>
                 </button>
               </div>
             </form>
           </div>
         )}
 
-        {/* Security Caption */}
         <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-center gap-1.5 text-[11px] text-slate-600 text-center">
           <Clock className="w-3.5 h-3.5 shrink-0" />
-          <span>Cán bộ: Thường trực không giới hạn • Dân: Phiên 5 phút an toàn</span>
+          <span>Công dân: 5 phút trượt • Cán bộ/Admin: JWT 8h + Khóa không hoạt động 15 phút</span>
         </div>
       </div>
 

@@ -11,6 +11,15 @@
     --sw-officer: #0F2942;
     --sw-officer-hover: #1E3A5F;
 
+    /* Citizen Public-Admin Portal Tokens (Inspired by BCA Electronic Portal) */
+    --sw-citizen-crimson: #B90E23;
+    --sw-citizen-crimson-hover: #8F0A1B;
+    --sw-citizen-crimson-deep: #750715;
+    --sw-citizen-ivory: #F7EEDF;
+    --sw-citizen-ivory-border: #E5D4B3;
+    --sw-citizen-gold: #D4A017;
+    --sw-citizen-surface: #F5F6F8;
+
     --sw-surface: #F8FAFC;
     --sw-surface-card: #FFFFFF;
     --sw-surface-muted: #F1F5F9;
@@ -47,7 +56,7 @@
   }
 
   html {
-    scroll-padding-top: 5rem; /* Prevent fixed header from covering #hash anchor targets */
+    scroll-padding-top: 6.5rem; /* Prevent 2-tier citizen or officer fixed header from covering #hash anchor targets */
   }
 
   html, body {
@@ -85,6 +94,20 @@
 
 .bg-uth-watermark {
   position: relative;
+}
+
+/* Official Vietnamese Public-Admin Masthead (Crimson + subtle radial bronze-drum motif) */
+.bg-bca-masthead {
+  background-color: #B90E23;
+  background-image:
+    radial-gradient(circle at 18% 50%, rgba(253, 224, 71, 0.08) 0, rgba(253, 224, 71, 0.08) 44px, transparent 45px),
+    radial-gradient(circle at 18% 50%, transparent 62px, rgba(255, 255, 255, 0.06) 63px, rgba(255, 255, 255, 0.06) 64px, transparent 65px),
+    radial-gradient(circle at 18% 50%, transparent 94px, rgba(255, 255, 255, 0.045) 95px, rgba(255, 255, 255, 0.045) 96px, transparent 97px),
+    linear-gradient(90deg, #9E0B1D 0%, #B90E23 50%, #9E0B1D 100%);
+}
+
+.bg-citizen-surface {
+  background-color: var(--sw-citizen-surface);
 }
 
 /* Accessibility & Inclusive All-Ages Scaling (Phù hợp mọi lứa tuổi & người lớn tuổi) */

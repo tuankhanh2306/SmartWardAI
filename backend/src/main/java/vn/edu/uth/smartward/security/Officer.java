@@ -47,6 +47,10 @@ public class Officer {
     @Builder.Default
     private Boolean active = true;
 
+    @Column(name = "must_change_pin", nullable = false)
+    @Builder.Default
+    private Boolean mustChangePin = false;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

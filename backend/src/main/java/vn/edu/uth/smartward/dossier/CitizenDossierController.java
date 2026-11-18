@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.uth.smartward.common.ApiResponse;
+import vn.edu.uth.smartward.dossier.dto.*;
 import vn.edu.uth.smartward.security.OfficerAuthService;
 
 import java.util.List;
@@ -72,13 +73,27 @@ public class CitizenDossierController {
         OfficerAuthService.OfficerPrincipal principal =
                 (OfficerAuthService.OfficerPrincipal) request.getAttribute("officerPrincipal");
 
-        // SEC-09 & 5.3: Ward scope isolation - server strictly enforces principal's wardCode (ADMIN can query any ward)
+        // SEC-09 & 5.3: Strict Ward Scope Isolation - Officer of Ward A querying Ward B returns 403 FORBIDDEN
         String effectiveWardCode;
-        if (principal != null && !"ADMIN".equalsIgnoreCase(principal.role()) && principal.wardCode() != null && !principal.wardCode().isBlank()) {
-            effectiveWardCode = principal.wardCode().trim();
-            if (wardCode != null && !wardCode.isBlank() && !wardCode.equalsIgnoreCase(effectiveWardCode)) {
-                log.warn("SEC-09: Client attempted to override officer wardCode '{}' with '{}'. Enforcing principal wardCode.",
-                        effectiveWardCode, wardCode);
+        if (principal != null) {
+            if ("ADMIN".equalsIgnoreCase(principal.role())) {
+                throw new vn.edu.uth.smartward.common.BusinessException(
+                        vn.edu.uth.smartward.common.ErrorCode.FORBIDDEN,
+                        "Quản trị viên không truy cập trực tiếp bàn làm việc cán bộ cấp xã. Vui lòng dùng cổng giám sát chỉ đọc /api/v1/admin/wards/{wardCode}/overview."
+                );
+            }
+            if (principal.wardCode() != null && !principal.wardCode().isBlank()) {
+                effectiveWardCode = principal.wardCode().trim();
+                if (wardCode != null && !wardCode.isBlank() && !wardCode.trim().equalsIgnoreCase(effectiveWardCode)) {
+                    log.warn("SEC-09: Officer '{}' of ward '{}' attempted cross-ward dossier query for '{}'. Blocking with 403.",
+                            principal.badgeId(), effectiveWardCode, wardCode);
+                    throw new vn.edu.uth.smartward.common.BusinessException(
+                            vn.edu.uth.smartward.common.ErrorCode.FORBIDDEN,
+                            "SEC-09: Cán bộ thuộc đơn vị " + effectiveWardCode + " không có quyền truy cập dữ liệu hồ sơ của đơn vị " + wardCode.trim() + "."
+                    );
+                }
+            } else {
+                effectiveWardCode = (wardCode != null && !wardCode.isBlank()) ? wardCode.trim() : null;
             }
         } else {
             effectiveWardCode = (wardCode != null && !wardCode.isBlank()) ? wardCode.trim() : null;

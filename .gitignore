@@ -54,6 +54,7 @@ data-pipeline/form-dataset/scans/
 
 # Agent metadata
 .agents/
+skills-lock.json
 !data-pipeline/**/.gitkeep
 
 # Graphify visualization outputs

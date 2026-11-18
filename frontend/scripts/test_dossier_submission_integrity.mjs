@@ -23,8 +23,19 @@ function assert(condition, message) {
   totalPassed++;
 }
 
-// Read FormAndIssueReporting.tsx source code
-const sourceCode = fs.readFileSync(sourcePath, 'utf-8');
+// Read FormAndIssueReporting.tsx + extracted feature modules source code
+const featuresDir = path.resolve(__dirname, '../src/features');
+function readFeatureSources(dir) {
+  if (!fs.existsSync(dir)) return '';
+  let acc = '';
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) acc += readFeatureSources(full);
+    else if (entry.name.endsWith('.tsx') || entry.name.endsWith('.ts')) acc += '\n' + fs.readFileSync(full, 'utf-8');
+  }
+  return acc;
+}
+const sourceCode = fs.readFileSync(sourcePath, 'utf-8') + readFeatureSources(featuresDir);
 
 // =================================================================
 // 1. STATIC SOURCE CODE INTEGRITY AUDIT

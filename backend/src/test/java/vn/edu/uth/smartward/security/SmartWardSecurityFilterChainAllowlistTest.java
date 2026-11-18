@@ -16,6 +16,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import vn.edu.uth.smartward.common.GlobalExceptionHandler;
 import vn.edu.uth.smartward.common.HealthController;
 import vn.edu.uth.smartward.dossier.CitizenDossierController;
 import vn.edu.uth.smartward.dossier.CitizenDossierService;
@@ -24,14 +25,20 @@ import vn.edu.uth.smartward.evaluation.ExperimentRunnerService;
 import vn.edu.uth.smartward.evaluation.dto.FullBenchmarkReport;
 import vn.edu.uth.smartward.formcheck.FormCheckController;
 import vn.edu.uth.smartward.formcheck.FormPrecheckService;
+import vn.edu.uth.smartward.rag.AdminProcedureGovernanceController;
 import vn.edu.uth.smartward.rag.ProcedureController;
+import vn.edu.uth.smartward.rag.ProcedureGovernanceService;
 import vn.edu.uth.smartward.rag.ProcedureService;
 import vn.edu.uth.smartward.rag.RagController;
 import vn.edu.uth.smartward.rag.RagQueryService;
+import vn.edu.uth.smartward.rag.dto.AdminWardOverviewDto;
+import vn.edu.uth.smartward.rag.dto.ProposalDecisionRequest;
 import vn.edu.uth.smartward.triage.TriageController;
 import vn.edu.uth.smartward.triage.TwoStageTriageService;
 import vn.edu.uth.smartward.vault.VaultController;
 import vn.edu.uth.smartward.vault.ZeroTrustVaultService;
+import vn.edu.uth.smartward.common.BusinessException;
+import vn.edu.uth.smartward.common.ErrorCode;
 
 import java.util.Collections;
 import java.util.Map;
@@ -46,6 +53,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         HealthController.class,
         OfficerAuthController.class,
         ProcedureController.class,
+        AdminProcedureGovernanceController.class,
         CitizenDossierController.class,
         RagController.class,
         TriageController.class,
@@ -57,7 +65,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
         CorrelationIdFilter.class,
         OfficerSecurityConfig.class,
         OfficerTokenAuthenticationFilter.class,
-        OfficerAuthService.class
+        OfficerAuthService.class,
+        GlobalExceptionHandler.class
 })
 @ActiveProfiles({"test", "eval"})
 @TestPropertySource(properties = {
@@ -96,6 +105,9 @@ class SmartWardSecurityFilterChainAllowlistTest {
 
     @MockBean
     private ExperimentRunnerService experimentRunnerService;
+
+    @MockBean
+    private ProcedureGovernanceService procedureGovernanceService;
 
     private String officerBearerToken;
     private String adminBearerToken;
@@ -294,5 +306,159 @@ class SmartWardSecurityFilterChainAllowlistTest {
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.errorCode").value("SW_403"));
+    }
+
+    // =========================================================================
+    // 5. /api/v1/admin/** GOVERNANCE & ROLE ISOLATION VIA REAL MOCKMVC FILTER CHAIN
+    // =========================================================================
+
+    @Test
+    @DisplayName("Admin governance endpoints without token return 401 SW_401")
+    void adminGovernance_withoutToken_returns401() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/procedures"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errorCode").value("SW_401"));
+
+        mockMvc.perform(get("/api/v1/admin/proposals"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errorCode").value("SW_401"));
+
+        mockMvc.perform(post("/api/v1/admin/proposals/1/approve"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errorCode").value("SW_401"));
+
+        mockMvc.perform(get("/api/v1/admin/wards/AG_P_LONGXUYEN/overview"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errorCode").value("SW_401"));
+    }
+
+    @Test
+    @DisplayName("OFFICER calling admin-only governance endpoints returns 403 SW_403")
+    void adminOnlyGovernance_withOfficerToken_returns403() throws Exception {
+        mockMvc.perform(get("/api/v1/admin/proposals")
+                        .header("Authorization", officerBearerToken))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("SW_403"));
+
+        mockMvc.perform(get("/api/v1/admin/proposals/1/diff")
+                        .header("Authorization", officerBearerToken))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("SW_403"));
+
+        mockMvc.perform(post("/api/v1/admin/proposals/1/approve")
+                        .header("Authorization", officerBearerToken))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("SW_403"));
+
+        mockMvc.perform(post("/api/v1/admin/proposals/1/reject")
+                        .header("Authorization", officerBearerToken))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("SW_403"));
+
+        mockMvc.perform(post("/api/v1/admin/procedures")
+                        .header("Authorization", officerBearerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("SW_403"));
+
+        mockMvc.perform(patch("/api/v1/admin/procedures/TTHC-HT-04/status")
+                        .header("Authorization", officerBearerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"INACTIVE\"}"))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("SW_403"));
+
+        mockMvc.perform(post("/api/v1/admin/procedures/TTHC-HT-04/rollback/1")
+                        .header("Authorization", officerBearerToken))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("SW_403"));
+
+        mockMvc.perform(get("/api/v1/admin/wards/AG_P_LONGXUYEN/overview")
+                        .header("Authorization", officerBearerToken))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("SW_403"));
+    }
+
+    @Test
+    @DisplayName("ADMIN self-approving own proposal via MockMvc returns 403 FORBIDDEN")
+    void adminSelfApproval_viaMockMvc_returns403() throws Exception {
+        when(procedureGovernanceService.approveProposal(any(), any(), any(), any(), any()))
+                .thenThrow(new BusinessException(ErrorCode.FORBIDDEN,
+                        "SELF_APPROVAL_FORBIDDEN: Người tạo đề xuất (ADM-AG-0001) không được phép tự duyệt đề xuất của chính mình."));
+
+        ProposalDecisionRequest body = new ProposalDecisionRequest("Tự duyệt");
+        mockMvc.perform(post("/api/v1/admin/proposals/10/approve")
+                        .header("Authorization", adminBearerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(body)))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    @DisplayName("ADMIN is blocked (403) from Officer dossier workspace and review endpoints; uses read-only /api/v1/admin/wards/{wardCode}/overview")
+    void adminBlockedFromOfficerDossierReview_andUsesReadOnlyWardOverview() throws Exception {
+        // Admin cannot access officer dossier list or review dossiers in place of officer
+        mockMvc.perform(get("/api/v1/dossiers/officer/list")
+                        .header("Authorization", adminBearerToken))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(put("/api/v1/dossiers/HS-20261118-001/review")
+                        .header("Authorization", adminBearerToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"status\":\"APPROVED\"}"))
+                .andExpect(status().isForbidden());
+
+        // Admin CAN access read-only ward overview endpoint
+        when(procedureGovernanceService.getAdminWardReadOnlyOverview(anyString(), any(), any(), any()))
+                .thenReturn(AdminWardOverviewDto.builder()
+                        .wardCode("AG_P_LONGXUYEN")
+                        .readOnly(true)
+                        .audited(true)
+                        .totalDossiers(2)
+                        .build());
+
+        mockMvc.perform(get("/api/v1/admin/wards/AG_P_LONGXUYEN/overview")
+                        .header("Authorization", adminBearerToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.readOnly").value(true))
+                .andExpect(jsonPath("$.data.audited").value(true));
+    }
+
+    @Test
+    @DisplayName("SEC-09: Officer of Ward A querying dossiers of Ward B returns 403 FORBIDDEN")
+    void officerWardA_queryingWardB_returns403() throws Exception {
+        mockMvc.perform(get("/api/v1/dossiers/officer/list")
+                        .param("wardCode", "AG_P_CHAUDOC")
+                        .header("Authorization", officerBearerToken))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    @DisplayName("Reusing logged-out token returns 401 UNAUTHORIZED (jti revoked)")
+    void reusingLoggedOutToken_returns401() throws Exception {
+        OfficerAuthService.LoginResponse tempLogin =
+                officerAuthService.authenticate("CC-AG-1001", "2026", null);
+        String tempBearer = "Bearer " + tempLogin.token();
+
+        // 1. Valid before logout
+        mockMvc.perform(get("/api/v1/auth/officer/me")
+                        .header("Authorization", tempBearer))
+                .andExpect(status().isOk());
+
+        // 2. Call POST /api/v1/auth/officer/logout
+        mockMvc.perform(post("/api/v1/auth/officer/logout")
+                        .header("Authorization", tempBearer))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.revoked").value(true));
+
+        // 3. Reusing revoked token returns 401 SW_401
+        mockMvc.perform(get("/api/v1/auth/officer/me")
+                        .header("Authorization", tempBearer))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errorCode").value("SW_401"));
     }
 }

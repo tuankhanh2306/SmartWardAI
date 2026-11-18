@@ -15,6 +15,7 @@ import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ErrorCode;
 import vn.edu.uth.smartward.common.GlobalExceptionHandler;
 import vn.edu.uth.smartward.dossier.*;
+import vn.edu.uth.smartward.dossier.dto.*;
 
 import java.time.Duration;
 import java.time.Instant;

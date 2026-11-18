@@ -16,7 +16,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const currentDir = path.dirname(fileURLToPath(import.meta.url));
-const frontendDir = path.resolve(currentDir, '..');
+const frontendDir = path.resolve(currentDir, '../..');
 const rootDir = path.resolve(frontendDir, '..');
 
 const VIEWPORTS = [

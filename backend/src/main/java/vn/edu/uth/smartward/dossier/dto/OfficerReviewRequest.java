@@ -1,4 +1,4 @@
-package vn.edu.uth.smartward.dossier;
+package vn.edu.uth.smartward.dossier.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;

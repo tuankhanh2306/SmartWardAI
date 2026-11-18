@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ErrorCode;
+import vn.edu.uth.smartward.dossier.dto.*;
 import vn.edu.uth.smartward.rag.AdminProcedure;
 import vn.edu.uth.smartward.rag.AdminProcedureRepository;
 import vn.edu.uth.smartward.security.OfficerAuthService;
