@@ -1153,7 +1153,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                   {officialTemplate.legalNote} [{officialTemplate.formCode}]
                 </p>
                 <div className="mt-3 font-bold italic text-[12pt]">
-                  Kính gửi: {officialTemplate.recipient.replace('{WARD_NAME}', currentWard.name)}
+                  Kính gửi: {officialTemplate.recipient.replace(/\{WARD_NAME\}/g, currentWard.name)}
                 </div>
               </div>
 
@@ -1167,6 +1167,12 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
 
                   <div className="space-y-2">
                     {section.fields.map((field, fIdx) => {
+                      const rawPlaceholder = field.placeholder
+                        ? field.placeholder.replace(/\{WARD_NAME\}/g, currentWard.name)
+                        : '';
+                      const rawSecondPlaceholder = field.secondPlaceholder
+                        ? field.secondPlaceholder.replace(/\{WARD_NAME\}/g, currentWard.name)
+                        : '';
                       const dynamicVal = field.label.includes('Họ, chữ đệm') || field.label.includes('Họ và tên')
                         ? val(activeData.fullName, blankDot)
                         : field.label.includes('Ngày, tháng, năm sinh')
@@ -1175,7 +1181,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                         ? val(activeData.idNumber, shortDot)
                         : field.label.includes('Nơi thường trú') || field.label.includes('Nơi ở')
                         ? val(activeData.address, `${currentWard.name}, Tỉnh An Giang`)
-                        : val(activeData[field.label] || (isBlank ? blankDot : field.placeholder), blankDot);
+                        : val(activeData[field.label] || (isBlank ? blankDot : rawPlaceholder), blankDot);
 
                       if (field.type === 'grid2') {
                         return (
@@ -1190,7 +1196,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                               <div className="col-span-12 sm:col-span-6">
                                 <span>{field.secondLabel}: </span>
                                 <strong>
-                                  {isBlank ? shortDot : (field.secondPlaceholder || shortDot)}
+                                  {isBlank ? shortDot : (rawSecondPlaceholder || shortDot)}
                                 </strong>
                               </div>
                             )}

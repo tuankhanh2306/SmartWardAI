@@ -20,6 +20,14 @@ import { extractFormWithTesseract } from './tesseractOcr';
 export const CHAT_MODELS = ['gemini-2.5-flash'];
 export const DEFAULT_MODEL = 'gemini-2.5-flash';
 
+const resolvedBackendBase =
+  typeof import.meta !== 'undefined' && (import.meta as { env?: { VITE_API_BASE_URL?: string } }).env?.VITE_API_BASE_URL
+    ? String((import.meta as { env?: { VITE_API_BASE_URL?: string } }).env?.VITE_API_BASE_URL).replace(/\/+$/, '')
+    : '/api/v1';
+
+const resolveBackendApiUrl = (path: string): string =>
+  `${resolvedBackendBase}${path.startsWith('/') ? path : `/${path}`}`;
+
 /**
  * Legacy API key accessors retained for backward compatibility.
  * All live API keys are securely managed on the backend server.
@@ -41,7 +49,7 @@ export function isGeminiConfigured(): boolean {
  */
 export async function testGeminiConnection(): Promise<{ success: boolean; message: string }> {
   try {
-    const resp = await fetch('/api/v1/health');
+    const resp = await fetch(resolveBackendApiUrl('/health'));
     if (resp.ok) {
       return { success: true, message: 'Kết nối máy chủ SmartWard AI an toàn qua backend proxy.' };
     }
@@ -242,7 +250,7 @@ export async function askGeminiWithRAG(
   // 5. Attempt to invoke Spring Boot Backend (/api/v1/rag/ask) securely when in browser
   if (typeof window !== 'undefined') {
     try {
-      const response = await fetch('/api/v1/rag/ask', {
+      const response = await fetch(resolveBackendApiUrl('/rag/ask'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -510,7 +518,7 @@ export async function extractFormWithVision(file: File | Blob): Promise<Extracte
     formData.append('file', file);
     formData.append('formType', 'CT01_RESIDENCE_DECLARATION');
 
-    const response = await fetch('/api/v1/forms/precheck', {
+    const response = await fetch(resolveBackendApiUrl('/forms/precheck'), {
       method: 'POST',
       body: formData,
     });
