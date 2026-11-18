@@ -3,89 +3,97 @@ import type { A4FormTemplate } from './types';
 export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
   "TTHC-BT-01": {
     "procedureCode": "TTHC-BT-01",
-    "formCode": "Mẫu số 1a, 1b, 1c, 1d, 1đ - NĐ 20/2021/NĐ-CP & NĐ 76/2024/NĐ-CP",
+    "formCode": "Mẫu số 01 - NĐ 20/2021/NĐ-CP, NĐ 76/2024/NĐ-CP & Luật BHXH 2024",
     "agencyType": "COMMUNE_UBND",
-    "title": "TỜ KHAI THÔNG TIN ĐỀ NGHỊ TRỢ CẤP XÃ HỘI HẰNG THÁNG",
-    "legalNote": "(Ban hành kèm theo Nghị định số 20/2021/NĐ-CP, sửa đổi bổ sung tại Nghị định số 76/2024/NĐ-CP & Luật BHXH 2024)",
-    "recipient": "Ủy ban nhân dân {WARD_NAME}",
+    "title": "TỜ KHAI ĐỀ NGHỊ TRỢ CẤP XÃ HỘI, TRỢ CẤP HƯU TRÍ XÃ HỘI",
+    "legalNote": "(Mẫu số 01 ban hành kèm theo quy định về trợ cấp xã hội, trợ cấp hưu trí xã hội)",
+    "recipient": "Chủ tịch UBND {WARD_NAME}",
     "sections": [
       {
-        "title": "I. THÔNG TIN CỦA ĐỐI TƯỢNG ĐỀ NGHỊ TRỢ CẤP",
+        "title": "I. Thông tin chung",
         "fields": [
           {
-            "label": "1. Họ, chữ đệm và tên",
-            "placeholder": "NGUYỄN VĂN A",
+            "label": "1.1. Họ và tên đối tượng hưởng trợ cấp",
+            "placeholder": "NGUYỄN VĂN PHÚC",
             "type": "text",
             "isBold": true
           },
           {
-            "label": "2. Ngày, tháng, năm sinh",
-            "placeholder": "01/01/1950",
+            "label": "Số căn cước/Số định danh cá nhân",
+            "placeholder": "089048000123",
             "type": "grid2",
-            "secondLabel": "3. Giới tính",
-            "secondPlaceholder": "Nam / Nữ"
+            "secondLabel": "Ngày cấp / Nơi cấp",
+            "secondPlaceholder": "12/05/2021 - Cục CSQLHC về TTXH"
           },
           {
-            "label": "4. Số CCCD/Số định danh cá nhân",
-            "placeholder": "089050012345",
+            "label": "Ngày sinh",
+            "placeholder": "12/03/1948",
             "type": "grid2",
-            "secondLabel": "5. Ngày cấp / Nơi cấp",
-            "secondPlaceholder": "Cục CSQLHC về TTXH"
+            "secondLabel": "Giới tính / Dân tộc",
+            "secondPlaceholder": "Nam / Kinh"
           },
           {
-            "label": "6. Nơi thường trú",
-            "placeholder": "Ấp Vĩnh Phước, {WARD_NAME}, Tỉnh An Giang",
+            "label": "1.2 - 1.3. Nơi cư trú & Nơi ở hiện nay",
+            "placeholder": "Số 56 Tôn Đức Thắng, {WARD_NAME}, Tỉnh An Giang",
             "type": "text"
           },
           {
-            "label": "7. Nơi ở hiện tại",
-            "placeholder": "Như trên",
+            "label": "1.4 - 1.5. Số điện thoại & Thẻ BHYT",
+            "placeholder": "0918234567 - Có thẻ BHYT",
             "type": "text"
           },
           {
-            "label": "8. Dân tộc",
-            "placeholder": "Kinh",
-            "type": "grid2",
-            "secondLabel": "9. Số điện thoại liên hệ",
-            "secondPlaceholder": "0912345678"
+            "label": "1.6. Chính sách đang hưởng hằng tháng (nếu có)",
+            "placeholder": "Không",
+            "type": "text"
+          },
+          {
+            "label": "2. Thông tin người giám hộ (nếu có)",
+            "placeholder": "Họ tên, CCCD, Ngày sinh, Nơi cư trú, SĐT, Mối quan hệ",
+            "type": "text"
           }
         ]
       },
       {
-        "title": "II. TÌNH TRẠNG VÀ HOÀN CẢNH ĐỀ NGHỊ HƯỞNG TRỢ CẤP",
+        "title": "II. Thông tin đề nghị hưởng trợ cấp xã hội, trợ cấp hưu trí xã hội",
         "fields": [
           {
-            "label": "1. Thuộc đối tượng bảo trợ xã hội",
-            "placeholder": "Người cao tuổi từ đủ 80 tuổi trở lên không có lương hưu / Người khuyết tật đặc biệt nặng / Trẻ em mồ côi",
+            "label": "1. Thông tin đề nghị hưởng trợ cấp xã hội (1.1 Trẻ em <16t, 1.2 Đang đi học ≥16t, 1.3 Đơn thân nuôi con, 1.4 Người cao tuổi, 1.5 Người khuyết tật, 1.6 Trẻ <03t, 1.7 HIV/AIDS)",
+            "placeholder": "Đánh dấu và khai thông tin theo nhóm đối tượng tương ứng",
             "type": "text"
           },
           {
-            "label": "2. Tình trạng sức khỏe / khả năng tự phục vụ",
-            "placeholder": "Không có khả năng tự phục vụ sinh hoạt cá nhân hàng ngày",
+            "label": "2. Thông tin đề nghị hưởng trợ cấp hưu trí xã hội (≥75 tuổi hoặc 70–<75 tuổi thuộc hộ nghèo/cận nghèo)",
+            "placeholder": "Người từ đủ 75 tuổi trở lên không hưởng lương hưu hoặc trợ cấp BHXH hằng tháng",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "title": "III. Phương thức nhận kinh phí trợ cấp",
+        "fields": [
+          {
+            "label": "1. Thông tin người nhận (hưởng trợ cấp / nhận thay)",
+            "placeholder": "Họ tên, CCCD, ngày cấp, nơi cấp, ngày sinh, nơi cư trú",
             "type": "text"
           },
           {
-            "label": "3. Giấy xác nhận mức độ khuyết tật (nếu có)",
-            "placeholder": "Số: ......../G-XNKT cấp ngày ...../...../.........",
-            "type": "text"
-          },
-          {
-            "label": "4. Tài khoản ngân hàng nhận trợ cấp (Đề án 06)",
-            "placeholder": "Số TK: ............................... tại Ngân hàng .................................................",
+            "label": "2. Hình thức nhận (Tiền mặt / Tài khoản ngân hàng / Ví điện tử)",
+            "placeholder": "Tài khoản ngân hàng / Ví điện tử / Tiền mặt",
             "type": "text"
           }
         ]
       }
     ],
-    "commitText": "Tôi xin cam đoan những thông tin kê khai trên đây là hoàn toàn đúng sự thật. Nếu có gì sai trái, tôi xin chịu hoàn toàn trách nhiệm trước pháp luật và hoàn trả toàn bộ số tiền trợ cấp đã nhận sai.",
+    "commitText": "Tôi xin cam đoan những thông tin khai trên là đúng sự thật, nếu có điều gì khai không đúng, tôi xin chịu trách nhiệm hoàn toàn trước pháp luật.",
     "signatures": [
       {
-        "role": "CÁN BỘ TIẾP NHẬN MỘT CỬA",
-        "note": "(Ký, ghi rõ họ tên và kiểm tra hồ sơ)"
+        "role": "NGƯỜI TIẾP NHẬN TỜ KHAI",
+        "note": "(Ký, ghi rõ họ tên)"
       },
       {
-        "role": "NGƯỜI KÊ KHAI / NGƯỜI ĐẠI DIỆN",
-        "note": "(Ký và ghi rõ họ tên)"
+        "role": "NGƯỜI KHAI",
+        "note": "(Ký, ghi rõ họ tên)"
       }
     ]
   },
