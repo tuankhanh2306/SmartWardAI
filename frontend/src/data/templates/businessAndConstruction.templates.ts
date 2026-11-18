@@ -3,10 +3,10 @@ import type { A4FormTemplate } from './types';
 export const BUSINESS_AND_CONSTRUCTION_TEMPLATES: Record<string, A4FormTemplate> = {
   "TTHC-HT-08": {
     "procedureCode": "TTHC-HT-08",
-    "formCode": "Mẫu Đăng ký lại Khai sinh - TT 04/2020/TT-BTP",
+    "formCode": "Phụ lục 5 - TT 04/2024/TT-BTP (sửa đổi TT 04/2020/TT-BTP)",
     "agencyType": "COMMUNE_UBND",
-    "title": "TỜ KHAI ĐĂNG KÝ LẠI KHAI SINH CÓ YẾU TỐ NƯỚC NGOÀI",
-    "legalNote": "(Ban hành kèm theo Thông tư số 04/2020/TT-BTP của Bộ Tư pháp)",
+    "title": "TỜ KHAI ĐĂNG KÝ LẠI KHAI SINH",
+    "legalNote": "(Ban hành kèm theo Thông tư số 04/2024/TT-BTP ngày 06/06/2024 sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP của Bộ Tư pháp)",
     "recipient": "Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {
@@ -74,10 +74,10 @@ export const BUSINESS_AND_CONSTRUCTION_TEMPLATES: Record<string, A4FormTemplate>
   },
   "TTHC-HT-09": {
     "procedureCode": "TTHC-HT-09",
-    "formCode": "Mẫu Đăng ký lại Kết hôn - TT 04/2020/TT-BTP",
+    "formCode": "Phụ lục 5 - TT 04/2024/TT-BTP (sửa đổi TT 04/2020/TT-BTP)",
     "agencyType": "COMMUNE_UBND",
-    "title": "TỜ KHAI ĐĂNG KÝ LẠI KẾT HÔN CÓ YẾU TỐ NƯỚC NGOÀI",
-    "legalNote": "(Ban hành kèm theo Thông tư số 04/2020/TT-BTP của Bộ Tư pháp)",
+    "title": "TỜ KHAI ĐĂNG KÝ LẠI KẾT HÔN",
+    "legalNote": "(Ban hành kèm theo Thông tư số 04/2024/TT-BTP ngày 06/06/2024 sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP của Bộ Tư pháp)",
     "recipient": "Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {
@@ -137,10 +137,10 @@ export const BUSINESS_AND_CONSTRUCTION_TEMPLATES: Record<string, A4FormTemplate>
   },
   "TTHC-HT-10": {
     "procedureCode": "TTHC-HT-10",
-    "formCode": "Mẫu Đăng ký lại Khai tử - TT 04/2020/TT-BTP",
+    "formCode": "Phụ lục 5 - TT 04/2024/TT-BTP (sửa đổi TT 04/2020/TT-BTP)",
     "agencyType": "COMMUNE_UBND",
-    "title": "TỜ KHAI ĐĂNG KÝ LẠI KHAI TỬ CÓ YẾU TỐ NƯỚC NGOÀI",
-    "legalNote": "(Ban hành kèm theo Thông tư số 04/2020/TT-BTP của Bộ Tư pháp)",
+    "title": "TỜ KHAI ĐĂNG KÝ LẠI KHAI TỬ",
+    "legalNote": "(Ban hành kèm theo Thông tư số 04/2024/TT-BTP ngày 06/06/2024 sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP của Bộ Tư pháp)",
     "recipient": "Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {
@@ -202,10 +202,10 @@ export const BUSINESS_AND_CONSTRUCTION_TEMPLATES: Record<string, A4FormTemplate>
   },
   "TTHC-HT-11": {
     "procedureCode": "TTHC-HT-11",
-    "formCode": "Mẫu Xác nhận TTHN - TT 04/2020/TT-BTP",
+    "formCode": "Phụ lục 5 - TT 04/2024/TT-BTP (sửa đổi TT 04/2020/TT-BTP)",
     "agencyType": "COMMUNE_UBND",
     "title": "TỜ KHAI CẤP GIẤY XÁC NHẬN TÌNH TRẠNG HÔN NHÂN",
-    "legalNote": "(Ban hành kèm theo Thông tư số 04/2020/TT-BTP ngày 28/05/2020 của Bộ Tư pháp)",
+    "legalNote": "(Ban hành kèm theo Thông tư số 04/2024/TT-BTP ngày 06/06/2024 sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP của Bộ Tư pháp)",
     "recipient": "Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {
@@ -275,10 +275,10 @@ export const BUSINESS_AND_CONSTRUCTION_TEMPLATES: Record<string, A4FormTemplate>
   },
   "TTHC-HT-12": {
     "procedureCode": "TTHC-HT-12",
-    "formCode": "Mẫu Cải chính hộ tịch - TT 04/2020/TT-BTP",
+    "formCode": "Phụ lục 5 - TT 04/2024/TT-BTP (sửa đổi TT 04/2020/TT-BTP)",
     "agencyType": "COMMUNE_UBND",
     "title": "TỜ KHAI ĐĂNG KÝ THAY ĐỔI, CẢI CHÍNH, BỔ SUNG HỘ TỊCH, XÁC ĐỊNH LẠI DÂN TỘC",
-    "legalNote": "(Ban hành kèm theo Thông tư số 04/2020/TT-BTP của Bộ Tư pháp)",
+    "legalNote": "(Ban hành kèm theo Thông tư số 04/2024/TT-BTP ngày 06/06/2024 sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP của Bộ Tư pháp)",
     "recipient": "Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {
@@ -347,10 +347,10 @@ export const BUSINESS_AND_CONSTRUCTION_TEMPLATES: Record<string, A4FormTemplate>
   },
   "TTHC-HT-13": {
     "procedureCode": "TTHC-HT-13",
-    "formCode": "Mẫu Tờ khai Khai tử - TT 04/2020/TT-BTP",
+    "formCode": "Phụ lục 5 - TT 04/2024/TT-BTP (sửa đổi TT 04/2020/TT-BTP)",
     "agencyType": "COMMUNE_UBND",
-    "title": "TỜ KHAI ĐĂNG KÝ KHAI TỬ (TRONG NƯỚC)",
-    "legalNote": "(Ban hành kèm theo Thông tư số 04/2020/TT-BTP ngày 28/05/2020 của Bộ Tư pháp)",
+    "title": "TỜ KHAI ĐĂNG KÝ KHAI TỬ",
+    "legalNote": "(Ban hành kèm theo Thông tư số 04/2024/TT-BTP ngày 06/06/2024 sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP của Bộ Tư pháp)",
     "recipient": "Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {
@@ -439,10 +439,10 @@ export const BUSINESS_AND_CONSTRUCTION_TEMPLATES: Record<string, A4FormTemplate>
   },
   "TTHC-MT-01": {
     "procedureCode": "TTHC-MT-01",
-    "formCode": "Mẫu Đăng ký môi trường - NĐ 08/2022/NĐ-CP",
+    "formCode": "Mẫu số 47 Phụ lục II - TT 02/2022/TT-BTNMT & NĐ 05/2025/NĐ-CP",
     "agencyType": "COMMUNE_UBND",
-    "title": "BẢN ĐĂNG KÝ MÔI TRƯỜNG CỦA CƠ SỞ SẢN XUẤT, KINH DOANH, DỊCH VỤ CẤP XÃ",
-    "legalNote": "(Theo Điều 49 Luật Bảo vệ môi trường 2020 & Nghị định số 08/2022/NĐ-CP)",
+    "title": "BẢN ĐĂNG KÝ MÔI TRƯỜNG CỦA CƠ SỞ SẢN XUẤT, KINH DOANH, DỊCH VỤ",
+    "legalNote": "(Mẫu số 47 Phụ lục II ban hành kèm theo Thông tư số 02/2022/TT-BTNMT, Điều 49 Luật BVMT 2020 & Nghị định số 08/2022/NĐ-CP sửa đổi tại Nghị định số 05/2025/NĐ-CP)",
     "recipient": "Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {
@@ -578,11 +578,11 @@ export const BUSINESS_AND_CONSTRUCTION_TEMPLATES: Record<string, A4FormTemplate>
   },
   "TTHC-XD-01": {
     "procedureCode": "TTHC-XD-01",
-    "formCode": "Mẫu số 01 Phụ lục II - NĐ 15/2021/NĐ-CP",
+    "formCode": "Mẫu số 01 Phụ lục II - NĐ 175/2024/NĐ-CP (thay thế NĐ 15/2021/NĐ-CP)",
     "agencyType": "COMMUNE_UBND",
     "title": "ĐƠN ĐỀ NGHỊ CẤP GIẤY PHÉP XÂY DỰNG NHÀ Ở RIÊNG LẺ",
-    "legalNote": "(Ban hành kèm theo Nghị định số 15/2021/NĐ-CP ngày 03/03/2021 của Chính phủ)",
-    "recipient": "Ủy ban nhân dân {WARD_NAME} / Phòng Quản lý Đô thị",
+    "legalNote": "(Ban hành kèm theo Nghị định số 175/2024/NĐ-CP ngày 30/12/2024 của Chính phủ quy định chi tiết một số điều của Luật Xây dựng)",
+    "recipient": "Ủy ban nhân dân {WARD_NAME} / Phòng Kinh tế và Hạ tầng",
     "sections": [
       {
         "title": "I. THÔNG TIN CHỦ ĐẦU TƯ / CHỦ HỘ",
@@ -651,11 +651,11 @@ export const BUSINESS_AND_CONSTRUCTION_TEMPLATES: Record<string, A4FormTemplate>
   },
   "TTHC-XD-02": {
     "procedureCode": "TTHC-XD-02",
-    "formCode": "Mẫu số 02 Phụ lục II - NĐ 15/2021/NĐ-CP",
+    "formCode": "Mẫu số 02 Phụ lục II - NĐ 175/2024/NĐ-CP (thay thế NĐ 15/2021/NĐ-CP)",
     "agencyType": "COMMUNE_UBND",
     "title": "ĐƠN ĐỀ NGHỊ ĐIỀU CHỈNH / GIA HẠN GIẤY PHÉP XÂY DỰNG",
-    "legalNote": "(Ban hành kèm theo Nghị định số 15/2021/NĐ-CP ngày 03/03/2021 của Chính phủ)",
-    "recipient": "Ủy ban nhân dân {WARD_NAME} / Phòng Quản lý Đô thị",
+    "legalNote": "(Ban hành kèm theo Nghị định số 175/2024/NĐ-CP ngày 30/12/2024 của Chính phủ quy định chi tiết một số điều của Luật Xây dựng)",
+    "recipient": "Ủy ban nhân dân {WARD_NAME} / Phòng Kinh tế và Hạ tầng",
     "sections": [
       {
         "title": "I. THÔNG TIN CHỦ ĐẦU TƯ",

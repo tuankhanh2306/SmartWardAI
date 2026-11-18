@@ -316,30 +316,58 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
   const month = today.getMonth() + 1;
   const year = today.getFullYear();
 
-  // Resolve category
-  const resolvedCategory = (() => {
-    if (formType === 'CT01' || procedureCode === 'TTHC-CR-01') return 'CT01';
-    if (formType === 'TK-KS' || procedureCode === 'TTHC-HT-01') return 'TK-KS';
-    if (formType === 'TK-KH' || procedureCode === 'TTHC-HT-02') return 'TK-KH';
-    if (formType === 'TK-BTXH' || procedureCode === 'TTHC-BT-01') return 'TK-BTXH';
-    if (formType === 'CHUNG-THUC' || procedureCode?.startsWith('TTHC-CT-')) return 'CHUNG-THUC';
-    if (formType === 'DAT-DAI' || procedureCode?.startsWith('TTHC-DC-')) return 'DAT-DAI';
-    if (formType === 'XAY-DUNG' || procedureCode?.startsWith('TTHC-XD-')) return 'XAY-DUNG';
-    if (formType === 'KHAI-TU' || procedureCode === 'TTHC-CR-02') return 'KHAI-TU';
-    if (formType === 'MAI-TANG-PHI' || procedureCode?.startsWith('TTHC-BT-')) return 'MAI-TANG-PHI';
-    if (formType === 'MOI-TRUONG' || procedureCode?.startsWith('TTHC-MT-')) return 'MOI-TRUONG';
-    return formType || 'GENERAL';
+  // Resolve exact procedureCode (especially when TK-KH switches between Marriage Registration and Marital Status Confirmation)
+  const effectiveProcedureCode = (() => {
+    if (
+      (formType === 'TK-KH' || procedureCode === 'TTHC-HT-02') &&
+      marriageMode === 'MARITAL_STATUS_CONFIRMATION'
+    ) {
+      return 'TTHC-HT-11';
+    }
+    if (procedureCode) return procedureCode;
+    if (formType === 'CT01') return 'TTHC-CR-01';
+    if (formType === 'TK-KS') return 'TTHC-HT-01';
+    if (formType === 'TK-KH') return 'TTHC-HT-02';
+    if (formType === 'TK-BTXH') return 'TTHC-BT-01';
+    if (formType === 'CHUNG-THUC') return 'TTHC-CT-01';
+    if (formType === 'DAT-DAI') return 'TTHC-DC-01';
+    if (formType === 'XAY-DUNG') return 'TTHC-XD-01';
+    if (formType === 'KHAI-TU') return 'TTHC-CR-02';
+    if (formType === 'MAI-TANG-PHI') return 'TTHC-BT-02';
+    if (formType === 'MOI-TRUONG') return 'TTHC-MT-01';
+    return 'TTHC-CẤP-XÃ';
   })();
 
-  const isPolice = resolvedCategory === 'CT01' || procedureCode === 'TTHC-CR-01' || procedureCode?.includes('CR-');
+  // Resolve category strictly for the exact procedure code so other procedures (e.g., TTHC-DC-02, TTHC-XD-02, TTHC-BT-03..05, TTHC-CT-03..08)
+  // render their exact officialTemplate from A4_FORM_TEMPLATES, matching .docx and .pdf 100%!
+  const resolvedCategory = (() => {
+    if (effectiveProcedureCode === 'TTHC-CR-01') return 'CT01';
+    if (effectiveProcedureCode === 'TTHC-HT-01') return 'TK-KS';
+    if (effectiveProcedureCode === 'TTHC-HT-02' || (formType === 'TK-KH' && effectiveProcedureCode === 'TTHC-HT-11')) {
+      return 'TK-KH';
+    }
+    if (effectiveProcedureCode === 'TTHC-BT-01') return 'TK-BTXH';
+    if (effectiveProcedureCode === 'TTHC-CT-01' || effectiveProcedureCode === 'TTHC-CT-02') return 'CHUNG-THUC';
+    if (effectiveProcedureCode === 'TTHC-DC-01') return 'DAT-DAI';
+    if (effectiveProcedureCode === 'TTHC-XD-01') return 'XAY-DUNG';
+    if (effectiveProcedureCode === 'TTHC-CR-02') return 'KHAI-TU';
+    if (effectiveProcedureCode === 'TTHC-BT-02') return 'MAI-TANG-PHI';
+    if (effectiveProcedureCode === 'TTHC-MT-01') return 'MOI-TRUONG';
+    return 'GENERAL';
+  })();
 
-  // Lookup official A4 template from the 40 standardized schemas if needed as fallback
-  const officialTemplate: A4FormTemplate | undefined = procedureCode
-    ? getA4TemplateByCode(procedureCode)
+  // Lookup official A4 template from the 40 standardized schemas
+  const officialTemplate: A4FormTemplate | undefined = effectiveProcedureCode
+    ? getA4TemplateByCode(effectiveProcedureCode)
     : undefined;
 
+  const isPolice =
+    officialTemplate?.agencyType === 'POLICE' ||
+    resolvedCategory === 'CT01' ||
+    effectiveProcedureCode === 'TTHC-CR-01';
+
   const effectiveTemplate: A4FormTemplate = officialTemplate || {
-    procedureCode: procedureCode || 'TTHC-CẤP-XÃ',
+    procedureCode: effectiveProcedureCode || 'TTHC-CẤP-XÃ',
     formCode: 'Mẫu Tờ khai chuẩn NĐ 30/2020/NĐ-CP',
     agencyType: isPolice ? 'POLICE' : 'COMMUNE_UBND',
     title: procedureTitle ? `TỜ KHAI YÊU CẦU GIẢI QUYẾT: ${procedureTitle.toUpperCase()}` : 'TỜ KHAI HÀNH CHÍNH CẤP XÃ',
@@ -377,7 +405,6 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
   const handleDownloadDocx = async () => {
     try {
       setIsExportingDocx(true);
-      // Pass empty object so Word exporter renders a pure blank template
       await exportA4TemplateToDocx(effectiveTemplate, currentWard.name, {});
       setExportSuccess(true);
       setTimeout(() => setExportSuccess(false), 3000);
@@ -412,7 +439,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
 
   /**
    * Renders the complete legal A4 document body
-   * @param isBlank If true, outputs pure dotted lines and blank signatures (for Blank Template & PDF download)
+   * @param isBlank If true, outputs pure dotted lines and blank signatures (for Blank Template & PDF download, 100% unified with Word .docx)
    *                If false, outputs standard filled sample data (for Reference & AI OCR Scanning)
    */
   const renderDocumentContent = (isBlank: boolean) => {
@@ -420,7 +447,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
 
     // Merge citizen initialData with standard sampleData when not in blank mode
     const cleanInitialData = Object.fromEntries(
-      Object.entries(initialData).filter(([_, v]) => typeof v === 'string' && v.trim().length > 0)
+      Object.entries(initialData || {}).filter(([_, v]) => typeof v === 'string' && v.trim().length > 0)
     );
 
     const activeData: Record<string, any> = isBlank
@@ -430,9 +457,9 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
           ...cleanInitialData,
         };
 
-    const val = (v?: string, fallback: string = blankDot) => {
-      if (isBlank) return fallback;
-      return v && v.trim() ? v.trim() : fallback;
+    const val = (v?: string, sampleFallback: string = blankDot, blankPlaceholder: string = blankDot) => {
+      if (isBlank) return blankPlaceholder;
+      return v && v.trim() ? v.trim() : sampleFallback;
     };
 
     return (
@@ -453,7 +480,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
             </div>
             <div className="w-20 mx-auto my-1 border-b border-black"></div>
             <div className="text-[10pt] italic text-neutral-600">
-              Mã TTHC: {procedureCode || 'TTHC-CẤP-XÃ'}
+              Mã TTHC: {effectiveProcedureCode}
             </div>
           </div>
 
@@ -466,13 +493,13 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
             </div>
             <div className="w-44 mx-auto my-1 border-b-2 border-black"></div>
             <div className="text-[11pt] italic text-right pr-4 pt-1">
-              {currentWard.name}, ngày {day} tháng {month} năm {year}
+              {currentWard.name}, ngày {isBlank ? '......' : day} tháng {isBlank ? '......' : month} năm {year}
             </div>
           </div>
         </div>
 
         {/* ========================================================================= */}
-        {/* 1. MẪU CT01: CƯ TRÚ (THÔNG TƯ 66/2023/TT-BCA)                            */}
+        {/* 1. MẪU CT01: CƯ TRÚ (THÔNG TƯ 66/2023/TT-BCA & THÔNG TƯ 53/2025/TT-BCA)    */}
         {/* ========================================================================= */}
         {resolvedCategory === 'CT01' && (
           <div className="space-y-4">
@@ -481,7 +508,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                 TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ
               </h1>
               <p className="text-[11pt] italic text-neutral-700 mt-1">
-                (Mẫu CT01 ban hành kèm theo Thông tư số 66/2023/TT-BCA ngày 17/11/2023 của Bộ Công an)
+                (Mẫu CT01 ban hành kèm theo Thông tư số 66/2023/TT-BCA ngày 17/11/2023 &amp; Thông tư số 53/2025/TT-BCA của Bộ Công an) [Mẫu CT01 - TT 66/2023/TT-BCA &amp; TT 53/2025/TT-BCA]
               </p>
               <div className="mt-3 font-bold italic text-[12pt]">
                 Kính gửi: Công an {currentWard.name}
@@ -489,49 +516,51 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
             </div>
 
             <div className="space-y-2.5 text-[12pt]">
-              <div>1. Họ, chữ đệm và tên: <strong className="uppercase">{val(activeData.fullName)}</strong></div>
+              <div>1. Họ, chữ đệm và tên: <strong className="uppercase">{val(activeData.fullName, blankDot, blankDot)}</strong></div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">2. Ngày, tháng, năm sinh: <strong>{val(activeData.dob, '....../....../..........')}</strong></div>
-                <div className="col-span-6">3. Giới tính: <strong>{val(activeData.gender, '............')}</strong></div>
+                <div className="col-span-6">2. Ngày, tháng, năm sinh: <strong>{val(activeData.dob, '....../....../..........', '....../....../..........')}</strong></div>
+                <div className="col-span-6">3. Giới tính: <strong>{val(activeData.gender, '............', shortDot)}</strong></div>
               </div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">4. Số định danh cá nhân / CCCD: <strong className="font-mono">{val(activeData.idNumber, '........................')}</strong></div>
-                <div className="col-span-6">5. Số điện thoại: <strong>{val(activeData.phone, shortDot)}</strong></div>
+                <div className="col-span-6">4. Số định danh cá nhân / CCCD: <strong className="font-mono">{val(activeData.idNumber, shortDot, shortDot)}</strong></div>
+                <div className="col-span-6">5. Số điện thoại liên hệ: <strong>{val(activeData.phone, shortDot, shortDot)}</strong></div>
               </div>
-              <div>6. Nơi thường trú hiện tại: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`)}</strong></div>
-              <div>7. Nơi tạm trú: <strong>{val(activeData.tempAddress, shortDot)}</strong></div>
-              <div>8. Nơi ở hiện tại: <strong>{val(activeData.currentAddress || activeData.address, `${currentWard.name}, Tỉnh An Giang`)}</strong></div>
-              <div>9. Họ và tên chủ hộ: <strong>{val(activeData.hostName)}</strong></div>
+              <div>6. Nơi thường trú: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
+              <div>7. Nơi tạm trú: <strong>{val(activeData.tempAddress, shortDot, blankDot)}</strong></div>
+              <div>8. Nơi ở hiện tại: <strong>{val(activeData.currentAddress || activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
+              <div>9. Họ, chữ đệm và tên chủ hộ: <strong>{val(activeData.hostName, blankDot, blankDot)}</strong></div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Số ĐDCN/CCCD chủ hộ: <strong className="font-mono">{val(activeData.hostCccd, shortDot)}</strong></div>
-                <div className="col-span-6">Quan hệ với chủ hộ: <strong>{val(activeData.hostRelation, shortDot)}</strong></div>
+                <div className="col-span-6">Số ĐDCN/CCCD chủ hộ: <strong className="font-mono">{val(activeData.hostCccd, shortDot, shortDot)}</strong></div>
+                <div className="col-span-6">Quan hệ với chủ hộ: <strong>{val(activeData.hostRelation, shortDot, shortDot)}</strong></div>
               </div>
               <div>
-                10. Nội dung đề nghị: <strong>{val(activeData.declarationScope, 'Đăng ký thường trú theo quy định')}</strong>
+                10. Nội dung đề nghị: <strong>{val(activeData.declarationScope, 'Đăng ký thường trú theo quy định', blankDot)}</strong>
               </div>
               <div>
                 11. Những người cùng thay đổi thông tin cư trú:
                 <div className="mt-1 border border-black text-center text-[11pt]">
                   <div className="grid grid-cols-12 font-bold border-b border-black py-1 bg-neutral-100">
                     <div className="col-span-1 border-r border-black">TT</div>
-                    <div className="col-span-4 border-r border-black">Họ và tên</div>
-                    <div className="col-span-2 border-r border-black">Ngày sinh</div>
+                    <div className="col-span-4 border-r border-black">Họ, chữ đệm và tên</div>
+                    <div className="col-span-2 border-r border-black">Ngày, tháng, năm sinh</div>
                     <div className="col-span-2 border-r border-black">Giới tính</div>
                     <div className="col-span-3">Số ĐDCN / CCCD</div>
                   </div>
                   <div className="grid grid-cols-12 py-1.5 border-b border-neutral-300">
                     <div className="col-span-1 border-r border-black">1</div>
-                    <div className="col-span-4 border-r border-black font-semibold uppercase">{val(activeData.fullName, shortDot)}</div>
-                    <div className="col-span-2 border-r border-black">{val(activeData.dob, '....../....../....')}</div>
-                    <div className="col-span-2 border-r border-black">{val(activeData.gender, '....')}</div>
-                    <div className="col-span-3 font-mono">{val(activeData.idNumber, shortDot)}</div>
+                    <div className="col-span-4 border-r border-black font-semibold uppercase">{val(activeData.fullName, shortDot, shortDot)}</div>
+                    <div className="col-span-2 border-r border-black">{val(activeData.dob, '....../....../....', '....../....../....')}</div>
+                    <div className="col-span-2 border-r border-black">{val(activeData.gender, '....', '....')}</div>
+                    <div className="col-span-3 font-mono">{val(activeData.idNumber, shortDot, shortDot)}</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Chữ ký CT01 */}
             <div className="pt-6 mt-6 border-t border-neutral-300">
+              <p className="italic text-[11pt] text-neutral-800 mb-4">
+                Tôi xin cam đoan những thông tin kê khai trên là đúng sự thật và chịu trách nhiệm trước pháp luật về cam đoan của mình.
+              </p>
               <div className="grid grid-cols-3 gap-2 text-center text-[11pt]">
                 <div>
                   <div className="font-bold uppercase">Ý KIẾN CỦA CHỦ HỘ</div>
@@ -560,7 +589,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         )}
 
         {/* ========================================================================= */}
-        {/* 2. MẪU TK-KS: KHAI SINH (THÔNG TƯ 04/2020/TT-BTP)                         */}
+        {/* 2. MẪU TK-KS: KHAI SINH (THÔNG TƯ 04/2024/TT-BTP & TT 04/2020/TT-BTP)      */}
         {/* ========================================================================= */}
         {resolvedCategory === 'TK-KS' && (
           <div className="space-y-4">
@@ -569,7 +598,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                 TỜ KHAI ĐĂNG KÝ KHAI SINH
               </h1>
               <p className="text-[11pt] italic text-neutral-700 mt-1">
-                (Ban hành kèm theo Thông tư số 04/2020/TT-BTP ngày 28/05/2020 của Bộ Tư pháp)
+                (Ban hành kèm theo Thông tư số 04/2024/TT-BTP ngày 06/06/2024 sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP ngày 28/05/2020 của Bộ Tư pháp) [Phụ lục 5 - TT 04/2024/TT-BTP]
               </p>
               <div className="mt-3 font-bold italic text-[12pt]">
                 Kính gửi: Ủy ban nhân dân {currentWard.name}
@@ -580,31 +609,31 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
               <div className="font-bold uppercase text-neutral-900 border-b border-neutral-300 pb-1">
                 I. THÔNG TIN NGƯỜI ĐƯỢC KHAI SINH
               </div>
-              <div>Họ, chữ đệm, tên: <strong className="uppercase">{val(activeData.childName || activeData.fullName)}</strong></div>
+              <div>Họ, chữ đệm, tên: <strong className="uppercase">{val(activeData.childName || activeData.fullName, blankDot, blankDot)}</strong></div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Ngày, tháng, năm sinh: <strong>{val(activeData.birthDate || activeData.dob, '....../....../..........')}</strong></div>
-                <div className="col-span-6">Giới tính: <strong>{val(activeData.gender, 'Nam / Nữ')}</strong></div>
+                <div className="col-span-6">Ngày, tháng, năm sinh: <strong>{val(activeData.birthDate || activeData.dob, '....../....../..........', '....../....../..........')}</strong></div>
+                <div className="col-span-6">Giới tính: <strong>{val(activeData.gender, 'Nam / Nữ', shortDot)}</strong></div>
               </div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Dân tộc: <strong>{val(activeData.childEthnicity, 'Kinh')}</strong></div>
-                <div className="col-span-6">Quốc tịch: <strong>{val(activeData.childNationality, 'Việt Nam')}</strong></div>
+                <div className="col-span-6">Dân tộc: <strong>{val(activeData.childEthnicity, 'Kinh', shortDot)}</strong></div>
+                <div className="col-span-6">Quốc tịch: <strong>{val(activeData.childNationality, 'Việt Nam', shortDot)}</strong></div>
               </div>
-              <div>Nơi sinh (Cơ sở y tế): <strong>{val(activeData.birthPlace, 'Bệnh viện Đa khoa')}</strong></div>
-              <div>Số Giấy chứng sinh: <strong>{val(activeData.birthCertNumber, shortDot)}</strong>, ngày cấp: <strong>{val(activeData.birthCertIssueDate, '....../....../..........')}</strong></div>
+              <div>Nơi sinh (Cơ sở y tế): <strong>{val(activeData.birthPlace, 'Bệnh viện Đa khoa', blankDot)}</strong></div>
+              <div>Số Giấy chứng sinh: <strong>{val(activeData.birthCertNumber, shortDot, shortDot)}</strong>, ngày cấp: <strong>{val(activeData.birthCertIssueDate, '....../....../..........', '....../....../..........')}</strong></div>
 
               <div className="font-bold uppercase text-neutral-900 border-b border-neutral-300 pb-1 pt-2">
                 II. THÔNG TIN CHA, MẸ
               </div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Họ tên mẹ: <strong className="uppercase">{val(activeData.motherName, shortDot)}</strong></div>
-                <div className="col-span-6">Ngày sinh mẹ: <strong>{val(activeData.motherDob, '....../....../....')}</strong></div>
+                <div className="col-span-6">Họ tên mẹ: <strong className="uppercase">{val(activeData.motherName, shortDot, shortDot)}</strong></div>
+                <div className="col-span-6">Ngày sinh mẹ: <strong>{val(activeData.motherDob, '....../....../....', '....../....../..........')}</strong></div>
               </div>
-              <div>Nơi cư trú của mẹ: <strong>{val(activeData.motherResidence, `${currentWard.name}, Tỉnh An Giang`)}</strong></div>
+              <div>Nơi cư trú của mẹ: <strong>{val(activeData.motherResidence, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Họ tên cha: <strong className="uppercase">{val(activeData.fatherName, shortDot)}</strong></div>
-                <div className="col-span-6">Ngày sinh cha: <strong>{val(activeData.fatherDob, '....../....../....')}</strong></div>
+                <div className="col-span-6">Họ tên cha: <strong className="uppercase">{val(activeData.fatherName, shortDot, shortDot)}</strong></div>
+                <div className="col-span-6">Ngày sinh cha: <strong>{val(activeData.fatherDob, '....../....../....', '....../....../..........')}</strong></div>
               </div>
-              <div>Nơi cư trú của cha: <strong>{val(activeData.fatherResidence, `${currentWard.name}, Tỉnh An Giang`)}</strong></div>
+              <div>Nơi cư trú của cha: <strong>{val(activeData.fatherResidence, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
             </div>
 
             <div className="pt-6 mt-6 border-t border-neutral-300">
@@ -641,7 +670,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                   : 'TỜ KHAI ĐĂNG KÝ KẾT HÔN'}
               </h1>
               <p className="text-[11pt] italic text-neutral-700 mt-1">
-                (Ban hành kèm theo Thông tư số 04/2020/TT-BTP ngày 28/05/2020 của Bộ Tư pháp)
+                (Ban hành kèm theo Thông tư số 04/2024/TT-BTP ngày 06/06/2024 sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP ngày 28/05/2020 của Bộ Tư pháp) [Phụ lục 5 - TT 04/2024/TT-BTP]
               </p>
               <div className="mt-3 font-bold italic text-[12pt]">
                 Kính gửi: Ủy ban nhân dân {currentWard.name}
@@ -650,18 +679,18 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
 
             {marriageMode === 'MARITAL_STATUS_CONFIRMATION' ? (
               <div className="space-y-2.5 text-[12pt]">
-                <div>1. Họ, chữ đệm và tên: <strong className="uppercase">{val(activeData.fullName)}</strong></div>
+                <div>1. Họ, chữ đệm và tên: <strong className="uppercase">{val(activeData.fullName, blankDot, blankDot)}</strong></div>
                 <div className="grid grid-cols-12 gap-2">
-                  <div className="col-span-6">Ngày sinh: <strong>{val(activeData.dob, '....../....../..........')}</strong></div>
-                  <div className="col-span-6">Giới tính: <strong>{val(activeData.gender, 'Nam / Nữ')}</strong></div>
+                  <div className="col-span-6">2. Ngày, tháng, năm sinh: <strong>{val(activeData.dob, '....../....../..........', '....../....../..........')}</strong></div>
+                  <div className="col-span-6">3. Giới tính: <strong>{val(activeData.gender, 'Nam / Nữ', shortDot)}</strong></div>
                 </div>
-                <div>CCCD/Định danh cá nhân: <strong className="font-mono">{val(activeData.idNumber, shortDot)}</strong></div>
-                <div>Nơi cư trú hiện tại: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`)}</strong></div>
+                <div>4. Số định danh cá nhân (CCCD): <strong className="font-mono">{val(activeData.idNumber, shortDot, shortDot)}</strong></div>
+                <div>5. Nơi thường trú / cư trú: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
                 <div>
-                  Tình trạng hôn nhân hiện tại: <strong>Chưa đăng ký kết hôn với ai</strong>
+                  6. Tình trạng hôn nhân hiện tại: <strong>{isBlank ? blankDot : 'Chưa đăng ký kết hôn với ai'}</strong>
                 </div>
                 <div>
-                  Mục đích sử dụng Giấy xác nhận: <strong className="text-teal-900">{val(activeData.maritalCertPurpose, 'Để làm thủ tục kết hôn / chuyển nhượng QSDĐ')}</strong>
+                  7. Mục đích sử dụng Giấy xác nhận: <strong className="text-teal-900">{val(activeData.maritalCertPurpose, 'Để làm thủ tục kết hôn / chuyển nhượng QSDĐ', blankDot)}</strong>
                 </div>
               </div>
             ) : (
@@ -670,57 +699,79 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                   {/* Cột Bên Nam */}
                   <div className="space-y-1.5 border-r border-black pr-3">
                     <div className="font-bold uppercase text-center border-b border-black pb-1">BÊN NAM</div>
-                    <div>Họ tên: <strong className="uppercase">{val(activeData.spouseName || activeData.fullName)}</strong></div>
-                    <div>Ngày sinh: <strong>{val(activeData.spouseDob || activeData.dob, '....../....../....')}</strong></div>
-                    <div>Dân tộc: <strong>{val(activeData.spouseEthnicity || activeData.applicantEthnicity, 'Kinh')}</strong></div>
-                    <div>Quốc tịch: <strong>Việt Nam</strong></div>
-                    <div>CCCD: <strong className="font-mono">{val(activeData.spouseIdNumber || activeData.idNumber, shortDot)}</strong></div>
-                    <div>Nơi cư trú: <strong>{val(activeData.spouseAddress || activeData.address, `${currentWard.name}, An Giang`)}</strong></div>
-                    <div>Kết hôn lần thứ: <strong>01</strong></div>
+                    <div>Họ, chữ đệm và tên: <strong className="uppercase">{val(activeData.gender === 'Nữ' ? activeData.spouseName : activeData.fullName, shortDot, shortDot)}</strong></div>
+                    <div>Ngày, tháng, năm sinh: <strong>{val(activeData.gender === 'Nữ' ? activeData.spouseDob : activeData.dob, '....../....../....', '....../....../..........')}</strong></div>
+                    <div>Dân tộc: <strong>{val(activeData.gender === 'Nữ' ? activeData.spouseEthnicity : activeData.applicantEthnicity, 'Kinh', shortDot)}</strong></div>
+                    <div>Quốc tịch: <strong>{isBlank ? shortDot : 'Việt Nam'}</strong></div>
+                    <div>Số ĐDCN / CCCD: <strong className="font-mono">{val(activeData.gender === 'Nữ' ? activeData.spouseIdNumber : activeData.idNumber, shortDot, shortDot)}</strong></div>
+                    <div>Nơi cư trú: <strong>{val(activeData.gender === 'Nữ' ? activeData.spouseAddress : activeData.address, `${currentWard.name}, An Giang`, shortDot)}</strong></div>
+                    <div>Kết hôn lần thứ: <strong>{isBlank ? shortDot : '01'}</strong></div>
                   </div>
 
                   {/* Cột Bên Nữ */}
                   <div className="space-y-1.5 pl-1">
                     <div className="font-bold uppercase text-center border-b border-black pb-1">BÊN NỮ</div>
-                    <div>Họ tên: <strong className="uppercase">{val(activeData.femaleName || activeData.fullName)}</strong></div>
-                    <div>Ngày sinh: <strong>{val(activeData.femaleDob || activeData.dob, '....../....../....')}</strong></div>
-                    <div>Dân tộc: <strong>{val(activeData.femaleEthnicity || activeData.applicantEthnicity, 'Kinh')}</strong></div>
-                    <div>Quốc tịch: <strong>Việt Nam</strong></div>
-                    <div>CCCD: <strong className="font-mono">{val(activeData.femaleIdNumber || activeData.idNumber, shortDot)}</strong></div>
-                    <div>Nơi cư trú: <strong>{val(activeData.femaleAddress || activeData.address, `${currentWard.name}, An Giang`)}</strong></div>
-                    <div>Kết hôn lần thứ: <strong>01</strong></div>
+                    <div>Họ, chữ đệm và tên: <strong className="uppercase">{val(activeData.gender === 'Nữ' ? activeData.fullName : activeData.spouseName, shortDot, shortDot)}</strong></div>
+                    <div>Ngày, tháng, năm sinh: <strong>{val(activeData.gender === 'Nữ' ? activeData.dob : activeData.spouseDob, '....../....../....', '....../....../..........')}</strong></div>
+                    <div>Dân tộc: <strong>{val(activeData.gender === 'Nữ' ? activeData.applicantEthnicity : activeData.spouseEthnicity, 'Kinh', shortDot)}</strong></div>
+                    <div>Quốc tịch: <strong>{isBlank ? shortDot : 'Việt Nam'}</strong></div>
+                    <div>Số ĐDCN / CCCD: <strong className="font-mono">{val(activeData.gender === 'Nữ' ? activeData.idNumber : activeData.spouseIdNumber, shortDot, shortDot)}</strong></div>
+                    <div>Nơi cư trú: <strong>{val(activeData.gender === 'Nữ' ? activeData.address : activeData.spouseAddress, `${currentWard.name}, An Giang`, shortDot)}</strong></div>
+                    <div>Kết hôn lần thứ: <strong>{isBlank ? shortDot : '01'}</strong></div>
                   </div>
                 </div>
 
                 <p className="italic text-[11pt] text-neutral-800">
-                  Chúng tôi cam đoan việc kết hôn là hoàn toàn tự nguyện, không vi phạm Điều 8 Luật Hôn nhân & Gia đình 2014 và cùng chịu trách nhiệm trước pháp luật.
+                  Chúng tôi cam đoan việc kết hôn là hoàn toàn tự nguyện, không vi phạm Điều 8 Luật Hôn nhân &amp; Gia đình 2014 và cùng chịu trách nhiệm trước pháp luật.
                 </p>
               </div>
             )}
 
             <div className="pt-6 mt-6 border-t border-neutral-300">
-              <div className="grid grid-cols-2 gap-4 text-center text-[12pt]">
-                <div>
-                  <div className="font-bold uppercase">BÊN NAM</div>
-                  <div className="italic text-[10pt] text-neutral-600">(Ký trực tiếp trước mặt công chức tiếp nhận)</div>
-                  <div className="h-20 flex items-end justify-center font-bold uppercase text-[11pt]">
-                    {isBlank ? '' : (activeData.applicantSignName || activeData.spouseName || activeData.fullName || '')}
+              {marriageMode === 'MARITAL_STATUS_CONFIRMATION' ? (
+                <>
+                  <p className="italic text-[11pt] text-neutral-800 mb-4">
+                    Tôi xin cam đoan tình trạng hôn nhân nêu trên là hoàn toàn đúng sự thật và chịu trách nhiệm trước pháp luật.
+                  </p>
+                  <div className="grid grid-cols-2 gap-4 text-center text-[12pt]">
+                    <div>
+                      <div className="font-bold uppercase">CÔNG CHỨC TƯ PHÁP - HỘ TỊCH</div>
+                      <div className="italic text-[10pt] text-neutral-600">(Ký, ghi rõ họ tên)</div>
+                      <div className="h-20"></div>
+                    </div>
+                    <div>
+                      <div className="font-bold uppercase">NGƯỜI LÀM TỜ KHAI</div>
+                      <div className="italic text-[10pt] text-neutral-600">(Ký và ghi rõ họ tên)</div>
+                      <div className="h-20 flex items-end justify-center font-bold uppercase text-[11pt]">
+                        {isBlank ? '' : (activeData.applicantSignName || activeData.fullName || '')}
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="grid grid-cols-2 gap-4 text-center text-[12pt]">
+                  <div>
+                    <div className="font-bold uppercase">BÊN NAM</div>
+                    <div className="italic text-[10pt] text-neutral-600">(Ký trực tiếp trước mặt công chức tiếp nhận)</div>
+                    <div className="h-20 flex items-end justify-center font-bold uppercase text-[11pt]">
+                      {isBlank ? '' : (activeData.applicantSignName || activeData.spouseName || activeData.fullName || '')}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-bold uppercase">BÊN NỮ</div>
+                    <div className="italic text-[10pt] text-neutral-600">(Ký trực tiếp trước mặt công chức tiếp nhận)</div>
+                    <div className="h-20 flex items-end justify-center font-bold uppercase text-[11pt]">
+                      {isBlank ? '' : (activeData.spouseSignName || activeData.femaleName || '')}
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <div className="font-bold uppercase">BÊN NỮ</div>
-                  <div className="italic text-[10pt] text-neutral-600">(Ký trực tiếp trước mặt công chức tiếp nhận)</div>
-                  <div className="h-20 flex items-end justify-center font-bold uppercase text-[11pt]">
-                    {isBlank ? '' : (activeData.spouseSignName || activeData.femaleName || '')}
-                  </div>
-                </div>
-              </div>
+              )}
             </div>
           </div>
         )}
 
         {/* ========================================================================= */}
-        {/* 4. MẪU TK-BTXH: BẢO TRỢ XÃ HỘI (NGHỊ ĐỊNH 20/2021/NĐ-CP)                 */}
+        {/* 4. MẪU TK-BTXH: BẢO TRỢ XÃ HỘI (NGHỊ ĐỊNH 20/2021, NĐ 76/2024 & BHXH 2024)*/}
         {/* ========================================================================= */}
         {resolvedCategory === 'TK-BTXH' && (
           <div className="space-y-4">
@@ -729,7 +780,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                 TỜ KHAI THÔNG TIN ĐỀ NGHỊ TRỢ CẤP XÃ HỘI HẰNG THÁNG
               </h1>
               <p className="text-[11pt] italic text-neutral-700 mt-1">
-                (Mẫu số 01 ban hành kèm theo Nghị định số 20/2021/NĐ-CP & Luật BHXH 2024)
+                (Mẫu số 1a, 1b, 1c, 1d, 1đ ban hành kèm theo Nghị định số 20/2021/NĐ-CP &amp; Luật BHXH 2024, sửa đổi tại Nghị định số 76/2024/NĐ-CP)
               </p>
               <div className="mt-3 font-bold italic text-[12pt]">
                 Kính gửi: Ủy ban nhân dân {currentWard.name}
@@ -737,31 +788,34 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
             </div>
 
             <div className="space-y-2.5 text-[12pt]">
-              <div>1. Họ và tên người đề nghị: <strong className="uppercase">{val(activeData.fullName)}</strong></div>
+              <div>1. Họ và tên người đề nghị: <strong className="uppercase">{val(activeData.fullName, blankDot, blankDot)}</strong></div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Ngày sinh: <strong>{val(activeData.dob, '....../....../..........')}</strong></div>
-                <div className="col-span-6">Giới tính: <strong>{val(activeData.gender, 'Nam / Nữ')}</strong></div>
+                <div className="col-span-6">Ngày sinh: <strong>{val(activeData.dob, '....../....../..........', '....../....../..........')}</strong></div>
+                <div className="col-span-6">Giới tính: <strong>{val(activeData.gender, 'Nam / Nữ', shortDot)}</strong></div>
               </div>
-              <div>Số định danh cá nhân / CCCD: <strong className="font-mono">{val(activeData.idNumber, shortDot)}</strong></div>
-              <div>Nơi thường trú: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`)}</strong></div>
+              <div>Số định danh cá nhân / CCCD: <strong className="font-mono">{val(activeData.idNumber, shortDot, shortDot)}</strong></div>
+              <div>Nơi thường trú: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
               <div>
-                2. Thuộc diện trợ cấp: <strong>{val(activeData.householdStatus, 'Người cao tuổi từ đủ 75 tuổi trở lên không có lương hưu')}</strong>
+                2. Thuộc diện trợ cấp: <strong>{val(activeData.householdStatus, 'Người cao tuổi từ đủ 75 tuổi trở lên không có lương hưu', blankDot)}</strong>
               </div>
-              {activeData.poorHouseholdBookNumber && (
+              {activeData.poorHouseholdBookNumber && !isBlank && (
                 <div>Số sổ hộ nghèo / Giấy chứng nhận: <strong className="font-mono">{val(activeData.poorHouseholdBookNumber)}</strong></div>
               )}
-              {activeData.disabilityCertNumber && (
-                <div>Giấy xác nhận khuyết tật số: <strong className="font-mono">{val(activeData.disabilityCertNumber)}</strong>, ngày cấp: <strong>{val(activeData.disabilityCertIssueDate, shortDot)}</strong> do <strong>{val(activeData.disabilityCertIssuer, `UBND ${currentWard.name}`)}</strong> cấp.</div>
+              {activeData.disabilityCertNumber && !isBlank && (
+                <div>Giấy xác nhận khuyết tật số: <strong className="font-mono">{val(activeData.disabilityCertNumber)}</strong>, ngày cấp: <strong>{val(activeData.disabilityCertIssueDate, shortDot, shortDot)}</strong> do <strong>{val(activeData.disabilityCertIssuer, `UBND ${currentWard.name}`, shortDot)}</strong> cấp.</div>
               )}
               <div>
-                3. Người giám hộ / chăm sóc (nếu có): <strong>{val(activeData.guardianName, shortDot)}</strong> (Quan hệ: <strong>{val(activeData.guardianRelation, shortDot)}</strong>, CCCD: <strong className="font-mono">{val(activeData.guardianCccd, shortDot)}</strong>)
+                3. Người giám hộ / chăm sóc (nếu có): <strong>{val(activeData.guardianName, shortDot, shortDot)}</strong> (Quan hệ: <strong>{val(activeData.guardianRelation, shortDot, shortDot)}</strong>, CCCD: <strong className="font-mono">{val(activeData.guardianCccd, shortDot, shortDot)}</strong>)
               </div>
               <div>
-                4. Hình thức nhận trợ cấp: Tài khoản ngân hàng số: <strong className="font-mono text-teal-800">{val(activeData.bankAccount, 'Đăng ký tài khoản nhận trợ cấp theo Đề án 06')}</strong>
+                4. Hình thức nhận trợ cấp: Tài khoản ngân hàng số: <strong className="font-mono text-teal-800">{val(activeData.bankAccount, 'Đăng ký tài khoản nhận trợ cấp theo Đề án 06', blankDot)}</strong>
               </div>
             </div>
 
             <div className="pt-6 mt-6 border-t border-neutral-300">
+              <p className="italic text-[11pt] text-neutral-800 mb-4">
+                Tôi xin cam đoan những thông tin kê khai trên là hoàn toàn đúng sự thật và chịu trách nhiệm trước pháp luật.
+              </p>
               <div className="grid grid-cols-2 gap-4 text-center text-[12pt]">
                 <div>
                   <div className="font-bold uppercase">XÁC NHẬN CỦA TRƯỞNG ẤP/KHÓM</div>
@@ -781,18 +835,18 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         )}
 
         {/* ========================================================================= */}
-        {/* 5. NHÓM CHỨNG THỰC: CT-01..08 (NGHỊ ĐỊNH 23/2015/NĐ-CP & TT 01/2020)       */}
+        {/* 5. NHÓM CHỨNG THỰC: CT-01/02 (NGHỊ ĐỊNH 23/2015/NĐ-CP & TT 01/2020)       */}
         {/* ========================================================================= */}
         {resolvedCategory === 'CHUNG-THUC' && (
           <div className="space-y-4">
             <div className="text-center my-4">
               <h1 className="text-[15pt] sm:text-[16pt] font-extrabold uppercase">
-                {procedureCode === 'TTHC-CT-02'
+                {effectiveProcedureCode === 'TTHC-CT-02'
                   ? 'BẢN DỊCH VÀ LỜI CHỨNG THỰC CHỮ KÝ NGƯỜI DỊCH'
                   : 'VĂN BẢN YÊU CẦU CHỨNG THỰC CHỮ KÝ / HỢP ĐỒNG GIAO DỊCH'}
               </h1>
               <p className="text-[11pt] italic text-neutral-700 mt-1">
-                (Theo quy định tại Nghị định số 23/2015/NĐ-CP & Thông tư số 01/2020/TT-BTP của Bộ Tư pháp)
+                (Theo quy định tại Nghị định số 23/2015/NĐ-CP &amp; Thông tư số 01/2020/TT-BTP của Bộ Tư pháp)
               </p>
               <div className="mt-3 font-bold italic text-[12pt]">
                 Kính gửi: Bộ phận Một cửa - Ủy ban nhân dân {currentWard.name}
@@ -800,17 +854,17 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
             </div>
 
             <div className="space-y-2.5 text-[12pt]">
-              <div>1. Người yêu cầu chứng thực: <strong className="uppercase">{val(activeData.fullName)}</strong></div>
+              <div>1. Người yêu cầu chứng thực: <strong className="uppercase">{val(activeData.fullName, blankDot, blankDot)}</strong></div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Ngày sinh: <strong>{val(activeData.dob, '....../....../..........')}</strong></div>
-                <div className="col-span-6">CCCD số: <strong className="font-mono">{val(activeData.idNumber, shortDot)}</strong></div>
+                <div className="col-span-6">Ngày sinh: <strong>{val(activeData.dob, '....../....../..........', '....../....../..........')}</strong></div>
+                <div className="col-span-6">CCCD số: <strong className="font-mono">{val(activeData.idNumber, shortDot, shortDot)}</strong></div>
               </div>
-              <div>Nơi cư trú: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`)}</strong></div>
+              <div>Nơi cư trú: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
               <div>
-                2. Nội dung yêu cầu chứng thực: <strong>Chứng thực chữ ký / điểm chỉ trên văn bản giấy tờ theo quy định pháp luật.</strong>
+                2. Nội dung yêu cầu chứng thực: <strong>{isBlank ? blankDot : 'Chứng thực chữ ký / điểm chỉ trên văn bản giấy tờ theo quy định pháp luật.'}</strong>
               </div>
 
-              {procedureCode === 'TTHC-CT-02' && (
+              {effectiveProcedureCode === 'TTHC-CT-02' && (
                 <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-[11pt] italic">
                   <strong>Lời cam đoan của người dịch:</strong> "Tôi cam đoan đã dịch chính xác nội dung từ tiếng nước ngoài sang tiếng Việt (hoặc ngược lại) và hoàn toàn chịu trách nhiệm trước pháp luật về tính chính xác của bản dịch."
                 </div>
@@ -828,11 +882,11 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                 LỜI CHỨNG THỰC CHỮ KÝ (Mẫu chuẩn Nghị định 23/2015/NĐ-CP)
               </div>
               <p className="leading-relaxed">
-                Ngày {day} tháng {month} năm {year}, tại Bộ phận Một cửa Ủy ban nhân dân {currentWard.name}, tỉnh An Giang.
+                Ngày {isBlank ? '......' : day} tháng {isBlank ? '......' : month} năm {year}, tại Bộ phận Một cửa Ủy ban nhân dân {currentWard.name}, tỉnh An Giang.
                 <br />
                 Tôi: <strong>.............................................................</strong> - Chức vụ: <strong>Chủ tịch / Phó Chủ tịch UBND {currentWard.name}</strong>
                 <br />
-                <strong>CHỨNG THỰC:</strong> Ông/Bà <strong>{val(activeData.fullName, shortDot).toUpperCase()}</strong>, số CCCD: <strong>{val(activeData.idNumber, shortDot)}</strong> đã ký/điểm chỉ trước mặt tôi; cam đoan chịu trách nhiệm về nội dung giấy tờ.
+                <strong>CHỨNG THỰC:</strong> Ông/Bà <strong>{val(activeData.fullName, shortDot, shortDot).toUpperCase()}</strong>, số CCCD: <strong>{val(activeData.idNumber, shortDot, shortDot)}</strong> đã ký/điểm chỉ trước mặt tôi; cam đoan chịu trách nhiệm về nội dung giấy tờ.
               </p>
               <div className="grid grid-cols-2 gap-4 text-center text-[11pt] pt-2">
                 <div className="text-left pl-4">
@@ -849,7 +903,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         )}
 
         {/* ========================================================================= */}
-        {/* 6. NHÓM ĐẤT ĐAI: DC-01/02 (MẪU 22 / MẪU 25 NGHỊ ĐỊNH 101/2024/NĐ-CP)     */}
+        {/* 6. NHÓM ĐẤT ĐAI: DC-01 (MẪU 11/ĐK NGHỊ ĐỊNH 101/2024/NĐ-CP)               */}
         {/* ========================================================================= */}
         {resolvedCategory === 'DAT-DAI' && (
           <div className="space-y-4">
@@ -858,7 +912,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                 ĐƠN ĐĂNG KÝ BIẾN ĐỘNG ĐẤT ĐAI, TÀI SẢN GẮN LIỀN VỚI ĐẤT
               </h1>
               <p className="text-[11pt] italic text-neutral-700 mt-1">
-                (Mẫu số 22 ban hành kèm theo Nghị định số 101/2024/NĐ-CP ngày 29/07/2024 của Chính phủ)
+                (Mẫu số 11/ĐK ban hành kèm theo Nghị định số 101/2024/NĐ-CP ngày 29/07/2024 của Chính phủ &amp; Nghị định 151/2025/NĐ-CP)
               </p>
               <div className="mt-3 font-bold italic text-[12pt]">
                 Kính gửi: Ủy ban nhân dân {currentWard.name} - Chi nhánh Văn phòng Đăng ký đất đai
@@ -866,31 +920,34 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
             </div>
 
             <div className="space-y-2.5 text-[12pt]">
-              <div>1. Người sử dụng đất: <strong className="uppercase">{val(activeData.fullName)}</strong></div>
+              <div>1. Người sử dụng đất: <strong className="uppercase">{val(activeData.fullName, blankDot, blankDot)}</strong></div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Số CCCD/ĐDCN: <strong className="font-mono">{val(activeData.idNumber, shortDot)}</strong></div>
-                <div className="col-span-6">Điện thoại: <strong>{val(activeData.phone, shortDot)}</strong></div>
+                <div className="col-span-6">Số CCCD/ĐDCN: <strong className="font-mono">{val(activeData.idNumber, shortDot, shortDot)}</strong></div>
+                <div className="col-span-6">Điện thoại: <strong>{val(activeData.phone, shortDot, shortDot)}</strong></div>
               </div>
-              <div>Địa chỉ liên hệ: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`)}</strong></div>
+              <div>Địa chỉ liên hệ: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
 
               <div className="font-bold uppercase text-neutral-900 border-b border-neutral-300 pb-1 pt-2">
                 2. THÔNG TIN THỬA ĐẤT ĐỀ NGHỊ ĐĂNG KÝ BIẾN ĐỘNG
               </div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Thửa đất số: <strong>{val(activeData.plotNumber, shortDot)}</strong></div>
-                <div className="col-span-6">Tờ bản đồ số: <strong>{val(activeData.mapSheetNumber, shortDot)}</strong></div>
+                <div className="col-span-6">Thửa đất số: <strong>{val(activeData.plotNumber, shortDot, shortDot)}</strong></div>
+                <div className="col-span-6">Tờ bản đồ số: <strong>{val(activeData.mapSheetNumber, shortDot, shortDot)}</strong></div>
               </div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Diện tích: <strong>{val(activeData.landArea ? `${activeData.landArea} m²` : undefined, '............ m²')}</strong></div>
-                <div className="col-span-6">Mục đích sử dụng: <strong>Đất ở tại đô thị / nông thôn</strong></div>
+                <div className="col-span-6">Diện tích: <strong>{val(activeData.landArea ? `${activeData.landArea} m²` : undefined, '............ m²', '............ m²')}</strong></div>
+                <div className="col-span-6">Mục đích sử dụng: <strong>{isBlank ? shortDot : 'Đất ở tại đô thị / nông thôn'}</strong></div>
               </div>
               <div>Giấy chứng nhận QSDĐ đã cấp số: <strong>................................</strong>, ngày cấp: <strong>....../....../..........</strong></div>
               <div>
-                3. Nội dung biến động đề nghị: <strong>Đăng ký chuyển nhượng / Tặng cho / Thừa kế / Đính chính thông tin thửa đất</strong>
+                3. Nội dung biến động đề nghị: <strong>{isBlank ? blankDot : 'Đăng ký chuyển nhượng / Tặng cho / Thừa kế / Đính chính thông tin thửa đất'}</strong>
               </div>
             </div>
 
             <div className="pt-6 mt-6 border-t border-neutral-300">
+              <p className="italic text-[11pt] text-neutral-800 mb-4">
+                Tôi xin cam đoan nội dung kê khai trên đơn là đúng sự thật và chịu trách nhiệm trước pháp luật.
+              </p>
               <div className="grid grid-cols-2 gap-4 text-center text-[12pt]">
                 <div>
                   <div className="font-bold uppercase">Ý KIẾN KIỂM TRA ĐỊA CHÍNH XÃ</div>
@@ -898,7 +955,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                   <div className="h-20"></div>
                 </div>
                 <div>
-                  <div className="font-bold uppercase">NGƯỜI NỘP ĐƠN</div>
+                  <div className="font-bold uppercase">NGƯỜI VIẾT ĐƠN</div>
                   <div className="italic text-[10pt] text-neutral-600">(Ký và ghi rõ họ tên)</div>
                   <div className="h-20 flex items-end justify-center font-bold uppercase text-[11pt]">
                     {isBlank ? '' : (activeData.applicantSignName || activeData.fullName || '')}
@@ -910,7 +967,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         )}
 
         {/* ========================================================================= */}
-        {/* 7. NHÓM XÂY DỰNG: XD-01/02 (MẪU 01 NGHỊ ĐỊNH 15/2021/NĐ-CP)               */}
+        {/* 7. NHÓM XÂY DỰNG: XD-01 (MẪU 01 NGHỊ ĐỊNH 175/2024/NĐ-CP & 15/2021/NĐ-CP) */}
         {/* ========================================================================= */}
         {resolvedCategory === 'XAY-DUNG' && (
           <div className="space-y-4">
@@ -919,27 +976,27 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                 ĐƠN ĐỀ NGHỊ CẤP GIẤY PHÉP XÂY DỰNG NHÀ Ở RIÊNG LẺ
               </h1>
               <p className="text-[11pt] italic text-neutral-700 mt-1">
-                (Mẫu số 01 Phụ lục II ban hành kèm theo Nghị định số 15/2021/NĐ-CP của Chính phủ)
+                (Mẫu số 01 Phụ lục II ban hành kèm theo Nghị định số 175/2024/NĐ-CP thay thế Nghị định số 15/2021/NĐ-CP của Chính phủ)
               </p>
               <div className="mt-3 font-bold italic text-[12pt]">
-                Kính gửi: Ủy ban nhân dân {currentWard.name} / Phòng Quản lý Đô thị
+                Kính gửi: Ủy ban nhân dân {currentWard.name} / Phòng Kinh tế và Hạ tầng
               </div>
             </div>
 
             <div className="space-y-2.5 text-[12pt]">
-              <div>1. Chủ đầu tư: <strong className="uppercase">{val(activeData.fullName)}</strong></div>
+              <div>1. Chủ đầu tư: <strong className="uppercase">{val(activeData.fullName, blankDot, blankDot)}</strong></div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Số định danh cá nhân / CCCD: <strong className="font-mono">{val(activeData.idNumber, shortDot)}</strong></div>
-                <div className="col-span-6">Số điện thoại: <strong>{val(activeData.phone, shortDot)}</strong></div>
+                <div className="col-span-6">Số định danh cá nhân / CCCD: <strong className="font-mono">{val(activeData.idNumber, shortDot, shortDot)}</strong></div>
+                <div className="col-span-6">Số điện thoại: <strong>{val(activeData.phone, shortDot, shortDot)}</strong></div>
               </div>
-              <div>Địa chỉ liên lạc: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`)}</strong></div>
+              <div>Địa chỉ liên lạc: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
 
               <div className="font-bold uppercase text-neutral-900 border-b border-neutral-300 pb-1 pt-2">
                 2. THÔNG SỐ CÔNG TRÌNH XÂY DỰNG
               </div>
-              <div>Địa điểm xây dựng: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`)}</strong> (Thửa đất số: ......)</div>
+              <div>Địa điểm xây dựng: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong> (Thửa đất số: ......)</div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Cốt nền xây dựng: <strong>+0.45 m</strong></div>
+                <div className="col-span-6">Cốt nền xây dựng: <strong>{isBlank ? '........... m' : '+0.45 m'}</strong></div>
                 <div className="col-span-6">Mật độ xây dựng: <strong>{isBlank ? '........... %' : '75 %'}</strong></div>
               </div>
               <div className="grid grid-cols-12 gap-2">
@@ -948,11 +1005,14 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
               </div>
               <div className="grid grid-cols-12 gap-2">
                 <div className="col-span-6">Chiều cao công trình: <strong>{isBlank ? '........... m' : '7.5 m'}</strong></div>
-                <div className="col-span-6">Số tầng: <strong>02 tầng (kể cả tum)</strong></div>
+                <div className="col-span-6">Số tầng: <strong>{isBlank ? '........... tầng' : '02 tầng (kể cả tum)'}</strong></div>
               </div>
             </div>
 
             <div className="pt-6 mt-6 border-t border-neutral-300">
+              <p className="italic text-[11pt] text-neutral-800 mb-4">
+                Tôi cam đoan thi công đúng ranh giới đất ở hợp pháp, đúng chỉ giới xây dựng, đảm bảo an toàn cho các công trình liền kề và tuân thủ quy chuẩn xây dựng.
+              </p>
               <div className="grid grid-cols-2 gap-4 text-center text-[12pt]">
                 <div>
                   <div className="font-bold uppercase">CÁN BỘ THỤ LÝ HỒ SƠ</div>
@@ -978,10 +1038,10 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
           <div className="space-y-4">
             <div className="text-center my-4">
               <h1 className="text-[15pt] sm:text-[16pt] font-extrabold uppercase">
-                TỜ KHAI LIÊN THÔNG ĐIỆN TỬ: ĐĂNG KÝ KHAI TỬ, XÓA THƯỜNG TRÚ & MAI TÁNG PHÍ
+                TỜ KHAI LIÊN THÔNG ĐIỆN TỬ: ĐĂNG KÝ KHAI TỬ, XÓA THƯỜNG TRÚ &amp; MAI TÁNG PHÍ
               </h1>
               <p className="text-[11pt] italic text-neutral-700 mt-1">
-                (Mẫu số 02 ban hành kèm theo Nghị định số 63/2024/NĐ-CP & Đề án 06 Chính phủ)
+                (Mẫu số 02 Phụ lục ban hành kèm theo Nghị định số 63/2024/NĐ-CP ngày 10/06/2024 &amp; Đề án 06 Chính phủ)
               </p>
               <div className="mt-3 font-bold italic text-[12pt]">
                 Kính gửi: Ủy ban nhân dân {currentWard.name}
@@ -989,29 +1049,32 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
             </div>
 
             <div className="space-y-2.5 text-[12pt]">
-              <div>1. Người yêu cầu khai tử: <strong className="uppercase">{val(activeData.fullName)}</strong></div>
+              <div>1. Người yêu cầu khai tử: <strong className="uppercase">{val(activeData.fullName, blankDot, blankDot)}</strong></div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">CCCD người yêu cầu: <strong className="font-mono">{val(activeData.idNumber, shortDot)}</strong></div>
-                <div className="col-span-6">Quan hệ với người chết: <strong>Con đẻ / Thân nhân</strong></div>
+                <div className="col-span-6">CCCD người yêu cầu: <strong className="font-mono">{val(activeData.idNumber, shortDot, shortDot)}</strong></div>
+                <div className="col-span-6">Quan hệ với người chết: <strong>{isBlank ? shortDot : 'Con đẻ / Thân nhân'}</strong></div>
               </div>
 
               <div className="font-bold uppercase text-neutral-900 border-b border-neutral-300 pb-1 pt-2">
                 2. THÔNG TIN NGƯỜI ĐÃ CHẾT
               </div>
-              <div>Họ, chữ đệm, tên: <strong className="uppercase">{val(activeData.deceasedName, '....................................................................')}</strong></div>
+              <div>Họ, chữ đệm, tên: <strong className="uppercase">{val(activeData.deceasedName, blankDot, blankDot)}</strong></div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Ngày tháng năm sinh: <strong>{val(activeData.deceasedDob, '....../....../..........')}</strong></div>
-                <div className="col-span-6">Giới tính: <strong>{val(activeData.deceasedGender, 'Nam / Nữ')}</strong></div>
+                <div className="col-span-6">Ngày tháng năm sinh: <strong>{val(activeData.deceasedDob, '....../....../..........', '....../....../..........')}</strong></div>
+                <div className="col-span-6">Giới tính: <strong>{val(activeData.deceasedGender, 'Nam / Nữ', shortDot)}</strong></div>
               </div>
-              <div>Nơi thường trú cuối cùng: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`)}</strong></div>
-              <div>Đã chết vào lúc: <strong>{val(activeData.deceasedTime, '...... giờ ...... phút, ngày ....../....../2026')}</strong></div>
-              <div>Giấy báo tử số: <strong>{val(activeData.deathNoticeNumber, '................................')}</strong> do Cơ sở y tế cấp.</div>
+              <div>Nơi thường trú cuối cùng: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
+              <div>Đã chết vào lúc: <strong>{val(activeData.deceasedTime, '...... giờ ...... phút, ngày ....../....../2026', '...... giờ ...... phút, ngày ....../....../..........')}</strong></div>
+              <div>Giấy báo tử số: <strong>{val(activeData.deathNoticeNumber, '................................', shortDot)}</strong> do Cơ sở y tế cấp.</div>
               <div>
-                3. Lựa chọn dịch vụ liên thông: [x] Đăng ký khai tử; [x] Xóa đăng ký thường trú; [x] Hỗ trợ chi phí mai táng Đề án 06.
+                3. Lựa chọn dịch vụ liên thông: {isBlank ? '[ ] Đăng ký khai tử; [ ] Xóa đăng ký thường trú; [ ] Hỗ trợ chi phí mai táng Đề án 06.' : '[x] Đăng ký khai tử; [x] Xóa đăng ký thường trú; [x] Hỗ trợ chi phí mai táng Đề án 06.'}
               </div>
             </div>
 
             <div className="pt-6 mt-6 border-t border-neutral-300">
+              <p className="italic text-[11pt] text-neutral-800 mb-4">
+                Tôi xin cam đoan những lời khai trên đây là đúng sự thật và chịu trách nhiệm trước pháp luật.
+              </p>
               <div className="grid grid-cols-2 gap-4 text-center text-[12pt]">
                 <div>
                   <div className="font-bold uppercase">CÔNG CHỨC TƯ PHÁP - HỘ TỊCH</div>
@@ -1031,16 +1094,16 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         )}
 
         {/* ========================================================================= */}
-        {/* 9. NHÓM MAI TÁNG PHÍ & NGƯỜI CÓ CÔNG: BT-02..05 (MẪU 03 NGHỊ ĐỊNH 20/2021) */}
+        {/* 9. NHÓM MAI TÁNG PHÍ: BT-02 (MẪU 04 NGHỊ ĐỊNH 20/2021 & NĐ 76/2024)       */}
         {/* ========================================================================= */}
         {resolvedCategory === 'MAI-TANG-PHI' && (
           <div className="space-y-4">
             <div className="text-center my-4">
               <h1 className="text-[15pt] sm:text-[16pt] font-extrabold uppercase">
-                TỜ KHAI ĐỀ NGHỊ HỖ TRỢ CHI PHÍ MAI TÁNG & TRỢ CẤP ĐỘC LẬP
+                TỜ KHAI ĐỀ NGHỊ HỖ TRỢ CHI PHÍ MAI TÁNG &amp; TRỢ CẤP ĐỘC LẬP
               </h1>
               <p className="text-[11pt] italic text-neutral-700 mt-1">
-                (Mẫu số 03 ban hành kèm theo Nghị định số 20/2021/NĐ-CP của Chính phủ)
+                (Mẫu số 04 ban hành kèm theo Nghị định số 20/2021/NĐ-CP &amp; Nghị định số 76/2024/NĐ-CP của Chính phủ)
               </p>
               <div className="mt-3 font-bold italic text-[12pt]">
                 Kính gửi: Ủy ban nhân dân {currentWard.name}
@@ -1048,20 +1111,23 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
             </div>
 
             <div className="space-y-2.5 text-[12pt]">
-              <div>1. Người đứng tên kê khai: <strong className="uppercase">{val(activeData.fullName)}</strong></div>
+              <div>1. Người đứng tên kê khai: <strong className="uppercase">{val(activeData.fullName, blankDot, blankDot)}</strong></div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Số CCCD: <strong className="font-mono">{val(activeData.idNumber, shortDot)}</strong></div>
-                <div className="col-span-6">Quan hệ với người chết: <strong>Người trực tiếp đứng ra lo mai táng</strong></div>
+                <div className="col-span-6">Số CCCD: <strong className="font-mono">{val(activeData.idNumber, shortDot, shortDot)}</strong></div>
+                <div className="col-span-6">Quan hệ với người chết: <strong>{isBlank ? shortDot : 'Người trực tiếp đứng ra lo mai táng'}</strong></div>
               </div>
-              <div>Nơi cư trú: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`)}</strong></div>
-              <div>2. Đề nghị hỗ trợ chi phí mai táng cho đối tượng: <strong>Người cao tuổi / Người khuyết tật nặng / Người có công</strong></div>
-              <div>Trích lục khai tử số: <strong>{val(activeData.deathExtractNumber, '................................')}</strong></div>
+              <div>Nơi cư trú: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
+              <div>2. Đề nghị hỗ trợ chi phí mai táng cho đối tượng: <strong>{isBlank ? blankDot : 'Người cao tuổi / Người khuyết tật nặng / Người có công'}</strong></div>
+              <div>Trích lục khai tử số: <strong>{val(activeData.deathExtractNumber, '................................', shortDot)}</strong></div>
               <div>
-                3. Số tài khoản nhận hỗ trợ: <strong className="font-mono text-teal-800">{val(activeData.bankAccount, 'Đăng ký tài khoản nhận trợ cấp theo Đề án 06')}</strong>
+                3. Số tài khoản nhận hỗ trợ: <strong className="font-mono text-teal-800">{val(activeData.bankAccount, 'Đăng ký tài khoản nhận trợ cấp theo Đề án 06', blankDot)}</strong>
               </div>
             </div>
 
             <div className="pt-6 mt-6 border-t border-neutral-300">
+              <p className="italic text-[11pt] text-neutral-800 mb-4">
+                Tôi xin cam đoan những thông tin kê khai trên là đúng sự thật và đã trực tiếp đứng ra tổ chức mai táng cho người quá cố.
+              </p>
               <div className="grid grid-cols-2 gap-4 text-center text-[12pt]">
                 <div>
                   <div className="font-bold uppercase">ỦY BAN NHÂN DÂN {currentWard.name.toUpperCase()}</div>
@@ -1090,7 +1156,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                 BẢN ĐĂNG KÝ MÔI TRƯỜNG CỦA CƠ SỞ SẢN XUẤT, KINH DOANH, DỊCH VỤ
               </h1>
               <p className="text-[11pt] italic text-neutral-700 mt-1">
-                (Mẫu số 47 Phụ lục II ban hành kèm theo Thông tư số 02/2022/TT-BTNMT của Bộ TN&MT)
+                (Mẫu số 47 Phụ lục II ban hành kèm theo Thông tư số 02/2022/TT-BTNMT của Bộ TN&amp;MT &amp; Nghị định số 05/2025/NĐ-CP)
               </p>
               <div className="mt-3 font-bold italic text-[12pt]">
                 Kính gửi: Ủy ban nhân dân {currentWard.name}
@@ -1098,21 +1164,21 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
             </div>
 
             <div className="space-y-2.5 text-[12pt]">
-              <div>1. Tên chủ cơ sở: <strong className="uppercase">{val(activeData.fullName)}</strong></div>
+              <div>1. Tên chủ cơ sở: <strong className="uppercase">{val(activeData.fullName, blankDot, blankDot)}</strong></div>
               <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Số CCCD / Mã số thuế: <strong className="font-mono">{val(activeData.idNumber, shortDot)}</strong></div>
-                <div className="col-span-6">Số điện thoại: <strong>{val(activeData.phone, shortDot)}</strong></div>
+                <div className="col-span-6">Số CCCD / Mã số thuế: <strong className="font-mono">{val(activeData.idNumber, shortDot, shortDot)}</strong></div>
+                <div className="col-span-6">Số điện thoại: <strong>{val(activeData.phone, shortDot, shortDot)}</strong></div>
               </div>
-              <div>Địa chỉ cơ sở: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`)}</strong></div>
+              <div>Địa chỉ cơ sở: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
               <div>
-                2. Quy mô, công suất hoạt động: Cơ sở thương mại, dịch vụ, sản xuất quy mô hộ gia đình, không thuộc đối tượng phải lập ĐTM.
+                2. Quy mô, công suất hoạt động: {isBlank ? blankDot : 'Cơ sở thương mại, dịch vụ, sản xuất quy mô hộ gia đình, không thuộc đối tượng phải lập ĐTM.'}
               </div>
               <div>
                 3. Nguồn phát sinh và biện pháp xử lý chất thải:
                 <ul className="list-disc pl-6 space-y-1 text-[11pt] text-neutral-700 mt-1">
-                  <li>Nước thải: Thu gom qua hệ thống thoát nước chung, xử lý bằng bể tự hoại 3 ngăn.</li>
-                  <li>Rác thải sinh hoạt: Hợp đồng thu gom định kỳ với Công ty Môi trường đô thị.</li>
-                  <li>Tiếng ồn, bụi: Bố trí vách ngăn, hoạt động đúng khung giờ quy định.</li>
+                  <li>Nước thải: {isBlank ? blankDot : 'Thu gom qua hệ thống thoát nước chung, xử lý bằng bể tự hoại 3 ngăn.'}</li>
+                  <li>Rác thải sinh hoạt: {isBlank ? blankDot : 'Hợp đồng thu gom định kỳ với Công ty Môi trường đô thị.'}</li>
+                  <li>Tiếng ồn, bụi: {isBlank ? blankDot : 'Bố trí vách ngăn, hoạt động đúng khung giờ quy định.'}</li>
                 </ul>
               </div>
               <div>
@@ -1140,7 +1206,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         )}
 
         {/* ========================================================================= */}
-        {/* 11. GENERAL / STANDARDIZED TEMPLATE FALLBACK                             */}
+        {/* 11. GENERAL / STANDARDIZED TEMPLATE RENDERER (FOR ALL OTHER TTHC-*)      */}
         {/* ========================================================================= */}
         {resolvedCategory === 'GENERAL' && (
           officialTemplate ? (
@@ -1174,14 +1240,14 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                         ? field.secondPlaceholder.replace(/\{WARD_NAME\}/g, currentWard.name)
                         : '';
                       const dynamicVal = field.label.includes('Họ, chữ đệm') || field.label.includes('Họ và tên')
-                        ? val(activeData.fullName, blankDot)
-                        : field.label.includes('Ngày, tháng, năm sinh')
-                        ? val(activeData.dob, '....../....../..........')
+                        ? val(activeData.fullName, rawPlaceholder || blankDot, blankDot)
+                        : field.label.includes('Ngày, tháng, năm sinh') || field.label.includes('Ngày sinh')
+                        ? val(activeData.dob, rawPlaceholder || '....../....../..........', '....../....../..........')
                         : field.label.includes('CCCD') || field.label.includes('định danh')
-                        ? val(activeData.idNumber, shortDot)
-                        : field.label.includes('Nơi thường trú') || field.label.includes('Nơi ở')
-                        ? val(activeData.address, `${currentWard.name}, Tỉnh An Giang`)
-                        : val(activeData[field.label] || (isBlank ? blankDot : rawPlaceholder), blankDot);
+                        ? val(activeData.idNumber, rawPlaceholder || shortDot, shortDot)
+                        : field.label.includes('Nơi thường trú') || field.label.includes('Nơi ở') || field.label.includes('Nơi cư trú')
+                        ? val(activeData.address, rawPlaceholder || `${currentWard.name}, Tỉnh An Giang`, blankDot)
+                        : val(activeData[field.label] || (isBlank ? undefined : rawPlaceholder), blankDot, blankDot);
 
                       if (field.type === 'grid2') {
                         return (
@@ -1219,21 +1285,24 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
 
               <div className="pt-6 mt-6 border-t border-neutral-300">
                 <p className="italic text-neutral-800 text-[11pt] leading-relaxed">
-                  {officialTemplate.commitText}
+                  {officialTemplate.commitText.replace(/\{WARD_NAME\}/g, currentWard.name)}
                 </p>
-                <div className="grid grid-cols-2 gap-4 mt-8 pt-2 text-center text-[12pt]">
-                  <div>
-                    <div className="font-bold uppercase">CÁN BỘ TIẾP NHẬN MỘT CỬA</div>
-                    <div className="italic text-[10pt] text-neutral-600">(Ký, ghi rõ họ tên và đóng dấu)</div>
-                    <div className="h-24"></div>
-                  </div>
-                  <div>
-                    <div className="font-bold uppercase">NGƯỜI LÀM ĐƠN / TỜ KHAI</div>
-                    <div className="italic text-[10pt] text-neutral-600">(Ký và ghi rõ họ tên)</div>
-                    <div className="h-24 flex items-end justify-center font-bold uppercase text-[11pt]">
-                      {isBlank ? '' : (activeData.applicantSignName || activeData.fullName || '')}
+                <div
+                  className={`grid ${
+                    officialTemplate.signatures.length === 3 ? 'grid-cols-3' : 'grid-cols-2'
+                  } gap-4 mt-8 pt-2 text-center text-[12pt]`}
+                >
+                  {officialTemplate.signatures.map((sig, idx) => (
+                    <div key={idx}>
+                      <div className="font-bold uppercase">{sig.role}</div>
+                      <div className="italic text-[10pt] text-neutral-600">{sig.note}</div>
+                      <div className="h-24 flex items-end justify-center font-bold uppercase text-[11pt]">
+                        {idx === officialTemplate.signatures.length - 1 && !isBlank
+                          ? activeData.applicantSignName || activeData.fullName || ''
+                          : ''}
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -1252,14 +1321,14 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
               </div>
 
               <div>
-                1. Người yêu cầu giải quyết thủ tục: <strong className="uppercase">{val(activeData.fullName)}</strong>
+                1. Người yêu cầu giải quyết thủ tục: <strong className="uppercase">{val(activeData.fullName, blankDot, blankDot)}</strong>
               </div>
               <div className="grid grid-cols-12 gap-2">
-                <span className="col-span-6">Ngày sinh: <strong>{val(activeData.dob, '....../....../..........')}</strong></span>
-                <span className="col-span-6">CCCD/Định danh: <strong className="font-mono">{val(activeData.idNumber, shortDot)}</strong></span>
+                <span className="col-span-6">Ngày sinh: <strong>{val(activeData.dob, '....../....../..........', '....../....../..........')}</strong></span>
+                <span className="col-span-6">CCCD/Định danh: <strong className="font-mono">{val(activeData.idNumber, shortDot, shortDot)}</strong></span>
               </div>
               <div>
-                Nơi cư trú hiện tại: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`)}</strong>
+                Nơi cư trú hiện tại: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong>
               </div>
               <div>
                 2. Nội dung yêu cầu giải quyết:
@@ -1342,7 +1411,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                 title="Xem mẫu đã điền ví dụ đầy đủ thông tin chuẩn để tham khảo cách kê khai hoặc quét AI"
               >
                 <Eye className="w-3.5 h-3.5 text-teal-600" />
-                <span>Mẫu Điền Ví Dụ (Tham Khảo & Quét AI)</span>
+                <span>Mẫu Điền Ví Dụ (Tham Khảo &amp; Quét AI)</span>
               </button>
               <button
                 type="button"
@@ -1431,11 +1500,11 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
             <span className="leading-tight">
               {viewMode === 'SAMPLE_FILLED' ? (
                 <>
-                  Màn hình đang hiển thị <strong>Mẫu Hướng Dẫn Điền Ví Dụ Chuẩn</strong> (có đầy đủ thông tin mẫu để bà con tham khảo cách kê khai hoặc chụp quét AI tự động). Khi bấm <strong>"Tải Mẫu Word (.docx)"</strong> hoặc <strong>"Tải File PDF (.pdf)"</strong>, hệ thống tự động xuất <strong>Phôi Mẫu Trắng hoàn toàn</strong> để bà con tự điền.
+                  Màn hình đang hiển thị <strong>Mẫu Hướng Dẫn Điền Ví Dụ Chuẩn</strong> (có đầy đủ thông tin mẫu để bà con tham khảo cách kê khai hoặc chụp quét AI tự động). Khi bấm <strong>"Tải Mẫu Word (.docx)"</strong> hoặc <strong>"Tải File PDF (.pdf)"</strong>, hệ thống tự động xuất <strong>Phôi Mẫu Trắng hoàn toàn</strong> (đồng nhất 100% với tab Phôi Mẫu Trắng) để bà con tự điền.
                 </>
               ) : (
                 <>
-                  Màn hình đang hiển thị <strong>Phôi Mẫu Trắng Tiêu Chuẩn</strong> (chỉ có các dòng chấm để tự điền). Bà con có thể chuyển sang <strong>"Mẫu Điền Ví Dụ"</strong> để xem hướng dẫn cách ghi.
+                  Màn hình đang hiển thị <strong>Phôi Mẫu Trắng Tiêu Chuẩn</strong> (chỉ có các dòng chấm để tự điền, đồng nhất 100% với bản tải về Word .docx và PDF .pdf). Bà con có thể chuyển sang <strong>"Mẫu Điền Ví Dụ"</strong> để xem hướng dẫn cách ghi.
                 </>
               )}
             </span>
@@ -1466,7 +1535,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         {/* Bottom Actions */}
         <div className="no-print bg-[#F8FAFC] px-6 py-3 border-t border-[#CBD5E1] flex flex-wrap items-center justify-between gap-2">
           <span className="text-xs text-neutral-500 italic">
-            * Văn bản được chuẩn hóa định dạng theo Nghị định 30/2020/NĐ-CP và Thông tư chuyên ngành. Bản tải về cam kết là phôi mẫu trắng 100%.
+            * Văn bản được chuẩn hóa định dạng theo Nghị định 30/2020/NĐ-CP và các Thông tư/Nghị định mới nhất hiện hành (TT 66/2023 &amp; 53/2025/TT-BCA, TT 04/2024/TT-BTP, NĐ 63/2024, NĐ 76/2024, NĐ 101/2024, NĐ 175/2024). Bản tải về đồng nhất 100% với Phôi Mẫu Trắng.
           </span>
           <button
             type="button"

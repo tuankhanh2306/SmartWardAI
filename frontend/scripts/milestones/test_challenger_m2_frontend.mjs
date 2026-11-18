@@ -9,7 +9,7 @@ const currentFile = fileURLToPath(import.meta.url);
 
 // Ensure tsx loader is active
 if (!process.env.SMARTWARD_TSX_ACTIVE) {
-  const rootDir = path.resolve(path.dirname(currentFile), '../..');
+  const rootDir = path.resolve(path.dirname(currentFile), '../../..');
   const loaderPath = path.resolve(rootDir, 'frontend/node_modules/tsx/dist/loader.mjs');
   if (fs.existsSync(loaderPath)) {
     const res = spawnSync(process.execPath, ['--import', pathToFileURL(loaderPath).href, currentFile, ...process.argv.slice(2)], {
@@ -38,7 +38,7 @@ function assert(condition, description) {
   }
 }
 
-const srcDir = path.resolve(path.dirname(currentFile), '../src');
+const srcDir = path.resolve(path.dirname(currentFile), '../../src');
 
 // Polyfill localStorage and window for React SSR testing
 if (typeof globalThis.localStorage === 'undefined') {
@@ -56,7 +56,7 @@ if (typeof globalThis.localStorage === 'undefined') {
 // -------------------------------------------------------------
 console.log('\n--- SECTION 1: Procedures Catalog & Fee Exemption (Law on Fees and Charges 2015) ---');
 
-const { PROCEDURES_CATALOG } = await import('../src/data/proceduresCatalog.js');
+const { PROCEDURES_CATALOG } = await import('../../src/data/proceduresCatalog.js');
 
 assert(Array.isArray(PROCEDURES_CATALOG), 'PROCEDURES_CATALOG is exported as an array');
 assert(PROCEDURES_CATALOG.length === 40, `PROCEDURES_CATALOG contains exactly 40 items (actual: ${PROCEDURES_CATALOG.length})`);
@@ -125,8 +125,8 @@ assert(exemptCount >= 19, `Statutory fee exemption covers all civil status + soc
 // -------------------------------------------------------------
 console.log('\n--- SECTION 2: Dynamic A4 Modal Verification Across 7 Administrative Domains ---');
 
-const { A4DocumentModal } = await import('../src/components/A4DocumentModal.js');
-const { WardProvider } = await import('../src/context/WardContext.js');
+const { A4DocumentModal } = await import('../../src/components/A4DocumentModal.js');
+const { WardProvider } = await import('../../src/context/WardContext.js');
 
 // Helper to render modal to string
 const renderModal = (props) => {
@@ -453,39 +453,83 @@ assert(
 // -------------------------------------------------------------
 // SECTION 5: SMART CHECKLIST CONDITIONAL LOGIC VERIFICATION (F6)
 // -------------------------------------------------------------
-console.log('\n--- SECTION 5: Smart Checklist Conditional Logic (FormAndIssueReporting.tsx) ---');
+console.log('\n--- SECTION 5: Smart Checklist Conditional Logic (FormAndIssueReporting.tsx + SpecializedFormFields.tsx) ---');
+
+const specializedFieldsContent = fs.readFileSync(
+  path.resolve(srcDir, 'features/citizen-forms/SpecializedFormFields.tsx'),
+  'utf-8'
+);
+const combinedFormContent = formPageContent + '\n' + specializedFieldsContent;
 
 assert(
-  formPageContent.includes("parentsMarried === 'NO'"),
+  combinedFormContent.includes("parentsMarried === 'NO'"),
   'Smart Checklist detects unmarried parents (parentsMarried === "NO")'
 );
 assert(
-  formPageContent.includes('TTHC-HT-06') && formPageContent.includes('Đăng ký nhận cha, mẹ, con'),
+  combinedFormContent.includes('TTHC-HT-06') && combinedFormContent.includes('Đăng ký nhận cha, mẹ, con'),
   'Smart Checklist triggers combined procedure TTHC-HT-06 (Parent-Child recognition)'
 );
 assert(
-  formPageContent.includes('Thông tư 04/2020/TT-BTP'),
-  'Smart Checklist references Article 15 Circular 04/2020/TT-BTP for unmarried birth registration'
+  combinedFormContent.includes('Thông tư 04/2020/TT-BTP') && combinedFormContent.includes('Thông tư 04/2024/TT-BTP'),
+  'Smart Checklist references Circular 04/2024/TT-BTP & Circular 04/2020/TT-BTP for unmarried birth registration'
 );
 assert(
-  formPageContent.includes("previousMaritalStatus === 'DIVORCED'"),
+  combinedFormContent.includes("previousMaritalStatus === 'DIVORCED'"),
   'Smart Checklist detects divorced previous marital status'
 );
 assert(
-  formPageContent.includes('divorceJudgmentNumber') && formPageContent.includes('Bản án/Quyết định ly hôn'),
+  combinedFormContent.includes('divorceJudgmentNumber') && combinedFormContent.includes('Bản án/Quyết định ly hôn'),
   'Smart Checklist mandates court divorce judgment number and date'
 );
 assert(
-  formPageContent.includes("previousMaritalStatus === 'WIDOWED'"),
+  combinedFormContent.includes("previousMaritalStatus === 'WIDOWED'"),
   'Smart Checklist detects widowed previous marital status'
 );
 assert(
-  formPageContent.includes('deathCertNumber') && formPageContent.includes('Giấy chứng tử'),
+  combinedFormContent.includes('deathCertNumber') && combinedFormContent.includes('Giấy chứng tử'),
   'Smart Checklist mandates spouse death certificate details'
 );
 assert(
-  formPageContent.includes("marriageMode === 'MARRIAGE_REGISTRATION'"),
+  combinedFormContent.includes("marriageMode === 'MARRIAGE_REGISTRATION'"),
   'Smart Checklist supports dual-mode toggle for TK-KH (Registration vs Confirmation)'
+);
+
+// -------------------------------------------------------------
+// SECTION 6: 40 OFFICIAL TEMPLATES & BLANK EXPORT UNIFICATION AUDIT
+// -------------------------------------------------------------
+console.log('\n--- SECTION 6: 40 Official Templates & Blank/DOCX/PDF Unification Audit ---');
+
+const { A4_FORM_TEMPLATES, getA4TemplateByCode } = await import('../../src/data/a4FormTemplates.js');
+
+const all40HaveTemplates = PROCEDURES_CATALOG.every(p => Boolean(getA4TemplateByCode(p.code)));
+assert(all40HaveTemplates, 'All 40 procedures in PROCEDURES_CATALOG have official templates in A4_FORM_TEMPLATES');
+
+const htmlDc02 = renderModal({
+  formType: 'GENERAL',
+  procedureCode: 'TTHC-DC-02',
+  procedureTitle: 'Đăng ký và cấp Giấy chứng nhận QSDĐ lần đầu'
+});
+assert(
+  htmlDc02.includes('Mẫu số 04/ĐK') && htmlDc02.includes('CẤP GIẤY CHỨNG NHẬN LẦN ĐẦU'),
+  'TTHC-DC-02 renders its own distinct Mẫu số 04/ĐK (not swallowed by TTHC-DC-01)'
+);
+
+const htmlXd02 = renderModal({
+  formType: 'GENERAL',
+  procedureCode: 'TTHC-XD-02',
+  procedureTitle: 'Điều chỉnh, gia hạn Giấy phép xây dựng'
+});
+assert(
+  htmlXd02.includes('Mẫu số 02 Phụ lục II - NĐ 175/2024/NĐ-CP') && htmlXd02.includes('ĐIỀU CHỈNH / GIA HẠN GIẤY PHÉP XÂY DỰNG'),
+  'TTHC-XD-02 renders its own distinct Mẫu số 02 Phụ lục II under Decree 175/2024/NĐ-CP'
+);
+
+assert(
+  htmlCt01.includes('Thông tư số 53/2025/TT-BCA') &&
+  htmlKs.includes('Thông tư số 04/2024/TT-BTP') &&
+  htmlBtxh.includes('Nghị định số 76/2024/NĐ-CP') &&
+  htmlXayDung.includes('Nghị định số 175/2024/NĐ-CP'),
+  'All core domains cite the latest current Vietnamese legal instruments (2024-2025 updates)'
 );
 
 

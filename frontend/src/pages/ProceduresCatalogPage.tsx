@@ -142,12 +142,12 @@ export const ProceduresCatalogPage: React.FC = () => {
     if (code === 'TTHC-HT-01') return 'TK-KS';
     if (code === 'TTHC-HT-02') return 'TK-KH';
     if (code === 'TTHC-BT-01') return 'TK-BTXH';
-    if (code.startsWith('TTHC-CT-')) return 'CHUNG-THUC';
-    if (code.startsWith('TTHC-DC-')) return 'DAT-DAI';
-    if (code.startsWith('TTHC-XD-')) return 'XAY-DUNG';
+    if (code === 'TTHC-CT-01' || code === 'TTHC-CT-02') return 'CHUNG-THUC';
+    if (code === 'TTHC-DC-01') return 'DAT-DAI';
+    if (code === 'TTHC-XD-01') return 'XAY-DUNG';
     if (code === 'TTHC-CR-02') return 'KHAI-TU';
-    if (code.startsWith('TTHC-BT-')) return 'MAI-TANG-PHI';
-    if (code.startsWith('TTHC-MT-')) return 'MOI-TRUONG';
+    if (code === 'TTHC-BT-02') return 'MAI-TANG-PHI';
+    if (code === 'TTHC-MT-01') return 'MOI-TRUONG';
     return 'GENERAL';
   };
 

@@ -125,7 +125,7 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div className="sm:col-span-2 text-xs font-extrabold text-[#750715] flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-[#B90E23]" />
-                      <span>Thông tin Tờ khai thay đổi thông tin cư trú (Mẫu CT01 - Thông tư 66/2023/TT-BCA)</span>
+                      <span>Thông tin Tờ khai thay đổi thông tin cư trú (Mẫu CT01 - Thông tư 66/2023/TT-BCA &amp; TT 53/2025/TT-BCA)</span>
                     </div>
 
                     <div className="flex flex-col gap-1">
@@ -273,7 +273,7 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div className="sm:col-span-2 text-xs font-extrabold text-[#750715] flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-[#B90E23]" />
-                      <span>Đối chiếu chéo Giấy chứng sinh bệnh viện & Tình trạng hôn nhân cha mẹ (Thông tư 04/2020/TT-BTP)</span>
+                      <span>Đối chiếu chéo Giấy chứng sinh bệnh viện &amp; Tình trạng hôn nhân cha mẹ (Phụ lục 5 - Thông tư 04/2024/TT-BTP sửa đổi Thông tư 04/2020/TT-BTP)</span>
                     </div>
 
                     {/* Smart Checklist: Cha mẹ chưa kết hôn */}
@@ -462,7 +462,7 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div className="sm:col-span-2 text-xs font-extrabold text-[#750715] flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-[#B90E23]" />
-                      <span>Rà soát biểu mẫu Hôn nhân & Tình trạng hôn nhân (Thông tư 04/2020/TT-BTP)</span>
+                      <span>Rà soát biểu mẫu Hôn nhân &amp; Tình trạng hôn nhân (Phụ lục 5 - Thông tư 04/2024/TT-BTP sửa đổi Thông tư 04/2020/TT-BTP)</span>
                     </div>
 
                     {/* Toggle Switch giữa 2 chế độ */}
@@ -697,7 +697,7 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div className="sm:col-span-2 text-xs font-extrabold text-[#750715] flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-[#B90E23]" />
-                      <span>Kiểm tra điều kiện Mẫu số 01 Nghị định 20/2021/NĐ-CP, Luật BHXH 2024 & Tài khoản an sinh Đề án 06</span>
+                      <span>Kiểm tra điều kiện Mẫu số 1a-1đ Nghị định 20/2021/NĐ-CP, Nghị định 76/2024/NĐ-CP, Luật BHXH 2024 &amp; Tài khoản an sinh Đề án 06</span>
                     </div>
 
                     <div className="flex flex-col gap-1">
