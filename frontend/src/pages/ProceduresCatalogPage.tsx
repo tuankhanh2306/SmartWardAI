@@ -30,13 +30,16 @@ export const ProceduresCatalogPage: React.FC = () => {
     getProcedures()
       .then((data) => {
         if (!isMounted || !data || data.length === 0) return;
-        const mapped: ProcedureCatalogItem[] = data.map((p) => ({
-          code: p.procedureCode,
-          name: p.procedureName,
-          category: p.category,
-          portalCode: p.officialPortalCode || '',
-          chunksCount: p.chunksCount || 4,
-        }));
+        const deprecatedCodes = new Set(['TTHC-BT-06', 'TTHC-CR-05', 'TTHC-CT-03']);
+        const mapped: ProcedureCatalogItem[] = data
+          .filter((p) => !deprecatedCodes.has((p.procedureCode || '').trim().toUpperCase()))
+          .map((p) => ({
+            code: p.procedureCode,
+            name: p.procedureName,
+            category: p.category,
+            portalCode: p.officialPortalCode || '',
+            chunksCount: p.chunksCount || 4,
+          }));
         setProcedures(mapped);
       })
       .catch((err) => {

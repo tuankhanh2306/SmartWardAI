@@ -211,7 +211,8 @@ export const ProcedureGovernancePage: React.FC = () => {
     try {
       const apiList = await getAdminProcedures();
       if (Array.isArray(apiList) && apiList.length > 0) {
-        setProcedures(apiList);
+        const deprecatedCodes = new Set(['TTHC-BT-06', 'TTHC-CR-05', 'TTHC-CT-03']);
+        setProcedures(apiList.filter((p) => !deprecatedCodes.has((p.procedureCode || '').trim().toUpperCase())));
       }
     } catch {
       // Keep in-memory state if backend not running

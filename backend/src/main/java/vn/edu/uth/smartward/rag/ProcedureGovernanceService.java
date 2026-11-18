@@ -67,6 +67,10 @@ public class ProcedureGovernanceService {
         List<AdminProcedureSummaryDto> result = new ArrayList<>();
 
         for (AdminProcedure proc : procedures) {
+            if (proc.getProcedureCode() != null
+                    && ProcedureDataSeeder.SKIPPED_DEPRECATED_CODES.contains(proc.getProcedureCode().trim().toUpperCase())) {
+                continue;
+            }
             List<ProcedureVersion> versions = versionRepository.findByProcedureIdOrderByVersionNoDesc(proc.getId());
             AdminProcedureSummaryDto summary = buildSummaryDto(proc, versions);
 

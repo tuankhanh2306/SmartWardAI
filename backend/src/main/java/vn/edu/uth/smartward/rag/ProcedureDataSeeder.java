@@ -26,11 +26,28 @@ public class ProcedureDataSeeder implements CommandLineRunner {
     private final ObjectMapper objectMapper;
     private final vn.edu.uth.smartward.ai.AiModelClient aiModelClient;
 
-    private static final List<String> SKIPPED_DEPRECATED_CODES = List.of("TTHC-BT-06", "TTHC-CR-05", "TTHC-CT-03");
+    public static final List<String> SKIPPED_DEPRECATED_CODES = List.of("TTHC-BT-06", "TTHC-CR-05", "TTHC-CT-03");
 
     @Override
     public void run(String... args) {
         log.info("Starting non-destructive initial seeding check for administrative procedures...");
+
+        // Clean up any deprecated procedures previously seeded in database so catalog strictly has 40 TTHC
+        for (String deprecatedCode : SKIPPED_DEPRECATED_CODES) {
+            try {
+                procedureRepository.findByProcedureCode(deprecatedCode).ifPresent(proc -> {
+                    chunkRepository.deleteAll(chunkRepository.findByProcedureId(proc.getId()));
+                    procedureRepository.delete(proc);
+                    log.info("Removed deprecated procedure {} from database.", deprecatedCode);
+                });
+            } catch (Exception ex) {
+                log.warn("Could not delete deprecated procedure {}, marking INACTIVE: {}", deprecatedCode, ex.getMessage());
+                procedureRepository.findByProcedureCode(deprecatedCode).ifPresent(proc -> {
+                    proc.setStatus("INACTIVE");
+                    procedureRepository.save(proc);
+                });
+            }
+        }
 
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
