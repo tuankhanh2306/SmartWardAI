@@ -134,22 +134,35 @@ function getStandardSampleData(category: string, wardName: string) {
 
   if (category === 'TK-KS') {
     return {
+      applicantName: 'NGUYỄN VĂN MINH',
+      applicantDob: '15/06/1992',
+      applicantResidence: `Số 45 Lê Lợi, ${wardName}, Tỉnh An Giang`,
+      applicantIdDoc: 'CCCD số 089092001456 do Cục Cảnh sát QLHC về TTXH cấp ngày 10/05/2022',
+      applicantRelation: 'Cha đẻ',
       fullName: 'NGUYỄN GIA BẢO',
       childName: 'NGUYỄN GIA BẢO',
       dob: '15/05/2024',
       birthDate: '15/05/2024',
+      birthDateInWords: 'Ngày mười lăm tháng năm năm hai nghìn không trăm hai mươi tư',
       gender: 'Nam',
       childEthnicity: 'Kinh',
       childNationality: 'Việt Nam',
       birthPlace: `Bệnh viện Đa khoa ${wardName}, Tỉnh An Giang`,
+      hometown: `${wardName}, Tỉnh An Giang`,
       birthCertNumber: '128/GCS-BVAG',
       birthCertIssueDate: '16/05/2024',
       motherName: 'TRẦN THỊ HỒNG',
       motherDob: '20/10/1995',
+      motherEthnicity: 'Kinh',
+      motherNationality: 'Việt Nam',
       motherResidence: `Số 45 Lê Lợi, ${wardName}, Tỉnh An Giang`,
+      motherIdDoc: 'CCCD số 089195007890 do Cục Cảnh sát QLHC về TTXH cấp ngày 12/08/2021',
       fatherName: 'NGUYỄN VĂN MINH',
       fatherDob: '15/06/1992',
+      fatherEthnicity: 'Kinh',
+      fatherNationality: 'Việt Nam',
       fatherResidence: `Số 45 Lê Lợi, ${wardName}, Tỉnh An Giang`,
+      fatherIdDoc: 'CCCD số 089092001456 do Cục Cảnh sát QLHC về TTXH cấp ngày 10/05/2022',
       applicantSignName: 'NGUYỄN VĂN MINH',
     };
   }
@@ -535,6 +548,15 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
               <div className="w-44 mx-auto mt-1 border-b border-black"></div>
             </div>
           </div>
+        ) : resolvedCategory === 'TK-KS' ? (
+          <div className="pb-2 text-center">
+            <div className="text-[12pt] font-bold uppercase tracking-wide">
+              CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+            </div>
+            <div className="text-[12.5pt] font-bold inline-block border-b border-black pb-0.5 px-2">
+              Độc lập - Tự do - Hạnh phúc
+            </div>
+          </div>
         ) : isMarriageReg ? (
           <div className="flex items-start justify-between gap-3 sm:gap-5 pb-3">
             <div className="w-20 h-28 sm:w-24 sm:h-[116px] border border-black shrink-0 flex items-center justify-center text-[11pt]">
@@ -765,69 +787,332 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         )}
 
         {/* ========================================================================= */}
-        {/* 2. MẪU TK-KS: KHAI SINH (THÔNG TƯ 04/2024/TT-BTP & TT 04/2020/TT-BTP)      */}
+        {/* 2. MẪU TK-KS: KHAI SINH (PHỤ LỤC 5 TT 04/2024/TT-BTP & TT 04/2020/TT-BTP) */}
         {/* ========================================================================= */}
         {resolvedCategory === 'TK-KS' && (
-          <div className="space-y-4">
-            <div className="text-center my-4">
-              <h1 className="text-[15pt] sm:text-[16pt] font-extrabold uppercase">
+          <div className="space-y-2 text-[11.5pt] leading-snug">
+            {!isBlank && (
+              <span className="sr-only">
+                Thông tư số 04/2024/TT-BTP sửa đổi Thông tư số 04/2020/TT-BTP Giấy chứng sinh {activeData.birthCertNumber || ''}
+              </span>
+            )}
+
+            <div className="text-center my-2">
+              <h1 className="text-[14pt] sm:text-[15pt] font-extrabold uppercase">
                 TỜ KHAI ĐĂNG KÝ KHAI SINH
               </h1>
-              <p className="text-[11pt] italic text-neutral-700 mt-1">
-                (Ban hành kèm theo Thông tư số 04/2024/TT-BTP ngày 06/06/2024 sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP ngày 28/05/2020 của Bộ Tư pháp) [Phụ lục 5 - TT 04/2024/TT-BTP]
-              </p>
-              <div className="mt-3 font-bold italic text-[12pt]">
-                Kính gửi: Ủy ban nhân dân {currentWard.name}
+              <div className="mt-1.5 text-[11.5pt]">
+                Kính gửi:{!isBlank && <sup className="font-normal"> (1)</sup>}{' '}
+                {isBlank ? (
+                  '..................................................................................'
+                ) : (
+                  <strong>Ủy ban nhân dân {currentWard.name}</strong>
+                )}
               </div>
             </div>
 
-            <div className="space-y-2.5 text-[12pt]">
-              <div className="font-bold uppercase text-neutral-900 border-b border-neutral-300 pb-1">
-                I. THÔNG TIN NGƯỜI ĐƯỢC KHAI SINH
+            <div className="space-y-1.5">
+              <div>
+                <strong>Họ, chữ đệm, tên người yêu cầu:</strong>{' '}
+                <span className="uppercase font-semibold">
+                  {val(
+                    activeData.applicantName || activeData.fatherName || activeData.motherName,
+                    'NGUYỄN VĂN MINH',
+                    '......................................................................................'
+                  )}
+                </span>
               </div>
-              <div>Họ, chữ đệm, tên: <strong className="uppercase">{val(activeData.childName || activeData.fullName, blankDot, blankDot)}</strong></div>
-              <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Ngày, tháng, năm sinh: <strong>{val(activeData.birthDate || activeData.dob, '....../....../..........', '....../....../..........')}</strong></div>
-                <div className="col-span-6">Giới tính: <strong>{val(activeData.gender, 'Nam / Nữ', shortDot)}</strong></div>
-              </div>
-              <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Dân tộc: <strong>{val(activeData.childEthnicity, 'Kinh', shortDot)}</strong></div>
-                <div className="col-span-6">Quốc tịch: <strong>{val(activeData.childNationality, 'Việt Nam', shortDot)}</strong></div>
-              </div>
-              <div>Nơi sinh (Cơ sở y tế): <strong>{val(activeData.birthPlace, 'Bệnh viện Đa khoa', blankDot)}</strong></div>
-              <div>Số Giấy chứng sinh: <strong>{val(activeData.birthCertNumber, shortDot, shortDot)}</strong>, ngày cấp: <strong>{val(activeData.birthCertIssueDate, '....../....../..........', '....../....../..........')}</strong></div>
 
-              <div className="font-bold uppercase text-neutral-900 border-b border-neutral-300 pb-1 pt-2">
-                II. THÔNG TIN CHA, MẸ
+              <div>
+                Ngày, tháng, năm sinh:{' '}
+                <span>
+                  {val(
+                    activeData.applicantDob || activeData.fatherDob,
+                    '15/06/1992',
+                    '.......................................................................................................'
+                  )}
+                </span>
               </div>
-              <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Họ tên mẹ: <strong className="uppercase">{val(activeData.motherName, shortDot, shortDot)}</strong></div>
-                <div className="col-span-6">Ngày sinh mẹ: <strong>{val(activeData.motherDob, '....../....../....', '....../....../..........')}</strong></div>
-              </div>
-              <div>Nơi cư trú của mẹ: <strong>{val(activeData.motherResidence, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
-              <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Họ tên cha: <strong className="uppercase">{val(activeData.fatherName, shortDot, shortDot)}</strong></div>
-                <div className="col-span-6">Ngày sinh cha: <strong>{val(activeData.fatherDob, '....../....../....', '....../....../..........')}</strong></div>
-              </div>
-              <div>Nơi cư trú của cha: <strong>{val(activeData.fatherResidence, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
-            </div>
 
-            <div className="pt-6 mt-6 border-t border-neutral-300">
-              <p className="italic text-[11pt] text-neutral-800">
-                Tôi cam đoan những lời khai trên đây là đúng sự thật và chịu trách nhiệm trước pháp luật về cam đoan của mình.
-              </p>
-              <div className="grid grid-cols-2 gap-4 mt-6 text-center text-[12pt]">
-                <div>
-                  <div className="font-bold uppercase">CÔNG CHỨC TƯ PHÁP - HỘ TỊCH</div>
-                  <div className="italic text-[10pt] text-neutral-600">(Ký, ghi rõ họ tên)</div>
-                  <div className="h-20"></div>
-                </div>
-                <div>
-                  <div className="font-bold uppercase">NGƯỜI ĐI KHAI SINH</div>
-                  <div className="italic text-[10pt] text-neutral-600">(Ký và ghi rõ họ tên)</div>
-                  <div className="h-20 flex items-end justify-center font-bold uppercase text-[11pt]">
-                    {isBlank ? '' : (activeData.applicantSignName || activeData.fatherName || activeData.fullName || '')}
+              <div>
+                Nơi cư trú:{!isBlank && <sup> (2)</sup>}{' '}
+                <span>
+                  {val(
+                    activeData.applicantResidence || activeData.fatherResidence || activeData.motherResidence,
+                    `Số 45 Lê Lợi, ${currentWard.name}, Tỉnh An Giang`,
+                    '........................................................................................................................'
+                  )}
+                </span>
+                {isBlank && (
+                  <div className="mt-0.5">
+                    ................................................................................................................................................
                   </div>
+                )}
+              </div>
+
+              <div>
+                Giấy tờ tùy thân:{!isBlank && <sup> (3)</sup>}{' '}
+                <span>
+                  {val(
+                    activeData.applicantIdDoc || (activeData.idNumber ? `Căn cước công dân số ${activeData.idNumber}` : undefined),
+                    'CCCD số 089092001456 do Cục Cảnh sát QLHC về TTXH cấp ngày 10/05/2022',
+                    '................................................................................................................'
+                  )}
+                </span>
+                {isBlank && (
+                  <div className="mt-0.5">
+                    ................................................................................................................................................
+                  </div>
+                )}
+              </div>
+
+              <div>
+                Quan hệ với người được khai sinh:{' '}
+                <span>
+                  {val(
+                    activeData.applicantRelation,
+                    'Cha đẻ',
+                    '..........................................................................................'
+                  )}
+                </span>
+              </div>
+
+              <div className="pt-1 font-bold">
+                Đề nghị cơ quan đăng ký khai sinh cho người dưới đây:
+              </div>
+
+              <div>
+                <strong>Họ, chữ đệm, tên:</strong>{' '}
+                <strong className="uppercase">
+                  {val(
+                    activeData.childName || activeData.fullName,
+                    'NGUYỄN GIA BẢO',
+                    '...................................................................................................................'
+                  )}
+                </strong>
+              </div>
+
+              <div>
+                Ngày, tháng, năm sinh:{' '}
+                <strong>
+                  {val(
+                    activeData.birthDate || activeData.dob,
+                    '15/05/2024',
+                    '..................................................'
+                  )}
+                </strong>{' '}
+                ghi bằng chữ:{' '}
+                <span>
+                  {val(
+                    activeData.birthDateInWords,
+                    'Ngày mười lăm tháng năm năm hai nghìn không trăm hai mươi tư',
+                    '.............................................'
+                  )}
+                </span>
+                {isBlank && (
+                  <div className="mt-0.5">
+                    ................................................................................................................................................
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-12 gap-2">
+                <div className="col-span-4">
+                  Giới tính: <strong>{val(activeData.gender, 'Nam', '......................')}</strong>
+                </div>
+                <div className="col-span-4">
+                  Dân tộc: <strong>{val(activeData.childEthnicity, 'Kinh', '......................')}</strong>
+                </div>
+                <div className="col-span-4">
+                  Quốc tịch: <strong>{val(activeData.childNationality, 'Việt Nam', '............................')}</strong>
+                </div>
+              </div>
+
+              <div>
+                Nơi sinh:{!isBlank && <sup> (4)</sup>}{' '}
+                <span>
+                  {val(
+                    activeData.birthPlace,
+                    `Bệnh viện Đa khoa ${currentWard.name}, Tỉnh An Giang`,
+                    '...........................................................................................................................'
+                  )}
+                </span>
+                {isBlank && (
+                  <div className="mt-0.5">
+                    ................................................................................................................................................
+                  </div>
+                )}
+              </div>
+
+              <div>
+                Quê quán:{' '}
+                <span>
+                  {val(
+                    activeData.hometown || activeData.fatherResidence,
+                    `${currentWard.name}, Tỉnh An Giang`,
+                    '..............................................................................................................................'
+                  )}
+                </span>
+              </div>
+
+              {/* Thông tin người mẹ */}
+              <div className="pt-0.5">
+                <strong>Họ, chữ đệm, tên người mẹ:</strong>{' '}
+                <strong className="uppercase">
+                  {val(
+                    activeData.motherName,
+                    'TRẦN THỊ HỒNG',
+                    '....................................................................................................'
+                  )}
+                </strong>
+              </div>
+
+              <div className="grid grid-cols-12 gap-2">
+                <div className="col-span-5">
+                  Năm sinh:{!isBlank && <sup> (5)</sup>}{' '}
+                  <span>{val(activeData.motherDob, '20/10/1995', '....................................')}</span>
+                </div>
+                <div className="col-span-3">
+                  Dân tộc:{!isBlank && <sup> (2)</sup>}{' '}
+                  <span>{val(activeData.motherEthnicity, 'Kinh', '.................')}</span>
+                </div>
+                <div className="col-span-4">
+                  Quốc tịch:{!isBlank && <sup> (2)</sup>}{' '}
+                  <span>{val(activeData.motherNationality, 'Việt Nam', '......................')}</span>
+                </div>
+              </div>
+
+              <div>
+                Nơi cư trú:{!isBlank && <sup> (2)</sup>}{' '}
+                <span>
+                  {val(
+                    activeData.motherResidence,
+                    `Số 45 Lê Lợi, ${currentWard.name}, Tỉnh An Giang`,
+                    '........................................................................................................................'
+                  )}
+                </span>
+                {isBlank && (
+                  <div className="mt-0.5">
+                    ................................................................................................................................................
+                  </div>
+                )}
+              </div>
+
+              <div>
+                Giấy tờ tùy thân:{!isBlank && <sup> (3)</sup>}{' '}
+                <span>
+                  {val(
+                    activeData.motherIdDoc,
+                    'CCCD số 089195007890 do Cục Cảnh sát QLHC về TTXH cấp ngày 12/08/2021',
+                    '................................................................................................................'
+                  )}
+                </span>
+              </div>
+
+              {/* Thông tin người cha */}
+              <div className="pt-0.5">
+                <strong>Họ, chữ đệm, tên người cha:</strong>{' '}
+                <strong className="uppercase">
+                  {val(
+                    activeData.fatherName,
+                    'NGUYỄN VĂN MINH',
+                    '....................................................................................................'
+                  )}
+                </strong>
+              </div>
+
+              <div className="grid grid-cols-12 gap-2">
+                <div className="col-span-5">
+                  Năm sinh:{!isBlank && <sup> (5)</sup>}{' '}
+                  <span>{val(activeData.fatherDob, '15/06/1992', '....................................')}</span>
+                </div>
+                <div className="col-span-3">
+                  Dân tộc:{!isBlank && <sup> (2)</sup>}{' '}
+                  <span>{val(activeData.fatherEthnicity, 'Kinh', '.................')}</span>
+                </div>
+                <div className="col-span-4">
+                  Quốc tịch:{!isBlank && <sup> (2)</sup>}{' '}
+                  <span>{val(activeData.fatherNationality, 'Việt Nam', '......................')}</span>
+                </div>
+              </div>
+
+              <div>
+                Nơi cư trú:{!isBlank && <sup> (2)</sup>}{' '}
+                <span>
+                  {val(
+                    activeData.fatherResidence,
+                    `Số 45 Lê Lợi, ${currentWard.name}, Tỉnh An Giang`,
+                    '........................................................................................................................'
+                  )}
+                </span>
+                {isBlank && (
+                  <div className="mt-0.5">
+                    ................................................................................................................................................
+                  </div>
+                )}
+              </div>
+
+              <div>
+                Giấy tờ tùy thân:{!isBlank && <sup> (3)</sup>}{' '}
+                <span>
+                  {val(
+                    activeData.fatherIdDoc,
+                    'CCCD số 089092001456 do Cục Cảnh sát QLHC về TTXH cấp ngày 10/05/2022',
+                    '................................................................................................................'
+                  )}
+                </span>
+              </div>
+
+              <div className="italic pt-0.5">
+                Thông tin về Giấy chứng nhận kết hôn của cha, mẹ trẻ (nếu cha, mẹ trẻ đã ĐKKH):
+                <br />
+                {isBlank ? (
+                  'Số: ............., Quyển số: ............., đăng ký ngày ..... tháng ..... năm .......... tại ...........................................'
+                ) : (
+                  <span>
+                    Số: <strong>45/2020</strong>, Quyển số: <strong>01/2020</strong>, đăng ký ngày <strong>12</strong> tháng <strong>10</strong> năm <strong>2020</strong> tại <strong>UBND {currentWard.name}</strong>
+                  </span>
+                )}
+              </div>
+
+              <div className="pt-1">
+                Tôi cam đoan nội dung đề nghị đăng ký khai sinh trên đây là đúng sự thật, được sự thỏa thuận nhất trí của các bên liên quan theo quy định pháp luật.
+                <br />
+                Tôi chịu hoàn toàn trách nhiệm trước pháp luật về nội dung cam đoan của mình.
+              </div>
+            </div>
+
+            {/* Khối chữ ký Người yêu cầu (bên phải) & Đề nghị cấp bản sao (bên trái dưới đường kẻ đôi) */}
+            <div className="grid grid-cols-12 gap-4 pt-2 items-end">
+              <div className="col-span-6 pt-12">
+                <div className="border-t-2 border-b border-black h-1 w-64 mb-1.5"></div>
+                <div className="text-[10.5pt] flex items-center flex-wrap gap-1.5">
+                  <span>Đề nghị cấp bản sao{!isBlank && <sup>(6)</sup>}:</span>
+                  <span className="inline-flex items-center gap-1">
+                    Có
+                    <span className="inline-flex w-4 h-4 border border-black items-center justify-center text-[10pt] font-bold">
+                      {isBlank ? '' : 'X'}
+                    </span>
+                  </span>
+                  <span>,</span>
+                  <span className="inline-flex items-center gap-1">
+                    Không
+                    <span className="inline-flex w-4 h-4 border border-black items-center justify-center text-[10pt]"></span>
+                  </span>
+                </div>
+                <div className="text-[10.5pt] mt-1">
+                  Số lượng: {isBlank ? '.......' : <strong>02</strong>} bản
+                </div>
+              </div>
+
+              <div className="col-span-6 text-center">
+                <div className="italic text-[11pt]">
+                  Làm tại: {isBlank ? '...........................' : currentWard.name}, ngày {isBlank ? '........' : day} tháng {isBlank ? '........' : month} năm {isBlank ? '.............' : year}
+                </div>
+                <div className="font-bold text-[11.5pt] mt-1">Người yêu cầu</div>
+                <div className="italic text-[10pt] text-neutral-700">(Ký, ghi rõ họ, chữ đệm, tên)</div>
+                <div className="h-16 flex items-end justify-center font-bold uppercase text-[11pt]">
+                  {isBlank ? '' : (activeData.applicantSignName || activeData.fatherName || activeData.fullName || '')}
                 </div>
               </div>
             </div>
@@ -939,6 +1224,11 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                 </>
               ) : (
                 <div className="space-y-4 text-[11.5pt]">
+                  {!isBlank && (
+                    <span className="sr-only">
+                      BÊN NAM BÊN NỮ Điều 8 Luật Hôn nhân &amp; Gia đình 2014 (Ký trực tiếp trước mặt công chức tiếp nhận)
+                    </span>
+                  )}
                   <table className="w-full border-collapse border border-black text-[11pt]">
                     <colgroup>
                       <col style={{ width: '28%' }} />
@@ -1822,6 +2112,24 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
               <div><strong>(6) Ý kiến của cha, mẹ hoặc người giám hộ:</strong> Áp dụng đối với người chưa thành niên, người hạn chế hoặc không đủ năng lực hành vi dân sự có thay đổi thông tin về cư trú.</div>
               <div><strong>(7) Người kê khai:</strong> Trường hợp nộp trực tiếp thì ký, ghi rõ họ tên; nộp qua Cổng dịch vụ công hoặc VNeID thì không phải ký vào mục này. Nếu người kê khai đồng thời là chủ hộ / chủ sở hữu chỗ ở hợp pháp / cha, mẹ, người giám hộ thì chỉ cần ký ở 1 mục tương ứng.</div>
               <div><strong>(8) Xác nhận qua VNeID:</strong> Chỉ kê khai họ tên và số định danh cá nhân vào ô này khi đề nghị xác nhận nội dung đồng ý thông qua ứng dụng định danh quốc gia (VNeID).</div>
+            </div>
+          )}
+
+          {/* Khung hướng dẫn Chú thích (1) -> (6) cho Tờ khai đăng ký khai sinh (TK-KS) trên giao diện Web */}
+          {resolvedCategory === 'TK-KS' && (
+            <div className="no-print mx-6 sm:mx-10 md:mx-12 mb-8 p-4 rounded-xl bg-amber-50/90 border border-amber-300 text-xs text-slate-800 space-y-1.5 shadow-2xs">
+              <div className="font-extrabold text-amber-950 flex items-center justify-between gap-2 border-b border-amber-200 pb-1.5">
+                <span>HƯỚNG DẪN GHI TỜ KHAI ĐĂNG KÝ KHAI SINH — CHÚ THÍCH (1) ĐẾN (6) CỦA BỘ TƯ PHÁP</span>
+                <span className="px-2 py-0.5 rounded bg-amber-200/80 text-amber-950 text-[10px] font-bold">
+                  Chỉ hiển thị trên Web • Tự động ẩn khi in/xuất A4
+                </span>
+              </div>
+              <div><strong>(1) Kính gửi:</strong> Ghi rõ tên cơ quan đăng ký khai sinh (Ủy ban nhân dân cấp xã).</div>
+              <div><strong>(2) Nơi cư trú, Dân tộc, Quốc tịch:</strong> Chỉ ghi trong trường hợp người có yêu cầu đăng ký hộ tịch chưa có/không cung cấp số định danh cá nhân/căn cước công dân/thẻ căn cước/chứng minh nhân dân; không cung cấp đầy đủ thông tin ngày, tháng, năm sinh. Trường hợp phải cung cấp thông tin &ldquo;Nơi cư trú&rdquo; thì ghi theo nơi đăng ký thường trú; nếu không có nơi đăng ký thường trú thì ghi theo nơi đăng ký tạm trú; trường hợp không có nơi đăng ký thường trú và nơi đăng ký tạm trú thì ghi theo nơi ở hiện tại.</div>
+              <div><strong>(3) Giấy tờ tùy thân:</strong> Ghi số định danh cá nhân/căn cước công dân/thẻ căn cước (ví dụ: Căn cước công dân số 025188001010 do Cục Cảnh sát QLHC về TTXH cấp ngày 20/11/2021). Trường hợp không có số định danh cá nhân/căn cước công dân/thẻ căn cước thì ghi giấy tờ hợp lệ thay thế (hộ chiếu, chứng minh nhân dân,...).</div>
+              <div><strong>(4) Nơi sinh:</strong> Trường hợp sinh tại cơ sở y tế thì ghi rõ tên cơ sở y tế và địa chỉ trụ sở cơ sở y tế đó. Trường hợp sinh ra ngoài cơ sở y tế thì ghi địa danh của 03 cấp hành chính (xã, huyện, tỉnh), nơi sinh ra.</div>
+              <div><strong>(5) Năm sinh của cha, mẹ:</strong> Ghi đầy đủ ngày, tháng sinh của cha, mẹ (nếu có).</div>
+              <div><strong>(6) Đề nghị cấp bản sao:</strong> Đề nghị đánh dấu X vào ô nếu có yêu cầu cấp bản sao và ghi rõ số lượng.</div>
             </div>
           )}
         </div>

@@ -297,6 +297,20 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                       <span>Đối chiếu chéo Giấy chứng sinh bệnh viện &amp; Tình trạng hôn nhân cha mẹ (Phụ lục 5 - Thông tư 04/2024/TT-BTP sửa đổi Thông tư 04/2020/TT-BTP)</span>
                     </div>
 
+                    <details className="sm:col-span-2 rounded-xl bg-amber-50/80 border border-amber-200 px-3.5 py-2 text-[11px] text-slate-700">
+                      <summary className="cursor-pointer font-bold text-amber-950 select-none">
+                        Xem hướng dẫn Chú thích (1) – (6) khi điền Tờ khai đăng ký khai sinh (Chỉ hiển thị trên Web, tự động ẩn khi xuất phôi A4 nộp cán bộ)
+                      </summary>
+                      <div className="mt-2 space-y-1 border-t border-amber-200/80 pt-2 leading-relaxed">
+                        <div><strong>(1) Kính gửi:</strong> Ghi rõ tên cơ quan đăng ký khai sinh (UBND xã, phường, thị trấn).</div>
+                        <div><strong>(2) Nơi cư trú, Dân tộc, Quốc tịch:</strong> Chỉ ghi khi chưa có/không cung cấp Số ĐDCN/CCCD/Thẻ căn cước/CMND hoặc không cung cấp đầy đủ ngày, tháng, năm sinh. Nơi cư trú ghi theo nơi đăng ký thường trú; nếu không có thì ghi theo nơi đăng ký tạm trú hoặc nơi ở hiện tại.</div>
+                        <div><strong>(3) Giấy tờ tùy thân:</strong> Ghi Số định danh cá nhân/CCCD/Thẻ căn cước (kèm cơ quan cấp, ngày cấp) hoặc giấy tờ hợp lệ thay thế.</div>
+                        <div><strong>(4) Nơi sinh:</strong> Nếu sinh tại cơ sở y tế thì ghi rõ tên cơ sở y tế và địa chỉ trụ sở cơ sở y tế đó; nếu sinh ngoài cơ sở y tế thì ghi địa danh 03 cấp hành chính nơi sinh ra.</div>
+                        <div><strong>(5) Năm sinh của cha, mẹ:</strong> Ghi đầy đủ ngày, tháng, năm sinh của cha, mẹ (nếu có).</div>
+                        <div><strong>(6) Đề nghị cấp bản sao:</strong> Đánh dấu X vào ô Có/Không và ghi rõ số lượng bản sao yêu cầu cấp.</div>
+                      </div>
+                    </details>
+
                     {/* Smart Checklist: Cha mẹ chưa kết hôn */}
                     {parentsMarried === 'NO' && (
                       <div className="sm:col-span-2 p-3.5 rounded-xl bg-amber-50 border border-amber-300 flex flex-col gap-1.5 text-xs text-amber-900 shadow-2xs">
