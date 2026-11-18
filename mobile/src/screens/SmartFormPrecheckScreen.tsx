@@ -24,6 +24,7 @@ import {
   AlertTriangle,
   Camera,
   CheckCircle2,
+  FileCheck2,
   FileUp,
   Mail,
   QrCode,
@@ -36,6 +37,7 @@ import {
   type FormExtraState,
 } from '../components/FormSpecificFields';
 import { VisionGateCard } from '../components/VisionGateCard';
+import { DossierAndQrPassScreen } from './DossierAndQrPassScreen';
 import { useAccessibility } from '../context/AccessibilityContext';
 import { useWard } from '../context/WardContext';
 import {
@@ -72,6 +74,7 @@ export const SmartFormPrecheckScreen: React.FC = () => {
   const { typography, fontScaleMode } = useAccessibility();
   const responsive = useResponsivePhone(fontScaleMode);
 
+  const [sectionMode, setSectionMode] = useState<'form' | 'wallet'>('form');
   const [formType, setFormType] = useState<CoreFormType>('CT01');
   const [scannerVisible, setScannerVisible] = useState(false);
 
@@ -102,6 +105,7 @@ export const SmartFormPrecheckScreen: React.FC = () => {
   useEffect(() => {
     const incoming = route.params?.initialFormType;
     if (incoming) {
+      setSectionMode('form');
       setFormType(incoming);
       setSubmitResult(null);
       if (attachment) {
@@ -303,14 +307,68 @@ export const SmartFormPrecheckScreen: React.FC = () => {
     : 'Kiểm tra & Gửi sơ duyệt';
 
   return (
-    <ScrollView
-      style={styles.screen}
-      contentContainerStyle={[
-        styles.content,
-        { paddingHorizontal: responsive.horizontalPadding },
-      ]}
-      keyboardShouldPersistTaps="handled"
-    >
+    <View style={styles.screen}>
+      {/* Compact 2-Mode Switcher: Soạn tờ khai | Ví Mã QR (keeps 3-tab bottom bar clean) */}
+      <View
+        style={[
+          styles.modeBarWrap,
+          { paddingHorizontal: responsive.horizontalPadding },
+        ]}
+      >
+        <View style={styles.modeTrack}>
+          <Pressable
+            accessibilityRole="tab"
+            accessibilityState={{ selected: sectionMode === 'form' }}
+            onPress={() => setSectionMode('form')}
+            style={[styles.modeBtn, sectionMode === 'form' && styles.modeBtnActive]}
+          >
+            <FileCheck2
+              size={15}
+              color={sectionMode === 'form' ? COLORS.citizenCrimson : COLORS.textSecondary}
+            />
+            <Text
+              style={[
+                styles.modeBtnText,
+                sectionMode === 'form' && styles.modeBtnTextActive,
+              ]}
+            >
+              Soạn tờ khai
+            </Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="tab"
+            accessibilityState={{ selected: sectionMode === 'wallet' }}
+            onPress={() => setSectionMode('wallet')}
+            style={[styles.modeBtn, sectionMode === 'wallet' && styles.modeBtnActive]}
+          >
+            <QrCode
+              size={15}
+              color={sectionMode === 'wallet' ? COLORS.primary : COLORS.textSecondary}
+            />
+            <Text
+              style={[
+                styles.modeBtnText,
+                sectionMode === 'wallet' && styles.modeBtnWalletActive,
+              ]}
+            >
+              Ví Mã QR
+            </Text>
+          </Pressable>
+        </View>
+      </View>
+
+      {sectionMode === 'wallet' ? (
+        <DossierAndQrPassScreen />
+      ) : (
+        <ScrollView
+          style={styles.screen}
+          contentContainerStyle={[
+            styles.content,
+            { paddingHorizontal: responsive.horizontalPadding },
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
       {/* MOB-3.1: 4-Form Segmented Control */}
       <View style={styles.segmentedTrack}>
         {FORM_TABS.map((tab) => {
@@ -598,6 +656,17 @@ export const SmartFormPrecheckScreen: React.FC = () => {
               • {w}
             </Text>
           ))}
+
+          {submitResult.success ? (
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setSectionMode('wallet')}
+              style={styles.openWalletBtn}
+            >
+              <QrCode size={15} color={COLORS.onPrimary} />
+              <Text style={styles.openWalletBtnText}>Mở Ví Phiếu Hẹn Mã QR →</Text>
+            </Pressable>
+          ) : null}
         </View>
       ) : null}
 
@@ -629,11 +698,63 @@ export const SmartFormPrecheckScreen: React.FC = () => {
         onClose={() => setScannerVisible(false)}
         onDecoded={handleQrDecoded}
       />
-    </ScrollView>
+        </ScrollView>
+      )}
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  modeBarWrap: {
+    paddingTop: SPACING.sm,
+    paddingBottom: SPACING.xs,
+    backgroundColor: COLORS.citizenSurface,
+  },
+  modeTrack: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.borderSubtle,
+    borderRadius: RADIUS.md,
+    padding: 3,
+    gap: 4,
+  },
+  modeBtn: {
+    flex: 1,
+    minHeight: 36,
+    borderRadius: RADIUS.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 5,
+  },
+  modeBtnActive: {
+    backgroundColor: COLORS.card,
+  },
+  modeBtnText: {
+    color: COLORS.textSecondary,
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  modeBtnTextActive: {
+    color: COLORS.citizenCrimson,
+  },
+  modeBtnWalletActive: {
+    color: COLORS.primary,
+  },
+  openWalletBtn: {
+    marginTop: 6,
+    minHeight: 40,
+    borderRadius: RADIUS.md,
+    backgroundColor: COLORS.primary,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  openWalletBtnText: {
+    color: COLORS.onPrimary,
+    fontSize: 13,
+    fontWeight: '800',
+  },
   screen: {
     flex: 1,
     backgroundColor: COLORS.citizenSurface,

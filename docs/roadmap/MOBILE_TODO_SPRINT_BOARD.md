@@ -19,7 +19,7 @@
 | **Chặng M1** | `feature/mobile-phase1-foundation` | Khởi tạo Expo SDK 52, Design Tokens `A/A+/A++`, Shared Core & Chọn 96 Xã | **14 Tasks** (`MOB-1.1` → `1.14`) | TypeScript `0 errors` + `36/36` Core Unit Tests PASS | ✅ Hoàn thành |
 | **Chặng M2** | `feature/mobile-phase2-legal-rag-tts` | Tab 1 (`LegalRagChatScreen`): 40 TTHC Offline/Online, TTS `MỞ/TẮT`, Tải `.docx`/`.pdf` | **11 Tasks** (`MOB-2.1` → `2.11`) | RAG Guardrail & TTS Lifecycle (`45/45` Tests PASS) | ✅ Hoàn thành |
 | **Chặng M3** | `feature/mobile-phase3-smart-form-vision` | Tab 2 (`SmartFormPrecheckScreen`): Quét QR CCCD 60fps, AI Vision Gate 3 tiêu chí, 4 mẫu đơn | **14 Tasks** (`MOB-3.1` → `3.14`) | Vision Gate + 4-Form Rule Engine (`57/57` Tests PASS) | ✅ Hoàn thành |
-| **Chặng M4** | `feature/mobile-phase4-qr-wallet-and-gps` | Tab 3 (`DossierAndQrPassScreen` SQLite Offline + PDF) & Tab 4 (`FieldIncidentReportScreen` GPS 25m) | **11 Tasks** (`MOB-4.1` → `4.11`) | Offline Airplane Mode + GPS 25m Tests PASS | ⏳ Chờ thực hiện |
+| **Chặng M4** | `feature/mobile-phase4-qr-wallet-and-gps` | Tab 3 (`DossierAndQrPassScreen` SQLite Offline + PDF) & Tab 4 (`FieldIncidentReportScreen` GPS 25m) | **11 Tasks** (`MOB-4.1` → `4.11`) | Offline Airplane Mode + GPS 25m (`63/63` Tests PASS) | ✅ Hoàn thành |
 | **Chặng M5** | `feature/mobile-phase5-officer-audit-e2e` | Tab 5 (`OfficerMobileAuditScreen` Quét QR tại quầy + Vault OTT), E2E Sync Web ↔ Mobile | **10 Tasks** (`MOB-5.1` → `5.10`) | 100% E2E Cross-Platform & Merge `develop` | ⏳ Chờ thực hiện |
 
 ---
@@ -195,38 +195,38 @@
 ## 🎫 CHẶNG M4: TAB 3 (`DossierAndQrPassScreen`) & TAB 4 (`FieldIncidentReportScreen`) — VÍ MÃ HẸN QR OFFLINE & BÁO SỰ CỐ GPS 25M
 > **Mục tiêu:** Cung cấp Ví lưu trữ Phiếu hẹn Mã QR hoạt động cả khi không có sóng 4G, đồng bộ thời gian thực với Bàn Cán Bộ trên Web, và công cụ báo cáo sự cố hiện trường GPS chính xác cao `R = 25m` tự động định tuyến liên xã/phường.
 
-- [ ] **MOB-4.1 [Khung Tra cứu & Đồng bộ Hồ sơ Xuyên Thiết bị (Web ↔ Mobile)]:**
+- [x] **MOB-4.1 [Khung Tra cứu & Đồng bộ Hồ sơ Xuyên Thiết bị (Web ↔ Mobile)]:**
   - Trên `DossierAndQrPassScreen.tsx`, xây dựng ô tra cứu bằng **`Mã hồ sơ (`HS-...`)`** + **`4 số cuối CCCD`** gọi `POST /api/v1/dossiers/track`.
   - Giúp người dân nộp đơn trên máy tính ở nhà vẫn kéo được ngay hồ sơ đó về Ví trên điện thoại để mang ra UBND xã.
-- [ ] **MOB-4.2 [Đồng bộ Ngầm Trạng thái Hồ sơ & Lưu Đệm `expo-sqlite`]:**
+- [x] **MOB-4.2 [Đồng bộ Ngầm Trạng thái Hồ sơ & Lưu Đệm `expo-sqlite`]:**
   - Mỗi khi mở Tab 3 (hoặc kéo xuống để làm mới `Pull-to-Refresh`), tự động gọi `POST /api/v1/dossiers/track` cho các hồ sơ trong `wallet_qr_passes`.
   - Khi cán bộ trên Web bấm duyệt (`status = 'APPROVED'`, sinh `appointmentCode = 'LH-...'`), cập nhật ngay vào bảng `wallet_qr_passes` của `expo-sqlite`.
-- [ ] **MOB-4.3 [Thẻ Phiếu Hẹn Sơ Duyệt Điện Tử Có Mã QR (`ElectronicQrPassCard.tsx`)]:**
+- [x] **MOB-4.3 [Thẻ Phiếu Hẹn Sơ Duyệt Điện Tử Có Mã QR (`ElectronicQrPassCard.tsx`)]:**
   - Đóng khung viền `#00796B` dày `2px`, hiển thị huy hiệu **`PHIẾU HẸN SƠ DUYỆT ĐIỆN TỬ`**, tên **`UBND <Tên Xã/Phường>`**, **`Bộ phận Một cửa — Tỉnh An Giang`**.
   - Vẽ mã QR sắc nét bằng `react-native-qrcode-svg` với chuỗi dữ liệu chuẩn `SMARTWARD_PASS|{dossierCode}|{appointmentCode}|{wardCode}` và nhãn monospace `LH-YYYYMMDD-XXXX` bên dưới.
   - Hiển thị 4 ô thông tin: **Họ và tên công dân**, **Mã hồ sơ đồng bộ Web (`HS-...`)**, **Biểu mẫu & Thủ tục**, **Trạng thái / Cán bộ duyệt sơ bộ**, cùng khung hướng dẫn xuất trình tại Quầy ưu tiên.
-- [ ] **MOB-4.4 [Xuất & Tải File `.PDF` Phiếu Hẹn Có Mã QR (`expo-print` + `expo-sharing`)]:**
+- [x] **MOB-4.4 [Xuất & Tải File `.PDF` Phiếu Hẹn Có Mã QR (`expo-print` + `expo-sharing`)]:**
   - Khi bấm nút **`📥 Tải Phiếu Hẹn Có Mã QR (.pdf) Về Máy`**, kết xuất mẫu HTML chuẩn hành chính của Phiếu hẹn kèm mã QR SVG sang file `.pdf` bằng `Print.printToFileAsync()` và mở menu lưu về máy qua `Sharing.shareAsync()`.
   - Tuyệt đối không mở hộp thoại in máy in (`Print.printAsync`).
-- [ ] **MOB-4.5 [Hộp Thư Thông Báo Email Từ Cán Bộ (Miễn phí 100%)]:**
+- [x] **MOB-4.5 [Hộp Thư Thông Báo Email Từ Cán Bộ (Miễn phí 100%)]:**
   - Hiển thị danh sách thông báo kết quả sơ duyệt gửi tới địa chỉ `citizenEmail` của công dân kèm lời dặn chi tiết của cán bộ (`officerFeedback`), thời gian phản hồi và trạng thái (`APPROVED` / `SUPPLEMENT_REQUIRED` / `REJECTED`).
-- [ ] **MOB-4.6 [Định vị GPS Phần cứng Chính xác cao `R = 25m` (`FieldIncidentReportScreen.tsx`)]:**
+- [x] **MOB-4.6 [Định vị GPS Phần cứng Chính xác cao `R = 25m` (`FieldIncidentReportScreen.tsx`)]:**
   - Yêu cầu quyền vị trí và gọi `Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.BestForNavigation })`.
   - Hiển thị huy hiệu độ chính xác GPS thực tế (ví dụ `GPS ±6m`) và tọa độ `(lat, lon)`.
-- [ ] **MOB-4.7 [Bản đồ Hiện trường & Vòng tròn Bán kính Gom cụm `R = 25m`]:**
+- [x] **MOB-4.7 [Bản đồ Hiện trường & Vòng tròn Bán kính Gom cụm `R = 25m`]:**
   - Hiển thị bản đồ hiện trường (`MapView` / khung bản đồ trực quan) với chấm đỏ tâm sự cố và vòng tròn bán kính **`R = 25m`** màu xanh `#00796B` kèm chú thích tọa độ.
-- [ ] **MOB-4.8 [Tự động Điền Địa chỉ & Định tuyến Liên Xã/Phường (`Cross-Ward Jurisdiction Routing`)]:**
+- [x] **MOB-4.8 [Tự động Điền Địa chỉ & Định tuyến Liên Xã/Phường (`Cross-Ward Jurisdiction Routing`)]:**
   - Tự động điền địa chỉ hiện trường từ `Location.reverseGeocodeAsync()` (cho phép người dân chỉnh sửa tay nếu đứng trong hẻm).
   - Mỗi khi tọa độ hoặc ô địa chỉ thay đổi, chạy tức thì `resolveWardFromLocationBox(addressText, lat, lon, currentWard)` và hiển thị thẻ:
     **`🏛️ Tự động định tuyến về: UBND <Tên Xã/Phường Đích> | τ = 0.82`**.
-- [ ] **MOB-4.9 [Biểu mẫu Gửi Phản ánh Sự cố & Bắt buộc SĐT Khẩn cấp]:**
+- [x] **MOB-4.9 [Biểu mẫu Gửi Phản ánh Sự cố & Bắt buộc SĐT Khẩn cấp]:**
   - Chọn 1 trong 5 danh mục chuẩn của Backend: `ROAD_DAMAGE` (Hư hỏng đường/Ổ gà), `FLOODING` (Ngập nước/Thoát nước), `LIGHTING_ELECTRICAL` (Cháy đèn đường/Điện), `ENVIRONMENT` (Rác thải/Môi trường), `ORDER_SECURITY` (Trật tự đô thị).
   - Kiểm tra bắt buộc nhập **Số điện thoại liên hệ xác minh khẩn cấp (`reporterPhone`)** và mô tả sự cố (`>= 10` ký tự).
-- [ ] **MOB-4.10 [Gửi Phản ánh 2 Pha & Hàng đợi Offline (`offline_incident_queue`)]:**
+- [x] **MOB-4.10 [Gửi Phản ánh 2 Pha & Hàng đợi Offline (`offline_incident_queue`)]:**
   - Gọi `POST /api/v1/issues/report`. Khi thành công, hiển thị kết quả phân luồng 2 pha: Mã báo cáo (`RPT-...`), Mã cụm (`CLU-...`), trạng thái **Đã gộp vào cụm sẵn có trong bán kính 25m** hay **Tạo cụm sự cố mới**, và tên UBND xã/phường tiếp nhận.
   - Nếu thiết bị đang mất mạng, lưu vào bảng `offline_incident_queue` trên `expo-sqlite` và hiển thị thông báo *"Đã lưu vào hàng đợi Offline — Tự động gửi ngay khi có sóng 4G"*.
-- [ ] **MOB-4.11 [Gate 4 Verification]:**
-  - Kiểm thử chế độ Offline của Ví Mã Hẹn QR và kiểm thử gửi sự cố hiện trường đồng bộ lên Bản đồ GIS Cán bộ đạt 100% PASS.
+- [x] **MOB-4.11 [Gate 4 Verification]:**
+  - Kiểm thử chế độ Offline của Ví Mã Hẹn QR và kiểm thử gửi sự cố hiện trường đồng bộ lên Bản đồ GIS Cán bộ đạt 100% PASS (`63/63` tests, `0` TypeScript errors).
 
 ---
 
