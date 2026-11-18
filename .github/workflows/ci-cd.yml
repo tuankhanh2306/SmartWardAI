@@ -81,6 +81,8 @@ jobs:
 
       - name: Run Frontend Full Test Suite (11 Acceptance & Regression Suites)
         working-directory: ./frontend
+        env:
+          CI_FRONTEND_ONLY: 'true'
         run: npm run test:all
 
       - name: Compile Production Web Bundle (TypeScript & Vite)
