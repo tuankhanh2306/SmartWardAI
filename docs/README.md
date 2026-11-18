@@ -49,6 +49,8 @@
 │ 🚀 LỘ TRÌNH CHIẾN LƯỢC  │ • docs/roadmap/ROADMAP.md                       │ • Lộ trình 2026 & M1–M4    │
 │    (Kế hoạch dài hạn)   │ • docs/roadmap/BASELINE_ROADMAP_12W.md          │ • Đề cương 12 tuần cơ sở   │
 │                         │ • docs/roadmap/EXPANSION_ROADMAP_2.0.md         │ • Kế hoạch mở rộng 2.0     │
+│                         │ • docs/roadmap/MOBILE_DEVELOPMENT_PLAN.md       │ • Kế hoạch Mobile Expo 52  │
+│                         │ • docs/roadmap/MOBILE_TODO_SPRINT_BOARD.md      │ • 68 tasks Mobile M0–M5    │
 ├─────────────────────────┼─────────────────────────────────────────────────┼────────────────────────────┤
 │ 📌 SPRINT BOARD SỐNG    │ • docs/TODO_SPRINT_BOARD.md                     │ • Đầu việc đang làm/đã xong│
 ├─────────────────────────┼─────────────────────────────────────────────────┼────────────────────────────┤
@@ -79,6 +81,8 @@
 ### 2.3. Phân hệ Lộ trình Chiến lược (`docs/roadmap/`) vs. Sprint Board Sống (`docs/TODO_SPRINT_BOARD.md`)
 * **[`docs/roadmap/ROADMAP.md`](roadmap/ROADMAP.md):** Lộ trình chiến lược dài hạn: tổng kết nghiệm thu M1–M4 và định hướng phát hành release production, pilot 1–5 phường/xã và kế hoạch mở rộng.
 * **[`docs/roadmap/BASELINE_ROADMAP_12W.md`](roadmap/BASELINE_ROADMAP_12W.md):** Kế hoạch cơ sở 12 tuần được giữ nguyên làm mốc đối sánh học thuật.
+* **[`docs/roadmap/MOBILE_DEVELOPMENT_PLAN.md`](roadmap/MOBILE_DEVELOPMENT_PLAN.md):** Kế hoạch phát triển chi tiết phân hệ Mobile Native (React Native + Expo SDK 52, `SW-PLAN-MOBILE-2026`), đối chiếu hợp đồng API Backend, lược đồ `expo-sqlite` và 6 công đoạn triển khai kèm Quality Gates.
+* **[`docs/roadmap/MOBILE_TODO_SPRINT_BOARD.md`](roadmap/MOBILE_TODO_SPRINT_BOARD.md):** Bảng theo dõi chi tiết 68 đầu việc kỹ thuật (`MOB-0.1` → `MOB-5.10`) theo 6 chặng triển khai Mobile App.
 * **[`docs/TODO_SPRINT_BOARD.md`](TODO_SPRINT_BOARD.md):** **Sprint board sống** ghi nhận chi tiết trạng thái từng đầu việc kỹ thuật đang thực hiện, đã hoàn thành hoặc đang chờ xử lý theo từng ngày/tuần.
 
 ### 2.4. Phân hệ Báo cáo Thực tế (`docs/reports/` & `docs/weekly-reports/`)
