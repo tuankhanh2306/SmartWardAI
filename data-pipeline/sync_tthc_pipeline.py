@@ -25,7 +25,9 @@ CRAWLER_DIR = PIPELINE_DIR / "procedure-crawler"
 RAG_DIR = PIPELINE_DIR / "rag-dataset"
 REPORTS_DIR = PIPELINE_DIR / "reports"
 
-BACKEND_V2_SQL = PROJECT_ROOT / "backend" / "src" / "main" / "resources" / "db" / "migration" / "V2__seed_legal_chunks.sql"
+BACKEND_V2_SQL = PROJECT_ROOT / "backend" / "src" / "main" / "resources" / "db" / "seed" / "V2__seed_legal_chunks.sql"
+if not BACKEND_V2_SQL.exists():
+    BACKEND_V2_SQL = PROJECT_ROOT / "backend" / "src" / "main" / "resources" / "db" / "migration" / "V2__seed_legal_chunks.sql"
 FRONTEND_KB_TS = PROJECT_ROOT / "frontend" / "src" / "services" / "legalKnowledgeBase.ts"
 
 

@@ -17,7 +17,7 @@ import vn.edu.uth.smartward.common.ErrorCode;
 import vn.edu.uth.smartward.dossier.CitizenDossier;
 import vn.edu.uth.smartward.dossier.CitizenDossierRepository;
 import vn.edu.uth.smartward.dossier.CitizenDossierService;
-import vn.edu.uth.smartward.dossier.OfficerDossierDto;
+import vn.edu.uth.smartward.dossier.dto.OfficerDossierDto;
 import vn.edu.uth.smartward.rag.AdminProcedure;
 import vn.edu.uth.smartward.rag.AdminProcedureRepository;
 import vn.edu.uth.smartward.rag.RagController;

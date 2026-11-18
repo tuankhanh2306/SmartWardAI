@@ -7,7 +7,7 @@ import vn.edu.uth.smartward.dossier.CitizenDossierRepository;
 import vn.edu.uth.smartward.dossier.CitizenDossierService;
 import vn.edu.uth.smartward.dossier.DossierEvent;
 import vn.edu.uth.smartward.dossier.DossierEventRepository;
-import vn.edu.uth.smartward.dossier.DossierTrackingResponse;
+import vn.edu.uth.smartward.dossier.dto.DossierTrackingResponse;
 import vn.edu.uth.smartward.rag.RagController;
 
 import java.time.Instant;

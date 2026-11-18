@@ -1,4 +1,4 @@
-package vn.edu.uth.smartward.dossier;
+package vn.edu.uth.smartward.dossier.dto;
 
 import lombok.Builder;
 
