@@ -165,14 +165,14 @@ class OfficerRbacAdversarialTest {
         @Test
         @DisplayName("Protected endpoints with valid token -> 200 OK")
         void protectedEndpoints_withValidToken_shouldSucceed() throws Exception {
-            // Dossier officer list: SEC-09 enforces principal's wardCode (AG_P_LONGXUYEN) and ignores client ?wardCode=WARD-AG-01
+            // Dossier officer list: SEC-09 authorizes officer's own ward (AG_P_LONGXUYEN) -> 200 OK
             when(dossierService.getOfficerDossiers(eq("AG_P_LONGXUYEN"), any()))
                     .thenReturn(List.of(OfficerDossierDto.builder()
                             .id(1L)
                             .dossierCode("HS-20261111-BENNGHE-0001")
                             .procedureCode("TTHC-CT-01")
                             .procedureName("Đăng ký thường trú")
-                            .wardCode("WARD-AG-01")
+                            .wardCode("AG_P_LONGXUYEN")
                             .citizenCccd("089095012345")
                             .citizenName("NGUYEN VAN A")
                             .status("PENDING")
@@ -180,11 +180,19 @@ class OfficerRbacAdversarialTest {
 
             mockMvc.perform(get("/api/v1/dossiers/officer/list")
                             .header("Authorization", validOfficerToken)
-                            .param("wardCode", "WARD-AG-01")
+                            .param("wardCode", "AG_P_LONGXUYEN")
                             .contentType(MediaType.APPLICATION_JSON))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data[0].dossierCode").value("HS-20261111-BENNGHE-0001"));
+
+            // SEC-09: Cross-ward query by Officer of AG_P_LONGXUYEN for WARD-AG-01 must be blocked with 403 FORBIDDEN
+            mockMvc.perform(get("/api/v1/dossiers/officer/list")
+                            .header("Authorization", validOfficerToken)
+                            .param("wardCode", "WARD-AG-01")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.success").value(false));
 
             // Dossier review
             CitizenDossier mockEntity = CitizenDossier.builder()
