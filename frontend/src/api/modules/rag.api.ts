@@ -1,5 +1,4 @@
 import { api } from './http';
-import { PROCEDURES_CATALOG } from '../../data/proceduresCatalog';
 import { isGeminiConfigured, askGeminiWithRAG, buildStructuredProcedureResponse } from '../../services/geminiClient';
 import { searchLegalKnowledge, normalizeVietnameseQuery } from '../../services/legalKnowledgeBase';
 import { preprocessQuery } from '../../services/diacriticsRestorer';
@@ -755,3 +754,4 @@ export const rebuildSpatialIndex = async (): Promise<{ syncedClustersCount: numb
       message: 'Đã đồng bộ 8 cụm sự cố đang mở từ PostgreSQL vào Redis GEO (smartward:geo:clusters).',
     };
   }
+};
