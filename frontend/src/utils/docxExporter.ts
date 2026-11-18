@@ -97,7 +97,7 @@ export async function exportA4TemplateToDocx(
           font: 'Times New Roman',
         }),
         new TextRun({
-          text: template.recipient.replace('{WARD_NAME}', wardName),
+          text: template.recipient.replace(/\{WARD_NAME\}/g, wardName),
           bold: true,
           size: 26, // 13pt
           font: 'Times New Roman',
@@ -173,7 +173,7 @@ export async function exportA4TemplateToDocx(
       spacing: { before: 240, after: 200 },
       children: [
         new TextRun({
-          text: template.commitText,
+          text: template.commitText.replace(/\{WARD_NAME\}/g, wardName),
           italics: true,
           size: 22, // 11pt
           font: 'Times New Roman',
