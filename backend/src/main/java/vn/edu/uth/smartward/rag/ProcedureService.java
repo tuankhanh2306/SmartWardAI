@@ -56,7 +56,10 @@ public class ProcedureService {
             }
         }
 
-        return procedures.stream().map(p -> ProcedureDto.builder()
+        return procedures.stream()
+                .filter(p -> p.getProcedureCode() == null
+                        || !ProcedureDataSeeder.SKIPPED_DEPRECATED_CODES.contains(p.getProcedureCode().trim().toUpperCase()))
+                .map(p -> ProcedureDto.builder()
                 .procedureCode(p.getProcedureCode())
                 .officialPortalCode(p.getPortalCode())
                 .procedureName(p.getProcedureName())
