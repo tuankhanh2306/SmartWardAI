@@ -3,6 +3,7 @@ package vn.edu.uth.smartward.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -40,6 +41,9 @@ public class OfficerSecurityConfig {
     private final OfficerTokenAuthenticationFilter tokenFilter;
     private final ObjectMapper objectMapper;
 
+    @Value("${smartward.cors.allowed-origins:http://localhost:3000,http://localhost:5173}")
+    private List<String> allowedOrigins;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -58,7 +62,10 @@ public class OfficerSecurityConfig {
                             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
                             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                             response.setCharacterEncoding("UTF-8");
-                            ApiResponse<Void> apiResp = ApiResponse.error("Không có quyền truy cập tài nguyên này (403 Forbidden).", "SW_403");
+                            boolean mustChangePinBlocked = Boolean.TRUE.equals(request.getAttribute("mustChangePinBlocked"));
+                            ApiResponse<Void> apiResp = mustChangePinBlocked
+                                    ? ApiResponse.error("Bắt buộc đổi mã PIN lần đầu trước khi sử dụng chức năng nghiệp vụ.", "SW_403_MUST_CHANGE_PIN")
+                                    : ApiResponse.error("Không có quyền truy cập tài nguyên này (403 Forbidden).", "SW_403");
                             response.getWriter().write(objectMapper.writeValueAsString(apiResp));
                         })
                 )
@@ -69,7 +76,7 @@ public class OfficerSecurityConfig {
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
                         // 2. Public Minimal Surface (SEC-02 allowlist)
-                        .requestMatchers(HttpMethod.GET, "/api/v1/health").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/", "/health", "/api/v1/health").permitAll()
                         .requestMatchers(HttpMethod.POST,
                                 "/api/v1/auth/officer/login", "/api/v1/officer/login", "/api/v1/auth/login",
                                 "/api/v1/auth/officer/change-pin", "/api/v1/officer/change-pin", "/api/v1/auth/change-pin"
@@ -81,7 +88,6 @@ public class OfficerSecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/forms/precheck").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/dossiers").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/dossiers/track").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/dossiers/track").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/vault/upload").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/vault/view/**").permitAll()
 
@@ -101,6 +107,7 @@ public class OfficerSecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/procedures/*/status").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/admin/procedures/*/rollback/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/admin/wards/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/admin/officers/*/issue-pin").hasRole("ADMIN")
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/issues/clusters/rebuild-index").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/procedures/reindex").hasRole("ADMIN")
@@ -116,7 +123,7 @@ public class OfficerSecurityConfig {
                         .requestMatchers("/api/v1/vault/**").hasRole("OFFICER")
                         .requestMatchers("/api/v1/auth/officer/me", "/api/v1/auth/officer/logout",
                                          "/api/v1/officer/me", "/api/v1/officer/logout",
-                                         "/api/v1/auth/me", "/api/v1/auth/logout").hasAnyRole("OFFICER", "ADMIN")
+                                         "/api/v1/auth/me", "/api/v1/auth/logout").hasAnyRole("OFFICER", "ADMIN", "PIN_CHANGE_ONLY")
 
                         // 7. Strict Deny All on Everything Else
                         .anyRequest().denyAll()
@@ -128,7 +135,14 @@ public class OfficerSecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
+        List<String> safeOrigins = (allowedOrigins == null ? List.<String>of() : allowedOrigins).stream()
+                .map(String::trim)
+                .filter(o -> !o.isEmpty() && !"*".equals(o))
+                .toList();
+        if (safeOrigins.isEmpty()) {
+            safeOrigins = List.of("http://localhost:3000", "http://localhost:5173");
+        }
+        config.setAllowedOriginPatterns(safeOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("X-Correlation-ID", "Content-Disposition"));

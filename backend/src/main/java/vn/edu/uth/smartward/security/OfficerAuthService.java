@@ -16,12 +16,16 @@ import vn.edu.uth.smartward.common.ErrorCode;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,6 +35,13 @@ import java.util.concurrent.ConcurrentHashMap;
 public class OfficerAuthService {
 
     private static final String HMAC_ALGO = "HmacSHA256";
+    private static final String BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+    public static final String REVOKED_SEED_MARKER = "REVOKED_COMPROMISED_SEED";
+    public static final String SEED_OFFICER_BCRYPT = "$2a$12$b0yxUyDnS/g7Q5XPOkrcb.Dwpx8CeXa9XmNDTwBF4q5joS7hmOyR6";
+    public static final String SEED_ADMIN_BCRYPT = "$2a$12$DqD/Vyanu6H1jiz0cHQHN.HuU5O2XF3lqnztyiY7nQQFucJymk.n.";
+
     private final ObjectMapper objectMapper;
     private final StringRedisTemplate stringRedisTemplate;
     private final OfficerRepository officerRepository;
@@ -62,19 +73,10 @@ public class OfficerAuthService {
     @Value("${smartward.security.token-ttl-hours:8}")
     private int tokenTtlHours;
 
-    @Value("${spring.profiles.active:dev}")
-    private String activeProfile = "dev";
-
-    @Autowired(required = false)
-    private org.springframework.core.env.Environment environment;
-
-    private static final String SEED_OFFICER_BCRYPT = "$2a$12$b0yxUyDnS/g7Q5XPOkrcb.Dwpx8CeXa9XmNDTwBF4q5joS7hmOyR6";
-    private static final String SEED_ADMIN_BCRYPT = "$2a$12$DqD/Vyanu6H1jiz0cHQHN.HuU5O2XF3lqnztyiY7nQQFucJymk.n.";
+    @Value("${smartward.bootstrap.secret-file:}")
+    private String bootstrapSecretFile;
 
     private final Set<String> revokedTokenIds = ConcurrentHashMap.newKeySet();
-    private final Map<String, String> inMemoryChangedPins = new ConcurrentHashMap<>();
-
-    public record OfficerAccount(String badgeId, String fullName, String wardCode, String role, String pinSha256) {}
 
     public record OfficerPrincipal(String badgeId, String fullName, String wardCode, String role, String tokenId, long expiresAtEpochSec, boolean mustChangePin) {
         public OfficerPrincipal(String badgeId, String fullName, String wardCode, String role, String tokenId, long expiresAtEpochSec) {
@@ -90,199 +92,107 @@ public class OfficerAuthService {
 
     public record ChangePinResponse(String badgeId, String message, boolean success) {}
 
-    private static final Map<String, OfficerAccount> AUTHORIZED_OFFICERS = Map.of(
-            "CC-AG-8942", new OfficerAccount(
-                    "CC-AG-8942",
-                    "Trần Quốc Bảo — Cán bộ Tư pháp - Hộ tịch",
-                    "AG_P_LONGXUYEN",
-                    "OFFICER",
-                    sha256Hex("8942")
-            ),
-            "CC-AG-1001", new OfficerAccount(
-                    "CC-AG-1001",
-                    "Nguyễn Thị Minh Khai — Cán bộ Địa chính - Đô thị",
-                    "AG_P_LONGXUYEN",
-                    "OFFICER",
-                    sha256Hex("2026")
-            ),
-            "ADM-AG-0001", new OfficerAccount(
-                    "ADM-AG-0001",
-                    "Lê Văn Quản Trị — Quản trị viên hệ thống SmartWard",
-                    "AG_PROVINCE",
-                    "ADMIN",
-                    sha256Hex("9999")
-            ),
-            "ADM-AG-0002", new OfficerAccount(
-                    "ADM-AG-0002",
-                    "Phạm Minh Quân — Phó Quản trị viên Kiểm soát TTHC",
-                    "AG_PROVINCE",
-                    "ADMIN",
-                    sha256Hex("9999")
-            )
-    );
+    public record OneTimePinIssueResponse(String badgeId, String oneTimePin, Instant expiresAt, boolean mustChangePin) {}
 
-    private boolean isStrictProductionProfile() {
-        if (environment != null) {
-            String[] envProfiles = environment.getActiveProfiles();
-            for (String p : envProfiles) {
-                if ("test".equalsIgnoreCase(p) || "eval".equalsIgnoreCase(p) || "dev".equalsIgnoreCase(p)) {
-                    return false;
-                }
-            }
-            for (String p : envProfiles) {
-                if ("prod".equalsIgnoreCase(p) || "production".equalsIgnoreCase(p)) {
-                    return true;
-                }
-            }
-            if (envProfiles.length > 0) {
-                return false;
-            }
+    public static boolean isCompromisedOrRevokedHash(String storedHash) {
+        return storedHash == null
+                || storedHash.isBlank()
+                || REVOKED_SEED_MARKER.equals(storedHash)
+                || SEED_OFFICER_BCRYPT.equals(storedHash)
+                || SEED_ADMIN_BCRYPT.equals(storedHash);
+    }
+
+    public static String generateCsprngBase32Pin(int length) {
+        int effectiveLen = Math.max(12, length);
+        StringBuilder sb = new StringBuilder(effectiveLen);
+        for (int i = 0; i < effectiveLen; i++) {
+            sb.append(BASE32_ALPHABET.charAt(SECURE_RANDOM.nextInt(BASE32_ALPHABET.length())));
         }
-        if (activeProfile == null) return false;
-        String lower = activeProfile.toLowerCase();
-        return (lower.contains("prod") || lower.contains("production")) && !lower.contains("test");
+        return sb.toString();
+    }
+
+    public String encodePassword(String rawPassword) {
+        return passwordEncoder.encode(rawPassword);
     }
 
     public LoginResponse authenticate(String badgeId, String pin, String requestedWardCode) {
         if (badgeId == null || badgeId.isBlank() || pin == null || pin.isBlank()) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "Vui lòng nhập đầy đủ mã công chức và mật khẩu/mã PIN.");
         }
+        if (officerRepository == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED,
+                    "Hệ thống xác thực cán bộ yêu cầu kết nối cơ sở dữ liệu (không cho phép xác thực bộ nhớ đệm).");
+        }
 
         String normalizedBadge = badgeId.trim().toUpperCase();
-
-        // 1. Database-backed Officer validation with brute-force lockout defense (5.1)
-        if (officerRepository != null) {
-            var dbOfficerOpt = officerRepository.findByBadgeIdIgnoreCase(normalizedBadge);
-            if (dbOfficerOpt.isPresent()) {
-                Officer officer = dbOfficerOpt.get();
-                if (Boolean.FALSE.equals(officer.getActive())) {
-                    throw new BusinessException(ErrorCode.UNAUTHORIZED, "Tài khoản cán bộ đã bị vô hiệu hóa.");
-                }
-
-                // Check 15-minute temporary lockout
-                if (officer.getLockedUntil() != null && officer.getLockedUntil().isAfter(Instant.now())) {
-                    if (auditService != null) {
-                        auditService.logAction(normalizedBadge, officer.getWardCode(), "LOGIN_LOCKED", "OFFICER", normalizedBadge, "127.0.0.1", null);
-                    }
-                    throw new BusinessException(ErrorCode.UNAUTHORIZED,
-                            "Tài khoản bị tạm khóa 15 phút do nhập sai thông tin 5 lần liên tiếp.");
-                }
-
-                boolean match = false;
-                String storedHash = officer.getPasswordHash();
-                if (isStrictProductionProfile() && (SEED_OFFICER_BCRYPT.equals(storedHash) || SEED_ADMIN_BCRYPT.equals(storedHash))) {
-                    throw new BusinessException(ErrorCode.UNAUTHORIZED,
-                            "Tài khoản đang giữ mật khẩu khởi tạo mặc định. Trên Production bắt buộc phải đổi mật khẩu trước khi kích hoạt.");
-                }
-                if (storedHash != null && (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$"))) {
-                    match = passwordEncoder.matches(pin.trim(), storedHash);
-                } else if (storedHash != null) {
-                    match = MessageDigest.isEqual(storedHash.getBytes(StandardCharsets.UTF_8), sha256Hex(pin.trim()).getBytes(StandardCharsets.UTF_8));
-                }
-
-                if (!match) {
-                    int failed = (officer.getFailedAttempts() != null ? officer.getFailedAttempts() : 0) + 1;
-                    if (failed >= 5) {
-                        officer.setLockedUntil(Instant.now().plus(Duration.ofMinutes(15)));
-                        officer.setFailedAttempts(0);
-                    } else {
-                        officer.setFailedAttempts(failed);
-                    }
-                    officerRepository.save(officer);
-                    if (auditService != null) {
-                        auditService.logAction(normalizedBadge, officer.getWardCode(), "LOGIN_FAILED", "OFFICER", normalizedBadge, "127.0.0.1", null);
-                    }
-                    throw new BusinessException(ErrorCode.UNAUTHORIZED, "Mã công chức hoặc mật khẩu không hợp lệ.");
-                }
-
-                boolean mustChangePin = Boolean.TRUE.equals(officer.getMustChangePin())
-                        || officer.getLastLogin() == null
-                        || SEED_OFFICER_BCRYPT.equals(storedHash)
-                        || SEED_ADMIN_BCRYPT.equals(storedHash);
-
-                // Success: reset failed attempts
-                officer.setFailedAttempts(0);
-                officer.setLockedUntil(null);
-                officer.setLastLogin(Instant.now());
-                officerRepository.save(officer);
-
-                if (auditService != null) {
-                    auditService.logAction(normalizedBadge, officer.getWardCode(), "LOGIN_SUCCESS", "OFFICER", normalizedBadge, "127.0.0.1", null);
-                }
-
-                String effectiveWard = "ADMIN".equalsIgnoreCase(officer.getRole()) ? "AG_PROVINCE" : officer.getWardCode();
-                return issueSessionToken(officer.getBadgeId(), officer.getFullName(), effectiveWard, officer.getRole(), requestedWardCode, mustChangePin);
-            } else {
-                if (auditService != null) {
-                    auditService.logAction(normalizedBadge, "UNKNOWN", "LOGIN_FAILED", "OFFICER", normalizedBadge, "127.0.0.1", null);
-                }
-                throw new BusinessException(ErrorCode.UNAUTHORIZED, "Mã công chức hoặc mật khẩu không hợp lệ.");
-            }
-        }
-
-        if (isStrictProductionProfile()) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED,
-                    "Trên môi trường Production, mọi tài khoản cán bộ/quản trị bắt buộc phải xác thực qua CSDL và không dùng PIN mặc định.");
-        }
-
-        // 2. In-memory fallback if officer repository is empty/unconfigured
-        OfficerAccount account = AUTHORIZED_OFFICERS.get(normalizedBadge);
-        String candidateHash = sha256Hex(pin.trim());
-        boolean matched = false;
-
-        String inMemPinHash = inMemoryChangedPins.get(normalizedBadge);
-        if (inMemPinHash != null) {
-            matched = passwordEncoder.matches(pin.trim(), inMemPinHash) || pin.trim().equals(inMemPinHash);
-            if (matched && account == null) {
-                String wardCode = normalizedBadge.startsWith("CB-") ? normalizedBadge.substring(3) : "AG_P_LONGXUYEN";
-                account = new OfficerAccount(
-                        normalizedBadge,
-                        "Cán bộ Tiếp nhận Một Cửa — " + wardCode,
-                        wardCode,
-                        "OFFICER",
-                        candidateHash
-                );
-            }
-        }
-
-        if (!matched && inMemPinHash == null) {
-            if (account == null && normalizedBadge.startsWith("CB-")) {
-                String wardCode = normalizedBadge.substring(3);
-                if ("8942".equals(pin.trim()) || "2026".equals(pin.trim())) {
-                    account = new OfficerAccount(
-                            normalizedBadge,
-                            "Cán bộ Tiếp nhận Một Cửa — " + wardCode,
-                            wardCode,
-                            "OFFICER",
-                            candidateHash
-                    );
-                    matched = true;
-                }
-            } else if (account != null) {
-                matched = MessageDigest.isEqual(
-                        account.pinSha256().getBytes(StandardCharsets.UTF_8),
-                        candidateHash.getBytes(StandardCharsets.UTF_8));
-            }
-        }
-
-        if (account == null || !matched) {
-            log.warn("Failed officer authentication attempt for badgeId={}", normalizedBadge);
+        Optional<Officer> dbOfficerOpt = officerRepository.findByBadgeIdIgnoreCase(normalizedBadge);
+        if (dbOfficerOpt.isEmpty()) {
             if (auditService != null) {
                 auditService.logAction(normalizedBadge, "UNKNOWN", "LOGIN_FAILED", "OFFICER", normalizedBadge, "127.0.0.1", null);
             }
-            throw new BusinessException(ErrorCode.UNAUTHORIZED, "Mã công chức hoặc mã PIN không hợp lệ.");
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "Mã công chức hoặc mật khẩu không hợp lệ.");
         }
+
+        Officer officer = dbOfficerOpt.get();
+        if (Boolean.FALSE.equals(officer.getActive())) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "Tài khoản cán bộ đã bị vô hiệu hóa.");
+        }
+
+        if (officer.getLockedUntil() != null && officer.getLockedUntil().isAfter(Instant.now())) {
+            if (auditService != null) {
+                auditService.logAction(normalizedBadge, officer.getWardCode(), "LOGIN_LOCKED", "OFFICER", normalizedBadge, "127.0.0.1", null);
+            }
+            throw new BusinessException(ErrorCode.UNAUTHORIZED,
+                    "Tài khoản bị tạm khóa 15 phút do nhập sai thông tin 5 lần liên tiếp.");
+        }
+
+        String storedHash = officer.getPasswordHash();
+        if (isCompromisedOrRevokedHash(storedHash)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED,
+                    "Tài khoản chưa được cấp mã PIN khởi tạo hợp lệ hoặc mật khẩu mặc định cũ đã bị thu hồi.");
+        }
+
+        if (officer.getPinExpiresAt() != null && officer.getPinExpiresAt().isBefore(Instant.now())) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED,
+                    "Mã PIN khởi tạo dùng một lần đã hết hạn 24 giờ. Vui lòng liên hệ Quản trị viên hoặc chạy lại bootstrap hợp lệ.");
+        }
+
+        boolean match = false;
+        if (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$") || storedHash.startsWith("$2y$")) {
+            match = passwordEncoder.matches(pin.trim(), storedHash);
+        }
+
+        if (!match) {
+            int failed = (officer.getFailedAttempts() != null ? officer.getFailedAttempts() : 0) + 1;
+            if (failed >= 5) {
+                officer.setLockedUntil(Instant.now().plus(Duration.ofMinutes(15)));
+                officer.setFailedAttempts(0);
+            } else {
+                officer.setFailedAttempts(failed);
+            }
+            officerRepository.save(officer);
+            if (auditService != null) {
+                auditService.logAction(normalizedBadge, officer.getWardCode(), "LOGIN_FAILED", "OFFICER", normalizedBadge, "127.0.0.1", null);
+            }
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "Mã công chức hoặc mật khẩu không hợp lệ.");
+        }
+
+        boolean mustChangePin = Boolean.TRUE.equals(officer.getMustChangePin());
+
+        officer.setFailedAttempts(0);
+        officer.setLockedUntil(null);
+        officer.setLastLogin(Instant.now());
+        officerRepository.save(officer);
 
         if (auditService != null) {
-            auditService.logAction(normalizedBadge, account.wardCode(), "LOGIN_SUCCESS", "OFFICER", normalizedBadge, "127.0.0.1", null);
+            auditService.logAction(normalizedBadge, officer.getWardCode(), "LOGIN_SUCCESS", "OFFICER", normalizedBadge, "127.0.0.1", null);
         }
 
-        boolean mustChangePin = !inMemoryChangedPins.containsKey(normalizedBadge);
-        return issueSessionToken(account.badgeId(), account.fullName(), account.wardCode(), account.role(), requestedWardCode, mustChangePin);
+        String effectiveWard = "ADMIN".equalsIgnoreCase(officer.getRole()) ? "AG_PROVINCE" : officer.getWardCode();
+        return issueSessionToken(officer.getBadgeId(), officer.getFullName(), effectiveWard, officer.getRole(), requestedWardCode, mustChangePin);
     }
 
     private LoginResponse issueSessionToken(String badgeId, String fullName, String wardCode, String role, String requestedWardCode, boolean mustChangePin) {
-        // SEC-09: Fast ward scope isolation - server is source of truth, client requestedWardCode is strictly ignored
         if (requestedWardCode != null && !requestedWardCode.isBlank() && !requestedWardCode.trim().equalsIgnoreCase(wardCode)) {
             log.warn("SEC-09: Client submitted requestedWardCode '{}' but officer '{}' is assigned to '{}'. Overriding with account ward.",
                     requestedWardCode.trim(), badgeId, wardCode);
@@ -312,6 +222,9 @@ public class OfficerAuthService {
         if (confirmPin == null || confirmPin.isBlank()) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Vui lòng xác nhận mã PIN mới.");
         }
+        if (officerRepository == null) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "Hệ thống xác thực cán bộ yêu cầu kết nối cơ sở dữ liệu.");
+        }
 
         String normalizedBadge = badgeId.trim().toUpperCase();
         String cleanCurrentPin = currentPin.trim();
@@ -321,99 +234,120 @@ public class OfficerAuthService {
         if (!cleanNewPin.equals(cleanConfirmPin)) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Xác nhận mã PIN mới không khớp.");
         }
-
         if (cleanNewPin.length() < 6 || cleanNewPin.length() > 32) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã PIN mới phải có độ dài từ 6 đến 32 ký tự.");
         }
-
         if (cleanNewPin.equals(cleanCurrentPin)) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã PIN mới không được trùng với mã PIN hiện tại.");
         }
 
-        // Verify caller authorization if token is provided
         if (authorizationHeader != null && !authorizationHeader.isBlank()) {
             OfficerPrincipal principal = verifyToken(authorizationHeader);
-            if (!principal.badgeId().equalsIgnoreCase(normalizedBadge) && !"ADMIN".equalsIgnoreCase(principal.role())) {
-                throw new BusinessException(ErrorCode.FORBIDDEN, "Bạn không có quyền đổi mã PIN của cán bộ khác.");
+            boolean isSelf = principal.badgeId().equalsIgnoreCase(normalizedBadge);
+            if (!isSelf) {
+                if (principal.mustChangePin()) {
+                    throw new BusinessException(ErrorCode.FORBIDDEN, "Quản trị viên bắt buộc đổi PIN cá nhân trước khi thao tác cho tài khoản khác.");
+                }
+                if (!"ADMIN".equalsIgnoreCase(principal.role())) {
+                    throw new BusinessException(ErrorCode.FORBIDDEN, "Bạn không có quyền đổi mã PIN của cán bộ khác.");
+                }
             }
         }
 
-        // 1. Database-backed Officer update
-        if (officerRepository != null) {
-            var dbOfficerOpt = officerRepository.findByBadgeIdIgnoreCase(normalizedBadge);
-            if (dbOfficerOpt.isPresent()) {
-                Officer officer = dbOfficerOpt.get();
-                if (Boolean.FALSE.equals(officer.getActive())) {
-                    throw new BusinessException(ErrorCode.UNAUTHORIZED, "Tài khoản cán bộ đã bị vô hiệu hóa.");
-                }
+        Officer officer = officerRepository.findByBadgeIdIgnoreCase(normalizedBadge)
+                .orElseThrow(() -> new BusinessException(ErrorCode.UNAUTHORIZED, "Mã công chức hoặc mã PIN hiện tại không chính xác."));
 
-                boolean match = false;
-                String storedHash = officer.getPasswordHash();
-                if (storedHash != null && (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$"))) {
-                    match = passwordEncoder.matches(cleanCurrentPin, storedHash);
-                } else if (storedHash != null) {
-                    match = MessageDigest.isEqual(storedHash.getBytes(StandardCharsets.UTF_8), sha256Hex(cleanCurrentPin).getBytes(StandardCharsets.UTF_8));
-                }
-
-                // Fallback to in-memory changed pin
-                String prevChanged = inMemoryChangedPins.get(normalizedBadge);
-                if (!match && prevChanged != null) {
-                    match = passwordEncoder.matches(cleanCurrentPin, prevChanged) || cleanCurrentPin.equals(prevChanged);
-                }
-
-                if (!match) {
-                    if (auditService != null) {
-                        auditService.logAction(normalizedBadge, officer.getWardCode(), "PIN_CHANGE_FAILED", "OFFICER", normalizedBadge, "127.0.0.1", null);
-                    }
-                    throw new BusinessException(ErrorCode.UNAUTHORIZED, "Mã PIN hiện tại không chính xác.");
-                }
-
-                // Update DB with BCrypt hash
-                String newHash = passwordEncoder.encode(cleanNewPin);
-                officer.setPasswordHash(newHash);
-                officer.setMustChangePin(false);
-                officer.setFailedAttempts(0);
-                officer.setLockedUntil(null);
-                officerRepository.save(officer);
-                inMemoryChangedPins.put(normalizedBadge, newHash);
-
-                if (auditService != null) {
-                    auditService.logAction(normalizedBadge, officer.getWardCode(), "PIN_CHANGED", "OFFICER", normalizedBadge, "127.0.0.1", null);
-                }
-                log.info("Successfully changed PIN for officer badgeId={} in DB", normalizedBadge);
-                return new ChangePinResponse(normalizedBadge, "Đổi mã PIN thành công. Vui lòng ghi nhớ mã PIN mới.", true);
-            }
+        if (Boolean.FALSE.equals(officer.getActive())) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "Tài khoản cán bộ đã bị vô hiệu hóa.");
         }
 
-        // 2. In-memory fallback (offline/unit test)
-        boolean inMemMatch = false;
-        String prevChangedPin = inMemoryChangedPins.get(normalizedBadge);
-        if (prevChangedPin != null) {
-            inMemMatch = passwordEncoder.matches(cleanCurrentPin, prevChangedPin) || cleanCurrentPin.equals(prevChangedPin);
-        } else {
-            OfficerAccount account = AUTHORIZED_OFFICERS.get(normalizedBadge);
-            if (account != null) {
-                inMemMatch = MessageDigest.isEqual(account.pinSha256().getBytes(StandardCharsets.UTF_8), sha256Hex(cleanCurrentPin).getBytes(StandardCharsets.UTF_8));
-            } else if (normalizedBadge.startsWith("CB-")) {
-                inMemMatch = "8942".equals(cleanCurrentPin) || "2026".equals(cleanCurrentPin);
-            }
+        String storedHash = officer.getPasswordHash();
+        if (isCompromisedOrRevokedHash(storedHash)) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "Tài khoản chưa có mã PIN khởi tạo hợp lệ hoặc đã bị thu hồi.");
+        }
+        if (officer.getPinExpiresAt() != null && officer.getPinExpiresAt().isBefore(Instant.now())) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "Mã PIN dùng một lần đã hết hạn 24 giờ.");
         }
 
-        if (!inMemMatch) {
+        boolean match = (storedHash.startsWith("$2a$") || storedHash.startsWith("$2b$") || storedHash.startsWith("$2y$"))
+                && passwordEncoder.matches(cleanCurrentPin, storedHash);
+
+        if (!match) {
             if (auditService != null) {
-                auditService.logAction(normalizedBadge, "UNKNOWN", "PIN_CHANGE_FAILED", "OFFICER", normalizedBadge, "127.0.0.1", null);
+                auditService.logAction(normalizedBadge, officer.getWardCode(), "PIN_CHANGE_FAILED", "OFFICER", normalizedBadge, "127.0.0.1", null);
             }
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "Mã PIN hiện tại không chính xác.");
         }
 
-        String encodedNewPin = passwordEncoder.encode(cleanNewPin);
-        inMemoryChangedPins.put(normalizedBadge, encodedNewPin);
+        String newHash = passwordEncoder.encode(cleanNewPin);
+        officer.setPasswordHash(newHash);
+        officer.setMustChangePin(false);
+        officer.setPinExpiresAt(null);
+        officer.setFailedAttempts(0);
+        officer.setLockedUntil(null);
+        officerRepository.save(officer);
 
         if (auditService != null) {
-            auditService.logAction(normalizedBadge, "AG_P_LONGXUYEN", "PIN_CHANGED", "OFFICER", normalizedBadge, "127.0.0.1", null);
+            auditService.logAction(normalizedBadge, officer.getWardCode(), "PIN_CHANGED", "OFFICER", normalizedBadge, "127.0.0.1", null);
         }
-        log.info("Successfully updated in-memory PIN for officer badgeId={}", normalizedBadge);
+
+        cleanupBootstrapSecretFileIfAllAdminsReady(officer.getRole());
+
+        log.info("Successfully changed PIN for officer badgeId={} in DB", normalizedBadge);
         return new ChangePinResponse(normalizedBadge, "Đổi mã PIN thành công. Vui lòng ghi nhớ mã PIN mới.", true);
+    }
+
+    public OneTimePinIssueResponse issueOneTimePin(String targetBadgeId, OfficerPrincipal adminPrincipal) {
+        if (adminPrincipal == null || !"ADMIN".equalsIgnoreCase(adminPrincipal.role())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "Chỉ Quản trị viên (ROLE_ADMIN) được phép cấp lại mã PIN dùng một lần.");
+        }
+        if (adminPrincipal.mustChangePin()) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "Quản trị viên phải đổi PIN lần đầu trước khi cấp PIN cho cán bộ khác.");
+        }
+        if (officerRepository == null) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "Thiếu kết nối OfficerRepository.");
+        }
+        if (targetBadgeId == null || targetBadgeId.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã công chức không được để trống.");
+        }
+
+        String normalizedTarget = targetBadgeId.trim().toUpperCase();
+        Officer targetOfficer = officerRepository.findByBadgeIdIgnoreCase(normalizedTarget)
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Không tìm thấy tài khoản cán bộ: " + normalizedTarget));
+
+        String oneTimePin = generateCsprngBase32Pin(16);
+        Instant expiresAt = Instant.now().plus(Duration.ofHours(24));
+
+        targetOfficer.setPasswordHash(passwordEncoder.encode(oneTimePin));
+        targetOfficer.setMustChangePin(true);
+        targetOfficer.setPinExpiresAt(expiresAt);
+        targetOfficer.setFailedAttempts(0);
+        targetOfficer.setLockedUntil(null);
+        officerRepository.save(targetOfficer);
+
+        if (auditService != null) {
+            auditService.logAction(adminPrincipal.badgeId(), targetOfficer.getWardCode(), "ONE_TIME_PIN_ISSUED",
+                    "OFFICER", normalizedTarget, "127.0.0.1", null);
+        }
+        log.info("Admin '{}' issued 24h one-time PIN for badgeId={} (expiresAt={})",
+                adminPrincipal.badgeId(), normalizedTarget, expiresAt);
+
+        return new OneTimePinIssueResponse(normalizedTarget, oneTimePin, expiresAt, true);
+    }
+
+    private void cleanupBootstrapSecretFileIfAllAdminsReady(String changedRole) {
+        if (!"ADMIN".equalsIgnoreCase(changedRole) || bootstrapSecretFile == null || bootstrapSecretFile.isBlank()) {
+            return;
+        }
+        try {
+            boolean anyAdminStillPending = officerRepository.existsByRoleIgnoreCaseAndActiveTrueAndMustChangePinTrue("ADMIN");
+            if (!anyAdminStillPending) {
+                Files.deleteIfExists(Path.of(bootstrapSecretFile.trim()));
+                log.info("Removed consumed admin bootstrap secret file at {}", bootstrapSecretFile.trim());
+            }
+        } catch (Exception e) {
+            log.warn("Could not delete bootstrap secret file {}: {}", bootstrapSecretFile, e.getMessage());
+        }
     }
 
     public OfficerPrincipal verifyToken(String rawBearerOrToken) {
@@ -450,7 +384,7 @@ public class OfficerAuthService {
             String role = String.valueOf(claims.getOrDefault("role", ""));
             String jti = String.valueOf(claims.getOrDefault("jti", ""));
             long exp = ((Number) claims.getOrDefault("exp", 0L)).longValue();
-            boolean mustChangePin = Boolean.TRUE.equals(claims.get("mustChangePin")) && !inMemoryChangedPins.containsKey(sub);
+            boolean claimMustChangePin = Boolean.TRUE.equals(claims.get("mustChangePin"));
 
             if (Instant.now().getEpochSecond() >= exp) {
                 throw new BusinessException(ErrorCode.UNAUTHORIZED, "Phiên làm việc cán bộ đã hết hạn. Vui lòng đăng nhập lại.");
@@ -469,14 +403,22 @@ public class OfficerAuthService {
             if (isRevoked || revokedTokenIds.contains(jti)) {
                 throw new BusinessException(ErrorCode.UNAUTHORIZED, "Phiên làm việc cán bộ đã đăng xuất.");
             }
-            boolean isKnownOfficer = AUTHORIZED_OFFICERS.containsKey(sub)
-                    || (sub != null && sub.toUpperCase().startsWith("CB-"))
-                    || (officerRepository != null && officerRepository.findByBadgeIdIgnoreCase(sub).isPresent());
-            if ((!"OFFICER".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) || !isKnownOfficer) {
+
+            boolean dbMustChangePin = false;
+            if (officerRepository != null) {
+                Optional<Officer> officerOpt = officerRepository.findByBadgeIdIgnoreCase(sub);
+                if (officerOpt.isEmpty() || Boolean.FALSE.equals(officerOpt.get().getActive())) {
+                    throw new BusinessException(ErrorCode.FORBIDDEN, "Tài khoản không tồn tại hoặc đã bị vô hiệu hóa.");
+                }
+                dbMustChangePin = Boolean.TRUE.equals(officerOpt.get().getMustChangePin());
+            }
+
+            if (!"OFFICER".equalsIgnoreCase(role) && !"ADMIN".equalsIgnoreCase(role)) {
                 throw new BusinessException(ErrorCode.FORBIDDEN, "Tài khoản không có quyền truy cập hệ thống cán bộ / quản trị.");
             }
 
-            return new OfficerPrincipal(sub, name, wardCode, role, jti, exp, mustChangePin);
+            boolean effectiveMustChangePin = claimMustChangePin || dbMustChangePin;
+            return new OfficerPrincipal(sub, name, wardCode, role, jti, exp, effectiveMustChangePin);
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
@@ -557,19 +499,5 @@ public class OfficerAuthService {
                     "smartward.security.jwt-secret không được chứa từ khóa placeholder (ChangeMe, DevTest, Fallback).");
         }
         return bytes;
-    }
-
-    private static String sha256Hex(String input) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] digest = md.digest(input.getBytes(StandardCharsets.UTF_8));
-            StringBuilder sb = new StringBuilder(digest.length * 2);
-            for (byte b : digest) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
-        } catch (Exception e) {
-            throw new IllegalStateException("SHA-256 not available", e);
-        }
     }
 }

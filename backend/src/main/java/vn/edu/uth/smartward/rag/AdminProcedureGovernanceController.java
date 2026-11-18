@@ -211,6 +211,16 @@ public class AdminProcedureGovernanceController {
         return ResponseEntity.ok(ApiResponse.ok("Dữ liệu giám sát chỉ đọc cấp xã (đã ghi audit_log)", result));
     }
 
+    @PostMapping("/officers/{badgeId}/issue-pin")
+    public ResponseEntity<ApiResponse<OfficerAuthService.OneTimePinIssueResponse>> issueOneTimePin(
+            @PathVariable("badgeId") String badgeId,
+            HttpServletRequest httpRequest
+    ) {
+        OfficerPrincipal principal = resolvePrincipal(httpRequest);
+        OfficerAuthService.OneTimePinIssueResponse result = officerAuthService.issueOneTimePin(badgeId, principal);
+        return ResponseEntity.ok(ApiResponse.ok("Đã cấp mã PIN dùng một lần (hiệu lực 24 giờ).", result));
+    }
+
     private OfficerPrincipal resolvePrincipal(HttpServletRequest request) {
         Object attr = request.getAttribute("officerPrincipal");
         if (attr instanceof OfficerPrincipal principal) {

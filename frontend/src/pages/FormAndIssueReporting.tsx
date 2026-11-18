@@ -80,7 +80,7 @@ export const FormAndIssueReporting: React.FC = () => {
   const [myDossiers, setMyDossiers] = useState<LiveFormDossier[]>(() => getLiveSubmittedDossiers());
   const [myIncidents, setMyIncidents] = useState<LiveCitizenIncident[]>(() => getLiveSubmittedIncidents());
   const [emailNotifications, setEmailNotifications] = useState<EmailNotificationItem[]>(() => getCitizenEmailNotifications());
-  const [citizenEmail, setCitizenEmail] = useState<string>('khanhblue06@gmail.com');
+  const [citizenEmail, setCitizenEmail] = useState<string>('');
   const [visionGateResult, setVisionGateResult] = useState<VisionQualityGateResult | null>(null);
   const qrPassRef = useRef<HTMLDivElement>(null);
   const [isExportingQrPass, setIsExportingQrPass] = useState<boolean>(false);
@@ -1257,7 +1257,6 @@ export const FormAndIssueReporting: React.FC = () => {
       setHostRelation(mappedHostRelation);
       setDeclarationScope(mappedDeclarationScope);
       setIssueDate(mappedIssueDate || '2021-07-10');
-      if (!citizenEmail) setCitizenEmail('khanhblue06@gmail.com');
 
       let mappedCount = 10;
 

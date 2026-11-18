@@ -42,36 +42,15 @@ api.interceptors.response.use(
     const isAuthEndpoint =
       url.includes('/auth/officer/login') || url.includes('/auth/officer/change-pin');
     if (error.response?.status === 401 && !isAuthEndpoint && typeof window !== 'undefined') {
-      const token =
-        window.sessionStorage?.getItem('smartward_officer_token') ||
-        window.localStorage?.getItem('smartward_officer_token');
-
-      let shouldForceLogout = true;
-      if (token && token.includes('sig_offline_verified')) {
-        try {
-          const parts = token.split('.');
-          if (parts.length === 3) {
-            const payload = JSON.parse(decodeBase64UrlUtf8(parts[1]));
-            if (payload.exp && payload.exp * 1000 > Date.now()) {
-              shouldForceLogout = false;
-            }
-          }
-        } catch {
-          shouldForceLogout = true;
-        }
-      }
-
-      if (shouldForceLogout) {
-        window.sessionStorage?.removeItem('smartward_officer_token');
-        window.sessionStorage?.removeItem('smartward_inactivity_expires_at');
-        window.localStorage?.removeItem('smartward_officer_token');
-        window.localStorage?.removeItem('smartward_officer_badge');
-        window.localStorage?.removeItem('smartward_officer_profile');
-        window.localStorage?.removeItem('smartward_user_role');
-        window.localStorage?.removeItem('smartward_role');
-        window.localStorage?.removeItem('smartward_session_expires_at');
-        window.dispatchEvent(new Event('smartward_auth_logout'));
-      }
+      window.sessionStorage?.removeItem('smartward_officer_token');
+      window.sessionStorage?.removeItem('smartward_inactivity_expires_at');
+      window.localStorage?.removeItem('smartward_officer_token');
+      window.localStorage?.removeItem('smartward_officer_badge');
+      window.localStorage?.removeItem('smartward_officer_profile');
+      window.localStorage?.removeItem('smartward_user_role');
+      window.localStorage?.removeItem('smartward_role');
+      window.localStorage?.removeItem('smartward_session_expires_at');
+      window.dispatchEvent(new Event('smartward_auth_logout'));
     }
     return Promise.reject(error);
   }

@@ -100,11 +100,33 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Initialize Environment Template
-        run: cp .env.example .env
+      - name: Initialize Environment Template with CI Secrets
+        run: |
+          cp .env.example .env
+          sed -i 's/^VAULT_ENCRYPTION_KEY=.*/VAULT_ENCRYPTION_KEY=sw_vlt_3a7e9c1f5b8d2a6e0c4f7b9e1d3a5c7f_ci_2026/' .env
+          sed -i 's/^JWT_SECRET=.*/JWT_SECRET=sw_sec_8f9b4c2e1a7d6e3f5b0c9a8d7e6f5a4b_ci_2026/' .env
 
-      - name: Validate Docker Compose Configuration & Service Graph
-        run: docker compose config
+      - name: Validate Docker Compose Configuration & Nginx Anti-Spoofing
+        run: |
+          docker compose config
+          grep -q 'proxy_set_header X-Forwarded-For \$remote_addr;' frontend/nginx.conf
+
+      - name: Docker Compose Boot & Live Health / Anti-Spoofing Verification
+        run: |
+          docker compose up -d --build postgres redis minio ai-sidecar backend frontend
+          trap 'docker compose logs --tail=80 backend frontend || true; docker compose down -v' EXIT
+          for i in $(seq 1 36); do
+            if curl -fsS http://127.0.0.1:8080/api/v1/health | grep -q '"UP"'; then
+              echo "Backend healthcheck PASSED!"
+              break
+            fi
+            sleep 5
+          done
+          curl -fsS http://127.0.0.1:8080/api/v1/health | grep -q '"UP"'
+          curl -fsS -H 'X-Forwarded-For: 203.0.113.99' http://127.0.0.1:3000/api/v1/health | grep -q '"UP"'
+          HTTP_GET_TRACK=$(curl -s -o /dev/null -w '%{http_code}' 'http://127.0.0.1:8080/api/v1/dossiers/track?dossierCode=TEST')
+          echo "GET /api/v1/dossiers/track HTTP status=$HTTP_GET_TRACK"
+          [ "$HTTP_GET_TRACK" != "200" ]
 
   # ============================================================================
   # 4. CONTINUOUS DEPLOYMENT (CD): Automated Server Deployment via SSH
