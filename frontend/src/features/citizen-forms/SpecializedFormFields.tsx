@@ -54,6 +54,10 @@ export interface SpecializedFormFieldsProps {
   setApplicantEthnicity: (v: string) => void;
   partnerEthnicity: string;
   setPartnerEthnicity: (v: string) => void;
+  applicantMarriageCount?: string;
+  setApplicantMarriageCount?: (v: string) => void;
+  partnerMarriageCount?: string;
+  setPartnerMarriageCount?: (v: string) => void;
   partnerAddress: string;
   setPartnerAddress: (v: string) => void;
   maritalCertPurpose: string;
@@ -106,7 +110,10 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
     marriageMode, setMarriageMode, partnerName, setPartnerName,
     partnerCccd, setPartnerCccd, partnerDob, setPartnerDob,
     partnerGender, setPartnerGender, applicantEthnicity, setApplicantEthnicity,
-    partnerEthnicity, setPartnerEthnicity, partnerAddress, setPartnerAddress,
+    partnerEthnicity, setPartnerEthnicity,
+    applicantMarriageCount = '1', setApplicantMarriageCount,
+    partnerMarriageCount = '1', setPartnerMarriageCount,
+    partnerAddress, setPartnerAddress,
     maritalCertPurpose, setMaritalCertPurpose, previousMaritalStatus, setPreviousMaritalStatus,
     divorceJudgmentNumber, setDivorceJudgmentNumber, divorceJudgmentDate, setDivorceJudgmentDate,
     deathCertNumber, setDeathCertNumber, deathCertDate, setDeathCertDate,
@@ -599,6 +606,34 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                             className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
                           />
                         </div>
+
+                        {setApplicantMarriageCount && setPartnerMarriageCount && (
+                          <div className="flex flex-col gap-1 sm:col-span-2">
+                            <label htmlFor="p3-kh-marriage-count-self" className="text-xs font-bold text-[#334155]">
+                              Kết hôn lần thứ mấy (Người nộp / Bên thứ hai):
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                id="p3-kh-marriage-count-self"
+                                aria-label="Kết hôn lần thứ mấy của người nộp"
+                                type="text"
+                                value={applicantMarriageCount}
+                                onChange={(e) => setApplicantMarriageCount(e.target.value)}
+                                placeholder="VD: 1"
+                                className="w-1/2 h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                              />
+                              <input
+                                id="p3-kh-marriage-count-partner"
+                                aria-label="Kết hôn lần thứ mấy của bên phối ngẫu"
+                                type="text"
+                                value={partnerMarriageCount}
+                                onChange={(e) => setPartnerMarriageCount(e.target.value)}
+                                placeholder="VD: 1"
+                                className="w-1/2 h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                              />
+                            </div>
+                          </div>
+                        )}
                       </>
                     ) : (
                       <div className="flex flex-col gap-1 sm:col-span-2">

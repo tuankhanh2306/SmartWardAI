@@ -67,6 +67,12 @@ export interface A4DocumentModalProps {
     spouseEthnicity?: string;
     applicantNationality?: string;
     spouseNationality?: string;
+    applicantMarriageCount?: string;
+    spouseMarriageCount?: string;
+    issueDate?: string;
+    idIssuePlace?: string;
+    spouseIssueDate?: string;
+    spouseIdIssuePlace?: string;
     maritalCertPurpose?: string;
     divorceJudgmentNumber?: string;
     divorceJudgmentDate?: string;
@@ -150,27 +156,33 @@ function getStandardSampleData(category: string, wardName: string) {
 
   if (category === 'TK-KH') {
     return {
-      fullName: 'NGUYỄN VĂN MINH',
-      dob: '15/06/1992',
+      fullName: 'TRẦN HẢI N.',
+      dob: '23/08/1987',
       gender: 'Nam',
-      idNumber: '089092001456',
+      idNumber: '089087001122',
+      issueDate: '10/07/2021',
+      idIssuePlace: 'Cục CSQLHC về TTXH',
       address: `Số 45 Lê Lợi, ${wardName}, Tỉnh An Giang`,
       applicantEthnicity: 'Kinh',
       applicantNationality: 'Việt Nam',
-      spouseName: 'TRẦN THỊ HỒNG',
-      spouseDob: '20/10/1995',
+      applicantMarriageCount: '1',
+      spouseName: 'NGUYỄN THỊ H.',
+      spouseDob: '26/05/1991',
       spouseGender: 'Nữ',
-      spouseIdNumber: '089195007890',
+      spouseIdNumber: '089191003344',
+      spouseIssueDate: '15/08/2022',
+      spouseIdIssuePlace: 'Cục CSQLHC về TTXH',
       spouseAddress: `Số 12 Nguyễn Huệ, ${wardName}, Tỉnh An Giang`,
       spouseEthnicity: 'Kinh',
       spouseNationality: 'Việt Nam',
-      femaleName: 'TRẦN THỊ HỒNG',
-      femaleDob: '20/10/1995',
-      femaleIdNumber: '089195007890',
+      spouseMarriageCount: '1',
+      femaleName: 'NGUYỄN THỊ H.',
+      femaleDob: '26/05/1991',
+      femaleIdNumber: '089191003344',
       femaleAddress: `Số 12 Nguyễn Huệ, ${wardName}, Tỉnh An Giang`,
-      maritalCertPurpose: `Để làm thủ tục đăng ký kết hôn với chị Trần Thị Hồng tại UBND ${wardName}`,
-      applicantSignName: 'NGUYỄN VĂN MINH',
-      spouseSignName: 'TRẦN THỊ HỒNG',
+      maritalCertPurpose: `Để làm thủ tục đăng ký kết hôn với chị Nguyễn Thị H. tại UBND ${wardName}`,
+      applicantSignName: 'TRẦN HẢI N.',
+      spouseSignName: 'NGUYỄN THỊ H.',
     };
   }
 
@@ -366,6 +378,19 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
     resolvedCategory === 'CT01' ||
     effectiveProcedureCode === 'TTHC-CR-01';
 
+  const isMarriageReg =
+    resolvedCategory === 'TK-KH' &&
+    effectiveProcedureCode === 'TTHC-HT-02' &&
+    marriageMode !== 'MARITAL_STATUS_CONFIRMATION';
+
+  const formatDisplayDate = (raw?: string): string => {
+    if (!raw || !raw.trim()) return '';
+    const trimmed = raw.trim();
+    const iso = trimmed.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (iso) return `${iso[3]}/${iso[2]}/${iso[1]}`;
+    return trimmed;
+  };
+
   const effectiveTemplate: A4FormTemplate = officialTemplate || {
     procedureCode: effectiveProcedureCode || 'TTHC-CẤP-XÃ',
     formCode: 'Mẫu Tờ khai chuẩn NĐ 30/2020/NĐ-CP',
@@ -508,6 +533,29 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                 Độc lập – Tự do – Hạnh phúc
               </div>
               <div className="w-44 mx-auto mt-1 border-b border-black"></div>
+            </div>
+          </div>
+        ) : isMarriageReg ? (
+          <div className="flex items-start justify-between gap-3 sm:gap-5 pb-3">
+            <div className="w-20 h-28 sm:w-24 sm:h-[116px] border border-black shrink-0 flex items-center justify-center text-[11pt]">
+              Ảnh
+            </div>
+            <div className="flex-1 text-center pt-0.5">
+              <div className="text-[11pt] sm:text-[11.5pt] font-bold uppercase tracking-wide">
+                CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+              </div>
+              <div className="text-[11.5pt] sm:text-[12pt] font-bold">
+                Độc lập – Tự do – Hạnh phúc
+              </div>
+              <h1 className="text-[14.5pt] sm:text-[16pt] font-extrabold uppercase mt-3 sm:mt-4 tracking-wide">
+                TỜ KHAI ĐĂNG KÝ KẾT HÔN
+              </h1>
+              <div className="mt-2.5 font-medium text-[11.5pt]">
+                Kính gửi: Ủy ban nhân dân {currentWard.name}
+              </div>
+            </div>
+            <div className="w-20 h-28 sm:w-24 sm:h-[116px] border border-black shrink-0 flex items-center justify-center text-[11pt]">
+              Ảnh
             </div>
           </div>
         ) : (
@@ -789,117 +837,197 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         {/* ========================================================================= */}
         {/* 3. MẪU TK-KH: KẾT HÔN & XÁC NHẬN TÌNH TRẠNG HÔN NHÂN                     */}
         {/* ========================================================================= */}
-        {resolvedCategory === 'TK-KH' && (
-          <div className="space-y-4">
-            <div className="text-center my-4">
-              <h1 className="text-[15pt] sm:text-[16pt] font-extrabold uppercase">
-                {marriageMode === 'MARITAL_STATUS_CONFIRMATION'
-                  ? 'TỜ KHAI CẤP GIẤY XÁC NHẬN TÌNH TRẠNG HÔN NHÂN'
-                  : 'TỜ KHAI ĐĂNG KÝ KẾT HÔN'}
-              </h1>
-              <p className="text-[11pt] italic text-neutral-700 mt-1">
-                (Ban hành kèm theo Thông tư số 04/2024/TT-BTP ngày 06/06/2024 sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP ngày 28/05/2020 của Bộ Tư pháp) [Phụ lục 5 - TT 04/2024/TT-BTP]
-              </p>
-              <div className="mt-3 font-bold italic text-[12pt]">
-                Kính gửi: Ủy ban nhân dân {currentWard.name}
-              </div>
-            </div>
+        {resolvedCategory === 'TK-KH' && (() => {
+          const isApplicantFemale = activeData.gender === 'Nữ';
+          const femaleParty = {
+            name: val(isApplicantFemale ? activeData.fullName : activeData.spouseName, 'NGUYỄN THỊ H.', blankDot),
+            dob: formatDisplayDate(val(isApplicantFemale ? activeData.dob : activeData.spouseDob, '26/05/1991', '....../....../..........')),
+            ethnicity: val(isApplicantFemale ? activeData.applicantEthnicity : activeData.spouseEthnicity, 'Kinh', shortDot),
+            nationality: val(isApplicantFemale ? activeData.applicantNationality : activeData.spouseNationality, 'Việt Nam', shortDot),
+            address: val(isApplicantFemale ? activeData.address : activeData.spouseAddress, `${currentWard.name}, Tỉnh An Giang`, blankDot),
+            idNumber: val(isApplicantFemale ? activeData.idNumber : activeData.spouseIdNumber, '089191003344', ''),
+            issueDate: val(isApplicantFemale ? activeData.issueDate : activeData.spouseIssueDate, '15/08/2022', ''),
+            issuer: val(isApplicantFemale ? activeData.idIssuePlace : activeData.spouseIdIssuePlace, 'Cục CSQLHC về TTXH', ''),
+            marriageCount: val(isApplicantFemale ? activeData.applicantMarriageCount : activeData.spouseMarriageCount, '1', shortDot),
+          };
+          const maleParty = {
+            name: val(isApplicantFemale ? activeData.spouseName : activeData.fullName, 'TRẦN HẢI N.', blankDot),
+            dob: formatDisplayDate(val(isApplicantFemale ? activeData.spouseDob : activeData.dob, '23/08/1987', '....../....../..........')),
+            ethnicity: val(isApplicantFemale ? activeData.spouseEthnicity : activeData.applicantEthnicity, 'Kinh', shortDot),
+            nationality: val(isApplicantFemale ? activeData.spouseNationality : activeData.applicantNationality, 'Việt Nam', shortDot),
+            address: val(isApplicantFemale ? activeData.spouseAddress : activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot),
+            idNumber: val(isApplicantFemale ? activeData.spouseIdNumber : activeData.idNumber, '089087001122', ''),
+            issueDate: val(isApplicantFemale ? activeData.spouseIssueDate : activeData.issueDate, '10/07/2021', ''),
+            issuer: val(isApplicantFemale ? activeData.spouseIdIssuePlace : activeData.idIssuePlace, 'Cục CSQLHC về TTXH', ''),
+            marriageCount: val(isApplicantFemale ? activeData.spouseMarriageCount : activeData.applicantMarriageCount, '1', shortDot),
+          };
 
-            {marriageMode === 'MARITAL_STATUS_CONFIRMATION' ? (
-              <div className="space-y-2.5 text-[12pt]">
-                <div>1. Họ, chữ đệm và tên: <strong className="uppercase">{val(activeData.fullName, blankDot, blankDot)}</strong></div>
-                <div className="grid grid-cols-12 gap-2">
-                  <div className="col-span-6">2. Ngày, tháng, năm sinh: <strong>{val(activeData.dob, '....../....../..........', '....../....../..........')}</strong></div>
-                  <div className="col-span-6">3. Giới tính: <strong>{val(activeData.gender, 'Nam / Nữ', shortDot)}</strong></div>
+          const formatIdDoc = (p: typeof femaleParty) => {
+            if (isBlank) {
+              return (
+                <div className="space-y-1 text-[10.5pt]">
+                  <div>Số CCCD/CMND: .........................</div>
+                  <div>Do: .............................................</div>
+                  <div>Cấp ngày: ....../....../..........</div>
                 </div>
-                <div className="flex flex-wrap items-center gap-2">
-                  <span>4. Số định danh cá nhân (CCCD):</span>
-                  {renderIdBoxes(activeData.idNumber, '089092001456')}
-                </div>
-                <div>5. Nơi thường trú / cư trú: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
-                <div>
-                  6. Tình trạng hôn nhân hiện tại: <strong>{isBlank ? blankDot : 'Chưa đăng ký kết hôn với ai'}</strong>
-                </div>
-                <div>
-                  7. Mục đích sử dụng Giấy xác nhận: <strong className="text-teal-900">{val(activeData.maritalCertPurpose, 'Để làm thủ tục kết hôn / chuyển nhượng QSDĐ', blankDot)}</strong>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-3 text-[12pt]">
-                <div className="grid grid-cols-2 gap-4 border border-black p-3 text-[11.5pt]">
-                  {/* Cột Bên Nam */}
-                  <div className="space-y-1.5 border-r border-black pr-3">
-                    <div className="font-bold uppercase text-center border-b border-black pb-1">BÊN NAM</div>
-                    <div>Họ, chữ đệm và tên: <strong className="uppercase">{val(activeData.gender === 'Nữ' ? activeData.spouseName : activeData.fullName, shortDot, shortDot)}</strong></div>
-                    <div>Ngày, tháng, năm sinh: <strong>{val(activeData.gender === 'Nữ' ? activeData.spouseDob : activeData.dob, '....../....../....', '....../....../..........')}</strong></div>
-                    <div>Dân tộc: <strong>{val(activeData.gender === 'Nữ' ? activeData.spouseEthnicity : activeData.applicantEthnicity, 'Kinh', shortDot)}</strong></div>
-                    <div>Quốc tịch: <strong>{isBlank ? shortDot : 'Việt Nam'}</strong></div>
-                    <div>Số ĐDCN / CCCD: <strong className="font-mono">{val(activeData.gender === 'Nữ' ? activeData.spouseIdNumber : activeData.idNumber, shortDot, shortDot)}</strong></div>
-                    <div>Nơi cư trú: <strong>{val(activeData.gender === 'Nữ' ? activeData.spouseAddress : activeData.address, `${currentWard.name}, An Giang`, shortDot)}</strong></div>
-                    <div>Kết hôn lần thứ: <strong>{isBlank ? shortDot : '01'}</strong></div>
-                  </div>
+              );
+            }
+            const formattedDate = formatDisplayDate(p.issueDate) || '....../....../..........';
+            return (
+              <span>
+                Căn cước công dân số: <span className="font-semibold">{p.idNumber}</span> do {p.issuer} cấp ngày {formattedDate}
+              </span>
+            );
+          };
 
-                  {/* Cột Bên Nữ */}
-                  <div className="space-y-1.5 pl-1">
-                    <div className="font-bold uppercase text-center border-b border-black pb-1">BÊN NỮ</div>
-                    <div>Họ, chữ đệm và tên: <strong className="uppercase">{val(activeData.gender === 'Nữ' ? activeData.fullName : activeData.spouseName, shortDot, shortDot)}</strong></div>
-                    <div>Ngày, tháng, năm sinh: <strong>{val(activeData.gender === 'Nữ' ? activeData.dob : activeData.spouseDob, '....../....../....', '....../....../..........')}</strong></div>
-                    <div>Dân tộc: <strong>{val(activeData.gender === 'Nữ' ? activeData.applicantEthnicity : activeData.spouseEthnicity, 'Kinh', shortDot)}</strong></div>
-                    <div>Quốc tịch: <strong>{isBlank ? shortDot : 'Việt Nam'}</strong></div>
-                    <div>Số ĐDCN / CCCD: <strong className="font-mono">{val(activeData.gender === 'Nữ' ? activeData.idNumber : activeData.spouseIdNumber, shortDot, shortDot)}</strong></div>
-                    <div>Nơi cư trú: <strong>{val(activeData.gender === 'Nữ' ? activeData.address : activeData.spouseAddress, `${currentWard.name}, An Giang`, shortDot)}</strong></div>
-                    <div>Kết hôn lần thứ: <strong>{isBlank ? shortDot : '01'}</strong></div>
-                  </div>
-                </div>
-
-                <p className="italic text-[11pt] text-neutral-800">
-                  Chúng tôi cam đoan việc kết hôn là hoàn toàn tự nguyện, không vi phạm Điều 8 Luật Hôn nhân &amp; Gia đình 2014 và cùng chịu trách nhiệm trước pháp luật.
-                </p>
-              </div>
-            )}
-
-            <div className="pt-6 mt-6 border-t border-neutral-300">
-              {marriageMode === 'MARITAL_STATUS_CONFIRMATION' ? (
-                <>
-                  <p className="italic text-[11pt] text-neutral-800 mb-4">
-                    Tôi xin cam đoan tình trạng hôn nhân nêu trên là hoàn toàn đúng sự thật và chịu trách nhiệm trước pháp luật.
+          return (
+            <div className="space-y-4">
+              {!isMarriageReg && (
+                <div className="text-center my-4">
+                  <h1 className="text-[15pt] sm:text-[16pt] font-extrabold uppercase">
+                    TỜ KHAI CẤP GIẤY XÁC NHẬN TÌNH TRẠNG HÔN NHÂN
+                  </h1>
+                  <p className="text-[11pt] italic text-neutral-700 mt-1">
+                    (Ban hành kèm theo Thông tư số 04/2024/TT-BTP ngày 06/06/2024 sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP ngày 28/05/2020 của Bộ Tư pháp) [Phụ lục 5 - TT 04/2024/TT-BTP]
                   </p>
-                  <div className="grid grid-cols-2 gap-4 text-center text-[12pt]">
+                  <div className="mt-3 font-bold italic text-[12pt]">
+                    Kính gửi: Ủy ban nhân dân {currentWard.name}
+                  </div>
+                </div>
+              )}
+
+              {!isMarriageReg ? (
+                <>
+                  <div className="space-y-2.5 text-[12pt]">
+                    <div>1. Họ, chữ đệm và tên: <strong className="uppercase">{val(activeData.fullName, blankDot, blankDot)}</strong></div>
+                    <div className="grid grid-cols-12 gap-2">
+                      <div className="col-span-6">2. Ngày, tháng, năm sinh: <strong>{formatDisplayDate(val(activeData.dob, '15/06/1992', '....../....../..........'))}</strong></div>
+                      <div className="col-span-6">3. Giới tính: <strong>{val(activeData.gender, 'Nam / Nữ', shortDot)}</strong></div>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span>4. Số định danh cá nhân (CCCD):</span>
+                      {renderIdBoxes(activeData.idNumber, '089092001456')}
+                    </div>
+                    <div>5. Nơi thường trú / cư trú: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
                     <div>
-                      <div className="font-bold uppercase">CÔNG CHỨC TƯ PHÁP - HỘ TỊCH</div>
-                      <div className="italic text-[10pt] text-neutral-600">(Ký, ghi rõ họ tên)</div>
-                      <div className="h-20"></div>
+                      6. Tình trạng hôn nhân hiện tại: <strong>{isBlank ? blankDot : 'Chưa đăng ký kết hôn với ai'}</strong>
                     </div>
                     <div>
-                      <div className="font-bold uppercase">NGƯỜI LÀM TỜ KHAI</div>
-                      <div className="italic text-[10pt] text-neutral-600">(Ký và ghi rõ họ tên)</div>
-                      <div className="h-20 flex items-end justify-center font-bold uppercase text-[11pt]">
-                        {isBlank ? '' : (activeData.applicantSignName || activeData.fullName || '')}
+                      7. Mục đích sử dụng Giấy xác nhận: <strong className="text-teal-900">{val(activeData.maritalCertPurpose, 'Để làm thủ tục kết hôn / chuyển nhượng QSDĐ', blankDot)}</strong>
+                    </div>
+                  </div>
+
+                  <div className="pt-6 mt-6 border-t border-neutral-300">
+                    <p className="italic text-[11pt] text-neutral-800 mb-4">
+                      Tôi xin cam đoan tình trạng hôn nhân nêu trên là hoàn toàn đúng sự thật và chịu trách nhiệm trước pháp luật.
+                    </p>
+                    <div className="grid grid-cols-2 gap-4 text-center text-[12pt]">
+                      <div>
+                        <div className="font-bold uppercase">CÔNG CHỨC TƯ PHÁP - HỘ TỊCH</div>
+                        <div className="italic text-[10pt] text-neutral-600">(Ký, ghi rõ họ tên)</div>
+                        <div className="h-20"></div>
+                      </div>
+                      <div>
+                        <div className="font-bold uppercase">NGƯỜI LÀM TỜ KHAI</div>
+                        <div className="italic text-[10pt] text-neutral-600">(Ký và ghi rõ họ tên)</div>
+                        <div className="h-20 flex items-end justify-center font-bold uppercase text-[11pt]">
+                          {isBlank ? '' : (activeData.applicantSignName || activeData.fullName || '')}
+                        </div>
                       </div>
                     </div>
                   </div>
                 </>
               ) : (
-                <div className="grid grid-cols-2 gap-4 text-center text-[12pt]">
-                  <div>
-                    <div className="font-bold uppercase">BÊN NAM</div>
-                    <div className="italic text-[10pt] text-neutral-600">(Ký trực tiếp trước mặt công chức tiếp nhận)</div>
-                    <div className="h-20 flex items-end justify-center font-bold uppercase text-[11pt]">
-                      {isBlank ? '' : (activeData.applicantSignName || activeData.spouseName || activeData.fullName || '')}
-                    </div>
+                <div className="space-y-4 text-[11.5pt]">
+                  <table className="w-full border-collapse border border-black text-[11pt]">
+                    <colgroup>
+                      <col style={{ width: '28%' }} />
+                      <col style={{ width: '36%' }} />
+                      <col style={{ width: '36%' }} />
+                    </colgroup>
+                    <thead>
+                      <tr>
+                        <th className="border border-black px-2.5 py-2 text-center font-bold">Thông tin</th>
+                        <th className="border border-black px-2.5 py-2 text-center font-bold">Bên nữ</th>
+                        <th className="border border-black px-2.5 py-2 text-center font-bold">Bên nam</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="border border-black px-2.5 py-2 align-top">Họ, chữ đệm, tên</td>
+                        <td className="border border-black px-2.5 py-2 align-top font-semibold uppercase">{femaleParty.name}</td>
+                        <td className="border border-black px-2.5 py-2 align-top font-semibold uppercase">{maleParty.name}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-black px-2.5 py-2 align-top">Ngày, tháng, năm sinh</td>
+                        <td className="border border-black px-2.5 py-2 align-top">{femaleParty.dob}</td>
+                        <td className="border border-black px-2.5 py-2 align-top">{maleParty.dob}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-black px-2.5 py-2 align-top">Dân tộc</td>
+                        <td className="border border-black px-2.5 py-2 align-top">{femaleParty.ethnicity}</td>
+                        <td className="border border-black px-2.5 py-2 align-top">{maleParty.ethnicity}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-black px-2.5 py-2 align-top">Quốc tịch</td>
+                        <td className="border border-black px-2.5 py-2 align-top">{femaleParty.nationality}</td>
+                        <td className="border border-black px-2.5 py-2 align-top">{maleParty.nationality}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-black px-2.5 py-2 align-top">Nơi cư trú</td>
+                        <td className="border border-black px-2.5 py-2 align-top">{femaleParty.address}</td>
+                        <td className="border border-black px-2.5 py-2 align-top">{maleParty.address}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-black px-2.5 py-2 align-top">Giấy tờ tùy thân</td>
+                        <td className="border border-black px-2.5 py-2 align-top">{formatIdDoc(femaleParty)}</td>
+                        <td className="border border-black px-2.5 py-2 align-top">{formatIdDoc(maleParty)}</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-black px-2.5 py-2 align-top">Kết hôn lần thứ mấy</td>
+                        <td className="border border-black px-2.5 py-2 align-top">{femaleParty.marriageCount}</td>
+                        <td className="border border-black px-2.5 py-2 align-top">{maleParty.marriageCount}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <div className="space-y-1 text-[11pt] leading-relaxed pt-1">
+                    <p className="indent-8">
+                      Chúng tôi cam đoan những lời khai trên đây là đúng sự thật, việc kết hôn của chúng tôi là tự nguyện, không vi phạm quy định của Luật hôn nhân và gia đình Việt Nam.
+                    </p>
+                    <p className="indent-8">
+                      Chúng tôi chịu hoàn toàn trách nhiệm trước pháp luật về cam đoan của mình.
+                    </p>
+                    <p className="indent-8">
+                      Đề nghị Quý cơ quan đăng ký.
+                    </p>
                   </div>
-                  <div>
-                    <div className="font-bold uppercase">BÊN NỮ</div>
-                    <div className="italic text-[10pt] text-neutral-600">(Ký trực tiếp trước mặt công chức tiếp nhận)</div>
-                    <div className="h-20 flex items-end justify-center font-bold uppercase text-[11pt]">
-                      {isBlank ? '' : (activeData.spouseSignName || activeData.femaleName || '')}
+
+                  <div className="text-right italic text-[11pt] pr-4 pt-1">
+                    Tỉnh An Giang, ngày {isBlank ? '......' : String(day).padStart(2, '0')} tháng {isBlank ? '......' : String(month).padStart(2, '0')} năm {isBlank ? '........' : year}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4 text-center text-[11.5pt] pt-2">
+                    <div>
+                      <div className="font-bold">Bên nữ</div>
+                      <div className="text-[10.5pt]">(Ký, ghi rõ họ, chữ đệm, tên)</div>
+                      <div className="h-20 flex items-end justify-center font-medium text-[11pt]">
+                        {isBlank ? '' : (isApplicantFemale ? (activeData.applicantSignName || femaleParty.name) : (activeData.spouseSignName || femaleParty.name))}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="font-bold">Bên nam</div>
+                      <div className="text-[10.5pt]">(Ký, ghi rõ họ, chữ đệm, tên)</div>
+                      <div className="h-20 flex items-end justify-center font-medium text-[11pt]">
+                        {isBlank ? '' : (isApplicantFemale ? (activeData.spouseSignName || maleParty.name) : (activeData.applicantSignName || maleParty.name))}
+                      </div>
                     </div>
                   </div>
                 </div>
               )}
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* ========================================================================= */}
         {/* 4. MẪU TK-BTXH: BẢO TRỢ XÃ HỘI (NGHỊ ĐỊNH 20/2021, NĐ 76/2024 & BHXH 2024)*/}
@@ -1668,7 +1796,13 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         </div>
 
         {/* Visible Scrollable Printable A4 Sheet Body */}
-        <div ref={printableA4Ref} className="flex-1 overflow-y-auto">
+        <div
+          ref={printableA4Ref}
+          tabIndex={0}
+          role="region"
+          aria-label="Nội dung bản xem trước A4"
+          className="flex-1 overflow-y-auto focus:outline-none"
+        >
           {renderDocumentContent(viewMode === 'BLANK')}
 
           {/* Khung hướng dẫn Chú thích (1) -> (8) dành riêng cho giao diện Web (Tự động cắt bỏ khi xuất PDF/Word để gói gọn 1 trang A4) */}
