@@ -39,6 +39,13 @@ public class OfficerAuthInterceptor implements HandlerInterceptor {
         OfficerAuthService.OfficerPrincipal principal = officerAuthService.verifyToken(authHeader);
         request.setAttribute("officerPrincipal", principal);
 
+        if (principal.mustChangePin() && !isSelfServicePinPath(uri)) {
+            throw new vn.edu.uth.smartward.common.BusinessException(
+                    vn.edu.uth.smartward.common.ErrorCode.FORBIDDEN,
+                    "SW_403_MUST_CHANGE_PIN: Tài khoản bắt buộc đổi mã PIN dùng một lần trước khi truy cập nghiệp vụ."
+            );
+        }
+
         boolean requiresAdminRole =
                 uri.equals("/api/v1/admin/proposals")
                 || (uri.startsWith("/api/v1/admin/proposals/") && !uri.endsWith("/submit"))
@@ -53,5 +60,12 @@ public class OfficerAuthInterceptor implements HandlerInterceptor {
         }
 
         return true;
+    }
+
+    private boolean isSelfServicePinPath(String uri) {
+        if (uri == null) {
+            return false;
+        }
+        return uri.endsWith("/change-pin") || uri.endsWith("/logout") || uri.endsWith("/me");
     }
 }

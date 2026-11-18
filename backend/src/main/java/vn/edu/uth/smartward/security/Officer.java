@@ -51,6 +51,9 @@ public class Officer {
     @Builder.Default
     private Boolean mustChangePin = false;
 
+    @Column(name = "pin_expires_at")
+    private Instant pinExpiresAt;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;

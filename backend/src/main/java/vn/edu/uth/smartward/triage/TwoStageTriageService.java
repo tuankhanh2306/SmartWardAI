@@ -1,7 +1,7 @@
 package vn.edu.uth.smartward.triage;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
@@ -45,6 +45,7 @@ public class TwoStageTriageService {
         this(spatialIndexService, clusterRepository, reportRepository, aiModelClient, null);
     }
 
+    @Autowired
     public TwoStageTriageService(SpatialIndexService spatialIndexService,
                                 IssueClusterRepository clusterRepository,
                                 CivicReportRepository reportRepository,

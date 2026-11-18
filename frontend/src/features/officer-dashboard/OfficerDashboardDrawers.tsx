@@ -440,7 +440,7 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                     <div className="min-w-0">
                       <span className="text-[10px] text-[#64748B] block">Email nhận Phiếu hẹn & Kết quả:</span>
                       <span className="font-mono font-bold text-[#00796B] truncate block">
-                        {selectedDossier.citizenEmail || 'khanhblue06@gmail.com'}
+                        {selectedDossier.citizenEmail || 'Chưa cung cấp email'}
                       </span>
                     </div>
                   </div>
@@ -622,7 +622,7 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
             <div className="p-5 border-t border-[#E2E8F0] bg-[#F8FAFC] flex flex-col gap-2.5">
               <div className="flex flex-col gap-1">
                 <label className="text-[11px] font-bold text-[#334155] flex items-center justify-between">
-                  <span>Nội dung phản hồi gửi tự động qua Email công dân ({selectedDossier.citizenEmail || 'khanhblue06@gmail.com'}):</span>
+                  <span>Nội dung phản hồi gửi tự động qua Email công dân ({selectedDossier.citizenEmail || 'Chưa cung cấp email'}):</span>
                   <span className="text-[10px] text-[#00796B] font-semibold">Miễn phí 100% • Kèm Phiếu hẹn QR</span>
                 </label>
                 <textarea

@@ -13,6 +13,8 @@ public interface AdminProcedureRepository extends JpaRepository<AdminProcedure, 
 
     Optional<AdminProcedure> findByProcedureCode(String procedureCode);
 
+    boolean existsByProcedureCode(String procedureCode);
+
     List<AdminProcedure> findByCategory(String category);
 
     List<AdminProcedure> findByStatus(String status);

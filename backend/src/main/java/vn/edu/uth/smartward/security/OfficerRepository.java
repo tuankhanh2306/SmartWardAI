@@ -8,4 +8,6 @@ import java.util.Optional;
 @Repository
 public interface OfficerRepository extends JpaRepository<Officer, String> {
     Optional<Officer> findByBadgeIdIgnoreCase(String badgeId);
+
+    boolean existsByRoleIgnoreCaseAndActiveTrueAndMustChangePinTrue(String role);
 }

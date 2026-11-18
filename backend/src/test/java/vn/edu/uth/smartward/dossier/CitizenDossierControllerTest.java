@@ -11,6 +11,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import vn.edu.uth.smartward.common.ClientIpResolver;
+import vn.edu.uth.smartward.common.GlobalExceptionHandler;
 import vn.edu.uth.smartward.dossier.dto.*;
 
 import java.time.Instant;
@@ -30,14 +32,19 @@ class CitizenDossierControllerTest {
     @Mock
     private CitizenDossierService dossierService;
 
-    @InjectMocks
+    @Mock
+    private ClientIpResolver clientIpResolver;
+
     private CitizenDossierController dossierController;
 
     private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(dossierController).build();
+        dossierController = new CitizenDossierController(dossierService, clientIpResolver);
+        mockMvc = MockMvcBuilders.standaloneSetup(dossierController)
+                .setControllerAdvice(new GlobalExceptionHandler())
+                .build();
         objectMapper = new ObjectMapper();
     }
 
@@ -72,11 +79,17 @@ class CitizenDossierControllerTest {
     }
 
     @Test
-    @DisplayName("GET /api/v1/dossiers/track returns HTTP 200 OK")
-    void trackDossier_returns200() throws Exception {
+    @DisplayName("POST /api/v1/dossiers/track returns HTTP 200 OK while GET /api/v1/dossiers/track is rejected")
+    void trackDossier_postReturns200_getRejected() throws Exception {
+        mockMvc.perform(get("/api/v1/dossiers/track")
+                        .param("dossierCode", "HS-20261111-BENNGHE-0001")
+                        .param("last4Cccd", "2345")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().is4xxClientError());
+
         DossierTrackingResponse res = DossierTrackingResponse.builder()
                 .dossierCode("HS-20261111-BENNGHE-0001")
-                .procedureCode("TTHC-CR-01")
+                .procedureCode("TTHC-HT-01")
                 .procedureName("Đăng ký khai sinh")
                 .wardCode("WARD-AG-01")
                 .citizenCccd("********2345")
@@ -84,13 +97,13 @@ class CitizenDossierControllerTest {
                 .slaDeadline(Instant.now().plusSeconds(86400 * 3))
                 .build();
 
-        when(dossierService.trackDossier(eq("HS-20261111-BENNGHE-0001"), eq("2345"), any()))
+        when(clientIpResolver.resolve(any())).thenReturn("198.51.100.10");
+        when(dossierService.trackDossier(eq("HS-20261111-BENNGHE-0001"), eq("2345"), eq("198.51.100.10")))
                 .thenReturn(res);
 
-        mockMvc.perform(get("/api/v1/dossiers/track")
-                        .param("dossierCode", "HS-20261111-BENNGHE-0001")
-                        .param("last4Cccd", "2345")
-                        .contentType(MediaType.APPLICATION_JSON))
+        mockMvc.perform(post("/api/v1/dossiers/track")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"dossierCode\":\"HS-20261111-BENNGHE-0001\",\"last4Cccd\":\"2345\"}"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.dossierCode").value("HS-20261111-BENNGHE-0001"))

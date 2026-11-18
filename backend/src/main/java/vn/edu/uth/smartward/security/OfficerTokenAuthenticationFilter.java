@@ -42,8 +42,13 @@ public class OfficerTokenAuthenticationFilter extends OncePerRequestFilter {
             try {
                 OfficerAuthService.OfficerPrincipal principal = officerAuthService.verifyToken(authHeader);
                 List<SimpleGrantedAuthority> authorities = new ArrayList<>();
-                String rawRole = principal.role() != null ? principal.role().trim().toUpperCase() : "OFFICER";
-                authorities.add(new SimpleGrantedAuthority("ROLE_" + rawRole));
+                if (principal.mustChangePin()) {
+                    authorities.add(new SimpleGrantedAuthority("ROLE_PIN_CHANGE_ONLY"));
+                    request.setAttribute("mustChangePinBlocked", Boolean.TRUE);
+                } else {
+                    String rawRole = principal.role() != null ? principal.role().trim().toUpperCase() : "OFFICER";
+                    authorities.add(new SimpleGrantedAuthority("ROLE_" + rawRole));
+                }
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(principal, null, authorities);

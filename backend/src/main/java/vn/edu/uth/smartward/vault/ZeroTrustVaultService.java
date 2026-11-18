@@ -66,6 +66,7 @@ public class ZeroTrustVaultService {
     private static final String ALGORITHM = "AES/GCM/NoPadding";
     private static final int GCM_TAG_LENGTH_BITS = 128;
     private static final int GCM_IV_LENGTH_BYTES = 12;
+    public static final long MAX_UPLOAD_SIZE_BYTES = 5L * 1024 * 1024; // 5 MB hard cap
 
     /**
      * Watermarks, encrypts, and stores uploaded document into MinIO, returning a single-use token.
@@ -75,9 +76,17 @@ public class ZeroTrustVaultService {
         if (file == null || file.isEmpty()) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Tệp tài liệu tải lên không được để trống.");
         }
+        if (file.getSize() > MAX_UPLOAD_SIZE_BYTES) {
+            throw new BusinessException(ErrorCode.VALIDATION_FAILED,
+                    "Kích thước tệp vượt quá giới hạn tối đa 5 MB.");
+        }
 
         try {
             byte[] originalBytes = file.getBytes();
+            if (originalBytes.length > MAX_UPLOAD_SIZE_BYTES) {
+                throw new BusinessException(ErrorCode.VALIDATION_FAILED,
+                        "Kích thước tệp vượt quá giới hạn tối đa 5 MB.");
+            }
             validateMagicBytes(originalBytes);
             return storeDocumentBytes(originalBytes, file.getOriginalFilename(), documentType);
         } catch (BusinessException be) {

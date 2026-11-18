@@ -16,7 +16,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.util.ReflectionTestUtils;
 import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ErrorCode;
+import vn.edu.uth.smartward.security.Officer;
 import vn.edu.uth.smartward.security.OfficerAuthService;
+import vn.edu.uth.smartward.security.OfficerRepository;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -177,40 +180,51 @@ class ChallengerM1EmpiricalStressTest {
 
         private final ObjectMapper objectMapper = new ObjectMapper();
         private final String secret = "SmartWardAI_UnitTest_JwtSecret_32B!";
+        private final String officerPin = "OfficerM1Stress2026!";
+        private final String secondOfficerPin = "SecondM1Stress2026!";
+
+        private OfficerRepository buildMockRepo() {
+            OfficerRepository repo = mock(OfficerRepository.class);
+            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder(4);
+            Officer o1 = Officer.builder()
+                    .badgeId("CC-AG-8942").fullName("Trần Quốc Bảo").wardCode("AG_P_LONGXUYEN")
+                    .role("OFFICER").passwordHash(encoder.encode(officerPin)).mustChangePin(false).active(true).build();
+            Officer o2 = Officer.builder()
+                    .badgeId("CC-AG-1001").fullName("Nguyễn Thị Minh Khai").wardCode("AG_P_LONGXUYEN")
+                    .role("OFFICER").passwordHash(encoder.encode(secondOfficerPin)).mustChangePin(false).active(true).build();
+            when(repo.findByBadgeIdIgnoreCase("CC-AG-8942")).thenReturn(java.util.Optional.of(o1));
+            when(repo.findByBadgeIdIgnoreCase("CC-AG-1001")).thenReturn(java.util.Optional.of(o2));
+            when(repo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+            return repo;
+        }
 
         @Test
-        @DisplayName("Scenario A: Null RedisTemplate operates via ConcurrentHashMap in-memory fallback")
+        @DisplayName("Scenario A: Null OfficerRepository rejects fallback login (fail closed) while DB-backed repo succeeds")
         void testNullRedis_operatesViaInMemoryFallback() {
-            // Test constructor 1: OfficerAuthService(ObjectMapper)
-            OfficerAuthService authSingle = new OfficerAuthService(objectMapper);
-            ReflectionTestUtils.setField(authSingle, "jwtSecret", secret);
-            ReflectionTestUtils.setField(authSingle, "tokenTtlHours", 8);
+            OfficerAuthService noRepoAuth = new OfficerAuthService(objectMapper, null);
+            ReflectionTestUtils.setField(noRepoAuth, "jwtSecret", secret);
+            assertEquals(ErrorCode.UNAUTHORIZED, assertThrows(BusinessException.class, () ->
+                    noRepoAuth.authenticate("CC-AG-8942", "8942", null)).getErrorCode());
 
-            // Test constructor 2: OfficerAuthService(ObjectMapper, null)
-            OfficerAuthService authDualNull = new OfficerAuthService(objectMapper, null);
+            OfficerAuthService authDualNull = new OfficerAuthService(objectMapper, null, buildMockRepo(), null);
             ReflectionTestUtils.setField(authDualNull, "jwtSecret", secret);
             ReflectionTestUtils.setField(authDualNull, "tokenTtlHours", 8);
 
-            // 1. Authenticate
-            OfficerAuthService.LoginResponse login = authDualNull.authenticate("CC-AG-8942", "8942", null);
+            OfficerAuthService.LoginResponse login = authDualNull.authenticate("CC-AG-8942", officerPin, null);
             assertNotNull(login.token());
             assertEquals("AG_P_LONGXUYEN", login.wardCode());
 
-            // 2. Verify token succeeds before revocation
             OfficerAuthService.OfficerPrincipal principal = authDualNull.verifyToken("Bearer " + login.token());
             assertEquals("CC-AG-8942", principal.badgeId());
 
-            // 3. Revoke token
             authDualNull.revokeToken("Bearer " + login.token());
 
-            // 4. Verify token fails immediately after revocation
             BusinessException ex = assertThrows(BusinessException.class, () ->
                     authDualNull.verifyToken("Bearer " + login.token())
             );
             assertEquals(ErrorCode.UNAUTHORIZED, ex.getErrorCode());
             assertTrue(ex.getMessage().contains("đăng xuất"));
 
-            // 5. Repeated revocation does not throw
             assertDoesNotThrow(() -> authDualNull.revokeToken("Bearer " + login.token()));
         }
 
@@ -235,27 +249,23 @@ class ChallengerM1EmpiricalStressTest {
                 return redisStore.containsKey(key);
             });
 
-            OfficerAuthService authRedis = new OfficerAuthService(objectMapper, mockRedis);
+            OfficerAuthService authRedis = new OfficerAuthService(objectMapper, mockRedis, buildMockRepo(), null);
             ReflectionTestUtils.setField(authRedis, "jwtSecret", secret);
             ReflectionTestUtils.setField(authRedis, "tokenTtlHours", 8);
 
-            OfficerAuthService.LoginResponse login = authRedis.authenticate("CC-AG-1001", "2026", "AG_P_LONGXUYEN");
+            OfficerAuthService.LoginResponse login = authRedis.authenticate("CC-AG-1001", secondOfficerPin, "AG_P_LONGXUYEN");
 
-            // Verify token is initially valid
             OfficerAuthService.OfficerPrincipal principal = authRedis.verifyToken(login.token());
             assertEquals("CC-AG-1001", principal.badgeId());
 
-            // Revoke token
             authRedis.revokeToken(login.token());
 
-            // Verify Redis received key "smartward:auth:revoked:{jti}"
             verify(mockOps, atLeastOnce()).set(
                     argThat(k -> k.startsWith("smartward:auth:revoked:")),
                     eq("true"),
                     argThat(d -> !d.isNegative() && d.getSeconds() <= 8 * 3600)
             );
 
-            // Subsequent verification must be rejected
             BusinessException ex = assertThrows(BusinessException.class, () ->
                     authRedis.verifyToken(login.token())
             );
@@ -268,16 +278,14 @@ class ChallengerM1EmpiricalStressTest {
             StringRedisTemplate mockRedis = mock(StringRedisTemplate.class);
             when(mockRedis.hasKey(anyString())).thenThrow(new RedisConnectionFailureException("Connection refused to Redis:6379"));
 
-            OfficerAuthService authRedis = new OfficerAuthService(objectMapper, mockRedis);
+            OfficerAuthService authRedis = new OfficerAuthService(objectMapper, mockRedis, buildMockRepo(), null);
             ReflectionTestUtils.setField(authRedis, "jwtSecret", secret);
             ReflectionTestUtils.setField(authRedis, "tokenTtlHours", 8);
 
-            // Unrevoked token should still pass through (resilient fail-open for valid traffic during transient Redis downtime)
-            OfficerAuthService.LoginResponse login = authRedis.authenticate("CC-AG-8942", "8942", null);
+            OfficerAuthService.LoginResponse login = authRedis.authenticate("CC-AG-8942", officerPin, null);
             OfficerAuthService.OfficerPrincipal principal = assertDoesNotThrow(() -> authRedis.verifyToken(login.token()));
             assertEquals("CC-AG-8942", principal.badgeId());
 
-            // Revoked token in local set should still be rejected (fail-secure for revoked tokens)
             authRedis.revokeToken(login.token());
             BusinessException ex = assertThrows(BusinessException.class, () -> authRedis.verifyToken(login.token()));
             assertEquals(ErrorCode.UNAUTHORIZED, ex.getErrorCode());
@@ -293,16 +301,14 @@ class ChallengerM1EmpiricalStressTest {
             doThrow(new RuntimeException("Redis cluster timeout")).when(mockOps).set(anyString(), anyString(), any(Duration.class));
             when(mockRedis.hasKey(anyString())).thenThrow(new RuntimeException("Redis unavailable"));
 
-            OfficerAuthService authRedis = new OfficerAuthService(objectMapper, mockRedis);
+            OfficerAuthService authRedis = new OfficerAuthService(objectMapper, mockRedis, buildMockRepo(), null);
             ReflectionTestUtils.setField(authRedis, "jwtSecret", secret);
             ReflectionTestUtils.setField(authRedis, "tokenTtlHours", 8);
 
-            OfficerAuthService.LoginResponse login = authRedis.authenticate("CC-AG-8942", "8942", null);
+            OfficerAuthService.LoginResponse login = authRedis.authenticate("CC-AG-8942", officerPin, null);
 
-            // Revoking when Redis fails should NOT throw exception
             assertDoesNotThrow(() -> authRedis.revokeToken(login.token()));
 
-            // Verifying when Redis fails should still block the locally revoked token
             BusinessException ex = assertThrows(BusinessException.class, () -> authRedis.verifyToken(login.token()));
             assertEquals(ErrorCode.UNAUTHORIZED, ex.getErrorCode());
         }

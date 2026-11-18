@@ -20,7 +20,14 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(allowedOrigins);
+        List<String> safeOrigins = (allowedOrigins == null ? List.<String>of() : allowedOrigins).stream()
+                .map(String::trim)
+                .filter(o -> !o.isEmpty() && !"*".equals(o))
+                .toList();
+        if (safeOrigins.isEmpty()) {
+            safeOrigins = List.of("http://localhost:3000", "http://localhost:5173");
+        }
+        config.setAllowedOriginPatterns(safeOrigins);
         config.setAllowedHeaders(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         source.registerCorsConfiguration("/**", config);

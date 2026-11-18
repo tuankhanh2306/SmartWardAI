@@ -65,8 +65,6 @@ export const SESSION_TIMEOUT_MS = 5 * 60 * 1000;
 export const OFFICER_INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000;
 export const WARNING_THRESHOLD_SEC = 60;
 
-export const PIN_OVERRIDES_KEY = 'smartward_officer_pin_overrides';
-
 export const getAuthEndpoint = (path: string): string => {
   const base =
     typeof import.meta !== 'undefined' && (import.meta as any).env?.VITE_API_BASE_URL
@@ -134,28 +132,6 @@ export const readJwtExpirationEpochSec = (token: string | null): number | null =
   const payload = decodeJwtPayloadUtf8(token);
   if (!payload || typeof payload.exp !== 'number') return null;
   return payload.exp;
-};
-
-export const getStoredOfficerPin = (badgeId: string): string | null => {
-  try {
-    const raw = localStorage.getItem(PIN_OVERRIDES_KEY);
-    if (!raw) return null;
-    const map = JSON.parse(raw);
-    return map[badgeId.toUpperCase()] || null;
-  } catch {
-    return null;
-  }
-};
-
-export const storeOfficerPin = (badgeId: string, newPin: string): void => {
-  try {
-    const raw = localStorage.getItem(PIN_OVERRIDES_KEY);
-    const map = raw ? JSON.parse(raw) : {};
-    map[badgeId.toUpperCase()] = newPin;
-    localStorage.setItem(PIN_OVERRIDES_KEY, JSON.stringify(map));
-  } catch {
-    // ignore
-  }
 };
 
 export const resolveAgencyType = (badgeId: string, role: 'OFFICER' | 'ADMIN'): OfficerAgencyType => {
@@ -228,65 +204,6 @@ export const buildOfficerProfileFromData = (data: {
     avatarText: initials || (resolvedRole === 'ADMIN' ? 'QT' : 'CB'),
     mustChangePin: data.mustChangePin,
   };
-};
-
-export const verifyOfficerCredentials = (
-  badgeId: string,
-  pin: string
-): { valid: boolean; profile: OfficerProfile; token: string } | null => {
-  const normalizedBadge = (badgeId || '').trim().toUpperCase();
-  const cleanPin = (pin || '').trim();
-
-  if (!normalizedBadge || !cleanPin) return null;
-
-  const customPin = getStoredOfficerPin(normalizedBadge);
-  let isPinMatch = false;
-
-  if (customPin) {
-    isPinMatch = cleanPin === customPin;
-  } else if (normalizedBadge === 'CC-AG-8942') {
-    isPinMatch = cleanPin === '8942' || cleanPin === 'Officer@2026!';
-  } else if (normalizedBadge === 'CC-AG-1001') {
-    isPinMatch = cleanPin === '2026' || cleanPin === 'Officer@2026!';
-  } else if (normalizedBadge === 'ADM-AG-0001' || normalizedBadge === 'ADM-AG-0002') {
-    isPinMatch = cleanPin === '9999' || cleanPin === 'Admin@SmartWard2026!';
-  } else if (normalizedBadge.startsWith('CB-') || normalizedBadge.startsWith('CA-')) {
-    isPinMatch = cleanPin === '8942' || cleanPin === '2026' || cleanPin === 'Officer@2026!';
-  }
-
-  if (!isPinMatch) {
-    return null;
-  }
-
-  const role: 'OFFICER' | 'ADMIN' = normalizedBadge.startsWith('ADM-') ? 'ADMIN' : 'OFFICER';
-  const wardCode =
-    role === 'ADMIN'
-      ? 'AG_PROVINCE'
-      : normalizedBadge.startsWith('CB-') || normalizedBadge.startsWith('CA-')
-      ? normalizedBadge.substring(3)
-      : 'AG_P_LONGXUYEN';
-
-  const profile = buildOfficerProfileFromData({
-    badgeId: normalizedBadge,
-    wardCode,
-    role,
-    mustChangePin: !customPin,
-  });
-
-  const dummyPayload = encodeUtf8Base64(
-    JSON.stringify({
-      sub: normalizedBadge,
-      name: profile.name,
-      wardCode: profile.wardCode,
-      role: profile.role,
-      mustChangePin: profile.mustChangePin,
-      jti: 'offline-' + Date.now(),
-      exp: Math.floor(Date.now() / 1000) + 8 * 3600,
-    })
-  );
-  const mockToken = `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.${dummyPayload}.sig_offline_verified`;
-
-  return { valid: true, profile, token: mockToken };
 };
 
 const DEFAULT_OFFICER_PROFILE: OfficerProfile = buildOfficerProfileFromData({
@@ -498,23 +415,9 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return null;
       }
     } catch {
-      // Offline resilient fallback when backend is unreachable in local preview:
-      // Still derive role strictly from the signed/encoded token in sessionStorage, NEVER from localStorage!
-      if (token.includes('sig_offline_verified')) {
-        const claims = decodeJwtPayloadUtf8(token);
-        if (claims && claims.sub) {
-          const offlineProfile = buildOfficerProfileFromData({
-            badgeId: String(claims.sub),
-            fullName: claims.name ? String(claims.name) : undefined,
-            wardCode: claims.wardCode ? String(claims.wardCode) : undefined,
-            role: claims.role ? String(claims.role) : undefined,
-            mustChangePin: Boolean(claims.mustChangePin),
-          });
-          applyOfficerSession(offlineProfile, token);
-          setIsHydratingSession(false);
-          return offlineProfile.role === 'ADMIN' ? 'admin' : 'officer';
-        }
-      }
+      setIsHydratingSession(false);
+      logout('Không thể xác minh phiên làm việc với máy chủ xác thực.');
+      return null;
     }
 
     setIsHydratingSession(false);
@@ -593,14 +496,7 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return false;
       }
     } catch (err) {
-      console.warn('Backend server unreachable, trying resilient credentials verifier:', err);
-    }
-
-    // Resilient local fallback only when backend server is unreachable in offline dev preview
-    const fallback = verifyOfficerCredentials(normalizedBadge, cleanPin);
-    if (fallback) {
-      applyOfficerSession(fallback.profile, fallback.token);
-      return true;
+      console.warn('Backend authentication server unreachable:', err);
     }
 
     return false;
@@ -657,13 +553,12 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       });
 
       if (res.ok) {
-        storeOfficerPin(normalizedBadge, cleanNewPin);
         setOfficerProfile((prev) => ({ ...prev, mustChangePin: false }));
         return {
           success: true,
           message: 'Đổi mã PIN thành công. Vui lòng ghi nhớ mã PIN mới.',
         };
-      } else if (res.status === 401 || res.status === 400) {
+      } else if (res.status === 401 || res.status === 400 || res.status === 403) {
         const errJson = await res.json().catch(() => null);
         return {
           success: false,
@@ -671,19 +566,12 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         };
       }
     } catch (err) {
-      console.warn('Backend unavailable during change-pin, applying local storage fallback:', err);
+      console.warn('Backend unavailable during change-pin:', err);
     }
 
-    const credCheck = verifyOfficerCredentials(normalizedBadge, cleanCurrentPin);
-    if (!credCheck) {
-      return { success: false, message: 'Mã PIN hiện tại không chính xác.' };
-    }
-
-    storeOfficerPin(normalizedBadge, cleanNewPin);
-    setOfficerProfile((prev) => ({ ...prev, mustChangePin: false }));
     return {
-      success: true,
-      message: 'Đổi mã PIN thành công. Vui lòng ghi nhớ mã PIN mới.',
+      success: false,
+      message: 'Không thể kết nối máy chủ xác thực để đổi mã PIN.',
     };
   };
 

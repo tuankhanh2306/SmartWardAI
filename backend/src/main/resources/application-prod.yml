@@ -18,6 +18,7 @@ spring:
   flyway:
     enabled: true
     baseline-on-migrate: true
+    out-of-order: false
     locations: classpath:db/migration,classpath:db/seed
   jpa:
     hibernate:
@@ -48,6 +49,7 @@ smartward:
     jwt-secret: ${JWT_SECRET}
     token-ttl-hours: ${OFFICER_TOKEN_TTL_HOURS:8}
     enforce-officer-auth: ${ENFORCE_OFFICER_AUTH:true}
+    render-edge-trust-enabled: ${RENDER_EDGE_TRUST_ENABLED:true}
   rate-limit:
     requests-per-minute: ${RATE_LIMIT_RPM:30}
 
