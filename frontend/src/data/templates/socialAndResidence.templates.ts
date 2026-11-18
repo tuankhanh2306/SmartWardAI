@@ -389,14 +389,14 @@ export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
     "formCode": "Mẫu CT01 - TT 66/2023/TT-BCA & TT 53/2025/TT-BCA",
     "agencyType": "POLICE",
     "title": "TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ",
-    "legalNote": "(Mẫu CT01 ban hành kèm theo Thông tư số 66/2023/TT-BCA ngày 17/11/2023, sửa đổi bổ sung tại Thông tư số 53/2025/TT-BCA của Bộ Công an)",
+    "legalNote": "Mẫu CT01 ban hành kèm theo Thông tư số 66/2023/TT-BCA (sửa đổi, bổ sung tại Thông tư số 53/2025/TT-BCA) của Bộ trưởng Bộ Công an",
     "recipient": "Công an {WARD_NAME}",
     "sections": [
       {
-        "title": "I. THÔNG TIN NGƯỜI KÊ KHAI VÀ CHỦ HỘ",
+        "title": "",
         "fields": [
           {
-            "label": "1. Họ, chữ đệm và tên người kê khai",
+            "label": "1. Họ, chữ đệm và tên khai sinh",
             "placeholder": "NGUYỄN MINH TUẤN KHANH",
             "type": "text",
             "isBold": true
@@ -409,71 +409,61 @@ export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
             "secondPlaceholder": "Nam"
           },
           {
-            "label": "4. Số định danh cá nhân / CCCD",
+            "label": "4. Số định danh cá nhân",
             "placeholder": "089205023490",
-            "type": "grid2",
-            "secondLabel": "5. Số điện thoại liên hệ",
-            "secondPlaceholder": "0918234567"
-          },
-          {
-            "label": "6. Nơi thường trú",
-            "placeholder": "Số 18 Đường Trần Hưng Đạo, {WARD_NAME}, Tỉnh An Giang",
-            "type": "text"
-          },
-          {
-            "label": "7. Nơi tạm trú",
-            "placeholder": "Không có",
-            "type": "text"
-          },
-          {
-            "label": "8. Nơi ở hiện tại",
-            "placeholder": "Số 18 Đường Trần Hưng Đạo, {WARD_NAME}, Tỉnh An Giang",
-            "type": "text"
-          },
-          {
-            "label": "9. Họ, chữ đệm và tên chủ hộ",
-            "placeholder": "NGUYỄN VĂN BÌNH",
             "type": "text",
             "isBold": true
           },
           {
-            "label": "Số định danh cá nhân / CCCD của chủ hộ",
-            "placeholder": "089075001234",
+            "label": "5. Số điện thoại liên hệ",
+            "placeholder": "0918234567",
             "type": "grid2",
-            "secondLabel": "Quan hệ với chủ hộ",
-            "secondPlaceholder": "Con đẻ"
-          }
-        ]
-      },
-      {
-        "title": "II. NỘI DUNG ĐỀ NGHỊ VÀ THÀNH VIÊN CÙNG THAY ĐỔI",
-        "fields": [
+            "secondLabel": "6. Email",
+            "secondPlaceholder": "congdan@angiang.gov.vn"
+          },
           {
-            "label": "10. Nội dung đề nghị",
+            "label": "7. Họ, chữ đệm và tên chủ hộ (2)",
+            "placeholder": "NGUYỄN VĂN BÌNH",
+            "type": "grid2",
+            "secondLabel": "8. Mối quan hệ với chủ hộ",
+            "secondPlaceholder": "Con đẻ"
+          },
+          {
+            "label": "9. Số định danh cá nhân của chủ hộ",
+            "placeholder": "089075001234",
+            "type": "text",
+            "isBold": true
+          },
+          {
+            "label": "10. Nội dung đề nghị (3)",
             "placeholder": "Đăng ký thường trú tại Số 18 Đường Trần Hưng Đạo, {WARD_NAME}, Tỉnh An Giang",
             "type": "text"
           },
           {
             "label": "11. Những thành viên trong hộ gia đình cùng thay đổi",
-            "placeholder": "1. NGUYỄN MINH TUẤN KHANH - Sinh: 12/08/1998 - Giới tính: Nam - Số ĐDCN/CCCD: 089205023490",
+            "placeholder": "1. NGUYỄN MINH TUẤN KHANH - Sinh: 12/08/1998 - Giới tính: Nam - Số ĐDCN: 089205023490 - Quan hệ với chủ hộ: Con đẻ",
             "type": "text"
           }
         ]
       }
     ],
-    "commitText": "Tôi xin cam đoan những lời khai trên đây là hoàn toàn đúng sự thật và chịu trách nhiệm trước pháp luật về lời khai của mình.",
+    "commitText": "Chú thích: (1) Cơ quan đăng ký cư trú. (2) Trường hợp đăng ký thường trú, đăng ký tạm trú, tách hộ ghi thông tin chủ hộ gia đình mới. (3) Ghi rõ ràng, cụ thể nội dung đề nghị. (4) Ý kiến của chủ hộ. (5) Ý kiến của chủ sở hữu chỗ ở hợp pháp. (6) Ý kiến của cha hoặc mẹ hoặc người giám hộ. (7) Người kê khai. (8) Chỉ kê khai thông tin khi công dân đề nghị xác nhận nội dung đồng ý thông qua ứng dụng định danh quốc gia (VNeID).",
     "signatures": [
       {
-        "role": "Ý KIẾN CỦA CHỦ HỘ",
-        "note": "(Ghi rõ nội dung, ký và ghi rõ họ tên)"
+        "role": "Ý KIẾN CỦA CHỦ HỘ (4)",
+        "note": "......, ngày......tháng....năm......"
       },
       {
-        "role": "Ý KIẾN CỦA CHỦ SỞ HỮU CHỖ Ở HỢP PHÁP",
-        "note": "(Ghi rõ nội dung, ký và ghi rõ họ tên)"
+        "role": "Ý KIẾN CỦA CHỦ SỞ HỮU CHỖ Ở HỢP PHÁP (5)",
+        "note": "......, ngày......tháng....năm......"
       },
       {
-        "role": "NGƯỜI KÊ KHAI",
-        "note": "(Ký và ghi rõ họ tên)"
+        "role": "Ý KIẾN CỦA CHA HOẶC MẸ HOẶC NGƯỜI GIÁM HỘ (6)",
+        "note": "......, ngày......tháng....năm......"
+      },
+      {
+        "role": "NGƯỜI KÊ KHAI (7)",
+        "note": "......, ngày......tháng....năm......"
       }
     ]
   },
