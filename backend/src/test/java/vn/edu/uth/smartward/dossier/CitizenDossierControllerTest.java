@@ -179,4 +179,31 @@ class CitizenDossierControllerTest {
                 .andExpect(jsonPath("$.data.status").value("APPROVED"))
                 .andExpect(jsonPath("$.data.appointmentCode").value("LH-20261112-001"));
     }
+
+    @Test
+    @DisplayName("MOB-0.5: GET /api/v1/dossiers/officer/by-qr returns HTTP 200 OK with masked CCCD")
+    void lookupOfficerDossierByQr_returns200() throws Exception {
+        OfficerDossierDto dto = OfficerDossierDto.builder()
+                .id(2L)
+                .dossierCode("HS-20261118-AGPLONGXUYEN-0001")
+                .procedureCode("TTHC-CR-01")
+                .wardCode("AG_P_LONGXUYEN")
+                .citizenCccd("********3490")
+                .citizenName("NGUYEN MINH TUAN KHANH")
+                .status("APPROVED")
+                .appointmentCode("LH-20261118-8899")
+                .build();
+
+        when(dossierService.lookupOfficerDossierByQr(eq("SMARTWARD_PASS|HS-20261118-AGPLONGXUYEN-0001|LH-20261118-8899|AG_P_LONGXUYEN"), any()))
+                .thenReturn(dto);
+
+        mockMvc.perform(get("/api/v1/dossiers/officer/by-qr")
+                        .param("code", "SMARTWARD_PASS|HS-20261118-AGPLONGXUYEN-0001|LH-20261118-8899|AG_P_LONGXUYEN")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.dossierCode").value("HS-20261118-AGPLONGXUYEN-0001"))
+                .andExpect(jsonPath("$.data.appointmentCode").value("LH-20261118-8899"))
+                .andExpect(jsonPath("$.data.citizenCccd").value("********3490"));
+    }
 }

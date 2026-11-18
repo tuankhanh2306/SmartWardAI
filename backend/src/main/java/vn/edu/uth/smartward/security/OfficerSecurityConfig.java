@@ -41,7 +41,7 @@ public class OfficerSecurityConfig {
     private final OfficerTokenAuthenticationFilter tokenFilter;
     private final ObjectMapper objectMapper;
 
-    @Value("${smartward.cors.allowed-origins:http://localhost:3000,http://localhost:5173}")
+    @Value("${smartward.cors.allowed-origins:http://localhost:3000,http://localhost:5173,http://localhost:8081,http://10.0.2.2:8081,http://192.168.*.*:*,exp://*}")
     private List<String> allowedOrigins;
 
     @Bean
@@ -140,12 +140,19 @@ public class OfficerSecurityConfig {
                 .filter(o -> !o.isEmpty() && !"*".equals(o))
                 .toList();
         if (safeOrigins.isEmpty()) {
-            safeOrigins = List.of("http://localhost:3000", "http://localhost:5173");
+            safeOrigins = List.of(
+                    "http://localhost:3000",
+                    "http://localhost:5173",
+                    "http://localhost:8081",
+                    "http://10.0.2.2:8081",
+                    "http://192.168.*.*:*",
+                    "exp://*"
+            );
         }
         config.setAllowedOriginPatterns(safeOrigins);
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setExposedHeaders(List.of("X-Correlation-ID", "Content-Disposition"));
+        config.setExposedHeaders(List.of("X-Correlation-ID", "X-Correlation-Id", "Content-Disposition"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

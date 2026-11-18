@@ -15,6 +15,8 @@ public interface CitizenDossierRepository extends JpaRepository<CitizenDossier, 
 
     Optional<CitizenDossier> findByDossierCodeIgnoreCase(String dossierCode);
 
+    Optional<CitizenDossier> findByAppointmentCodeIgnoreCase(String appointmentCode);
+
     boolean existsByDossierCode(String dossierCode);
 
     long countByDossierCodeStartingWith(String prefix);

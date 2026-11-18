@@ -97,6 +97,18 @@ public class CitizenDossierController {
         return ResponseEntity.ok(ApiResponse.ok("Lấy danh sách hồ sơ thành công.", list));
     }
 
+    @GetMapping("/officer/by-qr")
+    @Operation(summary = "MOB-0.5: Tra cứu hồ sơ công dân tại quầy bằng mã QR phiếu hẹn (SMARTWARD_PASS|HS-...|LH-...)")
+    public ResponseEntity<ApiResponse<OfficerDossierDto>> lookupOfficerDossierByQr(
+            @RequestParam("code") String code,
+            HttpServletRequest request) {
+        OfficerAuthService.OfficerPrincipal principal =
+                (OfficerAuthService.OfficerPrincipal) request.getAttribute("officerPrincipal");
+        log.info("MOB-0.5: Officer QR pass lookup requested: code='{}'", code);
+        OfficerDossierDto dto = dossierService.lookupOfficerDossierByQr(code, principal);
+        return ResponseEntity.ok(ApiResponse.ok("Tra cứu hồ sơ theo mã QR thành công.", dto));
+    }
+
     @PutMapping("/{dossierCode}/review")
     @Operation(summary = "Cán bộ phê duyệt tiếp nhận, yêu cầu bổ sung hoặc từ chối hồ sơ")
     public ResponseEntity<ApiResponse<OfficerDossierDto>> reviewDossier(
