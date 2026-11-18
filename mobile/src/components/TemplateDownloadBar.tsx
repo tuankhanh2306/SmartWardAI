@@ -1,9 +1,7 @@
 /**
  * SmartWard AI Mobile — Thanh Tải Biểu Mẫu Trực Tiếp (.DOCX & .PDF)
- * Kỷ luật bắt buộc:
- * - Kích thước vùng chạm tối thiểu >= 48dp
- * - CHỈ cung cấp 2 nút tải trực tiếp: "📄 Tải Mẫu .DOCX" & "📥 Tải Mẫu .PDF"
- * - TUYỆT ĐỐI KHÔNG có nút In (No Print Dialogs)
+ * Responsive cho mọi cỡ màn hình (tự xếp dọc trên Tiny Phone < 350dp hoặc cỡ chữ A++ để không bao giờ cắt chữ)
+ * TUYỆT ĐỐI KHÔNG có nút In (No Print Dialogs).
  */
 
 import React, { useState } from 'react';
@@ -14,6 +12,7 @@ import {
   exportTemplateDocument,
   getTemplateFileDescriptor,
 } from '../core/templateExporter';
+import { useResponsivePhone } from '../theme/responsive';
 import { COLORS, MIN_TOUCH_TARGET, RADIUS, SPACING } from '../theme/tokens';
 import type { CoreFormType } from '../types/api.types';
 
@@ -32,7 +31,8 @@ export const TemplateDownloadBar: React.FC<TemplateDownloadBarProps> = ({
   formType,
   legalBasis,
 }) => {
-  const { typography } = useAccessibility();
+  const { typography, fontScaleMode } = useAccessibility();
+  const responsive = useResponsivePhone(fontScaleMode);
   const [busyFormat, setBusyFormat] = useState<'DOCX' | 'PDF' | null>(null);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
 
@@ -42,6 +42,8 @@ export const TemplateDownloadBar: React.FC<TemplateDownloadBarProps> = ({
     formType,
     legalBasis
   );
+
+  const stackVertically = responsive.isTinyPhone || fontScaleMode === 'A++';
 
   const handleDownload = async (format: 'DOCX' | 'PDF') => {
     setBusyFormat(format);
@@ -57,7 +59,7 @@ export const TemplateDownloadBar: React.FC<TemplateDownloadBarProps> = ({
         Tải trực tiếp biểu mẫu chuẩn Nghị định 30/2020/NĐ-CP về máy (Miễn phí 100%):
       </Text>
 
-      <View style={styles.row}>
+      <View style={[styles.row, stackVertically && styles.column]}>
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`Tải mẫu DOCX ${descriptor.docxFileName}`}
@@ -75,7 +77,7 @@ export const TemplateDownloadBar: React.FC<TemplateDownloadBarProps> = ({
           ) : (
             <FileText size={16} color={COLORS.primary} />
           )}
-          <Text style={[styles.btnDocxText, typography.bodyBold]}>
+          <Text style={[styles.btnDocxText, typography.bodyBold]} numberOfLines={1}>
             📄 Tải Mẫu .DOCX
           </Text>
         </Pressable>
@@ -97,7 +99,7 @@ export const TemplateDownloadBar: React.FC<TemplateDownloadBarProps> = ({
           ) : (
             <Download size={16} color={COLORS.onPrimary} />
           )}
-          <Text style={[styles.btnPdfText, typography.bodyBold]}>
+          <Text style={[styles.btnPdfText, typography.bodyBold]} numberOfLines={1}>
             📥 Tải Mẫu .PDF
           </Text>
         </Pressable>
@@ -123,6 +125,9 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     gap: SPACING.sm,
+  },
+  column: {
+    flexDirection: 'column',
   },
   btnDocx: {
     flex: 1,

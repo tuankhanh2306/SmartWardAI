@@ -1,6 +1,9 @@
 /**
  * SmartWard AI Mobile — Design Tokens & Elderly-First Typography Engine
- * Synchronized directly from design-tokens.json (WCAG 2.1 AA/AAA, 3-Tier Font Scaling A/A+/A++)
+ * Synchronized 100% with SmartWard AI Web (frontend/src/index.css) & design-tokens.json:
+ * - Official Vietnamese Public-Admin Citizen Masthead (Crimson #B90E23 + Warm Ivory #F7EEDF + Gold #FDE047)
+ * - Civic Emerald Primary Actions (#00796B) & Officer Institutional Navy (#0F2942)
+ * - WCAG 2.1 AA/AAA 3-Tier Font Scaling (A = 1.0x | A+ = 1.15x | A++ = 1.32x) & Min Touch Target 48dp
  */
 import rawTokens from '../../design-tokens.json';
 
@@ -21,12 +24,39 @@ export const FONT_SCALE_FACTORS: Record<FontScaleMode, number> = {
 const light = rawTokens.color.semantic.light;
 
 export const COLORS = {
+  // Civic Emerald (Primary Actions, AI Verification, QR Pass Framing)
   primary: light['color/primary/default'],
   primaryPressed: light['color/primary/pressed'],
   primarySubtle: light['color/primary/subtle'],
   primaryBorder: light['color/primary/border'],
   onPrimary: light['color/primary/on-primary'],
 
+  // Official Vietnamese Citizen Portal Tokens (Synced with frontend/src/index.css)
+  citizenCrimson: '#B90E23',
+  citizenCrimsonDark: '#9E0B1D',
+  citizenCrimsonHover: '#8F0A1B',
+  citizenCrimsonDeep: '#750715',
+  citizenBubble: '#9F0C1E',
+  citizenEmblemBg: '#7F0918',
+  citizenCrimsonSoftBg: '#FEF2F2',
+  citizenCrimsonSoftBorder: '#FECACA',
+  citizenIvory: '#F7EEDF',
+  citizenIvoryBorder: '#E5D4B3',
+  citizenIvoryInk: '#2B1B17',
+  citizenIvoryMuted: '#5C4033',
+  citizenGold: '#D4A017',
+  citizenGoldBorder: '#FCD34D',
+  citizenGoldLight: '#FDE047',
+  citizenGoldSoft: '#FDE68A',
+  citizenSurface: '#F5F6F8',
+  chatCanvas: '#FAFBFD',
+
+  // Officer Institutional Navy Tokens (Synced with frontend/src/index.css)
+  officerNavy: '#0F2942',
+  officerNavyHover: '#1E3A5F',
+  officerAccentSky: '#38BDF8',
+
+  // Neutral Surfaces & Typography
   canvas: light['color/surface/canvas'],
   card: light['color/surface/card'],
   elevated: light['color/surface/elevated'],
@@ -42,15 +72,19 @@ export const COLORS = {
   borderSubtle: light['color/border/subtle'],
   borderFocus: light['color/border/focus'],
 
+  // Semantic Status Tokens
   successText: light['color/status/success-text'],
   successBg: light['color/status/success-bg'],
   successBorder: light['color/status/success-border'],
   successAccent: rawTokens.color.primitives.success['600'],
+  onlineDot: '#4ADE80',
+  onlineDotDark: '#16A34A',
 
   warningText: light['color/status/warning-text'],
   warningBg: light['color/status/warning-bg'],
   warningBorder: light['color/status/warning-border'],
   warningAccent: rawTokens.color.primitives.warning['600'],
+  offlineDot: '#FBBF24',
 
   errorText: light['color/status/error-text'],
   errorBg: light['color/status/error-bg'],

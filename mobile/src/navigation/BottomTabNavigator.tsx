@@ -1,12 +1,7 @@
 /**
  * SmartWard AI Mobile — Thanh Điều hướng 5 Tab Đáy (BottomTabNavigator)
- * Chiều cao chuẩn: 64dp | Active: #00796B | Inactive: #64748B
- * 5 Tab:
- *  1. 💬 40 TTHC    (LegalRagChatScreen)
- *  2. 🛡️ Sơ Duyệt   (SmartFormPrecheckScreen)
- *  3. 🎫 Ví Mã QR   (DossierAndQrPassScreen)
- *  4. 📍 Sự Cố 25m  (FieldIncidentReportScreen)
- *  5. 🏛️ Cán Bộ     (OfficerMobileAuditScreen)
+ * Đồng bộ bảng màu Web Frontend (#B90E23 Citizen Crimson / #0F2942 Officer Navy)
+ * Tối ưu SafeArea (iPhone Home Indicator / Android Nav Bar) & mọi kích cỡ điện thoại (320px -> 430px+)
  */
 
 import React from 'react';
@@ -18,12 +13,14 @@ import {
   QrCode,
   ShieldCheck,
 } from 'lucide-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAccessibility } from '../context/AccessibilityContext';
 import { DossierAndQrPassScreen } from '../screens/DossierAndQrPassScreen';
 import { FieldIncidentReportScreen } from '../screens/FieldIncidentReportScreen';
 import { LegalRagChatScreen } from '../screens/LegalRagChatScreen';
 import { OfficerMobileAuditScreen } from '../screens/OfficerMobileAuditScreen';
 import { SmartFormPrecheckScreen } from '../screens/SmartFormPrecheckScreen';
+import { useResponsivePhone } from '../theme/responsive';
 import { COLORS, TOUCH_TARGETS } from '../theme/tokens';
 import type { CoreFormType } from '../types/api.types';
 
@@ -38,31 +35,35 @@ export type RootTabParamList = {
 const Tab = createBottomTabNavigator<RootTabParamList>();
 
 export const BottomTabNavigator: React.FC = () => {
-  const { stopSpeaking } = useAccessibility();
+  const { stopSpeaking, fontScaleMode } = useAccessibility();
+  const responsive = useResponsivePhone(fontScaleMode);
+  const insets = useSafeAreaInsets();
+
+  const bottomInset = Math.max(insets.bottom, 6);
 
   return (
     <Tab.Navigator
       initialRouteName="LegalRagTab"
       screenListeners={{
         tabPress: () => {
-          // Stop any active TTS reading when switching tabs
           stopSpeaking();
         },
       }}
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: COLORS.primary,
+        tabBarActiveTintColor: COLORS.citizenCrimson,
         tabBarInactiveTintColor: COLORS.textMuted,
+        tabBarAllowFontScaling: false,
         tabBarStyle: {
-          height: TOUCH_TARGETS.bottomTabBarHeight,
+          height: TOUCH_TARGETS.bottomTabBarHeight + Math.max(0, insets.bottom - 4),
           backgroundColor: COLORS.card,
           borderTopWidth: 1,
           borderTopColor: COLORS.borderSubtle,
-          paddingBottom: 8,
+          paddingBottom: bottomInset,
           paddingTop: 6,
         },
         tabBarLabelStyle: {
-          fontSize: 11,
+          fontSize: responsive.tabLabelFontSize,
           fontWeight: '700',
         },
       }}
@@ -72,7 +73,9 @@ export const BottomTabNavigator: React.FC = () => {
         component={LegalRagChatScreen}
         options={{
           title: '40 TTHC',
-          tabBarIcon: ({ color, size }) => <MessageSquareText size={size} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <MessageSquareText size={responsive.tabIconSize} color={color} />
+          ),
         }}
       />
       <Tab.Screen
@@ -80,7 +83,9 @@ export const BottomTabNavigator: React.FC = () => {
         component={SmartFormPrecheckScreen}
         options={{
           title: 'Sơ Duyệt',
-          tabBarIcon: ({ color, size }) => <ShieldCheck size={size} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <ShieldCheck size={responsive.tabIconSize} color={color} />
+          ),
         }}
       />
       <Tab.Screen
@@ -88,15 +93,19 @@ export const BottomTabNavigator: React.FC = () => {
         component={DossierAndQrPassScreen}
         options={{
           title: 'Ví Mã QR',
-          tabBarIcon: ({ color, size }) => <QrCode size={size} color={color} />,
+          tabBarIcon: ({ color }) => (
+            <QrCode size={responsive.tabIconSize} color={color} />
+          ),
         }}
       />
       <Tab.Screen
         name="IncidentTab"
         component={FieldIncidentReportScreen}
         options={{
-          title: 'Sự Cố 25m',
-          tabBarIcon: ({ color, size }) => <MapPinned size={size} color={color} />,
+          title: responsive.isTinyPhone ? 'Sự Cố' : 'Sự Cố 25m',
+          tabBarIcon: ({ color }) => (
+            <MapPinned size={responsive.tabIconSize} color={color} />
+          ),
         }}
       />
       <Tab.Screen
@@ -104,7 +113,10 @@ export const BottomTabNavigator: React.FC = () => {
         component={OfficerMobileAuditScreen}
         options={{
           title: 'Cán Bộ',
-          tabBarIcon: ({ color, size }) => <Landmark size={size} color={color} />,
+          tabBarActiveTintColor: COLORS.officerNavy,
+          tabBarIcon: ({ color }) => (
+            <Landmark size={responsive.tabIconSize} color={color} />
+          ),
         }}
       />
     </Tab.Navigator>
