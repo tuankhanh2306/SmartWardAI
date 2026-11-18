@@ -123,8 +123,8 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                 {/* SPECIALIZED FIELDS FOR CT01: Cư trú (Thông tư 66/2023/TT-BCA) */}
                 {selectedFormType === 'CT01' && (
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2 text-xs font-extrabold text-[#004D40] flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-[#00695C]" />
+                    <div className="sm:col-span-2 text-xs font-extrabold text-[#750715] flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[#B90E23]" />
                       <span>Thông tin Tờ khai thay đổi thông tin cư trú (Mẫu CT01 - Thông tư 66/2023/TT-BCA)</span>
                     </div>
 
@@ -271,8 +271,8 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                 {/* SPECIALIZED FIELDS FOR PRIORITY 1: TK-KS (Birth Registration + Hospital Cert Cross-check) */}
                 {selectedFormType === 'TK-KS' && (
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2 text-xs font-extrabold text-[#004D40] flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-[#00695C]" />
+                    <div className="sm:col-span-2 text-xs font-extrabold text-[#750715] flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[#B90E23]" />
                       <span>Đối chiếu chéo Giấy chứng sinh bệnh viện & Tình trạng hôn nhân cha mẹ (Thông tư 04/2020/TT-BTP)</span>
                     </div>
 
@@ -460,8 +460,8 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                 {/* SPECIALIZED FIELDS FOR PRIORITY 2: TK-KH (Marriage & Single Status Certificate) */}
                 {selectedFormType === 'TK-KH' && (
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2 text-xs font-extrabold text-[#004D40] flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-[#00695C]" />
+                    <div className="sm:col-span-2 text-xs font-extrabold text-[#750715] flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[#B90E23]" />
                       <span>Rà soát biểu mẫu Hôn nhân & Tình trạng hôn nhân (Thông tư 04/2020/TT-BTP)</span>
                     </div>
 
@@ -472,7 +472,7 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                         onClick={() => setMarriageMode('MARRIAGE_REGISTRATION')}
                         className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer gov-focus-ring ${
                           marriageMode === 'MARRIAGE_REGISTRATION'
-                            ? 'bg-[#00695C] text-white shadow-xs'
+                            ? 'bg-[#B90E23] text-white shadow-xs'
                             : 'text-slate-700 hover:text-slate-900'
                         }`}
                       >
@@ -483,7 +483,7 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                         onClick={() => setMarriageMode('MARITAL_STATUS_CONFIRMATION')}
                         className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer gov-focus-ring ${
                           marriageMode === 'MARITAL_STATUS_CONFIRMATION'
-                            ? 'bg-[#00695C] text-white shadow-xs'
+                            ? 'bg-[#B90E23] text-white shadow-xs'
                             : 'text-slate-700 hover:text-slate-900'
                         }`}
                       >
@@ -695,8 +695,8 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                 {/* SPECIALIZED FIELDS FOR PRIORITY 3: TK-BTXH (Nghị định 20/2021/NĐ-CP & Luật BHXH 2024) */}
                 {selectedFormType === 'TK-BTXH' && (
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2 text-xs font-extrabold text-[#004D40] flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-[#00695C]" />
+                    <div className="sm:col-span-2 text-xs font-extrabold text-[#750715] flex items-center gap-1.5">
+                      <Sparkles className="w-4 h-4 text-[#B90E23]" />
                       <span>Kiểm tra điều kiện Mẫu số 01 Nghị định 20/2021/NĐ-CP, Luật BHXH 2024 & Tài khoản an sinh Đề án 06</span>
                     </div>
 
@@ -755,36 +755,36 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
 
                     {/* Giấy xác nhận khuyết tật */}
                     {(disabilityLevel === 'SEVERE' || disabilityLevel === 'EXTREMELY_SEVERE') && (
-                      <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 rounded-xl bg-teal-50 border border-teal-200">
+                      <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 rounded-xl bg-[#FBF9F5] border border-[#E5D4B3]">
                         <div className="flex flex-col gap-1">
-                          <label htmlFor="p3-btxh-dis-num" className="text-xs font-bold text-teal-900">Số Giấy xác nhận khuyết tật:</label>
+                          <label htmlFor="p3-btxh-dis-num" className="text-xs font-bold text-[#750715]">Số Giấy xác nhận khuyết tật:</label>
                           <input
                             id="p3-btxh-dis-num"
                             type="text"
                             value={disabilityCertNumber}
                             placeholder="VD: GKT-2025/001"
                             onChange={(e) => setDisabilityCertNumber(e.target.value)}
-                            className="w-full h-9 px-3 rounded-xl border border-teal-300 bg-white text-xs text-slate-800 font-mono"
+                            className="w-full h-9 px-3 rounded-xl border border-[#E5D4B3] bg-white text-xs text-slate-800 font-mono"
                           />
                         </div>
                         <div className="flex flex-col gap-1">
-                          <label htmlFor="p3-btxh-dis-date" className="text-xs font-bold text-teal-900">Ngày cấp Giấy xác nhận:</label>
+                          <label htmlFor="p3-btxh-dis-date" className="text-xs font-bold text-[#750715]">Ngày cấp Giấy xác nhận:</label>
                           <input
                             id="p3-btxh-dis-date"
                             type="date"
                             value={disabilityCertIssueDate}
                             onChange={(e) => setDisabilityCertIssueDate(e.target.value)}
-                            className="w-full h-9 px-3 rounded-xl border border-teal-300 bg-white text-xs text-slate-800"
+                            className="w-full h-9 px-3 rounded-xl border border-[#E5D4B3] bg-white text-xs text-slate-800"
                           />
                         </div>
                         <div className="flex flex-col gap-1">
-                          <label htmlFor="p3-btxh-dis-issuer" className="text-xs font-bold text-teal-900">Cơ quan cấp (Chủ tịch UBND):</label>
+                          <label htmlFor="p3-btxh-dis-issuer" className="text-xs font-bold text-[#750715]">Cơ quan cấp (Chủ tịch UBND):</label>
                           <input
                             id="p3-btxh-dis-issuer"
                             type="text"
                             value={disabilityCertIssuer}
                             onChange={(e) => setDisabilityCertIssuer(e.target.value)}
-                            className="w-full h-9 px-3 rounded-xl border border-teal-300 bg-white text-xs text-slate-800"
+                            className="w-full h-9 px-3 rounded-xl border border-[#E5D4B3] bg-white text-xs text-slate-800"
                           />
                         </div>
                       </div>

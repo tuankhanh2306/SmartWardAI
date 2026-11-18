@@ -1581,19 +1581,20 @@ export const FormAndIssueReporting: React.FC = () => {
   };
 
   return (
-    <main className="bg-uth-canvas bg-uth-watermark min-h-[calc(100vh-4rem)] p-3 sm:p-6 lg:p-8 flex flex-col justify-start relative">
+    <main className="bg-[#F5F6F8] min-h-[calc(100vh-4rem)] p-3 sm:p-6 lg:p-8 flex flex-col justify-start relative">
       <div className="flex flex-col w-full max-w-7xl mx-auto gap-5 relative z-10">
-        {/* Top Segmented Navigation Tab Pill */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
+        {/* Top Segmented Navigation Tab Pill (BCA Portal Accent Bar) */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 pb-3 border-b border-slate-200">
         <div>
-          <h1 className="text-lg sm:text-xl font-extrabold text-[#00796B] tracking-tight">
+          <h1 className="text-base sm:text-xl font-extrabold text-[#881320] uppercase tracking-wide">
             {activeTab === 'form'
               ? `Kiểm Tra 4 Mẫu Tờ Khai • ${currentWard.name}`
               : activeTab === 'incident'
               ? `Báo Sự Cố Hiện Trường (GPS) • ${currentWard.name}`
               : `Tra Cứu Tiến Độ Hồ Sơ (SLA) • ${currentWard.name}`}
           </h1>
-          <p className="text-xs text-[#64748B] mt-0.5">
+          <span className="block w-14 h-[3px] bg-[#B90E23] mt-1.5 mb-1.5" />
+          <p className="text-xs text-slate-600">
             {activeTab === 'form'
               ? 'Rà soát tự động 12 số CCCD, ngày sinh, điều kiện kết hôn & bảo trợ trước khi nộp quầy.'
               : activeTab === 'incident'
@@ -1602,7 +1603,7 @@ export const FormAndIssueReporting: React.FC = () => {
           </p>
         </div>
 
-        <div className="p-1 bg-[#E2E8F0]/70 rounded-xl border border-[#CBD5E1] flex flex-wrap sm:flex-nowrap items-center gap-1 self-start sm:self-auto shrink-0">
+        <div className="p-1 bg-[#F7EEDF] rounded-xl border border-[#E5D4B3] flex flex-wrap sm:flex-nowrap items-center gap-1 self-start sm:self-auto shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -1611,11 +1612,11 @@ export const FormAndIssueReporting: React.FC = () => {
             }}
             className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer gov-focus-ring ${
               activeTab === 'form'
-                ? 'bg-[#00695C] text-white shadow-xs'
-                : 'text-[#334155] hover:text-[#004D40]'
+                ? 'bg-[#B90E23] text-white shadow-xs'
+                : 'text-[#2B1B17] hover:text-[#9F0C1E] hover:bg-white/60'
             }`}
           >
-            <FileCheck2 className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'form' ? 'text-teal-100' : 'text-[#475569]'}`} />
+            <FileCheck2 className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'form' ? 'text-amber-100' : 'text-[#5C4033]'}`} />
             <span>Tờ Khai (4 Mẫu)</span>
           </button>
 
@@ -1628,11 +1629,11 @@ export const FormAndIssueReporting: React.FC = () => {
             }}
             className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer gov-focus-ring ${
               activeTab === 'incident'
-                ? 'bg-[#00695C] text-white shadow-xs'
-                : 'text-[#334155] hover:text-[#004D40]'
+                ? 'bg-[#B90E23] text-white shadow-xs'
+                : 'text-[#2B1B17] hover:text-[#9F0C1E] hover:bg-white/60'
             }`}
           >
-            <AlertTriangle className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'incident' ? 'text-teal-100' : 'text-[#475569]'}`} />
+            <AlertTriangle className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'incident' ? 'text-amber-100' : 'text-[#5C4033]'}`} />
             <span>Báo Sự Cố (GPS)</span>
           </button>
 
@@ -1645,11 +1646,11 @@ export const FormAndIssueReporting: React.FC = () => {
             }}
             className={`flex items-center gap-1.5 px-3 sm:px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all cursor-pointer gov-focus-ring ${
               activeTab === 'tracking'
-                ? 'bg-[#00695C] text-white shadow-xs'
-                : 'text-[#334155] hover:text-[#004D40]'
+                ? 'bg-[#B90E23] text-white shadow-xs'
+                : 'text-[#2B1B17] hover:text-[#9F0C1E] hover:bg-white/60'
             }`}
           >
-            <Clock className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'tracking' ? 'text-teal-100' : 'text-[#475569]'}`} />
+            <Clock className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'tracking' ? 'text-amber-100' : 'text-[#5C4033]'}`} />
             <span>Tra Cứu Hồ Sơ (SLA)</span>
           </button>
         </div>
@@ -1682,7 +1683,7 @@ export const FormAndIssueReporting: React.FC = () => {
                       aria-current={isCurrent ? 'step' : undefined}
                       className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition cursor-pointer gov-focus-ring ${
                         isCurrent
-                          ? 'bg-[#00695C] text-white border-[#004D40] shadow-xs'
+                          ? 'bg-[#B90E23] text-white border-[#8F0A1B] shadow-xs'
                           : isDone
                           ? 'bg-[#F0FDF4] text-[#065F46] border-[#A7F3D0] hover:bg-[#DCFCE7]'
                           : 'bg-[#F8FAFC] text-[#334155] border-[#CBD5E1] hover:bg-[#F1F5F9]'
@@ -1691,16 +1692,16 @@ export const FormAndIssueReporting: React.FC = () => {
                       <span
                         className={`w-6 h-6 rounded-full text-xs font-extrabold flex items-center justify-center shrink-0 ${
                           isCurrent
-                            ? 'bg-white text-[#004D40]'
+                            ? 'bg-white text-[#750715]'
                             : isDone
-                            ? 'bg-[#00695C] text-white'
+                            ? 'bg-[#065F46] text-white'
                             : 'bg-[#E2E8F0] text-[#334155]'
                         }`}
                       >
                         {isDone && !isCurrent ? <Check className="w-3.5 h-3.5" /> : s.step}
                       </span>
                       <div className="min-w-0 flex-1">
-                        <span className={`block text-[10px] font-bold uppercase tracking-wider ${isCurrent ? 'text-teal-50' : 'text-[#475569]'}`}>
+                        <span className={`block text-[10px] font-bold uppercase tracking-wider ${isCurrent ? 'text-amber-100' : 'text-[#475569]'}`}>
                           {s.label}
                         </span>
                         <span className="block text-xs font-bold truncate">{s.title}</span>
@@ -1751,23 +1752,23 @@ export const FormAndIssueReporting: React.FC = () => {
                       onClick={() => handleSelectFormType(item.id, 'ERROR_DEMO')}
                       className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 gov-focus-ring ${
                         active
-                          ? 'bg-[#00695C] text-white border-[#004D40] shadow-sm'
-                          : 'bg-white hover:bg-[#F8FAFC] text-[#0F172A] border-[#CBD5E1]'
+                          ? 'bg-[#B90E23] text-white border-[#8F0A1B] shadow-sm'
+                          : 'bg-white hover:bg-[#FEF2F2]/40 text-[#0F172A] border-slate-200 hover:border-[#FECACA]'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-2">
                         <span
                           className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            active ? 'bg-[#CCFBF1] text-[#004D40]' : 'bg-[#F1F5F9] text-[#004D40]'
+                            active ? 'bg-[#F7EEDF] text-[#750715]' : 'bg-[#F1F5F9] text-[#334155]'
                           }`}
                         >
                           {item.badge}
                         </span>
-                        {active && <CheckCircle2 className="w-4 h-4 text-teal-100" />}
+                        {active && <CheckCircle2 className="w-4 h-4 text-amber-200" />}
                       </div>
                       <div>
                         <div className="text-xs sm:text-sm font-extrabold">{item.title}</div>
-                        <p className={`text-xs mt-1 leading-snug ${active ? 'text-teal-50' : 'text-[#475569]'}`}>
+                        <p className={`text-xs mt-1 leading-snug ${active ? 'text-amber-50' : 'text-[#475569]'}`}>
                           {item.desc}
                         </p>
                       </div>
@@ -1842,7 +1843,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     className="w-full p-4 flex items-center justify-between gap-3 text-left bg-white hover:bg-[#F8FAFC] transition cursor-pointer gov-focus-ring"
                   >
                     <div>
-                      <span className="text-xs sm:text-sm font-extrabold text-[#004D40] block">
+                      <span className="text-xs sm:text-sm font-extrabold text-[#750715] block">
                         Bảng Đối Chiếu 4 Nhóm Hồ Sơ & Lỗi Thường Gặp
                       </span>
                       <span className="text-[11px] text-[#475569]">
@@ -1867,7 +1868,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         </thead>
                         <tbody className="divide-y divide-[#E2E8F0] text-xs">
                           <tr>
-                            <td className="p-2 font-bold text-[#004D40]">
+                            <td className="p-2 font-bold text-[#750715]">
                               1. Đăng ký khai sinh
                               <span className="block text-[11px] font-normal text-[#475569]">TT 04/2020/TT-BTP</span>
                             </td>
@@ -1879,7 +1880,7 @@ export const FormAndIssueReporting: React.FC = () => {
                             </td>
                           </tr>
                           <tr>
-                            <td className="p-2 font-bold text-[#004D40]">
+                            <td className="p-2 font-bold text-[#750715]">
                               2. Kết hôn & Độc thân
                               <span className="block text-[11px] font-normal text-[#475569]">Luật HN&GĐ 2014</span>
                             </td>
@@ -1891,7 +1892,7 @@ export const FormAndIssueReporting: React.FC = () => {
                             </td>
                           </tr>
                           <tr>
-                            <td className="p-2 font-bold text-[#004D40]">
+                            <td className="p-2 font-bold text-[#750715]">
                               3. Khai tử & Trích lục
                               <span className="block text-[11px] font-normal text-[#475569]">Luật Hộ tịch 2014</span>
                             </td>
@@ -1903,7 +1904,7 @@ export const FormAndIssueReporting: React.FC = () => {
                             </td>
                           </tr>
                           <tr>
-                            <td className="p-2 font-bold text-[#004D40]">
+                            <td className="p-2 font-bold text-[#750715]">
                               4. Trợ cấp BTXH
                               <span className="block text-[11px] font-normal text-[#475569]">Luật BHXH 2024 & NĐ 20/2021</span>
                             </td>
@@ -1925,7 +1926,7 @@ export const FormAndIssueReporting: React.FC = () => {
               <div className="p-5 sm:p-6 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#E2E8F0] gap-3">
                   <div className="flex items-center gap-2">
-                    <FileCheck2 className="w-5 h-5 text-[#00695C]" />
+                    <FileCheck2 className="w-5 h-5 text-[#B90E23]" />
                     <span className="text-sm font-bold text-[#0F172A]">
                       Tải Ảnh / Quét Giấy Tờ — Bước Đầu Kiểm Độ Nét Tại Trình Duyệt (Canvas)
                     </span>
@@ -1938,8 +1939,8 @@ export const FormAndIssueReporting: React.FC = () => {
                       onClick={() => setInputMode('upload')}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
                         inputMode === 'upload'
-                          ? 'bg-[#00695C] text-white shadow-xs'
-                          : 'text-[#334155] hover:text-[#004D40]'
+                          ? 'bg-[#B90E23] text-white shadow-xs'
+                          : 'text-[#334155] hover:text-[#750715]'
                       }`}
                     >
                       <Laptop className="w-3.5 h-3.5 shrink-0" />
@@ -1951,8 +1952,8 @@ export const FormAndIssueReporting: React.FC = () => {
                       onClick={() => setInputMode('camera')}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
                         inputMode === 'camera'
-                          ? 'bg-[#00695C] text-white shadow-xs'
-                          : 'text-[#334155] hover:text-[#004D40]'
+                          ? 'bg-[#B90E23] text-white shadow-xs'
+                          : 'text-[#334155] hover:text-[#750715]'
                       }`}
                     >
                       <Camera className="w-3.5 h-3.5 shrink-0" />
@@ -1967,8 +1968,8 @@ export const FormAndIssueReporting: React.FC = () => {
                       }}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
                         inputMode === 'manual'
-                          ? 'bg-[#00695C] text-white shadow-xs'
-                          : 'text-[#334155] hover:text-[#004D40]'
+                          ? 'bg-[#B90E23] text-white shadow-xs'
+                          : 'text-[#334155] hover:text-[#750715]'
                       }`}
                     >
                       <PenTool className="w-3.5 h-3.5 shrink-0" />
@@ -1987,8 +1988,8 @@ export const FormAndIssueReporting: React.FC = () => {
                         onDrop={handleDrop}
                         className={`relative p-5 sm:p-7 rounded-2xl border-2 border-dashed transition-all flex flex-col items-center justify-center text-center gap-3.5 ${
                           isDragging
-                            ? 'border-[#00695C] bg-[#F1F5F9] scale-[1.01]'
-                            : 'border-[#CBD5E1] hover:border-[#00695C] bg-[#F8FAFC]'
+                            ? 'border-[#B90E23] bg-[#F1F5F9] scale-[1.01]'
+                            : 'border-[#CBD5E1] hover:border-[#B90E23] bg-[#F8FAFC]'
                         }`}
                       >
                         <input
@@ -2008,8 +2009,8 @@ export const FormAndIssueReporting: React.FC = () => {
                           onClick={() => fileInputRef.current?.click()}
                           className="w-full max-w-xl flex flex-col items-center justify-center gap-2.5 py-2 px-3 rounded-xl hover:bg-white/70 transition cursor-pointer gov-focus-ring"
                         >
-                          <span className="w-12 h-12 rounded-2xl bg-[#E2E8F0] text-[#004D40] flex items-center justify-center shadow-xs">
-                            <Upload className="w-6 h-6 text-[#004D40]" />
+                          <span className="w-12 h-12 rounded-2xl bg-[#E2E8F0] text-[#750715] flex items-center justify-center shadow-xs">
+                            <Upload className="w-6 h-6 text-[#750715]" />
                           </span>
 
                           <span>
@@ -2017,21 +2018,21 @@ export const FormAndIssueReporting: React.FC = () => {
                               Kéo thả ảnh chụp tờ khai / CCCD, file Word (.docx) hoặc PDF vào đây
                             </span>
                             <span className="block text-xs text-[#475569] mt-1">
-                              Hoặc <span className="text-[#004D40] font-bold underline">bấm để chọn tệp từ máy</span> (PNG, JPG, WEBP, DOCX, PDF tối đa 5MB)
+                              Hoặc <span className="text-[#750715] font-bold underline">bấm để chọn tệp từ máy</span> (PNG, JPG, WEBP, DOCX, PDF tối đa 5MB)
                             </span>
                           </span>
                         </button>
 
                         <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#CBD5E1] text-xs font-semibold text-[#004D40]">
-                            <Sparkles className="w-3.5 h-3.5 text-[#00695C]" />
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#CBD5E1] text-xs font-semibold text-[#750715]">
+                            <Sparkles className="w-3.5 h-3.5 text-[#B90E23]" />
                             <span>HTML5 Canvas Trình Duyệt: Chặn ảnh mờ, thiếu sáng, lóa trước khi gửi</span>
                           </span>
 
                           <button
                             type="button"
                             onClick={() => handleLoadSample()}
-                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-xs font-bold text-[#004D40] transition cursor-pointer gov-focus-ring"
+                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-xs font-bold text-[#750715] transition cursor-pointer gov-focus-ring"
                           >
                             <FileText className="w-3.5 h-3.5" />
                             <span>Dùng mẫu chuẩn rõ nét</span>
@@ -2074,7 +2075,7 @@ export const FormAndIssueReporting: React.FC = () => {
                               {selectedFile?.type.startsWith('image/') ? (
                                 <img src={previewUrl} alt="Bản scan tờ khai" className="w-full h-full object-cover" />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center bg-[#E2E8F0] text-[#004D40]">
+                                <div className="w-full h-full flex items-center justify-center bg-[#E2E8F0] text-[#750715]">
                                   <FileText className="w-7 h-7" />
                                 </div>
                               )}
@@ -2133,7 +2134,7 @@ export const FormAndIssueReporting: React.FC = () => {
                           !visionGateResult.isTooDark &&
                           !visionGateResult.isGlared &&
                           visionGateResult.templateMatched
-                            ? 'bg-[#F0FDFA] border-[#99F6E4] text-[#004D40]'
+                            ? 'bg-[#ECFDF5] border-[#A7F3D0] text-[#065F46]'
                             : 'bg-[#FEF2F2] border-[#FCA5A5] text-[#991B1B]'
                         }`}
                       >
@@ -2148,7 +2149,7 @@ export const FormAndIssueReporting: React.FC = () => {
                               !visionGateResult.isTooDark &&
                               !visionGateResult.isGlared &&
                               visionGateResult.templateMatched
-                                ? 'bg-[#CCFBF1] text-[#004D40]'
+                                ? 'bg-[#D1FAE5] text-[#065F46]'
                                 : 'bg-[#FEE2E2] text-[#991B1B]'
                             }`}
                           >
@@ -2262,8 +2263,8 @@ export const FormAndIssueReporting: React.FC = () => {
                     )}
 
                     {isVaultUploading && (
-                      <div className="p-3 rounded-xl bg-[#F0FDFA] border border-[#99F6E4] flex items-center gap-2.5 text-xs text-[#004D40]">
-                        <RefreshCw className="w-4 h-4 animate-spin text-[#00695C]" />
+                      <div className="p-3 rounded-xl bg-[#F7EEDF] border border-[#E5D4B3] flex items-center gap-2.5 text-xs text-[#750715]">
+                        <RefreshCw className="w-4 h-4 animate-spin text-[#B90E23]" />
                         <span>Đang đóng dấu watermark và mã hóa AES-256-GCM lưu trữ an toàn vào MinIO...</span>
                       </div>
                     )}
@@ -2306,7 +2307,7 @@ export const FormAndIssueReporting: React.FC = () => {
                       <button
                         type="button"
                         onClick={handleLoadSample}
-                        className="mt-2 px-3 py-1.5 rounded-lg bg-[#00695C] hover:bg-[#004D40] text-white text-xs font-semibold transition cursor-pointer"
+                        className="mt-2 px-3 py-1.5 rounded-lg bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs font-semibold transition cursor-pointer"
                       >
                         Chụp ảnh mẫu thử nghiệm
                       </button>
@@ -2317,7 +2318,7 @@ export const FormAndIssueReporting: React.FC = () => {
                 {/* METHOD 3: MANUAL INPUT HINT */}
                 {inputMode === 'manual' && (
                   <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-xs text-[#334155] flex items-center gap-2">
-                    <PenTool className="w-4 h-4 text-[#00695C] shrink-0" />
+                    <PenTool className="w-4 h-4 text-[#B90E23] shrink-0" />
                     <span>Chế độ nhập tay: Bà con chuyển sang Bước 2 để điền hoặc đối chiếu trực tiếp thông tin bản khai giấy.</span>
                   </div>
                 )}
@@ -2328,7 +2329,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowCccdQrModal(true)}
-                      className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#F1F5F9] text-[#004D40] border border-[#CBD5E1] font-bold text-xs transition cursor-pointer flex items-center gap-1.5 gov-focus-ring"
+                      className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#F1F5F9] text-[#750715] border border-[#CBD5E1] font-bold text-xs transition cursor-pointer flex items-center gap-1.5 gov-focus-ring"
                     >
                       <QrCode className="w-4 h-4" />
                       <span>Quét Mã QR CCCD Thật</span>
@@ -2336,7 +2337,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowPrintModal(true)}
-                      className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#F1F5F9] text-[#004D40] border border-[#CBD5E1] font-bold text-xs transition cursor-pointer flex items-center gap-1.5 gov-focus-ring"
+                      className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#F1F5F9] text-[#750715] border border-[#CBD5E1] font-bold text-xs transition cursor-pointer flex items-center gap-1.5 gov-focus-ring"
                     >
                       <FileDown className="w-4 h-4" />
                       <span>Xem & Tải Mẫu A4</span>
@@ -2353,7 +2354,7 @@ export const FormAndIssueReporting: React.FC = () => {
                           visionGateResult.isGlared ||
                           !visionGateResult.templateMatched)
                     )}
-                    className="px-5 py-2.5 rounded-xl bg-[#00695C] hover:bg-[#004D40] disabled:bg-[#94A3B8] text-white font-bold text-xs flex items-center gap-2 shadow-xs transition cursor-pointer disabled:cursor-not-allowed gov-focus-ring"
+                    className="px-5 py-2.5 rounded-xl bg-[#B90E23] hover:bg-[#8F0A1B] disabled:bg-[#94A3B8] text-white font-bold text-xs flex items-center gap-2 shadow-xs transition cursor-pointer disabled:cursor-not-allowed gov-focus-ring"
                   >
                     <span>Tiếp tục Bước 2: Điền & Đối chiếu Tờ khai</span>
                     <ArrowRight className="w-4 h-4" />
@@ -2368,7 +2369,7 @@ export const FormAndIssueReporting: React.FC = () => {
             <div className="p-5 sm:p-6 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-[#E2E8F0] gap-3">
                 <div className="flex items-center gap-2">
-                  <FileCheck2 className="w-5 h-5 text-[#00695C]" />
+                  <FileCheck2 className="w-5 h-5 text-[#B90E23]" />
                   <div>
                     <h2 className="text-sm font-extrabold text-[#0F172A]">
                       Bước 2: Nhập & Đối Chiếu Thông Tin ({selectedFormType})
@@ -2390,14 +2391,14 @@ export const FormAndIssueReporting: React.FC = () => {
 
               {/* Quick Test Preset Bar for Active Form Type + CCCD QR Scanner */}
               <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] flex flex-wrap items-center justify-between gap-2 text-xs">
-                <span className="font-bold text-[#004D40]">
+                <span className="font-bold text-[#750715]">
                   Điền nhanh thông tin mẫu:
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setShowCccdQrModal(true)}
-                    className="px-3.5 py-1.5 rounded-lg bg-[#00695C] hover:bg-[#004D40] text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs gov-focus-ring"
+                    className="px-3.5 py-1.5 rounded-lg bg-[#B90E23] hover:bg-[#8F0A1B] text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-2xs gov-focus-ring"
                     title="Mở camera hoặc tải ảnh để quét mã QR trên thẻ CCCD thật"
                   >
                     <QrCode className="w-4 h-4" />
@@ -2468,7 +2469,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     value={fullName}
                     placeholder="Ví dụ: NGUYỄN TÚ"
                     onChange={(e) => setFullName(e.target.value)}
-                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00695C] focus:bg-white transition-all ${
+                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#B90E23] focus:bg-white transition-all ${
                       ocrSuccess && fullName ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-[#F8FAFC] border-[#CBD5E1]'
                     }`}
                   />
@@ -2496,8 +2497,8 @@ export const FormAndIssueReporting: React.FC = () => {
                     maxLength={12}
                     placeholder="12 chữ số định danh cá nhân"
                     onChange={(e) => setCccd(e.target.value)}
-                    className={`w-full h-10 px-3.5 rounded-xl border font-mono text-xs md:text-sm font-bold focus:outline-none focus:border-[#00695C] focus:bg-white transition-all tracking-wider ${
-                      ocrSuccess && cccd ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 text-[#004D40]' : 'bg-[#F8FAFC] border-[#CBD5E1] text-[#004D40]'
+                    className={`w-full h-10 px-3.5 rounded-xl border font-mono text-xs md:text-sm font-bold focus:outline-none focus:border-[#B90E23] focus:bg-white transition-all tracking-wider ${
+                      ocrSuccess && cccd ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 text-[#750715]' : 'bg-[#F8FAFC] border-[#CBD5E1] text-[#750715]'
                     }`}
                   />
                 </div>
@@ -2525,7 +2526,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     type="date"
                     value={dob}
                     onChange={(e) => setDob(e.target.value)}
-                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00695C] focus:bg-white transition-all ${
+                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#B90E23] focus:bg-white transition-all ${
                       ocrSuccess && dob ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-[#F8FAFC] border-[#CBD5E1]'
                     }`}
                   />
@@ -2551,7 +2552,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         value="Nam"
                         checked={gender === 'Nam'}
                         onChange={(e) => setGender(e.target.value)}
-                        className="text-[#00695C] focus:ring-[#00695C]"
+                        className="text-[#B90E23] focus:ring-[#B90E23]"
                       />
                       <span>Nam</span>
                     </label>
@@ -2562,7 +2563,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         value="Nữ"
                         checked={gender === 'Nữ'}
                         onChange={(e) => setGender(e.target.value)}
-                        className="text-[#00695C] focus:ring-[#00695C]"
+                        className="text-[#B90E23] focus:ring-[#B90E23]"
                       />
                       <span>Nữ</span>
                     </label>
@@ -2684,7 +2685,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     value={address}
                     placeholder="Ví dụ: 32/3 Ích, Khu phố 12, Phường..., TP. Hồ Chí Minh"
                     onChange={(e) => setAddress(e.target.value)}
-                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00695C] focus:bg-white transition-all ${
+                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#B90E23] focus:bg-white transition-all ${
                       ocrSuccess && address ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-[#F8FAFC] border-[#CBD5E1]'
                     }`}
                   />
@@ -2720,12 +2721,12 @@ export const FormAndIssueReporting: React.FC = () => {
               <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] flex flex-col gap-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-[#004D40] shrink-0" />
+                    <Mail className="w-4 h-4 text-[#750715] shrink-0" />
                     <span className="text-xs font-extrabold text-[#0F172A]">
                       Thông Tin Nhận Phê Duyệt Sơ Bộ & Phiếu Hẹn Mã QR (Miễn Phí Qua Email)
                     </span>
                   </div>
-                  <span className="px-2 py-0.5 rounded-full bg-[#CCFBF1] text-[#004D40] text-[10px] font-bold">
+                  <span className="px-2 py-0.5 rounded-full bg-[#F7EEDF] text-[#750715] text-[10px] font-bold">
                     100% Miễn phí • Không dùng SMS/Zalo thu phí
                   </span>
                 </div>
@@ -2750,7 +2751,7 @@ export const FormAndIssueReporting: React.FC = () => {
                       value={citizenEmail}
                       onChange={(e) => setCitizenEmail(e.target.value)}
                       placeholder="Ví dụ: congdan.angiang@gmail.com"
-                      className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] focus:outline-none focus:border-[#00695C] transition ${
+                      className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] focus:outline-none focus:border-[#B90E23] transition ${
                         citizenEmail ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'border-[#CBD5E1] bg-white'
                       }`}
                     />
@@ -2773,7 +2774,7 @@ export const FormAndIssueReporting: React.FC = () => {
                       value={phoneNumber}
                       onChange={(e) => setPhoneNumber(e.target.value)}
                       placeholder="Ví dụ: 0918234567"
-                      className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] focus:outline-none focus:border-[#00695C] transition ${
+                      className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] focus:outline-none focus:border-[#B90E23] transition ${
                         phoneNumber ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'border-[#CBD5E1] bg-white'
                       }`}
                     />
@@ -2818,10 +2819,10 @@ export const FormAndIssueReporting: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowPrintModal(true)}
-                    className="px-4 py-2.5 bg-white hover:bg-[#F1F5F9] text-[#004D40] border border-[#CBD5E1] rounded-xl font-bold text-xs shadow-2xs flex items-center gap-1.5 transition-all duration-200 cursor-pointer gov-focus-ring"
+                    className="px-4 py-2.5 bg-white hover:bg-[#F1F5F9] text-[#750715] border border-[#CBD5E1] rounded-xl font-bold text-xs shadow-2xs flex items-center gap-1.5 transition-all duration-200 cursor-pointer gov-focus-ring"
                     title="Xem trước và tải về file Word (.docx) hoặc PDF chuẩn Nghị định 30/2020/NĐ-CP"
                   >
-                    <FileDown className="w-4 h-4 text-[#004D40]" />
+                    <FileDown className="w-4 h-4 text-[#750715]" />
                     <span>Xem & Tải Mẫu A4</span>
                   </button>
 
@@ -2838,11 +2839,11 @@ export const FormAndIssueReporting: React.FC = () => {
                             !visionGateResult.templateMatched)
                       )
                     }
-                    className="px-6 py-2.5 bg-[#00695C] hover:bg-[#004D40] disabled:bg-[#94A3B8] text-white rounded-xl font-semibold text-xs shadow-xs flex items-center gap-2 active:scale-95 transition-all duration-200 cursor-pointer disabled:cursor-not-allowed gov-focus-ring"
+                    className="px-6 py-2.5 bg-[#B90E23] hover:bg-[#8F0A1B] disabled:bg-[#94A3B8] text-white rounded-xl font-semibold text-xs shadow-xs flex items-center gap-2 active:scale-95 transition-all duration-200 cursor-pointer disabled:cursor-not-allowed gov-focus-ring"
                   >
                     {formLoading ? (
                       <>
-                        <RefreshCw className="w-4 h-4 animate-spin text-teal-100" />
+                        <RefreshCw className="w-4 h-4 animate-spin text-amber-100" />
                         <span>Đang Kiểm Tra...</span>
                       </>
                     ) : visionGateResult && (visionGateResult.isBlurry || visionGateResult.isTooDark || visionGateResult.isGlared || !visionGateResult.templateMatched) ? (
@@ -2852,7 +2853,7 @@ export const FormAndIssueReporting: React.FC = () => {
                       </>
                     ) : (
                       <>
-                        <Sparkles className="w-4 h-4 text-teal-100" />
+                        <Sparkles className="w-4 h-4 text-amber-100" />
                         <span>Kiểm Tra & Chuyển Bước 3</span>
                       </>
                     )}
@@ -2867,7 +2868,7 @@ export const FormAndIssueReporting: React.FC = () => {
             <div className="flex flex-col gap-5">
               <div className="flex flex-wrap items-center justify-between gap-2 bg-white px-4 py-3 rounded-2xl border border-[#CBD5E1] shadow-xs">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-5 h-5 text-[#00695C]" />
+                  <ShieldCheck className="w-5 h-5 text-[#B90E23]" />
                   <span className="text-xs sm:text-sm font-extrabold text-[#0F172A]">
                     Bước 3: Kết Quả Đối Chiếu Pháp Luật, Phiếu Hẹn QR & Xuất Mẫu A4
                   </span>
@@ -2947,7 +2948,7 @@ export const FormAndIssueReporting: React.FC = () => {
                             <>
                               <Volume2 className="w-3.5 h-3.5" />
                               <span>Nghe đọc to</span>
-                              <span className="ml-0.5 px-2 py-0.5 rounded-md bg-[#00695C] text-white text-[10px] font-black uppercase tracking-wider shadow-2xs">
+                              <span className="ml-0.5 px-2 py-0.5 rounded-md bg-[#B90E23] text-white text-[10px] font-black uppercase tracking-wider shadow-2xs">
                                 MỞ
                               </span>
                             </>
@@ -2985,7 +2986,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-bold font-mono shrink-0 ${
                             field.valid
-                              ? 'bg-[#CCFBF1] text-[#004D40]'
+                              ? 'bg-[#D1FAE5] text-[#065F46]'
                               : 'bg-[#FEE2E2] text-[#991B1B]'
                           }`}
                         >
@@ -3008,16 +3009,16 @@ export const FormAndIssueReporting: React.FC = () => {
                   {/* Footer Meta & Citizen-Safe Tracking Link */}
                   <div className="pt-2 border-t border-[#E2E8F0] flex flex-col gap-2">
                     <div className="flex items-center justify-between text-xs text-[#475569]">
-                      <span>Mã phiếu kiểm tra: <strong className="font-mono text-[#004D40]">{precheckResult.submissionId}</strong></span>
+                      <span>Mã phiếu kiểm tra: <strong className="font-mono text-[#750715]">{precheckResult.submissionId}</strong></span>
                       <span>UBND {currentWard.name}</span>
                     </div>
 
                     <button
                       type="button"
                       onClick={() => setShowPrintModal(true)}
-                      className="w-full py-2.5 px-3 rounded-xl bg-[#00695C] hover:bg-[#004D40] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-2xs gov-focus-ring"
+                      className="w-full py-2.5 px-3 rounded-xl bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer shadow-2xs gov-focus-ring"
                     >
-                      <FileDown className="w-4 h-4 text-teal-100" />
+                      <FileDown className="w-4 h-4 text-amber-100" />
                       <span>Xem & Tải Mẫu A4 (Word/PDF chuẩn NĐ 30/2020/NĐ-CP)</span>
                     </button>
 
@@ -3027,7 +3028,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         setActiveTab('tracking');
                         navigate('/citizen/form#tracking', { replace: true });
                       }}
-                      className="w-full py-2 px-3 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#004D40] border border-[#CBD5E1] text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer gov-focus-ring"
+                      className="w-full py-2 px-3 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#750715] border border-[#CBD5E1] text-xs font-bold flex items-center justify-center gap-1.5 transition cursor-pointer gov-focus-ring"
                     >
                       <span>Theo Dõi Tiến Độ & Mã QR Tại Tab Tra Cứu ({currentWard.name})</span>
                       <ArrowRight className="w-3.5 h-3.5" />
@@ -3037,8 +3038,8 @@ export const FormAndIssueReporting: React.FC = () => {
               ) : (
                 /* Empty state */
                 <div className="p-8 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col items-center justify-center text-center text-[#475569] gap-3">
-                  <div className="w-14 h-14 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#004D40]">
-                    <ShieldCheck className="w-7 h-7 text-[#00695C]" />
+                  <div className="w-14 h-14 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#750715]">
+                    <ShieldCheck className="w-7 h-7 text-[#B90E23]" />
                   </div>
                   <div>
                     <h3 className="font-bold text-sm text-[#0F172A]">Chưa Có Kết Quả Rà Soát Cho Phiên Hiện Tại</h3>
@@ -3050,7 +3051,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setFormWizardStep(2)}
-                      className="px-4 py-2 rounded-xl bg-[#00695C] hover:bg-[#004D40] text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer gov-focus-ring"
+                      className="px-4 py-2 rounded-xl bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer gov-focus-ring"
                     >
                       <ChevronLeft className="w-4 h-4" />
                       <span>Quay lại Bước 2 để Kiểm tra</span>
@@ -3058,7 +3059,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowPrintModal(true)}
-                      className="px-4 py-2 rounded-xl bg-white hover:bg-[#F1F5F9] text-[#004D40] border border-[#CBD5E1] text-xs font-bold flex items-center gap-1.5 cursor-pointer gov-focus-ring"
+                      className="px-4 py-2 rounded-xl bg-white hover:bg-[#F1F5F9] text-[#750715] border border-[#CBD5E1] text-xs font-bold flex items-center gap-1.5 cursor-pointer gov-focus-ring"
                     >
                       <FileDown className="w-4 h-4" />
                       <span>Xem & Tải Mẫu A4</span>
@@ -3105,7 +3106,7 @@ export const FormAndIssueReporting: React.FC = () => {
                       setActiveTab('tracking');
                       navigate('/citizen/form#tracking', { replace: true });
                     }}
-                    className="w-full py-2.5 rounded-xl bg-[#0F766E] hover:bg-[#115E59] text-white text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+                    className="w-full py-2.5 rounded-xl bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs font-bold transition flex items-center justify-center gap-2 cursor-pointer shadow-xs"
                   >
                     <Clock className="w-4 h-4" />
                     <span>Chuyển Sang Tab Tra Cứu Tiến Độ</span>
@@ -3117,8 +3118,8 @@ export const FormAndIssueReporting: React.FC = () => {
               {myDossiers.length > 0 && (
                 <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3">
                   <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
-                    <span className="text-xs font-extrabold text-[#00796B] flex items-center gap-1.5">
-                      <FileCheck2 className="w-4 h-4 text-[#0F766E]" />
+                    <span className="text-xs font-extrabold text-[#9F0C1E] flex items-center gap-1.5">
+                      <FileCheck2 className="w-4 h-4 text-[#9F0C1E]" />
                       <span>Trạng Thái Hồ Sơ Sơ Duyệt Gần Đây ({myDossiers.length})</span>
                     </span>
                     <span className="text-[11px] text-[#64748B]">Đồng bộ từ Bàn Cán Bộ</span>
@@ -3148,7 +3149,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         </div>
                         <span className="text-[11px] text-[#64748B] truncate">{d.procedure}</span>
                         {d.officerFeedback && (
-                          <div className="mt-1 p-2 rounded-lg bg-white border border-[#CBD5E1] text-[11px] text-[#00796B] font-medium">
+                          <div className="mt-1 p-2 rounded-lg bg-white border border-[#CBD5E1] text-[11px] text-[#9F0C1E] font-medium">
                             <strong>Phản hồi Cán bộ ({d.reviewedBy || 'Một cửa'}):</strong> {d.officerFeedback}
                           </div>
                         )}
@@ -3177,8 +3178,8 @@ export const FormAndIssueReporting: React.FC = () => {
                   return (
                     <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3">
                       <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
-                        <span className="text-xs font-extrabold text-[#00796B] flex items-center gap-1.5">
-                          <Clock className="w-4 h-4 text-[#0F766E]" />
+                        <span className="text-xs font-extrabold text-[#9F0C1E] flex items-center gap-1.5">
+                          <Clock className="w-4 h-4 text-[#9F0C1E]" />
                           <span>Phiếu Hẹn Sơ Duyệt & Mã QR Tiếp Nhận</span>
                         </span>
                         <span className="px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] text-[10px] font-bold">
@@ -3225,7 +3226,7 @@ export const FormAndIssueReporting: React.FC = () => {
                           }}
                           className="px-2.5 py-1 rounded-lg bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] font-bold text-[10px] transition cursor-pointer flex items-center gap-1"
                         >
-                          <RefreshCw className="w-3 h-3 text-[#00796B]" />
+                          <RefreshCw className="w-3 h-3 text-[#9F0C1E]" />
                           <span>Làm mới tiến độ</span>
                         </button>
                       </div>
@@ -3234,14 +3235,14 @@ export const FormAndIssueReporting: React.FC = () => {
                 }
 
                 return (
-                  <div className="p-5 rounded-2xl bg-white border-2 border-[#00796B] shadow-sm flex flex-col gap-3">
+                  <div className="p-5 rounded-2xl bg-white border-2 border-[#B90E23] shadow-sm flex flex-col gap-3">
                     <div
                       ref={qrPassRef}
                       className="p-4 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] flex flex-col gap-3"
                     >
                       <div className="flex items-start justify-between gap-3 border-b border-[#E2E8F0] pb-2.5">
                         <div>
-                          <span className="inline-block px-2 py-0.5 rounded bg-[#CCFBF1] text-[#0F766E] text-[10px] font-black uppercase tracking-wider mb-1">
+                          <span className="inline-block px-2 py-0.5 rounded bg-[#F7EEDF] text-[#9F0C1E] text-[10px] font-black uppercase tracking-wider mb-1">
                             PHIẾU HẸN SƠ DUYỆT ĐIỆN TỬ • ƯU TIÊN QUẦY MỘT CỬA
                           </span>
                           <h4 className="font-extrabold text-sm text-[#0F172A]">
@@ -3285,7 +3286,7 @@ export const FormAndIssueReporting: React.FC = () => {
                             <rect x="80" y="74" width="12" height="12" />
                             <rect x="68" y="88" width="18" height="6" />
                           </svg>
-                          <span className="text-[9px] font-mono font-bold text-[#00796B] mt-0.5">
+                          <span className="text-[9px] font-mono font-bold text-[#9F0C1E] mt-0.5">
                             {appointmentCode}
                           </span>
                         </div>
@@ -3298,7 +3299,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         </div>
                         <div>
                           <span className="text-[10px] text-[#64748B] block">Mã hồ sơ sơ duyệt:</span>
-                          <strong className="font-mono text-[#00796B]">{targetDossier.id}</strong>
+                          <strong className="font-mono text-[#9F0C1E]">{targetDossier.id}</strong>
                         </div>
                         <div>
                           <span className="text-[10px] text-[#64748B] block">Biểu mẫu & Thủ tục:</span>
@@ -3321,9 +3322,9 @@ export const FormAndIssueReporting: React.FC = () => {
                       type="button"
                       onClick={handleDownloadQrPassPdf}
                       disabled={isExportingQrPass}
-                      className="w-full py-2.5 px-4 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs disabled:opacity-60"
+                      className="w-full py-2.5 px-4 rounded-xl bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs font-bold flex items-center justify-center gap-2 transition cursor-pointer shadow-xs disabled:opacity-60"
                     >
-                      <FileDown className="w-4 h-4 text-[#80CBC4]" />
+                      <FileDown className="w-4 h-4 text-amber-100" />
                       <span>
                         {isExportingQrPass
                           ? 'Đang tạo file PDF Phiếu Hẹn...'
@@ -3338,8 +3339,8 @@ export const FormAndIssueReporting: React.FC = () => {
               {emailNotifications.length > 0 && (
                 <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3">
                   <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
-                    <span className="text-xs font-extrabold text-[#00796B] flex items-center gap-1.5">
-                      <Mail className="w-4 h-4 text-[#0F766E]" />
+                    <span className="text-xs font-extrabold text-[#9F0C1E] flex items-center gap-1.5">
+                      <Mail className="w-4 h-4 text-[#9F0C1E]" />
                       <span>Hộp Thư Thông Báo Email Từ Cán Bộ ({emailNotifications.length})</span>
                     </span>
                     <span className="px-2 py-0.5 rounded-full bg-[#ECFDF5] text-[#065F46] text-[10px] font-bold">

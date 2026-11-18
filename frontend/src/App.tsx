@@ -30,15 +30,23 @@ const OfficerRedirect: React.FC<{ tab?: 'INCIDENTS' | 'HITL' | 'FORMS' | 'MAP' }
 };
 
 const AppContent: React.FC = () => {
-  const { role } = useRole();
+  const { role, isOfficer } = useRole();
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans text-[#0F172A] antialiased flex flex-col selection:bg-[#0F2942] selection:text-white">
+    <div className={`min-h-screen ${!isOfficer && role ? 'bg-[#F5F6F8]' : 'bg-[#F8FAFC]'} font-sans text-[#0F172A] antialiased flex flex-col selection:bg-[#0F2942] selection:text-white`}>
       {/* Global Administrative Header (Only rendered when user has active session) */}
       <Header />
 
-      {/* Content Viewport */}
-      <div className={`${role ? 'pt-14 sm:pt-16 pb-16 lg:pb-0' : ''} flex-1 flex flex-col`}>
+      {/* Content Viewport (2-tier 92px header on desktop for Citizen; single 56/64px bar on Officer & mobile) */}
+      <div
+        className={`${
+          role
+            ? isOfficer
+              ? 'pt-14 sm:pt-16 pb-16 lg:pb-0'
+              : 'pt-14 lg:pt-[92px] pb-16 lg:pb-0'
+            : ''
+        } flex-1 flex flex-col`}
+      >
         <Suspense fallback={<RouteLoadingSpinner />}>
           <Routes>
             {/* 1. Gateway Entry Point: Unauthenticated visits land here */}

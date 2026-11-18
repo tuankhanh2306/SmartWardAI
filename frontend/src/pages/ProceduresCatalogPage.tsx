@@ -1,10 +1,8 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Search,
-  Megaphone,
   FileText,
-  Calendar,
   Clock,
   ArrowRight,
   ShieldCheck,
@@ -12,8 +10,7 @@ import {
   X,
   Bot,
   Loader2,
-  Sparkles,
-  FileDown
+  FileDown,
 } from 'lucide-react';
 import { PROCEDURES_CATALOG, type ProcedureCatalogItem } from '../data/proceduresCatalog';
 import { getProcedures } from '../api/client';
@@ -22,7 +19,7 @@ import A4DocumentModal from '../components/A4DocumentModal';
 
 export const ProceduresCatalogPage: React.FC = () => {
   const navigate = useNavigate();
-  const { currentWard } = useWard();
+  const { currentWard, isOfficeOpen, officeStatusLabel } = useWard();
 
   // Dynamic Procedures from REST API
   const [procedures, setProcedures] = useState<ProcedureCatalogItem[]>(PROCEDURES_CATALOG);
@@ -54,13 +51,18 @@ export const ProceduresCatalogPage: React.FC = () => {
     };
   }, []);
 
-  // Search & Category Filtering
+  // Multi-Criteria Search & Filter State (BCA Electronic Portal Layout)
   const [searchTerm, setSearchTerm] = useState('');
+  const [searchScope, setSearchScope] = useState<'ALL' | 'CODE' | 'NAME'>('ALL');
   const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [feeFilter, setFeeFilter] = useState<'ALL' | 'FREE' | 'PAID'>('ALL');
+  const [modeFilter, setModeFilter] = useState<'ALL' | 'ONLINE' | 'DIRECT'>('ALL');
 
   // A4 Document Preview Modal State
   const [selectedProcedureForModal, setSelectedProcedureForModal] = useState<ProcedureCatalogItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const resultsHeadingRef = useRef<HTMLDivElement>(null);
 
   // Categories list
   const categories = useMemo(() => {
@@ -68,18 +70,65 @@ export const ProceduresCatalogPage: React.FC = () => {
     return ['ALL', ...cats];
   }, [procedures]);
 
+  // 100% Fee Exemption rule per Law on Fees and Charges 2015 (Luật Phí và Lệ phí 2015)
+  const isFeeExempt = (proc: ProcedureCatalogItem): boolean => {
+    const code = proc.code.toUpperCase();
+    const cat = (proc.category || '').toLowerCase();
+    const feeStr = (proc.fee || '').toLowerCase();
+
+    if (cat.includes('hộ tịch') || cat.includes('bảo trợ')) return true;
+    if (code.startsWith('TTHC-BT-') || code.startsWith('TTHC-HT-') || code === 'TTHC-CR-02') return true;
+    if (feeStr.includes('miễn') || feeStr === '0' || feeStr === '0 đ' || feeStr === '0 vnđ') return true;
+    return false;
+  };
+
+  // Check if procedure has direct online form declaration
+  const hasDirectForm = (code: string) => {
+    return ['TTHC-CR-01', 'TTHC-HT-01', 'TTHC-HT-02', 'TTHC-BT-01'].includes(code);
+  };
+
   // Filtered procedures
   const filteredProcedures = useMemo(() => {
+    const kw = searchTerm.trim().toLowerCase();
     return procedures.filter((item) => {
       const matchCat = selectedCategory === 'ALL' || item.category === selectedCategory;
-      const matchSearch =
-        searchTerm.trim() === '' ||
-        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        item.portalCode.includes(searchTerm);
-      return matchCat && matchSearch;
+      const feeFree = isFeeExempt(item);
+      const matchFee =
+        feeFilter === 'ALL' || (feeFilter === 'FREE' && feeFree) || (feeFilter === 'PAID' && !feeFree);
+      const directForm = hasDirectForm(item.code);
+      const matchMode =
+        modeFilter === 'ALL' ||
+        (modeFilter === 'ONLINE' && directForm) ||
+        (modeFilter === 'DIRECT' && !directForm);
+
+      let matchSearch = true;
+      if (kw) {
+        if (searchScope === 'CODE') {
+          matchSearch =
+            item.code.toLowerCase().includes(kw) || item.portalCode.toLowerCase().includes(kw);
+        } else if (searchScope === 'NAME') {
+          matchSearch =
+            item.name.toLowerCase().includes(kw) || item.category.toLowerCase().includes(kw);
+        } else {
+          matchSearch =
+            item.name.toLowerCase().includes(kw) ||
+            item.code.toLowerCase().includes(kw) ||
+            item.category.toLowerCase().includes(kw) ||
+            item.portalCode.toLowerCase().includes(kw);
+        }
+      }
+
+      return matchCat && matchFee && matchMode && matchSearch;
     });
-  }, [procedures, selectedCategory, searchTerm]);
+  }, [procedures, selectedCategory, feeFilter, modeFilter, searchTerm, searchScope]);
+
+  const handleResetFilters = () => {
+    setSearchTerm('');
+    setSearchScope('ALL');
+    setSelectedCategory('ALL');
+    setFeeFilter('ALL');
+    setModeFilter('ALL');
+  };
 
   // Handler to open A4 Modal
   const handleOpenA4 = (proc: ProcedureCatalogItem) => {
@@ -102,213 +151,278 @@ export const ProceduresCatalogPage: React.FC = () => {
     return 'GENERAL';
   };
 
-  // 100% Fee Exemption rule per Law on Fees and Charges 2015 (Luật Phí và Lệ phí 2015)
-  const isFeeExempt = (proc: ProcedureCatalogItem): boolean => {
-    const code = proc.code.toUpperCase();
-    const cat = (proc.category || '').toLowerCase();
-    const feeStr = (proc.fee || '').toLowerCase();
-
-    // Basic timely civil status, social protection, elderly, meritorious persons, or explicit free
-    if (cat.includes('hộ tịch') || cat.includes('bảo trợ')) return true;
-    if (code.startsWith('TTHC-BT-') || code.startsWith('TTHC-HT-') || code === 'TTHC-CR-02') return true;
-    if (feeStr.includes('miễn') || feeStr === '0' || feeStr === '0 đ' || feeStr === '0 vnđ') return true;
-    return false;
-  };
-
-  // Check if procedure has direct online form declaration
-  const hasDirectForm = (code: string) => {
-    return ['TTHC-CR-01', 'TTHC-HT-01', 'TTHC-HT-02', 'TTHC-BT-01'].includes(code);
-  };
-
   const getFormUrl = (code: string) => {
-    if (code === 'TTHC-CR-01') return '/citizen/form#form';
-    if (code === 'TTHC-HT-01') return '/citizen/form#form';
-    if (code === 'TTHC-HT-02') return '/citizen/form#form';
-    if (code === 'TTHC-BT-01') return '/citizen/form#form';
+    if (code === 'TTHC-CR-01') return '/citizen/form?type=CT01#form';
+    if (code === 'TTHC-HT-01') return '/citizen/form?type=TK-KS#form';
+    if (code === 'TTHC-HT-02') return '/citizen/form?type=TK-KH#form';
+    if (code === 'TTHC-BT-01') return '/citizen/form?type=TK-BTXH#form';
     return '/citizen/form#form';
   };
 
+  const quickProcedures = useMemo(
+    () =>
+      procedures.filter((p) =>
+        ['TTHC-CR-01', 'TTHC-HT-01', 'TTHC-HT-02', 'TTHC-BT-01'].includes(p.code)
+      ),
+    [procedures]
+  );
+
   return (
-    <main className="bg-uth-canvas bg-uth-watermark min-h-[calc(100vh-4rem)] p-3 sm:p-6 lg:p-8 flex flex-col justify-start relative">
-      {/* Centered Main Layout Container (Không còn chia cột phụ đăng nhập) */}
-      <div className="max-w-5xl mx-auto w-full flex flex-col gap-6 items-center relative z-10">
-        
-        {/* Main Procedures Container */}
-        <div className="w-full bg-white rounded-3xl p-5 sm:p-8 shadow-[0_4px_24px_rgba(0,121,107,0.08)] border border-teal-100/90 flex flex-col">
-          
-          {/* Header section with Megaphone and Title */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-5 border-b border-slate-100 gap-3">
-            <div className="flex items-center gap-3.5">
-              <div className="w-11 h-11 rounded-2xl bg-teal-50 text-[#00796B] flex items-center justify-center shrink-0 shadow-2xs border border-teal-200">
-                <Megaphone className="w-5 h-5" />
-              </div>
-              <div>
-                <h1 className="text-[#00796B] font-bold text-base sm:text-xl tracking-tight uppercase">
-                  DANH MỤC THỦ TỤC & GIẤY TỜ HÀNH CHÍNH
-                </h1>
-                <p className="text-xs text-slate-500 font-medium flex items-center gap-2">
-                  <span>Cập nhật mới nhất từ Cổng Dịch Vụ Công Quốc Gia • UBND {currentWard.name}</span>
-                  {isLoading && (
-                    <span className="inline-flex items-center gap-1 text-[#00796B] font-semibold text-[11px]">
-                      <Loader2 className="w-3 h-3 animate-spin" />
-                      <span>Đang đồng bộ...</span>
-                    </span>
-                  )}
-                </p>
-              </div>
-            </div>
-
-            {/* Quick Actions / Reset Filter */}
-            <div className="flex items-center gap-2 self-start sm:self-auto">
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedCategory('ALL');
-                  setSearchTerm('');
-                }}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-[#00796B] text-[#00796B] hover:bg-teal-50 text-xs font-semibold transition active:scale-95 cursor-pointer shadow-2xs"
-              >
-                <span>Xem tất cả ({procedures.length})</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Search Bar */}
-          <div className="mt-5 flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
-            <div className="relative flex-1">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder="Tìm thủ tục (khai sinh, cư trú, kết hôn, bảo trợ, đất đai, cấp giấy...)"
-                className="w-full pl-9 pr-8 py-2.5 bg-[#EEF2F6] hover:bg-slate-100 focus:bg-white text-xs sm:text-sm text-slate-800 rounded-xl border border-slate-200 focus:border-[#00796B] focus:ring-1 focus:ring-[#00796B] outline-none transition"
+    <main className="bg-[#F5F6F8] min-h-[calc(100vh-4rem)] px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col justify-start relative">
+      <div className="max-w-6xl mx-auto w-full flex flex-col gap-6 relative z-10">
+        {/* Top Civic Office Hours Meta Line (like BCA Portal) */}
+        <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600 px-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center gap-1.5 font-semibold text-slate-800">
+              <span
+                className={`w-2 h-2 rounded-full ${
+                  isOfficeOpen ? 'bg-[#16A34A]' : 'bg-[#CA8A04]'
+                }`}
               />
-              {searchTerm && (
-                <button
-                  onClick={() => setSearchTerm('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-0.5"
+              <span>UBND {currentWard.name}</span>
+            </span>
+            <span className="text-slate-300">|</span>
+            <span>{officeStatusLabel}</span>
+            <span className="hidden md:inline text-slate-300">|</span>
+            <span className="hidden md:inline text-slate-600">{currentWard.workingHours}</span>
+          </div>
+
+          {isLoading && (
+            <span className="inline-flex items-center gap-1.5 text-[#9F0C1E] font-semibold">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <span>Đang đồng bộ danh mục...</span>
+            </span>
+          )}
+        </div>
+
+        {/* Elevated White Multi-Criteria Search Card (BCA Reference Style) */}
+        <section
+          aria-label="Bộ lọc tra cứu thủ tục hành chính"
+          className="w-full bg-white rounded-2xl p-5 sm:p-6 shadow-[0_6px_28px_rgba(15,23,42,0.06)] border border-slate-200/80"
+        >
+          <h1 className="sr-only">
+            Danh mục và Tra cứu {procedures.length} Thủ tục hành chính UBND {currentWard.name}
+          </h1>
+
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              resultsHeadingRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+            className="flex flex-col gap-4"
+          >
+            {/* Row 1: Keyword + Scope Radios (Left) & Procedure Group Select (Right) */}
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+              <div className="lg:col-span-8 flex flex-col gap-2">
+                <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5">
+                  <label htmlFor="proc-keyword-input" className="text-xs font-bold text-slate-800">
+                    Từ khóa tìm kiếm
+                  </label>
+                  <div
+                    className="flex flex-wrap items-center gap-4 text-xs text-slate-700"
+                    role="radiogroup"
+                    aria-label="Phạm vi tìm kiếm"
+                  >
+                    {(
+                      [
+                        { id: 'ALL', label: 'Tất cả' },
+                        { id: 'CODE', label: 'Mã thủ tục' },
+                        { id: 'NAME', label: 'Tên & lĩnh vực' },
+                      ] as const
+                    ).map((opt) => (
+                      <label
+                        key={opt.id}
+                        className="inline-flex items-center gap-1.5 cursor-pointer font-medium"
+                      >
+                        <input
+                          type="radio"
+                          name="proc-search-scope"
+                          value={opt.id}
+                          checked={searchScope === opt.id}
+                          onChange={() => setSearchScope(opt.id)}
+                          className="accent-[#B90E23] w-3.5 h-3.5 cursor-pointer"
+                        />
+                        <span>{opt.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                  <input
+                    id="proc-keyword-input"
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Nhập từ khóa (ví dụ: thông tin cư trú, khai sinh, kết hôn, CT01...)"
+                    className="w-full h-10 pl-10 pr-9 bg-white text-xs sm:text-sm text-slate-900 rounded-lg border border-slate-300 focus:border-[#B90E23] focus:ring-2 focus:ring-[#B90E23]/15 outline-none transition"
+                  />
+                  {searchTerm && (
+                    <button
+                      type="button"
+                      aria-label="Xóa từ khóa tìm kiếm"
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 p-1 cursor-pointer"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              <div className="lg:col-span-4 flex flex-col gap-2">
+                <label htmlFor="proc-category-select" className="text-xs font-bold text-slate-800">
+                  Nhóm thủ tục
+                </label>
+                <select
+                  id="proc-category-select"
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full h-10 px-3 bg-white text-xs sm:text-sm text-slate-900 rounded-lg border border-slate-300 focus:border-[#B90E23] focus:ring-2 focus:ring-[#B90E23]/15 outline-none transition cursor-pointer"
                 >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
+                  {categories.map((cat) => {
+                    const count =
+                      cat === 'ALL'
+                        ? procedures.length
+                        : procedures.filter((p) => p.category === cat).length;
+                    return (
+                      <option key={cat} value={cat}>
+                        {cat === 'ALL' ? `Tất cả nhóm thủ tục (${count})` : `${cat} (${count})`}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
             </div>
 
-            {selectedCategory !== 'ALL' && (
+            {/* Row 2: Fee Status + Submission Mode + Authority */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="proc-fee-select" className="text-xs font-semibold text-slate-700">
+                  Tình trạng lệ phí
+                </label>
+                <select
+                  id="proc-fee-select"
+                  value={feeFilter}
+                  onChange={(e) => setFeeFilter(e.target.value as 'ALL' | 'FREE' | 'PAID')}
+                  className="w-full h-10 px-3 bg-white text-xs sm:text-sm text-slate-900 rounded-lg border border-slate-300 focus:border-[#B90E23] outline-none transition cursor-pointer"
+                >
+                  <option value="ALL">Tất cả mức lệ phí</option>
+                  <option value="FREE">Miễn 100% lệ phí (Luật 2015)</option>
+                  <option value="PAID">Thu phí theo quy định HĐND</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="proc-mode-select" className="text-xs font-semibold text-slate-700">
+                  Hình thức thực hiện
+                </label>
+                <select
+                  id="proc-mode-select"
+                  value={modeFilter}
+                  onChange={(e) => setModeFilter(e.target.value as 'ALL' | 'ONLINE' | 'DIRECT')}
+                  className="w-full h-10 px-3 bg-white text-xs sm:text-sm text-slate-900 rounded-lg border border-slate-300 focus:border-[#B90E23] outline-none transition cursor-pointer"
+                >
+                  <option value="ALL">Tất cả hình thức</option>
+                  <option value="ONLINE">Kê khai & tiền kiểm trực tuyến</option>
+                  <option value="DIRECT">Mẫu biểu A4 chuẩn NĐ 30/2020</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <span className="text-xs font-semibold text-slate-700">Cơ quan tiếp nhận</span>
+                <div className="h-10 px-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center text-xs sm:text-sm font-medium text-slate-800 truncate">
+                  UBND {currentWard.name} (Một cửa cấp xã)
+                </div>
+              </div>
+            </div>
+
+            {/* Row 3: Right-Aligned Secondary Outline + Crimson Primary CTA */}
+            <div className="pt-1 flex flex-wrap items-center justify-end gap-3">
               <button
                 type="button"
-                onClick={() => setSelectedCategory('ALL')}
-                className="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1 shrink-0 cursor-pointer"
+                onClick={handleResetFilters}
+                className="px-5 py-2.5 rounded-lg border border-[#B90E23] bg-white hover:bg-[#FEF2F2] text-[#9F0C1E] text-xs sm:text-sm font-semibold transition active:scale-[0.98] cursor-pointer gov-focus-ring"
               >
-                <X className="w-3 h-3" />
-                <span>Xóa lọc</span>
+                Đặt lại bộ lọc
               </button>
-            )}
-          </div>
+              <button
+                type="submit"
+                className="px-6 py-2.5 rounded-lg bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs sm:text-sm font-semibold transition active:scale-[0.98] cursor-pointer shadow-xs gov-focus-ring"
+              >
+                Tìm kiếm thủ tục ({filteredProcedures.length})
+              </button>
+            </div>
+          </form>
+        </section>
 
-          {/* Horizontal Scrollable Category Chips */}
-          <div className="mt-3.5 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
-            {categories.map((cat) => {
-              const isSelected = selectedCategory === cat;
-              const count =
-                cat === 'ALL'
-                  ? procedures.length
-                  : procedures.filter((p) => p.category === cat).length;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all flex items-center gap-1.5 cursor-pointer shrink-0 ${
-                    isSelected
-                      ? 'bg-[#00796B] text-white shadow-xs font-bold'
-                      : 'bg-slate-50 hover:bg-slate-100 text-slate-600 border border-slate-200'
-                  }`}
-                >
-                  <span>{cat === 'ALL' ? 'Tất cả lĩnh vực' : cat}</span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-full ${
-                      isSelected ? 'bg-white/25 text-white' : 'bg-slate-200 text-slate-700'
-                    }`}
-                  >
-                    {count}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Procedures List */}
-          <div className="mt-5 flex flex-col gap-3">
-            {filteredProcedures.length === 0 ? (
-              <div className="text-center py-12 text-slate-500 flex flex-col items-center">
-                <FileText className="w-12 h-12 text-slate-300 mb-2" />
-                <p className="font-semibold text-slate-700">Không tìm thấy thủ tục phù hợp với từ khóa</p>
-                <p className="text-xs text-slate-400 mt-1">Vui lòng thử tìm với từ khóa khác hoặc bấm 'Xem tất cả'.</p>
+        {/* Asymmetric 2-Column Content (8 cols Left Results + 4 cols Right Quick Lookup) */}
+        <div ref={resultsHeadingRef} className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          {/* LEFT COLUMN (8 Cols): KẾT QUẢ TRA CỨU */}
+          <section aria-label="Kết quả tra cứu thủ tục" className="lg:col-span-8 flex flex-col gap-4">
+            <div className="border-b border-slate-200 pb-0">
+              <div className="flex items-center justify-between gap-2 pb-2">
+                <h2 className="text-sm sm:text-base font-extrabold text-[#881320] uppercase tracking-wide">
+                  KẾT QUẢ TRA CỨU ({filteredProcedures.length}/{procedures.length})
+                </h2>
+                <span className="text-xs text-slate-600 hidden sm:inline">
+                  Chuẩn Nghị định 30/2020/NĐ-CP
+                </span>
               </div>
-            ) : (
-              filteredProcedures.map((proc) => {
-                const isTop4 = hasDirectForm(proc.code);
+              <span className="block w-14 h-[3px] bg-[#B90E23]" />
+            </div>
 
-                return (
-                  <article
-                    key={proc.code}
-                    className="group p-3.5 sm:p-4 rounded-2xl border border-slate-100 hover:border-teal-200 hover:shadow-md transition-all duration-200 bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 relative"
-                  >
-                    {/* Left: Document Icon + Content */}
-                    <div className="flex items-start gap-3.5 flex-1 min-w-0">
-                      {/* Certificate/Document Illustration Thumbnail */}
-                      <div className="w-12 h-14 sm:w-14 sm:h-16 rounded-xl bg-gradient-to-b from-[#E0F2F1] to-[#B2DFDB] border border-teal-200 flex flex-col items-center justify-center p-1.5 shrink-0 shadow-2xs relative overflow-hidden group-hover:scale-105 transition-transform">
-                        <div className="w-7 h-9 bg-white rounded-xs border border-teal-300 flex flex-col p-1 gap-0.5 shadow-2xs">
-                          <div className="w-full h-1 bg-teal-600 rounded-xs" />
-                          <div className="w-4/5 h-0.5 bg-slate-300 rounded-xs" />
-                          <div className="w-full h-0.5 bg-slate-200 rounded-xs" />
-                          <div className="w-3/5 h-0.5 bg-slate-200 rounded-xs" />
-                        </div>
-                        {/* Green Leaf or Seal Emblem */}
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[8px] font-bold shadow-2xs">
-                          ✓
-                        </div>
-                      </div>
-
-                      {/* Middle Text Details */}
+            <div className="flex flex-col gap-3">
+              {filteredProcedures.length === 0 ? (
+                <div className="bg-white rounded-xl border border-slate-200 text-center py-12 px-4 text-slate-600 flex flex-col items-center">
+                  <FileText className="w-10 h-10 text-slate-400 mb-2" />
+                  <p className="font-semibold text-slate-800 text-sm">
+                    Không tìm thấy thủ tục phù hợp với điều kiện lọc
+                  </p>
+                  <p className="text-xs text-slate-600 mt-1">
+                    Vui lòng đổi từ khóa hoặc bấm &apos;Đặt lại bộ lọc&apos;.
+                  </p>
+                </div>
+              ) : (
+                filteredProcedures.map((proc) => {
+                  const isTop4 = hasDirectForm(proc.code);
+                  return (
+                    <article
+                      key={proc.code}
+                      className="group p-4 rounded-xl border border-slate-200/90 hover:border-[#FCA5A5] hover:shadow-sm transition-all bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                    >
                       <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-1.5 mb-1">
-                          <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-teal-50 text-[#00796B] border border-teal-200">
+                        <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
+                          <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-[#FEF2F2] text-[#9F0C1E] border border-[#FECACA]">
                             {proc.code}
                           </span>
-                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                          <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-700">
                             {proc.category}
                           </span>
                           {isTop4 && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200">
+                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200">
                               Kê khai trực tuyến
                             </span>
                           )}
                         </div>
 
-                        <h2
-                          onClick={() => handleOpenA4(proc)}
-                          className="font-bold text-xs sm:text-sm text-slate-900 group-hover:text-[#00796B] transition-colors leading-snug cursor-pointer line-clamp-2"
-                          title={proc.name}
-                        >
-                          {proc.name}
-                        </h2>
+                        <h3 className="font-bold text-sm text-slate-900 group-hover:text-[#9F0C1E] transition-colors leading-snug">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenA4(proc)}
+                            className="text-left hover:underline cursor-pointer gov-focus-ring rounded"
+                          >
+                            {proc.name}
+                          </button>
+                        </h3>
 
-                        {/* Metadata row with date icon like in reference image */}
-                        <div className="flex flex-wrap items-center gap-3 mt-1.5 text-[11px] text-slate-500">
-                          <span className="flex items-center gap-1 font-mono text-slate-600">
-                            <Calendar className="w-3.5 h-3.5 text-teal-600" />
-                            <span>03/11/2026</span>
-                          </span>
-
-                          <span className="text-slate-300">•</span>
-
-                          <span className="flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5 text-slate-400" />
+                        <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-600">
+                          <span className="inline-flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5 text-slate-500" />
                             <span>
                               {proc.category === 'Hộ tịch'
-                                ? 'Giải quyết trong 01 ngày'
+                                ? '01 ngày làm việc'
                                 : proc.category === 'Cư trú'
                                 ? '01 - 03 ngày làm việc'
                                 : '03 - 05 ngày làm việc'}
@@ -318,107 +432,121 @@ export const ProceduresCatalogPage: React.FC = () => {
                           <span className="text-slate-300">•</span>
 
                           {isFeeExempt(proc) ? (
-                            <span className="inline-flex items-center gap-1 font-bold text-emerald-800 bg-emerald-100/90 border border-emerald-300 px-2 py-0.5 rounded-lg text-[10px] shadow-2xs">
-                              <Sparkles className="w-3 h-3 text-emerald-600 shrink-0" />
-                              <span>🌿 MIỄN 100% LỆ PHÍ (Luật Phí và Lệ phí 2015)</span>
+                            <span className="inline-flex items-center gap-1 font-semibold text-[#065F46] bg-[#ECFDF5] border border-[#A7F3D0] px-2 py-0.5 rounded text-[11px]">
+                              Miễn 100% lệ phí (Luật 2015)
                             </span>
                           ) : (
-                            <span className="font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded-lg text-[10px]">
+                            <span className="font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[11px]">
                               Theo quy định HĐND
                             </span>
                           )}
                         </div>
                       </div>
-                    </div>
 
-                    {/* Right Action Buttons */}
-                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-center mt-2 sm:mt-0">
-                      {/* A4 Document Preview & Download */}
-                      <button
-                        type="button"
-                        onClick={() => handleOpenA4(proc)}
-                        className="px-2.5 py-1.5 rounded-xl border border-slate-200 hover:border-[#00796B] hover:bg-teal-50 text-slate-700 hover:text-[#00796B] text-xs font-semibold flex items-center gap-1 transition cursor-pointer shadow-2xs"
-                        title="Xem trước và tải về máy bản Word (.docx) hoặc PDF chuẩn Nghị định 30/2020/NĐ-CP"
-                      >
-                        <FileDown className="w-3.5 h-3.5 text-[#00796B]" />
-                        <span className="hidden sm:inline">Tải Mẫu A4</span>
-                        <span className="sm:hidden">Mẫu A4</span>
-                      </button>
-
-                      {/* Direct Form or AI Consultation */}
-                      {isTop4 ? (
+                      <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
                         <button
                           type="button"
-                          onClick={() => navigate(getFormUrl(proc.code))}
-                          className="px-3 py-1.5 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold flex items-center gap-1 transition shadow-xs cursor-pointer active:scale-95"
+                          onClick={() => handleOpenA4(proc)}
+                          className="px-3 py-1.5 rounded-lg border border-slate-300 hover:border-[#B90E23] hover:bg-[#FEF2F2] text-slate-700 hover:text-[#9F0C1E] text-xs font-semibold inline-flex items-center gap-1.5 transition cursor-pointer gov-focus-ring"
+                          title="Xem trước và tải về bản Word (.docx) hoặc PDF chuẩn Nghị định 30/2020/NĐ-CP"
                         >
-                          <span>Kê Khai</span>
-                          <ArrowRight className="w-3 h-3" />
+                          <FileDown className="w-3.5 h-3.5" />
+                          <span>Mẫu A4</span>
                         </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() =>
-                            navigate(`/citizen?query=${encodeURIComponent('Thủ tục ' + proc.name + ' cần chuẩn bị giấy tờ gì?')}`)
-                          }
-                          className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-teal-100 text-[#00796B] text-xs font-semibold flex items-center gap-1 transition cursor-pointer"
-                          title="Hỏi Trợ lý AI về thủ tục này"
-                        >
-                          <Bot className="w-3.5 h-3.5 text-[#00796B]" />
-                          <span className="hidden lg:inline">Hỏi AI</span>
-                        </button>
-                      )}
 
-                      <div className="text-teal-600 opacity-60 group-hover:opacity-100 group-hover:translate-x-1 transition-all pl-1">
-                        <ChevronRight className="w-4 h-4" />
+                        {isTop4 ? (
+                          <button
+                            type="button"
+                            onClick={() => navigate(getFormUrl(proc.code))}
+                            className="px-3.5 py-1.5 rounded-lg bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer shadow-2xs gov-focus-ring"
+                          >
+                            <span>Kê khai</span>
+                            <ArrowRight className="w-3.5 h-3.5" />
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              navigate(`/citizen?query=${encodeURIComponent('Thủ tục ' + proc.name + ' cần chuẩn bị giấy tờ gì?')}`)
+                            }
+                            className="px-3 py-1.5 rounded-lg bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#9F0C1E] border border-[#FECACA] text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer gov-focus-ring"
+                          >
+                            <Bot className="w-3.5 h-3.5" />
+                            <span>Hỏi AI</span>
+                          </button>
+                        )}
                       </div>
-                    </div>
-                  </article>
-                );
-              })
-            )}
-          </div>
-
-          {/* Pagination / Summary Footer */}
-          <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-            <span>
-              Hiển thị <strong>{filteredProcedures.length}</strong> / <strong>{procedures.length}</strong> thủ tục hành chính cấp Xã/Phường
-            </span>
-            <div className="flex items-center gap-1.5 text-teal-800 font-medium">
-              <ShieldCheck className="w-4 h-4 text-[#00796B]" />
-              <span>Quy chuẩn Cổng Dịch Vụ Công Quốc Gia</span>
+                    </article>
+                  );
+                })
+              )}
             </div>
-          </div>
+          </section>
 
+          {/* RIGHT COLUMN (4 Cols): TRA CỨU NHANH */}
+          <aside aria-label="Tra cứu nhanh" className="lg:col-span-4 flex flex-col gap-4 lg:sticky lg:top-28">
+            <div className="border-b border-slate-200 pb-0">
+              <div className="pb-2">
+                <h2 className="text-sm sm:text-base font-extrabold text-[#881320] uppercase tracking-wide">
+                  TRA CỨU NHANH
+                </h2>
+              </div>
+              <span className="block w-14 h-[3px] bg-[#B90E23]" />
+            </div>
+
+            <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs p-4 flex flex-col gap-2.5">
+              <p className="text-xs font-semibold text-slate-700">
+                4 thủ tục hỗ trợ tiền kiểm & kê khai trực tuyến:
+              </p>
+              <div className="flex flex-col divide-y divide-slate-100">
+                {quickProcedures.map((qp) => (
+                  <button
+                    key={qp.code}
+                    type="button"
+                    onClick={() => navigate(getFormUrl(qp.code))}
+                    className="py-2.5 px-1 text-left flex items-center justify-between gap-2 group hover:text-[#9F0C1E] transition cursor-pointer gov-focus-ring rounded"
+                  >
+                    <div className="min-w-0">
+                      <span className="block text-xs font-bold text-slate-900 group-hover:text-[#9F0C1E] truncate">
+                        {qp.name}
+                      </span>
+                      <span className="text-[11px] font-mono text-slate-600">{qp.code}</span>
+                    </div>
+                    <ChevronRight className="w-4 h-4 text-slate-400 group-hover:text-[#B90E23] shrink-0" />
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-[#F7EEDF] rounded-xl border border-[#E5D4B3] p-4 flex flex-col gap-2.5">
+              <div className="flex items-center gap-2 text-[#750715]">
+                <ShieldCheck className="w-4 h-4 shrink-0" />
+                <span className="text-xs font-bold uppercase tracking-wide">Hỗ trợ Một cửa số</span>
+              </div>
+              <p className="text-xs text-[#2B1B17] leading-relaxed">
+                Cần hỏi chi tiết điều kiện hoặc mẫu giấy tờ? Trợ lý AI sẵn sàng giải đáp 24/7 cho UBND {currentWard.name}.
+              </p>
+              <div className="grid grid-cols-2 gap-2 pt-1">
+                <button
+                  type="button"
+                  onClick={() => navigate('/citizen')}
+                  className="px-3 py-2 rounded-lg bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer gov-focus-ring"
+                >
+                  <Bot className="w-3.5 h-3.5" />
+                  <span>Hỏi đáp AI</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => navigate('/citizen/form#tracking')}
+                  className="px-3 py-2 rounded-lg bg-white hover:bg-slate-50 text-[#750715] border border-[#E5D4B3] text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer gov-focus-ring"
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Tra cứu SLA</span>
+                </button>
+              </div>
+            </div>
+          </aside>
         </div>
-      </div>
-
-      {/* MINI FLOATING CHATBOT AT BOTTOM RIGHT WITH LEAD-IN ANIMATION */}
-      <div className="fixed bottom-6 right-6 z-40 flex items-center gap-3">
-        {/* Animated Tooltip Bubble leading to full chat */}
-        <button
-          type="button"
-          onClick={() => navigate('/citizen')}
-          className="hidden sm:inline-flex items-center gap-2 px-4 py-2.5 bg-white text-slate-800 rounded-2xl shadow-xl border border-teal-200 text-xs font-semibold hover:border-[#00796B] hover:bg-teal-50/50 transition-all cursor-pointer animate-bounce active:scale-95 group"
-        >
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping shrink-0" />
-          <span>Hỏi đáp thủ tục với <strong>Trợ lý AI</strong></span>
-          <ArrowRight className="w-3.5 h-3.5 text-[#00796B] group-hover:translate-x-1 transition-transform" />
-        </button>
-
-        {/* Floating Action Button */}
-        <button
-          type="button"
-          onClick={() => navigate('/citizen')}
-          className="relative p-4 rounded-full bg-[#00796B] hover:bg-[#00695C] text-white shadow-[0_8px_25px_rgba(0,121,107,0.4)] hover:shadow-[0_12px_32px_rgba(0,121,107,0.5)] transition-all duration-300 active:scale-90 cursor-pointer flex items-center justify-center group"
-          title="Mở Trợ Lý Pháp Lý AI Một Cửa (Toàn Màn Hình)"
-        >
-          <span className="absolute -top-1 -right-1 flex h-4 w-4">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-4 w-4 bg-emerald-500 text-[9px] font-bold text-white items-center justify-center">1</span>
-          </span>
-          <Bot className="w-6 h-6 text-white group-hover:rotate-12 transition-transform" />
-        </button>
       </div>
 
       {/* A4 Printable Document Modal */}
