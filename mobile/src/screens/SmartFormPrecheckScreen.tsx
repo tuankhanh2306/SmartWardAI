@@ -1,10 +1,10 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { ShieldCheck } from 'lucide-react-native';
+import { FileCheck2 } from 'lucide-react-native';
 import { useAccessibility } from '../context/AccessibilityContext';
 import { useWard } from '../context/WardContext';
 import { useResponsivePhone } from '../theme/responsive';
-import { COLORS, DOMAIN_THRESHOLDS, RADIUS, SPACING } from '../theme/tokens';
+import { COLORS, RADIUS, SPACING } from '../theme/tokens';
 
 export const SmartFormPrecheckScreen: React.FC = () => {
   const { currentWard } = useWard();
@@ -20,23 +20,16 @@ export const SmartFormPrecheckScreen: React.FC = () => {
       ]}
     >
       <View style={[styles.card, { padding: responsive.cardPadding }]}>
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>CHẶNG M3 • AI VISION GATE</Text>
-        </View>
         <View style={styles.iconRow}>
           <View style={styles.iconBox}>
-            <ShieldCheck size={20} color={COLORS.primary} />
+            <FileCheck2 size={20} color={COLORS.primary} />
           </View>
           <Text style={[styles.title, typography.headingLg]}>
-            Sơ Duyệt Đơn &amp; Quét QR CCCD
+            Kiểm tra tờ khai
           </Text>
         </View>
         <Text style={[styles.body, typography.bodyMd]}>
-          Hỗ trợ 4 biểu mẫu trọng tâm: CT01 (Cư trú), TK-KS (Khai sinh), TK-KH (Kết hôn), TK-BTXH (Bảo trợ xã hội) nộp trực tuyến về UBND {currentWard.name}.
-        </Text>
-        <Text style={[styles.meta, typography.captionSm]}>
-          AI Thị Giác 3 tiêu chí: Độ nét ≥ {DOMAIN_THRESHOLDS.visionMinSharpnessScore}/100 • Độ sáng ≥{' '}
-          {DOMAIN_THRESHOLDS.visionMinBrightnessScore}/255 • Chống OOM ≤ 1920px.
+          Quét QR CCCD và kiểm tra lỗi tờ khai CT01, Khai sinh, Kết hôn, Bảo trợ xã hội trước khi nộp tại {currentWard.name}.
         </Text>
       </View>
     </ScrollView>
@@ -45,7 +38,7 @@ export const SmartFormPrecheckScreen: React.FC = () => {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: COLORS.citizenSurface },
-  content: { paddingVertical: SPACING.md, gap: SPACING.md },
+  content: { paddingVertical: SPACING.md },
   card: {
     backgroundColor: COLORS.card,
     borderRadius: RADIUS.xl,
@@ -53,16 +46,6 @@ const styles = StyleSheet.create({
     borderColor: COLORS.borderSubtle,
     gap: SPACING.sm,
   },
-  badge: {
-    alignSelf: 'flex-start',
-    backgroundColor: COLORS.primarySubtle,
-    borderWidth: 1,
-    borderColor: COLORS.primaryBorder,
-    borderRadius: RADIUS.full,
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-  },
-  badgeText: { color: COLORS.primary, fontSize: 11, fontWeight: '800' },
   iconRow: { flexDirection: 'row', alignItems: 'center', gap: SPACING.sm },
   iconBox: {
     width: 36,
@@ -74,5 +57,4 @@ const styles = StyleSheet.create({
   },
   title: { color: COLORS.textPrimary, flex: 1 },
   body: { color: COLORS.textSecondary },
-  meta: { color: COLORS.primary, fontWeight: '700' },
 });
