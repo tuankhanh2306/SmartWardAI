@@ -6,8 +6,8 @@ import vn.edu.uth.smartward.ai.AiModelClient;
 import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ErrorCode;
 import vn.edu.uth.smartward.dossier.CitizenDossierService;
-import vn.edu.uth.smartward.dossier.DossierSubmissionResponse;
-import vn.edu.uth.smartward.dossier.SubmitDossierRequest;
+import vn.edu.uth.smartward.dossier.dto.DossierSubmissionResponse;
+import vn.edu.uth.smartward.dossier.dto.SubmitDossierRequest;
 import vn.edu.uth.smartward.triage.TwoStageTriageService;
 import vn.edu.uth.smartward.vault.ZeroTrustVaultService;
 

@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.uth.smartward.common.ApiResponse;
+import vn.edu.uth.smartward.dossier.dto.*;
 import vn.edu.uth.smartward.security.OfficerAuthService;
 
 import java.util.List;

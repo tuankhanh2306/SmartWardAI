@@ -17,6 +17,7 @@ import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ErrorCode;
 import vn.edu.uth.smartward.common.GlobalExceptionHandler;
 import vn.edu.uth.smartward.dossier.*;
+import vn.edu.uth.smartward.dossier.dto.*;
 import vn.edu.uth.smartward.rag.dto.HitlGrayZoneItemDto;
 import vn.edu.uth.smartward.rag.dto.HitlResolveRequest;
 import vn.edu.uth.smartward.rag.RagController;
