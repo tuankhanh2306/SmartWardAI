@@ -24,6 +24,9 @@ import { analyzeImageQuality, verifyTemplateMatch, type VisionQualityGateResult 
 import { exportElementToPdf } from '../utils/pdfExporter';
 import { useWard } from '../context/WardContext';
 import A4DocumentModal from '../components/A4DocumentModal';
+import { SpecializedFormFields } from '../features/citizen-forms/SpecializedFormFields';
+import { CivicIncidentTab } from '../features/civic-incident/CivicIncidentTab';
+import { DossierTrackingTab } from '../features/dossier-tracking/DossierTrackingTab';
 import { CccdQrScannerModal } from '../components/CccdQrScannerModal';
 import { type DecodedCccdQr, type QrFieldDiscrepancy } from '../utils/cccdQrParser';
 import { decodeQrFromImageFile } from '../utils/qrImageDecoder';
@@ -38,14 +41,11 @@ import {
   FileCheck2,
   AlertTriangle,
   AlertCircle,
-  MapPin,
   Camera,
   CheckCircle2,
   XCircle,
   Sparkles,
-  Send,
   PenTool,
-  Layers,
   RefreshCw,
   ShieldCheck,
   Upload,
@@ -53,9 +53,6 @@ import {
   Check,
   FileText,
   Laptop,
-  PhoneCall,
-  Navigation,
-  Radio,
   ArrowRight,
   ChevronDown,
   ChevronLeft,
@@ -64,9 +61,7 @@ import {
   Volume2,
   VolumeX,
   QrCode,
-  Search,
   Clock,
-  Calendar,
   Mail
 } from 'lucide-react';
 
@@ -2574,743 +2569,96 @@ export const FormAndIssueReporting: React.FC = () => {
                   </div>
                 </div>
 
-                {/* SPECIALIZED FIELDS FOR CT01: Cư trú (Thông tư 66/2023/TT-BCA) */}
-                {selectedFormType === 'CT01' && (
-                  <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2 text-xs font-extrabold text-[#004D40] flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-[#00695C]" />
-                      <span>Thông tin Tờ khai thay đổi thông tin cư trú (Mẫu CT01 - Thông tư 66/2023/TT-BCA)</span>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center justify-between">
-                        <label htmlFor="p3-ct01-phone" className="text-xs font-bold text-[#334155]">
-                          Số điện thoại liên hệ (Mục 5 Mẫu CT01):
-                        </label>
-                        {ocrSuccess && phoneNumber ? (
-                          <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 5
-                          </span>
-                        ) : null}
-                      </div>
-                      <input
-                        id="p3-ct01-phone"
-                        type="tel"
-                        value={phoneNumber}
-                        placeholder="VD: 0918234567"
-                        onChange={(e) => setPhoneNumber(e.target.value)}
-                        className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] transition-all ${
-                          ocrSuccess && phoneNumber ? 'border-[#10B981]/60 bg-[#F0FDF4]/30' : 'bg-white border-[#CBD5E1]'
-                        }`}
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center justify-between">
-                        <label htmlFor="p3-ct01-scope" className="text-xs font-bold text-[#334155]">
-                          Nội dung đề nghị (Mục 10 Mẫu CT01):
-                        </label>
-                        {ocrSuccess && declarationScope ? (
-                          <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 10
-                          </span>
-                        ) : null}
-                      </div>
-                      <select
-                        id="p3-ct01-scope"
-                        value={declarationScope}
-                        onChange={(e) => setDeclarationScope(e.target.value)}
-                        className={`w-full h-9 px-3 rounded-xl border text-xs font-semibold text-[#0F172A] transition-all ${
-                          ocrSuccess && declarationScope ? 'border-[#10B981]/60 bg-[#F0FDF4]/30' : 'bg-white border-[#CBD5E1]'
-                        }`}
-                      >
-                        <option value="Đăng ký thường trú">Đăng ký thường trú</option>
-                        <option value="Đăng ký tạm trú">Đăng ký tạm trú</option>
-                        <option value="Tách hộ">Tách hộ</option>
-                        <option value="Điều chỉnh thông tin cư trú">Điều chỉnh thông tin cư trú</option>
-                        <option value="Xóa đăng ký thường trú">Xóa đăng ký thường trú</option>
-                        <option value="Gia hạn tạm trú">Gia hạn tạm trú</option>
-                      </select>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center justify-between">
-                        <label htmlFor="p3-ct01-host-name" className="text-xs font-bold text-[#334155]">
-                          Họ và tên chủ hộ nơi đến (Mục 11):
-                        </label>
-                        {ocrSuccess && hostName ? (
-                          <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 11
-                          </span>
-                        ) : null}
-                      </div>
-                      <input
-                        id="p3-ct01-host-name"
-                        type="text"
-                        value={hostName}
-                        placeholder="Họ và tên chủ hộ"
-                        onChange={(e) => setHostName(e.target.value)}
-                        className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] transition-all ${
-                          ocrSuccess && hostName ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-white border-[#CBD5E1]'
-                        }`}
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center justify-between">
-                        <label htmlFor="p3-ct01-host-cccd" className="text-xs font-bold text-[#334155]">
-                          Số CCCD / ĐDCN của chủ hộ (Mục 11):
-                        </label>
-                        {ocrSuccess && hostCccd ? (
-                          <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map ({hostCccd.length} số)
-                          </span>
-                        ) : null}
-                      </div>
-                      <input
-                        id="p3-ct01-host-cccd"
-                        type="text"
-                        value={hostCccd}
-                        maxLength={12}
-                        placeholder="12 chữ số CCCD chủ hộ"
-                        onChange={(e) => setHostCccd(e.target.value)}
-                        className={`w-full h-9 px-3 rounded-xl border text-xs font-mono font-bold text-[#004D40] transition-all ${
-                          ocrSuccess && hostCccd ? 'border-[#10B981]/60 bg-[#F0FDF4]/30' : 'bg-white border-[#CBD5E1]'
-                        }`}
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1 sm:col-span-2">
-                      <div className="flex items-center justify-between">
-                        <label htmlFor="p3-ct01-host-rel" className="text-xs font-bold text-[#334155]">
-                          Quan hệ với chủ hộ (Mục 12):
-                        </label>
-                        {ocrSuccess && hostRelation ? (
-                          <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 12
-                          </span>
-                        ) : null}
-                      </div>
-                      <select
-                        id="p3-ct01-host-rel"
-                        value={hostRelation}
-                        onChange={(e) => {
-                          const val = e.target.value;
-                          setHostRelation(val);
-                          if (val === 'Chủ hộ') {
-                            setHostName(fullName || 'NGUYỄN VĂN AN');
-                            setHostCccd(cccd || '089092023490');
-                          } else if (val === 'Con đẻ') {
-                            if (!hostName || hostName === fullName) setHostName('NGUYỄN VĂN AN');
-                            if (!hostCccd || hostCccd === cccd) setHostCccd('089075001234');
-                          }
-                        }}
-                        className={`w-full h-9 px-3 rounded-xl border text-xs font-semibold text-[#0F172A] transition-all ${
-                          ocrSuccess && hostRelation ? 'border-[#10B981]/60 bg-[#F0FDF4]/30' : 'bg-white border-[#CBD5E1]'
-                        }`}
-                      >
-                        <option value="Chủ hộ">Chủ hộ (Bản thân là chủ hộ)</option>
-                        <option value="Vợ/Chồng">Vợ / Chồng</option>
-                        <option value="Con đẻ">Con đẻ / Con nuôi</option>
-                        <option value="Bố/Mẹ">Bố đẻ / Mẹ đẻ</option>
-                        <option value="Ông/Bà">Ông / Bà nội/ngoại</option>
-                        <option value="Cháu ruột">Cháu ruột</option>
-                        <option value="Anh/Chị/Em ruột">Anh / Chị / Em ruột</option>
-                        <option value="Thuê / Mượn / Ở nhờ">Thuê / Mượn / Ở nhờ (Bắt buộc chữ ký đồng ý của chủ hộ & chủ sở hữu chỗ ở)</option>
-                      </select>
-                    </div>
-                  </div>
-                )}
-
-                {/* SPECIALIZED FIELDS FOR PRIORITY 1: TK-KS (Birth Registration + Hospital Cert Cross-check) */}
-                {selectedFormType === 'TK-KS' && (
-                  <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2 text-xs font-extrabold text-[#004D40] flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-[#00695C]" />
-                      <span>Đối chiếu chéo Giấy chứng sinh bệnh viện & Tình trạng hôn nhân cha mẹ (Thông tư 04/2020/TT-BTP)</span>
-                    </div>
-
-                    {/* Smart Checklist: Cha mẹ chưa kết hôn */}
-                    {parentsMarried === 'NO' && (
-                      <div className="sm:col-span-2 p-3.5 rounded-xl bg-amber-50 border border-amber-300 flex flex-col gap-1.5 text-xs text-amber-900 shadow-2xs">
-                        <div className="font-bold flex items-center gap-1.5 text-amber-900 text-sm">
-                          <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
-                          <span>Thủ tục ghép bắt buộc: Đăng ký nhận cha, mẹ, con (TTHC-HT-06)</span>
-                        </div>
-                        <p className="text-xs leading-relaxed text-amber-900">
-                          Theo Điều 15 Thông tư 04/2020/TT-BTP, do cha mẹ <strong>chưa đăng ký kết hôn</strong> nhưng muốn ghi tên cha vào Giấy khai sinh của con, công dân phải thực hiện đồng thời thủ tục <strong>Khai sinh kết hợp Nhận cha, mẹ, con</strong>.
-                        </p>
-                        <div className="text-xs font-semibold text-amber-900 mt-1">
-                          Hồ sơ cần nộp kèm tại Bộ phận Một cửa:
-                          <ul className="list-disc pl-5 mt-1 space-y-0.5 text-amber-900 font-normal">
-                            <li>Tờ khai đăng ký nhận cha, mẹ, con theo mẫu quy định.</li>
-                            <li>Chứng cứ chứng minh quan hệ cha - con (Kết luận giám định ADN hoặc văn bản cam đoan/chứng cứ thân tộc có xác nhận của người làm chứng).</li>
-                          </ul>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="flex flex-col gap-1">
-                      <label htmlFor="p3-ks-hospital-dob" className="text-xs font-bold text-[#334155]">
-                        Ngày sinh ghi trên Giấy chứng sinh (Bệnh viện cấp):
-                      </label>
-                      <input
-                        id="p3-ks-hospital-dob"
-                        type="date"
-                        value={hospitalBirthDate}
-                        onChange={(e) => setHospitalBirthDate(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <label htmlFor="p3-ks-parents-married" className="text-xs font-bold text-[#334155]">
-                        Tình trạng hôn nhân của Cha & Mẹ:
-                      </label>
-                      <select
-                        id="p3-ks-parents-married"
-                        value={parentsMarried}
-                        onChange={(e) => setParentsMarried(e.target.value as 'YES' | 'NO')}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#0F172A]"
-                      >
-                        <option value="YES">Đã có Giấy chứng nhận đăng ký kết hôn</option>
-                        <option value="NO">Chưa đăng ký kết hôn (Cần kết hợp Nhận cha, mẹ, con)</option>
-                      </select>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <label htmlFor="p3-ks-ethnicity" className="text-xs font-bold text-[#334155]">
-                        Dân tộc của trẻ:
-                      </label>
-                      <input
-                        id="p3-ks-ethnicity"
-                        type="text"
-                        value={childEthnicity}
-                        onChange={(e) => setChildEthnicity(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <label htmlFor="p3-ks-nationality" className="text-xs font-bold text-[#334155]">
-                        Quốc tịch của trẻ:
-                      </label>
-                      <input
-                        id="p3-ks-nationality"
-                        type="text"
-                        value={childNationality}
-                        onChange={(e) => setChildNationality(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1 sm:col-span-2">
-                      <label htmlFor="p3-ks-birthplace" className="text-xs font-bold text-[#334155]">
-                        Nơi sinh của trẻ (Tên cơ sở y tế / Bệnh viện):
-                      </label>
-                      <input
-                        id="p3-ks-birthplace"
-                        type="text"
-                        value={childBirthPlace}
-                        onChange={(e) => setChildBirthPlace(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <label htmlFor="p3-ks-cert-num" className="text-xs font-bold text-[#334155]">
-                        Số Giấy chứng sinh:
-                      </label>
-                      <input
-                        id="p3-ks-cert-num"
-                        type="text"
-                        value={birthCertNumber}
-                        onChange={(e) => setBirthCertNumber(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <label htmlFor="p3-ks-cert-date" className="text-xs font-bold text-[#334155]">
-                        Ngày cấp Giấy chứng sinh:
-                      </label>
-                      <input
-                        id="p3-ks-cert-date"
-                        type="date"
-                        value={birthCertIssueDate}
-                        onChange={(e) => setBirthCertIssueDate(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <label htmlFor="p3-ks-mother-name" className="text-xs font-bold text-[#334155]">
-                        Họ tên Mẹ ghi trên Tờ khai khai sinh:
-                      </label>
-                      <input
-                        id="p3-ks-mother-name"
-                        type="text"
-                        value={motherName}
-                        onChange={(e) => setMotherName(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <label htmlFor="p3-ks-hospital-mother" className="text-xs font-bold text-[#334155]">
-                        Họ tên Sản phụ ghi trên Giấy chứng sinh:
-                      </label>
-                      <input
-                        id="p3-ks-hospital-mother"
-                        type="text"
-                        value={hospitalMotherName}
-                        onChange={(e) => setHospitalMotherName(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1 sm:col-span-2">
-                      <label htmlFor="p3-ks-mother-res" className="text-xs font-bold text-[#334155]">
-                        Nơi cư trú của người mẹ:
-                      </label>
-                      <input
-                        id="p3-ks-mother-res"
-                        type="text"
-                        value={motherResidence}
-                        onChange={(e) => setMotherResidence(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <label htmlFor="p3-ks-father-name" className="text-xs font-bold text-[#334155]">
-                        Họ tên Cha ghi trên Tờ khai:
-                      </label>
-                      <input
-                        id="p3-ks-father-name"
-                        type="text"
-                        value={fatherName}
-                        placeholder="Để trống nếu chưa làm thủ tục nhận cha con"
-                        onChange={(e) => setFatherName(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                      />
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <label htmlFor="p3-ks-father-res" className="text-xs font-bold text-[#334155]">
-                        Nơi cư trú của người cha:
-                      </label>
-                      <input
-                        id="p3-ks-father-res"
-                        type="text"
-                        value={fatherResidence}
-                        onChange={(e) => setFatherResidence(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {/* SPECIALIZED FIELDS FOR PRIORITY 2: TK-KH (Marriage & Single Status Certificate) */}
-                {selectedFormType === 'TK-KH' && (
-                  <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2 text-xs font-extrabold text-[#004D40] flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-[#00695C]" />
-                      <span>Rà soát biểu mẫu Hôn nhân & Tình trạng hôn nhân (Thông tư 04/2020/TT-BTP)</span>
-                    </div>
-
-                    {/* Toggle Switch giữa 2 chế độ */}
-                    <div className="sm:col-span-2 flex items-center gap-2 p-1 bg-slate-200/80 rounded-xl">
-                      <button
-                        type="button"
-                        onClick={() => setMarriageMode('MARRIAGE_REGISTRATION')}
-                        className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer gov-focus-ring ${
-                          marriageMode === 'MARRIAGE_REGISTRATION'
-                            ? 'bg-[#00695C] text-white shadow-xs'
-                            : 'text-slate-700 hover:text-slate-900'
-                        }`}
-                      >
-                        Đăng Ký Kết Hôn
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setMarriageMode('MARITAL_STATUS_CONFIRMATION')}
-                        className={`flex-1 py-2 px-3 rounded-lg text-xs font-bold transition cursor-pointer gov-focus-ring ${
-                          marriageMode === 'MARITAL_STATUS_CONFIRMATION'
-                            ? 'bg-[#00695C] text-white shadow-xs'
-                            : 'text-slate-700 hover:text-slate-900'
-                        }`}
-                      >
-                        Cấp Giấy Xác Nhận Tình Trạng Hôn Nhân
-                      </button>
-                    </div>
-
-                    {marriageMode === 'MARRIAGE_REGISTRATION' ? (
-                      <>
-                        <div className="flex flex-col gap-1">
-                          <label htmlFor="p3-kh-partner-name" className="text-xs font-bold text-[#334155]">
-                            Họ tên bên kết hôn thứ hai (Nam/Nữ):
-                          </label>
-                          <input
-                            id="p3-kh-partner-name"
-                            type="text"
-                            value={partnerName}
-                            onChange={(e) => setPartnerName(e.target.value)}
-                            className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                          />
-                        </div>
-
-                        <div className="flex flex-col gap-1">
-                          <label htmlFor="p3-kh-partner-cccd" className="text-xs font-bold text-[#334155]">
-                            Số CCCD bên kết hôn thứ hai (12 số):
-                          </label>
-                          <input
-                            id="p3-kh-partner-cccd"
-                            type="text"
-                            value={partnerCccd}
-                            maxLength={12}
-                            placeholder="12 chữ số CCCD"
-                            onChange={(e) => setPartnerCccd(e.target.value)}
-                            className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-mono font-bold text-[#004D40]"
-                          />
-                        </div>
-
-                        <div className="flex flex-col gap-1">
-                          <label htmlFor="p3-kh-partner-dob" className="text-xs font-bold text-[#334155]">
-                            Ngày sinh & Giới tính bên thứ hai:
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <input
-                              id="p3-kh-partner-dob"
-                              aria-label="Ngày sinh bên kết hôn thứ hai"
-                              type="date"
-                              value={partnerDob}
-                              onChange={(e) => setPartnerDob(e.target.value)}
-                              className="w-full h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                            />
-                            <select
-                              id="p3-kh-partner-gender"
-                              aria-label="Giới tính bên kết hôn thứ hai"
-                              value={partnerGender}
-                              onChange={(e) => setPartnerGender(e.target.value as 'Nam' | 'Nữ')}
-                              className="h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs font-bold text-[#004D40]"
-                            >
-                              <option value="Nam">Nam</option>
-                              <option value="Nữ">Nữ</option>
-                            </select>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col gap-1">
-                          <label htmlFor="p3-kh-ethnicity-self" className="text-xs font-bold text-[#334155]">
-                            Dân tộc hai bên (Người nộp / Bên thứ hai):
-                          </label>
-                          <div className="flex items-center gap-2">
-                            <input
-                              id="p3-kh-ethnicity-self"
-                              aria-label="Dân tộc người nộp"
-                              type="text"
-                              value={applicantEthnicity}
-                              onChange={(e) => setApplicantEthnicity(e.target.value)}
-                              placeholder="Dân tộc bạn"
-                              className="w-1/2 h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                            />
-                            <input
-                              id="p3-kh-ethnicity-partner"
-                              aria-label="Dân tộc bên phối ngẫu"
-                              type="text"
-                              value={partnerEthnicity}
-                              onChange={(e) => setPartnerEthnicity(e.target.value)}
-                              placeholder="Dân tộc phối ngẫu"
-                              className="w-1/2 h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col gap-1 sm:col-span-2">
-                          <label htmlFor="p3-kh-partner-addr" className="text-xs font-bold text-[#334155]">
-                            Nơi cư trú bên kết hôn thứ hai:
-                          </label>
-                          <input
-                            id="p3-kh-partner-addr"
-                            type="text"
-                            value={partnerAddress}
-                            onChange={(e) => setPartnerAddress(e.target.value)}
-                            className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                          />
-                        </div>
-                      </>
-                    ) : (
-                      <div className="flex flex-col gap-1 sm:col-span-2">
-                        <label htmlFor="p3-kh-purpose" className="text-xs font-bold text-[#334155]">
-                          Mục đích sử dụng Giấy xác nhận tình trạng hôn nhân (Bắt buộc ghi cụ thể theo TT 04/2020/TT-BTP):
-                        </label>
-                        <input
-                          id="p3-kh-purpose"
-                          type="text"
-                          value={maritalCertPurpose}
-                          placeholder="VD: Để đăng ký kết hôn với anh Phạm Văn Minh tại UBND..."
-                          onChange={(e) => setMaritalCertPurpose(e.target.value)}
-                          className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                        />
-                      </div>
-                    )}
-
-                    <div className="flex flex-col gap-1 sm:col-span-2">
-                      <label htmlFor="p3-kh-prev-status" className="text-xs font-bold text-[#334155]">
-                        Tình trạng hôn nhân trước khi đăng ký:
-                      </label>
-                      <select
-                        id="p3-kh-prev-status"
-                        value={previousMaritalStatus}
-                        onChange={(e) => setPreviousMaritalStatus(e.target.value as 'SINGLE' | 'DIVORCED' | 'WIDOWED')}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#0F172A]"
-                      >
-                        <option value="SINGLE">Chưa từng kết hôn lần nào</option>
-                        <option value="DIVORCED">Đã ly hôn (Bắt buộc có Bản án/Quyết định ly hôn của Tòa án)</option>
-                        <option value="WIDOWED">Vợ / Chồng đã mất (Bắt buộc có Giấy chứng tử/Trích lục khai tử)</option>
-                      </select>
-                    </div>
-
-                    {/* Smart Checklist: Đã từng ly hôn */}
-                    {previousMaritalStatus === 'DIVORCED' && (
-                      <div className="sm:col-span-2 p-3.5 rounded-xl bg-amber-50 border border-amber-300 flex flex-col gap-2 text-xs text-amber-900 shadow-2xs">
-                        <div className="font-bold flex items-center gap-1.5 text-amber-900">
-                          <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
-                          <span>Yêu cầu văn bản Tòa án đối với người đã ly hôn:</span>
-                        </div>
-                        <p className="text-xs text-amber-900">
-                          Bắt buộc xuất trình bản chính hoặc nộp bản sao trích lục Bản án/Quyết định ly hôn đã có hiệu lực pháp luật của Tòa án nhân dân kèm theo hồ sơ.
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
-                          <div>
-                            <label htmlFor="p3-kh-divorce-num" className="text-[11px] font-bold text-amber-900">Số Bản án / Quyết định ly hôn:</label>
-                            <input
-                              id="p3-kh-divorce-num"
-                              type="text"
-                              value={divorceJudgmentNumber}
-                              placeholder="VD: 45/2023/HNGĐ-ST"
-                              onChange={(e) => setDivorceJudgmentNumber(e.target.value)}
-                              className="w-full h-8 px-2.5 rounded-lg border border-amber-300 bg-white text-xs text-slate-800 mt-0.5"
-                            />
-                          </div>
-                          <div>
-                            <label htmlFor="p3-kh-divorce-date" className="text-[11px] font-bold text-amber-900">Ngày ban hành Bản án/Quyết định:</label>
-                            <input
-                              id="p3-kh-divorce-date"
-                              type="date"
-                              value={divorceJudgmentDate}
-                              onChange={(e) => setDivorceJudgmentDate(e.target.value)}
-                              className="w-full h-8 px-2.5 rounded-lg border border-amber-300 bg-white text-xs text-slate-800 mt-0.5"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Smart Checklist: Vợ/chồng đã mất */}
-                    {previousMaritalStatus === 'WIDOWED' && (
-                      <div className="sm:col-span-2 p-3.5 rounded-xl bg-amber-50 border border-amber-300 flex flex-col gap-2 text-xs text-amber-900 shadow-2xs">
-                        <div className="font-bold flex items-center gap-1.5 text-amber-900">
-                          <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
-                          <span>Yêu cầu giấy tờ đối với người có vợ/chồng đã mất:</span>
-                        </div>
-                        <p className="text-xs text-amber-900">
-                          Bắt buộc nộp bản sao Giấy chứng tử hoặc Trích lục khai tử của vợ/chồng cũ đã mất.
-                        </p>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1">
-                          <div>
-                            <label htmlFor="p3-kh-death-num" className="text-[11px] font-bold text-amber-900">Số Giấy chứng tử / Trích lục khai tử:</label>
-                            <input
-                              id="p3-kh-death-num"
-                              type="text"
-                              value={deathCertNumber}
-                              placeholder="VD: 12/TLKT-2024"
-                              onChange={(e) => setDeathCertNumber(e.target.value)}
-                              className="w-full h-8 px-2.5 rounded-lg border border-amber-300 bg-white text-xs text-slate-800 mt-0.5"
-                            />
-                          </div>
-                          <div>
-                            <label htmlFor="p3-kh-death-date" className="text-[11px] font-bold text-amber-900">Ngày cấp Giấy chứng tử:</label>
-                            <input
-                              id="p3-kh-death-date"
-                              type="date"
-                              value={deathCertDate}
-                              onChange={(e) => setDeathCertDate(e.target.value)}
-                              className="w-full h-8 px-2.5 rounded-lg border border-amber-300 bg-white text-xs text-slate-800 mt-0.5"
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* SPECIALIZED FIELDS FOR PRIORITY 3: TK-BTXH (Nghị định 20/2021/NĐ-CP & Luật BHXH 2024) */}
-                {selectedFormType === 'TK-BTXH' && (
-                  <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-                    <div className="sm:col-span-2 text-xs font-extrabold text-[#004D40] flex items-center gap-1.5">
-                      <Sparkles className="w-4 h-4 text-[#00695C]" />
-                      <span>Kiểm tra điều kiện Mẫu số 01 Nghị định 20/2021/NĐ-CP, Luật BHXH 2024 & Tài khoản an sinh Đề án 06</span>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <label htmlFor="p3-btxh-household" className="text-xs font-bold text-[#334155]">
-                        Diện xét trợ cấp hưu trí xã hội (Luật BHXH 2024 & NĐ 20/2021):
-                      </label>
-                      <select
-                        id="p3-btxh-household"
-                        value={householdStatus}
-                        onChange={(e) =>
-                          setHouseholdStatus(e.target.value as 'NORMAL' | 'POOR' | 'NEAR_POOR')
-                        }
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#0F172A]"
-                      >
-                        <option value="NORMAL">Hộ gia đình bình thường (Mốc tuổi hưu trí xã hội: ≥ 75 tuổi)</option>
-                        <option value="POOR">Thuộc Hộ nghèo (Mốc tuổi hưởng trợ cấp: ≥ 70 tuổi)</option>
-                        <option value="NEAR_POOR">Thuộc Hộ cận nghèo (Mốc tuổi hưởng trợ cấp: ≥ 70 tuổi)</option>
-                      </select>
-                    </div>
-
-                    <div className="flex flex-col gap-1">
-                      <label htmlFor="p3-btxh-disability" className="text-xs font-bold text-[#334155]">
-                        Mức độ khuyết tật (nếu có Giấy xác nhận của Hội đồng cấp xã):
-                      </label>
-                      <select
-                        id="p3-btxh-disability"
-                        value={disabilityLevel}
-                        onChange={(e) =>
-                          setDisabilityLevel(e.target.value as 'NONE' | 'SEVERE' | 'EXTREMELY_SEVERE')
-                        }
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#0F172A]"
-                      >
-                        <option value="NONE">Không khuyết tật (Xét theo mốc Người cao tuổi)</option>
-                        <option value="SEVERE">Khuyết tật nặng (Có Giấy xác nhận)</option>
-                        <option value="EXTREMELY_SEVERE">Khuyết tật đặc biệt nặng (Có Giấy xác nhận)</option>
-                      </select>
-                    </div>
-
-                    {/* Sổ hộ nghèo */}
-                    {(householdStatus === 'POOR' || householdStatus === 'NEAR_POOR') && (
-                      <div className="sm:col-span-2 flex flex-col gap-1 p-3 rounded-xl bg-amber-50 border border-amber-200">
-                        <label htmlFor="p3-btxh-poor-book" className="text-xs font-bold text-amber-900">
-                          Số sổ hộ nghèo / Giấy chứng nhận hộ nghèo:
-                        </label>
-                        <input
-                          id="p3-btxh-poor-book"
-                          type="text"
-                          value={poorHouseholdBookNumber}
-                          placeholder="VD: HN-2026/08912 do UBND cấp xã cấp"
-                          onChange={(e) => setPoorHouseholdBookNumber(e.target.value)}
-                          className="w-full h-9 px-3 rounded-xl border border-amber-300 bg-white text-xs text-slate-800 font-mono"
-                        />
-                      </div>
-                    )}
-
-                    {/* Giấy xác nhận khuyết tật */}
-                    {(disabilityLevel === 'SEVERE' || disabilityLevel === 'EXTREMELY_SEVERE') && (
-                      <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 rounded-xl bg-teal-50 border border-teal-200">
-                        <div className="flex flex-col gap-1">
-                          <label htmlFor="p3-btxh-dis-num" className="text-xs font-bold text-teal-900">Số Giấy xác nhận khuyết tật:</label>
-                          <input
-                            id="p3-btxh-dis-num"
-                            type="text"
-                            value={disabilityCertNumber}
-                            placeholder="VD: GKT-2025/001"
-                            onChange={(e) => setDisabilityCertNumber(e.target.value)}
-                            className="w-full h-9 px-3 rounded-xl border border-teal-300 bg-white text-xs text-slate-800 font-mono"
-                          />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <label htmlFor="p3-btxh-dis-date" className="text-xs font-bold text-teal-900">Ngày cấp Giấy xác nhận:</label>
-                          <input
-                            id="p3-btxh-dis-date"
-                            type="date"
-                            value={disabilityCertIssueDate}
-                            onChange={(e) => setDisabilityCertIssueDate(e.target.value)}
-                            className="w-full h-9 px-3 rounded-xl border border-teal-300 bg-white text-xs text-slate-800"
-                          />
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          <label htmlFor="p3-btxh-dis-issuer" className="text-xs font-bold text-teal-900">Cơ quan cấp (Chủ tịch UBND):</label>
-                          <input
-                            id="p3-btxh-dis-issuer"
-                            type="text"
-                            value={disabilityCertIssuer}
-                            onChange={(e) => setDisabilityCertIssuer(e.target.value)}
-                            className="w-full h-9 px-3 rounded-xl border border-teal-300 bg-white text-xs text-slate-800"
-                          />
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Thông tin người giám hộ */}
-                    <div className="sm:col-span-2 p-3.5 rounded-xl bg-slate-50 border border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                      <div className="sm:col-span-2 text-xs font-bold text-slate-800">
-                        Thông tin người giám hộ / người chăm sóc (nếu có hoặc đối tượng khuyết tật đặc biệt nặng):
-                      </div>
-                      <div>
-                        <label htmlFor="p3-btxh-guard-name" className="text-[11px] font-bold text-slate-700">Họ và tên người giám hộ:</label>
-                        <input
-                          id="p3-btxh-guard-name"
-                          type="text"
-                          value={guardianName}
-                          placeholder="Họ và tên người giám hộ"
-                          onChange={(e) => setGuardianName(e.target.value)}
-                          className="w-full h-8 px-2.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 mt-0.5"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="p3-btxh-guard-cccd" className="text-[11px] font-bold text-slate-700">Số CCCD người giám hộ (12 số):</label>
-                        <input
-                          id="p3-btxh-guard-cccd"
-                          type="text"
-                          value={guardianCccd}
-                          maxLength={12}
-                          placeholder="12 chữ số CCCD"
-                          onChange={(e) => setGuardianCccd(e.target.value)}
-                          className="w-full h-8 px-2.5 rounded-lg border border-slate-300 bg-white text-xs font-mono text-slate-800 mt-0.5"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="p3-btxh-guard-rel" className="text-[11px] font-bold text-slate-700">Quan hệ với người hưởng:</label>
-                        <input
-                          id="p3-btxh-guard-rel"
-                          type="text"
-                          value={guardianRelation}
-                          placeholder="VD: Con đẻ, Bố mẹ, Vợ chồng"
-                          onChange={(e) => setGuardianRelation(e.target.value)}
-                          className="w-full h-8 px-2.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 mt-0.5"
-                        />
-                      </div>
-                      <div>
-                        <label htmlFor="p3-btxh-guard-phone" className="text-[11px] font-bold text-slate-700">Số điện thoại liên hệ:</label>
-                        <input
-                          id="p3-btxh-guard-phone"
-                          type="tel"
-                          value={guardianPhone}
-                          placeholder="VD: 0987654321"
-                          onChange={(e) => setGuardianPhone(e.target.value)}
-                          className="w-full h-8 px-2.5 rounded-lg border border-slate-300 bg-white text-xs text-slate-800 mt-0.5"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col gap-1 sm:col-span-2">
-                      <label htmlFor="p3-btxh-bank" className="text-xs font-bold text-[#334155]">
-                        Số tài khoản & Ngân hàng nhận trợ cấp an sinh không dùng tiền mặt (Đề án 06):
-                      </label>
-                      <input
-                        id="p3-btxh-bank"
-                        type="text"
-                        value={bankAccount}
-                        placeholder="VD: 70110000889912 - VietinBank An Giang"
-                        onChange={(e) => setBankAccount(e.target.value)}
-                        className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
-                      />
-                    </div>
-                  </div>
-                )}
+                <SpecializedFormFields
+                  selectedFormType={selectedFormType}
+                  ocrSuccess={ocrSuccess}
+                  fullName={fullName}
+                  cccd={cccd}
+                  phoneNumber={phoneNumber}
+                  setPhoneNumber={setPhoneNumber}
+                  declarationScope={declarationScope}
+                  setDeclarationScope={setDeclarationScope}
+                  hostName={hostName}
+                  setHostName={setHostName}
+                  hostCccd={hostCccd}
+                  setHostCccd={setHostCccd}
+                  hostRelation={hostRelation}
+                  setHostRelation={setHostRelation}
+                  parentsMarried={parentsMarried}
+                  setParentsMarried={setParentsMarried}
+                  hospitalBirthDate={hospitalBirthDate}
+                  setHospitalBirthDate={setHospitalBirthDate}
+                  childEthnicity={childEthnicity}
+                  setChildEthnicity={setChildEthnicity}
+                  childNationality={childNationality}
+                  setChildNationality={setChildNationality}
+                  childBirthPlace={childBirthPlace}
+                  setChildBirthPlace={setChildBirthPlace}
+                  birthCertNumber={birthCertNumber}
+                  setBirthCertNumber={setBirthCertNumber}
+                  birthCertIssueDate={birthCertIssueDate}
+                  setBirthCertIssueDate={setBirthCertIssueDate}
+                  motherName={motherName}
+                  setMotherName={setMotherName}
+                  hospitalMotherName={hospitalMotherName}
+                  setHospitalMotherName={setHospitalMotherName}
+                  motherResidence={motherResidence}
+                  setMotherResidence={setMotherResidence}
+                  fatherName={fatherName}
+                  setFatherName={setFatherName}
+                  fatherResidence={fatherResidence}
+                  setFatherResidence={setFatherResidence}
+                  marriageMode={marriageMode}
+                  setMarriageMode={setMarriageMode}
+                  partnerName={partnerName}
+                  setPartnerName={setPartnerName}
+                  partnerCccd={partnerCccd}
+                  setPartnerCccd={setPartnerCccd}
+                  partnerDob={partnerDob}
+                  setPartnerDob={setPartnerDob}
+                  partnerGender={partnerGender}
+                  setPartnerGender={setPartnerGender}
+                  applicantEthnicity={applicantEthnicity}
+                  setApplicantEthnicity={setApplicantEthnicity}
+                  partnerEthnicity={partnerEthnicity}
+                  setPartnerEthnicity={setPartnerEthnicity}
+                  partnerAddress={partnerAddress}
+                  setPartnerAddress={setPartnerAddress}
+                  maritalCertPurpose={maritalCertPurpose}
+                  setMaritalCertPurpose={setMaritalCertPurpose}
+                  previousMaritalStatus={previousMaritalStatus}
+                  setPreviousMaritalStatus={setPreviousMaritalStatus}
+                  divorceJudgmentNumber={divorceJudgmentNumber}
+                  setDivorceJudgmentNumber={setDivorceJudgmentNumber}
+                  divorceJudgmentDate={divorceJudgmentDate}
+                  setDivorceJudgmentDate={setDivorceJudgmentDate}
+                  deathCertNumber={deathCertNumber}
+                  setDeathCertNumber={setDeathCertNumber}
+                  deathCertDate={deathCertDate}
+                  setDeathCertDate={setDeathCertDate}
+                  householdStatus={householdStatus}
+                  setHouseholdStatus={setHouseholdStatus}
+                  disabilityLevel={disabilityLevel}
+                  setDisabilityLevel={setDisabilityLevel}
+                  poorHouseholdBookNumber={poorHouseholdBookNumber}
+                  setPoorHouseholdBookNumber={setPoorHouseholdBookNumber}
+                  disabilityCertNumber={disabilityCertNumber}
+                  setDisabilityCertNumber={setDisabilityCertNumber}
+                  disabilityCertIssueDate={disabilityCertIssueDate}
+                  setDisabilityCertIssueDate={setDisabilityCertIssueDate}
+                  disabilityCertIssuer={disabilityCertIssuer}
+                  setDisabilityCertIssuer={setDisabilityCertIssuer}
+                  guardianName={guardianName}
+                  setGuardianName={setGuardianName}
+                  guardianCccd={guardianCccd}
+                  setGuardianCccd={setGuardianCccd}
+                  guardianRelation={guardianRelation}
+                  setGuardianRelation={setGuardianRelation}
+                  guardianPhone={guardianPhone}
+                  setGuardianPhone={setGuardianPhone}
+                  bankAccount={bankAccount}
+                  setBankAccount={setBankAccount}
+                />
 
                 {/* Field 5: Nơi đề nghị cư trú / Quê quán / Địa chỉ thường trú */}
                 <div className="flex flex-col gap-1.5 sm:col-span-2">
@@ -4043,746 +3391,58 @@ export const FormAndIssueReporting: React.FC = () => {
       {/* TAB 2: INCIDENT REPORTING & TWO-STAGE TRIAGE — P4 50/50 SPLIT LAYOUT */}
       {/* ========================================================================= */}
       {activeTab === 'incident' && (
-        <section className="flex flex-col gap-5 animate-fadeIn">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-            {/* LEFT COLUMN (6 Cols / 50%): Compact Citizen Incident Form */}
-            <div className="lg:col-span-6 p-5 sm:p-6 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-5">
-              {/* STEP 1: LOCATION & MANUAL OVERRIDE GUARD */}
-              <div className="flex flex-col gap-3 p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="text-xs sm:text-sm font-extrabold text-[#004D40] flex items-center gap-1.5">
-                    <Navigation className="w-4 h-4 text-[#991B1B]" />
-                    <span>1. Địa Điểm Sự Cố Hiện Trường</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setManualWardCode('');
-                      handleGetLocation(false);
-                    }}
-                    disabled={gpsLoading}
-                    className="px-3 py-1.5 rounded-xl bg-[#00695C] hover:bg-[#004D40] text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition cursor-pointer disabled:opacity-60 gov-focus-ring"
-                  >
-                    <MapPin className="w-3.5 h-3.5" />
-                    <span>{gpsLoading ? 'Đang định vị...' : 'Lấy Lại Vị Trí GPS'}</span>
-                  </button>
-                </div>
-
-                {/* Quick Presets from SSOT AN_GIANG_WARDS */}
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <span className="text-[11px] font-bold text-[#475569] mr-1">
-                    Thử địa điểm mẫu:
-                  </span>
-                  {(['AG_P_CHAUDOC', 'AG_P_LONGXUYEN', 'AG_X_ANPHU'] as const).map((code) => {
-                    const w = AN_GIANG_WARDS.find((item) => item.code === code);
-                    if (!w) return null;
-                    return (
-                      <button
-                        key={w.code}
-                        type="button"
-                        onClick={() => handleSimulateCrossWardGps(w.code, w.officeAddress)}
-                        className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#F1F5F9] text-[#004D40] border border-[#CBD5E1] text-[11px] font-bold transition cursor-pointer gov-focus-ring"
-                      >
-                        {w.name}
-                      </button>
-                    );
-                  })}
-                  {unverifiedSampleWard && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleSimulateCrossWardGps(
-                          unverifiedSampleWard.code,
-                          `Khu vực ${unverifiedSampleWard.name}`
-                        )
-                      }
-                      className="px-2.5 py-1 rounded-lg bg-[#FFFBEB] hover:bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] text-[11px] font-bold transition cursor-pointer gov-focus-ring"
-                      title="Thử trường hợp địa bàn có dữ liệu tọa độ 'unverified' để kiểm tra chốt chặn chọn thủ công"
-                    >
-                      Thử xã &apos;unverified&apos;
-                    </button>
-                  )}
-                </div>
-
-                {/* Editable Location Input Box */}
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center justify-between text-[11px] text-[#334155]">
-                    <label htmlFor="p4-address-text" className="font-bold">
-                      Địa chỉ sự cố (Tự động điền từ GPS — có thể sửa tay):
-                    </label>
-                    <span className="text-[#004D40] font-semibold">
-                      {locationSource === 'manual_pin' ? 'Đã kéo ghim bản đồ' : 'Định vị GIS'}
-                    </span>
-                  </div>
-                  <input
-                    id="p4-address-text"
-                    type="text"
-                    value={addressText}
-                    onChange={(e) => setAddressText(e.target.value)}
-                    placeholder="Nhập địa chỉ cụ thể kèm tên Xã/Phường (VD: Đường Phan Văn Vàng, Phường Châu Đốc)..."
-                    className="w-full h-10 px-3.5 rounded-xl bg-white border border-[#CBD5E1] text-xs md:text-sm font-semibold text-[#0F172A] focus:outline-none focus:border-[#00695C] shadow-2xs"
-                  />
-                </div>
-
-                {/* Manual Ward Selector — Mandatory when coordinate data is 'unverified' or undetermined */}
-                <div
-                  className={`p-3 rounded-xl border flex flex-col gap-1.5 ${
-                    !resolvedJurisdiction.canAutoRoute
-                      ? 'bg-[#FFFBEB] border-[#F59E0B] text-[#92400E]'
-                      : 'bg-white border-[#CBD5E1] text-[#334155]'
-                  }`}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <label htmlFor="p4-manual-ward-select" className="text-xs font-bold">
-                      {!resolvedJurisdiction.canAutoRoute
-                        ? 'Chưa xác định được xã, vui lòng chọn thủ công:'
-                        : 'Đơn vị tiếp nhận (tự động từ nguồn dữ liệu xã, có thể chọn lại):'}
-                    </label>
-                    {manualWardCode && (
-                      <button
-                        type="button"
-                        onClick={() => setManualWardCode('')}
-                        className="text-[11px] font-bold text-[#004D40] underline cursor-pointer"
-                      >
-                        Dùng định vị tự động lại
-                      </button>
-                    )}
-                  </div>
-                  <select
-                    id="p4-manual-ward-select"
-                    ref={manualWardSelectRef}
-                    value={manualWardCode}
-                    onChange={(e) => {
-                      const code = e.target.value;
-                      setManualWardCode(code);
-                      const chosen = AN_GIANG_WARDS.find((w) => w.code === code);
-                      if (chosen) {
-                        setLatitude(chosen.lat);
-                        setLongitude(chosen.lon);
-                      }
-                    }}
-                    className="w-full h-9 px-3 rounded-xl bg-white border border-[#CBD5E1] text-xs font-semibold text-[#0F172A] gov-focus-ring"
-                  >
-                    <option value="">
-                      {resolvedJurisdiction.canAutoRoute && resolvedJurisdiction.ward
-                        ? `-- Tự động theo vị trí đã xác minh: ${resolvedJurisdiction.ward.name} --`
-                        : '-- Chưa xác định được xã, vui lòng chọn thủ công --'}
-                    </option>
-                    {AN_GIANG_WARDS.map((w) => (
-                      <option key={w.code} value={w.code}>
-                        {w.name} ({w.coordSource === 'unverified' ? 'Chưa xác minh GPS' : `GIS: ${w.coordSource}`})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              {/* STEP 2: CATEGORY, URGENCY & DESCRIPTION */}
-              <div className="flex flex-col gap-3">
-                <div className="flex flex-col gap-1.5">
-                  <span id="p4-cat-label" className="text-xs font-bold text-[#334155]">
-                    2. Chọn lĩnh vực sự cố &amp; mức độ ưu tiên:
-                  </span>
-                  <div role="group" aria-labelledby="p4-cat-label" className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {[
-                      { id: 'ROAD_DAMAGE', label: 'Hạ Tầng Đường' },
-                      { id: 'FLOODING', label: 'Ngập Nước' },
-                      { id: 'ENVIRONMENT', label: 'Môi Trường' },
-                      { id: 'LIGHTING', label: 'Chiếu Sáng' },
-                    ].map((cat) => (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => setCategory(cat.id)}
-                        className={`py-2 px-2.5 rounded-xl text-xs font-semibold border transition cursor-pointer gov-focus-ring ${
-                          category === cat.id
-                            ? 'bg-[#00695C] text-white border-[#00695C] shadow-xs'
-                            : 'bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#334155] border-[#CBD5E1]'
-                        }`}
-                      >
-                        {cat.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Urgency Selector */}
-                <div className="flex flex-wrap items-center gap-2">
-                  <span id="p4-urgency-label" className="text-xs font-bold text-[#334155] mr-1">
-                    Mức độ:
-                  </span>
-                  <div role="group" aria-labelledby="p4-urgency-label" className="flex flex-1 items-center gap-1.5 min-w-[200px]">
-                    {([
-                      { id: 'HIGH', label: 'Tin Khẩn' },
-                      { id: 'MEDIUM', label: 'Cần Sớm' },
-                      { id: 'LOW', label: 'Thường' },
-                    ] as const).map((u) => (
-                      <button
-                        key={u.id}
-                        type="button"
-                        onClick={() => setUrgency(u.id)}
-                        className={`flex-1 py-1.5 px-2 rounded-xl text-xs font-bold border transition cursor-pointer gov-focus-ring ${
-                          urgency === u.id
-                            ? u.id === 'HIGH'
-                              ? 'bg-[#DC2626] text-white border-[#DC2626] shadow-xs'
-                              : 'bg-[#00695C] text-white border-[#00695C] shadow-xs'
-                            : 'bg-white text-[#334155] border-[#CBD5E1] hover:bg-[#F8FAFC]'
-                        }`}
-                      >
-                        {u.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Description Content Box */}
-                <div className="flex flex-col gap-1.5">
-                  <label htmlFor="p4-description" className="text-xs font-bold text-[#334155]">
-                    Mô tả chi tiết hiện trường (Tự động gắn vị trí — có thể chỉnh sửa):
-                  </label>
-                  <textarea
-                    id="p4-description"
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    rows={3}
-                    className="w-full p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00695C] focus:bg-white resize-none transition-all"
-                    placeholder="Mô tả mức độ nguy hiểm, kích thước, ảnh hưởng đến người đi đường..."
-                  />
-                </div>
-              </div>
-
-              {/* STEP 3: OPTIONAL CONTACT PHONE NUMBER WITH PURPOSE EXPLANATION */}
-              <div className="flex flex-col gap-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1]">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <label htmlFor="p4-reporter-phone" className="text-xs sm:text-sm font-extrabold text-[#0F172A] flex items-center gap-1.5">
-                    <PhoneCall className="w-4 h-4 text-[#00695C]" />
-                    <span>3. Số Điện Thoại Liên Hệ</span>
-                  </label>
-                  <span className="px-2 py-0.5 rounded-full bg-[#CCFBF1] text-[#004D40] text-[10px] font-bold">
-                    Tùy chọn • Không bắt buộc
-                  </span>
-                </div>
-                <p className="text-[11px] text-[#475569] leading-relaxed">
-                  <strong>Mục đích sử dụng:</strong> Chỉ dùng để bộ phận trực ban UBND xã/phường gọi xác minh thêm nếu vị trí hiện trường khó tìm; bà con có thể để trống và vẫn gửi phản ánh bình thường.
-                </p>
-
-                <input
-                  id="p4-reporter-phone"
-                  ref={phoneInputRef}
-                  type="tel"
-                  value={reporterPhone}
-                  onChange={(e) => {
-                    setReporterPhone(e.target.value);
-                    if (phoneError) setPhoneError(null);
-                  }}
-                  placeholder="Để trống nếu không muốn cung cấp, hoặc nhập SĐT (VD: 0918234567)"
-                  className={`w-full h-10 px-3.5 rounded-xl bg-white border text-xs md:text-sm font-mono font-semibold text-[#0F172A] focus:outline-none ${
-                    phoneError
-                      ? 'border-[#DC2626] ring-2 ring-[#FECACA]'
-                      : reporterPhone.trim() && isValidPhone(reporterPhone)
-                      ? 'border-[#16A34A]'
-                      : 'border-[#CBD5E1] focus:border-[#00695C]'
-                  }`}
-                />
-
-                {phoneError ? (
-                  <p className="text-xs font-bold text-[#991B1B] flex items-center gap-1.5">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>{phoneError}</span>
-                  </p>
-                ) : reporterPhone.trim() && isValidPhone(reporterPhone) ? (
-                  <p className="text-xs font-semibold text-[#065F46] flex items-center gap-1">
-                    <Check className="w-3.5 h-3.5 text-[#065F46]" />
-                    <span>
-                      SĐT hợp lệ ({reporterPhone.trim()}) — Chỉ sử dụng để xác minh thêm về sự cố này.
-                    </span>
-                  </p>
-                ) : null}
-              </div>
-
-              {/* Submit Button */}
-              <div className="pt-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <span className="text-xs text-[#475569] font-medium">
-                  {resolvedJurisdiction.canAutoRoute && resolvedJurisdiction.ward ? (
-                    <>
-                      Nơi nhận: <strong className="text-[#004D40]">UBND {resolvedJurisdiction.ward.name}</strong>
-                    </>
-                  ) : (
-                    <strong className="text-[#92400E]">Chưa xác định được xã, vui lòng chọn thủ công</strong>
-                  )}
-                </span>
-                <button
-                  type="button"
-                  onClick={handleReport}
-                  disabled={reportLoading || !resolvedJurisdiction.canAutoRoute || !resolvedJurisdiction.ward}
-                  className="w-full sm:w-auto px-6 py-3 bg-[#DC2626] hover:bg-[#B91C1C] disabled:bg-[#94A3B8] active:scale-[0.98] text-white rounded-xl font-bold text-xs sm:text-sm shadow-sm flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:cursor-not-allowed gov-focus-ring"
-                >
-                  {reportLoading ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Đang Gửi Báo Cáo...</span>
-                    </>
-                  ) : resolvedJurisdiction.canAutoRoute && resolvedJurisdiction.ward ? (
-                    <>
-                      <Send className="w-4 h-4 text-white" />
-                      <span>Gửi Báo Cáo Về UBND {resolvedJurisdiction.ward.name}</span>
-                    </>
-                  ) : (
-                    <>
-                      <AlertTriangle className="w-4 h-4 text-white" />
-                      <span>Chọn Xã Thủ Công Để Gửi</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {/* RIGHT COLUMN (6 Cols / 50%): Verified Jurisdiction Routing Card + GIS R=25m Map + Live Results */}
-            <div className="lg:col-span-6 flex flex-col gap-4 lg:sticky lg:top-20">
-              {/* Dynamic SSOT Jurisdiction Routing Card (No Hardcoded Names/Hotlines) */}
-              <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3.5">
-                {resolvedJurisdiction.canAutoRoute && resolvedJurisdiction.ward ? (
-                  <div
-                    className={`p-3.5 rounded-xl border text-xs flex flex-col gap-1.5 transition-all ${
-                      resolvedJurisdiction.ward.code !== currentWard.code
-                        ? 'bg-[#FFFBEB] border-[#FDE68A] text-[#92400E]'
-                        : 'bg-[#F0FDFA] border-[#99F6E4] text-[#004D40]'
-                    }`}
-                  >
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <span className="font-bold flex items-center gap-1.5">
-                        <Radio className="w-3.5 h-3.5 text-[#DC2626] shrink-0" />
-                        <span>
-                          Đơn vị tiếp nhận:{' '}
-                          <strong className="underline text-[#004D40]">
-                            UBND {resolvedJurisdiction.ward.name}
-                          </strong>
-                        </span>
-                      </span>
-                      <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white text-[#0F172A] border border-[#CBD5E1]">
-                        {resolvedJurisdiction.matchedBy === 'MANUAL_SELECT'
-                          ? 'Công dân chọn thủ công'
-                          : resolvedJurisdiction.matchedBy === 'TEXT_BOX'
-                          ? `Theo địa chỉ (${resolvedJurisdiction.ward.coordSource})`
-                          : `Theo GIS (${resolvedJurisdiction.ward.coordSource})`}
-                      </span>
-                    </div>
-                    <div className="text-[11px] leading-relaxed space-y-0.5">
-                      <p>
-                        <strong>Số trực ban (Nguồn {resolvedJurisdiction.ward.name}):</strong>{' '}
-                        <span className="font-mono font-bold">{resolvedJurisdiction.ward.phoneNumber}</span>
-                      </p>
-                      <p className="opacity-95">
-                        <strong>Trụ sở:</strong> {resolvedJurisdiction.ward.officeAddress}
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="p-4 rounded-xl border-2 border-[#F59E0B] bg-[#FFFBEB] text-[#92400E] text-xs flex flex-col gap-1.5">
-                    <div className="font-extrabold flex items-center gap-2 text-sm text-[#92400E]">
-                      <AlertTriangle className="w-4 h-4 text-[#B45309] shrink-0" />
-                      <span>Chưa xác định được xã, vui lòng chọn thủ công</span>
-                    </div>
-                    <p className="text-[11px] leading-relaxed text-[#78350F]">
-                      {resolvedJurisdiction.statusReason} Hệ thống <strong>không chuyển tuyến tự động</strong> khi tọa độ chưa được xác minh. Vui lòng chọn trực tiếp đơn vị tiếp nhận trong mục chọn xã ở khung bên trái.
-                    </p>
-                  </div>
-                )}
-
-                {/* Live GPS Status & Low Accuracy Warning */}
-                {gpsScanBanner && (
-                  <div className="p-2.5 rounded-xl bg-[#ECFDF5] border border-[#86EFAC] text-[11px] text-[#065F46] font-medium flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-[#065F46] shrink-0" />
-                    <span>{gpsScanBanner}</span>
-                  </div>
-                )}
-
-                {gpsAccuracy && gpsAccuracy > 100 && (
-                  <div className="p-2.5 rounded-xl bg-[#FEF3C7] border border-[#F59E0B] text-[11px] text-[#92400E] font-medium flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-[#B45309] shrink-0" />
-                    <span>
-                      Vị trí chưa chính xác (sai số ±{gpsAccuracy}m). Kéo ghim đỏ trên bản đồ để chỉnh lại vị trí hiện trường.
-                    </span>
-                  </div>
-                )}
-
-                {/* Leaflet GIS R=25m Interactive Map */}
-                <div className="flex items-center justify-between text-xs px-0.5">
-                  <span className="text-[11px] text-[#004D40] font-semibold">
-                    Bản đồ GIS R=25m: Bấm hoặc kéo ghim đỏ để chọn đúng điểm sự cố
-                  </span>
-                  <span className="text-[10px] font-mono text-[#475569]">
-                    {latitude.toFixed(4)}, {longitude.toFixed(4)}
-                  </span>
-                </div>
-
-                <div className="w-full h-64 sm:h-72 lg:h-[340px] rounded-2xl overflow-hidden border border-[#CBD5E1] relative z-1 shadow-inner bg-[#E5E7EB]">
-                  <div ref={incidentMapContainerRef} className="w-full h-full" />
-                </div>
-              </div>
-
-              {/* Live Incident Report Result Card */}
-              {reportResult ? (
-                <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3.5 animate-scaleUp">
-                  <div
-                    className={`p-3.5 rounded-xl flex items-start gap-3 ${
-                      reportResult.assignedAction === 'MERGED_INTO_EXISTING_CLUSTER'
-                        ? 'bg-[#E0F7FA] border border-[#80DEEA] text-[#004D40]'
-                        : 'bg-[#ECFDF5] border border-[#86EFAC] text-[#065F46]'
-                    }`}
-                  >
-                    <Layers className="w-5 h-5 shrink-0 mt-0.5" />
-                    <div>
-                      <h3 className="font-bold text-sm">
-                        {reportResult.assignedAction === 'MERGED_INTO_EXISTING_CLUSTER'
-                          ? 'Đã Ghi Nhận & Gom Chung Cùng Điểm Sự Cố'
-                          : `Đã Chuyển Báo Cáo Về UBND ${reportResult.targetWardName || resolvedJurisdiction.ward?.name || ''}`}
-                      </h3>
-                      <p className="text-xs mt-1 leading-relaxed">{reportResult.message}</p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-col gap-2 p-3.5 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl text-xs">
-                    <div className="flex items-center justify-between pb-2 border-b border-[#E2E8F0]">
-                      <span className="text-[#475569]">Đơn vị tiếp nhận:</span>
-                      <strong className="text-[#004D40] font-extrabold">
-                        UBND {reportResult.targetWardName || resolvedJurisdiction.ward?.name || ''}
-                      </strong>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[#475569]">SĐT người báo:</span>
-                      <strong className="font-mono text-[#0F172A] bg-white px-2 py-0.5 rounded border border-[#CBD5E1]">
-                        {reportResult.reporterPhone || reporterPhone.trim() || 'Không cung cấp (Tùy chọn)'}
-                      </strong>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[#475569]">Vị trí hiện trường:</span>
-                      <span className="font-semibold text-[#0F172A] text-right max-w-[220px] truncate">
-                        {reportResult.addressText || addressText}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[#475569]">Mã hồ sơ sự cố:</span>
-                      <strong className="font-mono text-[#004D40]">{reportResult.clusterCode}</strong>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-[#475569]">Số phản ánh tại điểm này:</span>
-                      <span className="font-bold text-[#004D40]">{reportResult.totalReportsInCluster} phản ánh</span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#00695C] shrink-0">
-                    <Layers className="w-5 h-5" />
-                  </div>
-                  <div className="text-xs text-[#334155] space-y-1 leading-relaxed">
-                    <h3 className="font-bold text-sm text-[#0F172A]">Quy Trình Chuyển Tuyến An Toàn</h3>
-                    <p>
-                      Hệ thống chỉ tự động chuyển tuyến khi xã/phường có nguồn dữ liệu GIS đã xác minh; với địa bàn chưa xác minh (&apos;unverified&apos;), bà con tự chọn đúng đơn vị để tránh gửi nhầm địa bàn.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* CITIZEN INCIDENT TRACKER */}
-              {myIncidents.length > 0 && (
-                <div className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3">
-                  <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
-                    <span className="text-xs font-extrabold text-[#004D40] flex items-center gap-1.5">
-                      <Radio className="w-4 h-4 text-[#00695C]" />
-                      <span>Tiến Độ Xử Lý Sự Cố Đã Báo ({myIncidents.length})</span>
-                    </span>
-                    <span className="text-[11px] text-[#475569]">Đồng bộ theo dõi</span>
-                  </div>
-                  <div className="flex flex-col gap-2 max-h-52 overflow-y-auto pr-1">
-                    {myIncidents.slice(0, 4).map((inc) => (
-                      <div key={inc.id} className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col gap-1 text-xs">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="font-bold text-[#0F172A] truncate">{inc.title}</span>
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold shrink-0 ${
-                              inc.status === 'RESOLVED'
-                                ? 'bg-[#ECFDF5] text-[#065F46] border border-[#A7F3D0]'
-                                : inc.status === 'IN_PROGRESS'
-                                ? 'bg-[#EFF6FF] text-[#1E40AF] border border-[#BFDBFE]'
-                                : 'bg-[#FFFBEB] text-[#92400E] border border-[#FDE68A]'
-                            }`}
-                          >
-                            {inc.status === 'RESOLVED'
-                              ? 'Đã khắc phục xong'
-                              : inc.status === 'IN_PROGRESS'
-                              ? 'Đang cử cán bộ xử lý'
-                              : 'Chờ tiếp nhận'}
-                          </span>
-                        </div>
-                        <span className="text-[11px] text-[#475569] truncate">
-                          UBND {inc.wardName} • {inc.address}
-                        </span>
-                        {inc.officerNote && (
-                          <div className="mt-1 p-2 rounded-lg bg-white border border-[#CBD5E1] text-[11px] text-[#004D40] font-medium">
-                            <strong>Ghi nhận xử lý:</strong> {inc.officerNote}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
+        <CivicIncidentTab
+          currentWard={currentWard}
+          manualWardCode={manualWardCode}
+          setManualWardCode={setManualWardCode}
+          handleGetLocation={handleGetLocation}
+          gpsLoading={gpsLoading}
+          handleSimulateCrossWardGps={handleSimulateCrossWardGps}
+          unverifiedSampleWard={unverifiedSampleWard}
+          locationSource={locationSource}
+          addressText={addressText}
+          setAddressText={setAddressText}
+          resolvedJurisdiction={resolvedJurisdiction}
+          manualWardSelectRef={manualWardSelectRef}
+          setLatitude={setLatitude}
+          setLongitude={setLongitude}
+          category={category}
+          setCategory={setCategory}
+          urgency={urgency}
+          setUrgency={setUrgency}
+          description={description}
+          setDescription={setDescription}
+          phoneInputRef={phoneInputRef}
+          reporterPhone={reporterPhone}
+          setReporterPhone={setReporterPhone}
+          phoneError={phoneError}
+          setPhoneError={setPhoneError}
+          isValidPhone={isValidPhone}
+          handleReport={handleReport}
+          reportLoading={reportLoading}
+          gpsScanBanner={gpsScanBanner}
+          gpsAccuracy={gpsAccuracy}
+          latitude={latitude}
+          longitude={longitude}
+          incidentMapContainerRef={incidentMapContainerRef}
+          reportResult={reportResult}
+          myIncidents={myIncidents}
+        />
       )}
 
-      {/* ========================================================================= */}
-      {/* TAB 3: DOSSIER SLA TRACKING & INQUIRY (MILESTONE 4 - F11)                */}
-      {/* ========================================================================= */}
       {activeTab === 'tracking' && (
-        <section className="flex flex-col gap-5 animate-fadeIn">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            {/* Left: Tracking Form & Query Box (6 Cols) */}
-            <div className="lg:col-span-6 p-6 rounded-3xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-5">
-              <div className="flex items-center gap-2.5 pb-3 border-b border-[#E2E8F0]">
-                <div className="w-10 h-10 rounded-xl bg-[#00796B]/10 flex items-center justify-center text-[#00796B]">
-                  <Search className="w-5 h-5 text-[#0F766E]" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-[#0F172A]">Tra Cứu Tiến Độ Giải Quyết Hồ Sơ</h2>
-                  <p className="text-xs text-[#64748B]">
-                    Truy vấn dữ liệu thời gian thực từ cơ sở dữ liệu PostgreSQL Một cửa UBND {currentWard.name}
-                  </p>
-                </div>
-              </div>
-
-              <form onSubmit={handleTrackDossier} className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-[#334155] flex items-center justify-between">
-                    <span>Mã số hồ sơ (In trên biên nhận hoặc cấp khi nộp):</span>
-                    <span className="text-[10px] text-[#DC2626] font-semibold">* Bắt buộc</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={trackingDossierCode}
-                    onChange={(e) => setTrackingDossierCode(e.target.value)}
-                    placeholder="Ví dụ: HS-20261111-BENNGHE-0001"
-                    className="w-full h-11 px-3.5 rounded-xl border border-[#CBD5E1] font-mono text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00796B] focus:bg-white transition-all bg-[#F8FAFC]"
-                  />
-                </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-[#334155] flex items-center justify-between">
-                    <span>4 số cuối CCCD / Số định danh công dân:</span>
-                    <span className="text-[10px] text-[#DC2626] font-semibold">* Xác thực bảo mật</span>
-                  </label>
-                  <input
-                    type="text"
-                    maxLength={12}
-                    value={trackingLast4Cccd}
-                    onChange={(e) => setTrackingLast4Cccd(e.target.value)}
-                    placeholder="Ví dụ: 1234 (hoặc đủ 12 số CCCD)"
-                    className="w-full h-11 px-3.5 rounded-xl border border-[#CBD5E1] font-mono text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#00796B] focus:bg-white transition-all bg-[#F8FAFC]"
-                  />
-                  <span className="text-[11px] text-[#64748B]">
-                    Hệ thống đối soát 4 số cuối với hồ sơ lưu trữ để bảo vệ bí mật đời tư công dân theo Nghị định 13/2023/NĐ-CP.
-                  </span>
-                </div>
-
-                {trackingError && (
-                  <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-start gap-2.5 text-xs text-[#DC2626]">
-                    <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
-                    <span>{trackingError}</span>
-                  </div>
-                )}
-
-                <button
-                  type="submit"
-                  disabled={trackingLoading}
-                  className="w-full h-11 rounded-xl bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold transition active:scale-[0.98] cursor-pointer flex items-center justify-center gap-2 shadow-xs disabled:opacity-60"
-                >
-                  {trackingLoading ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 animate-spin" />
-                      <span>Đang truy vấn cơ sở dữ liệu...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-4 h-4" />
-                      <span>Tra Cứu Tiến Độ Ngay</span>
-                    </>
-                  )}
-                </button>
-              </form>
-
-              {/* Quick links to recently submitted dossiers */}
-              {myDossiers.length > 0 && (
-                <div className="pt-2 border-t border-[#E2E8F0] flex flex-col gap-2">
-                  <span className="text-xs font-bold text-[#64748B]">Hồ sơ đã nộp trong phiên làm việc:</span>
-                  <div className="flex flex-wrap gap-2">
-                    {myDossiers.slice(0, 3).map((d) => (
-                      <button
-                        key={d.id}
-                        type="button"
-                        onClick={() => {
-                          setTrackingDossierCode(d.id);
-                          if (d.cccd && d.cccd.length >= 4) {
-                            setTrackingLast4Cccd(d.cccd.slice(-4));
-                          }
-                        }}
-                        className="px-2.5 py-1 rounded-lg bg-[#F1F5F9] hover:bg-[#E2E8F0] text-[#0F172A] border border-[#CBD5E1] text-[11px] font-mono font-semibold transition cursor-pointer"
-                      >
-                        {d.id} ({d.formType})
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Right: Detailed Progress Result Card (6 Cols) */}
-            <div className="lg:col-span-6 flex flex-col gap-4">
-              {trackingResult ? (
-                <div className="p-6 rounded-3xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-4">
-                  <div className="flex items-center justify-between pb-3 border-b border-[#E2E8F0]">
-                    <div className="flex items-center gap-2">
-                      <FileCheck2 className="w-5 h-5 text-[#00796B]" />
-                      <h3 className="font-bold text-sm text-[#0F172A]">Thông Tin Hồ Sơ & Kết Quả Thụ Lý</h3>
-                    </div>
-                    <span
-                      className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wide border ${
-                        trackingResult.status === 'APPROVED'
-                          ? 'bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]'
-                          : trackingResult.status === 'SUPPLEMENT_REQUIRED'
-                          ? 'bg-[#FEF2F2] text-[#991B1B] border-[#FECACA]'
-                          : trackingResult.status === 'REJECTED'
-                          ? 'bg-[#FEE2E2] text-[#7F1D1D] border-[#FCA5A5]'
-                          : 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]'
-                      }`}
-                    >
-                      {trackingResult.status === 'APPROVED'
-                        ? 'ĐÃ TIẾP NHẬN / PHÊ DUYỆT'
-                        : trackingResult.status === 'SUPPLEMENT_REQUIRED'
-                        ? 'YÊU CẦU BỔ SUNG'
-                        : trackingResult.status === 'REJECTED'
-                        ? 'TỪ CHỐI TIẾP NHẬN'
-                        : 'ĐANG XỬ LÝ (PENDING)'}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-col gap-3 text-xs">
-                    <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col gap-2">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Mã hồ sơ:</span>
-                        <code className="font-mono font-bold text-sm text-[#0F2942] bg-[#E2E8F0] px-2 py-0.5 rounded">
-                          {trackingResult.dossierCode}
-                        </code>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Thủ tục hành chính:</span>
-                        <span className="font-bold text-[#0F172A] text-right max-w-xs">{trackingResult.procedureName}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Số định danh công dân:</span>
-                        <code className="font-mono font-bold text-[#00796B]">{trackingResult.citizenCccd}</code>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Đơn vị thụ lý:</span>
-                        <span className="font-semibold text-[#0F172A]">UBND {currentWard.name}</span>
-                      </div>
-                    </div>
-
-                    {/* SLA Deadline Box */}
-                    <div className="p-3.5 rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-between text-xs text-[#1E40AF]">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-[#2563EB] shrink-0" />
-                        <div>
-                          <span className="font-bold block">Thời hạn cam kết giải quyết (SLA):</span>
-                          <span className="text-[11px] text-[#3B82F6]">
-                            Theo quy định chuẩn dịch vụ Một cửa cấp xã
-                          </span>
-                        </div>
-                      </div>
-                      <span className="font-mono font-extrabold text-sm text-[#1D4ED8]">
-                        {new Date(trackingResult.slaDeadline).toLocaleDateString('vi-VN')} 17:00
-                      </span>
-                    </div>
-
-                    {/* Officer Feedback */}
-                    {trackingResult.officerFeedback && (
-                      <div className="p-3.5 rounded-2xl bg-[#FFFBEB] border border-[#FDE68A] flex flex-col gap-1 text-xs text-[#92400E]">
-                        <span className="font-bold flex items-center gap-1.5">
-                          <AlertTriangle className="w-3.5 h-3.5 text-[#D97706]" />
-                          <span>Ý kiến cán bộ tiếp nhận:</span>
-                        </span>
-                        <p className="text-xs leading-relaxed text-[#78350F] pl-5">{trackingResult.officerFeedback}</p>
-                      </div>
-                    )}
-
-                    {/* Appointment Code */}
-                    {trackingResult.appointmentCode && (
-                      <div className="p-3.5 rounded-2xl bg-[#F0FDF4] border border-[#BBF7D0] flex items-center justify-between text-xs text-[#166534]">
-                        <div>
-                          <span className="font-bold block">Mã số lịch hẹn nhận kết quả:</span>
-                          <span className="text-[11px] text-[#15803D]">
-                            Vui lòng mang theo bản chính giấy tờ để đối chiếu
-                          </span>
-                        </div>
-                        <code className="font-mono font-extrabold text-sm text-[#15803D] bg-white px-2.5 py-1 rounded-lg border border-[#86EFAC]">
-                          {trackingResult.appointmentCode}
-                        </code>
-                      </div>
-                    )}
-
-                    <div className="flex items-center justify-between text-[11px] text-[#64748B] pt-1">
-                      <span>Thời điểm nộp: {new Date(trackingResult.createdAt).toLocaleString('vi-VN')}</span>
-                      <span>Cập nhật: {new Date(trackingResult.updatedAt).toLocaleString('vi-VN')}</span>
-                    </div>
-
-                    {/* P3: Timeline lấy từ dossier_events (7.4) */}
-                    {trackingResult.timeline && trackingResult.timeline.length > 0 && (
-                      <div className="mt-3 pt-3 border-t border-[#E2E8F0] flex flex-col gap-2">
-                        <span className="font-bold text-xs text-[#0F172A] flex items-center gap-1.5">
-                          <Clock className="w-3.5 h-3.5 text-[#00796B]" />
-                          <span>Lịch sử xử lý hồ sơ (Tiến trình Một cửa):</span>
-                        </span>
-                        <div className="space-y-2">
-                          {trackingResult.timeline.map((evt, idx) => (
-                            <div key={idx} className="flex items-start gap-2 text-xs bg-slate-50 p-2.5 rounded-xl border border-slate-200">
-                              <div className="w-2 h-2 rounded-full bg-[#00796B] mt-1.5 shrink-0" />
-                              <div className="flex-1">
-                                <div className="flex items-center justify-between">
-                                  <span className="font-semibold text-slate-800">{evt.toStatus}</span>
-                                  <span className="text-[10px] text-slate-500 font-mono">
-                                    {new Date(evt.createdAt).toLocaleString('vi-VN')}
-                                  </span>
-                                </div>
-                                {evt.reason && (
-                                  <p className="text-slate-600 text-[11px] mt-0.5">{evt.reason}</p>
-                                )}
-                                <span className="text-[10px] text-slate-400">Cán bộ phụ trách: {evt.who}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <div className="p-8 rounded-3xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col items-center justify-center text-center text-[#64748B] gap-3">
-                  <div className="w-14 h-14 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex items-center justify-center text-[#00796B]">
-                    <Clock className="w-7 h-7 text-[#0F766E]" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-sm text-[#0F172A]">Chưa Có Kết Quả Tra Cứu</h3>
-                    <p className="text-xs text-[#64748B] mt-1 max-w-xs leading-relaxed">
-                      Nhập mã hồ sơ và 4 số cuối CCCD ở khung bên trái để xem tiến độ giải quyết, phản hồi từ cán bộ Một cửa và thời hạn cam kết SLA.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </section>
+        <DossierTrackingTab
+          currentWard={currentWard}
+          handleTrackDossier={handleTrackDossier}
+          trackingDossierCode={trackingDossierCode}
+          setTrackingDossierCode={setTrackingDossierCode}
+          trackingLast4Cccd={trackingLast4Cccd}
+          setTrackingLast4Cccd={setTrackingLast4Cccd}
+          trackingError={trackingError}
+          trackingLoading={trackingLoading}
+          myDossiers={myDossiers}
+          trackingResult={trackingResult}
+        />
       )}
 
       {/* ========================================================================= */}
