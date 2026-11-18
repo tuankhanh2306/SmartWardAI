@@ -18,7 +18,7 @@
 | **Chặng M0** | `feature/mobile-phase0-backend-sync` | Chuẩn hóa nhánh Git, CORS LAN/Mobile, API tra cứu QR tại quầy & đồng bộ DB | **8 Tasks** (`MOB-0.1` → `0.8`) | `524` JUnit Tests PASS | ✅ Hoàn thành |
 | **Chặng M1** | `feature/mobile-phase1-foundation` | Khởi tạo Expo SDK 52, Design Tokens `A/A+/A++`, Shared Core & Chọn 96 Xã | **14 Tasks** (`MOB-1.1` → `1.14`) | TypeScript `0 errors` + `36/36` Core Unit Tests PASS | ✅ Hoàn thành |
 | **Chặng M2** | `feature/mobile-phase2-legal-rag-tts` | Tab 1 (`LegalRagChatScreen`): 40 TTHC Offline/Online, TTS `MỞ/TẮT`, Tải `.docx`/`.pdf` | **11 Tasks** (`MOB-2.1` → `2.11`) | RAG Guardrail & TTS Lifecycle (`45/45` Tests PASS) | ✅ Hoàn thành |
-| **Chặng M3** | `feature/mobile-phase3-smart-form-vision` | Tab 2 (`SmartFormPrecheckScreen`): Quét QR CCCD 60fps, AI Vision Gate 3 tiêu chí, 4 mẫu đơn | **14 Tasks** (`MOB-3.1` → `3.14`) | Vision Gate + 4-Form Rule Engine Tests PASS | ⏳ Chờ thực hiện |
+| **Chặng M3** | `feature/mobile-phase3-smart-form-vision` | Tab 2 (`SmartFormPrecheckScreen`): Quét QR CCCD 60fps, AI Vision Gate 3 tiêu chí, 4 mẫu đơn | **14 Tasks** (`MOB-3.1` → `3.14`) | Vision Gate + 4-Form Rule Engine (`57/57` Tests PASS) | ✅ Hoàn thành |
 | **Chặng M4** | `feature/mobile-phase4-qr-wallet-and-gps` | Tab 3 (`DossierAndQrPassScreen` SQLite Offline + PDF) & Tab 4 (`FieldIncidentReportScreen` GPS 25m) | **11 Tasks** (`MOB-4.1` → `4.11`) | Offline Airplane Mode + GPS 25m Tests PASS | ⏳ Chờ thực hiện |
 | **Chặng M5** | `feature/mobile-phase5-officer-audit-e2e` | Tab 5 (`OfficerMobileAuditScreen` Quét QR tại quầy + Vault OTT), E2E Sync Web ↔ Mobile | **10 Tasks** (`MOB-5.1` → `5.10`) | 100% E2E Cross-Platform & Merge `develop` | ⏳ Chờ thực hiện |
 
@@ -148,47 +148,47 @@
 ## 🛡️ CHẶNG M3: TAB 2 (`SmartFormPrecheckScreen`) — QUÉT QR CCCD, AI VISION GATE 3 TIÊU CHÍ & NỘP ĐƠN SƠ DUYỆT
 > **Mục tiêu:** Giúp người dân tự kiểm tra tính hợp lệ của 4 nhóm tờ khai trọng tâm và chất lượng ảnh chụp ngay trên điện thoại trước khi gửi lên cán bộ Một cửa, loại bỏ hoàn toàn tình trạng nộp ảnh mờ hoặc nộp nhầm mẫu.
 
-- [ ] **MOB-3.1 [Thanh Chọn 4 Biểu mẫu Trọng tâm]:**
+- [x] **MOB-3.1 [Thanh Chọn 4 Biểu mẫu Trọng tâm]:**
   - Xây dựng Segmented Control 4 tab: **`1. CT01 (Cư trú)`** | **`2. Khai sinh (TK-KS)`** | **`3. Kết hôn (TK-KH)`** | **`4. Bảo trợ (TK-BTXH)`**.
-- [ ] **MOB-3.2 [Modal Camera Quét QR CCCD 60fps (`CccdQrScannerModal.tsx`)]:**
+- [x] **MOB-3.2 [Modal Camera Quét QR CCCD 60fps (`CccdQrScannerModal.tsx`)]:**
   - Tích hợp `CameraView` từ `expo-camera` với `barcodeScannerSettings={{ barcodeTypes: ['qr'] }}`.
   - Vẽ khung ngắm căn chỉnh góc thẻ CCCD và đường tia laser `#2DD4BF` chuyển động lên xuống.
   - Bổ sung nút **"Dùng dữ liệu QR CCCD mẫu (Demo)"** ngay trong Modal để khi chạy trên máy ảo không có thẻ CCCD vật lý trước camera vẫn test được luồng quét 100%.
-- [ ] **MOB-3.3 [Tự động Điền Biểu mẫu `< 0.5s` & Huy hiệu Miễn Giấy tờ Số hóa]:**
+- [x] **MOB-3.3 [Tự động Điền Biểu mẫu `< 0.5s` & Huy hiệu Miễn Giấy tờ Số hóa]:**
   - Ngay khi `parseCccdQrString()` giải mã thành công chuỗi 7 trường, tự động điền `fullName`, `cccdNumber`, `dateOfBirth`, `gender`, `address`, `issueDate` vào biểu mẫu đang mở.
   - Tự động bật cờ `qrVerified = true` và hiển thị huy hiệu xanh **`✓ VERIFIED_VIA_VNEID_QR — Miễn nộp bản sao/chứng thực giấy tờ cư trú (NĐ 309/2026/NĐ-CP)`**.
-- [ ] **MOB-3.4 [Cảnh báo Đối soát Chéo QR CCCD vs. Dữ liệu Gõ tay]:**
+- [x] **MOB-3.4 [Cảnh báo Đối soát Chéo QR CCCD vs. Dữ liệu Gõ tay]:**
   - Nếu người dân sửa tay hoặc đã nhập trước thông tin khác với dữ liệu trong mã QR CCCD, hiển thị danh sách cảnh báo từ `detectDiscrepancies()` (`WARNING` khi lệch hoa/thường, `CONFLICT` màu đỏ khi lệch số CCCD, họ tên hoặc ngày sinh).
-- [ ] **MOB-3.5 [Chụp Ảnh Tờ khai / Chọn File `.DOCX` & Tiền xử lý Chống OOM]:**
+- [x] **MOB-3.5 [Chụp Ảnh Tờ khai / Chọn File `.DOCX` & Tiền xử lý Chống OOM]:**
   - Tích hợp nút **Chụp ảnh tờ khai (`expo-image-picker` / `expo-camera`)** và **Tải file `.DOCX` / `.PDF` (`expo-document-picker`)**.
   - Bắt buộc chạy bước nén & thu nhỏ ảnh chụp qua `expo-image-manipulator` (`width <= 1920`, JPEG `0.82`) để đảm bảo kích thước ảnh luôn `< 4096px` và `< 5MB`.
-- [ ] **MOB-3.6 [Thẻ Chẩn đoán Chốt chặn AI Thị Giác 3 Tiêu chí (`VisionGateCard.tsx`)]:**
+- [x] **MOB-3.6 [Thẻ Chẩn đoán Chốt chặn AI Thị Giác 3 Tiêu chí (`VisionGateCard.tsx`)]:**
   - Hiển thị thẻ 3 cột trực quan ngay sau khi chọn ảnh/file (hoặc bấm 3 nút mô phỏng nhanh `✓ Mẫu chuẩn rõ nét` / `✕ Thử ảnh mờ` / `⚠ Thử sai mẫu`):
     1. **`1. Độ sắc nét`**: Hiển thị điểm `XX/100 điểm` (Đạt khi `>= 45`, chặn đỏ `BỊ CHẶN — ẢNH MỜ` khi `< 45`).
     2. **`2. Khớp mẫu`**: Hiển thị `Đúng <Mã mẫu>` (Đạt khi khớp tab đang chọn, chặn đỏ `BỊ CHẶN — SAI MẪU` khi lệch mẫu, ví dụ đang chọn `CT01` nhưng tải ảnh `TK-KS`).
     3. **`3. Chữ đã điền`**: Hiển thị số trường nhận diện rõ (ví dụ `5/5 mục rõ`).
-- [ ] **MOB-3.7 [Cơ chế Khóa Cứng Nút Gửi khi Vi phạm AI Vision Gate]:**
+- [x] **MOB-3.7 [Cơ chế Khóa Cứng Nút Gửi khi Vi phạm AI Vision Gate]:**
   - Khi `isBlurry == true` hoặc `isTooDark == true` hoặc `templateMatched == false`:
     - Khóa cứng nút nộp (`disabled = true`), đổi nền sang `#94A3B8`.
     - Đổi nhãn nút thành **`🚫 AI Thị Giác Chặn Gửi (Chụp Lại Ảnh)`** hoặc **`🚫 AI Thị Giác Chặn Gửi (Chọn Đúng Mẫu)`**.
-- [ ] **MOB-3.8 [Các Trường Đặc thù của Biểu mẫu 1 — `CT01` (Cư trú - TT 116/2026/TT-BCA)]:**
+- [x] **MOB-3.8 [Các Trường Đặc thù của Biểu mẫu 1 — `CT01` (Cư trú - TT 116/2026/TT-BCA)]:**
   - Hiển thị và kiểm tra: Họ tên, 12 số CCCD người khai, Ngày sinh, Địa chỉ thường trú/tạm trú đề nghị, Họ tên chủ hộ, **12 số CCCD chủ hộ (`hostCccdNumber`)**, **Ngày sinh/Tuổi chủ hộ (`>= 18` tuổi)**, và công tắc **`Xác nhận đồng ý của chủ hộ qua VNeID (`vneidHostConfirmed`)`**.
-- [ ] **MOB-3.9 [Các Trường Đặc thù của Biểu mẫu 2 — `TK-KS` (Khai sinh - TT 04/2020/TT-BTP)]:**
+- [x] **MOB-3.9 [Các Trường Đặc thù của Biểu mẫu 2 — `TK-KS` (Khai sinh - TT 04/2020/TT-BTP)]:**
   - Hiển thị và kiểm tra: Họ tên trẻ, Ngày sinh trẻ, Nơi sinh, Họ tên & 12 số CCCD của Mẹ/Cha, **Thông tin trên Giấy chứng sinh (Họ tên mẹ, Ngày sinh trẻ, Số Giấy chứng sinh)** để đối chiếu chéo tự động (`Cross-Document Check`), và công tắc tình trạng hôn nhân của cha mẹ.
-- [ ] **MOB-3.10 [Các Trường Đặc thù của Biểu mẫu 3 — `TK-KH` (Kết hôn & Xác nhận độc thân - Luật HN&GĐ 2014)]:**
+- [x] **MOB-3.10 [Các Trường Đặc thù của Biểu mẫu 3 — `TK-KH` (Kết hôn & Xác nhận độc thân - Luật HN&GĐ 2014)]:**
   - Hiển thị và kiểm tra: Họ tên, Ngày sinh, 12 số CCCD của Nam và Nữ (tính chính xác đến từng ngày: **Nam `>= 20` tuổi, Nữ `>= 18` tuổi**), và ô **Mục đích cấp Giấy xác nhận tình trạng hôn nhân** (chặn các cụm từ mơ hồ như *"Bổ sung hồ sơ"*, *"Làm giấy tờ cá nhân"*).
-- [ ] **MOB-3.11 [Các Trường Đặc thù của Biểu mẫu 4 — `TK-BTXH` (Bảo trợ xã hội - NĐ 20/2021 & NĐ 335/2026)]:**
+- [x] **MOB-3.11 [Các Trường Đặc thù của Biểu mẫu 4 — `TK-BTXH` (Bảo trợ xã hội - NĐ 20/2021 & NĐ 335/2026)]:**
   - Hiển thị và kiểm tra: Họ tên, Ngày sinh (kiểm tra mốc `>= 80` tuổi hoặc `>= 75` tuổi hộ nghèo), Nhóm đối tượng hưởng, Mức độ khuyết tật (`NẶNG` / `ĐẶC BIỆT NẶNG`), và **Số tài khoản ngân hàng + Tên ngân hàng nhận trợ cấp không dùng tiền mặt (Đề án 06)**.
-- [ ] **MOB-3.12 [Thẻ Nhập Email Nhận Kết Quả & Mã Hẹn QR Miễn Phí 100%]:**
+- [x] **MOB-3.12 [Thẻ Nhập Email Nhận Kết Quả & Mã Hẹn QR Miễn Phí 100%]:**
   - Thiết kế thẻ riêng có huy hiệu **`100% Miễn phí • Không SMS`** thu thập `citizenEmail` (bắt buộc đúng chuẩn email) và `phoneNumber` (10 chữ số).
-- [ ] **MOB-3.13 [Luồng Gửi Sơ Duyệt Khép Kín (`Vault` → `Precheck` → `Dossiers` → `SQLite`)]:**
+- [x] **MOB-3.13 [Luồng Gửi Sơ Duyệt Khép Kín (`Vault` → `Precheck` → `Dossiers` → `SQLite`)]:**
   - Khi bấm **`✨ Kiểm Tra & Gửi Sơ Duyệt Cán Bộ`**:
     1. Chạy `formValidators.ts` + gọi `POST /api/v1/forms/precheck`. Nếu có lỗi pháp lý, hiển thị danh sách lỗi chi tiết từng trường để công dân sửa trên tờ khai trước khi nộp.
     2. Tải ảnh tờ khai lên `POST /api/v1/vault/upload` lấy `oneTimeToken` (`OTT_...`) và xóa file ảnh tạm trong bộ nhớ cache của máy.
     3. Gọi `POST /api/v1/dossiers` lưu hồ sơ vào bảng `citizen_dossiers` trên PostgreSQL, nhận về `dossierCode` (`HS-...`) và `slaDeadline`.
     4. Lưu bản ghi hồ sơ vào bảng `wallet_qr_passes` trong `expo-sqlite` và tự động chuyển người dân sang Tab 3 (`Ví Mã QR`).
-- [ ] **MOB-3.14 [Gate 3 Verification]:**
-  - Kiểm thử toàn bộ 4 biểu mẫu, 3 trạng thái AI Vision Gate và luồng nộp hồ sơ lên PostgreSQL đạt 100% PASS.
+- [x] **MOB-3.14 [Gate 3 Verification]:**
+  - Kiểm thử toàn bộ 4 biểu mẫu, 3 trạng thái AI Vision Gate và luồng nộp hồ sơ lên PostgreSQL đạt 100% PASS (`57/57` tests, `0` TypeScript errors).
 
 ---
 
