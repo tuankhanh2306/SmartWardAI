@@ -4,10 +4,11 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
+import { X } from 'lucide-react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { PersistentCivicHeader } from './src/components/PersistentCivicHeader';
 import { WardSelectorModal } from './src/components/WardSelectorModal';
@@ -15,6 +16,7 @@ import { AccessibilityProvider } from './src/context/AccessibilityContext';
 import { OfficerAuthProvider } from './src/context/OfficerAuthContext';
 import { useWard, WardProvider } from './src/context/WardContext';
 import { BottomTabNavigator } from './src/navigation/BottomTabNavigator';
+import { OfficerMobileAuditScreen } from './src/screens/OfficerMobileAuditScreen';
 import { OnboardingWardScreen } from './src/screens/OnboardingWardScreen';
 import { initLocalDatabase } from './src/storage/sqliteDb';
 import { COLORS, RADIUS, SPACING } from './src/theme/tokens';
@@ -46,6 +48,7 @@ const WEB_PHONE_PRESETS: Array<{
 const AppShell: React.FC = () => {
   const { hasCompletedOnboarding } = useWard();
   const [wardModalVisible, setWardModalVisible] = useState(false);
+  const [officerModalVisible, setOfficerModalVisible] = useState(false);
 
   useEffect(() => {
     void initLocalDatabase();
@@ -57,7 +60,10 @@ const AppShell: React.FC = () => {
 
   return (
     <SafeAreaView style={styles.root} edges={['top', 'left', 'right']}>
-      <PersistentCivicHeader onOpenWardSelector={() => setWardModalVisible(true)} />
+      <PersistentCivicHeader
+        onOpenWardSelector={() => setWardModalVisible(true)}
+        onOpenOfficerDesk={() => setOfficerModalVisible(true)}
+      />
       <View style={styles.navigatorWrap}>
         <NavigationContainer>
           <BottomTabNavigator />
@@ -67,6 +73,27 @@ const AppShell: React.FC = () => {
         visible={wardModalVisible}
         onClose={() => setWardModalVisible(false)}
       />
+      <Modal
+        visible={officerModalVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setOfficerModalVisible(false)}
+      >
+        <SafeAreaView style={styles.officerModalRoot} edges={['top', 'bottom', 'left', 'right']}>
+          <View style={styles.officerModalHeader}>
+            <Text style={styles.officerModalTitle}>Bàn Cán Bộ Một Cửa</Text>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Đóng Bàn Cán Bộ"
+              onPress={() => setOfficerModalVisible(false)}
+              style={styles.officerModalCloseBtn}
+            >
+              <X size={20} color={COLORS.onPrimary} />
+            </Pressable>
+          </View>
+          <OfficerMobileAuditScreen />
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -194,5 +221,30 @@ const styles = StyleSheet.create({
   navigatorWrap: {
     flex: 1,
     backgroundColor: COLORS.citizenSurface,
+  },
+  officerModalRoot: {
+    flex: 1,
+    backgroundColor: COLORS.officerNavy,
+  },
+  officerModalHeader: {
+    height: 52,
+    paddingHorizontal: SPACING.lg,
+    backgroundColor: COLORS.officerNavy,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  officerModalTitle: {
+    color: COLORS.onPrimary,
+    fontSize: 15,
+    fontWeight: '800',
+  },
+  officerModalCloseBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: RADIUS.full,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

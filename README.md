@@ -180,7 +180,14 @@ npm run lint
 cd ../backend
 ./mvnw test -B
 
-# 4. Kiểm tra quy chuẩn quản trị tài liệu thư mục gốc (Docs Governance Gate)
+# 4. Khởi chạy & kiểm thử Ứng dụng Di động SmartWard AI Mobile (Expo SDK 52 — iOS / Android / Web Preview)
+cd ../mobile
+npm install --legacy-peer-deps
+npx tsc --noEmit && npm test
+npx expo start          # Quét QR trên ứng dụng Expo Go (cùng mạng Wi-Fi)
+npx expo start --web    # Mô phỏng đa màn hình điện thoại (SE 320px -> Pro Max 430px) ngay trên trình duyệt / VS Code
+
+# 5. Kiểm tra quy chuẩn quản trị tài liệu thư mục gốc (Docs Governance Gate)
 cd ..
 powershell -ExecutionPolicy Bypass -File scripts/check-docs-governance.ps1
 ```
@@ -213,4 +220,5 @@ Toàn bộ tài liệu thiết kế, đặc tả kỹ thuật và báo cáo th�
 * 🌿 **Quy chuẩn phân nhánh Git & Quy tắc đóng góp:** [`AGENTS.md`](AGENTS.md) & [`docs/architecture/GIT_WORKFLOW.md`](docs/architecture/GIT_WORKFLOW.md)
 * 🧪 **Báo cáo sẵn sàng kiểm thử (Test Readiness):** [`docs/testing/TEST_READY.md`](docs/testing/TEST_READY.md)
 * 🏢 **Báo cáo kỹ thuật gửi Mentor Viettel An Giang & Giảng viên UTH:** [`docs/reports/MENTOR_TECHNICAL_BRIEFING.md`](docs/reports/MENTOR_TECHNICAL_BRIEFING.md)
-* 📝 **Bảng theo dõi tiến độ Sprint Board:** [`docs/TODO_SPRINT_BOARD.md`](docs/TODO_SPRINT_BOARD.md)
+* 📝 **Bảng theo dõi tiến độ Sprint Board:** [`docs/TODO_SPRINT_BOARD.md`](docs/TODO_SPRINT_BOARD.md) & [`docs/roadmap/MOBILE_TODO_SPRINT_BOARD.md`](docs/roadmap/MOBILE_TODO_SPRINT_BOARD.md)
+* 📱 **Kế hoạch & Đặc tả Phân hệ Di động (`mobile/`):** [`docs/roadmap/MOBILE_DEVELOPMENT_PLAN.md`](docs/roadmap/MOBILE_DEVELOPMENT_PLAN.md) & [`docs/specs/MOBILE_APP_SPEC.md`](docs/specs/MOBILE_APP_SPEC.md)

@@ -233,4 +233,37 @@ describe('formValidators — Động cơ kiểm định tất định 4 nhóm t�
     expect(errorCodes).toContain('INELIGIBLE_SOCIAL_PROTECTION_AGE');
     expect(errorCodes).toContain('MISSING_BANK_ACCOUNT');
   });
+
+  it('CT01: Hợp lệ khi nộp không yêu cầu xác nhận chủ hộ (chủ sở hữu nhà tự khai) nhưng chặn CCCD đầu 000', () => {
+    const res = validateAdministrativeForm({
+      formType: 'CT01',
+      fullName: 'TRẦN VĂN MINH',
+      citizenCccd: '000205023490', // Mã tỉnh 000 không hợp lệ
+      dateOfBirth: '1995-04-12',
+      address: 'Số 25 Lý Tự Trọng, Phường Long Xuyên',
+      referenceDate: REF_DATE,
+      extra: {
+        requiresHostConsent: false,
+      },
+    });
+    expect(res.valid).toBe(false);
+    expect(res.fieldValidations.some((f) => f.errorCode === 'INVALID_CCCD_FORMAT')).toBe(true);
+  });
+
+  it('TK-KH: Cảnh báo xuất trình bản án ly hôn khi người khai từng ly hôn', () => {
+    const res = validateAdministrativeForm({
+      formType: 'TK-KH',
+      fullName: 'LÊ THỊ HOA',
+      citizenCccd: '089194008877',
+      dateOfBirth: '1994-07-20',
+      gender: 'Nữ',
+      referenceDate: REF_DATE,
+      extra: {
+        maritalCertPurpose: 'Để đăng ký kết hôn với anh Nguyễn Văn Nam tại UBND Phường Long Xuyên',
+        previousMaritalStatus: 'DIVORCED',
+      },
+    });
+    expect(res.valid).toBe(true);
+    expect(res.warnings.some((w) => w.includes('Bản án/Quyết định ly hôn'))).toBe(true);
+  });
 });

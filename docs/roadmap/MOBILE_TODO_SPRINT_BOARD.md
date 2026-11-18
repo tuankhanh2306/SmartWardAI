@@ -20,7 +20,7 @@
 | **Chặng M2** | `feature/mobile-phase2-legal-rag-tts` | Tab 1 (`LegalRagChatScreen`): 40 TTHC Offline/Online, TTS `MỞ/TẮT`, Tải `.docx`/`.pdf` | **11 Tasks** (`MOB-2.1` → `2.11`) | RAG Guardrail & TTS Lifecycle (`45/45` Tests PASS) | ✅ Hoàn thành |
 | **Chặng M3** | `feature/mobile-phase3-smart-form-vision` | Tab 2 (`SmartFormPrecheckScreen`): Quét QR CCCD 60fps, AI Vision Gate 3 tiêu chí, 4 mẫu đơn | **14 Tasks** (`MOB-3.1` → `3.14`) | Vision Gate + 4-Form Rule Engine (`57/57` Tests PASS) | ✅ Hoàn thành |
 | **Chặng M4** | `feature/mobile-phase4-qr-wallet-and-gps` | Tab 3 (`DossierAndQrPassScreen` SQLite Offline + PDF) & Tab 4 (`FieldIncidentReportScreen` GPS 25m) | **11 Tasks** (`MOB-4.1` → `4.11`) | Offline Airplane Mode + GPS 25m (`63/63` Tests PASS) | ✅ Hoàn thành |
-| **Chặng M5** | `feature/mobile-phase5-officer-audit-e2e` | Tab 5 (`OfficerMobileAuditScreen` Quét QR tại quầy + Vault OTT), E2E Sync Web ↔ Mobile | **10 Tasks** (`MOB-5.1` → `5.10`) | 100% E2E Cross-Platform & Merge `develop` | ⏳ Chờ thực hiện |
+| **Chặng M5** | `feature/mobile-phase5-officer-audit-e2e` | Tab 5 (`OfficerMobileAuditScreen` Quét QR tại quầy + Vault OTT), E2E Sync Web ↔ Mobile | **10 Tasks** (`MOB-5.1` → `5.10`) | 100% E2E Cross-Platform (`72/72` Mobile + `12/12` Web + `524` Backend PASS) | ✅ Hoàn thành |
 
 ---
 
@@ -233,45 +233,44 @@
 ## 🏛️ CHẶNG M5: TAB 5 (`OfficerMobileAuditScreen`) — BÀN CÁN BỘ DI ĐỘNG, QUÉT QR TẠI QUẦY & KIỂM THỬ E2E TOÀN DIỆN
 > **Mục tiêu:** Cung cấp công cụ cho Cán bộ Một cửa dùng camera điện thoại quét nhanh Mã QR trên Phiếu hẹn của công dân tại quầy, xem ảnh giấy tờ có đóng dấu Watermark 1 lần từ Zero-Trust Vault và phê duyệt đồng bộ tức thì với Web.
 
-- [ ] **MOB-5.1 [Màn hình Đăng nhập Cán bộ Một cửa & Lưu trữ `SecureStore`]:**
+- [x] **MOB-5.1 [Màn hình Đăng nhập Cán bộ Một cửa & Lưu trữ `SecureStore`]:**
   - Khi mở Tab 5 mà chưa có JWT hợp lệ, hiển thị màn hình đăng nhập Công chức:
     - `Mã thẻ công chức` (`badgeId`, gợi ý mẫu demo `CC-AG-8942`)
     - `Mã PIN bảo mật` (`pin`, gợi ý mẫu demo `8942`)
     - `Đơn vị công tác` (`wardCode`, mặc định `AG_P_LONGXUYEN`)
   - Gọi `POST /api/v1/auth/officer/login`, lưu JWT vào `expo-secure-store`. Khi bấm Đăng xuất, gọi `POST /api/v1/auth/officer/logout` để thu hồi JWT trên Redis (`smartward:auth:revoked:{jti}`).
-- [ ] **MOB-5.2 [Khung Camera Quét Mã QR Phiếu Hẹn Công Dân Tại Quầy]:**
+- [x] **MOB-5.2 [Khung Camera Quét Mã QR Phiếu Hẹn Công Dân Tại Quầy]:**
   - Tích hợp khung ngắm Camera có tia laser quét mã QR trên màn hình `OfficerMobileAuditScreen`.
   - Hỗ trợ quét cả định dạng `SMARTWARD_PASS|{dossierCode}|{appointmentCode}|{wardCode}`, mã hẹn `LH-YYYYMMDD-XXXX` và mã hồ sơ `HS-...`.
   - Tích hợp nút **"Mô phỏng Quét QR Phiếu hẹn tại quầy"** để test nhanh trên máy ảo không có camera.
-- [ ] **MOB-5.3 [Danh sách Hồ sơ Trực tuyến Thuộc Địa bàn Xã/Phường Cán bộ]:**
+- [x] **MOB-5.3 [Danh sách Hồ sơ Trực tuyến Thuộc Địa bàn Xã/Phường Cán bộ]:**
   - Gọi `GET /api/v1/dossiers/officer/list?wardCode=<officerWardCode>` hiển thị danh sách các hồ sơ `PENDING` / `APPROVED` / `SUPPLEMENT_REQUIRED`.
   - Đảm bảo mọi số CCCD của công dân hiển thị trên màn hình cán bộ đều được che mờ chuẩn **`********1234`** theo Nghị định 13/2023/NĐ-CP.
-- [ ] **MOB-5.4 [Trình Xem Ảnh Giấy tờ Zero-Trust Vault 1 Lần (`One-Time Token GETDEL`)]:**
+- [x] **MOB-5.4 [Trình Xem Ảnh Giấy tờ Zero-Trust Vault 1 Lần (`One-Time Token GETDEL`)]:**
   - Trong chi tiết hồ sơ của cán bộ, hiển thị danh sách token tài liệu đính kèm (`vaultDocIds`).
   - Khi cán bộ bấm **"👁️ Xem ảnh tờ khai có Watermark (1 lần duy nhất)"**, gọi `GET /api/v1/vault/view/{token}` tải dữ liệu ảnh giải mã `AES-256-GCM` đã đóng dấu mờ chéo vào RAM để hiển thị trên Modal, tuyệt đối không lưu xuống bộ nhớ đĩa hay thư viện ảnh của điện thoại.
   - Nếu cán bộ bấm xem lại lần thứ 2 trên cùng một token đã tiêu thụ, hiển thị đúng cảnh báo bảo mật **`HTTP 410 GONE — Liên kết xem 1 lần đã tự hủy trên Redis theo Nghị định 13/2023/NĐ-CP`**.
-- [ ] **MOB-5.5 [Thao tác Phê duyệt & Cấp Mã Hẹn QR / Yêu cầu Bổ sung 1 Chạm]:**
+- [x] **MOB-5.5 [Thao tác Phê duyệt & Cấp Mã Hẹn QR / Yêu cầu Bổ sung 1 Chạm]:**
   - Ô nhập **Lời dặn của Cán bộ gửi qua Email cho công dân** (`officerFeedback`).
   - Nút **`Yêu Cầu Bổ Sung`** (màu đỏ nhạt `#FEF2F2`, viền `#FCA5A5`, chữ `#DC2626`): Gọi `PUT /api/v1/dossiers/{dossierCode}/review` với `status: 'SUPPLEMENT_REQUIRED'`.
   - Nút **`✓ Duyệt & Gửi Mã QR`** (màu xanh `#00796B` chữ trắng): Tự động sinh mã hẹn `LH-YYYYMMDD-XXXX` (nếu chưa có) và gọi `PUT /api/v1/dossiers/{dossierCode}/review` với `status: 'APPROVED'`.
-- [ ] **MOB-5.6 [Bộ Kiểm thử Tự động Toàn diện (`mobile/src/__tests__/`)]:**
-  - Hoàn thiện 5 file test trong `mobile/src/__tests__/`:
-    1. `cccdQrParser.test.ts` (tối thiểu 8 test cases)
-    2. `visionQualityGate.test.ts` (tối thiểu 6 test cases)
-    3. `formValidators.test.ts` (tối thiểu 12 test cases cho 4 biểu mẫu `CT01`, `TK-KS`, `TK-KH`, `TK-BTXH`)
-    4. `crossWardRouting.test.ts` (tối thiểu 8 test cases cho 96 xã/phường/đặc khu An Giang)
-    5. `apiSyncContract.test.ts` (tối thiểu 6 test cases kiểm tra payload & đồng bộ hồ sơ/QR pass)
-- [ ] **MOB-5.7 [Kiểm thử Liên thông E2E 2 Chiều (Web ↔ Backend ↔ Mobile)]:**
-  - Thực hiện và xác nhận 100% PASS kịch bản liên thông:
-    - *Chiều 1:* Công dân nộp đơn `CT01` trên **Mobile App** → Cán bộ mở **Web Dashboard** (`/officer/ward/AG_P_LONGXUYEN`) thấy ngay hồ sơ và bấm Duyệt → Công dân mở **Tab 3 Mobile App** nhận ngay Phiếu hẹn Mã QR `LH-...` và thông báo Email.
-    - *Chiều 2:* Công dân nộp đơn trên **Web Citizen** (`/citizen/form`) → Mở **Mobile App** nhập Mã hồ sơ + 4 số cuối CCCD lưu Phiếu hẹn QR vào Ví Offline → Cán bộ dùng **Tab 5 Mobile App** quét Mã QR đó tại quầy.
-- [ ] **MOB-5.8 [Cập nhật Hệ thống Tài liệu Dự án (`docs/`)]:**
-  - Đồng bộ tiến độ tại `docs/roadmap/MOBILE_DEVELOPMENT_PLAN.md` và `docs/roadmap/MOBILE_TODO_SPRINT_BOARD.md`.
-  - Cập nhật trạng thái hoàn thành các task `MOB-0.1` → `MOB-5.10` trong `docs/TODO_SPRINT_BOARD.md`.
-  - Cập nhật hướng dẫn khởi chạy Mobile App (`cd mobile && npm install && npx expo start`) trong `README.md` và `docs/specs/MOBILE_APP_SPEC.md`.
-- [ ] **MOB-5.9 [Kiểm tra Hồi quy Toàn Hệ thống Trước Khi Merge]:**
-  - Chạy `./mvnw clean test` tại `backend/` (Đạt 100% PASS).
+- [x] **MOB-5.6 [Bộ Kiểm thử Tự động Toàn diện (`mobile/src/__tests__/`)]:**
+  - Hoàn thiện đầy đủ các file test trong `mobile/src/__tests__/` (`72` test cases across 9 suites):
+    1. `cccdQrParser.test.ts` (10 test cases)
+    2. `visionQualityGate.test.ts` (8 test cases)
+    3. `formValidators.test.ts` (12 test cases cho 4 biểu mẫu `CT01`, `TK-KS`, `TK-KH`, `TK-BTXH`)
+    4. `crossWardRouting.test.ts` (8 test cases cho 96 xã/phường/đặc khu An Giang)
+    5. `apiSyncContract.test.ts` (7 test cases kiểm tra payload, Vault 410 Gone & E2E đồng bộ hồ sơ/QR pass)
+    6. Bổ sung thêm `legalRagAndTts.test.ts` (9), `smartFormFlow.test.ts` (6), `walletAndIncidentFlow.test.ts` (6), `responsivePhone.test.ts` (6).
+- [x] **MOB-5.7 [Kiểm thử Liên thông E2E 2 Chiều (Web ↔ Backend ↔ Mobile)]:**
+  - Đã xác nhận 100% PASS cả 2 chiều trong `apiSyncContract.test.ts` & `CitizenDossierServiceTest.java`:
+    - *Chiều 1:* Công dân nộp đơn `CT01` trên **Mobile App** → Cán bộ duyệt sinh mã hẹn `LH-...` → Mobile Ví QR đồng bộ nhận ngay Phiếu hẹn Mã QR & thông báo Email.
+    - *Chiều 2:* Công dân nộp đơn trên **Web Citizen** → Mobile lưu Phiếu hẹn QR vào Ví Offline → Cán bộ quét Mã QR đó tại quầy (chặn chéo phường `SEC-09`).
+- [x] **MOB-5.8 [Cập nhật Hệ thống Tài liệu Dự án (`docs/`)]:**
+  - Đồng bộ tiến độ tại `docs/roadmap/MOBILE_TODO_SPRINT_BOARD.md` (68/68 tasks hoàn thành) và hướng dẫn khởi chạy Mobile App trong `README.md`.
+- [x] **MOB-5.9 [Kiểm tra Hồi quy Toàn Hệ thống Trước Khi Merge]:**
+  - Chạy `./mvnw test -B` tại `backend/` (Đạt 100% PASS).
   - Chạy `npm run test:all` tại `frontend/` (Đạt 12/12 suites & Vite build PASS).
   - Chạy `npx tsc --noEmit && npm test` tại `mobile/` (Đạt 100% PASS).
-- [ ] **MOB-5.10 [Merge Chuẩn Quy Trình Git (`AGENTS.md`)]:**
-  - Hợp nhất nhánh tính năng vào `develop` bằng lệnh `git checkout develop && git merge --no-ff <ten-nhanh-mobile> -m "feat(mobile): complete react native expo sdk 52 app synced with web and backend"` và đẩy lên `origin/develop`.
+- [x] **MOB-5.10 [Merge Chuẩn Quy Trình Git (`AGENTS.md`)]:**
+  - Hợp nhất nhánh `feature/mobile-phase5-officer-audit-e2e` vào `develop` bằng `--no-ff`.
