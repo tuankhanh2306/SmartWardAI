@@ -301,4 +301,81 @@ class CitizenDossierServiceTest {
         assertThat(zdt.getHour()).isEqualTo(17);
         assertThat(zdt.getMinute()).isEqualTo(0);
     }
+
+    @Test
+    @DisplayName("MOB-0.5: Officer QR lookup resolves SMARTWARD_PASS payload and masks CCCD")
+    void lookupOfficerDossierByQr_fullQrPayload_returnsMaskedDto() {
+        CitizenDossier dossier = CitizenDossier.builder()
+                .id(10L)
+                .dossierCode("HS-20261118-AGPLONGXUYEN-0001")
+                .procedureCode("TTHC-CR-01")
+                .wardCode("AG_P_LONGXUYEN")
+                .citizenCccd("089205023490")
+                .status("APPROVED")
+                .appointmentCode("LH-20261118-8899")
+                .formData("{\"fullName\":\"NGUYEN MINH TUAN KHANH\"}")
+                .build();
+
+        when(dossierRepository.findByDossierCodeIgnoreCase("HS-20261118-AGPLONGXUYEN-0001"))
+                .thenReturn(Optional.of(dossier));
+
+        OfficerAuthService.OfficerPrincipal officer = new OfficerAuthService.OfficerPrincipal(
+                "CC-AG-8942", "Trần Quốc Bảo", "AG_P_LONGXUYEN", "OFFICER", "jti-qr-1", Instant.now().getEpochSecond() + 3600);
+
+        OfficerDossierDto dto = dossierService.lookupOfficerDossierByQr(
+                "SMARTWARD_PASS|HS-20261118-AGPLONGXUYEN-0001|LH-20261118-8899|AG_P_LONGXUYEN",
+                officer
+        );
+
+        assertThat(dto.dossierCode()).isEqualTo("HS-20261118-AGPLONGXUYEN-0001");
+        assertThat(dto.appointmentCode()).isEqualTo("LH-20261118-8899");
+        assertThat(dto.citizenCccd()).isEqualTo("********3490");
+    }
+
+    @Test
+    @DisplayName("MOB-0.5: Officer QR lookup resolves direct appointmentCode LH-...")
+    void lookupOfficerDossierByQr_appointmentCode_returnsDto() {
+        CitizenDossier dossier = CitizenDossier.builder()
+                .id(11L)
+                .dossierCode("HS-20261118-AGPLONGXUYEN-0002")
+                .procedureCode("TTHC-HT-01")
+                .wardCode("AG_P_LONGXUYEN")
+                .citizenCccd("089095011234")
+                .status("APPROVED")
+                .appointmentCode("LH-20261118-7777")
+                .build();
+
+        when(dossierRepository.findByAppointmentCodeIgnoreCase("LH-20261118-7777"))
+                .thenReturn(Optional.of(dossier));
+
+        OfficerAuthService.OfficerPrincipal officer = new OfficerAuthService.OfficerPrincipal(
+                "CC-AG-8942", "Trần Quốc Bảo", "AG_P_LONGXUYEN", "OFFICER", "jti-qr-2", Instant.now().getEpochSecond() + 3600);
+
+        OfficerDossierDto dto = dossierService.lookupOfficerDossierByQr("LH-20261118-7777", officer);
+        assertThat(dto.dossierCode()).isEqualTo("HS-20261118-AGPLONGXUYEN-0002");
+        assertThat(dto.citizenCccd()).isEqualTo("********1234");
+    }
+
+    @Test
+    @DisplayName("MOB-0.5 & SEC-09: Officer QR lookup blocks cross-ward access with 403 FORBIDDEN")
+    void lookupOfficerDossierByQr_crossWard_throwsForbidden() {
+        CitizenDossier dossier = CitizenDossier.builder()
+                .id(12L)
+                .dossierCode("HS-20261118-CHAUDOC-0001")
+                .wardCode("AG_P_CHAUDOC")
+                .citizenCccd("089095019999")
+                .appointmentCode("LH-20261118-9999")
+                .status("APPROVED")
+                .build();
+
+        when(dossierRepository.findByAppointmentCodeIgnoreCase("LH-20261118-9999"))
+                .thenReturn(Optional.of(dossier));
+
+        OfficerAuthService.OfficerPrincipal longXuyenOfficer = new OfficerAuthService.OfficerPrincipal(
+                "CC-AG-8942", "Trần Quốc Bảo", "AG_P_LONGXUYEN", "OFFICER", "jti-qr-3", Instant.now().getEpochSecond() + 3600);
+
+        assertThatThrownBy(() -> dossierService.lookupOfficerDossierByQr("LH-20261118-9999", longXuyenOfficer))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode()).isEqualTo(ErrorCode.FORBIDDEN));
+    }
 }

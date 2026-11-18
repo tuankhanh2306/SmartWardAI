@@ -15,7 +15,7 @@
 
 | Chặng | Mã Nhánh Git (`from develop`) | Trọng tâm Kỹ thuật | Số lượng Tasks | Gate Kiểm thử | Trạng thái |
 | :---: | :--- | :--- | :---: | :--- | :---: |
-| **Chặng M0** | `feature/mobile-phase0-backend-sync` | Chuẩn hóa nhánh Git, CORS LAN/Mobile, API tra cứu QR tại quầy & đồng bộ DB | **8 Tasks** (`MOB-0.1` → `0.8`) | `420+` JUnit Tests PASS | ⏳ Chờ thực hiện |
+| **Chặng M0** | `feature/mobile-phase0-backend-sync` | Chuẩn hóa nhánh Git, CORS LAN/Mobile, API tra cứu QR tại quầy & đồng bộ DB | **8 Tasks** (`MOB-0.1` → `0.8`) | `524` JUnit Tests PASS | ✅ Hoàn thành |
 | **Chặng M1** | `feature/mobile-phase1-foundation` | Khởi tạo Expo SDK 52, Design Tokens `A/A+/A++`, Shared Core & Chọn 96 Xã | **14 Tasks** (`MOB-1.1` → `1.14`) | TypeScript `0 errors` + Core Unit Tests PASS | ⏳ Chờ thực hiện |
 | **Chặng M2** | `feature/mobile-phase2-legal-rag-tts` | Tab 1 (`LegalRagChatScreen`): 40 TTHC Offline/Online, TTS `MỞ/TẮT`, Tải `.docx`/`.pdf` | **11 Tasks** (`MOB-2.1` → `2.11`) | RAG Guardrail & TTS Lifecycle Tests PASS | ⏳ Chờ thực hiện |
 | **Chặng M3** | `feature/mobile-phase3-smart-form-vision` | Tab 2 (`SmartFormPrecheckScreen`): Quét QR CCCD 60fps, AI Vision Gate 3 tiêu chí, 4 mẫu đơn | **14 Tasks** (`MOB-3.1` → `3.14`) | Vision Gate + 4-Form Rule Engine Tests PASS | ⏳ Chờ thực hiện |
@@ -27,18 +27,18 @@
 ## 🛠️ CHẶNG M0: CHUẨN HÓA MÔI TRƯỜNG GIT & ĐỒNG BỘ ĐIỂM NỐI BACKEND CHO MOBILE
 > **Mục tiêu:** Đảm bảo môi trường Git tuân thủ `AGENTS.md` và toàn bộ REST API trên Backend sẵn sàng nhận kết nối từ thiết bị di động thật / máy ảo qua mạng LAN.
 
-- [ ] **MOB-0.1 [Git Discipline]:** Kiểm tra nhánh hiện tại, kiểm tra `git status` để không sót thay đổi dở dang, chuyển về `develop`, kéo code mới nhất và tạo nhánh `feature/mobile-phase0-backend-sync`.
+- [x] **MOB-0.1 [Git Discipline]:** Kiểm tra nhánh hiện tại, kiểm tra `git status` để không sót thay đổi dở dang, chuyển về `develop`, kéo code mới nhất và tạo nhánh `feature/mobile-phase0-backend-sync`.
   - *Lưu ý:* Tuyệt đối không thao tác trên `main`.
-- [ ] **MOB-0.2 [RAM Budget Check]:** Kiểm tra lại `docker-compose.yml` đảm bảo 6 container (`postgres: 448m`, `redis: 128m`, `minio: 256m`, `ai-sidecar: 384m`, `backend: 768m`, `frontend: 64m`) giữ đúng tổng `2048 MiB` RAM; không thêm container thứ 7.
-- [ ] **MOB-0.3 [LAN Ingress & Reverse Proxy]:** Kiểm tra cấu hình Nginx tại `frontend/nginx.conf` (cổng `0.0.0.0:3000`) đảm bảo proxy `/api/v1/` chuyển tiếp đầy đủ headers (`Authorization`, `X-Ward-Code`, `X-Correlation-Id`, `Content-Type: multipart/form-data` với `client_max_body_size 10M`) vào `backend:8080` để điện thoại thật trong cùng Wi-Fi gọi được qua `http://<LAN_IP>:3000/api/v1`.
-- [ ] **MOB-0.4 [CORS Mobile Origins]:** Kiểm tra `OfficerSecurityConfig.java` và `CorsConfig.java` đảm bảo cho phép các origin từ Expo (`exp://...`, `http://localhost:8081`, `http://10.0.2.2:8081`, `http://192.168.*.*:*`) và expose header `X-Correlation-Id`.
-- [ ] **MOB-0.5 [API Tra cứu Hồ sơ theo Mã Hẹn QR cho Cán bộ]:** Tại `CitizenDossierController.java` và `CitizenDossierService.java`, kiểm tra/bổ sung khả năng tìm kiếm hồ sơ của cán bộ theo cả `dossierCode` (`HS-...`) lẫn `appointmentCode` (`LH-YYYYMMDD-XXXX`) khi quét mã QR tại quầy Một cửa, đồng thời vẫn giữ nguyên chốt chặn cô lập địa bàn `SEC-09` (`effectiveWardCode = principal.wardCode()`).
-- [ ] **MOB-0.6 [Xác thực Đường dẫn API Triage]:** Ghi chú và thống nhất toàn cục trong tài liệu + code Mobile sử dụng đúng endpoint thực tế của `TriageController.java`:
+- [x] **MOB-0.2 [RAM Budget Check]:** Kiểm tra lại `docker-compose.yml` đảm bảo 6 container (`postgres: 448m`, `redis: 128m`, `minio: 256m`, `ai-sidecar: 384m`, `backend: 768m`, `frontend: 64m`) giữ đúng tổng `2048 MiB` RAM; không thêm container thứ 7.
+- [x] **MOB-0.3 [LAN Ingress & Reverse Proxy]:** Kiểm tra cấu hình Nginx tại `frontend/nginx.conf` (cổng `0.0.0.0:3000`) đảm bảo proxy `/api/v1/` chuyển tiếp đầy đủ headers (`Authorization`, `X-Ward-Code`, `X-Correlation-Id`, `Content-Type: multipart/form-data` với `client_max_body_size 10M`) vào `backend:8080` để điện thoại thật trong cùng Wi-Fi gọi được qua `http://<LAN_IP>:3000/api/v1`.
+- [x] **MOB-0.4 [CORS Mobile Origins]:** Kiểm tra `OfficerSecurityConfig.java` và `CorsConfig.java` đảm bảo cho phép các origin từ Expo (`exp://...`, `http://localhost:8081`, `http://10.0.2.2:8081`, `http://192.168.*.*:*`) và expose header `X-Correlation-Id`.
+- [x] **MOB-0.5 [API Tra cứu Hồ sơ theo Mã Hẹn QR cho Cán bộ]:** Tại `CitizenDossierController.java` và `CitizenDossierService.java`, kiểm tra/bổ sung khả năng tìm kiếm hồ sơ của cán bộ theo cả `dossierCode` (`HS-...`) lẫn `appointmentCode` (`LH-YYYYMMDD-XXXX`) khi quét mã QR tại quầy Một cửa, đồng thời vẫn giữ nguyên chốt chặn cô lập địa bàn `SEC-09` (`effectiveWardCode = principal.wardCode()`).
+- [x] **MOB-0.6 [Xác thực Đường dẫn API Triage]:** Ghi chú và thống nhất toàn cục trong tài liệu + code Mobile sử dụng đúng endpoint thực tế của `TriageController.java`:
   - Gửi báo cáo sự cố: `POST /api/v1/issues/report` (thay vì `/api/v1/triage/reports`).
   - Lấy cụm sự cố: `GET /api/v1/issues/clusters` (thay vì `/api/v1/triage/clusters`).
   - Cập nhật trạng thái cụm: `PATCH /api/v1/issues/clusters/{clusterCode}/status`.
-- [ ] **MOB-0.7 [Xác thực Payload Đăng nhập Cán bộ]:** Thống nhất payload gọi `POST /api/v1/auth/officer/login` gửi đúng trường `pin` theo `OfficerAuthController.OfficerLoginRequest` (`{ "badgeId": "CC-AG-8942", "pin": "8942", "wardCode": "AG_P_LONGXUYEN" }`).
-- [ ] **MOB-0.8 [Gate 0 Verification]:** Chạy `./mvnw clean test` tại thư mục `backend/` — bắt buộc đạt 100% PASS (420+ tests, 0 failures) trước khi commit `feat(backend): align mobile cors and qr lookup contracts` và chuyển sang Chặng M1.
+- [x] **MOB-0.7 [Xác thực Payload Đăng nhập Cán bộ]:** Thống nhất payload gọi `POST /api/v1/auth/officer/login` gửi đúng trường `pin` theo `OfficerAuthController.OfficerLoginRequest` (`{ "badgeId": "CC-AG-8942", "pin": "8942", "wardCode": "AG_P_LONGXUYEN" }`).
+- [x] **MOB-0.8 [Gate 0 Verification]:** Chạy `./mvnw clean test` tại thư mục `backend/` — bắt buộc đạt 100% PASS (524 tests, 0 failures) trước khi commit `feat(backend): align mobile cors and qr lookup contracts` và chuyển sang Chặng M1.
 
 ---
 
