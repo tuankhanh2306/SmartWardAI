@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import {
   Landmark,
@@ -12,6 +12,14 @@ import {
   Clock,
   ArrowLeft,
   KeyRound,
+  Menu,
+  X,
+  ChevronDown,
+  PhoneCall,
+  Calendar,
+  Volume2,
+  Eye,
+  Type,
 } from 'lucide-react';
 import { useWard } from '../context/WardContext';
 import { useRole } from '../context/RoleContext';
@@ -24,11 +32,52 @@ export const Header: React.FC = () => {
   const navigate = useNavigate();
   const path = location.pathname;
   const hash = location.hash;
-  const { currentWard } = useWard();
+  const { currentWard, isOfficeOpen, officeStatusLabel } = useWard();
   const { role, isOfficer, officerProfile, logout, sessionSecondsLeft, authModalOpen, setAuthModalOpen } =
     useRole();
-  const { textScale, setTextScale } = useAccessibility();
-  const [changePinOpen, setChangePinOpen] = React.useState(false);
+  const {
+    textScale,
+    setTextScale,
+    isAudioAutoPlay,
+    setIsAudioAutoPlay,
+    isSimpleMode,
+    setIsSimpleMode,
+  } = useAccessibility();
+  const [changePinOpen, setChangePinOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuContainerRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Close utility drawer on route/hash navigation
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [path, hash]);
+
+  // Close utility drawer on outside click or Escape key (restoring focus to trigger)
+  useEffect(() => {
+    if (!menuOpen) return;
+
+    const handleMouseDown = (e: MouseEvent) => {
+      if (menuContainerRef.current && !menuContainerRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        setMenuOpen(false);
+        menuButtonRef.current?.focus();
+      }
+    };
+
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [menuOpen]);
 
   // If on Gateway (/), hide standard app header so Gateway has clean view
   if (path === '/' || !role) {
@@ -39,7 +88,7 @@ export const Header: React.FC = () => {
     { to: '/citizen', label: 'Hỏi Đáp AI', icon: Bot, match: () => path === '/citizen' },
     {
       to: '/citizen/procedures',
-      label: 'Danh Mục 40 TTHC',
+      label: '40 Thủ Tục',
       icon: BookOpen,
       match: () => path === '/citizen/procedures',
     },
@@ -51,7 +100,7 @@ export const Header: React.FC = () => {
     },
     {
       to: '/citizen/form#incident',
-      label: 'Báo Sự Cố (GPS)',
+      label: 'Báo Sự Cố',
       icon: AlertTriangle,
       match: () => path === '/citizen/form' && hash === '#incident',
     },
@@ -88,59 +137,50 @@ export const Header: React.FC = () => {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200">
-        <div className="h-14 sm:h-16 w-full max-w-[1920px] mx-auto px-2.5 sm:px-4 xl:px-6 flex items-center justify-between gap-2 xl:gap-3">
-          {/* Brand Identity & Ward Switcher */}
-          <div className="min-w-0 flex-1 lg:flex-initial flex items-center gap-1.5 sm:gap-2.5">
-            <Link
-              to={isOfficer ? `/officer/ward/${currentWard.code}` : '/citizen'}
-              className="min-w-0 flex items-center gap-2 shrink group active:scale-[0.98] transition-transform"
-            >
-              <div
-                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center text-white shrink-0 shadow-xs ${
-                  isOfficer ? 'bg-[#0F2942]' : 'bg-[#00796B]'
-                }`}
-              >
-                {isOfficer ? <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-teal-300" /> : <Landmark className="w-4 h-4 text-teal-200" />}
-              </div>
-              <div className="min-w-0 flex flex-col">
-                <div className="flex items-center gap-1.5 min-w-0">
-                  <span className="font-bold text-xs sm:text-sm text-slate-900 tracking-tight truncate max-w-[130px] sm:max-w-[190px] lg:max-w-[145px] xl:max-w-[175px]">
-                    UBND {currentWard.name}
-                  </span>
-                  <span
-                    className={`hidden sm:inline-block px-2 py-0.5 rounded-md text-[10px] font-bold shrink-0 ${
-                      isOfficer
-                        ? 'bg-[#00695C] text-white shadow-xs'
-                        : 'bg-emerald-50 text-emerald-800 border border-emerald-200'
-                    }`}
-                  >
-                    {isOfficer ? 'Cán Bộ' : 'Công Dân'}
-                  </span>
-                </div>
-                <span className="text-[11px] text-slate-600 leading-tight whitespace-nowrap hidden xl:inline">
-                  Một Cửa Số • Tỉnh An Giang
-                </span>
-              </div>
-            </Link>
-
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-b border-slate-200/80">
+        <div className="h-14 sm:h-16 w-full max-w-[1920px] mx-auto px-3 sm:px-5 xl:px-6 flex items-center justify-between gap-3">
+          {/* Cluster 1: Brand + Active Ward Switcher Pill */}
+          <div className="min-w-0 flex items-center gap-2">
             <Link
               to="/onboarding"
-              aria-label="Đổi xã hoặc phường"
-              className={`inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition active:scale-95 shrink-0 shadow-xs ${
+              title="Bấm để đổi Xã/Phường khác tại An Giang"
+              className={`min-w-0 inline-flex items-center gap-2 pr-2.5 pl-1.5 py-1 rounded-xl border transition active:scale-[0.98] gov-focus-ring ${
                 isOnboarding
-                  ? 'bg-[#00796B] text-white border-[#00695C]'
-                  : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-700'
+                  ? 'bg-teal-50 border-teal-300 text-[#004D40]'
+                  : 'bg-transparent border-transparent hover:bg-slate-100/80 hover:border-slate-200 text-slate-900'
               }`}
-              title="Đổi Xã/Phường khác tại An Giang"
             >
-              <MapPin className="w-3.5 h-3.5 text-[#00796B]" />
-              <span className="hidden sm:inline whitespace-nowrap">Đổi Xã</span>
+              <div
+                className={`w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 ${
+                  isOfficer ? 'bg-[#0F2942]' : 'bg-[#00695C]'
+                }`}
+              >
+                {isOfficer ? (
+                  <ShieldCheck className="w-4 h-4 text-teal-200" />
+                ) : (
+                  <Landmark className="w-4 h-4 text-teal-100" />
+                )}
+              </div>
+              <div className="min-w-0 flex items-center gap-1.5">
+                <span className="font-semibold text-xs sm:text-sm text-slate-900 tracking-tight truncate max-w-[155px] sm:max-w-[220px]">
+                  UBND {currentWard.name}
+                </span>
+                <span
+                  className={`w-2 h-2 rounded-full shrink-0 ${
+                    isOfficeOpen ? 'bg-[#16A34A]' : 'bg-[#CA8A04]'
+                  }`}
+                  title={officeStatusLabel}
+                />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+              </div>
             </Link>
           </div>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-0.5 p-1 bg-slate-100 rounded-xl border border-slate-200 shrink-0">
+          {/* Cluster 2: Clean Segmented Navigation (Desktop) */}
+          <nav
+            aria-label="Điều hướng chính"
+            className="hidden lg:flex items-center gap-0.5 p-1 bg-slate-100/90 rounded-xl border border-slate-200/70 shrink-0"
+          >
             {activeNavLinks.map((item) => {
               const Icon = item.icon;
               const isActive = item.match();
@@ -148,17 +188,21 @@ export const Header: React.FC = () => {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`flex items-center gap-1.5 text-xs font-semibold px-2 xl:px-2.5 py-1.5 rounded-lg transition-all active:scale-[0.98] whitespace-nowrap ${
+                  className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all whitespace-nowrap gov-focus-ring ${
                     isActive
                       ? isOfficer
-                        ? 'bg-[#0F2942] text-white shadow-xs'
-                        : 'bg-[#00796B] text-white shadow-xs'
-                      : 'text-slate-700 hover:text-slate-900 hover:bg-white/70'
+                        ? 'bg-white text-[#0F2942] shadow-xs'
+                        : 'bg-white text-[#00695C] shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                   }`}
                 >
                   <Icon
-                    className={`w-3.5 h-3.5 xl:w-4 xl:h-4 ${
-                      isActive ? 'text-teal-200' : 'text-slate-500'
+                    className={`w-3.5 h-3.5 ${
+                      isActive
+                        ? isOfficer
+                          ? 'text-[#0F2942]'
+                          : 'text-[#00695C]'
+                        : 'text-slate-500'
                     }`}
                   />
                   <span>{item.label}</span>
@@ -167,105 +211,247 @@ export const Header: React.FC = () => {
             })}
           </nav>
 
-          {/* Right Actions: Session Status, Font Scale & Role Controls */}
-          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-            {/* Session Indicator: Officer = Standing Duty (Unlimited), Citizen = 5-Min Timer */}
+          {/* Cluster 3: Minimal Session Indicator + Hamburger Utility Menu [☰] */}
+          <div ref={menuContainerRef} className="relative flex items-center gap-2 shrink-0">
             {isOfficer ? (
-              <div
-                className="inline-flex items-center gap-1.5 px-2 sm:px-2.5 py-1.5 rounded-lg border border-teal-200 bg-teal-50/80 text-[#00695C] text-xs font-semibold shadow-2xs"
-                title="Phiên làm việc cán bộ thường trực (Không giới hạn thời gian khi đang mở phiên làm việc)"
+              <span
+                className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-[#00695C] px-2 py-1"
+                title="Phiên làm việc cán bộ thường trực"
               >
-                <span className="w-2 h-2 rounded-full bg-[#10B981] animate-pulse" />
-                <span className="hidden md:inline">Thường Trực</span>
-              </div>
+                <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
+                <span>Thường trực</span>
+              </span>
             ) : (
               <div
-                className={`inline-flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg border text-xs font-mono font-bold shadow-2xs ${
+                className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-mono font-semibold ${
                   sessionSecondsLeft <= 60
-                    ? 'bg-red-50 text-red-700 border-red-300 animate-pulse'
-                    : 'bg-slate-50 text-slate-700 border-slate-200'
+                    ? 'bg-red-50 text-red-700 border border-red-200 animate-pulse'
+                    : 'text-slate-600'
                 }`}
-                title="Thời gian phiên làm việc công dân còn lại (Tự động kết thúc sau 5 phút)"
+                title="Thời gian phiên làm việc công dân còn lại (tự kết thúc sau 5 phút)"
               >
                 <Clock
                   className={`w-3.5 h-3.5 ${
                     sessionSecondsLeft <= 60 ? 'text-red-600' : 'text-slate-500'
                   }`}
                 />
-                <span className="text-[11px] sm:text-xs">{formattedCountdown}</span>
+                <span>{formattedCountdown}</span>
               </div>
             )}
 
-            {/* Font Scale Switcher */}
             <button
+              ref={menuButtonRef}
               type="button"
-              aria-label="Đổi cỡ chữ hiển thị"
-              onClick={() => {
-                if (textScale === 'normal') setTextScale('large');
-                else if (textScale === 'large') setTextScale('huge');
-                else setTextScale('normal');
-              }}
-              className={`flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition active:scale-95 cursor-pointer shadow-xs ${
-                textScale !== 'normal'
-                  ? 'bg-[#00796B] text-white border-[#00695C]'
-                  : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200'
+              onClick={() => setMenuOpen((prev) => !prev)}
+              aria-expanded={menuOpen}
+              aria-controls="header-utility-menu"
+              aria-haspopup="true"
+              title="Mở menu cài đặt hiển thị, thông tin UBND và đổi vai trò"
+              className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer gov-focus-ring ${
+                menuOpen
+                  ? 'bg-slate-900 text-white border-slate-900'
+                  : 'bg-white hover:bg-slate-100 text-slate-700 border-slate-200'
               }`}
-              title="Đổi cỡ chữ (Chuẩn / To / Rất to)"
             >
-              <span className="font-bold">
-                A{textScale === 'large' ? '+' : textScale === 'huge' ? '++' : ''}
-              </span>
+              {menuOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              <span className="sr-only sm:not-sr-only">Tùy chọn</span>
             </button>
 
-            {/* Officer Area / Switch Role Area */}
-            {isOfficer ? (
-              <div className="flex items-center gap-1 sm:gap-1.5 pl-1 border-l border-slate-200">
-                <div
-                  className="flex items-center gap-1.5"
-                  title={`Cán bộ: ${officerProfile.name}`}
-                >
-                  <div className="w-7 h-7 rounded-lg bg-[#00695C] text-white flex items-center justify-center font-bold text-xs shadow-xs">
-                    {officerProfile.avatarText}
+            {/* Quick Settings & Ward Info Popover Drawer */}
+            {menuOpen && (
+              <div
+                id="header-utility-menu"
+                role="dialog"
+                aria-label="Cài đặt và thông tin UBND"
+                className="absolute right-0 top-[calc(100%+0.5rem)] w-[min(21rem,calc(100vw-1.5rem))] rounded-2xl bg-white border border-slate-200 shadow-xl p-3.5 z-50 flex flex-col gap-3 animate-fadeIn"
+              >
+                {/* Section 1: Active Ward Info & Hours */}
+                <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col gap-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-slate-900 truncate">
+                      UBND {currentWard.name}
+                    </span>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${
+                        isOfficeOpen
+                          ? 'bg-emerald-50 text-emerald-800 border border-emerald-200'
+                          : 'bg-amber-50 text-amber-900 border border-amber-200'
+                      }`}
+                    >
+                      {isOfficeOpen ? 'Đang tiếp dân' : 'Ngoài giờ • AI 24/7'}
+                    </span>
                   </div>
-                  <span className="hidden 2xl:inline text-xs font-semibold text-slate-800 whitespace-nowrap max-w-[150px] truncate">
-                    {officerProfile.name}
-                  </span>
+                  <p className="text-[11px] text-slate-600 flex items-start gap-1.5 leading-snug">
+                    <MapPin className="w-3.5 h-3.5 text-[#00695C] shrink-0 mt-0.5" />
+                    <span>{currentWard.officeAddress}</span>
+                  </p>
+                  <p className="text-[11px] text-slate-600 flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-[#00695C] shrink-0" />
+                    <span>{currentWard.workingHours}</span>
+                  </p>
+                  <div className="flex items-center justify-between gap-2 pt-1 mt-0.5 border-t border-slate-200/70">
+                    <a
+                      href={`tel:${currentWard.phoneNumber.replace(/\s+/g, '')}`}
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-[#00695C] hover:underline font-mono"
+                    >
+                      <PhoneCall className="w-3.5 h-3.5" />
+                      <span>{currentWard.phoneNumber}</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        navigate('/onboarding');
+                      }}
+                      className="text-xs font-semibold text-[#00695C] hover:text-[#004D40] hover:underline cursor-pointer"
+                    >
+                      Đổi xã/phường
+                    </button>
+                  </div>
                 </div>
 
-                <button
-                  type="button"
-                  aria-label="Đổi PIN cán bộ"
-                  onClick={() => setChangePinOpen(true)}
-                  className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold transition active:scale-95 cursor-pointer shadow-2xs"
-                  title="Đổi mã PIN cán bộ"
-                >
-                  <KeyRound className="w-3.5 h-3.5 text-slate-600" />
-                  <span className="hidden md:inline">Đổi PIN</span>
-                </button>
+                {/* Section 2: Accessibility Controls */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
+                      <Type className="w-3.5 h-3.5 text-slate-500" />
+                      <span>Cỡ chữ hiển thị</span>
+                    </span>
+                    <div className="inline-flex rounded-lg bg-slate-100 p-0.5 border border-slate-200">
+                      {(
+                        [
+                          { id: 'normal', label: 'Chuẩn' },
+                          { id: 'large', label: 'To' },
+                          { id: 'huge', label: 'Rất to' },
+                        ] as const
+                      ).map((opt) => (
+                        <button
+                          key={opt.id}
+                          type="button"
+                          onClick={() => setTextScale(opt.id)}
+                          aria-pressed={textScale === opt.id}
+                          className={`px-2 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer ${
+                            textScale === opt.id
+                              ? 'bg-[#00695C] text-white shadow-2xs'
+                              : 'text-slate-600 hover:text-slate-900'
+                          }`}
+                        >
+                          {opt.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-                <button
-                  type="button"
-                  aria-label="Đăng xuất khỏi phiên cán bộ"
-                  onClick={() => logout()}
-                  className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 text-xs font-semibold transition active:scale-95 cursor-pointer shadow-xs"
-                  title="Đăng xuất khỏi phiên cán bộ về Cổng Vào"
-                >
-                  <LogOut className="w-3.5 h-3.5 text-red-600" />
-                  <span className="hidden sm:inline whitespace-nowrap">Đăng Xuất</span>
-                </button>
-              </div>
-            ) : (
-              <div className="flex items-center gap-1 pl-1 border-l border-slate-200">
-                <button
-                  type="button"
-                  aria-label="Đổi vai trò"
-                  onClick={() => logout()}
-                  className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold transition active:scale-95 cursor-pointer shadow-2xs whitespace-nowrap"
-                  title="Quay lại Cổng Chọn Vai Trò"
-                >
-                  <ArrowLeft className="w-3.5 h-3.5 text-slate-600" />
-                  <span className="hidden sm:inline">Đổi Vai Trò</span>
-                </button>
+                  {!isOfficer && (
+                    <>
+                      <button
+                        type="button"
+                        aria-pressed={isAudioAutoPlay}
+                        onClick={() => setIsAudioAutoPlay(!isAudioAutoPlay)}
+                        className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer gov-focus-ring"
+                      >
+                        <span className="text-xs font-medium text-slate-800 flex items-center gap-2">
+                          <Volume2 className="w-4 h-4 text-[#00695C]" />
+                          <span>Tự động đọc câu trả lời</span>
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
+                            isAudioAutoPlay
+                              ? 'bg-[#00695C] text-white'
+                              : 'bg-slate-200 text-slate-700'
+                          }`}
+                        >
+                          {isAudioAutoPlay ? 'BẬT' : 'TẮT'}
+                        </span>
+                      </button>
+
+                      <button
+                        type="button"
+                        aria-pressed={isSimpleMode}
+                        onClick={() => {
+                          const next = !isSimpleMode;
+                          setIsSimpleMode(next);
+                          if (next && textScale === 'normal') {
+                            setTextScale('large');
+                          }
+                        }}
+                        className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 transition cursor-pointer gov-focus-ring"
+                      >
+                        <span className="text-xs font-medium text-slate-800 flex items-center gap-2">
+                          <Eye className="w-4 h-4 text-[#00695C]" />
+                          <span>Giao diện đơn giản (Chữ to)</span>
+                        </span>
+                        <span
+                          className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
+                            isSimpleMode
+                              ? 'bg-[#00695C] text-white'
+                              : 'bg-slate-200 text-slate-700'
+                          }`}
+                        >
+                          {isSimpleMode ? 'BẬT' : 'TẮT'}
+                        </span>
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                {/* Section 3: Role / Session Controls (Strictly Isolated by Role) */}
+                <div className="pt-2 border-t border-slate-200 flex flex-col gap-1.5">
+                  {isOfficer ? (
+                    <>
+                      <div className="flex items-center gap-2 px-1 py-1">
+                        <div className="w-7 h-7 rounded-lg bg-[#0F2942] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                          {officerProfile.avatarText}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-slate-900 truncate">
+                            {officerProfile.name}
+                          </p>
+                          <p className="text-[11px] text-slate-600">Cán bộ Một cửa</p>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-1.5">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMenuOpen(false);
+                            setChangePinOpen(true);
+                          }}
+                          className="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition cursor-pointer"
+                        >
+                          <KeyRound className="w-3.5 h-3.5" />
+                          <span>Đổi PIN</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMenuOpen(false);
+                            logout();
+                          }}
+                          className="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg bg-red-50 hover:bg-red-100 text-red-700 text-xs font-semibold transition cursor-pointer"
+                        >
+                          <LogOut className="w-3.5 h-3.5" />
+                          <span>Đăng xuất</span>
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        logout();
+                      }}
+                      className="w-full flex items-center justify-between px-2.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-semibold transition cursor-pointer gov-focus-ring"
+                    >
+                      <span className="flex items-center gap-2">
+                        <ArrowLeft className="w-3.5 h-3.5 text-slate-600" />
+                        <span>Đổi Vai Trò (Về cổng chính)</span>
+                      </span>
+                      <span className="text-[11px] text-slate-600 font-medium">Công dân</span>
+                    </button>
+                  )}
+                </div>
               </div>
             )}
           </div>
