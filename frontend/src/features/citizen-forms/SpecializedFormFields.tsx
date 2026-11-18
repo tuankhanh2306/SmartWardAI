@@ -125,8 +125,22 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div className="sm:col-span-2 text-xs font-extrabold text-[#750715] flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-[#B90E23]" />
-                      <span>Thông tin Tờ khai thay đổi thông tin cư trú (Mẫu CT01 - Thông tư 66/2023/TT-BCA &amp; TT 53/2025/TT-BCA)</span>
+                      <span>Thông tin Tờ khai thay đổi thông tin cư trú (Mẫu CT01 ban hành kèm theo TT 66/2023/TT-BCA, sửa đổi tại TT 53/2025/TT-BCA &amp; TT 116/2026/TT-BCA)</span>
                     </div>
+
+                    <details className="sm:col-span-2 rounded-xl bg-amber-50/80 border border-amber-200 px-3.5 py-2 text-[11px] text-slate-700">
+                      <summary className="cursor-pointer font-bold text-amber-950 select-none">
+                        Xem hướng dẫn Chú thích (1) – (8) khi điền Mẫu CT01 (Chỉ hiển thị trên Web, tự động ẩn khi xuất phôi A4 nộp cán bộ)
+                      </summary>
+                      <div className="mt-2 space-y-1 border-t border-amber-200/80 pt-2 leading-relaxed">
+                        <div><strong>(1) Kính gửi:</strong> Cơ quan đăng ký cư trú (Công an cấp xã).</div>
+                        <div><strong>(2) Mục 7 (Chủ hộ):</strong> Ghi thông tin chủ hộ gia đình mới khi đăng ký thường trú, tạm trú, tách hộ.</div>
+                        <div><strong>(3) Mục 10 (Nội dung đề nghị):</strong> Ghi rõ ràng, cụ thể địa chỉ nơi đề nghị đăng ký thường trú/tạm trú hoặc xác nhận thông tin cư trú.</div>
+                        <div><strong>(4), (5), (6) Ý kiến Chủ hộ / Chủ sở hữu chỗ ở hợp pháp / Cha mẹ, người giám hộ:</strong> Có thể ký trực tiếp vào Tờ khai, xác nhận qua ứng dụng VNeID hoặc lập văn bản đồng ý riêng.</div>
+                        <div><strong>(7) Người kê khai:</strong> Ký, ghi rõ họ tên khi nộp trực tiếp (không cần ký lặp lại ở nhiều ô nếu đồng thời là chủ hộ/chủ sở hữu chỗ ở).</div>
+                        <div><strong>(8) Xác nhận qua VNeID:</strong> Chỉ điền họ tên &amp; Số ĐDCN ở dòng cuối ô (5), (6) khi lấy ý kiến đồng ý qua ứng dụng VNeID.</div>
+                      </div>
+                    </details>
 
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center justify-between">
