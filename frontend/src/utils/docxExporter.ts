@@ -29,6 +29,7 @@ const sanitizeFileName = (str: string): string => {
 
 /**
  * Generate and trigger download of a genuine .docx file conforming to Decree 30/2020/ND-CP
+ * Unified 100% with the on-screen "Phôi Mẫu Trắng" and PDF export.
  */
 export async function exportA4TemplateToDocx(
   template: A4FormTemplate,
@@ -36,8 +37,6 @@ export async function exportA4TemplateToDocx(
   _initialData: Record<string, string> = {}
 ): Promise<void> {
   const today = new Date();
-  const day = today.getDate();
-  const month = today.getMonth() + 1;
   const year = today.getFullYear();
 
   const isPolice = template.agencyType === 'POLICE';
@@ -56,11 +55,21 @@ export async function exportA4TemplateToDocx(
     insideVertical: borderNone,
   };
 
-  // Build body paragraphs from sections
-  const bodyParagraphs: Paragraph[] = [];
+  const borderThin = { style: BorderStyle.SINGLE, size: 4, color: '000000' };
+  const gridBorders = {
+    top: borderThin,
+    bottom: borderThin,
+    left: borderThin,
+    right: borderThin,
+    insideHorizontal: borderThin,
+    insideVertical: borderThin,
+  };
+
+  // Build body elements (Paragraphs & Tables)
+  const bodyChildren: Array<Paragraph | Table> = [];
 
   // Title block
-  bodyParagraphs.push(
+  bodyChildren.push(
     new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { before: 200, after: 60 },
@@ -97,7 +106,7 @@ export async function exportA4TemplateToDocx(
           font: 'Times New Roman',
         }),
         new TextRun({
-          text: template.recipient.replace('{WARD_NAME}', wardName),
+          text: template.recipient.replace(/\{WARD_NAME\}/g, wardName),
           bold: true,
           size: 26, // 13pt
           font: 'Times New Roman',
@@ -106,74 +115,179 @@ export async function exportA4TemplateToDocx(
     })
   );
 
-  // Sections
-  for (const section of template.sections) {
-    if (section.title) {
-      bodyParagraphs.push(
-        new Paragraph({
-          spacing: { before: 200, after: 80 },
-          children: [
-            new TextRun({
-              text: section.title,
-              bold: true,
-              size: 24, // 12pt
-              font: 'Times New Roman',
-            }),
-          ],
-        })
-      );
-    }
+  // Special two-column Bride & Groom layout for TTHC-HT-02 (Đăng ký kết hôn) to match screen & PDF 100%
+  if (template.procedureCode === 'TTHC-HT-02') {
+    const makePartyCell = (partyTitle: string) =>
+      new TableCell({
+        width: { size: 50, type: WidthType.PERCENTAGE },
+        children: [
+          new Paragraph({
+            alignment: AlignmentType.CENTER,
+            spacing: { before: 80, after: 100 },
+            children: [new TextRun({ text: partyTitle, bold: true, size: 24, font: 'Times New Roman' })],
+          }),
+          ...[
+            'Họ, chữ đệm và tên: ........................................',
+            'Ngày, tháng, năm sinh: ....../....../..........',
+            'Dân tộc: ........................',
+            'Quốc tịch: ........................',
+            'Số ĐDCN / CCCD: ........................',
+            'Nơi cư trú: ........................................................',
+            'Kết hôn lần thứ: ........................',
+          ].map(
+            (line) =>
+              new Paragraph({
+                spacing: { before: 50, after: 50 },
+                children: [new TextRun({ text: line, size: 23, font: 'Times New Roman' })],
+              })
+          ),
+        ],
+      });
 
-    for (const field of section.fields) {
-      if (field.type === 'grid2' && field.secondLabel) {
-        bodyParagraphs.push(
+    bodyChildren.push(
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: gridBorders,
+        rows: [
+          new TableRow({
+            children: [makePartyCell('BÊN NAM'), makePartyCell('BÊN NỮ')],
+          }),
+        ],
+      })
+    );
+  } else {
+    // Standard Sections & Fields
+    for (const section of template.sections) {
+      if (section.title) {
+        bodyChildren.push(
           new Paragraph({
-            spacing: { before: 60, after: 60 },
+            spacing: { before: 200, after: 80 },
             children: [
-              new TextRun({ text: `${field.label}: `, size: 24, font: 'Times New Roman' }),
               new TextRun({
-                text: '........................................................',
-                bold: false,
-                size: 24,
-                font: 'Times New Roman',
-              }),
-              new TextRun({ text: '        ', size: 24, font: 'Times New Roman' }),
-              new TextRun({ text: `${field.secondLabel}: `, size: 24, font: 'Times New Roman' }),
-              new TextRun({
-                text: '........................................................',
-                bold: false,
-                size: 24,
-                font: 'Times New Roman',
-              }),
-            ],
-          })
-        );
-      } else {
-        bodyParagraphs.push(
-          new Paragraph({
-            spacing: { before: 60, after: 60 },
-            children: [
-              new TextRun({ text: `${field.label}: `, size: 24, font: 'Times New Roman' }),
-              new TextRun({
-                text: '...........................................................................................................',
-                bold: false,
-                size: 24,
+                text: section.title,
+                bold: true,
+                size: 24, // 12pt
                 font: 'Times New Roman',
               }),
             ],
           })
         );
       }
+
+      for (const field of section.fields) {
+        if (field.type === 'grid2' && field.secondLabel) {
+          bodyChildren.push(
+            new Paragraph({
+              spacing: { before: 60, after: 60 },
+              children: [
+                new TextRun({ text: `${field.label}: `, size: 24, font: 'Times New Roman' }),
+                new TextRun({
+                  text: '........................................................',
+                  bold: false,
+                  size: 24,
+                  font: 'Times New Roman',
+                }),
+                new TextRun({ text: '        ', size: 24, font: 'Times New Roman' }),
+                new TextRun({ text: `${field.secondLabel}: `, size: 24, font: 'Times New Roman' }),
+                new TextRun({
+                  text: '........................................................',
+                  bold: false,
+                  size: 24,
+                  font: 'Times New Roman',
+                }),
+              ],
+            })
+          );
+        } else {
+          bodyChildren.push(
+            new Paragraph({
+              spacing: { before: 60, after: 60 },
+              children: [
+                new TextRun({ text: `${field.label}: `, size: 24, font: 'Times New Roman' }),
+                new TextRun({
+                  text: '...........................................................................................................',
+                  bold: false,
+                  size: 24,
+                  font: 'Times New Roman',
+                }),
+              ],
+            })
+          );
+        }
+      }
+    }
+
+    // For TTHC-CR-01 (Mẫu CT01), include the 5-column table under Item 11 to match screen & PDF 100%
+    if (template.procedureCode === 'TTHC-CR-01') {
+      const makeHeaderCell = (text: string, widthPct: number) =>
+        new TableCell({
+          width: { size: widthPct, type: WidthType.PERCENTAGE },
+          children: [
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 60, after: 60 },
+              children: [new TextRun({ text, bold: true, size: 22, font: 'Times New Roman' })],
+            }),
+          ],
+        });
+
+      const makeBlankRowCell = (text: string, widthPct: number) =>
+        new TableCell({
+          width: { size: widthPct, type: WidthType.PERCENTAGE },
+          children: [
+            new Paragraph({
+              alignment: AlignmentType.CENTER,
+              spacing: { before: 80, after: 80 },
+              children: [new TextRun({ text, size: 22, font: 'Times New Roman' })],
+            }),
+          ],
+        });
+
+      bodyChildren.push(
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          borders: gridBorders,
+          rows: [
+            new TableRow({
+              children: [
+                makeHeaderCell('TT', 8),
+                makeHeaderCell('Họ, chữ đệm và tên', 34),
+                makeHeaderCell('Ngày, tháng, năm sinh', 20),
+                makeHeaderCell('Giới tính', 13),
+                makeHeaderCell('Số ĐDCN / CCCD', 25),
+              ],
+            }),
+            new TableRow({
+              children: [
+                makeBlankRowCell('1', 8),
+                makeBlankRowCell('........................', 34),
+                makeBlankRowCell('....../....../....', 20),
+                makeBlankRowCell('....', 13),
+                makeBlankRowCell('........................', 25),
+              ],
+            }),
+            new TableRow({
+              children: [
+                makeBlankRowCell('2', 8),
+                makeBlankRowCell('........................', 34),
+                makeBlankRowCell('....../....../....', 20),
+                makeBlankRowCell('....', 13),
+                makeBlankRowCell('........................', 25),
+              ],
+            }),
+          ],
+        })
+      );
     }
   }
 
   // Commitment text
-  bodyParagraphs.push(
+  bodyChildren.push(
     new Paragraph({
       spacing: { before: 240, after: 200 },
       children: [
         new TextRun({
-          text: template.commitText,
+          text: template.commitText.replace(/\{WARD_NAME\}/g, wardName),
           italics: true,
           size: 22, // 11pt
           font: 'Times New Roman',
@@ -182,56 +296,39 @@ export async function exportA4TemplateToDocx(
     })
   );
 
-  // Signatures Table
-  const sigLeft = template.signatures?.[0] || { role: 'CÁN BỘ TIẾP NHẬN', note: '(Ký, ghi rõ họ tên)' };
-  const sigRight = template.signatures?.[1] || { role: 'NGƯỜI KÊ KHAI LÀM ĐƠN', note: '(Ký và ghi rõ họ tên)' };
+  // Signatures Table (supports 2 or 3 signature columns dynamically, e.g., 3 columns for Mẫu CT01)
+  const rawSignatures =
+    template.signatures && template.signatures.length >= 2
+      ? template.signatures
+      : [
+          { role: 'CÁN BỘ TIẾP NHẬN', note: '(Ký, ghi rõ họ tên)' },
+          { role: 'NGƯỜI KÊ KHAI LÀM ĐƠN', note: '(Ký và ghi rõ họ tên)' },
+        ];
+
+  const colWidthPct = Math.floor(100 / rawSignatures.length);
 
   const signaturesTable = new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     borders: noBorders,
     rows: [
       new TableRow({
-        children: [
-          new TableCell({
-            width: { size: 50, type: WidthType.PERCENTAGE },
-            children: [
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [new TextRun({ text: sigLeft.role, bold: true, size: 24, font: 'Times New Roman' })],
-              }),
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [new TextRun({ text: sigLeft.note, italics: true, size: 20, font: 'Times New Roman' })],
-              }),
-              new Paragraph({ spacing: { before: 1400 } }), // Signature blank space
-            ],
-          }),
-          new TableCell({
-            width: { size: 50, type: WidthType.PERCENTAGE },
-            children: [
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [new TextRun({ text: sigRight.role, bold: true, size: 24, font: 'Times New Roman' })],
-              }),
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [new TextRun({ text: sigRight.note, italics: true, size: 20, font: 'Times New Roman' })],
-              }),
-              new Paragraph({ spacing: { before: 1400 } }),
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [
-                  new TextRun({
-                    text: '',
-                    bold: true,
-                    size: 24,
-                    font: 'Times New Roman',
-                  }),
-                ],
-              }),
-            ],
-          }),
-        ],
+        children: rawSignatures.map(
+          (sig) =>
+            new TableCell({
+              width: { size: colWidthPct, type: WidthType.PERCENTAGE },
+              children: [
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  children: [new TextRun({ text: sig.role, bold: true, size: 22, font: 'Times New Roman' })],
+                }),
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  children: [new TextRun({ text: sig.note, italics: true, size: 20, font: 'Times New Roman' })],
+                }),
+                new Paragraph({ spacing: { before: 1400 } }), // Signature blank space
+              ],
+            })
+        ),
       }),
     ],
   });
@@ -340,7 +437,7 @@ export async function exportA4TemplateToDocx(
                         alignment: AlignmentType.RIGHT,
                         children: [
                           new TextRun({
-                            text: `${wardName}, ngày ${day} tháng ${month} năm ${year}`,
+                            text: `${wardName}, ngày ...... tháng ...... năm ${year}`,
                             italics: true,
                             size: 22,
                             font: 'Times New Roman',
@@ -355,7 +452,7 @@ export async function exportA4TemplateToDocx(
           }),
 
           // Body Content
-          ...bodyParagraphs,
+          ...bodyChildren,
 
           // Signatures
           signaturesTable,

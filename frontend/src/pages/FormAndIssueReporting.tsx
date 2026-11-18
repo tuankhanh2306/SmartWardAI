@@ -215,6 +215,7 @@ export const FormAndIssueReporting: React.FC = () => {
   } | null>(null);
   const [isVaultUploading, setIsVaultUploading] = useState<boolean>(false);
   const [vaultUploadError, setVaultUploadError] = useState<string | null>(null);
+  const [vaultOfflineNote, setVaultOfflineNote] = useState<string | null>(null);
 
   const handleCccdQrSuccess = (decoded: DecodedCccdQr, discrepancies: QrFieldDiscrepancy[]) => {
     setCccd(decoded.cccdNumber);
@@ -1017,6 +1018,7 @@ export const FormAndIssueReporting: React.FC = () => {
     setVisionGateResult(null);
     setVaultDocInfo(null);
     setVaultUploadError(null);
+    setVaultOfflineNote(null);
     setCanvasCheckedLocally(false);
     setIsOcrProcessing(true);
 
@@ -1076,6 +1078,7 @@ export const FormAndIssueReporting: React.FC = () => {
     // 3. Upload to Zero-Trust Vault with AES-256-GCM encryption & Java2D watermark
     setIsVaultUploading(true);
     setVaultUploadError(null);
+    setVaultOfflineNote(null);
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -1093,8 +1096,22 @@ export const FormAndIssueReporting: React.FC = () => {
         expiresAt: vaultRes.expiresAt,
       });
     } catch (err: any) {
-      console.warn('Lỗi tải tệp lên Vault:', err);
-      setVaultUploadError('Không thể mã hóa tệp vào Vault. Tờ khai vẫn có thể tiền kiểm tra.');
+      const status = err?.response?.status;
+      const hasBackendPayload = Boolean(err?.response?.data?.message || err?.response?.data?.error);
+      const isNetworkOrOffline =
+        !err?.response ||
+        err?.code === 'ERR_NETWORK' ||
+        (!hasBackendPayload && [500, 502, 504].includes(status));
+
+      if (isNetworkOrOffline) {
+        console.info('Chế độ ngoại tuyến: Máy chủ Vault (:8082) chưa kết nối, tệp được giữ cục bộ.');
+        setVaultOfflineNote(
+          'Chế độ ngoại tuyến: Máy chủ lưu trữ Vault (:8082) chưa kết nối — tệp được giữ cục bộ trên trình duyệt để tiền kiểm tra.'
+        );
+      } else {
+        console.warn('Lỗi tải tệp lên Vault:', err);
+        setVaultUploadError('Không thể mã hóa tệp vào Vault. Tờ khai vẫn có thể tiền kiểm tra.');
+      }
     } finally {
       setIsVaultUploading(false);
     }
@@ -1155,6 +1172,9 @@ export const FormAndIssueReporting: React.FC = () => {
         return false;
       }
 
+      const sanitizeWardText = (val: string): string =>
+        val.replace(/\{WARD_NAME\}/gi, currentWard.name);
+
       // Step C: Merge QR decoded data and OCR extraction results (QR has 100% precision for CCCD cards)
       let mappedFullName = (qrData?.fullName || result.fullName || '').trim().toUpperCase();
       let mappedCccd = (qrData?.cccdNumber || result.cccd || '').trim().replace(/[^0-9]/g, '');
@@ -1162,7 +1182,7 @@ export const FormAndIssueReporting: React.FC = () => {
         ? normalizeDateToYMD(qrData.dateOfBirth)
         : (result.dob ? normalizeDateToYMD(result.dob) : '');
       let mappedGender = qrData?.gender || result.gender || '';
-      let mappedAddress = (qrData?.address || result.address || '').trim();
+      let mappedAddress = sanitizeWardText((qrData?.address || result.address || '').trim());
       let mappedIssueDate = qrData?.issueDate
         ? normalizeDateToYMD(qrData.issueDate)
         : (result.issueDate ? normalizeDateToYMD(result.issueDate) : '');
@@ -1171,7 +1191,7 @@ export const FormAndIssueReporting: React.FC = () => {
       let mappedHostName = (result.hostName || '').trim().toUpperCase();
       let mappedHostCccd = (result.hostCccd || '').trim().replace(/[^0-9]/g, '');
       let mappedHostRelation = (result.hostRelation || '').trim();
-      let mappedDeclarationScope = (result.declarationScope || '').trim();
+      let mappedDeclarationScope = sanitizeWardText((result.declarationScope || '').trim());
 
       // Ensure every single form input is 100% fully populated (no empty boxes anywhere)
       if (!mappedFullName) mappedFullName = 'NGUYỄN VĂN AN';
@@ -1242,7 +1262,7 @@ export const FormAndIssueReporting: React.FC = () => {
         setHospitalBirthDate(result.dob || mappedDob || '2026-10-15');
         setChildEthnicity(result.childEthnicity || 'Kinh');
         setChildNationality(result.childNationality || 'Việt Nam');
-        setChildBirthPlace(result.birthPlace || 'Bệnh viện Đa khoa Tỉnh An Giang');
+        setChildBirthPlace(sanitizeWardText(result.birthPlace || 'Bệnh viện Đa khoa Tỉnh An Giang'));
         setBirthCertNumber(result.birthCertNumber || 'GCS-092/2026');
         setBirthCertIssueDate(result.birthCertIssueDate || '2026-10-15');
         const mother = result.motherName || 'LÊ THỊ MỸ LINH';
@@ -1257,7 +1277,7 @@ export const FormAndIssueReporting: React.FC = () => {
         setPartnerCccd(result.partnerCccd || '089198005678');
         setPartnerDob(result.partnerDob || '1998-05-15');
         setPartnerGender((result.partnerGender as 'Nam' | 'Nữ') || (mappedGender === 'Nam' ? 'Nữ' : 'Nam'));
-        setPartnerAddress(result.partnerAddress || `Khóm 2, ${currentWard.name}, Tỉnh An Giang`);
+        setPartnerAddress(sanitizeWardText(result.partnerAddress || `Khóm 2, ${currentWard.name}, Tỉnh An Giang`));
         setMaritalCertPurpose(result.maritalCertPurpose || 'Đăng ký kết hôn tại UBND Phường');
         setApplicantEthnicity(result.applicantEthnicity || 'Kinh');
         setPartnerEthnicity(result.partnerEthnicity || 'Kinh');
@@ -1309,6 +1329,7 @@ export const FormAndIssueReporting: React.FC = () => {
     setVisionGateResult(null);
     setVaultDocInfo(null);
     setVaultUploadError(null);
+    setVaultOfflineNote(null);
     setCanvasCheckedLocally(false);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
@@ -2207,7 +2228,7 @@ export const FormAndIssueReporting: React.FC = () => {
                               )}
                             </div>
                             <span className="font-mono font-extrabold text-xs">
-                              {ocrDetails?.extractedFieldsCount ?? 0}/5 mục rõ chữ
+                              {ocrDetails?.extractedFieldsCount ?? 0} mục rõ chữ
                             </span>
                             <span className="text-[10px] text-[#334155] leading-tight">
                               {(ocrDetails?.extractedFieldsCount ?? 0) >= 3
@@ -2283,6 +2304,13 @@ export const FormAndIssueReporting: React.FC = () => {
                         <span className="px-2 py-0.5 rounded-full bg-[#DCFCE7] text-[#065F46] font-mono text-[10px] font-bold">
                           AES-256-GCM
                         </span>
+                      </div>
+                    )}
+
+                    {vaultOfflineNote && !isVaultUploading && (
+                      <div className="p-3 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] flex items-center gap-2 text-xs text-[#92400E]">
+                        <ShieldCheck className="w-4 h-4 shrink-0 text-[#B45309]" />
+                        <span>{vaultOfflineNote}</span>
                       </div>
                     )}
 
@@ -3459,27 +3487,29 @@ export const FormAndIssueReporting: React.FC = () => {
             : selectedFormType === 'TK-KS'
             ? 'TTHC-HT-01'
             : selectedFormType === 'TK-KH'
-            ? 'TTHC-HT-02'
+            ? (marriageMode === 'MARRIAGE_REGISTRATION' ? 'TTHC-HT-02' : 'TTHC-HT-11')
             : 'TTHC-BT-01'
         }
         marriageMode={marriageMode}
         procedureTitle={
           selectedFormType === 'CT01'
-            ? 'Tờ khai thay đổi thông tin cư trú (Mẫu CT01)'
+            ? 'Tờ khai thay đổi thông tin cư trú (Mẫu CT01 - TT 66/2023 & TT 53/2025/TT-BCA)'
             : selectedFormType === 'TK-KS'
-            ? 'Tờ khai đăng ký khai sinh (Thông tư 04/2020/TT-BTP)'
+            ? 'Tờ khai đăng ký khai sinh (Phụ lục 5 - Thông tư 04/2024/TT-BTP & TT 04/2020/TT-BTP)'
             : selectedFormType === 'TK-KH'
-            ? (marriageMode === 'MARRIAGE_REGISTRATION' ? 'Tờ khai đăng ký kết hôn' : 'Tờ khai cấp Giấy xác nhận tình trạng hôn nhân')
-            : 'Tờ khai thông tin đề nghị trợ cấp xã hội (Nghị định 20/2021/NĐ-CP)'
+            ? (marriageMode === 'MARRIAGE_REGISTRATION'
+                ? 'Tờ khai đăng ký kết hôn (Phụ lục 5 - Thông tư 04/2024/TT-BTP)'
+                : 'Tờ khai cấp Giấy xác nhận tình trạng hôn nhân (Phụ lục 5 - Thông tư 04/2024/TT-BTP)')
+            : 'Tờ khai thông tin đề nghị trợ cấp xã hội (Nghị định 20/2021/NĐ-CP, NĐ 76/2024 & Luật BHXH 2024)'
         }
         legalBasis={
           selectedFormType === 'CT01'
-            ? 'Theo Thông tư số 66/2023/TT-BCA của Bộ Công an'
+            ? 'Theo Thông tư số 66/2023/TT-BCA & Thông tư số 53/2025/TT-BCA của Bộ Công an'
             : selectedFormType === 'TK-KS'
-            ? 'Theo Thông tư số 04/2020/TT-BTP của Bộ Tư pháp'
+            ? 'Theo Thông tư số 04/2024/TT-BTP (sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP) của Bộ Tư pháp'
             : selectedFormType === 'TK-KH'
-            ? 'Theo Luật Hôn nhân và Gia đình 2014 & Thông tư 04/2020/TT-BTP'
-            : 'Theo Nghị định số 20/2021/NĐ-CP & Luật BHXH 2024'
+            ? 'Theo Luật Hôn nhân và Gia đình 2014 & Thông tư 04/2024/TT-BTP (sửa đổi TT 04/2020/TT-BTP)'
+            : 'Theo Nghị định số 20/2021/NĐ-CP, Nghị định số 76/2024/NĐ-CP & Luật BHXH 2024'
         }
         initialData={{
           fullName,

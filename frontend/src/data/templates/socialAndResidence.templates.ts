@@ -3,10 +3,10 @@ import type { A4FormTemplate } from './types';
 export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
   "TTHC-BT-01": {
     "procedureCode": "TTHC-BT-01",
-    "formCode": "Mẫu số 01 - NĐ 20/2021/NĐ-CP",
+    "formCode": "Mẫu số 1a, 1b, 1c, 1d, 1đ - NĐ 20/2021/NĐ-CP & NĐ 76/2024/NĐ-CP",
     "agencyType": "COMMUNE_UBND",
     "title": "TỜ KHAI THÔNG TIN ĐỀ NGHỊ TRỢ CẤP XÃ HỘI HẰNG THÁNG",
-    "legalNote": "(Ban hành kèm theo Nghị định số 20/2021/NĐ-CP ngày 15 tháng 3 năm 2021 của Chính phủ)",
+    "legalNote": "(Ban hành kèm theo Nghị định số 20/2021/NĐ-CP, sửa đổi bổ sung tại Nghị định số 76/2024/NĐ-CP & Luật BHXH 2024)",
     "recipient": "Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {
@@ -91,10 +91,10 @@ export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
   },
   "TTHC-BT-02": {
     "procedureCode": "TTHC-BT-02",
-    "formCode": "Mẫu số 04 - NĐ 20/2021/NĐ-CP",
+    "formCode": "Mẫu số 04 - NĐ 20/2021/NĐ-CP & NĐ 76/2024/NĐ-CP",
     "agencyType": "COMMUNE_UBND",
     "title": "TỜ KHAI ĐỀ NGHỊ HỖ TRỢ CHI PHÍ MAI TÁNG",
-    "legalNote": "(Ban hành kèm theo Nghị định số 20/2021/NĐ-CP ngày 15 tháng 3 năm 2021 của Chính phủ)",
+    "legalNote": "(Ban hành kèm theo Nghị định số 20/2021/NĐ-CP ngày 15/03/2021 & Nghị định số 76/2024/NĐ-CP của Chính phủ)",
     "recipient": "Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {
@@ -386,73 +386,76 @@ export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
   },
   "TTHC-CR-01": {
     "procedureCode": "TTHC-CR-01",
-    "formCode": "Mẫu CT01 - TT 66/2023/TT-BCA",
+    "formCode": "Mẫu CT01 - TT 66/2023/TT-BCA & TT 53/2025/TT-BCA",
     "agencyType": "POLICE",
     "title": "TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ",
-    "legalNote": "(Ban hành kèm theo Thông tư số 66/2023/TT-BCA ngày 17/11/2023 của Bộ Công an)",
+    "legalNote": "(Mẫu CT01 ban hành kèm theo Thông tư số 66/2023/TT-BCA ngày 17/11/2023, sửa đổi bổ sung tại Thông tư số 53/2025/TT-BCA của Bộ Công an)",
     "recipient": "Công an {WARD_NAME}",
     "sections": [
       {
-        "title": "I. THÔNG TIN NGƯỜI KÊ KHAI",
+        "title": "I. THÔNG TIN NGƯỜI KÊ KHAI VÀ CHỦ HỘ",
         "fields": [
           {
-            "label": "1. Họ, chữ đệm và tên",
-            "placeholder": "NGUYỄN VĂN AN",
+            "label": "1. Họ, chữ đệm và tên người kê khai",
+            "placeholder": "NGUYỄN MINH TUẤN KHANH",
             "type": "text",
             "isBold": true
           },
           {
             "label": "2. Ngày, tháng, năm sinh",
-            "placeholder": "10/10/1992",
+            "placeholder": "12/08/1998",
             "type": "grid2",
             "secondLabel": "3. Giới tính",
             "secondPlaceholder": "Nam"
           },
           {
-            "label": "4. Số định danh cá nhân (CCCD)",
-            "placeholder": "089092003456",
+            "label": "4. Số định danh cá nhân / CCCD",
+            "placeholder": "089205023490",
             "type": "grid2",
-            "secondLabel": "5. Số điện thoại",
-            "secondPlaceholder": "0918123456"
+            "secondLabel": "5. Số điện thoại liên hệ",
+            "secondPlaceholder": "0918234567"
           },
           {
             "label": "6. Nơi thường trú",
-            "placeholder": "Ấp Vĩnh Hòa, {WARD_NAME}, Tỉnh An Giang",
+            "placeholder": "Số 18 Đường Trần Hưng Đạo, {WARD_NAME}, Tỉnh An Giang",
             "type": "text"
           },
           {
-            "label": "7. Nơi ở hiện tại",
-            "placeholder": "Như trên",
+            "label": "7. Nơi tạm trú",
+            "placeholder": "Không có",
             "type": "text"
           },
           {
-            "label": "8. Nghề nghiệp, nơi làm việc",
-            "placeholder": "Kinh doanh tự do",
+            "label": "8. Nơi ở hiện tại",
+            "placeholder": "Số 18 Đường Trần Hưng Đạo, {WARD_NAME}, Tỉnh An Giang",
             "type": "text"
+          },
+          {
+            "label": "9. Họ, chữ đệm và tên chủ hộ",
+            "placeholder": "NGUYỄN VĂN BÌNH",
+            "type": "text",
+            "isBold": true
+          },
+          {
+            "label": "Số định danh cá nhân / CCCD của chủ hộ",
+            "placeholder": "089075001234",
+            "type": "grid2",
+            "secondLabel": "Quan hệ với chủ hộ",
+            "secondPlaceholder": "Con đẻ"
           }
         ]
       },
       {
-        "title": "II. NỘI DUNG ĐỀ NGHỊ GIẢI QUYẾT",
+        "title": "II. NỘI DUNG ĐỀ NGHỊ VÀ THÀNH VIÊN CÙNG THAY ĐỔI",
         "fields": [
           {
-            "label": "1. Nội dung đề nghị",
-            "placeholder": "Đăng ký thường trú về chỗ ở hợp pháp tại: Số nhà ......, {WARD_NAME}, Tỉnh An Giang",
+            "label": "10. Nội dung đề nghị",
+            "placeholder": "Đăng ký thường trú tại Số 18 Đường Trần Hưng Đạo, {WARD_NAME}, Tỉnh An Giang",
             "type": "text"
           },
           {
-            "label": "2. Chủ hộ nơi chuyển đến",
-            "placeholder": "NGUYỄN VĂN CHỦ HỘ - CCCD số: ............................",
-            "type": "text"
-          },
-          {
-            "label": "3. Quan hệ với chủ hộ",
-            "placeholder": "Chủ hộ / Con đẻ / Vợ / Chồng",
-            "type": "text"
-          },
-          {
-            "label": "4. Những thành viên cùng chuyển đến",
-            "placeholder": "1. Nguyễn Văn C (Con) - 01/01/2018 | 2. Trần Thị D (Vợ) - 02/02/1995",
+            "label": "11. Những thành viên trong hộ gia đình cùng thay đổi",
+            "placeholder": "1. NGUYỄN MINH TUẤN KHANH - Sinh: 12/08/1998 - Giới tính: Nam - Số ĐDCN/CCCD: 089205023490",
             "type": "text"
           }
         ]
@@ -461,8 +464,12 @@ export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
     "commitText": "Tôi xin cam đoan những lời khai trên đây là hoàn toàn đúng sự thật và chịu trách nhiệm trước pháp luật về lời khai của mình.",
     "signatures": [
       {
-        "role": "Ý KIẾN CỦA CHỦ HỘ / CHỦ SỞ HỮU CHỖ Ở",
-        "note": "(Đồng ý cho đăng ký, ký và ghi rõ họ tên)"
+        "role": "Ý KIẾN CỦA CHỦ HỘ",
+        "note": "(Ghi rõ nội dung, ký và ghi rõ họ tên)"
+      },
+      {
+        "role": "Ý KIẾN CỦA CHỦ SỞ HỮU CHỖ Ở HỢP PHÁP",
+        "note": "(Ghi rõ nội dung, ký và ghi rõ họ tên)"
       },
       {
         "role": "NGƯỜI KÊ KHAI",
@@ -472,10 +479,10 @@ export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
   },
   "TTHC-CR-02": {
     "procedureCode": "TTHC-CR-02",
-    "formCode": "Mẫu Liên thông Đề án 06 - QĐ 06/QĐ-TTg",
+    "formCode": "Mẫu số 02 Phụ lục - NĐ 63/2024/NĐ-CP",
     "agencyType": "COMMUNE_UBND",
-    "title": "TỜ KHAI LIÊN THÔNG ĐIỆN TỬ: KHAI TỬ, XÓA ĐĂNG KÝ THƯỜNG TRÚ, MAI TÁNG PHÍ",
-    "legalNote": "(Theo Quyết định số 06/QĐ-TTg ngày 06/01/2022 của Thủ tướng Chính phủ)",
+    "title": "TỜ KHAI LIÊN THÔNG ĐIỆN TỬ: ĐĂNG KÝ KHAI TỬ, XÓA THƯỜNG TRÚ & MAI TÁNG PHÍ",
+    "legalNote": "(Mẫu số 02 ban hành kèm theo Nghị định số 63/2024/NĐ-CP ngày 10/06/2024 của Chính phủ & Đề án 06)",
     "recipient": "Ủy ban nhân dân {WARD_NAME} & Công an {WARD_NAME}",
     "sections": [
       {
@@ -553,10 +560,10 @@ export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
   },
   "TTHC-CR-03": {
     "procedureCode": "TTHC-CR-03",
-    "formCode": "Mẫu CT01 - TT 66/2023/TT-BCA",
+    "formCode": "Mẫu CT01 - TT 66/2023/TT-BCA & TT 53/2025/TT-BCA",
     "agencyType": "POLICE",
     "title": "TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ (ĐĂNG KÝ TẠM TRÚ)",
-    "legalNote": "(Ban hành kèm theo Thông tư số 66/2023/TT-BCA của Bộ Công an)",
+    "legalNote": "(Ban hành kèm theo Thông tư số 66/2023/TT-BCA, sửa đổi bổ sung tại Thông tư số 53/2025/TT-BCA của Bộ Công an)",
     "recipient": "Công an {WARD_NAME}",
     "sections": [
       {
@@ -614,10 +621,10 @@ export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
   },
   "TTHC-CR-04": {
     "procedureCode": "TTHC-CR-04",
-    "formCode": "Mẫu CT01 - TT 66/2023/TT-BCA",
+    "formCode": "Mẫu CT01 - TT 66/2023/TT-BCA & TT 53/2025/TT-BCA",
     "agencyType": "POLICE",
-    "title": "TỜ KHAI GIA HẠN TẠM TRÚ TẠI ĐỊA BÀN XÃ/PHƯỜNG",
-    "legalNote": "(Ban hành kèm theo Thông tư số 66/2023/TT-BCA của Bộ Công an)",
+    "title": "TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ (GIA HẠN TẠM TRÚ)",
+    "legalNote": "(Ban hành kèm theo Thông tư số 66/2023/TT-BCA, sửa đổi bổ sung tại Thông tư số 53/2025/TT-BCA của Bộ Công an)",
     "recipient": "Công an {WARD_NAME}",
     "sections": [
       {
@@ -672,10 +679,10 @@ export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
   },
   "TTHC-CR-06": {
     "procedureCode": "TTHC-CR-06",
-    "formCode": "Mẫu CT05 - TT 66/2023/TT-BCA",
+    "formCode": "Mẫu CT05 - TT 66/2023/TT-BCA & TT 53/2025/TT-BCA",
     "agencyType": "POLICE",
     "title": "PHIẾU TIẾP NHẬN THÔNG BÁO LƯU TRÚ",
-    "legalNote": "(Ban hành kèm theo Thông tư số 66/2023/TT-BCA ngày 17/11/2023 của Bộ Công an)",
+    "legalNote": "(Ban hành kèm theo Thông tư số 66/2023/TT-BCA ngày 17/11/2023, sửa đổi bổ sung tại Thông tư số 53/2025/TT-BCA của Bộ Công an)",
     "recipient": "Công an {WARD_NAME}",
     "sections": [
       {
