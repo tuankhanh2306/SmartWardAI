@@ -28,8 +28,8 @@ const sanitizeFileName = (str: string): string => {
 };
 
 /**
- * Generate and trigger download of a genuine .docx file conforming to Decree 30/2020/ND-CP
- * Unified 100% with the on-screen "Phôi Mẫu Trắng" and PDF export, including 12-cell ID boxes and official tables.
+ * Generate and trigger download of a genuine .docx file conforming to Decree 30/2020/ND-CP & BCA CT01 Standard.
+ * Unified 100% with the on-screen "Phôi Mẫu Trắng" and PDF export, formatted cleanly to fit on 1 single A4 page.
  */
 export async function exportA4TemplateToDocx(
   template: A4FormTemplate,
@@ -39,6 +39,7 @@ export async function exportA4TemplateToDocx(
   const today = new Date();
   const year = today.getFullYear();
 
+  const isCt01 = template.procedureCode === 'TTHC-CR-01' || template.formCode.includes('CT01');
   const isPolice = template.agencyType === 'POLICE';
   const agencyLine1 = isPolice ? 'CÔNG AN TỈNH AN GIANG' : 'ỦY BAN NHÂN DÂN TỈNH AN GIANG';
   const agencyLine2 = isPolice
@@ -81,7 +82,7 @@ export async function exportA4TemplateToDocx(
         children: [
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            spacing: { before: 60, after: 60 },
+            spacing: { before: 45, after: 45 },
             children: [new TextRun({ text: ' ', size: 22, font: 'Times New Roman' })],
           }),
         ],
@@ -99,7 +100,7 @@ export async function exportA4TemplateToDocx(
               borders: noBorders,
               children: [
                 new Paragraph({
-                  spacing: { before: 60, after: 60 },
+                  spacing: { before: 45, after: 45 },
                   children: [new TextRun({ text: `${labelText}: `, size: 24, font: 'Times New Roman' })],
                 }),
               ],
@@ -111,6 +112,148 @@ export async function exportA4TemplateToDocx(
     });
   };
 
+  // Build top header block
+  // For Mẫu CT01: NO left agency name and NO top date line — only top-right form code note + centered Quốc hiệu - Tiêu ngữ!
+  const headerChildren: Array<Paragraph | Table> = isCt01
+    ? [
+        new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          spacing: { before: 0, after: 40 },
+          children: [
+            new TextRun({
+              text: 'Mẫu CT01 ban hành kèm theo TT 66/2023/TT-BCA (sửa đổi tại TT 53/2025/TT-BCA & TT 116/2026/TT-BCA)',
+              italics: true,
+              size: 19, // 9.5pt
+              font: 'Times New Roman',
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 20, after: 20 },
+          children: [
+            new TextRun({
+              text: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM',
+              bold: true,
+              size: 24, // 12pt
+              font: 'Times New Roman',
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 0, after: 20 },
+          children: [
+            new TextRun({
+              text: 'Độc lập – Tự do – Hạnh phúc',
+              bold: true,
+              size: 26, // 13pt
+              font: 'Times New Roman',
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 0, after: 80 },
+          children: [
+            new TextRun({
+              text: '_______________________',
+              bold: true,
+              size: 20,
+              font: 'Times New Roman',
+            }),
+          ],
+        }),
+      ]
+    : [
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          borders: noBorders,
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: { size: 45, type: WidthType.PERCENTAGE },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [new TextRun({ text: agencyLine1, size: 22, font: 'Times New Roman' })],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [new TextRun({ text: agencyLine2, bold: true, size: 24, font: 'Times New Roman' })],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [new TextRun({ text: '-----------------------', size: 18, font: 'Times New Roman' })],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: `Mã TTHC: ${template.procedureCode}`,
+                          italics: true,
+                          size: 20,
+                          font: 'Times New Roman',
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: { size: 55, type: WidthType.PERCENTAGE },
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM',
+                          bold: true,
+                          size: 24,
+                          font: 'Times New Roman',
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: 'Độc lập - Tự do - Hạnh phúc',
+                          bold: true,
+                          size: 26,
+                          font: 'Times New Roman',
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      children: [
+                        new TextRun({
+                          text: '--------------------------------',
+                          size: 20,
+                          font: 'Times New Roman',
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.RIGHT,
+                      children: [
+                        new TextRun({
+                          text: `${wardName}, ngày ...... tháng ...... năm ${year}`,
+                          italics: true,
+                          size: 22,
+                          font: 'Times New Roman',
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          ],
+        }),
+      ];
+
   // Build body elements (Paragraphs & Tables)
   const bodyChildren: Array<Paragraph | Table> = [];
 
@@ -118,57 +261,64 @@ export async function exportA4TemplateToDocx(
   bodyChildren.push(
     new Paragraph({
       alignment: AlignmentType.CENTER,
-      spacing: { before: 200, after: 60 },
+      spacing: { before: isCt01 ? 80 : 180, after: 40 },
       children: [
         new TextRun({
           text: template.title,
           bold: true,
-          size: 30, // 15pt
-          font: 'Times New Roman',
-        }),
-      ],
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { after: 120 },
-      children: [
-        new TextRun({
-          text: `${template.legalNote} [${template.formCode}]`,
-          italics: true,
-          size: 22, // 11pt
-          font: 'Times New Roman',
-        }),
-      ],
-    }),
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 100, after: 200 },
-      children: [
-        new TextRun({
-          text: template.procedureCode === 'TTHC-CR-01' ? 'Kính gửi (1): ' : 'Kính gửi: ',
-          bold: true,
-          italics: true,
-          size: 26, // 13pt
-          font: 'Times New Roman',
-        }),
-        new TextRun({
-          text:
-            template.procedureCode === 'TTHC-CR-01'
-              ? '............................................................................'
-              : template.recipient.replace(/\{WARD_NAME\}/g, wardName),
-          bold: true,
-          size: 26, // 13pt
+          size: 28, // 14pt
           font: 'Times New Roman',
         }),
       ],
     })
   );
 
-  // Special exact layout for Mẫu CT01 (TTHC-CR-01)
+  if (!isCt01) {
+    bodyChildren.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { after: 100 },
+        children: [
+          new TextRun({
+            text: `${template.legalNote} [${template.formCode}]`,
+            italics: true,
+            size: 22, // 11pt
+            font: 'Times New Roman',
+          }),
+        ],
+      })
+    );
+  }
+
+  bodyChildren.push(
+    new Paragraph({
+      alignment: AlignmentType.CENTER,
+      spacing: { before: 40, after: isCt01 ? 100 : 180 },
+      children: [
+        new TextRun({
+          text: 'Kính gửi: ',
+          bold: true,
+          italics: !isCt01,
+          size: 24, // 12pt
+          font: 'Times New Roman',
+        }),
+        new TextRun({
+          text: isCt01
+            ? '............................................................................'
+            : template.recipient.replace(/\{WARD_NAME\}/g, wardName),
+          bold: !isCt01,
+          size: 24, // 12pt
+          font: 'Times New Roman',
+        }),
+      ],
+    })
+  );
+
+  // Special exact 1-page BCA layout for Mẫu CT01 (TTHC-CR-01) without footnote markers (1)-(8) or footnote block
   if (template.procedureCode === 'TTHC-CR-01') {
     bodyChildren.push(
       new Paragraph({
-        spacing: { before: 60, after: 60 },
+        spacing: { before: 40, after: 40 },
         children: [
           new TextRun({
             text: '1. Họ, chữ đệm và tên khai sinh: ........................................................................................',
@@ -178,7 +328,7 @@ export async function exportA4TemplateToDocx(
         ],
       }),
       new Paragraph({
-        spacing: { before: 60, after: 60 },
+        spacing: { before: 40, after: 40 },
         children: [
           new TextRun({
             text: '2. Ngày, tháng, năm sinh: ............./................/................        3. Giới tính: ...................',
@@ -189,7 +339,7 @@ export async function exportA4TemplateToDocx(
       }),
       create12DigitBoxesRow('4. Số định danh cá nhân'),
       new Paragraph({
-        spacing: { before: 60, after: 60 },
+        spacing: { before: 40, after: 40 },
         children: [
           new TextRun({
             text: '5. Số điện thoại liên hệ: ............................................        6. Email: .................................',
@@ -199,10 +349,10 @@ export async function exportA4TemplateToDocx(
         ],
       }),
       new Paragraph({
-        spacing: { before: 60, after: 60 },
+        spacing: { before: 40, after: 40 },
         children: [
           new TextRun({
-            text: '7. Họ, chữ đệm và tên chủ hộ (2): ..................................   8. Mối quan hệ với chủ hộ: ............................',
+            text: '7. Họ, chữ đệm và tên chủ hộ: ......................................   8. Mối quan hệ với chủ hộ: ............................',
             size: 24,
             font: 'Times New Roman',
           }),
@@ -210,17 +360,17 @@ export async function exportA4TemplateToDocx(
       }),
       create12DigitBoxesRow('9. Số định danh cá nhân của chủ hộ'),
       new Paragraph({
-        spacing: { before: 60, after: 40 },
+        spacing: { before: 40, after: 30 },
         children: [
           new TextRun({
-            text: '10. Nội dung đề nghị (3): ............................................................................................................',
+            text: '10. Nội dung đề nghị: .................................................................................................................',
             size: 24,
             font: 'Times New Roman',
           }),
         ],
       }),
       new Paragraph({
-        spacing: { before: 20, after: 60 },
+        spacing: { before: 20, after: 40 },
         children: [
           new TextRun({
             text: '..........................................................................................................................................................',
@@ -230,7 +380,7 @@ export async function exportA4TemplateToDocx(
         ],
       }),
       new Paragraph({
-        spacing: { before: 60, after: 60 },
+        spacing: { before: 40, after: 40 },
         children: [
           new TextRun({
             text: '11. Những thành viên trong hộ gia đình cùng thay đổi:',
@@ -248,7 +398,7 @@ export async function exportA4TemplateToDocx(
         children: [
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            spacing: { before: 60, after: 60 },
+            spacing: { before: 45, after: 45 },
             children: [new TextRun({ text, bold: true, size: 20, font: 'Times New Roman' })],
           }),
         ],
@@ -260,7 +410,7 @@ export async function exportA4TemplateToDocx(
         children: [
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            spacing: { before: 90, after: 90 },
+            spacing: { before: 70, after: 70 },
             children: [new TextRun({ text: ' ', size: 20, font: 'Times New Roman' })],
           }),
         ],
@@ -281,7 +431,7 @@ export async function exportA4TemplateToDocx(
               makeHeaderCell('Mối quan hệ với chủ hộ', 20),
             ],
           }),
-          ...[1, 2, 3, 4, 5].map(
+          ...[1, 2, 3, 4].map(
             () =>
               new TableRow({
                 children: [
@@ -298,14 +448,14 @@ export async function exportA4TemplateToDocx(
       })
     );
 
-    // 4-Column Bordered Signature Table for CT01: (4), (5), (6), (7) + bottom row (8)
+    // 4-Column Bordered Signature Table for CT01 (clean, without footnote numbers (4)-(8))
     const makeSigHeaderCell = (roleText: string) =>
       new TableCell({
         width: { size: 25, type: WidthType.PERCENTAGE },
         children: [
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            spacing: { before: 40, after: 20 },
+            spacing: { before: 30, after: 15 },
             children: [
               new TextRun({
                 text: '......, ngày......tháng....năm......',
@@ -317,7 +467,7 @@ export async function exportA4TemplateToDocx(
           }),
           new Paragraph({
             alignment: AlignmentType.CENTER,
-            spacing: { before: 20, after: 40 },
+            spacing: { before: 15, after: 30 },
             children: [new TextRun({ text: roleText, bold: true, size: 19, font: 'Times New Roman' })],
           }),
         ],
@@ -326,7 +476,7 @@ export async function exportA4TemplateToDocx(
     const makeSigSpaceCell = () =>
       new TableCell({
         width: { size: 25, type: WidthType.PERCENTAGE },
-        children: [new Paragraph({ spacing: { before: 1200, after: 100 } })],
+        children: [new Paragraph({ spacing: { before: 950, after: 60 } })],
       });
 
     const makeVneidNoteCell = (hasNote: boolean) =>
@@ -335,29 +485,29 @@ export async function exportA4TemplateToDocx(
         children: hasNote
           ? [
               new Paragraph({
-                spacing: { before: 40, after: 20 },
-                children: [new TextRun({ text: '(8) Họ và tên: .......................', size: 18, font: 'Times New Roman' })],
+                spacing: { before: 30, after: 15 },
+                children: [new TextRun({ text: 'Họ và tên: .........................', size: 18, font: 'Times New Roman' })],
               }),
               new Paragraph({
-                spacing: { before: 20, after: 40 },
-                children: [new TextRun({ text: '(8) Số định danh cá nhân: ............', size: 18, font: 'Times New Roman' })],
+                spacing: { before: 15, after: 30 },
+                children: [new TextRun({ text: 'Số định danh cá nhân: ..............', size: 18, font: 'Times New Roman' })],
               }),
             ]
-          : [new Paragraph({ spacing: { before: 40, after: 40 } })],
+          : [new Paragraph({ spacing: { before: 30, after: 30 } })],
       });
 
     bodyChildren.push(
-      new Paragraph({ spacing: { before: 120, after: 40 } }),
+      new Paragraph({ spacing: { before: 80, after: 20 } }),
       new Table({
         width: { size: 100, type: WidthType.PERCENTAGE },
         borders: gridBorders,
         rows: [
           new TableRow({
             children: [
-              makeSigHeaderCell('Ý KIẾN CỦA CHỦ HỘ (4)'),
-              makeSigHeaderCell('Ý KIẾN CỦA CHỦ SỞ HỮU CHỖ Ở HỢP PHÁP (5)'),
-              makeSigHeaderCell('Ý KIẾN CỦA CHA HOẶC MẸ HOẶC NGƯỜI GIÁM HỘ (6)'),
-              makeSigHeaderCell('NGƯỜI KÊ KHAI (7)'),
+              makeSigHeaderCell('Ý KIẾN CỦA CHỦ HỘ'),
+              makeSigHeaderCell('Ý KIẾN CỦA CHỦ SỞ HỮU CHỖ Ở HỢP PHÁP'),
+              makeSigHeaderCell('Ý KIẾN CỦA CHA HOẶC MẸ HOẶC NGƯỜI GIÁM HỘ'),
+              makeSigHeaderCell('NGƯỜI KÊ KHAI'),
             ],
           }),
           new TableRow({
@@ -374,35 +524,6 @@ export async function exportA4TemplateToDocx(
         ],
       })
     );
-
-    // Full Chú thích (1) -> (8) for CT01
-    const footnotes = [
-      'Chú thích:',
-      '(1) Cơ quan đăng ký cư trú.',
-      '(2) Trường hợp đăng ký thường trú, đăng ký tạm trú, tách hộ ghi thông tin chủ hộ gia đình mới.',
-      '(3) Ghi rõ ràng, cụ thể nội dung đề nghị. Ví dụ: ghi chi tiết thông tin nơi đề nghị đăng ký thường trú hoặc nơi đề nghị đăng ký tạm trú hoặc nội dung đề nghị xác nhận thông tin về cư trú.',
-      '(4) Áp dụng đối với các trường hợp quy định tại khoản 2, khoản 3, khoản 5, khoản 6 Điều 20; khoản 1 Điều 25; điểm a khoản 1 Điều 26 Luật Cư trú. Phương thức lấy ý kiến của chủ hộ: a) Chủ hộ ghi rõ nội dung đồng ý và ký, ghi rõ họ tên vào Tờ khai; b) Xác nhận qua ứng dụng định danh quốc gia; c) Có văn bản riêng ghi rõ nội dung đồng ý.',
-      '(5) Áp dụng đối với các trường hợp quy định tại khoản 2, 3, 4, 5, 6 Điều 20; khoản 1 Điều 25; điểm a khoản 1 Điều 26 Luật Cư trú. Phương thức lấy ý kiến của chủ sở hữu chỗ ở hợp pháp: a) Ghi rõ nội dung đồng ý và ký, ghi rõ họ tên vào Tờ khai; b) Xác nhận qua ứng dụng định danh quốc gia (VNeID); c) Có văn bản riêng ghi rõ nội dung đồng ý.',
-      '(6) Áp dụng đối với trường hợp người chưa thành niên, người hạn chế hành vi dân sự, người không đủ năng lực hành vi dân sự có thay đổi thông tin về cư trú.',
-      '(7) Trường hợp nộp trực tiếp người kê khai ký, ghi rõ họ, chữ đệm và tên vào Tờ khai; Trường hợp nộp qua cổng dịch vụ công hoặc ứng dụng định danh quốc gia thì người kê khai không phải ký vào mục này.',
-      '(8) Chỉ kê khai thông tin khi công dân đề nghị xác nhận nội dung đồng ý thông qua ứng dụng định danh quốc gia (VNeID).',
-    ];
-
-    for (let i = 0; i < footnotes.length; i++) {
-      bodyChildren.push(
-        new Paragraph({
-          spacing: { before: i === 0 ? 120 : 20, after: 20 },
-          children: [
-            new TextRun({
-              text: footnotes[i],
-              bold: i === 0,
-              size: 19, // 9.5pt
-              font: 'Times New Roman',
-            }),
-          ],
-        })
-      );
-    }
   } else if (template.procedureCode === 'TTHC-HT-02') {
     // Special two-column Bride & Groom layout for TTHC-HT-02 (Đăng ký kết hôn)
     const makePartyCell = (partyTitle: string) =>
@@ -449,7 +570,7 @@ export async function exportA4TemplateToDocx(
       if (section.title) {
         bodyChildren.push(
           new Paragraph({
-            spacing: { before: 200, after: 80 },
+            spacing: { before: 160, after: 60 },
             children: [
               new TextRun({
                 text: section.title,
@@ -475,7 +596,7 @@ export async function exportA4TemplateToDocx(
             bodyChildren.push(create12DigitBoxesRow(field.label));
             bodyChildren.push(
               new Paragraph({
-                spacing: { before: 60, after: 60 },
+                spacing: { before: 50, after: 50 },
                 children: [
                   new TextRun({ text: `${field.secondLabel}: `, size: 24, font: 'Times New Roman' }),
                   new TextRun({
@@ -490,7 +611,7 @@ export async function exportA4TemplateToDocx(
           } else {
             bodyChildren.push(
               new Paragraph({
-                spacing: { before: 60, after: 60 },
+                spacing: { before: 50, after: 50 },
                 children: [
                   new TextRun({ text: `${field.label}: `, size: 24, font: 'Times New Roman' }),
                   new TextRun({
@@ -514,7 +635,7 @@ export async function exportA4TemplateToDocx(
         } else {
           bodyChildren.push(
             new Paragraph({
-              spacing: { before: 60, after: 60 },
+              spacing: { before: 50, after: 50 },
               children: [
                 new TextRun({ text: `${field.label}: `, size: 24, font: 'Times New Roman' }),
                 new TextRun({
@@ -535,7 +656,7 @@ export async function exportA4TemplateToDocx(
   if (template.procedureCode !== 'TTHC-CR-01') {
     bodyChildren.push(
       new Paragraph({
-        spacing: { before: 240, after: 200 },
+        spacing: { before: 200, after: 160 },
         children: [
           new TextRun({
             text: template.commitText.replace(/\{WARD_NAME\}/g, wardName),
@@ -576,7 +697,7 @@ export async function exportA4TemplateToDocx(
                       alignment: AlignmentType.CENTER,
                       children: [new TextRun({ text: sig.note, italics: true, size: 20, font: 'Times New Roman' })],
                     }),
-                    new Paragraph({ spacing: { before: 1400 } }),
+                    new Paragraph({ spacing: { before: 1200 } }),
                   ],
                 })
             ),
@@ -586,14 +707,14 @@ export async function exportA4TemplateToDocx(
     );
   }
 
-  // Construct Document
+  // Construct Document (compact margins for CT01 so it fits 100% on 1 A4 page)
   const doc = new Document({
     styles: {
       default: {
         document: {
           run: {
             font: 'Times New Roman',
-            size: 26, // 13pt
+            size: 24, // 12pt
             color: '000000',
           },
         },
@@ -608,105 +729,14 @@ export async function exportA4TemplateToDocx(
               height: convertMillimetersToTwip(297),
             },
             margin: {
-              top: convertMillimetersToTwip(18),
-              bottom: convertMillimetersToTwip(18),
-              left: convertMillimetersToTwip(22),
+              top: convertMillimetersToTwip(isCt01 ? 12 : 18),
+              bottom: convertMillimetersToTwip(isCt01 ? 12 : 18),
+              left: convertMillimetersToTwip(isCt01 ? 20 : 22),
               right: convertMillimetersToTwip(15),
             },
           },
         },
-        children: [
-          // Header Table
-          new Table({
-            width: { size: 100, type: WidthType.PERCENTAGE },
-            borders: noBorders,
-            rows: [
-              new TableRow({
-                children: [
-                  new TableCell({
-                    width: { size: 45, type: WidthType.PERCENTAGE },
-                    children: [
-                      new Paragraph({
-                        alignment: AlignmentType.CENTER,
-                        children: [new TextRun({ text: agencyLine1, size: 22, font: 'Times New Roman' })],
-                      }),
-                      new Paragraph({
-                        alignment: AlignmentType.CENTER,
-                        children: [new TextRun({ text: agencyLine2, bold: true, size: 24, font: 'Times New Roman' })],
-                      }),
-                      new Paragraph({
-                        alignment: AlignmentType.CENTER,
-                        children: [new TextRun({ text: '-----------------------', size: 18, font: 'Times New Roman' })],
-                      }),
-                      new Paragraph({
-                        alignment: AlignmentType.CENTER,
-                        children: [
-                          new TextRun({
-                            text: `Mã TTHC: ${template.procedureCode}`,
-                            italics: true,
-                            size: 20,
-                            font: 'Times New Roman',
-                          }),
-                        ],
-                      }),
-                    ],
-                  }),
-                  new TableCell({
-                    width: { size: 55, type: WidthType.PERCENTAGE },
-                    children: [
-                      new Paragraph({
-                        alignment: AlignmentType.CENTER,
-                        children: [
-                          new TextRun({
-                            text: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM',
-                            bold: true,
-                            size: 24,
-                            font: 'Times New Roman',
-                          }),
-                        ],
-                      }),
-                      new Paragraph({
-                        alignment: AlignmentType.CENTER,
-                        children: [
-                          new TextRun({
-                            text: 'Độc lập - Tự do - Hạnh phúc',
-                            bold: true,
-                            size: 26,
-                            font: 'Times New Roman',
-                          }),
-                        ],
-                      }),
-                      new Paragraph({
-                        alignment: AlignmentType.CENTER,
-                        children: [
-                          new TextRun({
-                            text: '--------------------------------',
-                            size: 20,
-                            font: 'Times New Roman',
-                          }),
-                        ],
-                      }),
-                      new Paragraph({
-                        alignment: AlignmentType.RIGHT,
-                        children: [
-                          new TextRun({
-                            text: `${wardName}, ngày ...... tháng ...... năm ${year}`,
-                            italics: true,
-                            size: 22,
-                            font: 'Times New Roman',
-                          }),
-                        ],
-                      }),
-                    ],
-                  }),
-                ],
-              }),
-            ],
-          }),
-
-          // Body Content (includes signatures & footnotes for CT01, or standard signatures for others)
-          ...bodyChildren,
-        ],
+        children: [...headerChildren, ...bodyChildren],
       },
     ],
   });

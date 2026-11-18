@@ -494,56 +494,69 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         className="p-6 sm:p-10 md:p-12 text-[#0F172A] bg-white text-[13pt] leading-relaxed select-text font-administrative font-times"
         style={{ fontFamily: "'Times New Roman', 'Tinos', Times, 'Liberation Serif', serif" }}
       >
-        {/* Header per Decree 30/2020/ND-CP */}
-        <div className="grid grid-cols-12 gap-4 pb-4">
-          <div className="col-span-5 text-center">
-            <div className="text-[11pt] uppercase tracking-wide">
-              {isPolice ? 'CÔNG AN TỈNH AN GIANG' : 'ỦY BAN NHÂN DÂN TỈNH AN GIANG'}
+        {/* Header: For Mẫu CT01, use exact BCA standard (Top-right form code + Centered Quốc hiệu - Tiêu ngữ, NO left agency name & NO top date line) */}
+        {resolvedCategory === 'CT01' ? (
+          <div className="pb-2">
+            <div className="text-right text-[9.5pt] italic text-neutral-800 mb-1">
+              Mẫu CT01 ban hành kèm theo Thông tư số 66/2023/TT-BCA (sửa đổi tại Thông tư số 53/2025/TT-BCA &amp; TT 116/2026/TT-BCA)
             </div>
-            <div className="text-[12pt] font-bold uppercase tracking-wide">
-              {isPolice
-                ? `CÔNG AN ${currentWard.name.toUpperCase()}`
-                : `UBND ${currentWard.name.toUpperCase()}`}
-            </div>
-            <div className="w-20 mx-auto my-1 border-b border-black"></div>
-            <div className="text-[10pt] italic text-neutral-600">
-              Mã TTHC: {effectiveProcedureCode}
-            </div>
-          </div>
-
-          <div className="col-span-7 text-center">
-            <div className="text-[12pt] font-bold uppercase tracking-wide">
-              CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
-            </div>
-            <div className="text-[13pt] font-bold">
-              Độc lập - Tự do - Hạnh phúc
-            </div>
-            <div className="w-44 mx-auto my-1 border-b-2 border-black"></div>
-            <div className="text-[11pt] italic text-right pr-4 pt-1">
-              {currentWard.name}, ngày {isBlank ? '......' : day} tháng {isBlank ? '......' : month} năm {year}
+            <div className="text-center">
+              <div className="text-[12pt] font-bold uppercase tracking-wide">
+                CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+              </div>
+              <div className="text-[13pt] font-bold">
+                Độc lập – Tự do – Hạnh phúc
+              </div>
+              <div className="w-44 mx-auto mt-1 border-b border-black"></div>
             </div>
           </div>
-        </div>
-
-        {/* ========================================================================= */}
-        {/* 1. MẪU CT01: CƯ TRÚ (THÔNG TƯ 66/2023/TT-BCA & THÔNG TƯ 53/2025/TT-BCA)    */}
-        {/* ========================================================================= */}
-        {resolvedCategory === 'CT01' && (
-          <div className="space-y-3.5">
-            <div className="text-right text-[10pt] italic text-neutral-800">
-              Mẫu CT01 ban hành kèm theo Thông tư số 66/2023/TT-BCA ngày 17/11/2023 (sửa đổi tại Thông tư số 53/2025/TT-BCA) của Bộ trưởng Bộ Công an
-            </div>
-
-            <div className="text-center my-3">
-              <h1 className="text-[15pt] sm:text-[16pt] font-extrabold uppercase">
-                TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ
-              </h1>
-              <div className="mt-2 font-bold text-[12pt]">
-                Kính gửi<sup className="font-normal">(1)</sup>: {isBlank ? '............................................................................' : `Công an ${currentWard.name}`}
+        ) : (
+          <div className="grid grid-cols-12 gap-4 pb-4">
+            <div className="col-span-5 text-center">
+              <div className="text-[11pt] uppercase tracking-wide">
+                {isPolice ? 'CÔNG AN TỈNH AN GIANG' : 'ỦY BAN NHÂN DÂN TỈNH AN GIANG'}
+              </div>
+              <div className="text-[12pt] font-bold uppercase tracking-wide">
+                {isPolice
+                  ? `CÔNG AN ${currentWard.name.toUpperCase()}`
+                  : `UBND ${currentWard.name.toUpperCase()}`}
+              </div>
+              <div className="w-20 mx-auto my-1 border-b border-black"></div>
+              <div className="text-[10pt] italic text-neutral-600">
+                Mã TTHC: {effectiveProcedureCode}
               </div>
             </div>
 
-            <div className="space-y-2.5 text-[12pt]">
+            <div className="col-span-7 text-center">
+              <div className="text-[12pt] font-bold uppercase tracking-wide">
+                CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+              </div>
+              <div className="text-[13pt] font-bold">
+                Độc lập - Tự do - Hạnh phúc
+              </div>
+              <div className="w-44 mx-auto my-1 border-b-2 border-black"></div>
+              <div className="text-[11pt] italic text-right pr-4 pt-1">
+                {currentWard.name}, ngày {isBlank ? '......' : day} tháng {isBlank ? '......' : month} năm {year}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================================= */}
+        {/* 1. MẪU CT01: CƯ TRÚ (TT 66/2023/TT-BCA, TT 53/2025 & TT 116/2026/TT-BCA)   */}
+        {/* ========================================================================= */}
+        {resolvedCategory === 'CT01' && (
+          <div className="space-y-2.5">
+            <div className="text-center my-2">
+              <h1 className="text-[14pt] sm:text-[15pt] font-extrabold uppercase">
+                TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ
+              </h1>
+              <div className="mt-1.5 font-bold text-[12pt]">
+                Kính gửi{!isBlank && <sup className="font-normal">(1)</sup>}: {isBlank ? '............................................................................' : `Công an ${currentWard.name}`}
+              </div>
+            </div>
+
+            <div className="space-y-2 text-[11.5pt]">
               <div>
                 1. Họ, chữ đệm và tên khai sinh: <strong className="uppercase">{val(activeData.fullName, blankDot, '..............................................................................')}</strong>
               </div>
@@ -573,7 +586,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
 
               <div className="grid grid-cols-12 gap-2">
                 <div className="col-span-7">
-                  7. Họ, chữ đệm và tên chủ hộ<sup className="font-normal">(2)</sup>: <strong className="uppercase">{val(activeData.hostName, blankDot, '..................................')}</strong>
+                  7. Họ, chữ đệm và tên chủ hộ{!isBlank && <sup className="font-normal">(2)</sup>}: <strong className="uppercase">{val(activeData.hostName, blankDot, '..................................')}</strong>
                 </div>
                 <div className="col-span-5">
                   8. Mối quan hệ với chủ hộ: <strong>{val(activeData.hostRelation, shortDot, '............................')}</strong>
@@ -586,7 +599,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
               </div>
 
               <div>
-                10. Nội dung đề nghị<sup className="font-normal">(3)</sup>:{' '}
+                10. Nội dung đề nghị{!isBlank && <sup className="font-normal">(3)</sup>}:{' '}
                 <strong>
                   {val(
                     activeData.declarationScope,
@@ -603,36 +616,36 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
 
               <div>
                 11. Những thành viên trong hộ gia đình cùng thay đổi:
-                <table className="w-full mt-1.5 border-collapse border border-black text-center text-[10.5pt]">
+                <table className="w-full mt-1 border-collapse border border-black text-center text-[10.5pt]">
                   <thead>
                     <tr className="font-bold bg-neutral-50">
-                      <th className="border border-black py-1.5 px-1 w-[6%]">TT</th>
-                      <th className="border border-black py-1.5 px-2 w-[26%]">Họ, chữ đệm và tên</th>
-                      <th className="border border-black py-1.5 px-1 w-[16%]">Ngày, tháng, năm sinh</th>
-                      <th className="border border-black py-1.5 px-1 w-[10%]">Giới tính</th>
-                      <th className="border border-black py-1.5 px-1 w-[22%]">Số định danh cá nhân</th>
-                      <th className="border border-black py-1.5 px-1 w-[20%]">Mối quan hệ với chủ hộ</th>
+                      <th className="border border-black py-1 px-1 w-[6%]">TT</th>
+                      <th className="border border-black py-1 px-2 w-[26%]">Họ, chữ đệm và tên</th>
+                      <th className="border border-black py-1 px-1 w-[16%]">Ngày, tháng, năm sinh</th>
+                      <th className="border border-black py-1 px-1 w-[10%]">Giới tính</th>
+                      <th className="border border-black py-1 px-1 w-[22%]">Số định danh cá nhân</th>
+                      <th className="border border-black py-1 px-1 w-[20%]">Mối quan hệ với chủ hộ</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {[0, 1, 2, 3, 4].map((rowIdx) => {
+                    {[0, 1, 2, 3].map((rowIdx) => {
                       const isFirstFilled = rowIdx === 0 && !isBlank;
                       return (
-                        <tr key={rowIdx} className="h-7">
-                          <td className="border border-black py-1 px-1">{isFirstFilled ? '1' : ''}</td>
-                          <td className="border border-black py-1 px-2 font-semibold uppercase">
+                        <tr key={rowIdx} className="h-6.5">
+                          <td className="border border-black py-0.5 px-1">{isFirstFilled ? '1' : ''}</td>
+                          <td className="border border-black py-0.5 px-2 font-semibold uppercase">
                             {isFirstFilled ? val(activeData.fullName, '', '') : ''}
                           </td>
-                          <td className="border border-black py-1 px-1">
+                          <td className="border border-black py-0.5 px-1">
                             {isFirstFilled ? val(activeData.dob, '', '') : ''}
                           </td>
-                          <td className="border border-black py-1 px-1">
+                          <td className="border border-black py-0.5 px-1">
                             {isFirstFilled ? val(activeData.gender, '', '') : ''}
                           </td>
-                          <td className="border border-black py-1 px-1 font-mono">
+                          <td className="border border-black py-0.5 px-1 font-mono">
                             {isFirstFilled ? val(activeData.idNumber, '', '') : ''}
                           </td>
-                          <td className="border border-black py-1 px-1">
+                          <td className="border border-black py-0.5 px-1">
                             {isFirstFilled ? val(activeData.hostRelation, '', '') : ''}
                           </td>
                         </tr>
@@ -643,38 +656,38 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
               </div>
             </div>
 
-            {/* Bảng 4 ô chữ ký chuẩn Mẫu CT01: (4), (5), (6), (7) và mục (8) */}
-            <table className="w-full mt-3 border-collapse border border-black text-center text-[10pt]">
+            {/* Bảng 4 ô chữ ký chuẩn Mẫu CT01 (Gói gọn trong 1 trang A4, tự động ẩn số (4)-(8) khi xuất Phôi Mẫu Trắng / PDF / DOCX) */}
+            <table className="w-full mt-2.5 border-collapse border border-black text-center text-[10pt]">
               <thead>
                 <tr className="align-top">
                   <th className="border border-black p-1.5 w-1/4 font-normal">
                     <div className="italic text-[9.5pt]">......, ngày......tháng....năm......</div>
                     <div className="font-bold uppercase mt-0.5">
-                      Ý KIẾN CỦA CHỦ HỘ<sup className="font-normal">(4)</sup>
+                      Ý KIẾN CỦA CHỦ HỘ{!isBlank && <sup className="font-normal">(4)</sup>}
                     </div>
                   </th>
                   <th className="border border-black p-1.5 w-1/4 font-normal">
                     <div className="italic text-[9.5pt]">......, ngày......tháng....năm......</div>
                     <div className="font-bold uppercase mt-0.5">
-                      Ý KIẾN CỦA CHỦ SỞ HỮU CHỖ Ở HỢP PHÁP<sup className="font-normal">(5)</sup>
+                      Ý KIẾN CỦA CHỦ SỞ HỮU CHỖ Ở HỢP PHÁP{!isBlank && <sup className="font-normal">(5)</sup>}
                     </div>
                   </th>
                   <th className="border border-black p-1.5 w-1/4 font-normal">
                     <div className="italic text-[9.5pt]">......, ngày......tháng....năm......</div>
                     <div className="font-bold uppercase mt-0.5">
-                      Ý KIẾN CỦA CHA HOẶC MẸ HOẶC NGƯỜI GIÁM HỘ<sup className="font-normal">(6)</sup>
+                      Ý KIẾN CỦA CHA HOẶC MẸ HOẶC NGƯỜI GIÁM HỘ{!isBlank && <sup className="font-normal">(6)</sup>}
                     </div>
                   </th>
                   <th className="border border-black p-1.5 w-1/4 font-normal">
                     <div className="italic text-[9.5pt]">......, ngày......tháng....năm......</div>
                     <div className="font-bold uppercase mt-0.5">
-                      NGƯỜI KÊ KHAI<sup className="font-normal">(7)</sup>
+                      NGƯỜI KÊ KHAI{!isBlank && <sup className="font-normal">(7)</sup>}
                     </div>
                   </th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="h-24 align-bottom">
+                <tr className="h-20 align-bottom">
                   <td className="border border-black p-1.5 font-bold uppercase">
                     {isBlank ? '' : (activeData.hostSignName || activeData.hostName || '')}
                   </td>
@@ -689,30 +702,17 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                 <tr className="text-left text-[9.5pt]">
                   <td className="border border-black p-1.5"></td>
                   <td className="border border-black p-1.5 space-y-0.5">
-                    <div><sup>(8)</sup> Họ và tên: ...........................</div>
-                    <div><sup>(8)</sup> Số định danh cá nhân: ............</div>
+                    <div>{!isBlank && <sup>(8) </sup>}Họ và tên: ...........................</div>
+                    <div>{!isBlank && <sup>(8) </sup>}Số định danh cá nhân: ............</div>
                   </td>
                   <td className="border border-black p-1.5 space-y-0.5">
-                    <div><sup>(8)</sup> Họ và tên: ...........................</div>
-                    <div><sup>(8)</sup> Số định danh cá nhân: ............</div>
+                    <div>{!isBlank && <sup>(8) </sup>}Họ và tên: ...........................</div>
+                    <div>{!isBlank && <sup>(8) </sup>}Số định danh cá nhân: ............</div>
                   </td>
                   <td className="border border-black p-1.5"></td>
                 </tr>
               </tbody>
             </table>
-
-            {/* Chú thích (1) -> (8) chuẩn Mẫu CT01 */}
-            <div className="pt-2 text-[9.5pt] leading-snug text-neutral-800 space-y-1">
-              <div className="font-bold underline">Chú thích:</div>
-              <div>(1) Cơ quan đăng ký cư trú.</div>
-              <div>(2) Trường hợp đăng ký thường trú, đăng ký tạm trú, tách hộ ghi thông tin chủ hộ gia đình mới.</div>
-              <div>(3) Ghi rõ ràng, cụ thể nội dung đề nghị. Ví dụ: ghi chi tiết thông tin nơi đề nghị đăng ký thường trú hoặc nơi đề nghị đăng ký tạm trú hoặc nội dung đề nghị xác nhận thông tin về cư trú. Trường hợp địa giới hành chính đã có sự thay đổi thì ghi thông tin theo địa giới hành chính mới, đồng thời ghi chú địa giới hành chính theo giấy tờ, tài liệu chứng minh chỗ ở hợp pháp.</div>
-              <div>(4) Áp dụng đối với các trường hợp quy định tại khoản 2, khoản 3, khoản 5, khoản 6 Điều 20; khoản 1 Điều 25; điểm a khoản 1 Điều 26 Luật Cư trú. Phương thức lấy ý kiến của chủ hộ: a) Chủ hộ ghi rõ nội dung đồng ý và ký, ghi rõ họ tên vào Tờ khai; b) Xác nhận qua ứng dụng định danh quốc gia (VNeID) hoặc dịch vụ công trực tuyến; c) Có văn bản riêng ghi rõ nội dung đồng ý.</div>
-              <div>(5) Áp dụng đối với các trường hợp quy định tại khoản 2, 3, 4, 5, 6 Điều 20; khoản 1 Điều 25; điểm a khoản 1 Điều 26 Luật Cư trú. Phương thức lấy ý kiến của chủ sở hữu chỗ ở hợp pháp: a) Ghi rõ nội dung đồng ý và ký, ghi rõ họ tên vào Tờ khai; b) Xác nhận qua ứng dụng định danh quốc gia (VNeID); c) Có văn bản riêng ghi rõ nội dung đồng ý.</div>
-              <div>(6) Áp dụng đối với trường hợp người chưa thành niên, người hạn chế hành vi dân sự, người không đủ năng lực hành vi dân sự có thay đổi thông tin về cư trú.</div>
-              <div>(7) Trường hợp nộp trực tiếp người kê khai ký, ghi rõ họ, chữ đệm và tên vào Tờ khai; Trường hợp nộp qua cổng dịch vụ công hoặc ứng dụng định danh quốc gia thì người kê khai không phải ký vào mục này.</div>
-              <div>(8) Chỉ kê khai thông tin khi công dân đề nghị xác nhận nội dung đồng ý thông qua ứng dụng định danh quốc gia (VNeID).</div>
-            </div>
           </div>
         )}
 
@@ -1670,6 +1670,26 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         {/* Visible Scrollable Printable A4 Sheet Body */}
         <div ref={printableA4Ref} className="flex-1 overflow-y-auto">
           {renderDocumentContent(viewMode === 'BLANK')}
+
+          {/* Khung hướng dẫn Chú thích (1) -> (8) dành riêng cho giao diện Web (Tự động cắt bỏ khi xuất PDF/Word để gói gọn 1 trang A4) */}
+          {resolvedCategory === 'CT01' && (
+            <div className="no-print mx-6 sm:mx-10 md:mx-12 mb-8 p-4 rounded-xl bg-amber-50/90 border border-amber-300 text-xs text-slate-800 space-y-1.5 shadow-2xs">
+              <div className="font-extrabold text-amber-950 flex items-center justify-between gap-2 border-b border-amber-200 pb-1.5">
+                <span>HƯỚNG DẪN GHI TỜ KHAI MẪU CT01 — CHÚ THÍCH (1) ĐẾN (8) CỦA BỘ CÔNG AN</span>
+                <span className="px-2 py-0.5 rounded bg-amber-200/80 text-amber-950 text-[10px] font-bold">
+                  Chỉ hiển thị trên Web • Tự động ẩn khi in/xuất A4
+                </span>
+              </div>
+              <div><strong>(1) Kính gửi:</strong> Cơ quan đăng ký cư trú (Công an xã, phường, thị trấn).</div>
+              <div><strong>(2) Họ, chữ đệm và tên chủ hộ:</strong> Trường hợp đăng ký thường trú, đăng ký tạm trú, tách hộ ghi thông tin chủ hộ gia đình mới.</div>
+              <div><strong>(3) Nội dung đề nghị:</strong> Ghi rõ ràng, cụ thể nội dung đề nghị (Ví dụ: ghi chi tiết thông tin nơi đề nghị đăng ký thường trú, tạm trú hoặc xác nhận thông tin về cư trú). Trường hợp địa giới hành chính đã có sự thay đổi thì ghi thông tin theo địa giới hành chính mới, đồng thời ghi chú địa giới hành chính theo giấy tờ chứng minh chỗ ở hợp pháp.</div>
+              <div><strong>(4) Ý kiến của chủ hộ:</strong> Áp dụng đối với các trường hợp tại khoản 2, 3, 5, 6 Điều 20; khoản 1 Điều 25; điểm a khoản 1 Điều 26 Luật Cư trú. Thực hiện theo 1 trong 3 phương thức: a) Ký, ghi rõ họ tên trực tiếp vào Tờ khai; b) Xác nhận qua ứng dụng VNeID / DVC trực tuyến; c) Có văn bản riêng ghi rõ nội dung đồng ý (không phải công chứng, chứng thực).</div>
+              <div><strong>(5) Ý kiến của chủ sở hữu chỗ ở hợp pháp:</strong> Áp dụng đối với các trường hợp tại khoản 2, 3, 4, 5, 6 Điều 20; khoản 1 Điều 25; điểm a khoản 1 Điều 26 Luật Cư trú. Thực hiện qua chữ ký trực tiếp trên Tờ khai, qua ứng dụng VNeID hoặc văn bản riêng.</div>
+              <div><strong>(6) Ý kiến của cha, mẹ hoặc người giám hộ:</strong> Áp dụng đối với người chưa thành niên, người hạn chế hoặc không đủ năng lực hành vi dân sự có thay đổi thông tin về cư trú.</div>
+              <div><strong>(7) Người kê khai:</strong> Trường hợp nộp trực tiếp thì ký, ghi rõ họ tên; nộp qua Cổng dịch vụ công hoặc VNeID thì không phải ký vào mục này. Nếu người kê khai đồng thời là chủ hộ / chủ sở hữu chỗ ở hợp pháp / cha, mẹ, người giám hộ thì chỉ cần ký ở 1 mục tương ứng.</div>
+              <div><strong>(8) Xác nhận qua VNeID:</strong> Chỉ kê khai họ tên và số định danh cá nhân vào ô này khi đề nghị xác nhận nội dung đồng ý thông qua ứng dụng định danh quốc gia (VNeID).</div>
+            </div>
+          )}
         </div>
 
         {/* Hidden off-screen A4 container used exclusively for rendering 100% BLANK PDF export */}
