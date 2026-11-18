@@ -462,6 +462,33 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
       return v && v.trim() ? v.trim() : sampleFallback;
     };
 
+    /**
+     * Renders the official 12-cell bordered box grid for 12-digit Personal Identification Numbers (Số định danh cá nhân / CCCD)
+     */
+    const renderIdBoxes = (rawId?: string, customFallbackId: string = '089205023490') => {
+      const effectiveId = isBlank ? '' : (rawId && rawId.trim() ? rawId.trim() : customFallbackId);
+      const cleanDigits = effectiveId.replace(/\s+/g, '').slice(0, 12);
+      const cells = Array.from({ length: 12 }, (_, idx) => (isBlank ? '' : cleanDigits[idx] || ''));
+
+      return (
+        <span className="inline-flex items-center align-middle ml-1.5 my-0.5">
+          {!isBlank && effectiveId && <span className="sr-only">{effectiveId}</span>}
+          <span className="inline-grid grid-cols-12 border border-black bg-white">
+            {cells.map((digit, idx) => (
+              <span
+                key={idx}
+                className={`w-6 h-7 sm:w-6.5 sm:h-7.5 flex items-center justify-center font-mono font-bold text-[11pt] text-black leading-none ${
+                  idx < 11 ? 'border-r border-black' : ''
+                }`}
+              >
+                {digit}
+              </span>
+            ))}
+          </span>
+        </span>
+      );
+    };
+
     return (
       <div
         className="p-6 sm:p-10 md:p-12 text-[#0F172A] bg-white text-[13pt] leading-relaxed select-text font-administrative font-times"
@@ -502,88 +529,189 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         {/* 1. MẪU CT01: CƯ TRÚ (THÔNG TƯ 66/2023/TT-BCA & THÔNG TƯ 53/2025/TT-BCA)    */}
         {/* ========================================================================= */}
         {resolvedCategory === 'CT01' && (
-          <div className="space-y-4">
-            <div className="text-center my-4">
+          <div className="space-y-3.5">
+            <div className="text-right text-[10pt] italic text-neutral-800">
+              Mẫu CT01 ban hành kèm theo Thông tư số 66/2023/TT-BCA ngày 17/11/2023 (sửa đổi tại Thông tư số 53/2025/TT-BCA) của Bộ trưởng Bộ Công an
+            </div>
+
+            <div className="text-center my-3">
               <h1 className="text-[15pt] sm:text-[16pt] font-extrabold uppercase">
                 TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ
               </h1>
-              <p className="text-[11pt] italic text-neutral-700 mt-1">
-                (Mẫu CT01 ban hành kèm theo Thông tư số 66/2023/TT-BCA ngày 17/11/2023 &amp; Thông tư số 53/2025/TT-BCA của Bộ Công an) [Mẫu CT01 - TT 66/2023/TT-BCA &amp; TT 53/2025/TT-BCA]
-              </p>
-              <div className="mt-3 font-bold italic text-[12pt]">
-                Kính gửi: Công an {currentWard.name}
+              <div className="mt-2 font-bold text-[12pt]">
+                Kính gửi<sup className="font-normal">(1)</sup>: {isBlank ? '............................................................................' : `Công an ${currentWard.name}`}
               </div>
             </div>
 
             <div className="space-y-2.5 text-[12pt]">
-              <div>1. Họ, chữ đệm và tên: <strong className="uppercase">{val(activeData.fullName, blankDot, blankDot)}</strong></div>
-              <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">2. Ngày, tháng, năm sinh: <strong>{val(activeData.dob, '....../....../..........', '....../....../..........')}</strong></div>
-                <div className="col-span-6">3. Giới tính: <strong>{val(activeData.gender, '............', shortDot)}</strong></div>
-              </div>
-              <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">4. Số định danh cá nhân / CCCD: <strong className="font-mono">{val(activeData.idNumber, shortDot, shortDot)}</strong></div>
-                <div className="col-span-6">5. Số điện thoại liên hệ: <strong>{val(activeData.phone, shortDot, shortDot)}</strong></div>
-              </div>
-              <div>6. Nơi thường trú: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
-              <div>7. Nơi tạm trú: <strong>{val(activeData.tempAddress, shortDot, blankDot)}</strong></div>
-              <div>8. Nơi ở hiện tại: <strong>{val(activeData.currentAddress || activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
-              <div>9. Họ, chữ đệm và tên chủ hộ: <strong>{val(activeData.hostName, blankDot, blankDot)}</strong></div>
-              <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Số ĐDCN/CCCD chủ hộ: <strong className="font-mono">{val(activeData.hostCccd, shortDot, shortDot)}</strong></div>
-                <div className="col-span-6">Quan hệ với chủ hộ: <strong>{val(activeData.hostRelation, shortDot, shortDot)}</strong></div>
-              </div>
               <div>
-                10. Nội dung đề nghị: <strong>{val(activeData.declarationScope, 'Đăng ký thường trú theo quy định', blankDot)}</strong>
+                1. Họ, chữ đệm và tên khai sinh: <strong className="uppercase">{val(activeData.fullName, blankDot, '..............................................................................')}</strong>
               </div>
-              <div>
-                11. Những người cùng thay đổi thông tin cư trú:
-                <div className="mt-1 border border-black text-center text-[11pt]">
-                  <div className="grid grid-cols-12 font-bold border-b border-black py-1 bg-neutral-100">
-                    <div className="col-span-1 border-r border-black">TT</div>
-                    <div className="col-span-4 border-r border-black">Họ, chữ đệm và tên</div>
-                    <div className="col-span-2 border-r border-black">Ngày, tháng, năm sinh</div>
-                    <div className="col-span-2 border-r border-black">Giới tính</div>
-                    <div className="col-span-3">Số ĐDCN / CCCD</div>
-                  </div>
-                  <div className="grid grid-cols-12 py-1.5 border-b border-neutral-300">
-                    <div className="col-span-1 border-r border-black">1</div>
-                    <div className="col-span-4 border-r border-black font-semibold uppercase">{val(activeData.fullName, shortDot, shortDot)}</div>
-                    <div className="col-span-2 border-r border-black">{val(activeData.dob, '....../....../....', '....../....../....')}</div>
-                    <div className="col-span-2 border-r border-black">{val(activeData.gender, '....', '....')}</div>
-                    <div className="col-span-3 font-mono">{val(activeData.idNumber, shortDot, shortDot)}</div>
-                  </div>
+
+              <div className="grid grid-cols-12 gap-2">
+                <div className="col-span-7">
+                  2. Ngày, tháng, năm sinh: <strong>{val(activeData.dob, '....../....../..........', '............./................/................')}</strong>
                 </div>
+                <div className="col-span-5">
+                  3. Giới tính: <strong>{val(activeData.gender, 'Nam', '...................')}</strong>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 py-0.5">
+                <span>4. Số định danh cá nhân:</span>
+                {renderIdBoxes(activeData.idNumber, '089205023490')}
+              </div>
+
+              <div className="grid grid-cols-12 gap-2">
+                <div className="col-span-6">
+                  5. Số điện thoại liên hệ: <strong>{val(activeData.phone, shortDot, '............................')}</strong>
+                </div>
+                <div className="col-span-6">
+                  6. Email: <strong>{val(activeData.email, 'congdan@angiang.gov.vn', '........................')}</strong>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-12 gap-2">
+                <div className="col-span-7">
+                  7. Họ, chữ đệm và tên chủ hộ<sup className="font-normal">(2)</sup>: <strong className="uppercase">{val(activeData.hostName, blankDot, '..................................')}</strong>
+                </div>
+                <div className="col-span-5">
+                  8. Mối quan hệ với chủ hộ: <strong>{val(activeData.hostRelation, shortDot, '............................')}</strong>
+                </div>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2 py-0.5">
+                <span>9. Số định danh cá nhân của chủ hộ:</span>
+                {renderIdBoxes(activeData.hostCccd, '089075001234')}
+              </div>
+
+              <div>
+                10. Nội dung đề nghị<sup className="font-normal">(3)</sup>:{' '}
+                <strong>
+                  {val(
+                    activeData.declarationScope,
+                    `Đăng ký thường trú tại ${activeData.address || currentWard.name}`,
+                    '..................................................................................................................'
+                  )}
+                </strong>
+                {isBlank && (
+                  <div className="mt-1">
+                    ......................................................................................................................................................................
+                  </div>
+                )}
+              </div>
+
+              <div>
+                11. Những thành viên trong hộ gia đình cùng thay đổi:
+                <table className="w-full mt-1.5 border-collapse border border-black text-center text-[10.5pt]">
+                  <thead>
+                    <tr className="font-bold bg-neutral-50">
+                      <th className="border border-black py-1.5 px-1 w-[6%]">TT</th>
+                      <th className="border border-black py-1.5 px-2 w-[26%]">Họ, chữ đệm và tên</th>
+                      <th className="border border-black py-1.5 px-1 w-[16%]">Ngày, tháng, năm sinh</th>
+                      <th className="border border-black py-1.5 px-1 w-[10%]">Giới tính</th>
+                      <th className="border border-black py-1.5 px-1 w-[22%]">Số định danh cá nhân</th>
+                      <th className="border border-black py-1.5 px-1 w-[20%]">Mối quan hệ với chủ hộ</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {[0, 1, 2, 3, 4].map((rowIdx) => {
+                      const isFirstFilled = rowIdx === 0 && !isBlank;
+                      return (
+                        <tr key={rowIdx} className="h-7">
+                          <td className="border border-black py-1 px-1">{isFirstFilled ? '1' : ''}</td>
+                          <td className="border border-black py-1 px-2 font-semibold uppercase">
+                            {isFirstFilled ? val(activeData.fullName, '', '') : ''}
+                          </td>
+                          <td className="border border-black py-1 px-1">
+                            {isFirstFilled ? val(activeData.dob, '', '') : ''}
+                          </td>
+                          <td className="border border-black py-1 px-1">
+                            {isFirstFilled ? val(activeData.gender, '', '') : ''}
+                          </td>
+                          <td className="border border-black py-1 px-1 font-mono">
+                            {isFirstFilled ? val(activeData.idNumber, '', '') : ''}
+                          </td>
+                          <td className="border border-black py-1 px-1">
+                            {isFirstFilled ? val(activeData.hostRelation, '', '') : ''}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
 
-            <div className="pt-6 mt-6 border-t border-neutral-300">
-              <p className="italic text-[11pt] text-neutral-800 mb-4">
-                Tôi xin cam đoan những thông tin kê khai trên là đúng sự thật và chịu trách nhiệm trước pháp luật về cam đoan của mình.
-              </p>
-              <div className="grid grid-cols-3 gap-2 text-center text-[11pt]">
-                <div>
-                  <div className="font-bold uppercase">Ý KIẾN CỦA CHỦ HỘ</div>
-                  <div className="italic text-[9.5pt] text-neutral-600">(Ký, ghi rõ họ tên)</div>
-                  <div className="h-20 flex items-end justify-center font-bold">
+            {/* Bảng 4 ô chữ ký chuẩn Mẫu CT01: (4), (5), (6), (7) và mục (8) */}
+            <table className="w-full mt-3 border-collapse border border-black text-center text-[10pt]">
+              <thead>
+                <tr className="align-top">
+                  <th className="border border-black p-1.5 w-1/4 font-normal">
+                    <div className="italic text-[9.5pt]">......, ngày......tháng....năm......</div>
+                    <div className="font-bold uppercase mt-0.5">
+                      Ý KIẾN CỦA CHỦ HỘ<sup className="font-normal">(4)</sup>
+                    </div>
+                  </th>
+                  <th className="border border-black p-1.5 w-1/4 font-normal">
+                    <div className="italic text-[9.5pt]">......, ngày......tháng....năm......</div>
+                    <div className="font-bold uppercase mt-0.5">
+                      Ý KIẾN CỦA CHỦ SỞ HỮU CHỖ Ở HỢP PHÁP<sup className="font-normal">(5)</sup>
+                    </div>
+                  </th>
+                  <th className="border border-black p-1.5 w-1/4 font-normal">
+                    <div className="italic text-[9.5pt]">......, ngày......tháng....năm......</div>
+                    <div className="font-bold uppercase mt-0.5">
+                      Ý KIẾN CỦA CHA HOẶC MẸ HOẶC NGƯỜI GIÁM HỘ<sup className="font-normal">(6)</sup>
+                    </div>
+                  </th>
+                  <th className="border border-black p-1.5 w-1/4 font-normal">
+                    <div className="italic text-[9.5pt]">......, ngày......tháng....năm......</div>
+                    <div className="font-bold uppercase mt-0.5">
+                      NGƯỜI KÊ KHAI<sup className="font-normal">(7)</sup>
+                    </div>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="h-24 align-bottom">
+                  <td className="border border-black p-1.5 font-bold uppercase">
                     {isBlank ? '' : (activeData.hostSignName || activeData.hostName || '')}
-                  </div>
-                </div>
-                <div>
-                  <div className="font-bold uppercase">CHỦ SỞ HỮU CHỖ Ở</div>
-                  <div className="italic text-[9.5pt] text-neutral-600">(Ký, ghi rõ họ tên)</div>
-                  <div className="h-20 flex items-end justify-center font-bold">
+                  </td>
+                  <td className="border border-black p-1.5 font-bold uppercase">
                     {isBlank ? '' : (activeData.ownerSignName || activeData.hostName || '')}
-                  </div>
-                </div>
-                <div>
-                  <div className="font-bold uppercase">NGƯỜI KÊ KHAI</div>
-                  <div className="italic text-[9.5pt] text-neutral-600">(Ký, ghi rõ họ tên)</div>
-                  <div className="h-20 flex items-end justify-center font-bold uppercase text-[11pt]">
+                  </td>
+                  <td className="border border-black p-1.5 font-bold uppercase"></td>
+                  <td className="border border-black p-1.5 font-bold uppercase">
                     {isBlank ? '' : (activeData.applicantSignName || activeData.fullName || '')}
-                  </div>
-                </div>
-              </div>
+                  </td>
+                </tr>
+                <tr className="text-left text-[9.5pt]">
+                  <td className="border border-black p-1.5"></td>
+                  <td className="border border-black p-1.5 space-y-0.5">
+                    <div><sup>(8)</sup> Họ và tên: ...........................</div>
+                    <div><sup>(8)</sup> Số định danh cá nhân: ............</div>
+                  </td>
+                  <td className="border border-black p-1.5 space-y-0.5">
+                    <div><sup>(8)</sup> Họ và tên: ...........................</div>
+                    <div><sup>(8)</sup> Số định danh cá nhân: ............</div>
+                  </td>
+                  <td className="border border-black p-1.5"></td>
+                </tr>
+              </tbody>
+            </table>
+
+            {/* Chú thích (1) -> (8) chuẩn Mẫu CT01 */}
+            <div className="pt-2 text-[9.5pt] leading-snug text-neutral-800 space-y-1">
+              <div className="font-bold underline">Chú thích:</div>
+              <div>(1) Cơ quan đăng ký cư trú.</div>
+              <div>(2) Trường hợp đăng ký thường trú, đăng ký tạm trú, tách hộ ghi thông tin chủ hộ gia đình mới.</div>
+              <div>(3) Ghi rõ ràng, cụ thể nội dung đề nghị. Ví dụ: ghi chi tiết thông tin nơi đề nghị đăng ký thường trú hoặc nơi đề nghị đăng ký tạm trú hoặc nội dung đề nghị xác nhận thông tin về cư trú. Trường hợp địa giới hành chính đã có sự thay đổi thì ghi thông tin theo địa giới hành chính mới, đồng thời ghi chú địa giới hành chính theo giấy tờ, tài liệu chứng minh chỗ ở hợp pháp.</div>
+              <div>(4) Áp dụng đối với các trường hợp quy định tại khoản 2, khoản 3, khoản 5, khoản 6 Điều 20; khoản 1 Điều 25; điểm a khoản 1 Điều 26 Luật Cư trú. Phương thức lấy ý kiến của chủ hộ: a) Chủ hộ ghi rõ nội dung đồng ý và ký, ghi rõ họ tên vào Tờ khai; b) Xác nhận qua ứng dụng định danh quốc gia (VNeID) hoặc dịch vụ công trực tuyến; c) Có văn bản riêng ghi rõ nội dung đồng ý.</div>
+              <div>(5) Áp dụng đối với các trường hợp quy định tại khoản 2, 3, 4, 5, 6 Điều 20; khoản 1 Điều 25; điểm a khoản 1 Điều 26 Luật Cư trú. Phương thức lấy ý kiến của chủ sở hữu chỗ ở hợp pháp: a) Ghi rõ nội dung đồng ý và ký, ghi rõ họ tên vào Tờ khai; b) Xác nhận qua ứng dụng định danh quốc gia (VNeID); c) Có văn bản riêng ghi rõ nội dung đồng ý.</div>
+              <div>(6) Áp dụng đối với trường hợp người chưa thành niên, người hạn chế hành vi dân sự, người không đủ năng lực hành vi dân sự có thay đổi thông tin về cư trú.</div>
+              <div>(7) Trường hợp nộp trực tiếp người kê khai ký, ghi rõ họ, chữ đệm và tên vào Tờ khai; Trường hợp nộp qua cổng dịch vụ công hoặc ứng dụng định danh quốc gia thì người kê khai không phải ký vào mục này.</div>
+              <div>(8) Chỉ kê khai thông tin khi công dân đề nghị xác nhận nội dung đồng ý thông qua ứng dụng định danh quốc gia (VNeID).</div>
             </div>
           </div>
         )}
@@ -684,7 +812,10 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                   <div className="col-span-6">2. Ngày, tháng, năm sinh: <strong>{val(activeData.dob, '....../....../..........', '....../....../..........')}</strong></div>
                   <div className="col-span-6">3. Giới tính: <strong>{val(activeData.gender, 'Nam / Nữ', shortDot)}</strong></div>
                 </div>
-                <div>4. Số định danh cá nhân (CCCD): <strong className="font-mono">{val(activeData.idNumber, shortDot, shortDot)}</strong></div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span>4. Số định danh cá nhân (CCCD):</span>
+                  {renderIdBoxes(activeData.idNumber, '089092001456')}
+                </div>
                 <div>5. Nơi thường trú / cư trú: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
                 <div>
                   6. Tình trạng hôn nhân hiện tại: <strong>{isBlank ? blankDot : 'Chưa đăng ký kết hôn với ai'}</strong>
@@ -793,7 +924,10 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                 <div className="col-span-6">Ngày sinh: <strong>{val(activeData.dob, '....../....../..........', '....../....../..........')}</strong></div>
                 <div className="col-span-6">Giới tính: <strong>{val(activeData.gender, 'Nam / Nữ', shortDot)}</strong></div>
               </div>
-              <div>Số định danh cá nhân / CCCD: <strong className="font-mono">{val(activeData.idNumber, shortDot, shortDot)}</strong></div>
+              <div className="flex flex-wrap items-center gap-2">
+                <span>Số định danh cá nhân / CCCD:</span>
+                {renderIdBoxes(activeData.idNumber, '089048000123')}
+              </div>
               <div>Nơi thường trú: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
               <div>
                 2. Thuộc diện trợ cấp: <strong>{val(activeData.householdStatus, 'Người cao tuổi từ đủ 75 tuổi trở lên không có lương hưu', blankDot)}</strong>
@@ -1239,11 +1373,21 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                       const rawSecondPlaceholder = field.secondPlaceholder
                         ? field.secondPlaceholder.replace(/\{WARD_NAME\}/g, currentWard.name)
                         : '';
+                      const isIdField =
+                        field.label.includes('CCCD') ||
+                        field.label.includes('định danh') ||
+                        field.label.includes('ĐDCN');
+                      const isSecondIdField =
+                        field.secondLabel &&
+                        (field.secondLabel.includes('CCCD') ||
+                          field.secondLabel.includes('định danh') ||
+                          field.secondLabel.includes('ĐDCN'));
+
                       const dynamicVal = field.label.includes('Họ, chữ đệm') || field.label.includes('Họ và tên')
                         ? val(activeData.fullName, rawPlaceholder || blankDot, blankDot)
                         : field.label.includes('Ngày, tháng, năm sinh') || field.label.includes('Ngày sinh')
                         ? val(activeData.dob, rawPlaceholder || '....../....../..........', '....../....../..........')
-                        : field.label.includes('CCCD') || field.label.includes('định danh')
+                        : isIdField
                         ? val(activeData.idNumber, rawPlaceholder || shortDot, shortDot)
                         : field.label.includes('Nơi thường trú') || field.label.includes('Nơi ở') || field.label.includes('Nơi cư trú')
                         ? val(activeData.address, rawPlaceholder || `${currentWard.name}, Tỉnh An Giang`, blankDot)
@@ -1251,19 +1395,27 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
 
                       if (field.type === 'grid2') {
                         return (
-                          <div key={fIdx} className="grid grid-cols-12 gap-3 py-0.5">
+                          <div key={fIdx} className="grid grid-cols-12 gap-3 py-0.5 items-center">
                             <div className="col-span-12 sm:col-span-6">
                               <span>{field.label}: </span>
-                              <strong className={field.isBold ? 'uppercase' : ''}>
-                                {dynamicVal}
-                              </strong>
+                              {isIdField ? (
+                                renderIdBoxes(activeData.idNumber, rawPlaceholder || '089090001234')
+                              ) : (
+                                <strong className={field.isBold ? 'uppercase' : ''}>
+                                  {dynamicVal}
+                                </strong>
+                              )}
                             </div>
                             {field.secondLabel && (
                               <div className="col-span-12 sm:col-span-6">
                                 <span>{field.secondLabel}: </span>
-                                <strong>
-                                  {isBlank ? shortDot : (rawSecondPlaceholder || shortDot)}
-                                </strong>
+                                {isSecondIdField ? (
+                                  renderIdBoxes(undefined, rawSecondPlaceholder || '089090001234')
+                                ) : (
+                                  <strong>
+                                    {isBlank ? shortDot : (rawSecondPlaceholder || shortDot)}
+                                  </strong>
+                                )}
                               </div>
                             )}
                           </div>
@@ -1271,11 +1423,15 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                       }
 
                       return (
-                        <div key={fIdx} className="py-0.5 leading-relaxed">
+                        <div key={fIdx} className="py-0.5 leading-relaxed flex flex-wrap items-center gap-1.5">
                           <span>{field.label}: </span>
-                          <strong className={field.isBold ? 'uppercase' : ''}>
-                            {dynamicVal}
-                          </strong>
+                          {isIdField ? (
+                            renderIdBoxes(activeData.idNumber, rawPlaceholder || '089090001234')
+                          ) : (
+                            <strong className={field.isBold ? 'uppercase' : ''}>
+                              {dynamicVal}
+                            </strong>
+                          )}
                         </div>
                       );
                     })}

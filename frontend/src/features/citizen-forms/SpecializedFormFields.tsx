@@ -182,11 +182,11 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center justify-between">
                         <label htmlFor="p3-ct01-host-name" className="text-xs font-bold text-[#334155]">
-                          Họ và tên chủ hộ nơi đến (Mục 11):
+                          Họ, chữ đệm và tên chủ hộ (Mục 7 Mẫu CT01):
                         </label>
                         {ocrSuccess && hostName ? (
                           <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 11
+                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 7
                           </span>
                         ) : null}
                       </div>
@@ -194,7 +194,7 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                         id="p3-ct01-host-name"
                         type="text"
                         value={hostName}
-                        placeholder="Họ và tên chủ hộ"
+                        placeholder="Họ, chữ đệm và tên chủ hộ"
                         onChange={(e) => setHostName(e.target.value)}
                         className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] transition-all ${
                           ocrSuccess && hostName ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-white border-[#CBD5E1]'
@@ -205,11 +205,11 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center justify-between">
                         <label htmlFor="p3-ct01-host-cccd" className="text-xs font-bold text-[#334155]">
-                          Số CCCD / ĐDCN của chủ hộ (Mục 11):
+                          Số định danh cá nhân của chủ hộ (Mục 9 - 12 ô):
                         </label>
                         {ocrSuccess && hostCccd ? (
                           <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map ({hostCccd.length} số)
+                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 9 ({hostCccd.length} số)
                           </span>
                         ) : null}
                       </div>
@@ -218,7 +218,7 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                         type="text"
                         value={hostCccd}
                         maxLength={12}
-                        placeholder="12 chữ số CCCD chủ hộ"
+                        placeholder="12 chữ số định danh cá nhân chủ hộ"
                         onChange={(e) => setHostCccd(e.target.value)}
                         className={`w-full h-9 px-3 rounded-xl border text-xs font-mono font-bold text-[#004D40] transition-all ${
                           ocrSuccess && hostCccd ? 'border-[#10B981]/60 bg-[#F0FDF4]/30' : 'bg-white border-[#CBD5E1]'
@@ -229,11 +229,11 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                     <div className="flex flex-col gap-1 sm:col-span-2">
                       <div className="flex items-center justify-between">
                         <label htmlFor="p3-ct01-host-rel" className="text-xs font-bold text-[#334155]">
-                          Quan hệ với chủ hộ (Mục 12):
+                          Mối quan hệ với chủ hộ (Mục 8 Mẫu CT01):
                         </label>
                         {ocrSuccess && hostRelation ? (
                           <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 12
+                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 8
                           </span>
                         ) : null}
                       </div>
