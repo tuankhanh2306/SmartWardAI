@@ -1,0 +1,55 @@
+{
+  "expo": {
+    "name": "SmartWard AI An Giang",
+    "slug": "smartward-ai-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "scheme": "smartward",
+    "splash": {
+      "backgroundColor": "#F8FAFC"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "vn.edu.uth.smartward.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "SmartWard AI cần quyền truy cập Camera để quét mã QR trên thẻ CCCD gắn chip và chụp ảnh tờ khai hành chính.",
+        "NSLocationWhenInUseUsageDescription": "SmartWard AI cần quyền định vị GPS độ chính xác cao (bán kính 25m) để tự động chọn UBND xã/phường gần nhất và định vị điểm sự cố đô thị."
+      }
+    },
+    "android": {
+      "package": "vn.edu.uth.smartward.mobile",
+      "adaptiveIcon": {
+        "backgroundColor": "#00796B"
+      },
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
+      ]
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "SmartWard AI cần quyền truy cập Camera để quét mã QR trên thẻ CCCD gắn chip và chụp ảnh tờ khai hành chính."
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "SmartWard AI cần quyền định vị GPS độ chính xác cao (bán kính 25m) để tự động chọn UBND xã/phường gần nhất và định vị điểm sự cố đô thị."
+        }
+      ],
+      "expo-sqlite",
+      "expo-secure-store"
+    ],
+    "extra": {
+      "province": "Tỉnh An Giang",
+      "totalWards": 96,
+      "totalProcedures": 40
+    }
+  }
+}
