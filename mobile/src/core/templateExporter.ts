@@ -160,6 +160,47 @@ export async function exportTemplateDocument(
   const html = buildOfficialTemplateHtml(descriptor, wardName);
   const fileName = format === 'DOCX' ? descriptor.docxFileName : descriptor.pdfFileName;
 
+  // Web Preview direct download (strictly no print dialogs)
+  const webGlobal = globalThis as unknown as {
+    document?: {
+      createElement: (tag: string) => { href: string; download: string; click: () => void };
+      body: { appendChild: (el: unknown) => void; removeChild: (el: unknown) => void };
+    };
+    Blob?: new (parts: string[], options?: { type?: string }) => unknown;
+    URL?: { createObjectURL?: (blob: unknown) => string; revokeObjectURL?: (url: string) => void };
+  };
+
+  if (
+    webGlobal.document &&
+    typeof webGlobal.Blob === 'function' &&
+    typeof webGlobal.URL?.createObjectURL === 'function'
+  ) {
+    try {
+      const mimeType =
+        format === 'DOCX'
+          ? 'application/msword;charset=utf-8'
+          : 'text/html;charset=utf-8';
+      const downloadName = format === 'DOCX' ? fileName : fileName.replace(/\.pdf$/i, '.html');
+      const blob = new webGlobal.Blob([html], { type: mimeType });
+      const blobUrl = webGlobal.URL.createObjectURL(blob);
+      const link = webGlobal.document.createElement('a');
+      link.href = blobUrl;
+      link.download = downloadName;
+      webGlobal.document.body.appendChild(link);
+      link.click();
+      webGlobal.document.body.removeChild(link);
+      setTimeout(() => webGlobal.URL?.revokeObjectURL?.(blobUrl), 1000);
+      return {
+        success: true,
+        fileName: downloadName,
+        format,
+        message: `Đã tải trực tiếp tệp ${downloadName} trên trình duyệt.`,
+      };
+    } catch {
+      // Fall through to native Expo FileSystem flow
+    }
+  }
+
   try {
     const FileSystem = await import('expo-file-system');
     const Sharing = await import('expo-sharing');

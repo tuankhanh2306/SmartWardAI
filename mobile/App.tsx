@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { Platform, StyleSheet, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
@@ -57,7 +57,7 @@ const AppShell: React.FC = () => {
 };
 
 export default function App() {
-  return (
+  const content = (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
         <AccessibilityProvider>
@@ -71,9 +71,37 @@ export default function App() {
       </QueryClientProvider>
     </SafeAreaProvider>
   );
+
+  if (Platform.OS === 'web') {
+    return (
+      <View style={styles.webViewport}>
+        <View style={styles.webPhoneFrame}>{content}</View>
+      </View>
+    );
+  }
+
+  return content;
 }
 
 const styles = StyleSheet.create({
+  webViewport: {
+    flex: 1,
+    backgroundColor: '#E2E8F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+  },
+  webPhoneFrame: {
+    flex: 1,
+    width: '100%',
+    maxWidth: 420,
+    maxHeight: 860,
+    backgroundColor: COLORS.canvas,
+    borderRadius: 24,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
+  },
   root: {
     flex: 1,
     backgroundColor: COLORS.canvas,
