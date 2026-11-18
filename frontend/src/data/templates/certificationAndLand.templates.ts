@@ -322,85 +322,91 @@ export const CERTIFICATION_AND_LAND_TEMPLATES: Record<string, A4FormTemplate> = 
     "recipient": "Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {
-        "title": "I. THÔNG TIN BÊN NAM",
+        "title": "I. THÔNG TIN BÊN NỮ",
         "fields": [
           {
-            "label": "1. Họ, chữ đệm và tên nam",
-            "placeholder": "NGUYỄN VĂN HÙNG",
+            "label": "Họ, chữ đệm, tên",
+            "placeholder": "NGUYỄN THỊ H.",
             "type": "text",
             "isBold": true
           },
           {
-            "label": "2. Ngày sinh",
-            "placeholder": "15/03/1998 (Đủ 20 tuổi trở lên)",
+            "label": "Ngày, tháng, năm sinh",
+            "placeholder": "26/05/1991",
             "type": "grid2",
-            "secondLabel": "3. Dân tộc",
+            "secondLabel": "Dân tộc",
             "secondPlaceholder": "Kinh"
           },
           {
-            "label": "4. Số CCCD",
-            "placeholder": "089098001122",
-            "type": "grid2",
-            "secondLabel": "5. Quốc tịch",
-            "secondPlaceholder": "Việt Nam"
+            "label": "Quốc tịch",
+            "placeholder": "Việt Nam",
+            "type": "text"
           },
           {
-            "label": "6. Nơi cư trú",
+            "label": "Nơi cư trú",
             "placeholder": "{WARD_NAME}, Tỉnh An Giang",
             "type": "text"
           },
           {
-            "label": "7. Tình trạng hôn nhân",
-            "placeholder": "Chưa đăng ký kết hôn lần nào",
+            "label": "Giấy tờ tùy thân",
+            "placeholder": "Căn cước công dân số: 089191003344 do Cục CSQLHC về TTXH cấp ngày 15/08/2022",
+            "type": "text"
+          },
+          {
+            "label": "Kết hôn lần thứ mấy",
+            "placeholder": "1",
             "type": "text"
           }
         ]
       },
       {
-        "title": "II. THÔNG TIN BÊN NỮ",
+        "title": "II. THÔNG TIN BÊN NAM",
         "fields": [
           {
-            "label": "1. Họ, chữ đệm và tên nữ",
-            "placeholder": "LÊ THỊ MAI",
+            "label": "Họ, chữ đệm, tên",
+            "placeholder": "TRẦN HẢI N.",
             "type": "text",
             "isBold": true
           },
           {
-            "label": "2. Ngày sinh",
-            "placeholder": "20/10/2002 (Đủ 18 tuổi trở lên)",
+            "label": "Ngày, tháng, năm sinh",
+            "placeholder": "23/08/1987",
             "type": "grid2",
-            "secondLabel": "3. Dân tộc",
+            "secondLabel": "Dân tộc",
             "secondPlaceholder": "Kinh"
           },
           {
-            "label": "4. Số CCCD",
-            "placeholder": "089102003344",
-            "type": "grid2",
-            "secondLabel": "5. Quốc tịch",
-            "secondPlaceholder": "Việt Nam"
+            "label": "Quốc tịch",
+            "placeholder": "Việt Nam",
+            "type": "text"
           },
           {
-            "label": "6. Nơi cư trú",
+            "label": "Nơi cư trú",
             "placeholder": "{WARD_NAME}, Tỉnh An Giang",
             "type": "text"
           },
           {
-            "label": "7. Tình trạng hôn nhân",
-            "placeholder": "Chưa đăng ký kết hôn lần nào",
+            "label": "Giấy tờ tùy thân",
+            "placeholder": "Căn cước công dân số: 089087001122 do Cục CSQLHC về TTXH cấp ngày 10/07/2021",
+            "type": "text"
+          },
+          {
+            "label": "Kết hôn lần thứ mấy",
+            "placeholder": "1",
             "type": "text"
           }
         ]
       }
     ],
-    "commitText": "Hai bên chúng tôi tự nguyện kết hôn, không bị ai ép buộc hay lừa dối, không vi phạm các điều cấm kết hôn của Luật Hôn nhân và Gia đình.",
+    "commitText": "Chúng tôi cam đoan những lời khai trên đây là đúng sự thật, việc kết hôn của chúng tôi là tự nguyện, không vi phạm quy định của Luật hôn nhân và gia đình Việt Nam.\nChúng tôi chịu hoàn toàn trách nhiệm trước pháp luật về cam đoan của mình.\nĐề nghị Quý cơ quan đăng ký.",
     "signatures": [
       {
-        "role": "CHỮ KÝ CỦA BÊN NAM",
-        "note": "(Ký và ghi rõ họ tên)"
+        "role": "Bên nữ",
+        "note": "(Ký, ghi rõ họ, chữ đệm, tên)"
       },
       {
-        "role": "CHỮ KÝ CỦA BÊN NỮ",
-        "note": "(Ký và ghi rõ họ tên)"
+        "role": "Bên nam",
+        "note": "(Ký, ghi rõ họ, chữ đệm, tên)"
       }
     ]
   },
