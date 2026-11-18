@@ -54,6 +54,10 @@ export interface SpecializedFormFieldsProps {
   setApplicantEthnicity: (v: string) => void;
   partnerEthnicity: string;
   setPartnerEthnicity: (v: string) => void;
+  applicantMarriageCount?: string;
+  setApplicantMarriageCount?: (v: string) => void;
+  partnerMarriageCount?: string;
+  setPartnerMarriageCount?: (v: string) => void;
   partnerAddress: string;
   setPartnerAddress: (v: string) => void;
   maritalCertPurpose: string;
@@ -106,7 +110,10 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
     marriageMode, setMarriageMode, partnerName, setPartnerName,
     partnerCccd, setPartnerCccd, partnerDob, setPartnerDob,
     partnerGender, setPartnerGender, applicantEthnicity, setApplicantEthnicity,
-    partnerEthnicity, setPartnerEthnicity, partnerAddress, setPartnerAddress,
+    partnerEthnicity, setPartnerEthnicity,
+    applicantMarriageCount = '1', setApplicantMarriageCount,
+    partnerMarriageCount = '1', setPartnerMarriageCount,
+    partnerAddress, setPartnerAddress,
     maritalCertPurpose, setMaritalCertPurpose, previousMaritalStatus, setPreviousMaritalStatus,
     divorceJudgmentNumber, setDivorceJudgmentNumber, divorceJudgmentDate, setDivorceJudgmentDate,
     deathCertNumber, setDeathCertNumber, deathCertDate, setDeathCertDate,
@@ -289,6 +296,20 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                       <Sparkles className="w-4 h-4 text-[#B90E23]" />
                       <span>Đối chiếu chéo Giấy chứng sinh bệnh viện &amp; Tình trạng hôn nhân cha mẹ (Phụ lục 5 - Thông tư 04/2024/TT-BTP sửa đổi Thông tư 04/2020/TT-BTP)</span>
                     </div>
+
+                    <details className="sm:col-span-2 rounded-xl bg-amber-50/80 border border-amber-200 px-3.5 py-2 text-[11px] text-slate-700">
+                      <summary className="cursor-pointer font-bold text-amber-950 select-none">
+                        Xem hướng dẫn Chú thích (1) – (6) khi điền Tờ khai đăng ký khai sinh (Chỉ hiển thị trên Web, tự động ẩn khi xuất phôi A4 nộp cán bộ)
+                      </summary>
+                      <div className="mt-2 space-y-1 border-t border-amber-200/80 pt-2 leading-relaxed">
+                        <div><strong>(1) Kính gửi:</strong> Ghi rõ tên cơ quan đăng ký khai sinh (UBND xã, phường, thị trấn).</div>
+                        <div><strong>(2) Nơi cư trú, Dân tộc, Quốc tịch:</strong> Chỉ ghi khi chưa có/không cung cấp Số ĐDCN/CCCD/Thẻ căn cước/CMND hoặc không cung cấp đầy đủ ngày, tháng, năm sinh. Nơi cư trú ghi theo nơi đăng ký thường trú; nếu không có thì ghi theo nơi đăng ký tạm trú hoặc nơi ở hiện tại.</div>
+                        <div><strong>(3) Giấy tờ tùy thân:</strong> Ghi Số định danh cá nhân/CCCD/Thẻ căn cước (kèm cơ quan cấp, ngày cấp) hoặc giấy tờ hợp lệ thay thế.</div>
+                        <div><strong>(4) Nơi sinh:</strong> Nếu sinh tại cơ sở y tế thì ghi rõ tên cơ sở y tế và địa chỉ trụ sở cơ sở y tế đó; nếu sinh ngoài cơ sở y tế thì ghi địa danh 03 cấp hành chính nơi sinh ra.</div>
+                        <div><strong>(5) Năm sinh của cha, mẹ:</strong> Ghi đầy đủ ngày, tháng, năm sinh của cha, mẹ (nếu có).</div>
+                        <div><strong>(6) Đề nghị cấp bản sao:</strong> Đánh dấu X vào ô Có/Không và ghi rõ số lượng bản sao yêu cầu cấp.</div>
+                      </div>
+                    </details>
 
                     {/* Smart Checklist: Cha mẹ chưa kết hôn */}
                     {parentsMarried === 'NO' && (
@@ -599,6 +620,34 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                             className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
                           />
                         </div>
+
+                        {setApplicantMarriageCount && setPartnerMarriageCount && (
+                          <div className="flex flex-col gap-1 sm:col-span-2">
+                            <label htmlFor="p3-kh-marriage-count-self" className="text-xs font-bold text-[#334155]">
+                              Kết hôn lần thứ mấy (Người nộp / Bên thứ hai):
+                            </label>
+                            <div className="flex items-center gap-2">
+                              <input
+                                id="p3-kh-marriage-count-self"
+                                aria-label="Kết hôn lần thứ mấy của người nộp"
+                                type="text"
+                                value={applicantMarriageCount}
+                                onChange={(e) => setApplicantMarriageCount(e.target.value)}
+                                placeholder="VD: 1"
+                                className="w-1/2 h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                              />
+                              <input
+                                id="p3-kh-marriage-count-partner"
+                                aria-label="Kết hôn lần thứ mấy của bên phối ngẫu"
+                                type="text"
+                                value={partnerMarriageCount}
+                                onChange={(e) => setPartnerMarriageCount(e.target.value)}
+                                placeholder="VD: 1"
+                                className="w-1/2 h-9 px-2.5 rounded-xl border border-[#CBD5E1] bg-white text-xs text-[#0F172A]"
+                              />
+                            </div>
+                          </div>
+                        )}
                       </>
                     ) : (
                       <div className="flex flex-col gap-1 sm:col-span-2">

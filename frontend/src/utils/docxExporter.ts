@@ -40,6 +40,8 @@ export async function exportA4TemplateToDocx(
   const year = today.getFullYear();
 
   const isCt01 = template.procedureCode === 'TTHC-CR-01' || template.formCode.includes('CT01');
+  const isBirthReg = template.procedureCode === 'TTHC-HT-01';
+  const isMarriageReg = template.procedureCode === 'TTHC-HT-02';
   const isPolice = template.agencyType === 'POLICE';
   const agencyLine1 = isPolice ? 'CÔNG AN TỈNH AN GIANG' : 'ỦY BAN NHÂN DÂN TỈNH AN GIANG';
   const agencyLine2 = isPolice
@@ -113,7 +115,33 @@ export async function exportA4TemplateToDocx(
   };
 
   // Build top header block
+  // Helper to build a bordered "Ảnh" photo box for TỜ KHAI ĐĂNG KÝ KẾT HÔN
+  const createPhotoBoxTable = (): Table =>
+    new Table({
+      width: { size: 100, type: WidthType.PERCENTAGE },
+      borders: gridBorders,
+      rows: [
+        new TableRow({
+          children: [
+            new TableCell({
+              width: { size: 100, type: WidthType.PERCENTAGE },
+              children: [
+                new Paragraph({ spacing: { before: 420, after: 0 } }),
+                new Paragraph({
+                  alignment: AlignmentType.CENTER,
+                  spacing: { before: 0, after: 0 },
+                  children: [new TextRun({ text: 'Ảnh', size: 22, font: 'Times New Roman' })],
+                }),
+                new Paragraph({ spacing: { before: 0, after: 420 } }),
+              ],
+            }),
+          ],
+        }),
+      ],
+    });
+
   // For Mẫu CT01: NO left agency name and NO top date line — only top-right form code note + centered Quốc hiệu - Tiêu ngữ!
+  // For Mẫu TTHC-HT-02 (Tờ khai Đăng ký kết hôn): Left "Ảnh" box | Centered Quốc hiệu + Title + Kính gửi | Right "Ảnh" box!
   const headerChildren: Array<Paragraph | Table> = isCt01
     ? [
         new Paragraph({
@@ -161,6 +189,121 @@ export async function exportA4TemplateToDocx(
               bold: true,
               size: 20,
               font: 'Times New Roman',
+            }),
+          ],
+        }),
+      ]
+    : isBirthReg
+    ? [
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 0, after: 20 },
+          children: [
+            new TextRun({
+              text: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM',
+              bold: true,
+              size: 24, // 12pt
+              font: 'Times New Roman',
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 0, after: 20 },
+          children: [
+            new TextRun({
+              text: 'Độc lập - Tự do - Hạnh phúc',
+              bold: true,
+              size: 25, // 12.5pt
+              font: 'Times New Roman',
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 0, after: 60 },
+          children: [
+            new TextRun({
+              text: '_______________________',
+              bold: true,
+              size: 20,
+              font: 'Times New Roman',
+            }),
+          ],
+        }),
+      ]
+    : isMarriageReg
+    ? [
+        new Table({
+          width: { size: 100, type: WidthType.PERCENTAGE },
+          borders: noBorders,
+          rows: [
+            new TableRow({
+              children: [
+                new TableCell({
+                  width: { size: 17, type: WidthType.PERCENTAGE },
+                  borders: noBorders,
+                  children: [createPhotoBoxTable()],
+                }),
+                new TableCell({
+                  width: { size: 66, type: WidthType.PERCENTAGE },
+                  borders: noBorders,
+                  children: [
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: { before: 20, after: 20 },
+                      children: [
+                        new TextRun({
+                          text: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM',
+                          bold: true,
+                          size: 22, // 11pt
+                          font: 'Times New Roman',
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: { before: 0, after: 140 },
+                      children: [
+                        new TextRun({
+                          text: 'Độc lập – Tự do – Hạnh phúc',
+                          bold: true,
+                          size: 23, // 11.5pt
+                          font: 'Times New Roman',
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: { before: 60, after: 120 },
+                      children: [
+                        new TextRun({
+                          text: 'TỜ KHAI ĐĂNG KÝ KẾT HÔN',
+                          bold: true,
+                          size: 28, // 14pt
+                          font: 'Times New Roman',
+                        }),
+                      ],
+                    }),
+                    new Paragraph({
+                      alignment: AlignmentType.CENTER,
+                      spacing: { before: 40, after: 80 },
+                      children: [
+                        new TextRun({
+                          text: `Kính gửi: Ủy ban nhân dân ${wardName}`,
+                          size: 23, // 11.5pt
+                          font: 'Times New Roman',
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                new TableCell({
+                  width: { size: 17, type: WidthType.PERCENTAGE },
+                  borders: noBorders,
+                  children: [createPhotoBoxTable()],
+                }),
+              ],
             }),
           ],
         }),
@@ -257,62 +400,65 @@ export async function exportA4TemplateToDocx(
   // Build body elements (Paragraphs & Tables)
   const bodyChildren: Array<Paragraph | Table> = [];
 
-  // Title block
-  bodyChildren.push(
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: isCt01 ? 80 : 180, after: 40 },
-      children: [
-        new TextRun({
-          text: template.title,
-          bold: true,
-          size: 28, // 14pt
-          font: 'Times New Roman',
-        }),
-      ],
-    })
-  );
-
-  if (!isCt01) {
+  // Title block (skipped for TTHC-HT-02 because title & Kính gửi sit between the two "Ảnh" boxes)
+  if (!isMarriageReg) {
     bodyChildren.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
-        spacing: { after: 100 },
+        spacing: { before: isCt01 ? 80 : 180, after: 40 },
         children: [
           new TextRun({
-            text: `${template.legalNote} [${template.formCode}]`,
-            italics: true,
-            size: 22, // 11pt
+            text: template.title,
+            bold: true,
+            size: 28, // 14pt
+            font: 'Times New Roman',
+          }),
+        ],
+      })
+    );
+
+    if (!isCt01 && !isBirthReg) {
+      bodyChildren.push(
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { after: 100 },
+          children: [
+            new TextRun({
+              text: `${template.legalNote} [${template.formCode}]`,
+              italics: true,
+              size: 22, // 11pt
+              font: 'Times New Roman',
+            }),
+          ],
+        })
+      );
+    }
+
+    bodyChildren.push(
+      new Paragraph({
+        alignment: AlignmentType.CENTER,
+        spacing: { before: 40, after: isCt01 || isBirthReg ? 80 : 180 },
+        children: [
+          new TextRun({
+            text: 'Kính gửi: ',
+            bold: !isBirthReg,
+            italics: !isCt01 && !isBirthReg,
+            size: 24, // 12pt
+            font: 'Times New Roman',
+          }),
+          new TextRun({
+            text:
+              isCt01 || isBirthReg
+                ? '............................................................................'
+                : template.recipient.replace(/\{WARD_NAME\}/g, wardName),
+            bold: !isCt01 && !isBirthReg,
+            size: 24, // 12pt
             font: 'Times New Roman',
           }),
         ],
       })
     );
   }
-
-  bodyChildren.push(
-    new Paragraph({
-      alignment: AlignmentType.CENTER,
-      spacing: { before: 40, after: isCt01 ? 100 : 180 },
-      children: [
-        new TextRun({
-          text: 'Kính gửi: ',
-          bold: true,
-          italics: !isCt01,
-          size: 24, // 12pt
-          font: 'Times New Roman',
-        }),
-        new TextRun({
-          text: isCt01
-            ? '............................................................................'
-            : template.recipient.replace(/\{WARD_NAME\}/g, wardName),
-          bold: !isCt01,
-          size: 24, // 12pt
-          font: 'Times New Roman',
-        }),
-      ],
-    })
-  );
 
   // Special exact 1-page BCA layout for Mẫu CT01 (TTHC-CR-01) without footnote markers (1)-(8) or footnote block
   if (template.procedureCode === 'TTHC-CR-01') {
@@ -524,34 +670,190 @@ export async function exportA4TemplateToDocx(
         ],
       })
     );
-  } else if (template.procedureCode === 'TTHC-HT-02') {
-    // Special two-column Bride & Groom layout for TTHC-HT-02 (Đăng ký kết hôn)
-    const makePartyCell = (partyTitle: string) =>
-      new TableCell({
-        width: { size: 50, type: WidthType.PERCENTAGE },
+  } else if (template.procedureCode === 'TTHC-HT-01') {
+    // Official 1-page MOJ layout for TỜ KHAI ĐĂNG KÝ KHAI SINH (Phụ lục 5 TT 04/2020/TT-BTP & TT 04/2024/TT-BTP)
+    const addKsLine = (label: string, dots: string, boldLabel: boolean = false) =>
+      new Paragraph({
+        spacing: { before: 28, after: 28 },
         children: [
-          new Paragraph({
-            alignment: AlignmentType.CENTER,
-            spacing: { before: 80, after: 100 },
-            children: [new TextRun({ text: partyTitle, bold: true, size: 24, font: 'Times New Roman' })],
-          }),
-          ...[
-            'Họ, chữ đệm và tên: ........................................',
-            'Ngày, tháng, năm sinh: ....../....../..........',
-            'Dân tộc: ........................',
-            'Quốc tịch: ........................',
-            'Số ĐDCN / CCCD: [ ][ ][ ][ ][ ][ ][ ][ ][ ][ ][ ][ ]',
-            'Nơi cư trú: ........................................................',
-            'Kết hôn lần thứ: ........................',
-          ].map(
-            (line) =>
-              new Paragraph({
-                spacing: { before: 50, after: 50 },
-                children: [new TextRun({ text: line, size: 23, font: 'Times New Roman' })],
-              })
-          ),
+          new TextRun({ text: label, bold: boldLabel, size: 23, font: 'Times New Roman' }),
+          new TextRun({ text: dots, size: 23, font: 'Times New Roman' }),
         ],
       });
+
+    bodyChildren.push(
+      addKsLine('Họ, chữ đệm, tên người yêu cầu: ', '........................................................................................', true),
+      addKsLine('Ngày, tháng, năm sinh: ', '.............................................................................................................'),
+      addKsLine('Nơi cư trú: ', '..............................................................................................................................'),
+      addKsLine('', '................................................................................................................................................'),
+      addKsLine('Giấy tờ tùy thân: ', '.....................................................................................................................'),
+      addKsLine('', '................................................................................................................................................'),
+      addKsLine('Quan hệ với người được khai sinh: ', '............................................................................................'),
+      new Paragraph({
+        spacing: { before: 45, after: 28 },
+        children: [
+          new TextRun({
+            text: 'Đề nghị cơ quan đăng ký khai sinh cho người dưới đây:',
+            bold: true,
+            size: 23,
+            font: 'Times New Roman',
+          }),
+        ],
+      }),
+      addKsLine('Họ, chữ đệm, tên: ', '.....................................................................................................................', true),
+      addKsLine('Ngày, tháng, năm sinh: ', '................................................... ghi bằng chữ: .......................................'),
+      addKsLine('', '................................................................................................................................................'),
+      addKsLine('Giới tính: ', '......................... Dân tộc: ......................... Quốc tịch: ............................................'),
+      addKsLine('Nơi sinh: ', '.................................................................................................................................'),
+      addKsLine('', '................................................................................................................................................'),
+      addKsLine('Quê quán: ', '...............................................................................................................................'),
+      addKsLine('Họ, chữ đệm, tên người mẹ: ', '....................................................................................................', true),
+      addKsLine('Năm sinh: ', '.................................................... Dân tộc: ........................ Quốc tịch: ......................'),
+      addKsLine('Nơi cư trú: ', '..............................................................................................................................'),
+      addKsLine('', '................................................................................................................................................'),
+      addKsLine('Giấy tờ tùy thân: ', '.....................................................................................................................'),
+      addKsLine('Họ, chữ đệm, tên người cha: ', '....................................................................................................', true),
+      addKsLine('Năm sinh: ', '.................................................... Dân tộc: ........................ Quốc tịch: ......................'),
+      addKsLine('Nơi cư trú: ', '..............................................................................................................................'),
+      addKsLine('', '................................................................................................................................................'),
+      addKsLine('Giấy tờ tùy thân: ', '.....................................................................................................................'),
+      new Paragraph({
+        spacing: { before: 35, after: 25 },
+        children: [
+          new TextRun({
+            text: 'Thông tin về Giấy chứng nhận kết hôn của cha, mẹ trẻ (nếu cha, mẹ trẻ đã ĐKKH):',
+            italics: true,
+            size: 23,
+            font: 'Times New Roman',
+          }),
+        ],
+      }),
+      new Paragraph({
+        spacing: { before: 15, after: 35 },
+        children: [
+          new TextRun({
+            text: 'Số: .............., Quyển số: .............., đăng ký ngày ..... tháng ..... năm .......... tại .................................',
+            italics: true,
+            size: 23,
+            font: 'Times New Roman',
+          }),
+        ],
+      }),
+      new Paragraph({
+        spacing: { before: 30, after: 20 },
+        children: [
+          new TextRun({
+            text: 'Tôi cam đoan nội dung đề nghị đăng ký khai sinh trên đây là đúng sự thật, được sự thỏa thuận nhất trí của các bên liên quan theo quy định pháp luật.',
+            size: 23,
+            font: 'Times New Roman',
+          }),
+        ],
+      }),
+      new Paragraph({
+        spacing: { before: 15, after: 40 },
+        children: [
+          new TextRun({
+            text: 'Tôi chịu hoàn toàn trách nhiệm trước pháp luật về nội dung cam đoan của mình.',
+            size: 23,
+            font: 'Times New Roman',
+          }),
+        ],
+      }),
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: noBorders,
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 48, type: WidthType.PERCENTAGE },
+                borders: noBorders,
+                children: [
+                  new Paragraph({ spacing: { before: 520, after: 20 } }),
+                  new Paragraph({
+                    spacing: { before: 0, after: 30 },
+                    children: [new TextRun({ text: '____________________________________', bold: true, size: 18, font: 'Times New Roman' })],
+                  }),
+                  new Paragraph({
+                    spacing: { before: 20, after: 20 },
+                    children: [new TextRun({ text: 'Đề nghị cấp bản sao: Có □ , Không □', size: 21, font: 'Times New Roman' })],
+                  }),
+                  new Paragraph({
+                    spacing: { before: 20, after: 20 },
+                    children: [new TextRun({ text: 'Số lượng: ....... bản', size: 21, font: 'Times New Roman' })],
+                  }),
+                ],
+              }),
+              new TableCell({
+                width: { size: 52, type: WidthType.PERCENTAGE },
+                borders: noBorders,
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    spacing: { before: 20, after: 30 },
+                    children: [
+                      new TextRun({
+                        text: 'Làm tại: ..........................., ngày ........ tháng ........ năm .............',
+                        italics: true,
+                        size: 22,
+                        font: 'Times New Roman',
+                      }),
+                    ],
+                  }),
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    spacing: { before: 20, after: 15 },
+                    children: [new TextRun({ text: 'Người yêu cầu', bold: true, size: 23, font: 'Times New Roman' })],
+                  }),
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    spacing: { before: 0, after: 20 },
+                    children: [
+                      new TextRun({
+                        text: '(Ký, ghi rõ họ, chữ đệm, tên)',
+                        italics: true,
+                        size: 21,
+                        font: 'Times New Roman',
+                      }),
+                    ],
+                  }),
+                  new Paragraph({ spacing: { before: 700 } }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      })
+    );
+  } else if (template.procedureCode === 'TTHC-HT-02') {
+    // Official 3-column layout (Thông tin | Bên nữ | Bên nam) matching TỜ KHAI ĐĂNG KÝ KẾT HÔN
+    const makeCell = (text: string, widthPct: number, opts?: { bold?: boolean; align?: (typeof AlignmentType)[keyof typeof AlignmentType] }) =>
+      new TableCell({
+        width: { size: widthPct, type: WidthType.PERCENTAGE },
+        margins: { top: 80, bottom: 80, left: 100, right: 100 },
+        children: text.split('\n').map(
+          (line) =>
+            new Paragraph({
+              alignment: opts?.align ?? AlignmentType.LEFT,
+              spacing: { before: 20, after: 20 },
+              children: [new TextRun({ text: line, bold: opts?.bold ?? false, size: 22, font: 'Times New Roman' })],
+            })
+        ),
+      });
+
+    const rowsData: Array<[string, string, string]> = [
+      ['Họ, chữ đệm, tên', '................................................', '................................................'],
+      ['Ngày, tháng, năm sinh', '....../....../..........', '....../....../..........'],
+      ['Dân tộc', '........................', '........................'],
+      ['Quốc tịch', '........................', '........................'],
+      ['Nơi cư trú', '................................................\n................................................', '................................................\n................................................'],
+      [
+        'Giấy tờ tùy thân',
+        'Số CCCD/CMND: ......................\nCơ quan cấp: ...........................\nNgày cấp: ....../....../..........',
+        'Số CCCD/CMND: ......................\nCơ quan cấp: ...........................\nNgày cấp: ....../....../..........',
+      ],
+      ['Kết hôn lần thứ mấy', '........................', '........................'],
+    ];
 
     bodyChildren.push(
       new Table({
@@ -559,7 +861,108 @@ export async function exportA4TemplateToDocx(
         borders: gridBorders,
         rows: [
           new TableRow({
-            children: [makePartyCell('BÊN NAM'), makePartyCell('BÊN NỮ')],
+            children: [
+              makeCell('Thông tin', 28, { bold: true, align: AlignmentType.CENTER }),
+              makeCell('Bên nữ', 36, { bold: true, align: AlignmentType.CENTER }),
+              makeCell('Bên nam', 36, { bold: true, align: AlignmentType.CENTER }),
+            ],
+          }),
+          ...rowsData.map(
+            ([label, femaleVal, maleVal]) =>
+              new TableRow({
+                children: [
+                  makeCell(label, 28),
+                  makeCell(femaleVal, 36),
+                  makeCell(maleVal, 36),
+                ],
+              })
+          ),
+        ],
+      })
+    );
+
+    // Exact 3 commitment paragraphs & right-aligned date + Bên nữ (left) / Bên nam (right) signatures
+    bodyChildren.push(
+      new Paragraph({
+        spacing: { before: 180, after: 40 },
+        indent: { firstLine: 450 },
+        children: [
+          new TextRun({
+            text: 'Chúng tôi cam đoan những lời khai trên đây là đúng sự thật, việc kết hôn của chúng tôi là tự nguyện, không vi phạm quy định của Luật hôn nhân và gia đình Việt Nam.',
+            size: 22,
+            font: 'Times New Roman',
+          }),
+        ],
+      }),
+      new Paragraph({
+        spacing: { before: 20, after: 40 },
+        indent: { firstLine: 450 },
+        children: [
+          new TextRun({
+            text: 'Chúng tôi chịu hoàn toàn trách nhiệm trước pháp luật về cam đoan của mình.',
+            size: 22,
+            font: 'Times New Roman',
+          }),
+        ],
+      }),
+      new Paragraph({
+        spacing: { before: 20, after: 100 },
+        indent: { firstLine: 450 },
+        children: [
+          new TextRun({
+            text: 'Đề nghị Quý cơ quan đăng ký.',
+            size: 22,
+            font: 'Times New Roman',
+          }),
+        ],
+      }),
+      new Paragraph({
+        alignment: AlignmentType.RIGHT,
+        spacing: { before: 40, after: 140 },
+        children: [
+          new TextRun({
+            text: `Tỉnh An Giang, ngày ...... tháng ...... năm ${year}`,
+            italics: true,
+            size: 22,
+            font: 'Times New Roman',
+          }),
+        ],
+      }),
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: noBorders,
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 50, type: WidthType.PERCENTAGE },
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [new TextRun({ text: 'Bên nữ', bold: true, size: 23, font: 'Times New Roman' })],
+                  }),
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [new TextRun({ text: '(Ký, ghi rõ họ, chữ đệm, tên)', size: 21, font: 'Times New Roman' })],
+                  }),
+                  new Paragraph({ spacing: { before: 1100 } }),
+                ],
+              }),
+              new TableCell({
+                width: { size: 50, type: WidthType.PERCENTAGE },
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [new TextRun({ text: 'Bên nam', bold: true, size: 23, font: 'Times New Roman' })],
+                  }),
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [new TextRun({ text: '(Ký, ghi rõ họ, chữ đệm, tên)', size: 21, font: 'Times New Roman' })],
+                  }),
+                  new Paragraph({ spacing: { before: 1100 } }),
+                ],
+              }),
+            ],
           }),
         ],
       })
@@ -652,8 +1055,12 @@ export async function exportA4TemplateToDocx(
     }
   }
 
-  // For non-CT01 templates, append commitment text and standard signatures table
-  if (template.procedureCode !== 'TTHC-CR-01') {
+  // For templates without custom footer blocks (non-CT01, non-TTHC-HT-01, and non-TTHC-HT-02), append standard commitment text and signatures
+  if (
+    template.procedureCode !== 'TTHC-CR-01' &&
+    template.procedureCode !== 'TTHC-HT-01' &&
+    template.procedureCode !== 'TTHC-HT-02'
+  ) {
     bodyChildren.push(
       new Paragraph({
         spacing: { before: 200, after: 160 },
@@ -729,9 +1136,9 @@ export async function exportA4TemplateToDocx(
               height: convertMillimetersToTwip(297),
             },
             margin: {
-              top: convertMillimetersToTwip(isCt01 ? 12 : 18),
-              bottom: convertMillimetersToTwip(isCt01 ? 12 : 18),
-              left: convertMillimetersToTwip(isCt01 ? 20 : 22),
+              top: convertMillimetersToTwip(isCt01 || isBirthReg ? 12 : 18),
+              bottom: convertMillimetersToTwip(isCt01 || isBirthReg ? 12 : 18),
+              left: convertMillimetersToTwip(isCt01 || isBirthReg ? 20 : 22),
               right: convertMillimetersToTwip(15),
             },
           },

@@ -266,6 +266,8 @@ export const FormAndIssueReporting: React.FC = () => {
   const [partnerEthnicity, setPartnerEthnicity] = useState('Kinh');
   const [applicantNationality] = useState('Việt Nam');
   const [partnerNationality] = useState('Việt Nam');
+  const [applicantMarriageCount, setApplicantMarriageCount] = useState('1');
+  const [partnerMarriageCount, setPartnerMarriageCount] = useState('1');
   const [maritalCertPurpose, setMaritalCertPurpose] = useState('Bổ sung hồ sơ');
   const [previousMaritalStatus, setPreviousMaritalStatus] = useState<'SINGLE' | 'DIVORCED' | 'WIDOWED'>('SINGLE');
   const [divorceJudgmentNumber, setDivorceJudgmentNumber] = useState('');
@@ -2651,6 +2653,10 @@ export const FormAndIssueReporting: React.FC = () => {
                   setApplicantEthnicity={setApplicantEthnicity}
                   partnerEthnicity={partnerEthnicity}
                   setPartnerEthnicity={setPartnerEthnicity}
+                  applicantMarriageCount={applicantMarriageCount}
+                  setApplicantMarriageCount={setApplicantMarriageCount}
+                  partnerMarriageCount={partnerMarriageCount}
+                  setPartnerMarriageCount={setPartnerMarriageCount}
                   partnerAddress={partnerAddress}
                   setPartnerAddress={setPartnerAddress}
                   maritalCertPurpose={maritalCertPurpose}
@@ -3547,6 +3553,9 @@ export const FormAndIssueReporting: React.FC = () => {
           spouseEthnicity: partnerEthnicity,
           applicantNationality,
           spouseNationality: partnerNationality,
+          applicantMarriageCount,
+          spouseMarriageCount: partnerMarriageCount,
+          issueDate,
           maritalCertPurpose,
           divorceJudgmentNumber,
           divorceJudgmentDate,

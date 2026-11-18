@@ -223,93 +223,130 @@ export const CERTIFICATION_AND_LAND_TEMPLATES: Record<string, A4FormTemplate> = 
     "recipient": "Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {
-        "title": "I. THÔNG TIN NGƯỜI YÊU CẦU ĐĂNG KÝ KHAI SINH",
+        "title": "",
         "fields": [
           {
-            "label": "1. Họ, chữ đệm và tên người yêu cầu",
-            "placeholder": "NGUYỄN VĂN CHA",
+            "label": "Họ, chữ đệm, tên người yêu cầu",
+            "placeholder": "NGUYỄN VĂN MINH",
             "type": "text",
             "isBold": true
           },
           {
-            "label": "2. Số CCCD/Định danh cá nhân",
-            "placeholder": "089090001234",
-            "type": "grid2",
-            "secondLabel": "3. Quan hệ với trẻ",
-            "secondPlaceholder": "Cha đẻ / Mẹ đẻ"
+            "label": "Ngày, tháng, năm sinh",
+            "placeholder": "15/06/1992",
+            "type": "text"
           },
           {
-            "label": "4. Nơi cư trú",
+            "label": "Nơi cư trú",
+            "placeholder": "Số 45 Lê Lợi, {WARD_NAME}, Tỉnh An Giang",
+            "type": "text"
+          },
+          {
+            "label": "Giấy tờ tùy thân",
+            "placeholder": "CCCD số 089092001456 do Cục Cảnh sát QLHC về TTXH cấp ngày 10/05/2022",
+            "type": "text"
+          },
+          {
+            "label": "Quan hệ với người được khai sinh",
+            "placeholder": "Cha đẻ",
+            "type": "text"
+          }
+        ]
+      },
+      {
+        "title": "Đề nghị cơ quan đăng ký khai sinh cho người dưới đây:",
+        "fields": [
+          {
+            "label": "Họ, chữ đệm, tên",
+            "placeholder": "NGUYỄN GIA BẢO",
+            "type": "text",
+            "isBold": true
+          },
+          {
+            "label": "Ngày, tháng, năm sinh",
+            "placeholder": "15/05/2024",
+            "type": "grid2",
+            "secondLabel": "ghi bằng chữ",
+            "secondPlaceholder": "Ngày mười lăm tháng năm năm hai nghìn không trăm hai mươi tư"
+          },
+          {
+            "label": "Giới tính",
+            "placeholder": "Nam",
+            "type": "grid2",
+            "secondLabel": "Dân tộc / Quốc tịch",
+            "secondPlaceholder": "Kinh - Việt Nam"
+          },
+          {
+            "label": "Nơi sinh",
+            "placeholder": "Bệnh viện Đa khoa {WARD_NAME}, Tỉnh An Giang",
+            "type": "text"
+          },
+          {
+            "label": "Quê quán",
             "placeholder": "{WARD_NAME}, Tỉnh An Giang",
             "type": "text"
           }
         ]
       },
       {
-        "title": "II. THÔNG TIN NGƯỜI ĐƯỢC ĐĂNG KÝ KHAI SINH",
+        "title": "Họ, chữ đệm, tên người mẹ: TRẦN THỊ HỒNG",
         "fields": [
           {
-            "label": "1. Họ, chữ đệm và tên trẻ",
-            "placeholder": "NGUYỄN AN NHIÊN",
-            "type": "text",
-            "isBold": true
-          },
-          {
-            "label": "2. Giới tính",
-            "placeholder": "Nữ",
+            "label": "Năm sinh",
+            "placeholder": "20/10/1995",
             "type": "grid2",
-            "secondLabel": "3. Ngày, tháng, năm sinh",
-            "secondPlaceholder": "10/05/2026"
+            "secondLabel": "Dân tộc / Quốc tịch",
+            "secondPlaceholder": "Kinh - Việt Nam"
           },
           {
-            "label": "4. Dân tộc",
-            "placeholder": "Kinh",
-            "type": "grid2",
-            "secondLabel": "5. Quốc tịch",
-            "secondPlaceholder": "Việt Nam"
-          },
-          {
-            "label": "6. Nơi sinh (cơ sở y tế)",
-            "placeholder": "Bệnh viện Đa khoa Trung tâm An Giang / Trạm Y tế {WARD_NAME}",
+            "label": "Nơi cư trú",
+            "placeholder": "Số 45 Lê Lợi, {WARD_NAME}, Tỉnh An Giang",
             "type": "text"
           },
           {
-            "label": "7. Quê quán",
-            "placeholder": "{WARD_NAME}, Tỉnh An Giang",
-            "type": "text"
-          },
-          {
-            "label": "8. Giấy chứng sinh số",
-            "placeholder": "Số: ......../GCS ngày ...../...../.........",
+            "label": "Giấy tờ tùy thân",
+            "placeholder": "CCCD số 089195007890 do Cục Cảnh sát QLHC về TTXH cấp",
             "type": "text"
           }
         ]
       },
       {
-        "title": "III. THÔNG TIN CHA VÀ MẸ CỦA TRẺ",
+        "title": "Họ, chữ đệm, tên người cha: NGUYỄN VĂN MINH",
         "fields": [
           {
-            "label": "1. Họ tên cha",
-            "placeholder": "NGUYỄN VĂN CHA - Năm sinh: 1990 - CCCD: 089090001234 - Dân tộc: Kinh",
+            "label": "Năm sinh",
+            "placeholder": "15/06/1992",
+            "type": "grid2",
+            "secondLabel": "Dân tộc / Quốc tịch",
+            "secondPlaceholder": "Kinh - Việt Nam"
+          },
+          {
+            "label": "Nơi cư trú",
+            "placeholder": "Số 45 Lê Lợi, {WARD_NAME}, Tỉnh An Giang",
             "type": "text"
           },
           {
-            "label": "2. Họ tên mẹ",
-            "placeholder": "TRẦN THỊ MẸ - Năm sinh: 1993 - CCCD: 089193005678 - Dân tộc: Kinh",
+            "label": "Giấy tờ tùy thân",
+            "placeholder": "CCCD số 089092001456 do Cục Cảnh sát QLHC về TTXH cấp",
+            "type": "text"
+          },
+          {
+            "label": "Thông tin về Giấy chứng nhận kết hôn của cha, mẹ trẻ (nếu cha, mẹ trẻ đã ĐKKH)",
+            "placeholder": "Số: 45/2020, Quyển số: 01/2020, đăng ký ngày 12 tháng 10 năm 2020 tại UBND {WARD_NAME}",
             "type": "text"
           }
         ]
       }
     ],
-    "commitText": "Tôi cam đoan nội dung khai trên là đúng sự thật và chịu hoàn toàn trách nhiệm trước pháp luật về việc khai sinh của con.",
+    "commitText": "Tôi cam đoan nội dung đề nghị đăng ký khai sinh trên đây là đúng sự thật, được sự thỏa thuận nhất trí của các bên liên quan theo quy định pháp luật. Tôi chịu hoàn toàn trách nhiệm trước pháp luật về nội dung cam đoan của mình.",
     "signatures": [
       {
-        "role": "CÔNG CHỨC TƯ PHÁP - HỘ TỊCH",
-        "note": "(Ký, ghi rõ họ tên)"
+        "role": "Đề nghị cấp bản sao: Có [ ] , Không [ ]",
+        "note": "Số lượng: ....... bản"
       },
       {
-        "role": "NGƯỜI ĐI KHAI SINH",
-        "note": "(Ký và ghi rõ họ tên)"
+        "role": "Người yêu cầu",
+        "note": "(Ký, ghi rõ họ, chữ đệm, tên)"
       }
     ]
   },
@@ -322,85 +359,91 @@ export const CERTIFICATION_AND_LAND_TEMPLATES: Record<string, A4FormTemplate> = 
     "recipient": "Ủy ban nhân dân {WARD_NAME}",
     "sections": [
       {
-        "title": "I. THÔNG TIN BÊN NAM",
+        "title": "I. THÔNG TIN BÊN NỮ",
         "fields": [
           {
-            "label": "1. Họ, chữ đệm và tên nam",
-            "placeholder": "NGUYỄN VĂN HÙNG",
+            "label": "Họ, chữ đệm, tên",
+            "placeholder": "NGUYỄN THỊ H.",
             "type": "text",
             "isBold": true
           },
           {
-            "label": "2. Ngày sinh",
-            "placeholder": "15/03/1998 (Đủ 20 tuổi trở lên)",
+            "label": "Ngày, tháng, năm sinh",
+            "placeholder": "26/05/1991",
             "type": "grid2",
-            "secondLabel": "3. Dân tộc",
+            "secondLabel": "Dân tộc",
             "secondPlaceholder": "Kinh"
           },
           {
-            "label": "4. Số CCCD",
-            "placeholder": "089098001122",
-            "type": "grid2",
-            "secondLabel": "5. Quốc tịch",
-            "secondPlaceholder": "Việt Nam"
+            "label": "Quốc tịch",
+            "placeholder": "Việt Nam",
+            "type": "text"
           },
           {
-            "label": "6. Nơi cư trú",
+            "label": "Nơi cư trú",
             "placeholder": "{WARD_NAME}, Tỉnh An Giang",
             "type": "text"
           },
           {
-            "label": "7. Tình trạng hôn nhân",
-            "placeholder": "Chưa đăng ký kết hôn lần nào",
+            "label": "Giấy tờ tùy thân",
+            "placeholder": "Căn cước công dân số: 089191003344 do Cục CSQLHC về TTXH cấp ngày 15/08/2022",
+            "type": "text"
+          },
+          {
+            "label": "Kết hôn lần thứ mấy",
+            "placeholder": "1",
             "type": "text"
           }
         ]
       },
       {
-        "title": "II. THÔNG TIN BÊN NỮ",
+        "title": "II. THÔNG TIN BÊN NAM",
         "fields": [
           {
-            "label": "1. Họ, chữ đệm và tên nữ",
-            "placeholder": "LÊ THỊ MAI",
+            "label": "Họ, chữ đệm, tên",
+            "placeholder": "TRẦN HẢI N.",
             "type": "text",
             "isBold": true
           },
           {
-            "label": "2. Ngày sinh",
-            "placeholder": "20/10/2002 (Đủ 18 tuổi trở lên)",
+            "label": "Ngày, tháng, năm sinh",
+            "placeholder": "23/08/1987",
             "type": "grid2",
-            "secondLabel": "3. Dân tộc",
+            "secondLabel": "Dân tộc",
             "secondPlaceholder": "Kinh"
           },
           {
-            "label": "4. Số CCCD",
-            "placeholder": "089102003344",
-            "type": "grid2",
-            "secondLabel": "5. Quốc tịch",
-            "secondPlaceholder": "Việt Nam"
+            "label": "Quốc tịch",
+            "placeholder": "Việt Nam",
+            "type": "text"
           },
           {
-            "label": "6. Nơi cư trú",
+            "label": "Nơi cư trú",
             "placeholder": "{WARD_NAME}, Tỉnh An Giang",
             "type": "text"
           },
           {
-            "label": "7. Tình trạng hôn nhân",
-            "placeholder": "Chưa đăng ký kết hôn lần nào",
+            "label": "Giấy tờ tùy thân",
+            "placeholder": "Căn cước công dân số: 089087001122 do Cục CSQLHC về TTXH cấp ngày 10/07/2021",
+            "type": "text"
+          },
+          {
+            "label": "Kết hôn lần thứ mấy",
+            "placeholder": "1",
             "type": "text"
           }
         ]
       }
     ],
-    "commitText": "Hai bên chúng tôi tự nguyện kết hôn, không bị ai ép buộc hay lừa dối, không vi phạm các điều cấm kết hôn của Luật Hôn nhân và Gia đình.",
+    "commitText": "Chúng tôi cam đoan những lời khai trên đây là đúng sự thật, việc kết hôn của chúng tôi là tự nguyện, không vi phạm quy định của Luật hôn nhân và gia đình Việt Nam.\nChúng tôi chịu hoàn toàn trách nhiệm trước pháp luật về cam đoan của mình.\nĐề nghị Quý cơ quan đăng ký.",
     "signatures": [
       {
-        "role": "CHỮ KÝ CỦA BÊN NAM",
-        "note": "(Ký và ghi rõ họ tên)"
+        "role": "Bên nữ",
+        "note": "(Ký, ghi rõ họ, chữ đệm, tên)"
       },
       {
-        "role": "CHỮ KÝ CỦA BÊN NỮ",
-        "note": "(Ký và ghi rõ họ tên)"
+        "role": "Bên nam",
+        "note": "(Ký, ghi rõ họ, chữ đệm, tên)"
       }
     ]
   },
