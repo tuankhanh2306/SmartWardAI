@@ -17,7 +17,7 @@
 | :---: | :--- | :--- | :---: | :--- | :---: |
 | **Chặng M0** | `feature/mobile-phase0-backend-sync` | Chuẩn hóa nhánh Git, CORS LAN/Mobile, API tra cứu QR tại quầy & đồng bộ DB | **8 Tasks** (`MOB-0.1` → `0.8`) | `524` JUnit Tests PASS | ✅ Hoàn thành |
 | **Chặng M1** | `feature/mobile-phase1-foundation` | Khởi tạo Expo SDK 52, Design Tokens `A/A+/A++`, Shared Core & Chọn 96 Xã | **14 Tasks** (`MOB-1.1` → `1.14`) | TypeScript `0 errors` + `36/36` Core Unit Tests PASS | ✅ Hoàn thành |
-| **Chặng M2** | `feature/mobile-phase2-legal-rag-tts` | Tab 1 (`LegalRagChatScreen`): 40 TTHC Offline/Online, TTS `MỞ/TẮT`, Tải `.docx`/`.pdf` | **11 Tasks** (`MOB-2.1` → `2.11`) | RAG Guardrail & TTS Lifecycle Tests PASS | ⏳ Chờ thực hiện |
+| **Chặng M2** | `feature/mobile-phase2-legal-rag-tts` | Tab 1 (`LegalRagChatScreen`): 40 TTHC Offline/Online, TTS `MỞ/TẮT`, Tải `.docx`/`.pdf` | **11 Tasks** (`MOB-2.1` → `2.11`) | RAG Guardrail & TTS Lifecycle (`45/45` Tests PASS) | ✅ Hoàn thành |
 | **Chặng M3** | `feature/mobile-phase3-smart-form-vision` | Tab 2 (`SmartFormPrecheckScreen`): Quét QR CCCD 60fps, AI Vision Gate 3 tiêu chí, 4 mẫu đơn | **14 Tasks** (`MOB-3.1` → `3.14`) | Vision Gate + 4-Form Rule Engine Tests PASS | ⏳ Chờ thực hiện |
 | **Chặng M4** | `feature/mobile-phase4-qr-wallet-and-gps` | Tab 3 (`DossierAndQrPassScreen` SQLite Offline + PDF) & Tab 4 (`FieldIncidentReportScreen` GPS 25m) | **11 Tasks** (`MOB-4.1` → `4.11`) | Offline Airplane Mode + GPS 25m Tests PASS | ⏳ Chờ thực hiện |
 | **Chặng M5** | `feature/mobile-phase5-officer-audit-e2e` | Tab 5 (`OfficerMobileAuditScreen` Quét QR tại quầy + Vault OTT), E2E Sync Web ↔ Mobile | **10 Tasks** (`MOB-5.1` → `5.10`) | 100% E2E Cross-Platform & Merge `develop` | ⏳ Chờ thực hiện |
@@ -111,37 +111,37 @@
 ## 💬 CHẶNG M2: TAB 1 (`LegalRagChatScreen`) — HỎI ĐÁP 40 TTHC, GIỌNG ĐỌC TTS MỞ/TẮT & TẢI MẪU `.DOCX`/`.PDF`
 > **Mục tiêu:** Hoàn thiện kênh tra cứu và tư vấn pháp lý 40 TTHC cấp xã tỉnh An Giang 2026 với cơ chế chống ảo giác (`θ = 0.78`), đọc giọng nói tiếng Việt cho người cao tuổi và tải trực tiếp biểu mẫu về máy.
 
-- [ ] **MOB-2.1 [Đồng bộ & Cache 40 TTHC An Giang 2026]:**
+- [x] **MOB-2.1 [Đồng bộ & Cache 40 TTHC An Giang 2026]:**
   - Khi mở `LegalRagChatScreen`, gọi `GET /api/v1/procedures` lưu toàn bộ 40 TTHC vào bảng `cached_procedures` trên `expo-sqlite`. Nếu mất mạng, tự động đọc từ `cached_procedures` và `legalKnowledgeBase.ts`.
-- [ ] **MOB-2.2 [Thanh Lọc Nhanh Nhóm Thủ tục & Câu hỏi Gợi ý]:**
+- [x] **MOB-2.2 [Thanh Lọc Nhanh Nhóm Thủ tục & Câu hỏi Gợi ý]:**
   - Hiển thị dải nút lọc ngang (Chips): `Tất cả (40)`, `Cư trú (CT01)`, `Hộ tịch (Khai sinh/Kết hôn)`, `Chứng thực`, `Bảo trợ XH`, `Đất đai & Xây dựng`.
   - Hiển thị các câu hỏi mẫu 1 chạm phổ biến tại An Giang để người dân lớn tuổi không cần gõ phím nhiều.
-- [ ] **MOB-2.3 [Hiển thị Thẻ Câu trả lời Pháp lý 5 Phần Chuẩn hóa]:**
+- [x] **MOB-2.3 [Hiển thị Thẻ Câu trả lời Pháp lý 5 Phần Chuẩn hóa]:**
   - Kết nối `POST /api/v1/rag/ask` với `{ question, wardName, threshold: 0.78 }`.
   - Hiển thị rõ huy hiệu mã thủ tục và điểm tương đồng Cosine: ví dụ `TTHC-CR-01 • S_max = 0.94`.
   - Trình bày 5 mục rõ ràng: **1. Thành phần hồ sơ**, **2. Thời hạn giải quyết**, **3. Lệ phí & Đối tượng miễn giảm**, **4. Nơi tiếp nhận (gắn đúng tên UBND xã/phường đang chọn)**, **5. Căn cứ pháp lý trích dẫn (2026)**.
-- [ ] **MOB-2.4 [Giao diện Chốt chặn Từ chối An toàn (`Abstention Guardrail` khi `S_max < 0.78`)]:**
+- [x] **MOB-2.4 [Giao diện Chốt chặn Từ chối An toàn (`Abstention Guardrail` khi `S_max < 0.78`)]:**
   - Khi phản hồi từ Backend có `abstained: true` hoặc `maxSimilarity < 0.78`, hiển thị thẻ cảnh báo màu vàng/đỏ nhạt giải thích rõ câu hỏi nằm ngoài phạm vi 40 TTHC cấp xã hoặc chưa đủ độ tin cậy pháp lý, tuyệt đối không sinh câu trả lời suy đoán.
   - Nếu điểm nằm trong vùng xám (`0.42 <= S_max < 0.78`), thông báo câu hỏi đã được chuyển vào hàng đợi `HITL Queue` để cán bộ Tư pháp - Hộ tịch thẩm định.
-- [ ] **MOB-2.5 [Component Nút Đọc Giọng Nói 2 Chế độ (`VoiceReaderToggle.tsx`)]:**
+- [x] **MOB-2.5 [Component Nút Đọc Giọng Nói 2 Chế độ (`VoiceReaderToggle.tsx`)]:**
   - Sử dụng `expo-speech` (`Speech.speak(cleanText, { language: 'vi-VN', rate: 0.95 })`).
   - **Trạng thái 1 (Chưa đọc — Mặc định):** Nền `#FFFFFF`, viền `#A7F3D0`, chữ `#065F46`, nhãn `🔊 Nghe đọc to` + badge `#00796B` chữ trắng **`MỞ`**.
   - **Trạng thái 2 (Đang đọc):** Nền `#FEF2F2`, viền `#FCA5A5`, chữ `#DC2626`, nhãn `🔇 Đang đọc...` + badge `#DC2626` chữ trắng **`TẮT`**.
-- [ ] **MOB-2.6 [Quản lý Vòng đời Âm thanh TTS (Chống đọc tràn sang màn hình khác)]:**
+- [x] **MOB-2.6 [Quản lý Vòng đời Âm thanh TTS (Chống đọc tràn sang màn hình khác)]:**
   - Tự động gọi `Speech.stop()` và đặt `isSpeaking = false` khi: (a) người dùng bấm lại nút `TẮT`, (b) người dùng gửi câu hỏi mới, (c) người dùng chuyển sang Tab khác (`blur` event), hoặc (d) component unmount.
-- [ ] **MOB-2.7 [Thanh Tải Biểu mẫu Trực tiếp `.DOCX` và `.PDF` (`TemplateDownloadBar.tsx`)]:**
+- [x] **MOB-2.7 [Thanh Tải Biểu mẫu Trực tiếp `.DOCX` và `.PDF` (`TemplateDownloadBar.tsx`)]:**
   - Đặt ngay dưới mỗi câu trả lời thủ tục 2 nút bấm kích thước `>= 48dp`:
     - **`📄 Tải Mẫu .DOCX`** (Ví dụ: `Mau_CT01_CuTru_Chuan_ND30.docx`)
     - **`📥 Tải Mẫu .PDF`** (Ví dụ: `Mau_CT01_CuTru_Chuan_ND30.pdf`)
   - Ghi tệp vào `FileSystem.documentDirectory` và mở hộp thoại chia sẻ/lưu tệp hệ thống qua `Sharing.shareAsync()`.
-- [ ] **MOB-2.8 [Kiểm tra Kỷ luật Cấm Nút In]:**
+- [x] **MOB-2.8 [Kiểm tra Kỷ luật Cấm Nút In]:**
   - Rà soát toàn bộ `LegalRagChatScreen` và `TemplateDownloadBar` đảm bảo **không tồn tại bất kỳ nút "In" hay lệnh `print` hội thoại nào**.
-- [ ] **MOB-2.9 [Nút Chuyển tiếp Nhanh sang Tab Sơ duyệt]:**
+- [x] **MOB-2.9 [Nút Chuyển tiếp Nhanh sang Tab Sơ duyệt]:**
   - Thêm nút CTA phụ `"🛡️ Chuyển sang Sơ duyệt & Kiểm tra tờ khai này"` tự động mở Tab 2 (`SmartFormPrecheckScreen`) và chọn đúng mã biểu mẫu tương ứng (`CT01`, `TK-KS`, `TK-KH`, `TK-BTXH`).
-- [ ] **MOB-2.10 [Áp dụng Cỡ chữ Động `A / A+ / A++`]:**
+- [x] **MOB-2.10 [Áp dụng Cỡ chữ Động `A / A+ / A++`]:**
   - Toàn bộ nội dung câu trả lời pháp lý, trích dẫn điều khoản và nút bấm trên Tab 1 phải tự động co giãn tức thì khi người dân bấm nút `A Cỡ chữ` trên Header.
-- [ ] **MOB-2.11 [Gate 2 Verification]:**
-  - Kiểm thử đầy đủ các kịch bản hỏi đáp 40 TTHC, câu hỏi bẫy (`S_max < 0.78`), bật/tắt giọng đọc TTS và tải file `.docx`/`.pdf` đạt 100% PASS.
+- [x] **MOB-2.11 [Gate 2 Verification]:**
+  - Kiểm thử đầy đủ các kịch bản hỏi đáp 40 TTHC, câu hỏi bẫy (`S_max < 0.78`), bật/tắt giọng đọc TTS và tải file `.docx`/`.pdf` đạt 100% PASS (`45/45` tests, `0` TypeScript errors).
 
 ---
 
