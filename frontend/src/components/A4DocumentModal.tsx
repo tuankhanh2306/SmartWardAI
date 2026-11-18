@@ -204,18 +204,34 @@ function getStandardSampleData(category: string, wardName: string) {
       fullName: 'NGUYỄN VĂN PHÚC',
       dob: '12/03/1948',
       gender: 'Nam',
+      ethnicity: 'Kinh',
       idNumber: '089048000123',
+      issueDate: '12/05/2021',
+      idIssuePlace: 'Cục CSQLHC về TTXH',
       address: `Số 56 Tôn Đức Thắng, ${wardName}, Tỉnh An Giang`,
-      householdStatus: 'Người cao tuổi từ đủ 75 tuổi trở lên không có lương hưu',
+      currentAddress: `Số 56 Tôn Đức Thắng, ${wardName}, Tỉnh An Giang`,
+      phone: '0918234567',
+      hasBhyt: 'YES',
+      bhytNumber: 'BT4898904800123',
+      socialTargetGroup: 'ELDERLY_PENSION',
+      householdStatus: 'NORMAL',
       poorHouseholdBookNumber: 'HN-89021/UBND',
-      disabilityLevel: 'Đặc biệt nặng',
+      disabilityLevel: 'NONE',
       disabilityCertNumber: 'KT-045/UBND',
       disabilityCertIssueDate: '15/04/2021',
-      disabilityCertIssuer: `UBND ${wardName}`,
+      disabilityCertIssuer: `Chủ tịch UBND ${wardName}`,
       guardianName: 'NGUYỄN VĂN HẢI',
-      guardianRelation: 'Con đẻ',
       guardianCccd: '089078004567',
-      bankAccount: `089048000123 - Ngân hàng VietinBank Chi nhánh ${wardName}`,
+      guardianIssueDate: '10/06/2021',
+      guardianIssuePlace: 'Cục CSQLHC về TTXH',
+      guardianDob: '18/09/1978',
+      guardianGender: 'Nam',
+      guardianEthnicity: 'Kinh',
+      guardianAddress: `Số 56 Tôn Đức Thắng, ${wardName}, Tỉnh An Giang`,
+      guardianPhone: '0987654321',
+      guardianRelation: 'Con đẻ',
+      paymentMethod: 'BANK',
+      bankAccount: `70110000889912 - VietinBank Chi nhánh ${wardName}`,
       applicantSignName: 'NGUYỄN VĂN PHÚC',
     };
   }
@@ -395,6 +411,9 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
     resolvedCategory === 'TK-KH' &&
     effectiveProcedureCode === 'TTHC-HT-02' &&
     marriageMode !== 'MARITAL_STATUS_CONFIRMATION';
+
+  const isSocialWelfare =
+    resolvedCategory === 'TK-BTXH' || effectiveProcedureCode === 'TTHC-BT-01';
 
   const formatDisplayDate = (raw?: string): string => {
     if (!raw || !raw.trim()) return '';
@@ -578,6 +597,21 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
             </div>
             <div className="w-20 h-28 sm:w-24 sm:h-[116px] border border-black shrink-0 flex items-center justify-center text-[11pt]">
               Ảnh
+            </div>
+          </div>
+        ) : isSocialWelfare ? (
+          <div className="pb-2">
+            <div className="text-right text-[11pt] font-bold mb-1">
+              Mẫu số 01
+            </div>
+            <div className="text-center">
+              <div className="text-[11.5pt] font-bold uppercase tracking-wide">
+                CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM
+              </div>
+              <div className="text-[12pt] font-bold">
+                Độc lập - Tự do - Hạnh phúc
+              </div>
+              <div className="w-48 mx-auto mt-1 border-b border-black"></div>
             </div>
           </div>
         ) : (
@@ -1322,69 +1356,350 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         {/* ========================================================================= */}
         {/* 4. MẪU TK-BTXH: BẢO TRỢ XÃ HỘI (NGHỊ ĐỊNH 20/2021, NĐ 76/2024 & BHXH 2024)*/}
         {/* ========================================================================= */}
-        {resolvedCategory === 'TK-BTXH' && (
-          <div className="space-y-4">
-            <div className="text-center my-4">
-              <h1 className="text-[15pt] sm:text-[16pt] font-extrabold uppercase">
-                TỜ KHAI THÔNG TIN ĐỀ NGHỊ TRỢ CẤP XÃ HỘI HẰNG THÁNG
-              </h1>
-              <p className="text-[11pt] italic text-neutral-700 mt-1">
-                (Mẫu số 1a, 1b, 1c, 1d, 1đ ban hành kèm theo Nghị định số 20/2021/NĐ-CP &amp; Luật BHXH 2024, sửa đổi tại Nghị định số 76/2024/NĐ-CP)
-              </p>
-              <div className="mt-3 font-bold italic text-[12pt]">
-                Kính gửi: Ủy ban nhân dân {currentWard.name}
-              </div>
-            </div>
+        {resolvedCategory === 'TK-BTXH' && (() => {
+          const chk = (checked: boolean) => (
+            <span className="inline-flex w-3.5 h-3.5 border border-black items-center justify-center text-[8.5pt] font-bold leading-none mr-1 align-middle bg-white shrink-0">
+              {!isBlank && checked ? '✓' : ''}
+            </span>
+          );
+          const d = (filled: string | undefined, fallback: string, dots = '……………………………………') =>
+            isBlank ? dots : (filled && filled.trim() ? filled.trim() : fallback);
 
-            <div className="space-y-2.5 text-[12pt]">
-              <div>1. Họ và tên người đề nghị: <strong className="uppercase">{val(activeData.fullName, blankDot, blankDot)}</strong></div>
-              <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">Ngày sinh: <strong>{val(activeData.dob, '....../....../..........', '....../....../..........')}</strong></div>
-                <div className="col-span-6">Giới tính: <strong>{val(activeData.gender, 'Nam / Nữ', shortDot)}</strong></div>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <span>Số định danh cá nhân / CCCD:</span>
-                {renderIdBoxes(activeData.idNumber, '089048000123')}
-              </div>
-              <div>Nơi thường trú: <strong>{val(activeData.address, `${currentWard.name}, Tỉnh An Giang`, blankDot)}</strong></div>
-              <div>
-                2. Thuộc diện trợ cấp: <strong>{val(activeData.householdStatus, 'Người cao tuổi từ đủ 75 tuổi trở lên không có lương hưu', blankDot)}</strong>
-              </div>
-              {activeData.poorHouseholdBookNumber && !isBlank && (
-                <div>Số sổ hộ nghèo / Giấy chứng nhận: <strong className="font-mono">{val(activeData.poorHouseholdBookNumber)}</strong></div>
-              )}
-              {activeData.disabilityCertNumber && !isBlank && (
-                <div>Giấy xác nhận khuyết tật số: <strong className="font-mono">{val(activeData.disabilityCertNumber)}</strong>, ngày cấp: <strong>{val(activeData.disabilityCertIssueDate, shortDot, shortDot)}</strong> do <strong>{val(activeData.disabilityCertIssuer, `UBND ${currentWard.name}`, shortDot)}</strong> cấp.</div>
-              )}
-              <div>
-                3. Người giám hộ / chăm sóc (nếu có): <strong>{val(activeData.guardianName, shortDot, shortDot)}</strong> (Quan hệ: <strong>{val(activeData.guardianRelation, shortDot, shortDot)}</strong>, CCCD: <strong className="font-mono">{val(activeData.guardianCccd, shortDot, shortDot)}</strong>)
-              </div>
-              <div>
-                4. Hình thức nhận trợ cấp: Tài khoản ngân hàng số: <strong className="font-mono text-teal-800">{val(activeData.bankAccount, 'Đăng ký tài khoản nhận trợ cấp theo Đề án 06', blankDot)}</strong>
-              </div>
-            </div>
+          const tg = String(activeData.socialTargetGroup || 'ELDERLY_PENSION');
+          const hs = String(activeData.householdStatus || '');
+          const dl = String(activeData.disabilityLevel || '');
+          const isPoor = hs === 'POOR' || hs.toLowerCase().includes('hộ nghèo');
+          const isNearPoor = hs === 'NEAR_POOR' || hs.toLowerCase().includes('cận nghèo');
+          const isSevereDis = dl === 'SEVERE' || dl === 'Nặng';
+          const isExtSevereDis = dl === 'EXTREMELY_SEVERE' || dl === 'Đặc biệt nặng';
+          const hasDis = isSevereDis || isExtSevereDis || tg === 'DISABILITY';
+          const hasBhytYes = activeData.hasBhyt !== 'NO';
+          const payMethod = String(activeData.paymentMethod || 'BANK');
+          const bankRaw = String(activeData.bankAccount || '').trim();
+          const bankSplit = bankRaw.split(/\s*-\s*/);
+          const bankNo = bankSplit[0] || '';
+          const bankOrg = bankSplit.slice(1).join(' - ') || `VietinBank Chi nhánh ${currentWard.name}`;
 
-            <div className="pt-6 mt-6 border-t border-neutral-300">
-              <p className="italic text-[11pt] text-neutral-800 mb-4">
-                Tôi xin cam đoan những thông tin kê khai trên là hoàn toàn đúng sự thật và chịu trách nhiệm trước pháp luật.
-              </p>
-              <div className="grid grid-cols-2 gap-4 text-center text-[12pt]">
+          return (
+            <div className="space-y-2.5 text-[10.5pt] leading-snug">
+              <div className="text-center my-2">
+                <h1 className="text-[13.5pt] sm:text-[14.5pt] font-extrabold uppercase">
+                  TỜ KHAI ĐỀ NGHỊ TRỢ CẤP XÃ HỘI, TRỢ CẤP HƯU TRÍ XÃ HỘI
+                </h1>
+              </div>
+
+              <div className="space-y-1 text-[10pt]">
+                <div className="font-semibold">Đối tượng thực hiện khai thông tin liên quan (nếu có) như sau:</div>
+                <div>{chk(tg === 'ORPHAN_CHILD')} Trẻ em dưới 16 tuổi không có nguồn nuôi dưỡng khai mục I, mục II (1.1; 1.5) và mục III</div>
+                <div>{chk(tg === 'STUDENT_16')} Người từ đủ 16 tuổi không có nguồn nuôi dưỡng đang đi học khai mục I, mục II 1.2</div>
+                <div>{chk(tg === 'SINGLE_PARENT')} Người đơn thân thuộc diện hộ nghèo, cận nghèo nuôi con khai mục I.1, mục II. (1.3) và mục III</div>
+                <div>{chk(tg === 'DISABILITY' || isSevereDis || isExtSevereDis)} Người khuyết tật khai mục I, mục II. (1.3; 1.4; 1.5) và mục III</div>
+                <div>{chk(tg === 'UNDER3_POOR')} Trẻ em dưới 03 tuổi thuộc hộ nghèo, cận nghèo khai mục I, mục II.1.6 và mục III</div>
+                <div>{chk(tg === 'HIV_AIDS')} Trẻ em, người nhiễm HIV/AIDS khai mục I, mục II.1.7 và mục III</div>
+                <div>{chk(tg === 'ELDERLY_SOCIAL')} Người cao tuổi đề nghị hưởng trợ cấp xã hội khai mục I, mục II (1.3, 1.4, 1.5) và mục III</div>
+                <div>{chk(tg === 'ELDERLY_PENSION')} Người cao tuổi đề nghị hưởng trợ cấp hưu trí xã hội khai mục I, mục II.2 và mục III.</div>
+              </div>
+
+              <div className="text-center font-bold text-[11pt] pt-1">
+                Kính gửi: Chủ tịch UBND xã (phường, đặc khu) {isBlank ? '................................................' : currentWard.name}
+              </div>
+
+              {/* I. Thông tin chung */}
+              <div className="font-bold text-[11pt] pt-1">I. Thông tin chung</div>
+              <div className="pl-1 space-y-1.5">
+                <div className="font-bold">1. Đối tượng hưởng trợ cấp xã hội, trợ cấp hưu trí xã hội</div>
+                <div>1.1. Họ và tên: <strong className="uppercase">{d(activeData.fullName, 'NGUYỄN VĂN PHÚC', '…………………………………………………')}</strong></div>
                 <div>
-                  <div className="font-bold uppercase">XÁC NHẬN CỦA TRƯỞNG ẤP/KHÓM</div>
-                  <div className="italic text-[10pt] text-neutral-600">(Ký, ghi rõ họ tên)</div>
+                  Số căn cước/Số định danh cá nhân: <strong>{d(activeData.idNumber, '089048000123', '…………………………')}</strong>, ngày cấp <strong>{formatDisplayDate(d(activeData.issueDate, '12/05/2021', '………/………/………'))}</strong>
+                </div>
+                <div>Nơi cấp: <strong>{d(activeData.idIssuePlace, 'Cục Cảnh sát QLHC về TTXH', '…………………………………………………………')}</strong></div>
+                <div className="grid grid-cols-12 gap-2">
+                  <div className="col-span-5">Ngày sinh: <strong>{formatDisplayDate(d(activeData.dob, '12/03/1948', '………/………/………'))}</strong></div>
+                  <div className="col-span-3">Giới tính: <strong>{d(activeData.gender, 'Nam', '……………')}</strong></div>
+                  <div className="col-span-4">Dân tộc: <strong>{d(activeData.ethnicity, 'Kinh', '……………')}</strong></div>
+                </div>
+                <div>1.2. Nơi cư trú: <strong>{d(activeData.address, `${currentWard.name}, Tỉnh An Giang`, '……………………………………………………………………')}</strong></div>
+                <div>1.3. Nơi ở hiện nay (Ghi cụ thể): <strong>{d(activeData.currentAddress || activeData.address, `${currentWard.name}, Tỉnh An Giang`, '………………………………………………………')}</strong></div>
+                <div>1.4. Số điện thoại: <strong>{d(activeData.phone, '0918234567', '………………………………………………')}</strong></div>
+                <div className="flex flex-wrap items-center gap-4">
+                  <span>1.5. Thẻ BHYT:</span>
+                  <span>{chk(!hasBhytYes)} Không</span>
+                  <span>{chk(hasBhytYes)} Có</span>
+                </div>
+                <div>Số thẻ BHYT: <strong>{hasBhytYes ? d(activeData.bhytNumber, 'BT4898904800123', '……………………………………………………') : '……………………………………………………'}</strong></div>
+
+                <div>1.6. Chính sách đang hưởng hằng tháng (nếu có):</div>
+                <div className="pl-3 space-y-1 text-[10pt]">
+                  <div>{chk(false)} Lương hưu (Mức ……………… đồng/tháng. Hưởng từ tháng ……… / ………)</div>
+                  <div>{chk(false)} Trợ cấp BHXH (Mức ……………… đồng/tháng. Hưởng từ tháng ……… / ………)</div>
+                  <div>{chk(false)} Trợ cấp xã hội, trợ cấp hưu trí xã hội (Mức ……………… đồng/tháng. Hưởng từ tháng ……… / ………)</div>
+                  <div>{chk(false)} Trợ cấp ưu đãi người có công (Mức ……………… đồng/tháng. Hưởng từ tháng ……… / ………)</div>
+                  <div>{chk(false)} Trợ cấp, phụ cấp khác (Ghi cụ thể chính sách: ……………………… Mức ………… đồng/tháng. Hưởng từ tháng ……… / ………)</div>
+                </div>
+
+                <div className="font-bold pt-1">2. Thông tin người giám hộ</div>
+                <div>2.1. Họ và tên: <strong>{d(activeData.guardianName, 'NGUYỄN VĂN HẢI', '…………………………………………………')}</strong></div>
+                <div>
+                  Số căn cước/Số định danh cá nhân: <strong>{d(activeData.guardianCccd, '089078004567', '…………………………')}</strong>, ngày cấp <strong>{d(activeData.guardianIssueDate, '10/06/2021', '………/………/………')}</strong>
+                </div>
+                <div>Nơi cấp: <strong>{d(activeData.guardianIssuePlace, 'Cục Cảnh sát QLHC về TTXH', '…………………………………………………………')}</strong></div>
+                <div className="grid grid-cols-12 gap-2">
+                  <div className="col-span-5">Ngày sinh: <strong>{d(activeData.guardianDob, '18/09/1978', '………/………/………')}</strong></div>
+                  <div className="col-span-3">Giới tính: <strong>{d(activeData.guardianGender, 'Nam', '……………')}</strong></div>
+                  <div className="col-span-4">Dân tộc: <strong>{d(activeData.guardianEthnicity, 'Kinh', '……………')}</strong></div>
+                </div>
+                <div>2.2. Nơi cư trú: <strong>{d(activeData.guardianAddress, `${currentWard.name}, Tỉnh An Giang`, '……………………………………………………………………')}</strong></div>
+                <div>2.3. Nơi ở hiện nay (Ghi cụ thể): <strong>{d(activeData.guardianAddress, `${currentWard.name}, Tỉnh An Giang`, '………………………………………………………')}</strong></div>
+                <div>2.4. Số điện thoại: <strong>{d(activeData.guardianPhone, '0987654321', '………………………………………………')}</strong></div>
+                <div>2.5. Mối quan hệ với người đề nghị hưởng chính sách: <strong>{d(activeData.guardianRelation, 'Con đẻ', '……………………………')}</strong></div>
+              </div>
+
+              {/* II. Thông tin đề nghị hưởng */}
+              <div className="font-bold text-[11pt] pt-2">II. Thông tin đề nghị hưởng trợ cấp xã hội, trợ cấp hưu trí xã hội</div>
+              <div className="pl-1 space-y-1.5">
+                <div className="font-bold">1. Thông tin đề nghị hưởng trợ cấp xã hội</div>
+                <div className="font-semibold">1.1. Trẻ em dưới 16 tuổi:</div>
+                <div className="pl-3 space-y-1">
+                  <div>a) Trẻ bị bỏ rơi chưa có người nhận làm con nuôi {chk(false)}</div>
+                  <div>b) Trẻ em dưới 16 không có nguồn nuôi dưỡng nhưng có cha mẹ thuộc một trong các trường hợp sau:</div>
+                  <div className="pl-2 space-y-1">
+                    <div className="font-semibold">b1) Thông tin của cha:</div>
+                    <div>- Họ và tên: ……………………………………………………………</div>
+                    <div>Số căn cước/Số định danh cá nhân: ………………………… ngày cấp ………/………/………</div>
+                    <div>Nơi cấp: …………………………………………………………………</div>
+                    <div>- Ngày sinh: ……… / ……… / ……… Giới tính: ………… Dân tộc: ……………</div>
+                    <div>- Nơi cư trú: ………………………………………………………………</div>
+                    <div>- Nơi ở hiện nay (Ghi cụ thể): …………………………………………………</div>
+                    <div>- Tình trạng hiện nay:</div>
+                    <div className="pl-3 space-y-0.5 text-[10pt]">
+                      <div>{chk(false)} Đã chết</div>
+                      <div>{chk(false)} Không xác định được;</div>
+                      <div>{chk(false)} Bị tuyên bố mất tích theo quy định của pháp luật</div>
+                      <div>{chk(false)} Đang hưởng chế độ chăm sóc, nuôi dưỡng tại cơ sở trợ giúp xã hội</div>
+                      <div>{chk(false)} Đang trong thời gian chấp hành án phạt tù tại trại giam</div>
+                      <div>{chk(false)} Đang chấp hành quyết định xử lý vi phạm hành chính tại trường giáo dưỡng, cơ sở giáo dục bắt buộc, cơ sở cai nghiện bắt buộc</div>
+                    </div>
+
+                    <div className="font-semibold pt-1">b2) Thông tin của mẹ</div>
+                    <div>Họ và tên: ……………………………………………………………</div>
+                    <div>- Số căn cước/Số định danh cá nhân: …………………… ngày cấp ………/………/………</div>
+                    <div>Nơi cấp: ………………………………………………………………</div>
+                    <div>- Ngày sinh: ……… / ……… / ……… Giới tính: ………… Dân tộc: ……………</div>
+                    <div>- Nơi cư trú: ………………………………………………………………</div>
+                    <div>- Nơi ở hiện nay (Ghi cụ thể): …………………………………………………</div>
+                    <div>- Tình trạng hiện nay:</div>
+                    <div className="pl-3 space-y-0.5 text-[10pt]">
+                      <div>{chk(false)} Đã chết</div>
+                      <div>{chk(false)} Không xác định được</div>
+                      <div>{chk(false)} Bị tuyên bố mất tích theo quy định của pháp luật</div>
+                      <div>{chk(false)} Đang hưởng chế độ chăm sóc, nuôi dưỡng tại cơ sở trợ giúp xã hội</div>
+                      <div>{chk(false)} Đang trong thời gian chấp hành án phạt tù tại trại giam</div>
+                      <div>{chk(false)} Đang chấp hành quyết định xử lý vi phạm hành chính tại trường giáo dưỡng, cơ sở giáo dục bắt buộc, cơ sở cai nghiện bắt buộc</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <span className="font-semibold">1.2. Người đang hưởng trợ cấp xã hội hằng tháng mà đủ 16 tuổi</span> nhưng đang học giáo dục phổ thông, giáo dục thường xuyên, giáo dục nghề nghiệp, giáo dục đại học văn bằng thứ nhất nếu quá trình học liên tục không bị gián đoạn (trừ trường hợp được tạm dừng học, bảo lưu kết quả học tập theo quy định của pháp luật về giáo dục).
+                  <div>Thông tin trường, lớp (Ghi cụ thể):</div>
+                  <div>………………………………………………………………………………………………………</div>
+                  <div>………………………………………………………………………………………………………</div>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="font-semibold">1.3. Người đơn thân đang nuôi con:</div>
+                  <div className="pl-3 flex flex-wrap gap-6">
+                    <span>a) Thuộc diện:</span>
+                    <span>{chk(tg === 'SINGLE_PARENT' && isPoor)} Hộ nghèo</span>
+                    <span>{chk(tg === 'SINGLE_PARENT' && isNearPoor)} Hộ cận nghèo</span>
+                  </div>
+                  <div className="pl-3 space-y-1">
+                    <div>b) Tình trạng hiện nay:</div>
+                    <div className="pl-2 space-y-0.5 text-[10pt]">
+                      <div>b1) Tình trạng hôn nhân:</div>
+                      <div>{chk(false)} Chưa có thông tin</div>
+                      <div>{chk(false)} Chưa kết hôn</div>
+                      <div>{chk(false)} Đang có vợ/chồng</div>
+                      <div>{chk(false)} Đã ly hôn hoặc đã goá vợ/chồng</div>
+                      <div>{chk(false)} Có chồng/vợ mất tích theo quy định</div>
+                      <div className="pt-0.5 text-[10.5pt]">Tổng số con đang nuôi: ……………, trong đó:</div>
+                    </div>
+                    <div className="pl-2 pt-1">
+                      <div>b2) Thông tin về con dưới 16 tuổi:</div>
+                      <table className="w-full border-collapse border border-black text-[10pt] mt-1">
+                        <thead>
+                          <tr>
+                            <th className="border border-black px-2 py-1 text-center w-12">STT</th>
+                            <th className="border border-black px-2 py-1 text-center">Họ và tên</th>
+                            <th className="border border-black px-2 py-1 text-center">CCCD/Mã định danh</th>
+                            <th className="border border-black px-2 py-1 text-center w-28">Ngày sinh</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {['1', '2', '…'].map((stt) => (
+                            <tr key={stt}>
+                              <td className="border border-black px-2 py-1 text-center">{stt}</td>
+                              <td className="border border-black px-2 py-1">&nbsp;</td>
+                              <td className="border border-black px-2 py-1">&nbsp;</td>
+                              <td className="border border-black px-2 py-1">&nbsp;</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="pl-2 pt-1">
+                      <div>b3) Thông tin về con từ đủ 16 tuổi đang học giáo dục phổ thông, giáo dục thường xuyên, giáo dục nghề nghiệp, giáo dục đại học văn bằng thứ nhất</div>
+                      <table className="w-full border-collapse border border-black text-[10pt] mt-1">
+                        <thead>
+                          <tr>
+                            <th className="border border-black px-2 py-1 text-center w-10">STT</th>
+                            <th className="border border-black px-2 py-1 text-center">Họ và tên</th>
+                            <th className="border border-black px-2 py-1 text-center">CCCD/Mã định danh</th>
+                            <th className="border border-black px-2 py-1 text-center w-24">Ngày sinh</th>
+                            <th className="border border-black px-2 py-1 text-center">Trường, lớp (Ghi cụ thể)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {['1', '2', '…'].map((stt) => (
+                            <tr key={stt}>
+                              <td className="border border-black px-2 py-1 text-center">{stt}</td>
+                              <td className="border border-black px-2 py-1">&nbsp;</td>
+                              <td className="border border-black px-2 py-1">&nbsp;</td>
+                              <td className="border border-black px-2 py-1">&nbsp;</td>
+                              <td className="border border-black px-2 py-1">&nbsp;</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-1 pt-1">
+                  <div className="font-semibold">1.4. Người cao tuổi:</div>
+                  <div className="pl-3 flex flex-wrap gap-6">
+                    <span>a) Thuộc diện:</span>
+                    <span>{chk((tg === 'ELDERLY_SOCIAL' || tg === 'ELDERLY_PENSION') && isPoor)} Hộ nghèo</span>
+                    <span>{chk((tg === 'ELDERLY_SOCIAL' || tg === 'ELDERLY_PENSION') && isNearPoor)} Hộ cận nghèo</span>
+                  </div>
+                  <div className="pl-3">
+                    <div>b) Thông tin về người có nghĩa vụ và quyền phụng dưỡng (gồm: vợ/chồng, con, cháu của người cao tuổi và những người khác có nghĩa vụ nuôi dưỡng, cấp dưỡng theo quy định của pháp luật về hôn nhân và gia đình………………):</div>
+                    <div>{chk(false)} Không</div>
+                    <div>{chk(false)} Có (Người này đang hưởng trợ cấp xã hội hằng tháng: {chk(false)} Không &nbsp;&nbsp; {chk(false)} Có)</div>
+                  </div>
+                </div>
+
+                <div className="space-y-1 pt-1">
+                  <div className="font-semibold">1.5. Người khuyết tật</div>
+                  <div className="pl-3 flex flex-wrap gap-5">
+                    <span>a) Mức độ khuyết tật:</span>
+                    <span>{chk(false)} Nhẹ</span>
+                    <span>{chk(isSevereDis)} Nặng</span>
+                    <span>{chk(isExtSevereDis)} Đặc biệt nặng</span>
+                  </div>
+                  <div className="pl-3 grid grid-cols-1 sm:grid-cols-2 gap-1 text-[10pt]">
+                    <div><span className="font-medium">b) Dạng tật:</span> {chk(false)} Khuyết tật vận động</div>
+                    <div>{chk(false)} Khuyết tật thần kinh, tâm thần</div>
+                    <div className="sm:pl-16">{chk(false)} Khuyết tật nghe, nói</div>
+                    <div>{chk(false)} Khuyết tật trí tuệ</div>
+                    <div className="sm:pl-16">{chk(false)} Khuyết tật nhìn</div>
+                    <div>{chk(false)} Khuyết tật khác (Ghi cụ thể: ………)</div>
+                  </div>
+                  <div className="pl-3">
+                    Giấy xác nhận khuyết tật số <strong>{hasDis && activeData.disabilityCertNumber ? d(activeData.disabilityCertNumber, '', '…………………') : '…………………'}</strong> ; Ngày cấp <strong>{hasDis && activeData.disabilityCertIssueDate ? formatDisplayDate(d(activeData.disabilityCertIssueDate, '', '………/………/…………')) : '………/………/…………'}</strong> ; Nơi cấp <strong>{hasDis && activeData.disabilityCertNumber ? d(activeData.disabilityCertIssuer, `Chủ tịch UBND ${currentWard.name}`, '………………………………') : '………………………………'}</strong>;
+                  </div>
+                </div>
+
+                <div className="pt-1">
+                  <div className="font-semibold">1.6. Trẻ em dưới 03 tuổi <span className="font-normal">(Không thuộc nhóm trẻ em mất nguồn nuôi dưỡng, trẻ em bị nhiễm HIV/AIDS, trẻ em khuyết tật)</span></div>
+                  <div className="pl-3">{chk(tg === 'UNDER3_POOR')} Đang sống tại địa bàn các xã, thôn vùng đồng bào dân tộc thiểu số và miền núi đặc biệt khó khăn</div>
+                </div>
+
+                <div className="pt-1 space-y-0.5">
+                  <div className="font-semibold">1.7. Trẻ em, người nhiễm HIV/AIDS:</div>
+                  <div className="pl-3 flex flex-wrap gap-6">
+                    <span>- Thuộc diện:</span>
+                    <span>{chk(tg === 'HIV_AIDS' && isPoor)} Hộ nghèo</span>
+                    <span>{chk(tg === 'HIV_AIDS' && isNearPoor)} Hộ cận nghèo</span>
+                  </div>
+                  <div className="pl-3">
+                    - Thu nhập từ tiền lương, tiền công, lương hưu, trợ cấp bảo hiểm xã hội hằng tháng (Nếu là trẻ em thì không khai mục này): &nbsp;
+                    <span>{chk(false)} Không</span> &nbsp;&nbsp; <span>{chk(false)} Có</span>
+                  </div>
+                </div>
+
+                <div className="font-bold pt-1">2. Thông tin đề nghị hưởng trợ cấp hưu trí xã hội</div>
+                <div className="pl-2 space-y-1 text-[10pt]">
+                  <div>{chk(tg === 'ELDERLY_PENSION' && !isPoor && !isNearPoor)} Người từ đủ 75 tuổi trở lên và không hưởng lương hưu hoặc trợ cấp bảo hiểm xã hội hằng tháng hoặc đang hưởng lương hưu hoặc trợ cấp bảo hiểm xã hội hằng tháng thấp hơn mức trợ cấp hưu trí quy định</div>
+                  <div>{chk(tg === 'ELDERLY_PENSION' && (isPoor || isNearPoor))} Người từ đủ 70 tuổi đến dưới 75 tuổi thuộc hộ nghèo, hộ cận nghèo và không hưởng lương hưu hoặc trợ cấp bảo hiểm xã hội hằng tháng hoặc đang hưởng lương hưu hoặc trợ cấp bảo hiểm xã hội hằng tháng thấp hơn mức trợ cấp hưu trí quy định</div>
+                </div>
+              </div>
+
+              {/* III. Phương thức nhận kinh phí trợ cấp */}
+              <div className="font-bold text-[11pt] pt-2">III. Phương thức nhận kinh phí trợ cấp</div>
+              <div className="pl-1 space-y-1">
+                <div className="font-bold">1. Thông tin người nhận (là người hưởng trợ cấp hoặc người nhận thay)</div>
+                <div>Họ và tên: <strong className="uppercase">{d(activeData.fullName, 'NGUYỄN VĂN PHÚC', '…………………………………………………')}</strong></div>
+                <div>
+                  - Số căn cước/Số định danh cá nhân: <strong>{d(activeData.idNumber, '089048000123', '…………………………')}</strong>, ngày cấp <strong>{formatDisplayDate(d(activeData.issueDate, '12/05/2021', '………/………/………'))}</strong>
+                </div>
+                <div>Nơi cấp: <strong>{d(activeData.idIssuePlace, 'Cục Cảnh sát QLHC về TTXH', '…………………………………………………………')}</strong></div>
+                <div className="grid grid-cols-12 gap-2">
+                  <div className="col-span-5">- Ngày sinh: <strong>{formatDisplayDate(d(activeData.dob, '12/03/1948', '………/………/………'))}</strong></div>
+                  <div className="col-span-3">Giới tính: <strong>{d(activeData.gender, 'Nam', '……………')}</strong></div>
+                  <div className="col-span-4">Dân tộc: <strong>{d(activeData.ethnicity, 'Kinh', '……………')}</strong></div>
+                </div>
+                <div>- Nơi cư trú: <strong>{d(activeData.address, `${currentWard.name}, Tỉnh An Giang`, '……………………………………………………………………')}</strong></div>
+                <div>- Nơi ở hiện nay (Ghi cụ thể): <strong>{d(activeData.currentAddress || activeData.address, `${currentWard.name}, Tỉnh An Giang`, '………………………………………………………')}</strong></div>
+
+                <div className="font-bold pt-1">2. Hình thức nhận</div>
+                <div className="pl-2 space-y-1">
+                  <div>a) Tiền mặt {chk(payMethod === 'CASH')}</div>
+                  <div>b) Tài khoản ngân hàng {chk(payMethod === 'BANK')}</div>
+                  <div className="pl-4 space-y-0.5">
+                    <div>Số tài khoản ngân hàng: <strong>{payMethod === 'BANK' ? d(bankNo, '70110000889912', '…………………………………………') : '…………………………………………'}</strong></div>
+                    <div>Tên chủ tài khoản: <strong className="uppercase">{payMethod === 'BANK' ? d(activeData.fullName, 'NGUYỄN VĂN PHÚC', '………………………………………………') : '………………………………………………'}</strong></div>
+                    <div>Tại ngân hàng: <strong>{payMethod === 'BANK' ? d(bankOrg, `VietinBank Chi nhánh ${currentWard.name}`, '………………………………………………') : '………………………………………………'}</strong></div>
+                  </div>
+                  <div>c) Ví điện tử {chk(payMethod === 'EWALLET')}</div>
+                  <div className="pl-4 space-y-0.5">
+                    <div>Số ví: <strong>{payMethod === 'EWALLET' ? d(bankNo, '', '…………………………………………………………') : '…………………………………………………………'}</strong></div>
+                    <div>Tên chủ ví: <strong>{payMethod === 'EWALLET' ? d(activeData.fullName, '', '……………………………………………………') : '……………………………………………………'}</strong></div>
+                    <div>Tên loại ví điện tử: <strong>{payMethod === 'EWALLET' ? d(bankOrg, '', '………………………………………………') : '………………………………………………'}</strong></div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-2">
+                <p className="indent-6">
+                  Tôi xin cam đoan những thông tin khai trên là đúng sự thật, nếu có điều gì khai không đúng, tôi xin chịu trách nhiệm hoàn toàn trước pháp luật.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4 text-center text-[11pt] pt-2">
+                <div className="pt-4">
+                  <div className="font-bold uppercase">NGƯỜI TIẾP NHẬN TỜ KHAI</div>
+                  <div className="italic text-[10pt]">(Ký, ghi rõ họ tên)</div>
                   <div className="h-20"></div>
                 </div>
                 <div>
-                  <div className="font-bold uppercase">NGƯỜI LÀM ĐƠN / GIÁM HỘ</div>
-                  <div className="italic text-[10pt] text-neutral-600">(Ký và ghi rõ họ tên)</div>
-                  <div className="h-20 flex items-end justify-center font-bold uppercase text-[11pt]">
+                  <div className="italic text-[10.5pt] mb-1">
+                    {isBlank ? '………' : currentWard.name}, ngày {isBlank ? '……' : String(day).padStart(2, '0')} tháng {isBlank ? '……' : String(month).padStart(2, '0')} năm {isBlank ? '……' : year}
+                  </div>
+                  <div className="font-bold uppercase">NGƯỜI KHAI</div>
+                  <div className="italic text-[10pt]">(Ký, ghi rõ họ tên)</div>
+                  <div className="h-20 flex items-end justify-center font-bold uppercase text-[10.5pt]">
                     {isBlank ? '' : (activeData.applicantSignName || activeData.fullName || '')}
                   </div>
                 </div>
               </div>
+
+              <div className="pt-3 border-t border-black/30 text-[9.5pt] italic text-neutral-800 leading-snug">
+                <strong>Ghi chú:</strong> Đối với trường hợp đối tượng gửi hồ sơ trực tuyến tại Cổng dịch vụ công quốc gia: Các thông tin trong tờ khai đã có trong Cơ sở dữ liệu quốc gia về dân cư, Cơ sở dữ liệu hộ tịch điện tử, Cơ sở dữ liệu quốc gia về Bảo hiểm, hệ thống thông tin có liên quan, được Phần mềm dịch vụ công liên thông điền tự động (thông tin liên quan tới ngày sinh, nơi cư trú của đối tượng). Các thông tin không có dữ liệu thì khai thông tin đầy đủ trong Tờ khai.
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* ========================================================================= */}
         {/* 5. NHÓM CHỨNG THỰC: CT-01/02 (NGHỊ ĐỊNH 23/2015/NĐ-CP & TT 01/2020)       */}

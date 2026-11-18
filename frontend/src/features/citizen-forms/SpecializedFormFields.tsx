@@ -94,6 +94,14 @@ export interface SpecializedFormFieldsProps {
   setGuardianPhone: (v: string) => void;
   bankAccount: string;
   setBankAccount: (v: string) => void;
+  socialTargetGroup?: string;
+  setSocialTargetGroup?: (v: string) => void;
+  hasBhyt?: 'YES' | 'NO';
+  setHasBhyt?: (v: 'YES' | 'NO') => void;
+  bhytNumber?: string;
+  setBhytNumber?: (v: string) => void;
+  paymentMethod?: 'BANK' | 'CASH' | 'EWALLET';
+  setPaymentMethod?: (v: 'BANK' | 'CASH' | 'EWALLET') => void;
 }
 
 export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (props) => {
@@ -123,6 +131,10 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
     guardianName, setGuardianName, guardianCccd, setGuardianCccd,
     guardianRelation, setGuardianRelation, guardianPhone, setGuardianPhone,
     bankAccount, setBankAccount,
+    socialTargetGroup = 'ELDERLY_PENSION', setSocialTargetGroup,
+    hasBhyt = 'YES', setHasBhyt,
+    bhytNumber = '', setBhytNumber,
+    paymentMethod = 'BANK', setPaymentMethod,
   } = props;
 
   return (
@@ -760,8 +772,31 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                   <div className="sm:col-span-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1] grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     <div className="sm:col-span-2 text-xs font-extrabold text-[#750715] flex items-center gap-1.5">
                       <Sparkles className="w-4 h-4 text-[#B90E23]" />
-                      <span>Kiểm tra điều kiện Mẫu số 1a-1đ Nghị định 20/2021/NĐ-CP, Nghị định 76/2024/NĐ-CP, Luật BHXH 2024 &amp; Tài khoản an sinh Đề án 06</span>
+                      <span>Kê khai Mẫu số 01 — Trợ cấp xã hội, Trợ cấp hưu trí xã hội (NĐ 20/2021, NĐ 76/2024 &amp; Luật BHXH 2024)</span>
                     </div>
+
+                    {setSocialTargetGroup && (
+                      <div className="sm:col-span-2 flex flex-col gap-1">
+                        <label htmlFor="p3-btxh-group" className="text-xs font-bold text-[#334155]">
+                          Nhóm đối tượng đề nghị (tích chọn ở đầu Mẫu số 01):
+                        </label>
+                        <select
+                          id="p3-btxh-group"
+                          value={socialTargetGroup}
+                          onChange={(e) => setSocialTargetGroup(e.target.value)}
+                          className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#0F172A]"
+                        >
+                          <option value="ELDERLY_PENSION">Người cao tuổi đề nghị hưởng trợ cấp hưu trí xã hội (Mục I, II.2, III)</option>
+                          <option value="ELDERLY_SOCIAL">Người cao tuổi đề nghị hưởng trợ cấp xã hội (Mục I, II.1.3-1.5, III)</option>
+                          <option value="DISABILITY">Người khuyết tật (Mục I, II.1.3-1.5, III)</option>
+                          <option value="SINGLE_PARENT">Người đơn thân hộ nghèo/cận nghèo nuôi con (Mục I.1, II.1.3, III)</option>
+                          <option value="ORPHAN_CHILD">Trẻ em dưới 16 tuổi không có nguồn nuôi dưỡng (Mục I, II.1.1, 1.5, III)</option>
+                          <option value="STUDENT_16">Người từ đủ 16 tuổi không nguồn nuôi dưỡng đang đi học (Mục I, II.1.2)</option>
+                          <option value="UNDER3_POOR">Trẻ em dưới 03 tuổi thuộc hộ nghèo/cận nghèo (Mục I, II.1.6, III)</option>
+                          <option value="HIV_AIDS">Trẻ em, người nhiễm HIV/AIDS (Mục I, II.1.7, III)</option>
+                        </select>
+                      </div>
+                    )}
 
                     <div className="flex flex-col gap-1">
                       <label htmlFor="p3-btxh-household" className="text-xs font-bold text-[#334155]">
@@ -905,9 +940,63 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                       </div>
                     </div>
 
+                    {setHasBhyt && setBhytNumber && (
+                      <div className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <div className="flex flex-col gap-1">
+                          <label htmlFor="p3-btxh-bhyt" className="text-xs font-bold text-[#334155]">
+                            Thẻ BHYT (Mục I.1.5 Mẫu 01):
+                          </label>
+                          <select
+                            id="p3-btxh-bhyt"
+                            value={hasBhyt}
+                            onChange={(e) => setHasBhyt(e.target.value as 'YES' | 'NO')}
+                            className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#0F172A]"
+                          >
+                            <option value="YES">Có thẻ BHYT</option>
+                            <option value="NO">Không có thẻ BHYT</option>
+                          </select>
+                        </div>
+                        {hasBhyt === 'YES' && (
+                          <div className="sm:col-span-2 flex flex-col gap-1">
+                            <label htmlFor="p3-btxh-bhyt-num" className="text-xs font-bold text-[#334155]">
+                              Số thẻ BHYT:
+                            </label>
+                            <input
+                              id="p3-btxh-bhyt-num"
+                              type="text"
+                              value={bhytNumber}
+                              placeholder="VD: BT4898904800123"
+                              onChange={(e) => setBhytNumber(e.target.value)}
+                              className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-mono text-[#0F172A]"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {setPaymentMethod && (
+                      <div className="flex flex-col gap-1 sm:col-span-2">
+                        <label htmlFor="p3-btxh-pay-method" className="text-xs font-bold text-[#334155]">
+                          Hình thức nhận kinh phí trợ cấp (Mục III.2 Mẫu số 01):
+                        </label>
+                        <select
+                          id="p3-btxh-pay-method"
+                          value={paymentMethod}
+                          onChange={(e) => setPaymentMethod(e.target.value as 'BANK' | 'CASH' | 'EWALLET')}
+                          className="w-full h-9 px-3 rounded-xl border border-[#CBD5E1] bg-white text-xs font-semibold text-[#0F172A]"
+                        >
+                          <option value="BANK">b) Tài khoản ngân hàng (Khuyến nghị theo Đề án 06)</option>
+                          <option value="CASH">a) Tiền mặt</option>
+                          <option value="EWALLET">c) Ví điện tử</option>
+                        </select>
+                      </div>
+                    )}
+
                     <div className="flex flex-col gap-1 sm:col-span-2">
                       <label htmlFor="p3-btxh-bank" className="text-xs font-bold text-[#334155]">
-                        Số tài khoản & Ngân hàng nhận trợ cấp an sinh không dùng tiền mặt (Đề án 06):
+                        {paymentMethod === 'EWALLET'
+                          ? 'Số ví & Loại ví điện tử nhận trợ cấp:'
+                          : 'Số tài khoản & Ngân hàng nhận trợ cấp an sinh không dùng tiền mặt (Đề án 06):'}
                       </label>
                       <input
                         id="p3-btxh-bank"

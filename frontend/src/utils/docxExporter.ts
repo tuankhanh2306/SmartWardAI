@@ -42,6 +42,7 @@ export async function exportA4TemplateToDocx(
   const isCt01 = template.procedureCode === 'TTHC-CR-01' || template.formCode.includes('CT01');
   const isBirthReg = template.procedureCode === 'TTHC-HT-01';
   const isMarriageReg = template.procedureCode === 'TTHC-HT-02';
+  const isSocialWelfare = template.procedureCode === 'TTHC-BT-01';
   const isPolice = template.agencyType === 'POLICE';
   const agencyLine1 = isPolice ? 'CÔNG AN TỈNH AN GIANG' : 'ỦY BAN NHÂN DÂN TỈNH AN GIANG';
   const agencyLine2 = isPolice
@@ -308,6 +309,57 @@ export async function exportA4TemplateToDocx(
           ],
         }),
       ]
+    : isSocialWelfare
+    ? [
+        new Paragraph({
+          alignment: AlignmentType.RIGHT,
+          spacing: { before: 0, after: 40 },
+          children: [
+            new TextRun({
+              text: 'Mẫu số 01',
+              bold: true,
+              size: 22, // 11pt
+              font: 'Times New Roman',
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 0, after: 20 },
+          children: [
+            new TextRun({
+              text: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM',
+              bold: true,
+              size: 24, // 12pt
+              font: 'Times New Roman',
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 0, after: 20 },
+          children: [
+            new TextRun({
+              text: 'Độc lập - Tự do - Hạnh phúc',
+              bold: true,
+              size: 25, // 12.5pt
+              font: 'Times New Roman',
+            }),
+          ],
+        }),
+        new Paragraph({
+          alignment: AlignmentType.CENTER,
+          spacing: { before: 0, after: 80 },
+          children: [
+            new TextRun({
+              text: '________________________',
+              bold: true,
+              size: 20,
+              font: 'Times New Roman',
+            }),
+          ],
+        }),
+      ]
     : [
         new Table({
           width: { size: 100, type: WidthType.PERCENTAGE },
@@ -400,8 +452,8 @@ export async function exportA4TemplateToDocx(
   // Build body elements (Paragraphs & Tables)
   const bodyChildren: Array<Paragraph | Table> = [];
 
-  // Title block (skipped for TTHC-HT-02 because title & Kính gửi sit between the two "Ảnh" boxes)
-  if (!isMarriageReg) {
+  // Title block (skipped for TTHC-HT-02 & TTHC-BT-01 because they use custom official layouts)
+  if (!isMarriageReg && !isSocialWelfare) {
     bodyChildren.push(
       new Paragraph({
         alignment: AlignmentType.CENTER,
@@ -967,6 +1019,278 @@ export async function exportA4TemplateToDocx(
         ],
       })
     );
+  } else if (isSocialWelfare) {
+    // Official Mẫu số 01: TỜ KHAI ĐỀ NGHỊ TRỢ CẤP XÃ HỘI, TRỢ CẤP HƯU TRÍ XÃ HỘI
+    const addM1Line = (
+      text: string,
+      opts?: { bold?: boolean; italic?: boolean; size?: number; align?: (typeof AlignmentType)[keyof typeof AlignmentType]; before?: number; after?: number; indent?: number }
+    ) => {
+      bodyChildren.push(
+        new Paragraph({
+          alignment: opts?.align ?? AlignmentType.LEFT,
+          spacing: { before: opts?.before ?? 35, after: opts?.after ?? 35 },
+          ...(opts?.indent ? { indent: { left: opts.indent } } : {}),
+          children: [
+            new TextRun({
+              text,
+              bold: opts?.bold ?? false,
+              italics: opts?.italic ?? false,
+              size: opts?.size ?? 22,
+              font: 'Times New Roman',
+            }),
+          ],
+        })
+      );
+    };
+
+    const buildM1Table = (headers: string[], widths: number[]): Table =>
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: gridBorders,
+        rows: [
+          new TableRow({
+            children: headers.map((h, i) =>
+              new TableCell({
+                width: { size: widths[i], type: WidthType.PERCENTAGE },
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [new TextRun({ text: h, bold: true, size: 20, font: 'Times New Roman' })],
+                  }),
+                ],
+              })
+            ),
+          }),
+          ...['1', '2', '…'].map(
+            (stt) =>
+              new TableRow({
+                children: headers.map((_, i) =>
+                  new TableCell({
+                    width: { size: widths[i], type: WidthType.PERCENTAGE },
+                    children: [
+                      new Paragraph({
+                        alignment: i === 0 ? AlignmentType.CENTER : AlignmentType.LEFT,
+                        children: [new TextRun({ text: i === 0 ? stt : ' ', size: 20, font: 'Times New Roman' })],
+                      }),
+                    ],
+                  })
+                ),
+              })
+          ),
+        ],
+      });
+
+    addM1Line('TỜ KHAI ĐỀ NGHỊ TRỢ CẤP XÃ HỘI, TRỢ CẤP HƯU TRÍ XÃ HỘI', {
+      bold: true,
+      size: 26,
+      align: AlignmentType.CENTER,
+      before: 100,
+      after: 80,
+    });
+    addM1Line('Đối tượng thực hiện khai thông tin liên quan (nếu có) như sau:', { bold: true, size: 21 });
+    [
+      '☐ Trẻ em dưới 16 tuổi không có nguồn nuôi dưỡng khai mục I, mục II (1.1; 1.5) và mục III',
+      '☐ Người từ đủ 16 tuổi không có nguồn nuôi dưỡng đang đi học khai mục I, mục II 1.2',
+      '☐ Người đơn thân thuộc diện hộ nghèo, cận nghèo nuôi con khai mục I.1, mục II. (1.3) và mục III',
+      '☐ Người khuyết tật khai mục I, mục II. (1.3; 1.4; 1.5) và mục III',
+      '☐ Trẻ em dưới 03 tuổi thuộc hộ nghèo, cận nghèo khai mục I, mục II.1.6 và mục III',
+      '☐ Trẻ em, người nhiễm HIV/AIDS khai mục I, mục II.1.7 và mục III',
+      '☐ Người cao tuổi đề nghị hưởng trợ cấp xã hội khai mục I, mục II (1.3, 1.4, 1.5) và mục III',
+      '☐ Người cao tuổi đề nghị hưởng trợ cấp hưu trí xã hội khai mục I, mục II.2 và mục III.',
+    ].forEach((t) => addM1Line(t, { size: 21, before: 20, after: 20 }));
+
+    addM1Line(`Kính gửi: Chủ tịch UBND xã (phường, đặc khu) ${wardName || '................................'}`, {
+      bold: true,
+      size: 23,
+      align: AlignmentType.CENTER,
+      before: 100,
+      after: 100,
+    });
+
+    // Section I
+    addM1Line('I. Thông tin chung', { bold: true, size: 23, before: 100 });
+    addM1Line('1. Đối tượng hưởng trợ cấp xã hội, trợ cấp hưu trí xã hội', { bold: true, size: 22 });
+    [
+      '1.1. Họ và tên: .....................................................................................',
+      'Số căn cước/Số định danh cá nhân: ...................................., ngày cấp ......../......../........',
+      'Nơi cấp: ...............................................................................................',
+      'Ngày sinh: ......../......../........   Giới tính: ................   Dân tộc: ................',
+      '1.2. Nơi cư trú: ....................................................................................',
+      '1.3. Nơi ở hiện nay (Ghi cụ thể): ...............................................................',
+      '1.4. Số điện thoại: .................................................................................',
+      '1.5. Thẻ BHYT:      ☐ Không                     ☐ Có',
+      'Số thẻ BHYT: ......................................................................................',
+      '1.6. Chính sách đang hưởng hằng tháng (nếu có):',
+    ].forEach((t) => addM1Line(t));
+    [
+      '☐ Lương hưu (Mức ................ đồng/tháng. Hưởng từ tháng ........ / ........)',
+      '☐ Trợ cấp BHXH (Mức ................ đồng/tháng. Hưởng từ tháng ........ / ........)',
+      '☐ Trợ cấp xã hội, trợ cấp hưu trí xã hội (Mức ................ đồng/tháng. Hưởng từ tháng ........ / ........)',
+      '☐ Trợ cấp ưu đãi người có công (Mức ................ đồng/tháng. Hưởng từ tháng ........ / ........)',
+      '☐ Trợ cấp, phụ cấp khác (Ghi cụ thể chính sách: .................. Mức .......... đồng/tháng. Hưởng từ tháng ........ / ........)',
+    ].forEach((t) => addM1Line(t, { size: 21, indent: 240, before: 20, after: 20 }));
+
+    addM1Line('2. Thông tin người giám hộ', { bold: true, size: 22, before: 80 });
+    [
+      '2.1. Họ và tên: .....................................................................................',
+      'Số căn cước/Số định danh cá nhân: ................................ ngày cấp ......../......../........',
+      'Nơi cấp: ...............................................................................................',
+      'Ngày sinh: ......../......../........   Giới tính: ................   Dân tộc: ................',
+      '2.2. Nơi cư trú: ....................................................................................',
+      '2.3. Nơi ở hiện nay (Ghi cụ thể): ...............................................................',
+      '2.4. Số điện thoại: .................................................................................',
+      '2.5. Mối quan hệ với người đề nghị hưởng chính sách: ........................................',
+    ].forEach((t) => addM1Line(t));
+
+    // Section II
+    addM1Line('II. Thông tin đề nghị hưởng trợ cấp xã hội, trợ cấp hưu trí xã hội', { bold: true, size: 23, before: 120 });
+    addM1Line('1. Thông tin đề nghị hưởng trợ cấp xã hội', { bold: true, size: 22 });
+    addM1Line('1.1. Trẻ em dưới 16 tuổi:', { bold: true });
+    addM1Line('a) Trẻ bị bỏ rơi chưa có người nhận làm con nuôi ☐', { indent: 200 });
+    addM1Line('b) Trẻ em dưới 16 không có nguồn nuôi dưỡng nhưng có cha mẹ thuộc một trong các trường hợp sau:', { indent: 200 });
+    [
+      'b1) Thông tin của cha:',
+      '- Họ và tên: .....................................................................................',
+      'Số căn cước/Số định danh cá nhân: ................................ ngày cấp ......../......../........',
+      'Nơi cấp: ...............................................................................................',
+      '- Ngày sinh: ...... / ...... / ........   Giới tính: ..........   Dân tộc: ............',
+      '- Nơi cư trú: ....................................................................................',
+      '- Nơi ở hiện nay (Ghi cụ thể): ...............................................................',
+      '- Tình trạng hiện nay:',
+      '☐ Đã chết   ☐ Không xác định được;   ☐ Bị tuyên bố mất tích theo quy định của pháp luật',
+      '☐ Đang hưởng chế độ chăm sóc, nuôi dưỡng tại cơ sở trợ giúp xã hội',
+      '☐ Đang trong thời gian chấp hành án phạt tù tại trại giam',
+      '☐ Đang chấp hành quyết định xử lý vi phạm hành chính tại trường giáo dưỡng, cơ sở giáo dục bắt buộc, cơ sở cai nghiện bắt buộc',
+      'b2) Thông tin của mẹ:',
+      'Họ và tên: .......................................................................................',
+      '- Số căn cước/Số định danh cá nhân: ................................ ngày cấp ......../......../........',
+      'Nơi cấp: ...............................................................................................',
+      '- Ngày sinh: ...... / ...... / ........   Giới tính: ..........   Dân tộc: ............',
+      '- Nơi cư trú: ....................................................................................',
+      '- Nơi ở hiện nay (Ghi cụ thể): ...............................................................',
+      '- Tình trạng hiện nay:',
+      '☐ Đã chết   ☐ Không xác định được   ☐ Bị tuyên bố mất tích theo quy định của pháp luật',
+      '☐ Đang hưởng chế độ chăm sóc, nuôi dưỡng tại cơ sở trợ giúp xã hội',
+      '☐ Đang trong thời gian chấp hành án phạt tù tại trại giam',
+      '☐ Đang chấp hành quyết định xử lý vi phạm hành chính tại trường giáo dưỡng, cơ sở giáo dục bắt buộc, cơ sở cai nghiện bắt buộc',
+    ].forEach((t) => addM1Line(t, { size: 21, indent: 360, before: 20, after: 20 }));
+
+    addM1Line('1.2. Người đang hưởng trợ cấp xã hội hằng tháng mà đủ 16 tuổi nhưng đang học giáo dục phổ thông, giáo dục thường xuyên, giáo dục nghề nghiệp, giáo dục đại học văn bằng thứ nhất nếu quá trình học liên tục không bị gián đoạn (trừ trường hợp được tạm dừng học, bảo lưu kết quả học tập theo quy định của pháp luật về giáo dục).');
+    addM1Line('Thông tin trường, lớp (Ghi cụ thể):');
+    addM1Line('..............................................................................................................');
+    addM1Line('..............................................................................................................');
+
+    addM1Line('1.3. Người đơn thân đang nuôi con:', { bold: true });
+    addM1Line('a) Thuộc diện:                    ☐ Hộ nghèo                              ☐ Hộ cận nghèo', { indent: 200 });
+    addM1Line('b) Tình trạng hiện nay:', { indent: 200 });
+    addM1Line('b1) Tình trạng hôn nhân: ☐ Chưa có thông tin   ☐ Chưa kết hôn   ☐ Đang có vợ/chồng   ☐ Đã ly hôn hoặc đã goá vợ/chồng   ☐ Có chồng/vợ mất tích theo quy định', { size: 21, indent: 360 });
+    addM1Line('Tổng số con đang nuôi: .............., trong đó:', { indent: 360 });
+    addM1Line('b2) Thông tin về con dưới 16 tuổi:', { indent: 360 });
+    bodyChildren.push(buildM1Table(['STT', 'Họ và tên', 'CCCD/Mã định danh', 'Ngày sinh'], [10, 38, 30, 22]));
+    addM1Line('b3) Thông tin về con từ đủ 16 tuổi đang học giáo dục phổ thông, giáo dục thường xuyên, giáo dục nghề nghiệp, giáo dục đại học văn bằng thứ nhất', { indent: 360, before: 80 });
+    bodyChildren.push(buildM1Table(['STT', 'Họ và tên', 'CCCD/Mã định danh', 'Ngày sinh', 'Trường, lớp (Ghi cụ thể)'], [8, 26, 22, 16, 28]));
+
+    addM1Line('1.4. Người cao tuổi:', { bold: true, before: 80 });
+    addM1Line('a) Thuộc diện:      ☐ Hộ nghèo             ☐ Hộ cận nghèo', { indent: 200 });
+    addM1Line('b) Thông tin về người có nghĩa vụ và quyền phụng dưỡng (gồm: vợ/chồng, con, cháu của người cao tuổi và những người khác có nghĩa vụ nuôi dưỡng, cấp dưỡng theo quy định của pháp luật về hôn nhân và gia đình..................):', { indent: 200 });
+    addM1Line('☐ Không', { indent: 200 });
+    addM1Line('☐ Có (Người này đang hưởng trợ cấp xã hội hằng tháng: ☐ Không     ☐ Có)', { indent: 200 });
+
+    addM1Line('1.5. Người khuyết tật', { bold: true, before: 60 });
+    addM1Line('a) Mức độ khuyết tật:      ☐ Nhẹ           ☐ Nặng          ☐ Đặc biệt nặng', { indent: 200 });
+    addM1Line('b) Dạng tật: ☐ Khuyết tật vận động   ☐ Khuyết tật thần kinh, tâm thần   ☐ Khuyết tật nghe, nói   ☐ Khuyết tật trí tuệ   ☐ Khuyết tật nhìn   ☐ Khuyết tật khác (Ghi cụ thể: ........)', { size: 21, indent: 200 });
+    addM1Line('Giấy xác nhận khuyết tật số ..................; Ngày cấp ....../....../..........; Nơi cấp ..............................;', { indent: 200 });
+
+    addM1Line('1.6. Trẻ em dưới 03 tuổi (Không thuộc nhóm trẻ em mất nguồn nuôi dưỡng, trẻ em bị nhiễm HIV/AIDS, trẻ em khuyết tật)', { bold: true, before: 60 });
+    addM1Line('☐ Đang sống tại địa bàn các xã, thôn vùng đồng bào dân tộc thiểu số và miền núi đặc biệt khó khăn', { indent: 200 });
+
+    addM1Line('1.7. Trẻ em, người nhiễm HIV/AIDS:', { bold: true, before: 60 });
+    addM1Line('- Thuộc diện:  ☐ Hộ nghèo                              ☐ Hộ cận nghèo', { indent: 200 });
+    addM1Line('- Thu nhập từ tiền lương, tiền công, lương hưu, trợ cấp bảo hiểm xã hội hằng tháng (Nếu là trẻ em thì không khai mục này):    ☐ Không                    ☐ Có', { indent: 200 });
+
+    addM1Line('2. Thông tin đề nghị hưởng trợ cấp hưu trí xã hội', { bold: true, size: 22, before: 80 });
+    addM1Line('☐ Người từ đủ 75 tuổi trở lên và không hưởng lương hưu hoặc trợ cấp bảo hiểm xã hội hằng tháng hoặc đang hưởng lương hưu hoặc trợ cấp bảo hiểm xã hội hằng tháng thấp hơn mức trợ cấp hưu trí quy định', { size: 21, indent: 200 });
+    addM1Line('☐ Người từ đủ 70 tuổi đến dưới 75 tuổi thuộc hộ nghèo, hộ cận nghèo và không hưởng lương hưu hoặc trợ cấp bảo hiểm xã hội hằng tháng hoặc đang hưởng lương hưu hoặc trợ cấp bảo hiểm xã hội hằng tháng thấp hơn mức trợ cấp hưu trí quy định', { size: 21, indent: 200 });
+
+    // Section III
+    addM1Line('III. Phương thức nhận kinh phí trợ cấp', { bold: true, size: 23, before: 120 });
+    addM1Line('1. Thông tin người nhận (là người hưởng trợ cấp hoặc người nhận thay)', { bold: true, size: 22 });
+    [
+      'Họ và tên: ..........................................................................................',
+      '- Số căn cước/Số định danh cá nhân: .................................. ngày cấp ......../......../........',
+      'Nơi cấp: ...............................................................................................',
+      '- Ngày sinh: ............ / ............ / ........   Giới tính: ................   Dân tộc: ................',
+      '- Nơi cư trú: ........................................................................................',
+      '- Nơi ở hiện nay (Ghi cụ thể): ...............................................................',
+    ].forEach((t) => addM1Line(t));
+    addM1Line('2. Hình thức nhận', { bold: true, size: 22, before: 60 });
+    [
+      'a) Tiền mặt ☐',
+      'b) Tài khoản ngân hàng ☐',
+      '   Số tài khoản ngân hàng: ........................................................................',
+      '   Tên chủ tài khoản: ...............................................................................',
+      '   Tại ngân hàng: .....................................................................................',
+      'c) Ví điện tử ☐',
+      '   Số ví: .................................................................................................',
+      '   Tên chủ ví: ..........................................................................................',
+      '   Tên loại ví điện tử: ...............................................................................',
+    ].forEach((t) => addM1Line(t, { indent: 200 }));
+
+    addM1Line(
+      'Tôi xin cam đoan những thông tin khai trên là đúng sự thật, nếu có điều gì khai không đúng, tôi xin chịu trách nhiệm hoàn toàn trước pháp luật.',
+      { before: 140, after: 120 }
+    );
+
+    bodyChildren.push(
+      new Table({
+        width: { size: 100, type: WidthType.PERCENTAGE },
+        borders: noBorders,
+        rows: [
+          new TableRow({
+            children: [
+              new TableCell({
+                width: { size: 50, type: WidthType.PERCENTAGE },
+                children: [
+                  new Paragraph({ spacing: { before: 120 } }),
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [new TextRun({ text: 'NGƯỜI TIẾP NHẬN TỜ KHAI', bold: true, size: 22, font: 'Times New Roman' })],
+                  }),
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [new TextRun({ text: '(Ký, ghi rõ họ tên)', italics: true, size: 20, font: 'Times New Roman' })],
+                  }),
+                  new Paragraph({ spacing: { before: 1000 } }),
+                ],
+              }),
+              new TableCell({
+                width: { size: 50, type: WidthType.PERCENTAGE },
+                children: [
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [new TextRun({ text: `........, ngày ...... tháng ...... năm ${year}`, italics: true, size: 20, font: 'Times New Roman' })],
+                  }),
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [new TextRun({ text: 'NGƯỜI KHAI', bold: true, size: 22, font: 'Times New Roman' })],
+                  }),
+                  new Paragraph({
+                    alignment: AlignmentType.CENTER,
+                    children: [new TextRun({ text: '(Ký, ghi rõ họ tên)', italics: true, size: 20, font: 'Times New Roman' })],
+                  }),
+                  new Paragraph({ spacing: { before: 1000 } }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      })
+    );
+
+    addM1Line(
+      'Ghi chú: Đối với trường hợp đối tượng gửi hồ sơ trực tuyến tại Cổng dịch vụ công quốc gia: Các thông tin trong tờ khai đã có trong Cơ sở dữ liệu quốc gia về dân cư, Cơ sở dữ liệu hộ tịch điện tử, Cơ sở dữ liệu quốc gia về Bảo hiểm, hệ thống thông tin có liên quan, được Phần mềm dịch vụ công liên thông điền tự động (thông tin liên quan tới ngày sinh, nơi cư trú của đối tượng). Các thông tin không có dữ liệu thì khai thông tin đầy đủ trong Tờ khai.',
+      { italic: true, size: 19, before: 140 }
+    );
   } else {
     // Standard Sections & Fields for all other templates (with 12-digit boxes for ID/CCCD fields)
     for (const section of template.sections) {
@@ -1055,11 +1379,12 @@ export async function exportA4TemplateToDocx(
     }
   }
 
-  // For templates without custom footer blocks (non-CT01, non-TTHC-HT-01, and non-TTHC-HT-02), append standard commitment text and signatures
+  // For templates without custom footer blocks (non-CT01, non-TTHC-HT-01, non-TTHC-HT-02, non-TTHC-BT-01), append standard commitment text and signatures
   if (
     template.procedureCode !== 'TTHC-CR-01' &&
     template.procedureCode !== 'TTHC-HT-01' &&
-    template.procedureCode !== 'TTHC-HT-02'
+    template.procedureCode !== 'TTHC-HT-02' &&
+    template.procedureCode !== 'TTHC-BT-01'
   ) {
     bodyChildren.push(
       new Paragraph({
