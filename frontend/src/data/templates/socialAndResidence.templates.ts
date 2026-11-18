@@ -386,10 +386,10 @@ export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
   },
   "TTHC-CR-01": {
     "procedureCode": "TTHC-CR-01",
-    "formCode": "Mẫu CT01 - TT 66/2023/TT-BCA & TT 53/2025/TT-BCA",
+    "formCode": "Mẫu CT01 - TT 66/2023/TT-BCA (sửa đổi tại TT 53/2025/TT-BCA & TT 116/2026/TT-BCA)",
     "agencyType": "POLICE",
     "title": "TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ",
-    "legalNote": "Mẫu CT01 ban hành kèm theo Thông tư số 66/2023/TT-BCA (sửa đổi, bổ sung tại Thông tư số 53/2025/TT-BCA) của Bộ trưởng Bộ Công an",
+    "legalNote": "Mẫu CT01 ban hành kèm theo Thông tư số 66/2023/TT-BCA (sửa đổi tại TT 53/2025/TT-BCA & TT 116/2026/TT-BCA) của Bộ trưởng Bộ Công an",
     "recipient": "Công an {WARD_NAME}",
     "sections": [
       {
@@ -422,7 +422,7 @@ export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
             "secondPlaceholder": "congdan@angiang.gov.vn"
           },
           {
-            "label": "7. Họ, chữ đệm và tên chủ hộ (2)",
+            "label": "7. Họ, chữ đệm và tên chủ hộ",
             "placeholder": "NGUYỄN VĂN BÌNH",
             "type": "grid2",
             "secondLabel": "8. Mối quan hệ với chủ hộ",
@@ -435,7 +435,7 @@ export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
             "isBold": true
           },
           {
-            "label": "10. Nội dung đề nghị (3)",
+            "label": "10. Nội dung đề nghị",
             "placeholder": "Đăng ký thường trú tại Số 18 Đường Trần Hưng Đạo, {WARD_NAME}, Tỉnh An Giang",
             "type": "text"
           },
@@ -447,22 +447,22 @@ export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
         ]
       }
     ],
-    "commitText": "Chú thích: (1) Cơ quan đăng ký cư trú. (2) Trường hợp đăng ký thường trú, đăng ký tạm trú, tách hộ ghi thông tin chủ hộ gia đình mới. (3) Ghi rõ ràng, cụ thể nội dung đề nghị. (4) Ý kiến của chủ hộ. (5) Ý kiến của chủ sở hữu chỗ ở hợp pháp. (6) Ý kiến của cha hoặc mẹ hoặc người giám hộ. (7) Người kê khai. (8) Chỉ kê khai thông tin khi công dân đề nghị xác nhận nội dung đồng ý thông qua ứng dụng định danh quốc gia (VNeID).",
+    "commitText": "Tôi xin cam đoan những thông tin kê khai trên là đúng sự thật và chịu trách nhiệm trước pháp luật về cam đoan của mình.",
     "signatures": [
       {
-        "role": "Ý KIẾN CỦA CHỦ HỘ (4)",
+        "role": "Ý KIẾN CỦA CHỦ HỘ",
         "note": "......, ngày......tháng....năm......"
       },
       {
-        "role": "Ý KIẾN CỦA CHỦ SỞ HỮU CHỖ Ở HỢP PHÁP (5)",
+        "role": "Ý KIẾN CỦA CHỦ SỞ HỮU CHỖ Ở HỢP PHÁP",
         "note": "......, ngày......tháng....năm......"
       },
       {
-        "role": "Ý KIẾN CỦA CHA HOẶC MẸ HOẶC NGƯỜI GIÁM HỘ (6)",
+        "role": "Ý KIẾN CỦA CHA HOẶC MẸ HOẶC NGƯỜI GIÁM HỘ",
         "note": "......, ngày......tháng....năm......"
       },
       {
-        "role": "NGƯỜI KÊ KHAI (7)",
+        "role": "NGƯỜI KÊ KHAI",
         "note": "......, ngày......tháng....năm......"
       }
     ]
@@ -550,10 +550,10 @@ export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
   },
   "TTHC-CR-03": {
     "procedureCode": "TTHC-CR-03",
-    "formCode": "Mẫu CT01 - TT 66/2023/TT-BCA & TT 53/2025/TT-BCA",
+    "formCode": "Mẫu CT01 - TT 66/2023/TT-BCA (sửa đổi tại TT 53/2025/TT-BCA & TT 116/2026/TT-BCA)",
     "agencyType": "POLICE",
     "title": "TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ (ĐĂNG KÝ TẠM TRÚ)",
-    "legalNote": "(Ban hành kèm theo Thông tư số 66/2023/TT-BCA, sửa đổi bổ sung tại Thông tư số 53/2025/TT-BCA của Bộ Công an)",
+    "legalNote": "Mẫu CT01 ban hành kèm theo TT 66/2023/TT-BCA (sửa đổi tại TT 53/2025/TT-BCA & TT 116/2026/TT-BCA)",
     "recipient": "Công an {WARD_NAME}",
     "sections": [
       {
@@ -611,10 +611,10 @@ export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
   },
   "TTHC-CR-04": {
     "procedureCode": "TTHC-CR-04",
-    "formCode": "Mẫu CT01 - TT 66/2023/TT-BCA & TT 53/2025/TT-BCA",
+    "formCode": "Mẫu CT01 - TT 66/2023/TT-BCA (sửa đổi tại TT 53/2025/TT-BCA & TT 116/2026/TT-BCA)",
     "agencyType": "POLICE",
     "title": "TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ (GIA HẠN TẠM TRÚ)",
-    "legalNote": "(Ban hành kèm theo Thông tư số 66/2023/TT-BCA, sửa đổi bổ sung tại Thông tư số 53/2025/TT-BCA của Bộ Công an)",
+    "legalNote": "Mẫu CT01 ban hành kèm theo TT 66/2023/TT-BCA (sửa đổi tại TT 53/2025/TT-BCA & TT 116/2026/TT-BCA)",
     "recipient": "Công an {WARD_NAME}",
     "sections": [
       {
@@ -669,10 +669,10 @@ export const SOCIAL_AND_RESIDENCE_TEMPLATES: Record<string, A4FormTemplate> = {
   },
   "TTHC-CR-06": {
     "procedureCode": "TTHC-CR-06",
-    "formCode": "Mẫu CT05 - TT 66/2023/TT-BCA & TT 53/2025/TT-BCA",
+    "formCode": "Mẫu CT05 - TT 66/2023/TT-BCA (sửa đổi tại TT 53/2025/TT-BCA & TT 116/2026/TT-BCA)",
     "agencyType": "POLICE",
     "title": "PHIẾU TIẾP NHẬN THÔNG BÁO LƯU TRÚ",
-    "legalNote": "(Ban hành kèm theo Thông tư số 66/2023/TT-BCA ngày 17/11/2023, sửa đổi bổ sung tại Thông tư số 53/2025/TT-BCA của Bộ Công an)",
+    "legalNote": "(Ban hành kèm theo TT 66/2023/TT-BCA, sửa đổi tại TT 53/2025/TT-BCA & TT 116/2026/TT-BCA của Bộ Công an)",
     "recipient": "Công an {WARD_NAME}",
     "sections": [
       {
