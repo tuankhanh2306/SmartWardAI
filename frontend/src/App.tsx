@@ -6,6 +6,7 @@ import { AccessibilityProvider } from './context/AccessibilityContext';
 import Header from './components/Header';
 import CitizenGuard from './components/CitizenGuard';
 import OfficerGuard from './components/OfficerGuard';
+import AdminGuard from './components/AdminGuard';
 
 // Lazy Loaded Page Components (Code-Splitting Architecture)
 const RoleGateway = lazy(() => import('./pages/RoleGateway'));
@@ -15,6 +16,7 @@ const ProceduresCatalogPage = lazy(() => import('./pages/ProceduresCatalogPage')
 const WardOnboarding = lazy(() => import('./pages/WardOnboarding'));
 const PerWardDashboard = lazy(() => import('./pages/PerWardDashboard'));
 const ProcedureGovernancePage = lazy(() => import('./pages/ProcedureGovernancePage'));
+const AdminWardReadOnlyPage = lazy(() => import('./pages/AdminWardReadOnlyPage'));
 
 const RouteLoadingSpinner: React.FC = () => (
   <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] gap-3">
@@ -25,8 +27,13 @@ const RouteLoadingSpinner: React.FC = () => (
 
 const OfficerRedirect: React.FC<{ tab?: 'INCIDENTS' | 'HITL' | 'FORMS' | 'MAP' }> = ({ tab }) => {
   const { currentWard } = useWard();
+  const { officerProfile } = useRole();
+  const targetWard =
+    officerProfile.wardCode && officerProfile.wardCode !== 'AG_PROVINCE'
+      ? officerProfile.wardCode
+      : currentWard.code;
   const suffix = tab ? `?tab=${tab}` : '';
-  return <Navigate to={`/officer/ward/${currentWard.code}${suffix}`} replace />;
+  return <Navigate to={`/officer/ward/${targetWard}${suffix}`} replace />;
 };
 
 const AppContent: React.FC = () => {
@@ -73,7 +80,7 @@ const AppContent: React.FC = () => {
               }
             />
 
-            {/* 4. Officer Protected Workspace (Strictly guarded by OfficerGuard) */}
+            {/* 4. Officer Protected Workspace (Strictly guarded by OfficerGuard - Admin NEVER enters /officer/*) */}
             <Route
               path="/officer"
               element={
@@ -115,7 +122,41 @@ const AppContent: React.FC = () => {
               }
             />
 
-            {/* 5. Catch-all fallback -> Return to Gateway */}
+            {/* 5. Admin Dedicated Workspace (Strictly guarded by AdminGuard) */}
+            <Route
+              path="/admin"
+              element={
+                <AdminGuard>
+                  <ProcedureGovernancePage />
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/procedures"
+              element={
+                <AdminGuard>
+                  <ProcedureGovernancePage />
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/proposals"
+              element={
+                <AdminGuard>
+                  <ProcedureGovernancePage />
+                </AdminGuard>
+              }
+            />
+            <Route
+              path="/admin/wards/:wardCode"
+              element={
+                <AdminGuard>
+                  <AdminWardReadOnlyPage />
+                </AdminGuard>
+              }
+            />
+
+            {/* 6. Catch-all fallback -> Return to Gateway */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useRole } from '../context/RoleContext';
 import { useWard } from '../context/WardContext';
 import { PROCEDURES_CATALOG } from '../data/proceduresCatalog';
@@ -162,11 +162,12 @@ function buildInitialInMemoryCatalog(): {
 
 export const ProcedureGovernancePage: React.FC = () => {
   const navigate = useNavigate();
-  const { officerProfile } = useRole();
-  const { currentWard } = useWard();
+  const location = useLocation();
+  const { officerProfile, isAdmin } = useRole();
+  const { currentWard, totalWardsCount } = useWard();
 
   const currentBadgeId = (officerProfile?.badgeId || 'CC-AG-8942').toUpperCase();
-  const isAdminRole = currentBadgeId.startsWith('ADM-');
+  const isAdminRole = isAdmin;
 
   const initialMemory = useMemo(() => buildInitialInMemoryCatalog(), []);
   const [procedures, setProcedures] = useState<AdminProcedureSummaryItem[]>(initialMemory.summaries);
@@ -174,7 +175,9 @@ export const ProcedureGovernancePage: React.FC = () => {
     initialMemory.versionsByCode
   );
 
-  const [activeScreen, setActiveScreen] = useState<ActiveScreen>('CATALOG_LIST');
+  const [activeScreen, setActiveScreen] = useState<ActiveScreen>(() =>
+    location.pathname.startsWith('/admin/proposals') ? 'ADMIN_REVIEW_QUEUE' : 'CATALOG_LIST'
+  );
   const [banner, setBanner] = useState<BannerState | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -684,13 +687,19 @@ export const ProcedureGovernancePage: React.FC = () => {
         {/* Top Header Bar */}
         <div className="bg-white rounded-2xl border border-[#E2E8F0] p-4 sm:p-5 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-3.5">
-            <div className="w-11 h-11 rounded-2xl bg-[#0F2942] text-white flex items-center justify-center shrink-0 shadow-sm">
+            <div
+              className={`w-11 h-11 rounded-2xl text-white flex items-center justify-center shrink-0 shadow-sm ${
+                isAdminRole ? 'bg-[#78350F]' : 'bg-[#0F2942]'
+              }`}
+            >
               <BookOpen className="w-6 h-6" />
             </div>
             <div>
               <div className="flex flex-wrap items-center gap-2">
                 <h1 className="text-lg sm:text-xl font-extrabold text-[#0F2942]">
-                  Quản Trị Danh Mục 40 Thủ Tục Hành Chính
+                  {isAdminRole
+                    ? 'Quản Trị & Phê Duyệt Danh Mục 40 Thủ Tục Hành Chính'
+                    : 'Đề Xuất Cập Nhật Nội Dung 40 Thủ Tục Hành Chính'}
                 </h1>
                 <span
                   className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
@@ -699,24 +708,42 @@ export const ProcedureGovernancePage: React.FC = () => {
                       : 'bg-[#EFF6FF] text-[#1E40AF] border border-[#BFDBFE]'
                   }`}
                 >
-                  {isAdminRole ? `ROLE_ADMIN (${currentBadgeId})` : `ROLE_OFFICER (${currentBadgeId})`}
+                  {isAdminRole
+                    ? `ROLE_ADMIN • AG_PROVINCE (${currentBadgeId})`
+                    : `ROLE_OFFICER • ${officerProfile.wardCode || currentWard.code} (${currentBadgeId})`}
                 </span>
               </div>
               <p className="text-xs text-[#64748B] mt-0.5">
-                Quy trình kiểm soát 4 mắt: Soạn nháp (Cán bộ) → Gửi duyệt → Đối chiếu Diff & Công bố (Admin) → Tự động cập nhật RAG & Audit Log bất biến
+                {isAdminRole
+                  ? 'Phân hệ Quản trị viên Cấp Tỉnh: Đối chiếu Diff 2 cột Cũ ↔ Mới, Phê duyệt công bố (chặn tự duyệt) và Giám sát liên xã chỉ đọc'
+                  : 'Phân hệ Cán bộ Cấp Xã: Tra cứu 40 TTHC, soạn bản nháp 5 mục chuẩn và gửi đề xuất chờ Quản trị viên cấp tỉnh phê duyệt'}
               </p>
             </div>
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <button
-              type="button"
-              onClick={() => navigate(`/officer/ward/${currentWard.code}`)}
-              className="px-3 py-2 rounded-xl border border-[#CBD5E1] bg-white hover:bg-[#F1F5F9] text-xs font-bold text-[#334155] flex items-center gap-1.5 cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Bàn làm việc {currentWard.name}</span>
-            </button>
+            {isAdminRole ? (
+              <button
+                type="button"
+                onClick={() => navigate(`/admin/wards/${currentWard.code}`)}
+                className="px-3 py-2 rounded-xl border border-[#F59E0B] bg-[#FFFBEB] hover:bg-[#FEF3C7] text-xs font-bold text-[#92400E] flex items-center gap-1.5 cursor-pointer"
+                title={`Xem dữ liệu liên xã chỉ đọc (${totalWardsCount} đơn vị hành chính)`}
+              >
+                <ShieldCheck className="w-4 h-4 text-[#D97706]" />
+                <span>Xem Liên Xã Chỉ Đọc ({totalWardsCount} đơn vị)</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() =>
+                  navigate(`/officer/ward/${officerProfile.wardCode || currentWard.code}`)
+                }
+                className="px-3 py-2 rounded-xl border border-[#CBD5E1] bg-white hover:bg-[#F1F5F9] text-xs font-bold text-[#334155] flex items-center gap-1.5 cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Bàn làm việc {officerProfile.wardCode || currentWard.code}</span>
+              </button>
+            )}
 
             <button
               type="button"
