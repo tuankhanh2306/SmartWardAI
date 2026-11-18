@@ -5,6 +5,15 @@ const resolvedApiBaseUrl =
     ? String((import.meta as any).env.VITE_API_BASE_URL).replace(/\/+$/, '')
     : '/api/v1';
 
+export function decodeBase64UrlUtf8(base64Url: string): string {
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+  const binary = atob(padded);
+  return decodeURIComponent(
+    Array.from(binary, (c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')
+  );
+}
+
 const api = axios.create({
   baseURL: resolvedApiBaseUrl,
   headers: {
@@ -14,47 +23,59 @@ const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('smartward_officer_token') : null;
-  if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`;
+  if (typeof window !== 'undefined') {
+    const token =
+      window.sessionStorage?.getItem('smartward_officer_token') ||
+      window.localStorage?.getItem('smartward_officer_token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
   }
   return config;
 });
 
-// P3: Auto logout on 401 Unauthorized only if token is expired (7.7)
+// Auto logout on 401 Unauthorized
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const url = String(error.config?.url || '');
-    const isAuthEndpoint = url.includes('/auth/officer/login') || url.includes('/auth/officer/change-pin');
+    const isAuthEndpoint =
+      url.includes('/auth/officer/login') || url.includes('/auth/officer/change-pin');
     if (error.response?.status === 401 && !isAuthEndpoint && typeof window !== 'undefined') {
-      const token = localStorage.getItem('smartward_officer_token');
-      // If token is resilient local fallback token, do not terminate local officer session on remote 401
-      if (token && !token.includes('sig_offline_verified')) {
+      const token =
+        window.sessionStorage?.getItem('smartward_officer_token') ||
+        window.localStorage?.getItem('smartward_officer_token');
+
+      let shouldForceLogout = true;
+      if (token && token.includes('sig_offline_verified')) {
         try {
           const parts = token.split('.');
           if (parts.length === 3) {
-            const payload = JSON.parse(atob(parts[1]));
-            // Only force logout if the token is genuinely expired
-            if (payload.exp && payload.exp * 1000 < Date.now()) {
-              localStorage.removeItem('smartward_officer_token');
-              localStorage.removeItem('smartward_officer_badge');
-              localStorage.removeItem('smartward_officer_profile');
-              localStorage.removeItem('smartward_user_role');
-              localStorage.removeItem('smartward_role');
-              localStorage.removeItem('smartward_session_expires_at');
-              window.dispatchEvent(new Event('smartward_auth_logout'));
+            const payload = JSON.parse(decodeBase64UrlUtf8(parts[1]));
+            if (payload.exp && payload.exp * 1000 > Date.now()) {
+              shouldForceLogout = false;
             }
           }
         } catch {
-          // Token format error; do not aggressively eject
+          shouldForceLogout = true;
         }
+      }
+
+      if (shouldForceLogout) {
+        window.sessionStorage?.removeItem('smartward_officer_token');
+        window.sessionStorage?.removeItem('smartward_inactivity_expires_at');
+        window.localStorage?.removeItem('smartward_officer_token');
+        window.localStorage?.removeItem('smartward_officer_badge');
+        window.localStorage?.removeItem('smartward_officer_profile');
+        window.localStorage?.removeItem('smartward_user_role');
+        window.localStorage?.removeItem('smartward_role');
+        window.localStorage?.removeItem('smartward_session_expires_at');
+        window.dispatchEvent(new Event('smartward_auth_logout'));
       }
     }
     return Promise.reject(error);
   }
 );
-
 
 export { api };
 export default api;

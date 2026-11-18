@@ -297,3 +297,83 @@ export const rejectProcedureProposal = async (
   );
   return resp.data.data;
 };
+
+export const minorEditAdminProcedure = async (
+  code: string,
+  payload: { coQuanThucHien?: string; sourceUrl?: string; editNote?: string }
+): Promise<AdminProcedureSummaryItem> => {
+  const resp = await api.patch<{ success: boolean; data: AdminProcedureSummaryItem }>(
+    `/admin/procedures/${encodeURIComponent(code)}/minor-edit`,
+    payload
+  );
+  return resp.data.data;
+};
+
+export const createAdminProcedure = async (payload: {
+  procedureCode: string;
+  portalCode?: string;
+  procedureName: string;
+  category: string;
+  formTemplateKey?: string;
+  sourceUrl?: string;
+  content: ProcedureContentFiveSections;
+}): Promise<AdminProcedureSummaryItem> => {
+  const resp = await api.post<{ success: boolean; data: AdminProcedureSummaryItem }>(
+    '/admin/procedures',
+    payload
+  );
+  return resp.data.data;
+};
+
+export const updateAdminProcedureStatus = async (
+  code: string,
+  payload: { status: 'ACTIVE' | 'INACTIVE'; reason?: string }
+): Promise<AdminProcedureSummaryItem> => {
+  const resp = await api.patch<{ success: boolean; data: AdminProcedureSummaryItem }>(
+    `/admin/procedures/${encodeURIComponent(code)}/status`,
+    payload
+  );
+  return resp.data.data;
+};
+
+export const rollbackAdminProcedureVersion = async (
+  code: string,
+  versionNo: number
+): Promise<ProcedureVersionItem> => {
+  const resp = await api.post<{ success: boolean; data: ProcedureVersionItem }>(
+    `/admin/procedures/${encodeURIComponent(code)}/rollback/${versionNo}`
+  );
+  return resp.data.data;
+};
+
+export interface AdminWardOverviewResponse {
+  wardCode: string;
+  readOnly: boolean;
+  audited: boolean;
+  totalDossiers: number;
+  pendingDossiers: number;
+  approvedDossiers: number;
+  rejectedDossiers: number;
+  dossiers: Array<{
+    dossierCode: string;
+    procedureCode: string;
+    procedureName?: string;
+    wardCode: string;
+    citizenName?: string;
+    citizenCccd?: string;
+    status: string;
+    slaDeadline?: string;
+    createdAt?: string;
+    officerFeedback?: string;
+  }>;
+}
+
+export const getAdminWardReadOnlyOverview = async (
+  wardCode: string
+): Promise<AdminWardOverviewResponse> => {
+  const resp = await api.get<{ success: boolean; data: AdminWardOverviewResponse }>(
+    `/admin/wards/${encodeURIComponent(wardCode)}/overview`
+  );
+  return resp.data.data;
+};
+

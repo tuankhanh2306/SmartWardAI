@@ -1,10 +1,23 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
 import { AN_GIANG_WARDS, DEFAULT_WARD, searchAnGiangWards, type WardItem } from '../data/anGiangWards';
 
+// Requirement 7: 'AG_PROVINCE' of admin is never treated as a commune/ward
+export const VALID_COMMUNE_WARDS: WardItem[] = AN_GIANG_WARDS.filter(
+  (w) => w.code !== 'AG_PROVINCE'
+);
+
+export const isCommuneWardCode = (code?: string | null): boolean => {
+  if (!code) return false;
+  const clean = code.trim().toUpperCase();
+  if (clean === 'AG_PROVINCE') return false;
+  return VALID_COMMUNE_WARDS.some((w) => w.code.toUpperCase() === clean);
+};
+
 interface WardContextType {
   currentWard: WardItem;
   setWard: (ward: WardItem) => void;
   allWards: WardItem[];
+  totalWardsCount: number;
   searchWards: (keyword: string, filterType?: 'ALL' | 'Phường' | 'Xã' | 'Thị trấn' | 'Đặc khu') => WardItem[];
   isOfficeOpen: boolean;
   officeStatusLabel: string;
@@ -17,8 +30,8 @@ const WardContext = createContext<WardContextType | undefined>(undefined);
 export const WardProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [currentWard, setCurrentWardState] = useState<WardItem>(() => {
     const savedCode = localStorage.getItem(WARD_STORAGE_KEY);
-    if (savedCode) {
-      const found = AN_GIANG_WARDS.find((w) => w.code === savedCode);
+    if (savedCode && savedCode !== 'AG_PROVINCE') {
+      const found = VALID_COMMUNE_WARDS.find((w) => w.code === savedCode);
       if (found) return found;
     }
     return DEFAULT_WARD;
@@ -71,6 +84,7 @@ export const WardProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const setWard = (ward: WardItem) => {
+    if (!ward || ward.code === 'AG_PROVINCE') return;
     setCurrentWardState(ward);
     localStorage.setItem(WARD_STORAGE_KEY, ward.code);
   };
@@ -80,8 +94,10 @@ export const WardProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         currentWard,
         setWard,
-        allWards: AN_GIANG_WARDS,
-        searchWards: searchAnGiangWards,
+        allWards: VALID_COMMUNE_WARDS,
+        totalWardsCount: VALID_COMMUNE_WARDS.length,
+        searchWards: (kw, filterType) =>
+          searchAnGiangWards(kw, filterType).filter((w) => w.code !== 'AG_PROVINCE'),
         isOfficeOpen,
         officeStatusLabel,
       }}
