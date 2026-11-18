@@ -16,7 +16,7 @@
 | Chặng | Mã Nhánh Git (`from develop`) | Trọng tâm Kỹ thuật | Số lượng Tasks | Gate Kiểm thử | Trạng thái |
 | :---: | :--- | :--- | :---: | :--- | :---: |
 | **Chặng M0** | `feature/mobile-phase0-backend-sync` | Chuẩn hóa nhánh Git, CORS LAN/Mobile, API tra cứu QR tại quầy & đồng bộ DB | **8 Tasks** (`MOB-0.1` → `0.8`) | `524` JUnit Tests PASS | ✅ Hoàn thành |
-| **Chặng M1** | `feature/mobile-phase1-foundation` | Khởi tạo Expo SDK 52, Design Tokens `A/A+/A++`, Shared Core & Chọn 96 Xã | **14 Tasks** (`MOB-1.1` → `1.14`) | TypeScript `0 errors` + Core Unit Tests PASS | ⏳ Chờ thực hiện |
+| **Chặng M1** | `feature/mobile-phase1-foundation` | Khởi tạo Expo SDK 52, Design Tokens `A/A+/A++`, Shared Core & Chọn 96 Xã | **14 Tasks** (`MOB-1.1` → `1.14`) | TypeScript `0 errors` + `36/36` Core Unit Tests PASS | ✅ Hoàn thành |
 | **Chặng M2** | `feature/mobile-phase2-legal-rag-tts` | Tab 1 (`LegalRagChatScreen`): 40 TTHC Offline/Online, TTS `MỞ/TẮT`, Tải `.docx`/`.pdf` | **11 Tasks** (`MOB-2.1` → `2.11`) | RAG Guardrail & TTS Lifecycle Tests PASS | ⏳ Chờ thực hiện |
 | **Chặng M3** | `feature/mobile-phase3-smart-form-vision` | Tab 2 (`SmartFormPrecheckScreen`): Quét QR CCCD 60fps, AI Vision Gate 3 tiêu chí, 4 mẫu đơn | **14 Tasks** (`MOB-3.1` → `3.14`) | Vision Gate + 4-Form Rule Engine Tests PASS | ⏳ Chờ thực hiện |
 | **Chặng M4** | `feature/mobile-phase4-qr-wallet-and-gps` | Tab 3 (`DossierAndQrPassScreen` SQLite Offline + PDF) & Tab 4 (`FieldIncidentReportScreen` GPS 25m) | **11 Tasks** (`MOB-4.1` → `4.11`) | Offline Airplane Mode + GPS 25m Tests PASS | ⏳ Chờ thực hiện |
@@ -45,66 +45,66 @@
 ## 🏗️ CHẶNG M1: KHỞI TẠO DỰ ÁN `mobile/`, HỆ THỐNG DESIGN TOKENS & TẦNG SHARED CORE
 > **Mục tiêu:** Dựng bộ khung React Native + Expo SDK 52 hoàn chỉnh tại `e:\SmartWardAI\mobile\`, nạp bộ token thiết kế, tái sử dụng 100% thuật toán cốt lõi từ Web và hoàn thành luồng Chọn 96 Xã/Phường An Giang + Thanh Header cố định.
 
-- [ ] **MOB-1.1 [Khởi tạo `mobile/package.json` & Cấu hình TypeScript]:**
+- [x] **MOB-1.1 [Khởi tạo `mobile/package.json` & Cấu hình TypeScript]:**
   - Khởi tạo `e:\SmartWardAI\mobile\package.json` với Expo SDK 52 (`expo`, `react`, `react-native`, `@react-navigation/native`, `@react-navigation/bottom-tabs`, `expo-camera`, `expo-location`, `expo-speech`, `expo-sqlite`, `expo-file-system`, `expo-sharing`, `expo-print`, `expo-image-picker`, `expo-document-picker`, `expo-image-manipulator`, `expo-secure-store`, `@react-native-async-storage/async-storage`, `@tanstack/react-query`, `axios`, `react-native-svg`, `react-native-qrcode-svg`, `react-native-maps`, `lucide-react-native`).
   - Tạo `mobile/tsconfig.json` bật `"strict": true` và `mobile/babel.config.js`.
-- [ ] **MOB-1.2 [Cấu hình Quyền Phần cứng trong `mobile/app.json`]:**
+- [x] **MOB-1.2 [Cấu hình Quyền Phần cứng trong `mobile/app.json`]:**
   - Khai báo đầy đủ quyền tiếng Việt rõ ràng cho người dân:
     - `NSCameraUsageDescription`: *"SmartWard AI cần quyền truy cập Camera để quét mã QR trên thẻ CCCD gắn chip và chụp ảnh tờ khai hành chính."*
     - `NSLocationWhenInUseUsageDescription`: *"SmartWard AI cần quyền định vị GPS độ chính xác cao (bán kính 25m) để tự động chọn UBND xã/phường gần nhất và định vị điểm sự cố đô thị."*
     - Quyền Android: `CAMERA`, `ACCESS_FINE_LOCATION`, `ACCESS_COARSE_LOCATION`, `READ_EXTERNAL_STORAGE`, `WRITE_EXTERNAL_STORAGE`.
-- [ ] **MOB-1.3 [Hệ thống Theme & Cỡ chữ Người cao tuổi (`mobile/src/theme/tokens.ts`)]:**
+- [x] **MOB-1.3 [Hệ thống Theme & Cỡ chữ Người cao tuổi (`mobile/src/theme/tokens.ts`)]:**
   - Đọc trực tiếp từ `design-tokens.json` (đồng bộ từ [`docs/designs/mobile/design-tokens.json`](../designs/mobile/design-tokens.json)).
   - Xuất bảng màu chuẩn: `primary: '#00796B'`, `primaryPressed: '#00695C'`, `primarySubtle: '#F0FDFA'`, `primaryBorder: '#99F6E4'`, `canvas: '#F8FAFC'`, `card: '#FFFFFF'`, `textPrimary: '#0F172A'`, `textSecondary: '#334155'`, `textMuted: '#64748B'`, `borderDefault: '#CBD5E1'`, cùng bộ màu ngữ nghĩa (`success`, `warning`, `error`).
   - Xuất hàm `getTypographyStyles(mode: 'A' | 'A+' | 'A++')` trả về kích thước chữ nhân đúng hệ số `1.0` (`A`), `1.15` (`A+`), `1.32` (`A++`).
   - Xuất hằng số vùng chạm tối thiểu `MIN_TOUCH_TARGET = 48` (`48x48dp`).
-- [ ] **MOB-1.4 [Định nghĩa Toàn bộ Kiểu Dữ liệu API (`mobile/src/types/api.types.ts`)]:**
+- [x] **MOB-1.4 [Định nghĩa Toàn bộ Kiểu Dữ liệu API (`mobile/src/types/api.types.ts`)]:**
   - Định nghĩa đầy đủ TypeScript interfaces khớp 100% với DTO Java Backend: `ApiResponse<T>`, `LegalCitation`, `RagAskRequest`, `RagAskResponse`, `ProcedureItem`, `StructuredFormPrecheckRequest`, `StructuredFormPrecheckResponse`, `VaultUploadResponse`, `SubmitDossierRequest`, `DossierSubmissionResponse`, `DossierTrackingRequest`, `DossierTrackingResponse`, `OfficerDossierDto`, `OfficerReviewRequest`, `CivicReportRequest`, `CivicReportResponse`, `IssueClusterDto`, `OfficerLoginRequest`, `OfficerLoginResponse`.
-- [ ] **MOB-1.5 [Tầng Core 1 — Danh mục 96 Xã/Phường/Đặc khu An Giang (`mobile/src/core/angiangWards.ts`)]:**
+- [x] **MOB-1.5 [Tầng Core 1 — Danh mục 96 Xã/Phường/Đặc khu An Giang (`mobile/src/core/angiangWards.ts`)]:**
   - Kế thừa toàn bộ 96 đơn vị hành chính tỉnh An Giang từ `frontend/src/data/wards/anGiangWardsCatalog.ts` (14 Phường, 79 Xã, 3 Đặc khu: Phú Quốc, Kiên Hải, Thổ Châu).
   - Hiện thực hàm `findNearestWardByGps(lat: number, lon: number): { ward: WardItem; distanceMeters: number }` dùng công thức Haversine.
   - Hiện thực hàm `resolveWardFromLocationBox(addressText: string, lat?: number, lon?: number, fallbackWardCode?: string)` ưu tiên 1 theo tên xã/phường trong ô địa chỉ (`TEXT_BOX`), ưu tiên 2 theo tọa độ GPS gần nhất (`GPS_COORDS`).
-- [ ] **MOB-1.6 [Tầng Core 2 — Bộ Giải Mã QR CCCD 7 Trường BCA (`mobile/src/core/cccdQrParser.ts`)]:**
+- [x] **MOB-1.6 [Tầng Core 2 — Bộ Giải Mã QR CCCD 7 Trường BCA (`mobile/src/core/cccdQrParser.ts`)]:**
   - Kế thừa nguyên vẹn `parseCccdQrString(rawQr: string): QrParseResult` và `detectDiscrepancies(qrData, formData): QrFieldDiscrepancy[]` từ `frontend/src/utils/cccdQrParser.ts`.
   - Hỗ trợ giải mã chuỗi `CCCD_12|CMND_9|HO_TEN|NGAY_SINH_DDMMYYYY|GIOI_TINH|DIA_CHI|NGAY_CAP_DDMMYYYY`, chuẩn hóa ngày sang `yyyy-MM-dd` và kiểm tra regex 12 chữ số.
-- [ ] **MOB-1.7 [Tầng Core 3 — Động cơ Kiểm định Tất định 4 Nhóm Tờ khai (`mobile/src/core/formValidators.ts`)]:**
+- [x] **MOB-1.7 [Tầng Core 3 — Động cơ Kiểm định Tất định 4 Nhóm Tờ khai (`mobile/src/core/formValidators.ts`)]:**
   - Cài đặt đầy đủ quy tắc kiểm tra cục bộ (trước khi gọi `/api/v1/forms/precheck`) cho 4 biểu mẫu:
     1. **`CT01` (TT 116/2026/TT-BCA):** Kiểm tra 12 số CCCD người khai & chủ hộ (`hostCccdNumber`), kiểm tra tuổi người khai `>= 14`, tuổi chủ hộ `>= 18`, kiểm tra cờ xác nhận chủ hộ qua VNeID (`vneidHostConfirmed`), gắn nhãn miễn giấy tờ `VERIFIED_VIA_VNEID_QR` (NĐ 309/2026/NĐ-CP).
     2. **`TK-KS` (TT 04/2020/TT-BTP):** Kiểm tra ngày sinh trẻ không ở tương lai, cảnh báo quá hạn 60 ngày, đối chiếu chéo Họ tên mẹ / Ngày sinh trẻ với Giấy chứng sinh, kiểm tra quy tắc khi cha mẹ chưa đăng ký kết hôn.
     3. **`TK-KH` (Luật HN&GĐ 2014):** Kiểm tra tuổi kết hôn tính chính xác đến từng ngày (`Nam >= 20 tuổi`, `Nữ >= 18 tuổi`), 2 số CCCD không trùng nhau, và chặn mục đích xác nhận độc thân mơ hồ (`VAGUE_MARITAL_PURPOSE`).
     4. **`TK-BTXH` (NĐ 20/2021 & NĐ 335/2026):** Kiểm tra điều kiện tuổi người cao tuổi (`>= 80` hoặc `>= 75` diện hộ nghèo/cận nghèo) hoặc mức độ khuyết tật nặng/đặc biệt nặng, bắt buộc có số tài khoản ngân hàng nhận trợ cấp không dùng tiền mặt Đề án 06.
-- [ ] **MOB-1.8 [Tầng Core 4 — Chốt chặn AI Thị Giác 3 Tiêu chí (`mobile/src/core/visionQualityGate.ts`)]:**
+- [x] **MOB-1.8 [Tầng Core 4 — Chốt chặn AI Thị Giác 3 Tiêu chí (`mobile/src/core/visionQualityGate.ts`)]:**
   - Xây dựng hàm `evaluateDocumentVisionGate(input)` kiểm tra 3 tiêu chí:
     1. **Tiêu chí 1 (Độ sắc nét & Độ sáng):** Resize ảnh qua `expo-image-manipulator` về cạnh dài tối đa `1920px` (chống lỗi Pixel Flood OOM `> 4096px` trên Backend), tính điểm `sharpnessScore` (`0..100`, chặn nếu `< 45`) và `brightnessScore` (`0..255`, chặn nếu `< 55`).
     2. **Tiêu chí 2 (Khớp đúng mẫu đã chọn):** Hàm `verifyTemplateMatch(rawText, fileName, expectedFormType)` kiểm tra từ khóa đặc trưng của `CT01`, `TK-KS`, `TK-KH`, `TK-BTXH`. Nếu người dân đang ở tab `CT01` nhưng tải ảnh `TK-KS` → trả về `templateMatched: false` kèm thông báo cảnh báo rõ tên mẫu bị lệch.
     3. **Tiêu chí 3 (Số trường chữ nhận diện rõ):** Đếm số trường thông tin bắt buộc đã trích xuất thành công (`extractedFieldsCount / totalExpectedFields`).
   - Hỗ trợ chế độ mô phỏng kiểm thử nhanh (`GOOD` / `BLURRY` / `WRONG_TEMPLATE`) phục vụ demo hội đồng.
-- [ ] **MOB-1.9 [Tầng Lưu trữ Cục bộ (`mobile/src/storage/sqliteDb.ts` & `secureAuthStorage.ts`)]:**
+- [x] **MOB-1.9 [Tầng Lưu trữ Cục bộ (`mobile/src/storage/sqliteDb.ts` & `secureAuthStorage.ts`)]:**
   - Khởi tạo cơ sở dữ liệu `smartward_mobile.db` bằng `expo-sqlite` với 3 bảng: `cached_procedures`, `wallet_qr_passes`, `offline_incident_queue`.
   - Xây dựng `secureAuthStorage.ts` dùng `expo-secure-store` (fallback `AsyncStorage` khi chạy trên môi trường test/web) để lưu `smartward_officer_token`, `smartward_officer_profile`.
-- [ ] **MOB-1.10 [Tầng Kết nối API & Offline Sync (`mobile/src/api/client.ts` & `offlineSyncManager.ts`)]:**
+- [x] **MOB-1.10 [Tầng Kết nối API & Offline Sync (`mobile/src/api/client.ts` & `offlineSyncManager.ts`)]:**
   - Cấu hình Axios instance đọc `EXPO_PUBLIC_API_BASE_URL` (hỗ trợ đổi IP LAN máy chủ ngay trong Cài đặt nhanh nếu cần demo trên điện thoại thật).
   - Request Interceptor tự động gắn header `Authorization: Bearer <token>` và `X-Ward-Code: <currentWardCode>`.
   - Response Interceptor tự động xử lý `401 Unauthorized` khi JWT hết hạn (`payload.exp * 1000 < Date.now()`).
-- [ ] **MOB-1.11 [3 Context Quản lý Trạng thái Toàn cục (`mobile/src/context/`)]:**
+- [x] **MOB-1.11 [3 Context Quản lý Trạng thái Toàn cục (`mobile/src/context/`)]:**
   - `WardContext.tsx`: Lưu xã/phường đang chọn (mặc định `AG_P_LONGXUYEN` — Phường Long Xuyên), danh sách dịch vụ trực tuyến, giờ làm việc, hàm đổi xã/phường và định vị GPS.
   - `AccessibilityContext.tsx`: Quản lý `fontScaleMode` (`'A' | 'A+' | 'A++'`), hàm `cycleFontMode()`, và trạng thái đọc giọng nói TTS toàn cục.
   - `OfficerAuthContext.tsx`: Quản lý đăng nhập, đổi mã PIN, kiểm tra phiên và đăng xuất cán bộ.
-- [ ] **MOB-1.12 [Thanh Header Cố định & Màn hình Chọn 96 Xã (`PersistentCivicHeader.tsx`, `WardSelectorModal.tsx`, `OnboardingWardScreen.tsx`)]:**
+- [x] **MOB-1.12 [Thanh Header Cố định & Màn hình Chọn 96 Xã (`PersistentCivicHeader.tsx`, `WardSelectorModal.tsx`, `OnboardingWardScreen.tsx`)]:**
   - Thiết kế `PersistentCivicHeader.tsx` cao `56dp`:
     - Bên trái: Nút Pill màu xanh ngọc `#F0FDFA` viền `#99F6E4` hiển thị `📍 <Tên Xã/Phường> [Đổi Xã]`.
     - Bên phải: Nút chuyển cỡ chữ `A Cỡ chữ: Chuẩn / Lớn (A+) / Rất lớn (A++)`.
   - Thiết kế `WardSelectorModal.tsx` & `OnboardingWardScreen.tsx`: Ô tìm kiếm nhanh 96 xã/phường/đặc khu An Giang, bộ lọc theo loại đơn vị (`Tất cả`, `Phường`, `Xã`, `Đặc khu`), nút **`🎯 Định vị GPS tự động`** tìm xã gần nhất, và thẻ hiển thị địa chỉ trụ sở UBND + số điện thoại Một cửa.
-- [ ] **MOB-1.13 [Thanh Điều hướng 5 Tab Đáy (`BottomTabNavigator.tsx`)]:**
+- [x] **MOB-1.13 [Thanh Điều hướng 5 Tab Đáy (`BottomTabNavigator.tsx`)]:**
   - Cấu hình 5 Bottom Tabs chiều cao `64dp`, màu active `#00796B`, màu inactive `#64748B`:
     1. `💬 40 TTHC` (`LegalRagChatScreen`)
     2. `🛡️ Sơ Duyệt` (`SmartFormPrecheckScreen`)
     3. `🎫 Ví Mã QR` (`DossierAndQrPassScreen`)
     4. `📍 Sự Cố 25m` (`FieldIncidentReportScreen`)
     5. `🏛️ Cán Bộ` (`OfficerMobileAuditScreen`)
-- [ ] **MOB-1.14 [Gate 1 Verification]:**
+- [x] **MOB-1.14 [Gate 1 Verification]:**
   - Viết và chạy Unit Tests cho `cccdQrParser.test.ts`, `formValidators.test.ts`, `visionQualityGate.test.ts`, `crossWardRouting.test.ts`.
-  - Chạy `npx tsc --noEmit` và `npm test` trong `mobile/` đạt 100% PASS trước khi commit vào nhánh `feature/mobile-phase1-foundation`.
+  - Chạy `npx tsc --noEmit` và `npm test` trong `mobile/` đạt 100% PASS (`36/36` tests, `0` TypeScript errors) trước khi commit vào nhánh `feature/mobile-phase1-foundation`.
 
 ---
 
