@@ -555,4 +555,27 @@ class ProcedureGovernanceServiceTest {
         reqAdminAllowed.addHeader("Authorization", "Bearer " + adminToken);
         assertTrue(interceptor.preHandle(reqAdminAllowed, resp, new Object()));
     }
+
+    @Test
+    @DisplayName("11. Admin read-only ward overview writes audit_log every time and rejects AG_PROVINCE as a ward")
+    void testAdminWardReadOnlyOverview_auditsEveryView_andRejectsAgProvince() {
+        // Officer cannot call Admin ward overview -> 403
+        assertThatThrownBy(() -> governanceService.getAdminWardReadOnlyOverview("AG_P_LONGXUYEN", officerPrincipal, "127.0.0.1", "JUnit"))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(ex -> assertEquals(ErrorCode.FORBIDDEN, ((BusinessException) ex).getErrorCode()));
+
+        // AG_PROVINCE is not a ward -> 400 INVALID_REQUEST
+        assertThatThrownBy(() -> governanceService.getAdminWardReadOnlyOverview("AG_PROVINCE", admin1Principal, "127.0.0.1", "JUnit"))
+                .isInstanceOf(BusinessException.class)
+                .satisfies(ex -> assertEquals(ErrorCode.INVALID_REQUEST, ((BusinessException) ex).getErrorCode()));
+
+        // Admin viewing AG_P_LONGXUYEN writes ADMIN_WARD_READONLY_VIEW audit log entry
+        int beforeAuditCount = auditStore.size();
+        AdminWardOverviewDto overview = governanceService.getAdminWardReadOnlyOverview("AG_P_LONGXUYEN", admin1Principal, "127.0.0.1", "JUnit");
+        assertTrue(overview.isReadOnly());
+        assertTrue(overview.isAudited());
+        assertEquals("AG_P_LONGXUYEN", overview.getWardCode());
+        assertEquals(beforeAuditCount + 1, auditStore.size());
+        assertEquals("ADMIN_WARD_READONLY_VIEW", auditStore.get(auditStore.size() - 1).getAction());
+    }
 }

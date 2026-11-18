@@ -20,6 +20,8 @@ import {
   Volume2,
   Eye,
   Type,
+  GitCompare,
+  Lock,
 } from 'lucide-react';
 import { useWard } from '../context/WardContext';
 import { useRole } from '../context/RoleContext';
@@ -32,9 +34,20 @@ export const Header: React.FC = () => {
   const navigate = useNavigate();
   const path = location.pathname;
   const hash = location.hash;
-  const { currentWard, isOfficeOpen, officeStatusLabel } = useWard();
-  const { role, isOfficer, officerProfile, logout, sessionSecondsLeft, authModalOpen, setAuthModalOpen } =
-    useRole();
+  const { currentWard, isOfficeOpen, officeStatusLabel, totalWardsCount } = useWard();
+  const {
+    role,
+    isOfficer,
+    isAdmin,
+    isCitizen,
+    officerProfile,
+    logout,
+    sessionSecondsLeft,
+    sessionWarningActive,
+    extendSession,
+    authModalOpen,
+    setAuthModalOpen,
+  } = useRole();
   const {
     textScale,
     setTextScale,
@@ -48,12 +61,10 @@ export const Header: React.FC = () => {
   const menuContainerRef = useRef<HTMLDivElement>(null);
   const menuButtonRef = useRef<HTMLButtonElement>(null);
 
-  // Close utility drawer on route/hash navigation
   useEffect(() => {
     setMenuOpen(false);
   }, [path, hash]);
 
-  // Close utility drawer on outside click or Escape key (restoring focus to trigger)
   useEffect(() => {
     if (!menuOpen) return;
 
@@ -84,6 +95,11 @@ export const Header: React.FC = () => {
     return null;
   }
 
+  const assignedOfficerWardCode =
+    officerProfile.wardCode && officerProfile.wardCode !== 'AG_PROVINCE'
+      ? officerProfile.wardCode
+      : currentWard.code;
+
   const citizenNavLinks = [
     { to: '/citizen', label: 'Hỏi Đáp AI', icon: Bot, match: () => path === '/citizen' },
     {
@@ -108,10 +124,10 @@ export const Header: React.FC = () => {
 
   const officerNavLinks = [
     {
-      to: `/officer/ward/${currentWard.code}`,
+      to: `/officer/ward/${assignedOfficerWardCode}`,
       label: 'Bàn Điều Hành',
       icon: ShieldCheck,
-      match: () => path.startsWith('/officer'),
+      match: () => path.startsWith('/officer/ward'),
     },
     {
       to: `/officer/audit`,
@@ -125,12 +141,39 @@ export const Header: React.FC = () => {
       icon: MapPin,
       match: () => path === '/officer/map',
     },
+    {
+      to: `/officer/procedures`,
+      label: 'Đề Xuất 40 TTHC',
+      icon: BookOpen,
+      match: () => path === '/officer/procedures',
+    },
   ];
 
-  const activeNavLinks = isOfficer ? officerNavLinks : citizenNavLinks;
-  const isOnboarding = path === '/onboarding';
+  const adminNavLinks = [
+    {
+      to: '/admin',
+      label: 'Danh Mục 40 TTHC',
+      icon: BookOpen,
+      match: () => path === '/admin' || path === '/admin/procedures',
+    },
+    {
+      to: '/admin/proposals',
+      label: 'Hàng Đợi Duyệt TTHC',
+      icon: GitCompare,
+      match: () => path.startsWith('/admin/proposals'),
+    },
+    {
+      to: `/admin/wards/${currentWard.code}`,
+      label: `Xem Liên Xã (${totalWardsCount})`,
+      icon: Eye,
+      match: () => path.startsWith('/admin/wards'),
+    },
+  ];
 
-  // Format 5-minute countdown (MM:SS)
+  const activeNavLinks = isAdmin ? adminNavLinks : isOfficer ? officerNavLinks : citizenNavLinks;
+  const isOnboarding = path === '/onboarding';
+  const isStaff = isOfficer || isAdmin;
+
   const timerMinutes = Math.floor(sessionSecondsLeft / 60);
   const timerSeconds = sessionSecondsLeft % 60;
   const formattedCountdown = `${String(timerMinutes).padStart(2, '0')}:${String(timerSeconds).padStart(2, '0')}`;
@@ -139,96 +182,113 @@ export const Header: React.FC = () => {
     <>
       <header
         className={`fixed top-0 left-0 right-0 z-50 ${
-          isOfficer
+          isStaff
             ? 'bg-white/95 backdrop-blur-md border-b border-slate-200/80'
             : 'shadow-xs'
         }`}
       >
-        {/* TIER 1: Officer Single Header OR Citizen Official Crimson Masthead */}
+        {/* TIER 1: Officer/Admin Single Header OR Citizen Official Crimson Masthead */}
         <div
           className={
-            isOfficer
+            isStaff
               ? 'h-14 sm:h-16 w-full max-w-[1920px] mx-auto px-3 sm:px-5 xl:px-6 flex items-center justify-between gap-3'
               : 'bg-bca-masthead text-white h-14 lg:h-[52px] w-full'
           }
         >
           <div
             className={
-              isOfficer
+              isStaff
                 ? 'w-full flex items-center justify-between gap-3'
                 : 'h-full w-full max-w-[1440px] 2xl:max-w-[1920px] mx-auto px-3 sm:px-5 xl:px-6 flex items-center justify-between gap-3'
             }
           >
-            {/* Cluster 1: Brand + Active Ward Switcher */}
+            {/* Cluster 1: Brand + Scope Pill (Officer locked to assigned ward; Citizen & Admin can switch wards) */}
             <div className="min-w-0 flex items-center gap-2">
-              <Link
-                to="/onboarding"
-                title="Bấm để đổi Xã/Phường khác tại An Giang"
-                className={
-                  isOfficer
-                    ? `min-w-0 inline-flex items-center gap-2 pr-2.5 pl-1.5 py-1 rounded-xl border transition active:scale-[0.98] gov-focus-ring ${
-                        isOnboarding
-                          ? 'bg-teal-50 border-teal-300 text-[#004D40]'
-                          : 'bg-transparent border-transparent hover:bg-slate-100/80 hover:border-slate-200 text-slate-900'
-                      }`
-                    : `min-w-0 inline-flex items-center gap-2.5 pr-2.5 pl-1 py-1 rounded-xl border transition active:scale-[0.98] gov-focus-ring ${
-                        isOnboarding
-                          ? 'bg-white/15 border-amber-300/60 text-white'
-                          : 'bg-transparent border-transparent hover:bg-white/10 text-white'
-                      }`
-                }
-              >
+              {isOfficer ? (
                 <div
-                  className={
-                    isOfficer
-                      ? 'w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 bg-[#0F2942]'
-                      : 'w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-[#7F0918] border border-[#FCD34D]/65 text-[#FDE047] shadow-2xs'
-                  }
+                  title="Phạm vi thẩm quyền Cán bộ được khóa cố định theo tài khoản công chức (SEC-09)"
+                  className="min-w-0 inline-flex items-center gap-2 pr-2.5 pl-1.5 py-1 rounded-xl border border-slate-200 bg-slate-50 text-slate-900"
                 >
-                  {isOfficer ? (
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 bg-[#0F2942]">
                     <ShieldCheck className="w-4 h-4 text-teal-200" />
-                  ) : (
-                    <Landmark className="w-4 h-4" />
-                  )}
-                </div>
-                <div className="min-w-0 flex flex-col">
-                  {!isOfficer && (
-                    <span className="hidden sm:block text-[10px] font-semibold uppercase tracking-wider text-[#FDE68A] leading-tight">
-                      Cổng Một Cửa Số • An Giang
-                    </span>
-                  )}
+                  </div>
                   <div className="min-w-0 flex items-center gap-1.5">
-                    <span
-                      className={`font-bold text-xs sm:text-sm tracking-tight truncate max-w-[155px] sm:max-w-[240px] ${
-                        isOfficer ? 'text-slate-900 font-semibold' : 'text-white'
-                      }`}
-                    >
+                    <span className="font-semibold text-xs sm:text-sm text-slate-900 tracking-tight truncate max-w-[160px] sm:max-w-[230px]">
                       UBND {currentWard.name}
                     </span>
-                    <span
-                      className={`w-2 h-2 rounded-full shrink-0 ${
-                        isOfficeOpen
-                          ? isOfficer
-                            ? 'bg-[#16A34A]'
-                            : 'bg-[#4ADE80]'
-                          : isOfficer
-                          ? 'bg-[#CA8A04]'
-                          : 'bg-[#FBBF24]'
-                      }`}
-                      title={officeStatusLabel}
-                    />
-                    <ChevronDown
-                      className={`w-3.5 h-3.5 shrink-0 ${
-                        isOfficer ? 'text-slate-500' : 'text-amber-100'
-                      }`}
-                    />
+                    <Lock className="w-3 h-3 text-slate-500 shrink-0" />
                   </div>
                 </div>
-              </Link>
+              ) : (
+                <Link
+                  to="/onboarding"
+                  title={`Bấm để đổi đơn vị hành chính (${totalWardsCount} đơn vị)`}
+                  className={
+                    isAdmin
+                      ? `min-w-0 inline-flex items-center gap-2 pr-2.5 pl-1.5 py-1 rounded-xl border transition active:scale-[0.98] gov-focus-ring ${
+                          isOnboarding
+                            ? 'bg-amber-50 border-amber-300 text-[#78350F]'
+                            : 'bg-transparent border-transparent hover:bg-slate-100/80 hover:border-slate-200 text-slate-900'
+                        }`
+                      : `min-w-0 inline-flex items-center gap-2.5 pr-2.5 pl-1 py-1 rounded-xl border transition active:scale-[0.98] gov-focus-ring ${
+                          isOnboarding
+                            ? 'bg-white/15 border-amber-300/60 text-white'
+                            : 'bg-transparent border-transparent hover:bg-white/10 text-white'
+                        }`
+                  }
+                >
+                  <div
+                    className={
+                      isAdmin
+                        ? 'w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 bg-[#78350F]'
+                        : 'w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-[#7F0918] border border-[#FCD34D]/65 text-[#FDE047] shadow-2xs'
+                    }
+                  >
+                    {isAdmin ? (
+                      <ShieldCheck className="w-4 h-4 text-amber-200" />
+                    ) : (
+                      <Landmark className="w-4 h-4" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex flex-col">
+                    {isCitizen && (
+                      <span className="hidden sm:block text-[10px] font-semibold uppercase tracking-wider text-[#FDE68A] leading-tight">
+                        Cổng Một Cửa Số • An Giang
+                      </span>
+                    )}
+                    <div className="min-w-0 flex items-center gap-1.5">
+                      <span
+                        className={`font-bold text-xs sm:text-sm tracking-tight truncate max-w-[155px] sm:max-w-[240px] ${
+                          isAdmin ? 'text-slate-900 font-semibold' : 'text-white'
+                        }`}
+                      >
+                        {isAdmin ? 'Quản Trị Cấp Tỉnh (AG_PROVINCE)' : `UBND ${currentWard.name}`}
+                      </span>
+                      <span
+                        className={`w-2 h-2 rounded-full shrink-0 ${
+                          isOfficeOpen
+                            ? isAdmin
+                              ? 'bg-[#16A34A]'
+                              : 'bg-[#4ADE80]'
+                            : isAdmin
+                            ? 'bg-[#CA8A04]'
+                            : 'bg-[#FBBF24]'
+                        }`}
+                        title={officeStatusLabel}
+                      />
+                      <ChevronDown
+                        className={`w-3.5 h-3.5 shrink-0 ${
+                          isAdmin ? 'text-slate-500' : 'text-amber-100'
+                        }`}
+                      />
+                    </div>
+                  </div>
+                </Link>
+              )}
             </div>
 
-            {/* Officer Center Navigation (Kept intact for Officer role) */}
-            {isOfficer && (
+            {/* Officer / Admin Center Navigation */}
+            {isStaff && (
               <nav
                 aria-label="Điều hướng chính"
                 className="hidden lg:flex items-center gap-0.5 p-1 bg-slate-100/90 rounded-xl border border-slate-200/70 shrink-0"
@@ -242,13 +302,19 @@ export const Header: React.FC = () => {
                       to={item.to}
                       className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition-all whitespace-nowrap gov-focus-ring ${
                         isActive
-                          ? 'bg-white text-[#0F2942] shadow-xs'
+                          ? isAdmin
+                            ? 'bg-white text-[#78350F] shadow-xs'
+                            : 'bg-white text-[#0F2942] shadow-xs'
                           : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
                       }`}
                     >
                       <Icon
                         className={`w-3.5 h-3.5 ${
-                          isActive ? 'text-[#0F2942]' : 'text-slate-500'
+                          isActive
+                            ? isAdmin
+                              ? 'text-[#78350F]'
+                              : 'text-[#0F2942]'
+                            : 'text-slate-500'
                         }`}
                       />
                       <span>{item.label}</span>
@@ -258,33 +324,45 @@ export const Header: React.FC = () => {
               </nav>
             )}
 
-            {/* Cluster 3: Session Indicator + Hamburger Utility Menu [☰] */}
+            {/* Cluster 3: Role Badge + Session Countdown + Utility Menu */}
             <div ref={menuContainerRef} className="relative flex items-center gap-2 shrink-0">
-              {isOfficer ? (
-                <span
-                  className="hidden sm:inline-flex items-center gap-1.5 text-xs font-medium text-[#00695C] px-2 py-1"
-                  title="Phiên làm việc cán bộ thường trực"
-                >
-                  <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
-                  <span>Thường trực</span>
-                </span>
-              ) : (
-                <div
-                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-mono font-semibold ${
-                    sessionSecondsLeft <= 60
-                      ? 'bg-white text-[#991B1B] border border-red-200 animate-pulse'
-                      : 'bg-black/20 text-amber-50 border border-white/15'
+              <span
+                className={`hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-bold border ${
+                  isAdmin
+                    ? 'bg-amber-50 text-amber-900 border-amber-300'
+                    : isOfficer
+                    ? 'bg-slate-100 text-[#0F2942] border-slate-300'
+                    : 'bg-black/20 text-amber-100 border-white/20'
+                }`}
+              >
+                {isAdmin ? 'ADMIN CẤP TỈNH' : isOfficer ? 'CÁN BỘ XÃ' : 'CÔNG DÂN'}
+              </span>
+
+              <div
+                className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-mono font-semibold ${
+                  sessionWarningActive
+                    ? 'bg-white text-[#991B1B] border border-red-200 animate-pulse'
+                    : isStaff
+                    ? 'text-slate-600'
+                    : 'bg-black/20 text-amber-50 border border-white/15'
+                }`}
+                title={
+                  isCitizen
+                    ? 'Thời gian phiên công dân 5 phút trượt còn lại'
+                    : 'Thời gian khóa không hoạt động 15 phút còn lại'
+                }
+              >
+                <Clock
+                  className={`w-3.5 h-3.5 ${
+                    sessionWarningActive
+                      ? 'text-[#B90E23]'
+                      : isStaff
+                      ? 'text-slate-500'
+                      : 'text-[#FDE68A]'
                   }`}
-                  title="Thời gian phiên làm việc công dân còn lại (tự kết thúc sau 5 phút)"
-                >
-                  <Clock
-                    className={`w-3.5 h-3.5 ${
-                      sessionSecondsLeft <= 60 ? 'text-[#B90E23]' : 'text-[#FDE68A]'
-                    }`}
-                  />
-                  <span>{formattedCountdown}</span>
-                </div>
-              )}
+                />
+                <span>{formattedCountdown}</span>
+              </div>
 
               <button
                 ref={menuButtonRef}
@@ -293,9 +371,9 @@ export const Header: React.FC = () => {
                 aria-expanded={menuOpen}
                 aria-controls="header-utility-menu"
                 aria-haspopup="true"
-                title="Mở menu cài đặt hiển thị, thông tin UBND và đổi vai trò"
+                title="Mở menu cài đặt hiển thị, thông tin UBND và phiên làm việc"
                 className={
-                  isOfficer
+                  isStaff
                     ? `inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-semibold transition cursor-pointer gov-focus-ring ${
                         menuOpen
                           ? 'bg-slate-900 text-white border-slate-900'
@@ -312,7 +390,6 @@ export const Header: React.FC = () => {
                 <span className="sr-only sm:not-sr-only">Tùy chọn</span>
               </button>
 
-              {/* Quick Settings & Ward Info Popover Drawer */}
               {menuOpen && (
                 <div
                   id="header-utility-menu"
@@ -320,7 +397,6 @@ export const Header: React.FC = () => {
                   aria-label="Cài đặt và thông tin UBND"
                   className="absolute right-0 top-[calc(100%+0.5rem)] w-[min(21rem,calc(100vw-1.5rem))] rounded-2xl bg-white border border-slate-200 shadow-xl p-3.5 z-50 flex flex-col gap-3 animate-fadeIn text-slate-900"
                 >
-                  {/* Section 1: Active Ward Info & Hours */}
                   <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col gap-1.5">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-semibold text-slate-900 truncate">
@@ -339,7 +415,7 @@ export const Header: React.FC = () => {
                     <p className="text-[11px] text-slate-600 flex items-start gap-1.5 leading-snug">
                       <MapPin
                         className={`w-3.5 h-3.5 shrink-0 mt-0.5 ${
-                          isOfficer ? 'text-[#00695C]' : 'text-[#B90E23]'
+                          isStaff ? 'text-[#00695C]' : 'text-[#B90E23]'
                         }`}
                       />
                       <span>{currentWard.officeAddress}</span>
@@ -347,7 +423,7 @@ export const Header: React.FC = () => {
                     <p className="text-[11px] text-slate-600 flex items-center gap-1.5">
                       <Calendar
                         className={`w-3.5 h-3.5 shrink-0 ${
-                          isOfficer ? 'text-[#00695C]' : 'text-[#B90E23]'
+                          isStaff ? 'text-[#00695C]' : 'text-[#B90E23]'
                         }`}
                       />
                       <span>{currentWard.workingHours}</span>
@@ -356,30 +432,31 @@ export const Header: React.FC = () => {
                       <a
                         href={`tel:${currentWard.phoneNumber.replace(/\s+/g, '')}`}
                         className={`inline-flex items-center gap-1 text-xs font-semibold hover:underline font-mono ${
-                          isOfficer ? 'text-[#00695C]' : 'text-[#9F0C1E]'
+                          isStaff ? 'text-[#00695C]' : 'text-[#9F0C1E]'
                         }`}
                       >
                         <PhoneCall className="w-3.5 h-3.5" />
                         <span>{currentWard.phoneNumber}</span>
                       </a>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMenuOpen(false);
-                          navigate('/onboarding');
-                        }}
-                        className={`text-xs font-semibold hover:underline cursor-pointer ${
-                          isOfficer
-                            ? 'text-[#00695C] hover:text-[#004D40]'
-                            : 'text-[#9F0C1E] hover:text-[#750715]'
-                        }`}
-                      >
-                        Đổi xã/phường
-                      </button>
+                      {!isOfficer && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMenuOpen(false);
+                            navigate('/onboarding');
+                          }}
+                          className={`text-xs font-semibold hover:underline cursor-pointer ${
+                            isAdmin
+                              ? 'text-[#00695C] hover:text-[#004D40]'
+                              : 'text-[#9F0C1E] hover:text-[#750715]'
+                          }`}
+                        >
+                          Đổi xã/phường
+                        </button>
+                      )}
                     </div>
                   </div>
 
-                  {/* Section 2: Accessibility Controls */}
                   <div className="flex flex-col gap-2">
                     <div className="flex items-center justify-between gap-2">
                       <span className="text-xs font-semibold text-slate-700 flex items-center gap-1.5">
@@ -401,7 +478,7 @@ export const Header: React.FC = () => {
                             aria-pressed={textScale === opt.id}
                             className={`px-2 py-1 rounded-md text-[11px] font-semibold transition cursor-pointer ${
                               textScale === opt.id
-                                ? isOfficer
+                                ? isStaff
                                   ? 'bg-[#00695C] text-white shadow-2xs'
                                   : 'bg-[#B90E23] text-white shadow-2xs'
                                 : 'text-slate-600 hover:text-slate-900'
@@ -413,7 +490,7 @@ export const Header: React.FC = () => {
                       </div>
                     </div>
 
-                    {!isOfficer && (
+                    {isCitizen && (
                       <>
                         <button
                           type="button"
@@ -466,19 +543,27 @@ export const Header: React.FC = () => {
                     )}
                   </div>
 
-                  {/* Section 3: Role / Session Controls (Strictly Isolated by Role) */}
+                  {/* Section 3: Role / Session Controls */}
                   <div className="pt-2 border-t border-slate-200 flex flex-col gap-1.5">
-                    {isOfficer ? (
+                    {isStaff ? (
                       <>
                         <div className="flex items-center gap-2 px-1 py-1">
-                          <div className="w-7 h-7 rounded-lg bg-[#0F2942] text-white flex items-center justify-center font-bold text-xs shrink-0">
+                          <div
+                            className={`w-7 h-7 rounded-lg text-white flex items-center justify-center font-bold text-xs shrink-0 ${
+                              isAdmin ? 'bg-[#78350F]' : 'bg-[#0F2942]'
+                            }`}
+                          >
                             {officerProfile.avatarText}
                           </div>
                           <div className="min-w-0 flex-1">
                             <p className="text-xs font-semibold text-slate-900 truncate">
                               {officerProfile.name}
                             </p>
-                            <p className="text-[11px] text-slate-600">Cán bộ Một cửa</p>
+                            <p className="text-[11px] text-slate-600">
+                              {isAdmin
+                                ? `Quản trị viên • ${officerProfile.badgeId}`
+                                : `Cán bộ xã • ${officerProfile.badgeId} (${officerProfile.wardCode})`}
+                            </p>
                           </div>
                         </div>
                         <div className="grid grid-cols-2 gap-1.5">
@@ -530,7 +615,7 @@ export const Header: React.FC = () => {
         </div>
 
         {/* TIER 2 (Desktop Citizen Only): Warm Ivory Editorial Sub-Navigation Bar */}
-        {!isOfficer && (
+        {isCitizen && (
           <nav
             aria-label="Điều hướng chính"
             className="hidden lg:block bg-[#F7EEDF] border-b border-[#E5D4B3]"
@@ -561,150 +646,37 @@ export const Header: React.FC = () => {
             </div>
           </nav>
         )}
-      </header>
 
-      {/* Mobile-First Bottom Navigation Bar */}
-      <nav
-        aria-label="Điều hướng di động"
-        className={`lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1 grid ${
-          isOfficer ? 'grid-cols-4' : 'grid-cols-5'
-        } gap-1 shadow-[0_-2px_10px_rgba(15,23,42,0.04)]`}
-      >
-        {isOfficer ? (
-          <>
-            <button
-              type="button"
-              onClick={() => navigate(`/officer/ward/${currentWard.code}`)}
-              className={`flex flex-col items-center justify-center py-1 rounded-xl text-[10px] font-semibold transition active:scale-95 cursor-pointer ${
-                path.startsWith('/officer/ward')
-                  ? 'text-[#0F2942] bg-slate-100 font-bold'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4 mb-0.5 text-[#0F2942]" />
-              <span>Bàn Điều Hành</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate('/officer/audit')}
-              className={`flex flex-col items-center justify-center py-1 rounded-xl text-[10px] font-semibold transition active:scale-95 cursor-pointer ${
-                path === '/officer/audit'
-                  ? 'text-[#0F2942] bg-slate-100 font-bold'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              <FileCheck2 className="w-4 h-4 mb-0.5 text-[#0F2942]" />
-              <span>Sơ Duyệt</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate('/officer/map')}
-              className={`flex flex-col items-center justify-center py-1 rounded-xl text-[10px] font-semibold transition active:scale-95 cursor-pointer ${
-                path === '/officer/map'
-                  ? 'text-[#0F2942] bg-slate-100 font-bold'
-                  : 'text-slate-500 hover:text-slate-900'
-              }`}
-            >
-              <MapPin className="w-4 h-4 mb-0.5 text-[#0F2942]" />
-              <span>Bản Đồ</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => logout()}
-              className="flex flex-col items-center justify-center py-1 rounded-xl text-[10px] font-semibold text-red-600 hover:bg-red-50 transition active:scale-95 cursor-pointer"
-            >
-              <LogOut className="w-4 h-4 mb-0.5 text-red-600" />
-              <span>Đăng Xuất</span>
-            </button>
-          </>
-        ) : (
-          <>
-            <button
-              type="button"
-              onClick={() => navigate('/citizen')}
-              className={`flex flex-col items-center justify-center py-1 rounded-xl text-[10px] font-semibold transition active:scale-95 cursor-pointer ${
-                path === '/citizen'
-                  ? 'text-[#9F0C1E] bg-[#FEF2F2] font-bold'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Bot
-                className={`w-4 h-4 mb-0.5 ${
-                  path === '/citizen' ? 'text-[#B90E23]' : 'text-slate-500'
-                }`}
-              />
-              <span>Hỏi Đáp</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate('/citizen/procedures')}
-              className={`flex flex-col items-center justify-center py-1 rounded-xl text-[10px] font-semibold transition active:scale-95 cursor-pointer ${
-                path === '/citizen/procedures'
-                  ? 'text-[#9F0C1E] bg-[#FEF2F2] font-bold'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <BookOpen
-                className={`w-4 h-4 mb-0.5 ${
-                  path === '/citizen/procedures' ? 'text-[#B90E23]' : 'text-slate-500'
-                }`}
-              />
-              <span>Thủ Tục</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate('/citizen/form#form')}
-              className={`flex flex-col items-center justify-center py-1 rounded-xl text-[10px] font-semibold transition active:scale-95 cursor-pointer ${
-                path === '/citizen/form' && hash !== '#incident'
-                  ? 'text-[#9F0C1E] bg-[#FEF2F2] font-bold'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <FileCheck2
-                className={`w-4 h-4 mb-0.5 ${
-                  path === '/citizen/form' && hash !== '#incident'
-                    ? 'text-[#B90E23]'
-                    : 'text-slate-500'
-                }`}
-              />
-              <span>Tờ Khai</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate('/citizen/form#incident')}
-              className={`flex flex-col items-center justify-center py-1 rounded-xl text-[10px] font-semibold transition active:scale-95 cursor-pointer ${
-                path === '/citizen/form' && hash === '#incident'
-                  ? 'text-[#9F0C1E] bg-[#FEF2F2] font-bold'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <AlertTriangle
-                className={`w-4 h-4 mb-0.5 ${
-                  path === '/citizen/form' && hash === '#incident'
-                    ? 'text-[#B90E23]'
-                    : 'text-slate-500'
-                }`}
-              />
-              <span>Sự Cố</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => logout()}
-              className="flex flex-col items-center justify-center py-1 rounded-xl text-[10px] font-semibold text-slate-600 hover:text-slate-900 transition active:scale-95 cursor-pointer"
-            >
-              <LogOut className="w-4 h-4 mb-0.5 text-slate-500" />
-              <span>Đổi Vai Trò</span>
-            </button>
-          </>
+        {/* Requirement 4: Pre-Expiry 60s Warning Banner with "Tiếp tục?" Button */}
+        {sessionWarningActive && (
+          <div className="bg-amber-600 text-white px-4 py-2 text-xs font-semibold flex flex-wrap items-center justify-between gap-2 shadow-md">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0" />
+              <span>
+                {isCitizen
+                  ? `Phiên làm việc công dân sắp hết hạn sau ${sessionSecondsLeft} giây. Bạn có muốn tiếp tục để không mất bản nháp đang soạn không?`
+                  : `Cảnh báo khóa không hoạt động: Phiên công vụ sẽ tự động đăng xuất sau ${sessionSecondsLeft} giây.`}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={extendSession}
+                className="px-3 py-1 rounded-lg bg-white text-amber-900 font-extrabold hover:bg-amber-50 transition cursor-pointer"
+              >
+                Tiếp tục? ({isCitizen ? '+5 phút' : '+15 phút'})
+              </button>
+              <button
+                type="button"
+                onClick={() => logout()}
+                className="px-2.5 py-1 rounded-lg bg-amber-800 hover:bg-amber-900 text-white font-semibold cursor-pointer"
+              >
+                Đăng xuất
+              </button>
+            </div>
+          </div>
         )}
-      </nav>
+      </header>
 
       <OfficerAuthModal isOpen={authModalOpen} onClose={() => setAuthModalOpen(false)} />
       <ChangePinModal isOpen={changePinOpen} onClose={() => setChangePinOpen(false)} />

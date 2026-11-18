@@ -8,17 +8,40 @@ interface OfficerGuardProps {
   children: React.ReactNode;
 }
 
+/**
+ * Strict Route Guard for Commune Officer Workspace (/officer/*):
+ * - Unauthenticated -> Redirects to '/'
+ * - Admin -> Strictly redirected to '/admin' (Requirement 2: Admin does NOT enter /officer/*)
+ * - Officer -> Allowed
+ * - Citizen -> Blocked with explanation
+ */
 export const OfficerGuard: React.FC<OfficerGuardProps> = ({ children }) => {
-  const { role, isOfficer } = useRole();
+  const { role, isOfficer, isAdmin, isHydratingSession } = useRole();
   const { currentWard } = useWard();
   const navigate = useNavigate();
+
+  if (isHydratingSession) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center min-h-[60vh] gap-3">
+        <div className="w-8 h-8 border-3 border-[#0F2942]/30 border-t-[#0F2942] rounded-full animate-spin" />
+        <span className="text-xs font-semibold text-slate-600">
+          Đang xác thực phiên Cán bộ (/api/v1/auth/officer/me)...
+        </span>
+      </div>
+    );
+  }
 
   // If unauthenticated (no role or session expired), redirect to gateway
   if (!role) {
     return <Navigate to="/" replace />;
   }
 
-  // If officer with active session, allow access
+  // Requirement 2: Admin NEVER enters /officer/*; redirect Admin to /admin
+  if (isAdmin) {
+    return <Navigate to="/admin" replace />;
+  }
+
+  // If commune officer with active session, allow access
   if (isOfficer) {
     return <>{children}</>;
   }
@@ -27,7 +50,6 @@ export const OfficerGuard: React.FC<OfficerGuardProps> = ({ children }) => {
   return (
     <div className="min-h-[80vh] flex items-center justify-center p-4 bg-[#F8FAFC]">
       <div className="w-full max-w-lg rounded-2xl bg-white border border-[#CBD5E1] shadow-lg p-8 text-center flex flex-col items-center animate-fadeIn">
-        {/* Shield Icon with official seal ring */}
         <div className="w-16 h-16 rounded-2xl bg-[#FEF2F2] border-2 border-[#FCA5A5] flex items-center justify-center text-[#DC2626] mb-5 shadow-sm">
           <ShieldAlert className="w-9 h-9" />
         </div>
@@ -45,19 +67,21 @@ export const OfficerGuard: React.FC<OfficerGuardProps> = ({ children }) => {
           <strong>UBND {currentWard.name}</strong>. Bạn đang ở chế độ <strong>Công Dân</strong>.
         </p>
 
-        {/* Feature Highlights */}
         <div className="w-full bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl p-4 my-5 text-left flex flex-col gap-2 text-xs text-[#334155]">
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-[#16A34A] shrink-0" />
-            <span>Công dân có thể thực hiện tra cứu và nộp tờ khai tại <strong>Cổng Công Dân</strong>.</span>
+            <span>
+              Công dân có thể thực hiện tra cứu và nộp tờ khai tại <strong>Cổng Công Dân</strong>.
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-[#16A34A] shrink-0" />
-            <span>Công chức tiếp nhận hồ sơ vui lòng đăng nhập bằng thẻ công vụ để tiếp tục tác nghiệp.</span>
+            <span>
+              Công chức tiếp nhận hồ sơ vui lòng đăng nhập bằng thẻ công vụ để tiếp tục tác nghiệp.
+            </span>
           </div>
         </div>
 
-        {/* Action Buttons */}
         <div className="flex flex-col sm:flex-row items-center gap-3 w-full">
           <button
             type="button"
@@ -70,9 +94,7 @@ export const OfficerGuard: React.FC<OfficerGuardProps> = ({ children }) => {
 
           <button
             type="button"
-            onClick={() => {
-              navigate('/');
-            }}
+            onClick={() => navigate('/')}
             className="w-full sm:w-1/2 py-2.5 px-4 rounded-xl bg-[#0F2942] hover:bg-[#1E3A5F] text-white text-xs font-bold shadow-sm flex items-center justify-center gap-2 transition active:scale-95 cursor-pointer"
           >
             <KeyRound className="w-4 h-4 text-[#5EEAD4]" />

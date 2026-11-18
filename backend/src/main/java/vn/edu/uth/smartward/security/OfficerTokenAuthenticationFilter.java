@@ -44,10 +44,6 @@ public class OfficerTokenAuthenticationFilter extends OncePerRequestFilter {
                 List<SimpleGrantedAuthority> authorities = new ArrayList<>();
                 String rawRole = principal.role() != null ? principal.role().trim().toUpperCase() : "OFFICER";
                 authorities.add(new SimpleGrantedAuthority("ROLE_" + rawRole));
-                if ("ADMIN".equalsIgnoreCase(rawRole)) {
-                    // Admin also inherits Officer permissions
-                    authorities.add(new SimpleGrantedAuthority("ROLE_OFFICER"));
-                }
 
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(principal, null, authorities);

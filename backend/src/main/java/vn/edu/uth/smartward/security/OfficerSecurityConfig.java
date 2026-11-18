@@ -88,12 +88,25 @@ public class OfficerSecurityConfig {
                         // 3. API Documentation (dev/staging/test/eval)
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
-                        // 4. Admin Privileged Operations (SEC-03: ADMIN only)
+                        // 4. Procedure Governance Shared Operations (SEC-02: OFFICER or ADMIN)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/admin/procedures", "/api/v1/admin/procedures/*").hasAnyRole("OFFICER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/admin/procedures/*/proposals").hasAnyRole("OFFICER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/admin/proposals/*/submit").hasAnyRole("OFFICER", "ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/procedures/*/minor-edit").hasAnyRole("OFFICER", "ADMIN")
+
+                        // 5. Admin Privileged Operations (SEC-03: ADMIN only)
+                        .requestMatchers(HttpMethod.GET, "/api/v1/admin/proposals", "/api/v1/admin/proposals/*/diff").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/admin/proposals/*/approve", "/api/v1/admin/proposals/*/reject").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/admin/procedures").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/api/v1/admin/procedures/*/status").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/admin/procedures/*/rollback/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/admin/wards/**").hasRole("ADMIN")
+                        .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/issues/clusters/rebuild-index").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/api/v1/procedures/reindex").hasRole("ADMIN")
                         .requestMatchers("/api/v1/evaluation/**").hasRole("ADMIN")
 
-                        // 5. Officer Protected Operations (SEC-02: OFFICER role)
+                        // 6. Officer Protected Operations (SEC-02: OFFICER role strictly isolated from ADMIN)
                         .requestMatchers("/api/v1/dossiers/officer/**").hasRole("OFFICER")
                         .requestMatchers("/api/v1/dossiers/*/review").hasRole("OFFICER")
                         .requestMatchers("/api/v1/rag/hitl-queue/**", "/api/v1/rag/hitl/**").hasRole("OFFICER")
@@ -105,7 +118,7 @@ public class OfficerSecurityConfig {
                                          "/api/v1/officer/me", "/api/v1/officer/logout",
                                          "/api/v1/auth/me", "/api/v1/auth/logout").hasAnyRole("OFFICER", "ADMIN")
 
-                        // 6. Strict Deny All on Everything Else
+                        // 7. Strict Deny All on Everything Else
                         .anyRequest().denyAll()
                 );
 

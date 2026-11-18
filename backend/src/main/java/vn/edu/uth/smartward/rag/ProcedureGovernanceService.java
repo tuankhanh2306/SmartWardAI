@@ -10,6 +10,8 @@ import vn.edu.uth.smartward.audit.AuditService;
 import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ErrorCode;
 import vn.edu.uth.smartward.common.QueryCacheService;
+import vn.edu.uth.smartward.dossier.CitizenDossierService;
+import vn.edu.uth.smartward.dossier.dto.OfficerDossierDto;
 import vn.edu.uth.smartward.rag.dto.*;
 import vn.edu.uth.smartward.security.OfficerAuthService.OfficerPrincipal;
 
@@ -33,6 +35,12 @@ public class ProcedureGovernanceService {
     private final QueryCacheService queryCacheService;
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
+    private CitizenDossierService dossierService;
+
+    @Autowired(required = false)
+    public void setDossierService(CitizenDossierService dossierService) {
+        this.dossierService = dossierService;
+    }
 
     @Autowired
     public ProcedureGovernanceService(AdminProcedureRepository procedureRepository,
@@ -396,6 +404,271 @@ public class ProcedureGovernanceService {
         }
 
         return toVersionDto(proc, saved);
+    }
+
+    @Transactional
+    public AdminProcedureSummaryDto minorEditProcedure(String procedureCode,
+                                                       ProcedureMinorEditRequest request,
+                                                       OfficerPrincipal principal,
+                                                       String ip,
+                                                       String userAgent) {
+        requireAuthenticated(principal);
+        AdminProcedure proc = findProcedureOrThrow(procedureCode);
+        String beforeJson = String.format("{\"agency\":\"%s\",\"sourceUrl\":\"%s\"}",
+                proc.getAgency() != null ? proc.getAgency() : "",
+                proc.getSourceUrl() != null ? proc.getSourceUrl() : "");
+
+        if (request != null) {
+            if (request.getCoQuanThucHien() != null && !request.getCoQuanThucHien().isBlank()) {
+                proc.setAgency(sanitizeString(request.getCoQuanThucHien(), 500));
+            }
+            if (request.getSourceUrl() != null && !request.getSourceUrl().isBlank()) {
+                proc.setSourceUrl(sanitizeString(request.getSourceUrl(), 500));
+            }
+        }
+        AdminProcedure saved = procedureRepository.save(proc);
+        String afterJson = String.format("{\"agency\":\"%s\",\"sourceUrl\":\"%s\"}",
+                saved.getAgency() != null ? saved.getAgency() : "",
+                saved.getSourceUrl() != null ? saved.getSourceUrl() : "");
+
+        if (auditService != null) {
+            auditService.logProcedureAction(
+                    principal.badgeId(),
+                    principal.wardCode(),
+                    "PROCEDURE_MINOR_EDIT",
+                    "PROCEDURE",
+                    saved.getProcedureCode(),
+                    null,
+                    beforeJson,
+                    afterJson,
+                    ip,
+                    userAgent
+            );
+        }
+
+        List<ProcedureVersion> versions = versionRepository.findByProcedureIdOrderByVersionNoDesc(saved.getId());
+        return buildSummaryDto(saved, versions);
+    }
+
+    @Transactional
+    public AdminProcedureSummaryDto createProcedure(ProcedureCreateRequest request,
+                                                    OfficerPrincipal adminPrincipal,
+                                                    String ip,
+                                                    String userAgent) {
+        requireAdmin(adminPrincipal);
+        if (request == null || isBlank(request.getProcedureCode()) || isBlank(request.getProcedureName())) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã thủ tục (procedureCode) và tên thủ tục (procedureName) là bắt buộc.");
+        }
+        String code = request.getProcedureCode().trim().toUpperCase();
+        if (procedureRepository.findByProcedureCode(code).isPresent()) {
+            throw new BusinessException(ErrorCode.CONFLICT, "Mã thủ tục hành chính '" + code + "' đã tồn tại.");
+        }
+        ProcedureContentDto content = sanitizeContent(request.getContent() != null ? request.getContent() : new ProcedureContentDto());
+        validateFiveSectionsOrThrow(content);
+
+        AdminProcedure proc = AdminProcedure.builder()
+                .procedureCode(code)
+                .portalCode(request.getPortalCode() != null ? sanitizeString(request.getPortalCode(), 50) : "1.000000")
+                .procedureName(sanitizeString(request.getProcedureName(), 300))
+                .category(request.getCategory() != null && !request.getCategory().isBlank() ? sanitizeString(request.getCategory(), 100) : "Hành chính công")
+                .agency(content.getCoQuanThucHien())
+                .processingTime("Theo quy định")
+                .fee("Theo quy định")
+                .sourceUrl(sanitizeString(request.getSourceUrl(), 500))
+                .status("ACTIVE")
+                .formTemplateKey(request.getFormTemplateKey() != null && !request.getFormTemplateKey().isBlank()
+                        ? sanitizeString(request.getFormTemplateKey(), 32) : "GENERAL")
+                .build();
+        updateProcedureTimeAndFeeMetadata(proc, content.getThoiHanLePhi());
+        AdminProcedure savedProc = procedureRepository.save(proc);
+
+        String contentJson = serializeContent(content);
+        OffsetDateTime now = OffsetDateTime.now();
+        ProcedureVersion v1 = ProcedureVersion.builder()
+                .procedure(savedProc)
+                .versionNo(1)
+                .content(contentJson)
+                .contentHash(sha256Hex(contentJson))
+                .state("PUBLISHED")
+                .createdBy(adminPrincipal.badgeId())
+                .createdAt(now)
+                .submittedAt(now)
+                .reviewedBy(adminPrincipal.badgeId())
+                .reviewedAt(now)
+                .publishedAt(now)
+                .reviewNote("Khởi tạo mới thủ tục hành chính v1")
+                .source("MANUAL")
+                .sourceRef(savedProc.getSourceUrl())
+                .build();
+        ProcedureVersion savedV1 = versionRepository.saveAndFlush(v1);
+        savedProc.setCurrentVersionId(savedV1.getId());
+        procedureRepository.save(savedProc);
+
+        syncRagChunksSelectively(savedProc, content);
+
+        if (auditService != null) {
+            auditService.logProcedureAction(
+                    adminPrincipal.badgeId(),
+                    adminPrincipal.wardCode(),
+                    "PROCEDURE_CREATED",
+                    "PROCEDURE",
+                    savedProc.getProcedureCode(),
+                    1,
+                    null,
+                    contentJson,
+                    ip,
+                    userAgent
+            );
+        }
+
+        return buildSummaryDto(savedProc, List.of(savedV1));
+    }
+
+    @Transactional
+    public AdminProcedureSummaryDto updateProcedureStatus(String procedureCode,
+                                                          ProcedureStatusUpdateRequest request,
+                                                          OfficerPrincipal adminPrincipal,
+                                                          String ip,
+                                                          String userAgent) {
+        requireAdmin(adminPrincipal);
+        if (request == null || isBlank(request.getStatus())) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "Trạng thái (status) cần cập nhật không được để trống.");
+        }
+        String nextStatus = request.getStatus().trim().toUpperCase();
+        if (!"ACTIVE".equals(nextStatus) && !"INACTIVE".equals(nextStatus)) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "Trạng thái chỉ nhận ACTIVE hoặc INACTIVE.");
+        }
+        AdminProcedure proc = findProcedureOrThrow(procedureCode);
+        String oldStatus = proc.getStatus();
+        proc.setStatus(nextStatus);
+        AdminProcedure saved = procedureRepository.save(proc);
+
+        if (auditService != null) {
+            auditService.logProcedureAction(
+                    adminPrincipal.badgeId(),
+                    adminPrincipal.wardCode(),
+                    "PROCEDURE_STATUS_UPDATED",
+                    "PROCEDURE",
+                    saved.getProcedureCode(),
+                    null,
+                    "{\"status\":\"" + oldStatus + "\"}",
+                    "{\"status\":\"" + nextStatus + "\"}",
+                    ip,
+                    userAgent
+            );
+        }
+
+        List<ProcedureVersion> versions = versionRepository.findByProcedureIdOrderByVersionNoDesc(saved.getId());
+        return buildSummaryDto(saved, versions);
+    }
+
+    @Transactional
+    public ProcedureVersionDto rollbackProcedureVersion(String procedureCode,
+                                                        Integer targetVersionNo,
+                                                        OfficerPrincipal adminPrincipal,
+                                                        String ip,
+                                                        String userAgent) {
+        requireAdmin(adminPrincipal);
+        if (targetVersionNo == null || targetVersionNo < 1) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "Số phiên bản rollback không hợp lệ.");
+        }
+        AdminProcedure proc = findProcedureOrThrow(procedureCode);
+        List<ProcedureVersion> versions = versionRepository.findByProcedureIdOrderByVersionNoDesc(proc.getId());
+        ProcedureVersion target = versions.stream()
+                .filter(v -> targetVersionNo.equals(v.getVersionNo()))
+                .findFirst()
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,
+                        "Không tìm thấy phiên bản v" + targetVersionNo + " của thủ tục " + procedureCode));
+
+        Optional<ProcedureVersion> currentPubOpt = versionRepository.findByProcedureIdAndState(proc.getId(), "PUBLISHED");
+        String beforeJson = null;
+        if (currentPubOpt.isPresent()) {
+            ProcedureVersion cur = currentPubOpt.get();
+            beforeJson = cur.getContent();
+            if (!cur.getId().equals(target.getId())) {
+                cur.setState("SUPERSEDED");
+                versionRepository.saveAndFlush(cur);
+            }
+        }
+
+        target.setState("PUBLISHED");
+        target.setReviewedBy(adminPrincipal.badgeId());
+        target.setReviewedAt(OffsetDateTime.now());
+        target.setPublishedAt(OffsetDateTime.now());
+        target.setReviewNote("Rollback về phiên bản v" + targetVersionNo);
+        ProcedureVersion restored = versionRepository.saveAndFlush(target);
+
+        ProcedureContentDto restoredContent = parseContent(restored.getContent());
+        proc.setCurrentVersionId(restored.getId());
+        proc.setAgency(restoredContent.getCoQuanThucHien());
+        updateProcedureTimeAndFeeMetadata(proc, restoredContent.getThoiHanLePhi());
+        procedureRepository.save(proc);
+
+        syncRagChunksSelectively(proc, restoredContent);
+
+        if (auditService != null) {
+            auditService.logProcedureAction(
+                    adminPrincipal.badgeId(),
+                    adminPrincipal.wardCode(),
+                    "PROCEDURE_ROLLBACK",
+                    "PROCEDURE",
+                    proc.getProcedureCode(),
+                    targetVersionNo,
+                    beforeJson,
+                    restored.getContent(),
+                    ip,
+                    userAgent
+            );
+        }
+
+        return toVersionDto(proc, restored);
+    }
+
+    @Transactional
+    public AdminWardOverviewDto getAdminWardReadOnlyOverview(String wardCode,
+                                                             OfficerPrincipal adminPrincipal,
+                                                             String ip,
+                                                             String userAgent) {
+        requireAdmin(adminPrincipal);
+        if (isBlank(wardCode)) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã xã/phường không được để trống.");
+        }
+        String cleanWard = wardCode.trim().toUpperCase();
+        if ("AG_PROVINCE".equalsIgnoreCase(cleanWard)) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST,
+                    "AG_PROVINCE là mã phạm vi quản trị cấp tỉnh, không được coi là một đơn vị hành chính cấp xã/phường.");
+        }
+
+        List<OfficerDossierDto> dossiers = dossierService != null
+                ? dossierService.getOfficerDossiers(cleanWard, null)
+                : Collections.emptyList();
+
+        int pending = (int) dossiers.stream().filter(d -> "PENDING".equalsIgnoreCase(d.status()) || "RECEIVED".equalsIgnoreCase(d.status())).count();
+        int approved = (int) dossiers.stream().filter(d -> "APPROVED".equalsIgnoreCase(d.status())).count();
+        int rejected = (int) dossiers.stream().filter(d -> "REJECTED".equalsIgnoreCase(d.status())).count();
+
+        if (auditService != null) {
+            auditService.logAction(
+                    adminPrincipal.badgeId(),
+                    cleanWard,
+                    "ADMIN_WARD_READONLY_VIEW",
+                    "WARD",
+                    cleanWard,
+                    ip != null ? ip : "127.0.0.1",
+                    userAgent
+            );
+        }
+
+        return AdminWardOverviewDto.builder()
+                .wardCode(cleanWard)
+                .readOnly(true)
+                .audited(true)
+                .totalDossiers(dossiers.size())
+                .pendingDossiers(pending)
+                .approvedDossiers(approved)
+                .rejectedDossiers(rejected)
+                .dossiers(dossiers)
+                .build();
     }
 
     /**
