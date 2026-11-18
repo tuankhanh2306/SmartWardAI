@@ -209,4 +209,30 @@ class OfficerAuthServiceTest {
         );
         assertEquals(ErrorCode.INVALID_REQUEST, ex.getErrorCode());
     }
+
+    @Test
+    void testAdminWardCode_isAgProvince_andMustChangePinInitially() {
+        OfficerAuthService.LoginResponse adminLogin = officerAuthService.authenticate("ADM-AG-0001", "9999", null);
+        assertEquals("ADM-AG-0001", adminLogin.badgeId());
+        assertEquals("ADMIN", adminLogin.role());
+        assertEquals("AG_PROVINCE", adminLogin.wardCode(), "Admin ward_code must be AG_PROVINCE, not a commune");
+        assertTrue(adminLogin.mustChangePin(), "First login must flag mustChangePin=true");
+
+        officerAuthService.changePin("ADM-AG-0001", "9999", "AdminNewPin2026!", "AdminNewPin2026!", null);
+        OfficerAuthService.LoginResponse afterChange = officerAuthService.authenticate("ADM-AG-0001", "AdminNewPin2026!", null);
+        assertFalse(afterChange.mustChangePin(), "After changing PIN, mustChangePin must be false");
+    }
+
+    @Test
+    void testProductionProfile_rejectsDefaultInMemoryPinAndSeedHashes() {
+        OfficerAuthService prodService = new OfficerAuthService(new ObjectMapper());
+        ReflectionTestUtils.setField(prodService, "jwtSecret", "SmartWardAI_UnitTest_JwtSecret_32B!");
+        ReflectionTestUtils.setField(prodService, "tokenTtlHours", 8);
+        ReflectionTestUtils.setField(prodService, "activeProfile", "prod");
+
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                prodService.authenticate("ADM-AG-0001", "9999", null)
+        );
+        assertEquals(ErrorCode.UNAUTHORIZED, ex.getErrorCode());
+    }
 }

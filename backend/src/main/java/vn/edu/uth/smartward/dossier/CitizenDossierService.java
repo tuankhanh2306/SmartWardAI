@@ -279,7 +279,11 @@ public class CitizenDossierService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,
                         "Không tìm thấy hồ sơ: " + dossierCode));
 
-        // 1. Cross-ward tenant isolation defense (SEC-09 & 5.3)
+        // 1. Cross-ward tenant isolation defense & Admin non-interference (SEC-09 & 5.3)
+        if (principal != null && "ADMIN".equalsIgnoreCase(principal.role())) {
+            throw new BusinessException(ErrorCode.FORBIDDEN,
+                    "Quản trị viên chỉ có quyền xem dữ liệu liên xã, không được phép duyệt hồ sơ thay cán bộ cấp xã.");
+        }
         if (principal != null && principal.wardCode() != null && !principal.wardCode().isBlank()) {
             String officerWard = principal.wardCode().trim();
             String dossierWard = dossier.getWardCode() != null ? dossier.getWardCode().trim() : "";

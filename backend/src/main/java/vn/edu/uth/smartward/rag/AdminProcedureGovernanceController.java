@@ -130,6 +130,87 @@ public class AdminProcedureGovernanceController {
         return ResponseEntity.ok(ApiResponse.ok("Đã từ chối đề xuất cập nhật TTHC", result));
     }
 
+    @PatchMapping("/procedures/{code}/minor-edit")
+    public ResponseEntity<ApiResponse<AdminProcedureSummaryDto>> minorEditProcedure(
+            @PathVariable("code") String code,
+            @RequestBody(required = false) ProcedureMinorEditRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        OfficerPrincipal principal = resolvePrincipal(httpRequest);
+        AdminProcedureSummaryDto result = governanceService.minorEditProcedure(
+                code,
+                request,
+                principal,
+                httpRequest.getRemoteAddr(),
+                httpRequest.getHeader("User-Agent")
+        );
+        return ResponseEntity.ok(ApiResponse.ok("Đã lưu chỉnh sửa nhỏ và ghi nhật ký kiểm toán", result));
+    }
+
+    @PostMapping("/procedures")
+    public ResponseEntity<ApiResponse<AdminProcedureSummaryDto>> createProcedure(
+            @RequestBody ProcedureCreateRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        OfficerPrincipal principal = resolvePrincipal(httpRequest);
+        AdminProcedureSummaryDto result = governanceService.createProcedure(
+                request,
+                principal,
+                httpRequest.getRemoteAddr(),
+                httpRequest.getHeader("User-Agent")
+        );
+        return ResponseEntity.ok(ApiResponse.ok("Đã tạo mới thủ tục hành chính thành công", result));
+    }
+
+    @PatchMapping("/procedures/{code}/status")
+    public ResponseEntity<ApiResponse<AdminProcedureSummaryDto>> updateProcedureStatus(
+            @PathVariable("code") String code,
+            @RequestBody ProcedureStatusUpdateRequest request,
+            HttpServletRequest httpRequest
+    ) {
+        OfficerPrincipal principal = resolvePrincipal(httpRequest);
+        AdminProcedureSummaryDto result = governanceService.updateProcedureStatus(
+                code,
+                request,
+                principal,
+                httpRequest.getRemoteAddr(),
+                httpRequest.getHeader("User-Agent")
+        );
+        return ResponseEntity.ok(ApiResponse.ok("Đã cập nhật trạng thái thủ tục hành chính", result));
+    }
+
+    @PostMapping("/procedures/{code}/rollback/{versionNo}")
+    public ResponseEntity<ApiResponse<ProcedureVersionDto>> rollbackProcedureVersion(
+            @PathVariable("code") String code,
+            @PathVariable("versionNo") Integer versionNo,
+            HttpServletRequest httpRequest
+    ) {
+        OfficerPrincipal principal = resolvePrincipal(httpRequest);
+        ProcedureVersionDto result = governanceService.rollbackProcedureVersion(
+                code,
+                versionNo,
+                principal,
+                httpRequest.getRemoteAddr(),
+                httpRequest.getHeader("User-Agent")
+        );
+        return ResponseEntity.ok(ApiResponse.ok("Đã khôi phục (rollback) phiên bản TTHC thành công", result));
+    }
+
+    @GetMapping({"/wards/{wardCode}", "/wards/{wardCode}/overview"})
+    public ResponseEntity<ApiResponse<AdminWardOverviewDto>> getAdminWardReadOnlyOverview(
+            @PathVariable("wardCode") String wardCode,
+            HttpServletRequest httpRequest
+    ) {
+        OfficerPrincipal principal = resolvePrincipal(httpRequest);
+        AdminWardOverviewDto result = governanceService.getAdminWardReadOnlyOverview(
+                wardCode,
+                principal,
+                httpRequest.getRemoteAddr(),
+                httpRequest.getHeader("User-Agent")
+        );
+        return ResponseEntity.ok(ApiResponse.ok("Dữ liệu giám sát chỉ đọc cấp xã (đã ghi audit_log)", result));
+    }
+
     private OfficerPrincipal resolvePrincipal(HttpServletRequest request) {
         Object attr = request.getAttribute("officerPrincipal");
         if (attr instanceof OfficerPrincipal principal) {
