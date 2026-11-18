@@ -22,7 +22,7 @@ if (!process.env.SMARTWARD_TSX_ACTIVE) {
   }
 }
 
-const { normalizeVoiceTranscript } = await import('../src/hooks/useVoiceInput.ts');
+const { normalizeVoiceTranscript } = await import('../src/hooks/useVoiceInput.js');
 
 console.log('================================================================');
 console.log('SMARTWARD AI - VOICE INPUT SPEECH-TO-TEXT NORMALIZATION TEST');
