@@ -241,6 +241,8 @@ export interface CivicReportRequest {
   reporterPhone: string;
   wardCode?: string;
   wardName?: string;
+  locationAccuracyM?: number;
+  locationSource?: string;
 }
 
 export interface CivicReportResponse {

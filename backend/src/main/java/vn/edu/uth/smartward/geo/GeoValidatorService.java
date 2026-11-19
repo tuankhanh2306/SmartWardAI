@@ -19,8 +19,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * GeoValidatorService: Single point of coordinate verification & territorial boundary auditing.
- * BƯỚC 2: Implements validateWardPoint(lat, lng, wardCode) enforcing BBOX, point-in-polygon,
+ * Enforces An Giang BBOX, point-in-polygon with tight border tolerance (<= 300m),
  * water/offshore boundary filtering, and swapped coordinate detection.
+ * NOTE: Currently loads 96 commune/ward boundaries from geo/wards.geo.json.
+ * The remaining 6 communes (total 102 under updated administrative reorganization) are pending
+ * branch 1c sync; no fake/invented boundaries are generated.
  */
 @Slf4j
 @Service
@@ -180,20 +183,35 @@ public class GeoValidatorService {
                 }
             }
 
-            // 4. Point-in-polygon verification via JTS
+            // 4. Point-in-polygon verification via JTS with tight border tolerance (<= 300m)
             if (def.getPolygon() != null) {
                 Point point = geometryFactory.createPoint(new Coordinate(lng, lat));
                 boolean inside = def.getPolygon().contains(point);
                 if (!inside) {
-                    double distMeters = calculateHaversineMeters(lat, lng, def.getLat(), def.getLng());
-                    if (distMeters > 5000) {
+                    // Distance from point to polygon boundary in degrees converted to meters (~111km / deg)
+                    double distToBoundaryMeters = def.getPolygon().distance(point) * 111000.0;
+                    if (distToBoundaryMeters > 300.0) {
                         return GeoValidationResult.error(
                                 GeoValidationError.OUT_OF_WARD,
-                                "Vị trí phản ánh (" + String.format(Locale.US, "%.5f, %.5f", lat, lng) + ") nằm ngoài ranh giới hành chính của " + def.getName() + " (khoảng cách " + Math.round(distMeters) + "m).",
+                                "Vị trí phản ánh (" + String.format(Locale.US, "%.5f, %.5f", lat, lng) +
+                                ") nằm ngoài ranh giới hành chính của " + def.getName() +
+                                " (vượt dung sai cho phép 300m, thực tế lệch ~" + Math.round(distToBoundaryMeters) + "m). Vui lòng chọn đúng đơn vị hành chính quản lý.",
                                 def.getWardCode(),
                                 def.getName()
                         );
                     }
+                }
+            } else {
+                // Degraded mode for wards without boundary polygon (fallback to centroid with 3km radius)
+                double distMeters = calculateHaversineMeters(lat, lng, def.getLat(), def.getLng());
+                if (distMeters > 3000.0) {
+                    return GeoValidationResult.error(
+                            GeoValidationError.OUT_OF_WARD,
+                            "Vị trí phản ánh (" + String.format(Locale.US, "%.5f, %.5f", lat, lng) +
+                            ") cách quá xa trụ sở " + def.getName() + " (" + Math.round(distMeters) + "m).",
+                            def.getWardCode(),
+                            def.getName()
+                    );
                 }
             }
 

@@ -48,6 +48,8 @@ export interface LiveCitizenIncident {
   duplicatesMerged: number;
   reporterPhone: string;
   officerNote?: string;
+  locationSource?: string;
+  locationAccuracyM?: number;
 }
 
 const LIVE_INCIDENTS_STORAGE_KEY = 'smartward_live_incidents_v1';
@@ -134,7 +136,7 @@ export const reportIssue = async (data: {
   reporterHomeWardName?: string;
   urgency?: 'HIGH' | 'MEDIUM' | 'LOW';
   locationAccuracyM?: number;
-  locationSource?: 'gps' | 'manual_pin' | 'address_geocode';
+  locationSource?: 'GPS' | 'PIN_DRAGGED' | 'MANUAL' | 'WARD_DEFAULT' | 'gps' | 'manual_pin' | 'address_geocode' | string;
 }): Promise<IssueReportResponse> => {
   const currentWardLabel = data.wardName || 'UBND cấp Xã/Phường';
   const targetWardCode = data.wardCode || 'AG_P_LONGXUYEN';
@@ -142,6 +144,10 @@ export const reportIssue = async (data: {
   const phone = (data.reporterPhone || '').trim();
   const addr = (data.addressText || currentWardLabel).trim();
   const appliedRadius = 25.0; // High-precision GPS radius R = 25m
+
+  // Normalize source to uppercase for backend contract
+  const rawSource = data.locationSource || 'GPS';
+  const normalizedSource = rawSource === 'manual_pin' ? 'PIN_DRAGGED' : rawSource.toUpperCase();
 
   const persistToLocalWardQueue = (res: IssueReportResponse) => {
     const cleanTitle = desc.replace(/^\[[^\]]+\]\s*/, '').trim();
@@ -163,10 +169,12 @@ export const reportIssue = async (data: {
       urgency: data.urgency || 'HIGH',
       duplicatesMerged: res.totalReportsInCluster,
       reporterPhone: phone || 'Chưa cung cấp',
+      locationSource: normalizedSource,
+      locationAccuracyM: data.locationAccuracyM,
       officerNote:
         data.reporterHomeWardName && data.reporterHomeWardName !== currentWardLabel
           ? `Tin báo liên địa bàn từ công dân ${data.reporterHomeWardName} đi qua ${currentWardLabel}. Đã định vị tự động.`
-          : `Tiếp nhận tin báo qua định vị bản đồ. Cần liên hệ SĐT ${phone} để xác minh hiện trường.`,
+          : `Tiếp nhận tin báo qua định vị bản đồ (${normalizedSource}). Cần liên hệ SĐT ${phone} để xác minh hiện trường.`,
     });
   };
 
@@ -181,7 +189,7 @@ export const reportIssue = async (data: {
       wardCode: targetWardCode,
       wardName: currentWardLabel,
       locationAccuracyM: data.locationAccuracyM,
-      locationSource: data.locationSource || 'gps',
+      locationSource: normalizedSource,
     });
     const payload = resp.data?.data ?? resp.data;
     const result: IssueReportResponse = {
