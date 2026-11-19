@@ -103,6 +103,47 @@ describe('walletAndIncidentFlow — Chặng M4 (Ví Mã QR Offline, Xuất PDF &
 
     expect(invalid.valid).toBe(false);
     expect(invalid.errors).toHaveLength(2);
+
+    // Chặn gửi khi vị trí vẫn ở trạng thái mặc định trụ sở xã (WARD_DEFAULT) chưa xác nhận
+    const unconfirmed = validateIncidentDraft({
+      category: 'ROAD_DAMAGE',
+      description: 'Đoạn đường sụt lún ổ gà sâu nguy hiểm cho xe máy.',
+      addressText: 'Đường Trần Hưng Đạo',
+      reporterPhone: '0918234567',
+      latitude: 10.3839,
+      longitude: 105.4267,
+      fallbackWardCode: 'AG_P_LONGXUYEN',
+      locationSource: 'WARD_DEFAULT',
+    });
+    expect(unconfirmed.valid).toBe(false);
+    expect(unconfirmed.errors[0]).toContain('chưa được xác nhận');
+
+    // Chặn tọa độ ngoài phạm vi tỉnh An Giang (VD: Hà Nội 21.0285, 105.8542)
+    const outOfProvince = validateIncidentDraft({
+      category: 'ROAD_DAMAGE',
+      description: 'Đoạn đường sụt lún ổ gà sâu nguy hiểm cho xe máy.',
+      addressText: '',
+      reporterPhone: '0918234567',
+      latitude: 21.0285,
+      longitude: 105.8542,
+      fallbackWardCode: 'AG_P_LONGXUYEN',
+      locationSource: 'PIN_DRAGGED',
+    });
+    expect(outOfProvince.valid).toBe(false);
+    expect(outOfProvince.errors[0]).toContain('ngoài phạm vi địa bàn Tỉnh An Giang');
+
+    // Cho phép gửi bằng tọa độ ghim ngay cả khi geocoding lỗi (addressText rỗng)
+    const emptyAddressValidPin = validateIncidentDraft({
+      category: 'ROAD_DAMAGE',
+      description: 'Đoạn đường sụt lún ổ gà sâu nguy hiểm cho xe máy.',
+      addressText: '',
+      reporterPhone: '0918234567',
+      latitude: 10.3839,
+      longitude: 105.4267,
+      fallbackWardCode: 'AG_P_LONGXUYEN',
+      locationSource: 'PIN_DRAGGED',
+    });
+    expect(emptyAddressValidPin.valid).toBe(true);
   });
 
   it('tự động định tuyến liên xã theo ô địa chỉ & báo kết quả gộp cụm GPS R = 25m khi gửi Online', async () => {

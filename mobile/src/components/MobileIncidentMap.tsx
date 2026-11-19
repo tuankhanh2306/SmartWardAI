@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   Platform,
   StyleSheet,
@@ -14,6 +14,7 @@ export interface MobileIncidentMapProps {
   latitude: number;
   longitude: number;
   locationSource: 'GPS' | 'PIN_DRAGGED' | 'WARD_DEFAULT';
+  userGpsLocation?: { lat: number; lon: number; accuracy: number } | null;
   gpsAccuracy: number | null;
   locating: boolean;
   onLocateGps: () => void;
@@ -43,6 +44,7 @@ export const MobileIncidentMap: React.FC<MobileIncidentMapProps> = ({
   latitude,
   longitude,
   locationSource,
+  userGpsLocation,
   gpsAccuracy,
   locating,
   onLocateGps,
@@ -50,8 +52,38 @@ export const MobileIncidentMap: React.FC<MobileIncidentMapProps> = ({
   wardName,
 }) => {
   const mapRef = useRef<any>(null);
-
+  const googleMapsKey = (process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || '').trim();
   const isNativeMapAvailable = Platform.OS !== 'web' && NativeMapView !== null;
+
+  // Smoothly animate camera when coordinates change without locking user pan/zoom gestures
+  useEffect(() => {
+    if (isNativeMapAvailable && mapRef.current?.animateToRegion) {
+      try {
+        mapRef.current.animateToRegion(
+          {
+            latitude,
+            longitude,
+            latitudeDelta: 0.005,
+            longitudeDelta: 0.005,
+          },
+          320
+        );
+      } catch {
+        // Ignore animation error before map layout completes
+      }
+    }
+  }, [isNativeMapAvailable, latitude, longitude]);
+
+  const handleMapTapOrLongPress = (e: any) => {
+    const coords = e?.nativeEvent?.coordinate;
+    if (coords && typeof coords.latitude === 'number' && typeof coords.longitude === 'number') {
+      onLocationChange(
+        Number(coords.latitude.toFixed(6)),
+        Number(coords.longitude.toFixed(6)),
+        'PIN_DRAGGED'
+      );
+    }
+  };
 
   return (
     <View style={styles.mapCard}>
@@ -60,7 +92,7 @@ export const MobileIncidentMap: React.FC<MobileIncidentMapProps> = ({
         {isNativeMapAvailable ? (
           <NativeMapView
             ref={mapRef}
-            provider={PROVIDER_GOOGLE}
+            provider={googleMapsKey ? PROVIDER_GOOGLE : undefined}
             style={styles.nativeMap}
             initialRegion={{
               latitude,
@@ -68,25 +100,22 @@ export const MobileIncidentMap: React.FC<MobileIncidentMapProps> = ({
               latitudeDelta: 0.005,
               longitudeDelta: 0.005,
             }}
-            region={{
-              latitude,
-              longitude,
-              latitudeDelta: 0.005,
-              longitudeDelta: 0.005,
-            }}
             showsUserLocation={true}
             showsMyLocationButton={false}
-            onPress={(e: any) => {
-              const coords = e.nativeEvent.coordinate;
-              if (coords) {
-                onLocationChange(
-                  Number(coords.latitude.toFixed(6)),
-                  Number(coords.longitude.toFixed(6)),
-                  'PIN_DRAGGED'
-                );
-              }
-            }}
+            onPress={handleMapTapOrLongPress}
+            onLongPress={handleMapTapOrLongPress}
           >
+            {/* User GPS Accuracy Circle (Blue) */}
+            {NativeCircle && userGpsLocation && (
+              <NativeCircle
+                center={{ latitude: userGpsLocation.lat, longitude: userGpsLocation.lon }}
+                radius={Math.max(5, Math.round(userGpsLocation.accuracy || 15))}
+                strokeColor="#2563EB"
+                fillColor="rgba(59, 130, 246, 0.14)"
+                strokeWidth={1.5}
+              />
+            )}
+
             {/* R = 25m Spatial Clustering Circle */}
             {NativeCircle && (
               <NativeCircle
@@ -103,16 +132,7 @@ export const MobileIncidentMap: React.FC<MobileIncidentMapProps> = ({
               <NativeMarker
                 coordinate={{ latitude, longitude }}
                 draggable
-                onDragEnd={(e: any) => {
-                  const coords = e.nativeEvent.coordinate;
-                  if (coords) {
-                    onLocationChange(
-                      Number(coords.latitude.toFixed(6)),
-                      Number(coords.longitude.toFixed(6)),
-                      'PIN_DRAGGED'
-                    );
-                  }
-                }}
+                onDragEnd={handleMapTapOrLongPress}
                 title="Vị trí sự cố"
                 description={`Địa bàn ${wardName} (Chạm/kéo để dời ghim)`}
                 pinColor={COLORS.citizenCrimson}

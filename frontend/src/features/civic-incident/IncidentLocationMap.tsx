@@ -36,12 +36,20 @@ export const IncidentLocationMap: React.FC<IncidentLocationMapProps> = ({
   const googleMarkerRef = useRef<google.maps.Marker | null>(null);
   const googleCircleRef = useRef<google.maps.Circle | null>(null);
   const googleUserDotRef = useRef<google.maps.Marker | null>(null);
+  const googleUserAccuracyCircleRef = useRef<google.maps.Circle | null>(null);
 
   // References for Leaflet instance
   const leafletMapRef = useRef<L.Map | null>(null);
   const leafletMarkerRef = useRef<L.Marker | null>(null);
   const leafletCircleRef = useRef<L.Circle | null>(null);
   const leafletUserDotRef = useRef<L.CircleMarker | null>(null);
+  const leafletUserAccuracyCircleRef = useRef<L.Circle | null>(null);
+
+  // Always keep latest callback ref to prevent stale closures in imperative map listeners
+  const onLocationChangeRef = useRef(onLocationChange);
+  useEffect(() => {
+    onLocationChangeRef.current = onLocationChange;
+  }, [onLocationChange]);
 
   const googleApiKey = (import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '').trim();
 
@@ -73,7 +81,7 @@ export const IncidentLocationMap: React.FC<IncidentLocationMapProps> = ({
     }
   }, [googleApiKey]);
 
-  // Clean up leaflet when switching engine
+  // Clean up leaflet when switching engine or unmounting
   const destroyLeaflet = useCallback(() => {
     if (leafletMapRef.current) {
       leafletMapRef.current.remove();
@@ -81,8 +89,20 @@ export const IncidentLocationMap: React.FC<IncidentLocationMapProps> = ({
       leafletMarkerRef.current = null;
       leafletCircleRef.current = null;
       leafletUserDotRef.current = null;
+      leafletUserAccuracyCircleRef.current = null;
     }
   }, []);
+
+  useEffect(() => {
+    return () => {
+      destroyLeaflet();
+      googleMapRef.current = null;
+      googleMarkerRef.current = null;
+      googleCircleRef.current = null;
+      googleUserDotRef.current = null;
+      googleUserAccuracyCircleRef.current = null;
+    };
+  }, [destroyLeaflet]);
 
   // Initialize or update Google Map
   useEffect(() => {
@@ -123,7 +143,7 @@ export const IncidentLocationMap: React.FC<IncidentLocationMapProps> = ({
       });
       googleMarkerRef.current = marker;
 
-      // Accuracy or cluster radius circle (R = 25m)
+      // Spatial cluster radius circle (R = 25m)
       const circle = new google.maps.Circle({
         strokeColor: '#B90E23',
         strokeOpacity: 0.8,
@@ -136,14 +156,14 @@ export const IncidentLocationMap: React.FC<IncidentLocationMapProps> = ({
       });
       googleCircleRef.current = circle;
 
-      // Drag event
+      // Drag event (always calls latest ref callback, avoiding stale closure)
       marker.addListener('dragend', () => {
         const pos = marker.getPosition();
         if (pos) {
           const newLat = Number(pos.lat().toFixed(6));
           const newLng = Number(pos.lng().toFixed(6));
           circle.setCenter({ lat: newLat, lng: newLng });
-          onLocationChange(newLat, newLng, 'PIN_DRAGGED', 5);
+          onLocationChangeRef.current(newLat, newLng, 'PIN_DRAGGED', 5);
         }
       });
 
@@ -154,7 +174,7 @@ export const IncidentLocationMap: React.FC<IncidentLocationMapProps> = ({
           const newLng = Number(e.latLng.lng().toFixed(6));
           marker.setPosition({ lat: newLat, lng: newLng });
           circle.setCenter({ lat: newLat, lng: newLng });
-          onLocationChange(newLat, newLng, 'PIN_DRAGGED', 5);
+          onLocationChangeRef.current(newLat, newLng, 'PIN_DRAGGED', 5);
         }
       });
     } else {
@@ -169,9 +189,27 @@ export const IncidentLocationMap: React.FC<IncidentLocationMapProps> = ({
       }
     }
 
-    // Render / update user blue dot
+    // Render / update user blue dot + GPS accuracy circle
     if (googleMapRef.current && userGpsLocation) {
       const userPos = { lat: userGpsLocation.lat, lng: userGpsLocation.lon };
+      const accRadius = Math.max(5, Math.round(userGpsLocation.accuracy || 15));
+      if (!googleUserAccuracyCircleRef.current) {
+        googleUserAccuracyCircleRef.current = new google.maps.Circle({
+          strokeColor: '#2563EB',
+          strokeOpacity: 0.5,
+          strokeWeight: 1,
+          fillColor: '#3B82F6',
+          fillOpacity: 0.14,
+          map: googleMapRef.current,
+          center: userPos,
+          radius: accRadius,
+          clickable: false,
+        });
+      } else {
+        googleUserAccuracyCircleRef.current.setCenter(userPos);
+        googleUserAccuracyCircleRef.current.setRadius(accRadius);
+      }
+
       if (!googleUserDotRef.current) {
         googleUserDotRef.current = new google.maps.Marker({
           position: userPos,
@@ -184,13 +222,13 @@ export const IncidentLocationMap: React.FC<IncidentLocationMapProps> = ({
             strokeColor: '#FFFFFF',
             strokeWeight: 2.5,
           },
-          title: `Vị trí của bạn (sai số ±${Math.round(userGpsLocation.accuracy)}m)`,
+          title: `Vị trí của bạn (sai số ±${accRadius}m)`,
         });
       } else {
         googleUserDotRef.current.setPosition(userPos);
       }
     }
-  }, [mapEngine, latitude, longitude, onLocationChange, userGpsLocation, destroyLeaflet]);
+  }, [mapEngine, latitude, longitude, userGpsLocation, destroyLeaflet]);
 
   // Initialize or update Leaflet Map
   useEffect(() => {
@@ -254,13 +292,13 @@ export const IncidentLocationMap: React.FC<IncidentLocationMapProps> = ({
       marker.on('dragend', (e) => {
         const pos = e.target.getLatLng();
         circle.setLatLng(pos);
-        onLocationChange(Number(pos.lat.toFixed(6)), Number(pos.lng.toFixed(6)), 'PIN_DRAGGED', 5);
+        onLocationChangeRef.current(Number(pos.lat.toFixed(6)), Number(pos.lng.toFixed(6)), 'PIN_DRAGGED', 5);
       });
 
       map.on('click', (e) => {
         marker.setLatLng(e.latlng);
         circle.setLatLng(e.latlng);
-        onLocationChange(Number(e.latlng.lat.toFixed(6)), Number(e.latlng.lng.toFixed(6)), 'PIN_DRAGGED', 5);
+        onLocationChangeRef.current(Number(e.latlng.lat.toFixed(6)), Number(e.latlng.lng.toFixed(6)), 'PIN_DRAGGED', 5);
       });
     } else {
       leafletMapRef.current.panTo([latitude, longitude]);
@@ -268,8 +306,24 @@ export const IncidentLocationMap: React.FC<IncidentLocationMapProps> = ({
       leafletCircleRef.current?.setLatLng([latitude, longitude]);
     }
 
-    // User GPS Blue Dot in Leaflet
+    // User GPS Blue Dot + Accuracy Circle in Leaflet
     if (leafletMapRef.current && userGpsLocation) {
+      const accRadius = Math.max(5, Math.round(userGpsLocation.accuracy || 15));
+      if (!leafletUserAccuracyCircleRef.current) {
+        leafletUserAccuracyCircleRef.current = L.circle([userGpsLocation.lat, userGpsLocation.lon], {
+          radius: accRadius,
+          color: '#2563EB',
+          weight: 1,
+          opacity: 0.5,
+          fillColor: '#3B82F6',
+          fillOpacity: 0.14,
+          interactive: false,
+        }).addTo(leafletMapRef.current);
+      } else {
+        leafletUserAccuracyCircleRef.current.setLatLng([userGpsLocation.lat, userGpsLocation.lon]);
+        leafletUserAccuracyCircleRef.current.setRadius(accRadius);
+      }
+
       if (!leafletUserDotRef.current) {
         leafletUserDotRef.current = L.circleMarker([userGpsLocation.lat, userGpsLocation.lon], {
           radius: 7,
@@ -283,7 +337,7 @@ export const IncidentLocationMap: React.FC<IncidentLocationMapProps> = ({
         leafletUserDotRef.current.setLatLng([userGpsLocation.lat, userGpsLocation.lon]);
       }
     }
-  }, [mapEngine, latitude, longitude, onLocationChange, userGpsLocation]);
+  }, [mapEngine, latitude, longitude, userGpsLocation]);
 
   return (
     <div className="relative w-full h-64 sm:h-72 lg:h-[340px] rounded-2xl overflow-hidden border border-[#CBD5E1] shadow-inner bg-[#E2E8F0]">

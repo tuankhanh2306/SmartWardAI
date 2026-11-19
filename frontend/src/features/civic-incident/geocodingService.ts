@@ -14,7 +14,7 @@ export function getCacheKey(lat: number, lon: number): string {
 export async function reverseGeocodeIncident(
   lat: number,
   lon: number,
-  fallbackWardAddress: string,
+  _fallbackWardAddress: string,
   wardName: string
 ): Promise<string> {
   const cacheKey = getCacheKey(lat, lon);
@@ -40,7 +40,11 @@ export async function reverseGeocodeIncident(
       });
 
       if (response && response.results[0]) {
-        const formatted = response.results[0].formatted_address;
+        const rawFormatted = response.results[0].formatted_address;
+        const formatted =
+          wardName && !rawFormatted.toLowerCase().includes(wardName.toLowerCase())
+            ? `${rawFormatted} (${wardName})`
+            : rawFormatted;
         geocodeCache.set(cacheKey, formatted);
         return formatted;
       }
@@ -75,22 +79,25 @@ export async function reverseGeocodeIncident(
       if (road) {
         resolved = `${road}, ${wardName}, Tỉnh An Giang`;
       } else if (data?.display_name) {
-        resolved = `${data.display_name}`;
-      } else {
-        resolved = fallbackWardAddress;
+        const disp = String(data.display_name);
+        resolved =
+          wardName && !disp.toLowerCase().includes(wardName.toLowerCase())
+            ? `${disp} (${wardName})`
+            : disp;
       }
 
-      geocodeCache.set(cacheKey, resolved);
-      return resolved;
+      if (resolved) {
+        geocodeCache.set(cacheKey, resolved);
+        return resolved;
+      }
     }
   } catch (err) {
     console.warn('Nominatim reverse geocode failed:', err);
   }
 
-  // 3. Fallback to ward office address
-  const fallback = fallbackWardAddress || `Tọa độ: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
-  geocodeCache.set(cacheKey, fallback);
-  return fallback;
+  // 3. When geocoding fails or quota is exceeded: return empty string (do not cache error)
+  // Caller leaves address box empty, shows notice, and still allows submission by coordinates.
+  return '';
 }
 
 export function clearGeocodeCache(): void {

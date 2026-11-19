@@ -47,6 +47,7 @@ export interface CivicIncidentTabProps {
   onLocationChange?: (lat: number, lon: number, source: 'GPS' | 'PIN_DRAGGED', accuracyM?: number) => void;
   onRecenterToGps?: () => void;
   isAddressManuallyEdited?: boolean;
+  isGeocodingAddress?: boolean;
   onResetAddressFromPin?: () => void;
 }
 
@@ -59,7 +60,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
     phoneInputRef, reporterPhone, setReporterPhone, phoneError, setPhoneError,
     isValidPhone, handleReport, reportLoading, gpsScanBanner, gpsAccuracy,
     latitude, longitude, reportResult, myIncidents,
-    userGpsLocation, onLocationChange, onRecenterToGps, isAddressManuallyEdited, onResetAddressFromPin,
+    userGpsLocation, onLocationChange, onRecenterToGps, isAddressManuallyEdited, isGeocodingAddress, onResetAddressFromPin,
   } = props;
 
   return (
@@ -131,6 +132,12 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                       Địa chỉ sự cố (Tự động điền từ bản đồ — có thể sửa tay):
                     </label>
                     <div className="flex items-center gap-2">
+                      {isGeocodingAddress && (
+                        <span className="text-[10.5px] font-bold text-blue-700 flex items-center gap-1">
+                          <RefreshCw className="w-3 h-3 animate-spin" />
+                          <span>Đang tìm địa chỉ...</span>
+                        </span>
+                      )}
                       {isAddressManuallyEdited && onResetAddressFromPin && (
                         <button
                           type="button"
@@ -161,7 +168,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                     type="text"
                     value={addressText}
                     onChange={(e) => setAddressText(e.target.value)}
-                    placeholder="Nhập địa chỉ cụ thể kèm tên Xã/Phường (VD: Đường Phan Văn Vàng, Phường Châu Đốc)..."
+                    placeholder={isGeocodingAddress ? 'Đang tìm địa chỉ từ ghim bản đồ...' : 'Nhập địa chỉ cụ thể kèm tên Xã/Phường (hoặc để trống nếu gửi bằng tọa độ ghim)...'}
                     className="w-full h-10 px-3.5 rounded-xl bg-white border border-[#CBD5E1] text-xs md:text-sm font-semibold text-[#0F172A] focus:outline-none focus:border-[#B90E23] shadow-2xs"
                   />
                   <p className="text-[11px] text-slate-500 italic flex items-center gap-1 mt-0.5">
@@ -202,7 +209,8 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                       const code = e.target.value;
                       setManualWardCode(code);
                       const chosen = AN_GIANG_WARDS.find((w) => w.code === code);
-                      if (chosen) {
+                      // Only move map center to ward office if user has not confirmed GPS/Pin yet
+                      if (chosen && locationSource === 'WARD_DEFAULT') {
                         setLatitude(chosen.lat);
                         setLongitude(chosen.lon);
                       }
