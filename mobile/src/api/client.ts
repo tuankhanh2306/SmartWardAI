@@ -34,9 +34,28 @@ import type {
   VaultUploadResponse,
 } from '../types/api.types';
 
-const DEFAULT_API_BASE_URL = (
-  process.env.EXPO_PUBLIC_API_BASE_URL || 'http://10.0.2.2:8080/api/v1'
-).replace(/\/+$/, '');
+export function resolveDefaultApiBaseUrl(customWindow?: { location?: { hostname?: string } }): string {
+  if (process.env.EXPO_PUBLIC_API_BASE_URL) {
+    return process.env.EXPO_PUBLIC_API_BASE_URL.replace(/\/+$/, '');
+  }
+
+  // When running on Web / Mobile Safari over LAN or localhost
+  const globalRef = globalThis as unknown as {
+    window?: { location?: { hostname?: string } };
+    location?: { hostname?: string };
+  };
+  const targetWindow = customWindow || globalRef.window || globalRef;
+  if (targetWindow && targetWindow.location?.hostname) {
+    const host = targetWindow.location.hostname;
+    if (host && host !== '10.0.2.2') {
+      return `http://${host}:8080/api/v1`;
+    }
+  }
+
+  return 'http://10.0.2.2:8080/api/v1';
+}
+
+const DEFAULT_API_BASE_URL = resolveDefaultApiBaseUrl();
 
 let currentWardCode = DEFAULT_WARD.code;
 let unauthorizedHandler: (() => void) | null = null;

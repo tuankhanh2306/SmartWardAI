@@ -1,10 +1,12 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { resolveDefaultApiBaseUrl } from '../api/client';
 import {
   AN_GIANG_40_PROCEDURES,
   evaluateOfflineLegalRag,
   evaluateRagGuardrailState,
+  isGreetingOrSmallTalk,
   matchesProcedureFilter,
   resolveCoreFormTypeForProcedure,
 } from '../core/legalKnowledgeBase';
@@ -171,5 +173,56 @@ describe('legalRagAndTts — Chặng M2 (40 TTHC, Guardrail θ=0.78, Template Ex
       expect(code).not.toMatch(/window\.print\s*\(/);
       expect(code).not.toMatch(/Print\.printAsync\s*\(/);
     }
+  });
+
+  it('nhận diện chính xác câu chào hỏi/giao tiếp (hi, hello, xin chào, tư vấn giúp tôi) và không kích hoạt chốt chặn ngoài phạm vi', () => {
+    const greetings = ['hi', 'hi!', 'hello', 'alo', 'xin chào', 'chào bạn', 'chào cán bộ', 'tư vấn giúp tôi', 'bạn là ai'];
+    for (const g of greetings) {
+      expect(isGreetingOrSmallTalk(g)).toBe(true);
+    }
+
+    // Câu hỏi có chứa thủ tục cụ thể thì KHÔNG coi là greeting thuần túy
+    expect(isGreetingOrSmallTalk('chào bạn, tôi muốn làm thủ tục khai sinh')).toBe(false);
+    expect(isGreetingOrSmallTalk('xin chào, đăng ký kết hôn cần gì')).toBe(false);
+    expect(isGreetingOrSmallTalk('thủ tục thường trú mẫu CT01')).toBe(false);
+
+    // evaluateOfflineLegalRag trả lời lịch thiệp, không bị abstained, S_max = 1.0
+    const resp = evaluateOfflineLegalRag('hi', 'Phường Châu Đốc');
+    expect(resp.abstained).toBe(false);
+    expect(resp.maxSimilarity).toBe(1.0);
+    expect(resp.citations).toHaveLength(0);
+    expect(resp.answer).toContain('Phường Châu Đốc');
+    expect(resp.suggestions).toBeDefined();
+    expect(resp.suggestions!.length).toBeGreaterThanOrEqual(4);
+
+    // Small talk cảm ơn
+    const thanksResp = evaluateOfflineLegalRag('cảm ơn bạn nhé', 'Xã An Phú');
+    expect(thanksResp.abstained).toBe(false);
+    expect(thanksResp.maxSimilarity).toBe(1.0);
+    expect(thanksResp.answer).toContain('Rất vui được hỗ trợ bạn');
+
+    // Small talk tạm biệt
+    const byeResp = evaluateOfflineLegalRag('tạm biệt', 'Thị trấn Tri Tôn');
+    expect(byeResp.abstained).toBe(false);
+    expect(byeResp.maxSimilarity).toBe(1.0);
+    expect(byeResp.answer).toContain('Tạm biệt');
+  });
+
+  it('tự động nhận diện Base URL API từ LAN IP khi truy cập từ Safari iPhone hoặc trình duyệt Web', () => {
+    // Trên điện thoại truy cập qua LAN IP (e.g. 192.168.3.51)
+    const lanUrl = resolveDefaultApiBaseUrl({
+      location: { hostname: '192.168.3.51' },
+    });
+    expect(lanUrl).toBe('http://192.168.3.51:8080/api/v1');
+
+    // Trên máy tính cục bộ
+    const localUrl = resolveDefaultApiBaseUrl({
+      location: { hostname: 'localhost' },
+    });
+    expect(localUrl).toBe('http://localhost:8080/api/v1');
+
+    // Mặc định Android emulator (không có window)
+    const emuUrl = resolveDefaultApiBaseUrl(undefined);
+    expect(emuUrl).toBe('http://10.0.2.2:8080/api/v1');
   });
 });
