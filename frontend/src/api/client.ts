@@ -9,6 +9,7 @@ export * from './modules/dossier.api';
 export * from './modules/formPrecheck.api';
 export * from './modules/incident.api';
 export * from './modules/proceduresAndVault.api';
+export * from './modules/voice.api';
 
 export { api };
 export default api;

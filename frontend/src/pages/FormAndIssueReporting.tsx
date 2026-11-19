@@ -11,6 +11,7 @@ import {
   getLiveSubmittedIncidents,
   submitDossier,
   trackDossier,
+  synthesizeSpeech,
   type FormPrecheckResponse,
   type IssueReportResponse,
   type LiveFormDossier,
@@ -348,8 +349,23 @@ export const FormAndIssueReporting: React.FC = () => {
   // Text-To-Speech (Hỗ trợ người cao tuổi & khiếm thị theo Đề án 06 với 2 chế độ TẮT / MỞ)
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const currentAudioUrlRef = useRef<string | null>(null);
 
   const stopSpeech = useCallback(() => {
+    if (currentAudioRef.current) {
+      try {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.currentTime = 0;
+      } catch {}
+      currentAudioRef.current = null;
+    }
+    if (currentAudioUrlRef.current) {
+      try {
+        URL.revokeObjectURL(currentAudioUrlRef.current);
+      } catch {}
+      currentAudioUrlRef.current = null;
+    }
     if ('speechSynthesis' in window) {
       try {
         if (window.speechSynthesis.paused) {
@@ -370,24 +386,11 @@ export const FormAndIssueReporting: React.FC = () => {
     };
   }, [stopSpeech]);
 
-  const startSpeech = useCallback((text: string, id: string) => {
+  const fallbackWebSpeech = useCallback((clean: string, id: string) => {
     if (!('speechSynthesis' in window)) {
-      alert('Trình duyệt của bạn hiện chưa hỗ trợ tính năng đọc âm thanh.');
+      setSpeakingId(null);
       return;
     }
-
-    stopSpeech();
-
-    const clean = text
-      .replace(/\[[A-Za-z0-9_\-]+\]/g, '')
-      .replace(/[*#_~`>]/g, ' ')
-      .replace(/•/g, ', ')
-      .replace(/\n+/g, '. ')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    if (!clean) return;
-
     setTimeout(() => {
       try {
         const utterance = new SpeechSynthesisUtterance(clean);
@@ -420,7 +423,51 @@ export const FormAndIssueReporting: React.FC = () => {
         setSpeakingId(null);
       }
     }, 50);
-  }, [stopSpeech]);
+  }, []);
+
+  const startSpeech = useCallback((text: string, id: string) => {
+    stopSpeech();
+
+    const clean = text
+      .replace(/\[[A-Za-z0-9_\-]+\]/g, '')
+      .replace(/[*#_~`>]/g, ' ')
+      .replace(/•/g, ', ')
+      .replace(/\n+/g, '. ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!clean) return;
+
+    setSpeakingId(id);
+
+    // Try local AI Sidecar Piper TTS first, then fallback to Web Speech API
+    synthesizeSpeech(clean)
+      .then((blob) => {
+        const audioUrl = URL.createObjectURL(blob);
+        currentAudioUrlRef.current = audioUrl;
+        const audio = new Audio(audioUrl);
+        currentAudioRef.current = audio;
+
+        audio.onended = () => {
+          stopSpeech();
+        };
+        audio.onerror = () => {
+          console.warn('Audio playback error, falling back to Web Speech API');
+          stopSpeech();
+          fallbackWebSpeech(clean, id);
+        };
+
+        audio.play().catch((err) => {
+          console.warn('Audio play() rejected:', err);
+          stopSpeech();
+          fallbackWebSpeech(clean, id);
+        });
+      })
+      .catch((err) => {
+        console.info('Sidecar TTS unavailable, falling back to browser Web Speech API:', err);
+        fallbackWebSpeech(clean, id);
+      });
+  }, [stopSpeech, fallbackWebSpeech]);
 
   const toggleSpeech = useCallback((text: string, id: string) => {
     if (speakingId === id) {
