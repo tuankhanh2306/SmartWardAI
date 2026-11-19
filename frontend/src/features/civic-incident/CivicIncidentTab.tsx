@@ -1,10 +1,11 @@
 import React from 'react';
 import {
   AlertCircle, AlertTriangle, Check, CheckCircle2,
-  Layers, MapPin, Navigation, PhoneCall, Radio, RefreshCw, Send
+  Layers, MapPin, Navigation, PhoneCall, Radio, RefreshCw, RotateCcw, Send, Shield
 } from 'lucide-react';
 import { AN_GIANG_WARDS, type WardItem } from '../../data/anGiangWards';
 import type { IssueReportResponse, LiveCitizenIncident } from '../../api/client';
+import { IncidentLocationMap } from './IncidentLocationMap';
 
 export interface CivicIncidentTabProps {
   currentWard: WardItem;
@@ -14,7 +15,7 @@ export interface CivicIncidentTabProps {
   gpsLoading: boolean;
   handleSimulateCrossWardGps: (code: string, addr: string) => void;
   unverifiedSampleWard?: WardItem;
-  locationSource: 'gps' | 'manual_pin' | 'address_geocode';
+  locationSource: 'GPS' | 'PIN_DRAGGED' | 'WARD_DEFAULT' | 'MANUAL' | 'gps' | 'manual_pin' | 'address_geocode';
   addressText: string;
   setAddressText: (v: string) => void;
   resolvedJurisdiction: any;
@@ -39,9 +40,14 @@ export interface CivicIncidentTabProps {
   gpsAccuracy: number | null;
   latitude: number;
   longitude: number;
-  incidentMapContainerRef: React.RefObject<HTMLDivElement | null>;
+  incidentMapContainerRef?: React.RefObject<HTMLDivElement | null>;
   reportResult: IssueReportResponse | null;
   myIncidents: LiveCitizenIncident[];
+  userGpsLocation?: { lat: number; lon: number; accuracy: number } | null;
+  onLocationChange?: (lat: number, lon: number, source: 'GPS' | 'PIN_DRAGGED', accuracyM?: number) => void;
+  onRecenterToGps?: () => void;
+  isAddressManuallyEdited?: boolean;
+  onResetAddressFromPin?: () => void;
 }
 
 export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
@@ -52,7 +58,8 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
     category, setCategory, urgency, setUrgency, description, setDescription,
     phoneInputRef, reporterPhone, setReporterPhone, phoneError, setPhoneError,
     isValidPhone, handleReport, reportLoading, gpsScanBanner, gpsAccuracy,
-    latitude, longitude, incidentMapContainerRef, reportResult, myIncidents,
+    latitude, longitude, reportResult, myIncidents,
+    userGpsLocation, onLocationChange, onRecenterToGps, isAddressManuallyEdited, onResetAddressFromPin,
   } = props;
 
   return (
@@ -118,14 +125,36 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                 </div>
 
                 {/* Editable Location Input Box */}
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1.5">
                   <div className="flex items-center justify-between text-[11px] text-[#334155]">
                     <label htmlFor="p4-address-text" className="font-bold">
-                      Địa chỉ sự cố (Tự động điền từ GPS — có thể sửa tay):
+                      Địa chỉ sự cố (Tự động điền từ bản đồ — có thể sửa tay):
                     </label>
-                    <span className="text-[#9F0C1E] font-semibold">
-                      {locationSource === 'manual_pin' ? 'Đã kéo ghim bản đồ' : 'Định vị GIS'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {isAddressManuallyEdited && onResetAddressFromPin && (
+                        <button
+                          type="button"
+                          onClick={onResetAddressFromPin}
+                          className="text-[11px] text-[#B90E23] hover:underline flex items-center gap-1 font-bold cursor-pointer"
+                        >
+                          <RotateCcw className="w-3 h-3" />
+                          <span>Lấy lại địa chỉ từ ghim</span>
+                        </button>
+                      )}
+                      <span className={`font-semibold px-2 py-0.5 rounded text-[10px] ${
+                        locationSource === 'WARD_DEFAULT'
+                          ? 'bg-amber-100 text-amber-800'
+                          : locationSource === 'PIN_DRAGGED' || locationSource === 'manual_pin'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-emerald-100 text-emerald-800'
+                      }`}>
+                        {locationSource === 'WARD_DEFAULT'
+                          ? 'Tọa độ mặc định (Chưa xác nhận)'
+                          : locationSource === 'PIN_DRAGGED' || locationSource === 'manual_pin'
+                          ? 'Ghim kéo thả'
+                          : 'Định vị GPS'}
+                      </span>
+                    </div>
                   </div>
                   <input
                     id="p4-address-text"
@@ -135,6 +164,10 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                     placeholder="Nhập địa chỉ cụ thể kèm tên Xã/Phường (VD: Đường Phan Văn Vàng, Phường Châu Đốc)..."
                     className="w-full h-10 px-3.5 rounded-xl bg-white border border-[#CBD5E1] text-xs md:text-sm font-semibold text-[#0F172A] focus:outline-none focus:border-[#B90E23] shadow-2xs"
                   />
+                  <p className="text-[11px] text-slate-500 italic flex items-center gap-1 mt-0.5">
+                    <Shield className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <span>Vị trí chỉ được sử dụng để xử lý sự cố hiện trường và có thể được gửi tới dịch vụ bản đồ để xác định địa chỉ chính xác.</span>
+                  </p>
                 </div>
 
                 {/* Manual Ward Selector — Mandatory when coordinate data is 'unverified' or undetermined */}
@@ -313,6 +346,14 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                 ) : null}
               </div>
 
+              {/* Block submission if location has not been confirmed by user */}
+              {locationSource === 'WARD_DEFAULT' && (
+                <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>Vui lòng bấm vào bản đồ hoặc kéo ghim đỏ để xác nhận vị trí sự cố trước khi gửi.</span>
+                </div>
+              )}
+
               {/* Submit Button */}
               <div className="pt-1 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <span className="text-xs text-[#475569] font-medium">
@@ -327,13 +368,18 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                 <button
                   type="button"
                   onClick={handleReport}
-                  disabled={reportLoading || !resolvedJurisdiction.canAutoRoute || !resolvedJurisdiction.ward}
+                  disabled={reportLoading || !resolvedJurisdiction.canAutoRoute || !resolvedJurisdiction.ward || locationSource === 'WARD_DEFAULT'}
                   className="w-full sm:w-auto px-6 py-3 bg-[#B90E23] hover:bg-[#8F0A1B] disabled:bg-[#94A3B8] active:scale-[0.98] text-white rounded-xl font-bold text-xs sm:text-sm shadow-sm flex items-center justify-center gap-2 transition-all duration-150 cursor-pointer disabled:cursor-not-allowed gov-focus-ring"
                 >
                   {reportLoading ? (
                     <>
                       <RefreshCw className="w-4 h-4 animate-spin" />
                       <span>Đang Gửi Báo Cáo...</span>
+                    </>
+                  ) : locationSource === 'WARD_DEFAULT' ? (
+                    <>
+                      <MapPin className="w-4 h-4 text-white" />
+                      <span>Chạm Bản Đồ Để Xác Nhận Vị Trí</span>
                     </>
                   ) : resolvedJurisdiction.canAutoRoute && resolvedJurisdiction.ward ? (
                     <>
@@ -419,19 +465,26 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                   </div>
                 )}
 
-                {/* Leaflet GIS R=25m Interactive Map */}
-                <div className="flex items-center justify-between text-xs px-0.5">
-                  <span className="text-[11px] text-[#750715] font-semibold">
-                    Bản đồ GIS R=25m: Bấm hoặc kéo ghim đỏ để chọn đúng điểm sự cố
-                  </span>
-                  <span className="text-[10px] font-mono text-[#475569]">
-                    {latitude.toFixed(4)}, {longitude.toFixed(4)}
-                  </span>
-                </div>
-
-                <div className="w-full h-64 sm:h-72 lg:h-[340px] rounded-2xl overflow-hidden border border-[#CBD5E1] relative z-1 shadow-inner bg-[#E5E7EB]">
-                  <div ref={incidentMapContainerRef} className="w-full h-full" />
-                </div>
+                {/* Dual-Engine Incident Location Map (Google Maps JS API + Leaflet/OSM Fallback) */}
+                <IncidentLocationMap
+                  latitude={latitude}
+                  longitude={longitude}
+                  locationSource={
+                    (locationSource === 'manual_pin'
+                      ? 'PIN_DRAGGED'
+                      : locationSource === 'gps'
+                      ? 'GPS'
+                      : locationSource === 'address_geocode'
+                      ? 'PIN_DRAGGED'
+                      : locationSource) as 'GPS' | 'PIN_DRAGGED' | 'WARD_DEFAULT'
+                  }
+                  userGpsLocation={userGpsLocation}
+                  gpsAccuracy={gpsAccuracy}
+                  gpsLoading={gpsLoading}
+                  onLocationChange={onLocationChange || ((lat, lon) => { setLatitude(lat); setLongitude(lon); })}
+                  onRecenterToGps={onRecenterToGps || (() => handleGetLocation(false))}
+                  wardName={currentWard.name}
+                />
               </div>
 
               {/* Live Incident Report Result Card */}
