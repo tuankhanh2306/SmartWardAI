@@ -37,6 +37,7 @@ import {
   resolveVerifiedJurisdiction,
   validateWardPoint,
 } from '../utils/geoUtils';
+import { normalizeTextForTts } from '../utils/ttsTextNormalizer';
 
 import {
   FileCheck2,
@@ -428,13 +429,8 @@ export const FormAndIssueReporting: React.FC = () => {
   const startSpeech = useCallback((text: string, id: string) => {
     stopSpeech();
 
-    const clean = text
-      .replace(/\[[A-Za-z0-9_\-]+\]/g, '')
-      .replace(/[*#_~`>]/g, ' ')
-      .replace(/•/g, ', ')
-      .replace(/\n+/g, '. ')
-      .replace(/\s+/g, ' ')
-      .trim();
+    // Clean and expand administrative acronyms (e.g. CCCD -> Căn cước công dân, UBND -> Ủy ban nhân dân)
+    const clean = normalizeTextForTts(text);
 
     if (!clean) return;
 
