@@ -1,8 +1,8 @@
 # Master Documentation Index — SmartWard AI
 
 > **Dự án:** Hệ sinh thái Hành chính công & Đô thị số cấp Xã/Phường SmartWard AI (Tỉnh An Giang, 96 xã/phường/đặc khu)  
-> **Phiên bản:** Production Hardening (Tháng 11/2026)  
-> **Tình trạng kiểm thử:** 420/420 Backend Maven Tests PASS | Frontend Build Clean (0 errors)
+> **Phiên bản:** Production Hardening & Defense Ready (Tháng 11/2026)  
+> **Tình trạng kiểm thử:** 524/524 Backend JUnit Tests PASS | 73/73 Mobile Vitest Tests PASS | 11/11 Frontend Suites PASS (0 errors)
 
 ---
 
@@ -54,11 +54,13 @@
 ├─────────────────────────┼─────────────────────────────────────────────────┼────────────────────────────┤
 │ 📌 SPRINT BOARD SỐNG    │ • docs/TODO_SPRINT_BOARD.md                     │ • Đầu việc đang làm/đã xong│
 ├─────────────────────────┼─────────────────────────────────────────────────┼────────────────────────────┤
-│ 🧪 KIỂM THỬ & CHẤT LƯỢNG│ • docs/testing/TEST_READY.md                    │ • 420 Unit & 161 E2E tests │
-│                         │ • docs/testing/TEST_INFRA.md                    │ • Hạ tầng test & fixtures  │
+│ 🧪 KIỂM THỬ & CHẤT LƯỢNG│ • docs/testing/TEST_READY.md                    │ • 524 JUnit, 73 Vitest     │
+│                         │ • docs/testing/TEST_INFRA.md                    │ • 11 Suites Web Regression │
 ├─────────────────────────┼─────────────────────────────────────────────────┼────────────────────────────┤
 │ 📑 BÁO CÁO THỰC TẾ      │ • docs/reports/MENTOR_TECHNICAL_BRIEFING.md     │ • Báo cáo Mentor Viettel   │
-│    (Đã hoàn thành)      │ • docs/reports/BAO_CAO_TIEN_DO_DEPLOY_MENTOR.md │ • Báo cáo Deploy Cloud     │
+│    & TÀI LIỆU BẢO VỆ    │ • docs/reports/BAO_CAO_TIEN_DO_DEPLOY_MENTOR.md │ • Báo cáo Deploy Cloud     │
+│                         │ • docs/reports/KICH_BAN_DEMO_LIVE_BAO_VE.md     │ • Kịch bản Demo Live 5-7p  │
+│                         │ • docs/reports/BO_CAU_HOI_VA_BIEN_HO_BAO_VE...  │ • 10 Câu hỏi & Biện hộ     │
 │                         │ • docs/weekly-reports/                          │ • Nhật ký tuần W01–W11     │
 └─────────────────────────┴─────────────────────────────────────────────────┴────────────────────────────┘
 ```
@@ -85,7 +87,9 @@
 * **[`docs/roadmap/MOBILE_TODO_SPRINT_BOARD.md`](roadmap/MOBILE_TODO_SPRINT_BOARD.md):** Bảng theo dõi chi tiết 68 đầu việc kỹ thuật (`MOB-0.1` → `MOB-5.10`) theo 6 chặng triển khai Mobile App.
 * **[`docs/TODO_SPRINT_BOARD.md`](TODO_SPRINT_BOARD.md):** **Sprint board sống** ghi nhận chi tiết trạng thái từng đầu việc kỹ thuật đang thực hiện, đã hoàn thành hoặc đang chờ xử lý theo từng ngày/tuần.
 
-### 2.4. Phân hệ Báo cáo Thực tế (`docs/reports/` & `docs/weekly-reports/`)
+### 2.4. Phân hệ Báo cáo Thực tế & Bộ Tài liệu Bảo vệ (`docs/reports/` & `docs/weekly-reports/`)
+* **[`docs/reports/KICH_BAN_DEMO_LIVE_BAO_VE.md`](reports/KICH_BAN_DEMO_LIVE_BAO_VE.md):** Kịch bản trình diễn thực chiến 5–7 phút gồm 4 màn (Mobile Công dân quét CCCD QR + Voice RAG + Tiền kiểm; Web Cán bộ Một cửa quét QR Pass & Vault Zero-Trust Watermark; Bản đồ GIS Two-Stage Triage; Kiểm toán RAM 6 containers $\le 2048$ MiB).
+* **[`docs/reports/BO_CAU_HOI_VA_BIEN_HO_BAO_VE_DO_AN.md`](reports/BO_CAU_HOI_VA_BIEN_HO_BAO_VE_DO_AN.md):** Bộ cẩm nang 10 câu hỏi phản biện "tử huyệt" của Hội đồng và luận điểm biện hộ kỹ thuật (vai trò "Bộ đệm tiền kiểm" đối sánh Cổng DVCQG/VNeID, Deterministic Rule Engine vs. LLM, RAG $\theta=0.78$, Nghị định 13/2023 Vault, trần RAM 2048 MiB, chuẩn A4 NĐ 30/2020).
 * **[`docs/reports/MENTOR_TECHNICAL_BRIEFING.md`](reports/MENTOR_TECHNICAL_BRIEFING.md):** Báo cáo đánh giá hiệu năng kỹ thuật gửi Mentor Viettel An Giang và Giảng viên hướng dẫn.
 * **[`docs/reports/BAO_CAO_TIEN_DO_DEPLOY_MENTOR.md`](reports/BAO_CAO_TIEN_DO_DEPLOY_MENTOR.md):** Báo cáo tiến độ vận hành hệ thống thực tế trên nền tảng Cloud.
 * **[`docs/weekly-reports/`](weekly-reports/):** Toàn bộ 11 bản báo cáo tiến độ nộp định kỳ hàng tuần từ W01 đến W11.
