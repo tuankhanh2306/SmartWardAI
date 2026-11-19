@@ -654,10 +654,9 @@ export const PerWardDashboard: React.FC = () => {
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-      const tileLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=vi', {
-        subdomains: ['0', '1', '2', '3'],
-        attribution: '&copy; OpenStreetMap contributors &bull; Dữ liệu GIS Hành chính An Giang 2026 (ODbL)',
-        maxZoom: 20,
+      const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &bull; Dữ liệu GIS Hành chính An Giang 2026 (ODbL)',
+        maxZoom: 19,
         keepBuffer: 4,
       });
 

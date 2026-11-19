@@ -61,6 +61,8 @@ export interface IncidentDraftInput {
   latitude: number;
   longitude: number;
   fallbackWardCode: string;
+  locationSource?: 'GPS' | 'PIN_DRAGGED' | 'WARD_DEFAULT';
+  locationAccuracyM?: number;
 }
 
 export interface IncidentValidationResult {
@@ -70,6 +72,10 @@ export interface IncidentValidationResult {
 
 export function validateIncidentDraft(input: IncidentDraftInput): IncidentValidationResult {
   const errors: string[] = [];
+
+  if (input.locationSource === 'WARD_DEFAULT') {
+    errors.push('Vị trí sự cố chưa được xác nhận. Vui lòng bấm lấy GPS hoặc kéo ghim đỏ trên bản đồ để xác nhận vị trí.');
+  }
 
   if (!INCIDENT_CATEGORY_OPTIONS.some((c) => c.key === input.category)) {
     errors.push('Vui lòng chọn loại sự cố hợp lệ.');
@@ -151,6 +157,8 @@ export async function executeIncidentSubmission(
     reporterPhone: input.reporterPhone.trim(),
     wardCode: routed.ward.code,
     wardName: routed.ward.name,
+    locationSource: input.locationSource || 'GPS',
+    locationAccuracyM: input.locationAccuracyM,
   };
 
   try {

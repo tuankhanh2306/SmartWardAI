@@ -82,6 +82,12 @@ public class TwoStageTriageService {
                 String.format(java.util.Locale.US, "%.3f", lon));
 
         // BƯỚC 2 & BƯỚC 4: Strict Territorial & Geographic Boundary Validation
+        if ("WARD_DEFAULT".equalsIgnoreCase(request.getLocationSource())) {
+            log.warn("Civic report rejected because location has not been confirmed by user (WARD_DEFAULT)");
+            throw new BusinessException(ErrorCode.INVALID_REQUEST,
+                    "Vị trí sự cố chưa được xác nhận. Vui lòng bấm lấy GPS hoặc kéo ghim trên bản đồ trước khi gửi phản ánh.");
+        }
+
         if (geoValidatorService != null) {
             GeoValidationResult geoResult = geoValidatorService.validateWardPoint(lat, lon, request.getWardCode());
             if (!geoResult.valid()) {
@@ -197,6 +203,10 @@ public class TwoStageTriageService {
             spatialIndexService.addClusterLocation(bestCluster.getClusterCode(), newLon.doubleValue(), newLat.doubleValue());
 
             // Save CivicReport
+            String normalizedSource = request.getLocationSource() != null
+                    ? request.getLocationSource().toUpperCase()
+                    : "GPS";
+
             CivicReport report = CivicReport.builder()
                     .reportCode(reportCode)
                     .cluster(bestCluster)
@@ -205,8 +215,9 @@ public class TwoStageTriageService {
                     .latitude(request.getLatitude())
                     .longitude(request.getLongitude())
                     .imageUrl(request.getImageUrl())
+                    .addressText(request.getAddressText())
                     .locationAccuracyM(request.getLocationAccuracyM())
-                    .locationSource(request.getLocationSource() != null ? request.getLocationSource() : "gps")
+                    .locationSource(normalizedSource)
                     .status("SUBMITTED")
                     .build();
 
@@ -257,6 +268,10 @@ public class TwoStageTriageService {
             spatialIndexService.addClusterLocation(clusterCode, lon, lat);
 
             // Save CivicReport
+            String normalizedSource = request.getLocationSource() != null
+                    ? request.getLocationSource().toUpperCase()
+                    : "GPS";
+
             CivicReport report = CivicReport.builder()
                     .reportCode(reportCode)
                     .cluster(savedCluster)
@@ -265,8 +280,9 @@ public class TwoStageTriageService {
                     .latitude(request.getLatitude())
                     .longitude(request.getLongitude())
                     .imageUrl(request.getImageUrl())
+                    .addressText(request.getAddressText())
                     .locationAccuracyM(request.getLocationAccuracyM())
-                    .locationSource(request.getLocationSource() != null ? request.getLocationSource() : "gps")
+                    .locationSource(normalizedSource)
                     .status("SUBMITTED")
                     .build();
 
@@ -304,7 +320,25 @@ public class TwoStageTriageService {
             clusters = clusterRepository.findByStatus(effectiveStatus);
         }
 
-        return clusters.stream().map(c -> IssueClusterDto.builder()
+        return clusters.stream().map(this::toClusterDto).toList();
+    }
+
+    private IssueClusterDto toClusterDto(IssueCluster c) {
+        String addr = null;
+        String locSource = "GPS";
+        Double acc = null;
+        try {
+            if (c.getReports() != null && !c.getReports().isEmpty()) {
+                CivicReport latest = c.getReports().get(c.getReports().size() - 1);
+                addr = latest.getAddressText();
+                locSource = latest.getLocationSource();
+                acc = latest.getLocationAccuracyM();
+            }
+        } catch (Exception ignored) {
+            // Lazy loading fallback if called outside active transaction
+        }
+
+        return IssueClusterDto.builder()
                 .id(c.getId())
                 .clusterCode(c.getClusterCode())
                 .category(c.getCategory())
@@ -313,10 +347,12 @@ public class TwoStageTriageService {
                 .centerLongitude(c.getCenterLongitude())
                 .reportCount(c.getReportCount())
                 .status(c.getStatus())
+                .addressText(addr)
+                .locationSource(locSource != null ? locSource : "GPS")
+                .locationAccuracyM(acc)
                 .firstReportedAt(c.getFirstReportedAt())
                 .lastReportedAt(c.getLastReportedAt())
-                .build()
-        ).toList();
+                .build();
     }
 
     /**
@@ -350,18 +386,7 @@ public class TwoStageTriageService {
             log.info("Cluster {} updated to status {} in DB and Redis GEO", clusterCode, upperStatus);
         }
 
-        return IssueClusterDto.builder()
-                .id(saved.getId())
-                .clusterCode(saved.getClusterCode())
-                .category(saved.getCategory())
-                .title(saved.getTitle())
-                .centerLatitude(saved.getCenterLatitude())
-                .centerLongitude(saved.getCenterLongitude())
-                .reportCount(saved.getReportCount())
-                .status(saved.getStatus())
-                .firstReportedAt(saved.getFirstReportedAt())
-                .lastReportedAt(saved.getLastReportedAt())
-                .build();
+        return toClusterDto(saved);
     }
 
     /**

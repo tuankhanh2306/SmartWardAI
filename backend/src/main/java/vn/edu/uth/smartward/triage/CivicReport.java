@@ -42,12 +42,15 @@ public class CivicReport {
     @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
+    @Column(name = "address_text", columnDefinition = "TEXT")
+    private String addressText;
+
     @Column(name = "location_accuracy_m")
     private Double locationAccuracyM;
 
     @Column(name = "location_source", length = 32)
     @Builder.Default
-    private String locationSource = "gps";
+    private String locationSource = "GPS";
 
     @Column(name = "status", nullable = false, length = 50)
     @Builder.Default

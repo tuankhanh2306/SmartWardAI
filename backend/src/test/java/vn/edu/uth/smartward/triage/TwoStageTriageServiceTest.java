@@ -220,4 +220,53 @@ class TwoStageTriageServiceTest {
         verify(spatialIndexService, times(1)).addClusterLocation(eq("CLUST_ACTIVE_01"), eq(106.7142160), eq(10.8035600));
         verify(spatialIndexService, never()).addClusterLocation(eq("CLUST_EXPIRED_02"), anyDouble(), anyDouble());
     }
+
+    @Test
+    void testProcessReport_unconfirmedWardDefaultLocation_shouldThrowBusinessException() {
+        CivicReportRequest request = CivicReportRequest.builder()
+                .category("ROAD_DAMAGE")
+                .description("Sự cố chưa xác nhận vị trí")
+                .latitude(BigDecimal.valueOf(10.8035600))
+                .longitude(BigDecimal.valueOf(106.7142160))
+                .locationSource("WARD_DEFAULT")
+                .build();
+
+        vn.edu.uth.smartward.common.BusinessException ex = assertThrows(
+                vn.edu.uth.smartward.common.BusinessException.class,
+                () -> triageService.processReport(request)
+        );
+        assertTrue(ex.getMessage().contains("chưa được xác nhận"));
+    }
+
+    @Test
+    void testProcessReport_withAddressAndPinLocation_shouldPersistCorrectly() {
+        CivicReportRequest request = CivicReportRequest.builder()
+                .category("ENVIRONMENT")
+                .description("Đống rác tự phát lớn trước ngõ")
+                .latitude(BigDecimal.valueOf(10.8035600))
+                .longitude(BigDecimal.valueOf(106.7142160))
+                .addressText("Số 15 Võ Oanh, Phường 25")
+                .locationSource("PIN_DRAGGED")
+                .locationAccuracyM(5.0)
+                .build();
+
+        float[] mockVec = new float[768];
+        mockVec[0] = 1.0f;
+        when(aiModelClient.generateEmbedding(anyString())).thenReturn(mockVec);
+        when(aiModelClient.toPgVectorString(any())).thenReturn("[1.0, 0.0]");
+        when(spatialIndexService.findNearbyClusters(anyDouble(), anyDouble(), anyDouble()))
+                .thenReturn(Collections.emptyList());
+        when(clusterRepository.save(any(IssueCluster.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CivicReportResponse resp = triageService.processReport(request);
+        assertNotNull(resp);
+        assertEquals("Số 15 Võ Oanh, Phường 25", resp.getAddressText());
+
+        org.mockito.ArgumentCaptor<CivicReport> reportCaptor = org.mockito.ArgumentCaptor.forClass(CivicReport.class);
+        verify(reportRepository).save(reportCaptor.capture());
+        CivicReport saved = reportCaptor.getValue();
+        assertEquals("Số 15 Võ Oanh, Phường 25", saved.getAddressText());
+        assertEquals("PIN_DRAGGED", saved.getLocationSource());
+        assertEquals(5.0, saved.getLocationAccuracyM());
+    }
 }
