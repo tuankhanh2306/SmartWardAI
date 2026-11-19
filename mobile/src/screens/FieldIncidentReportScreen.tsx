@@ -63,6 +63,7 @@ export const FieldIncidentReportScreen: React.FC = () => {
   const [longitude, setLongitude] = useState<number>(currentWard.lon);
   const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
   const [locating, setLocating] = useState<boolean>(false);
+  const [gpsBanner, setGpsBanner] = useState<string | null>(null);
 
   // Form fields (MOB-4.8 & MOB-4.9)
   const [category, setCategory] = useState<IncidentCategory>('ROAD_DAMAGE');
@@ -106,9 +107,89 @@ export const FieldIncidentReportScreen: React.FC = () => {
     [addressText, latitude, longitude, currentWard.code]
   );
 
-  // MOB-4.6 & MOB-4.8: High-accuracy GPS + Reverse Geocode
+  // MOB-4.6 & MOB-4.8: High-accuracy GPS + Reverse Geocode (Hỗ trợ cả Native App & Web Safari iOS)
   const handleLocateGps = async () => {
     setLocating(true);
+    setGpsBanner(null);
+
+    // Xử lý trực tiếp trên Web (đặc biệt là Safari trên iPhone)
+    const nav = typeof navigator !== 'undefined' ? (navigator as unknown as {
+      geolocation?: {
+        getCurrentPosition: (
+          success: (pos: { coords: { latitude: number; longitude: number; accuracy?: number } }) => void,
+          error: (err: unknown) => void,
+          options?: { enableHighAccuracy?: boolean; timeout?: number; maximumAge?: number }
+        ) => void;
+      };
+    }) : undefined;
+
+    const win = typeof globalThis !== 'undefined' ? (globalThis as unknown as {
+      isSecureContext?: boolean;
+      location?: { hostname?: string };
+    }) : undefined;
+
+    if (nav?.geolocation) {
+      const isSecure = win?.isSecureContext || win?.location?.hostname === 'localhost' || win?.location?.hostname === '127.0.0.1';
+      if (!isSecure) {
+        setGpsBanner('Lưu ý: Safari iOS chỉ mở chip GPS khi chạy qua liên kết HTTPS (hoặc localhost/tunnel). Dưới đây bạn có thể chọn toạ độ mẫu để test ngay.');
+      }
+
+      nav.geolocation.getCurrentPosition(
+        async (pos: { coords: { latitude: number; longitude: number; accuracy?: number } }) => {
+          const lat = Number(pos.coords.latitude.toFixed(6));
+          const lon = Number(pos.coords.longitude.toFixed(6));
+          setLatitude(lat);
+          setLongitude(lon);
+          const acc = Math.max(3, Math.round(pos.coords.accuracy ?? 6));
+          setGpsAccuracy(acc);
+          setGpsBanner(`Đã nhận GPS từ thiết bị (độ chính xác ±${acc}m).`);
+
+          try {
+            const geos = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lon });
+            if (geos && geos[0]) {
+              const g = geos[0];
+              const formatted = [g.streetNumber, g.street, g.district || g.subregion, g.city || g.region]
+                .filter(Boolean)
+                .join(', ');
+              if (formatted) setAddressText(formatted);
+            }
+          } catch {
+            // Keep manual address editable
+          }
+          setLocating(false);
+        },
+        async (err: unknown) => {
+          console.warn('Geolocation error:', err);
+          // Fallback to Expo Location
+          try {
+            const perm = await Location.requestForegroundPermissionsAsync();
+            if (perm.status === 'granted') {
+              const pos = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+              const lat = Number(pos.coords.latitude.toFixed(6));
+              const lon = Number(pos.coords.longitude.toFixed(6));
+              setLatitude(lat);
+              setLongitude(lon);
+              setGpsAccuracy(Math.max(3, Math.round(pos.coords.accuracy ?? 6)));
+              setGpsBanner('Đã nhận vị trí từ thiết bị.');
+              setLocating(false);
+              return;
+            }
+          } catch {
+            // ignore
+          }
+
+          setLatitude(currentWard.lat);
+          setLongitude(currentWard.lon);
+          setGpsAccuracy(8);
+          setGpsBanner('Không thể kích hoạt GPS (iOS Safari chặn HTTP). Hãy chọn các điểm An Giang mẫu bên dưới để test định tuyến.');
+          setLocating(false);
+        },
+        { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
+      );
+      return;
+    }
+
+    // Native App (Expo Go / Development Build)
     try {
       const perm = await Location.requestForegroundPermissionsAsync();
       if (perm.status !== 'granted') {
@@ -118,6 +199,7 @@ export const FieldIncidentReportScreen: React.FC = () => {
         if (!addressText.trim()) {
           setAddressText(currentWard.officeAddress);
         }
+        setGpsBanner('Chưa cấp quyền GPS. Đang hiển thị tọa độ mặc định của trụ sở xã.');
         return;
       }
 
@@ -130,6 +212,7 @@ export const FieldIncidentReportScreen: React.FC = () => {
       setLatitude(lat);
       setLongitude(lon);
       setGpsAccuracy(Math.max(3, Math.round(pos.coords.accuracy ?? 6)));
+      setGpsBanner(`Đã nhận GPS vệ tinh (sai số ±${Math.round(pos.coords.accuracy ?? 6)}m).`);
 
       try {
         const geos = await Location.reverseGeocodeAsync({
@@ -155,6 +238,7 @@ export const FieldIncidentReportScreen: React.FC = () => {
       if (!addressText.trim()) {
         setAddressText(currentWard.officeAddress);
       }
+      setGpsBanner('Không thể kết nối vệ tinh GPS. Đang dùng tọa độ trụ sở xã.');
     } finally {
       setLocating(false);
     }
@@ -280,6 +364,40 @@ export const FieldIncidentReportScreen: React.FC = () => {
             )}
             <Text style={styles.locateBtnText}>Lấy GPS</Text>
           </Pressable>
+        </View>
+      </View>
+
+      {/* GPS Banner thông báo trạng thái */}
+      {gpsBanner && (
+        <View style={styles.gpsBannerWrap}>
+          <Text style={styles.gpsBannerText}>{gpsBanner}</Text>
+        </View>
+      )}
+
+      {/* Tọa độ mô phỏng An Giang (Dành cho việc test nhanh trên Safari iOS / thiết bị ngồi trong nhà) */}
+      <View style={styles.presetSection}>
+        <Text style={styles.presetTitle}>📍 Điểm thử nghiệm An Giang (Bấm để test định tuyến GPS tức thì):</Text>
+        <View style={styles.presetWrap}>
+          {[
+            { label: 'Xã An Phú', lat: 10.7061, lon: 105.1206, addr: 'Đường tỉnh 957, Xã An Phú, Tỉnh An Giang' },
+            { label: 'TP. Long Xuyên', lat: 10.3700, lon: 105.4300, addr: 'Số 18 Trần Hưng Đạo, Phường Long Xuyên, Tỉnh An Giang' },
+            { label: 'TX. Tân Châu', lat: 10.8000, lon: 105.2400, addr: 'Đường Nguyễn Huệ, Phường Long Hưng, TX Tân Châu' },
+            { label: 'H. Chợ Mới', lat: 10.4500, lon: 105.4200, addr: 'Đường DT942, Xã Long Điền A, Huyện Chợ Mới' },
+          ].map((preset, idx) => (
+            <Pressable
+              key={idx}
+              onPress={() => {
+                setLatitude(preset.lat);
+                setLongitude(preset.lon);
+                setGpsAccuracy(4);
+                setAddressText(preset.addr);
+                setGpsBanner(`Đã ghim GPS tại ${preset.label} (${preset.lat}, ${preset.lon}). Vòng gom cụm R = 25m đã kích hoạt.`);
+              }}
+              style={({ pressed }) => [styles.presetChip, pressed && styles.pressed]}
+            >
+              <Text style={styles.presetChipText}>{preset.label}</Text>
+            </Pressable>
+          ))}
         </View>
       </View>
 
@@ -529,6 +647,51 @@ const styles = StyleSheet.create({
     color: COLORS.onPrimary,
     fontSize: 12.5,
     fontWeight: '700',
+  },
+  gpsBannerWrap: {
+    backgroundColor: '#FEF3C7',
+    borderColor: '#F59E0B',
+    borderWidth: 1,
+    borderRadius: RADIUS.md,
+    padding: SPACING.sm,
+    gap: 3,
+  },
+  gpsBannerText: {
+    fontSize: 11.5,
+    color: '#92400E',
+    lineHeight: 16,
+    fontWeight: '600',
+  },
+  presetSection: {
+    backgroundColor: COLORS.card,
+    borderRadius: RADIUS.lg,
+    borderWidth: 1,
+    borderColor: COLORS.borderSubtle,
+    padding: SPACING.sm,
+    gap: 6,
+  },
+  presetTitle: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: COLORS.textMuted,
+  },
+  presetWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  presetChip: {
+    backgroundColor: '#F1F5F9',
+    borderColor: '#CBD5E1',
+    borderWidth: 1,
+    borderRadius: RADIUS.full,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  presetChipText: {
+    fontSize: 11.5,
+    fontWeight: '700',
+    color: '#334155',
   },
   routingCard: {
     flexDirection: 'row',
