@@ -4,8 +4,9 @@
 > **Sinh viên thực hiện:** Nguyễn Minh Tuấn Khanh (MSSV: `089205023490` • Lớp: `CN2301CLCB`)  
 > **Giảng viên hướng dẫn:** TS. Lê Văn Quốc Anh (UTH)  
 > **Đơn vị thực tập:** Viettel An Giang – Chi nhánh Tập đoàn Công nghiệp – Viễn thông Quân đội  
-> **Kiến trúc kỹ thuật:** Modular Monolith (`Spring Boot 3.3.5` + `Java 21`) & Feature-Sliced Web PWA (`React 18` + `TypeScript` + `Vite 6`)  
-> **Ràng buộc hạ tầng:** Zero-Cost Architecture (Toàn bộ 6 container Docker vận hành $\le 2048\text{ MiB}$ RAM, chi phí bản quyền 0 VNĐ)
+> **Kiến trúc kỹ thuật:** Modular Monolith (`Spring Boot 3.3.5` + `Java 21`), Feature-Sliced Web PWA (`React 18` + `TypeScript` + `Vite 6`) & Native Mobile App (`React Native` + `Expo SDK 52`)  
+> **Ràng buộc hạ tầng:** Zero-Cost Architecture (Toàn bộ 6 container Docker vận hành $\le 2048\text{ MiB}$ RAM, chi phí bản quyền 0 VNĐ)  
+> **Tình trạng kiểm thử:** 524 JUnit Tests PASS • 73 Mobile Vitest Tests PASS • 11 Frontend Suites PASS (100% CI Green)
 
 ---
 
@@ -92,8 +93,41 @@ SmartWardAI/
 ### Yêu cầu môi trường
 * **Chạy bằng Docker (Khuyên dùng):** Docker Desktop / Docker Engine $\ge 24.0$ và Docker Compose v2.
 * **Chạy trực tiếp trên máy (Local Dev):** JDK 21, Node.js $\ge 20$, Maven (đã tích hợp sẵn wrapper `./mvnw`).
+* **Ứng dụng Di động:** Thiết bị di động cài ứng dụng Expo Go (iOS / Android) hoặc trình giả lập di động.
 
-### Cách 1: Khởi chạy trọn gói bằng Docker Compose (1 lệnh duy nhất)
+---
+
+### Cách 1: Khởi chạy 1-Click Tự động phục vụ Demo Bảo vệ (Khuyên dùng)
+Hệ thống cung cấp sẵn script 1-Click tự động kiểm tra biến môi trường, khóa AES-256, kiểm định trần 2048 MiB RAM và bật toàn bộ hệ sinh thái:
+```powershell
+# Dành cho Windows PowerShell:
+.\scripts\start-smartward-demo.ps1
+
+# Xem mức RAM thực tế 6 containers:
+.\scripts\start-smartward-demo.ps1 -Status
+
+# Dừng hệ thống sau buổi demo:
+.\scripts\start-smartward-demo.ps1 -Stop
+```
+*(Trên hệ điều hành Linux / macOS: chạy `bash ./scripts/start-smartward-demo.sh`)*
+
+---
+
+### Cách 2: Khởi chạy Ứng dụng Di động Native (Mobile Expo SDK 52)
+```bash
+# 1. Chuyển vào thư mục mobile
+cd mobile
+
+# 2. Khởi động Metro Bundler
+npm start
+
+# 3. Quét mã QR trên màn hình terminal bằng ứng dụng Expo Go trên điện thoại
+# Trải nghiệm: Quét CCCD QR, Giọng nói AI TTS, Tiền kiểm 4 biểu mẫu, Báo sự cố GPS
+```
+
+---
+
+### Cách 3: Khởi chạy Thủ công bằng Docker Compose
 ```bash
 # 1. Tạo tệp biến môi trường từ mẫu chuẩn
 cp .env.example .env
@@ -106,7 +140,9 @@ docker compose ps
 docker stats --no-stream
 ```
 
-### Cách 2: Khởi chạy Môi trường Phát triển Cục bộ (Local Development)
+---
+
+### Cách 4: Khởi chạy Môi trường Phát triển Cục bộ (Local Development)
 ```bash
 # Bước 1: Bật các container cơ sở dữ liệu nền (PostgreSQL + pgvector, Redis, MinIO)
 docker compose up -d postgres redis minio minio-init
