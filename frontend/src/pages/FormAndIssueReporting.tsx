@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
-import L from 'leaflet';
 import {
   precheckForm,
   reportIssue,
@@ -38,6 +37,7 @@ import {
   validateWardPoint,
 } from '../utils/geoUtils';
 import { normalizeTextForTts } from '../utils/ttsTextNormalizer';
+import { reverseGeocodeIncident } from '../features/civic-incident/geocodingService';
 
 import {
   FileCheck2,
@@ -341,7 +341,9 @@ export const FormAndIssueReporting: React.FC = () => {
   const [latitude, setLatitude] = useState(currentWard.lat);
   const [longitude, setLongitude] = useState(currentWard.lon);
   const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
-  const [locationSource, setLocationSource] = useState<'gps' | 'manual_pin' | 'address_geocode'>('gps');
+  const [locationSource, setLocationSource] = useState<'GPS' | 'PIN_DRAGGED' | 'WARD_DEFAULT'>('WARD_DEFAULT');
+  const [isAddressManuallyEdited, setIsAddressManuallyEdited] = useState(false);
+  const [userGpsLocation, setUserGpsLocation] = useState<{ lat: number; lon: number; accuracy: number } | null>(null);
   const [gpsScanBanner, setGpsScanBanner] = useState<string | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [reportLoading, setReportLoading] = useState(false);
@@ -476,9 +478,6 @@ export const FormAndIssueReporting: React.FC = () => {
 
   // Incident Map Pin Dropper Refs
   const incidentMapContainerRef = useRef<HTMLDivElement>(null);
-  const incidentMapInstanceRef = useRef<L.Map | null>(null);
-  const incidentMarkerRef = useRef<L.Marker | null>(null);
-  const incidentRadiusCircleRef = useRef<L.Circle | null>(null);
 
   // Helper to map scanned/selected location into BOTH the Location Box (addressText) and Content Box (description)
   const mapLocationToBoxes = useCallback((newAddress: string) => {
@@ -598,129 +597,6 @@ export const FormAndIssueReporting: React.FC = () => {
       }
     }
   }, [currentWard.code, currentWard.lat, currentWard.lon, currentWard.name, currentWard.officeAddress, ocrSuccess, mapLocationToBoxes]);
-
-  // Leaflet Interactive Pin Dropper for Incident Tab (with tight R=25m spatial circle)
-  useEffect(() => {
-    if (activeTab !== 'incident' || !incidentMapContainerRef.current) return;
-
-    if (incidentMapInstanceRef.current) {
-      incidentMapInstanceRef.current.remove();
-      incidentMapInstanceRef.current = null;
-    }
-
-    const container = incidentMapContainerRef.current;
-    const map = L.map(container, {
-      zoomControl: false,
-      preferCanvas: true,
-    }).setView([latitude, longitude], 17);
-
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-    const tileLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=vi', {
-      subdomains: ['0', '1', '2', '3'],
-      attribution: '&copy; OpenStreetMap contributors &bull; Dữ liệu GIS Hành chính An Giang 2026 (ODbL)',
-      maxZoom: 20,
-      keepBuffer: 4,
-    });
-
-    tileLayer.on('tileerror', (err: any) => {
-      const tile = err?.tile as HTMLImageElement | undefined;
-      const coords = err?.coords;
-      if (tile && coords && !tile.dataset.fallback) {
-        tile.dataset.fallback = '1';
-        tile.src = `https://a.basemaps.cartocdn.com/rastertiles/voyager/${coords.z}/${coords.x}/${coords.y}.png`;
-      }
-    });
-
-    tileLayer.addTo(map);
-
-    const pinIcon = L.divIcon({
-      className: 'custom-pin-marker',
-      html: `
-        <div class="relative flex items-center justify-center w-8 h-8 -ml-1 -mt-3 cursor-pointer">
-          <div class="w-7 h-7 rounded-full bg-[#BA1A1A] border-2 border-white shadow-lg flex items-center justify-center text-white text-xs font-bold ring-2 ring-red-300">
-            !
-          </div>
-        </div>
-      `,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
-    });
-
-    const marker = L.marker([latitude, longitude], {
-      icon: pinIcon,
-      draggable: true,
-    }).addTo(map);
-
-    // Tight R = 25m spatial precision circle
-    const radiusCircle = L.circle([latitude, longitude], {
-      radius: 25,
-      color: '#00687A',
-      weight: 2,
-      fillColor: '#57DFFE',
-      fillOpacity: 0.25,
-    }).addTo(map);
-
-    marker.on('dragend', (e) => {
-      const pos = e.target.getLatLng();
-      setLocationSource('manual_pin');
-      setGpsAccuracy(5);
-      reverseGeocodeAndMap(pos.lat, pos.lng, 5);
-    });
-
-    map.on('click', (e) => {
-      marker.setLatLng(e.latlng);
-      radiusCircle.setLatLng(e.latlng);
-      setLocationSource('manual_pin');
-      setGpsAccuracy(5);
-      reverseGeocodeAndMap(e.latlng.lat, e.latlng.lng, 5);
-    });
-
-    incidentMapInstanceRef.current = map;
-    incidentMarkerRef.current = marker;
-    incidentRadiusCircleRef.current = radiusCircle;
-
-    const rafId = requestAnimationFrame(() => map.invalidateSize({ animate: false }));
-    const t1 = setTimeout(() => map.invalidateSize({ animate: false }), 100);
-    const t2 = setTimeout(() => map.invalidateSize({ animate: false }), 350);
-    const t3 = setTimeout(() => map.invalidateSize({ animate: false }), 700);
-
-    let resizeObserver: ResizeObserver | null = null;
-    if (typeof ResizeObserver !== 'undefined') {
-      resizeObserver = new ResizeObserver(() => {
-        if (incidentMapInstanceRef.current) {
-          incidentMapInstanceRef.current.invalidateSize({ animate: false });
-        }
-      });
-      resizeObserver.observe(container);
-    }
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
-      map.remove();
-      incidentMapInstanceRef.current = null;
-      incidentMarkerRef.current = null;
-      incidentRadiusCircleRef.current = null;
-    };
-  }, [activeTab]);
-
-  // Sync marker & 25m precision circle position when GPS button or coordinates update
-  useEffect(() => {
-    if (incidentMarkerRef.current && incidentMapInstanceRef.current) {
-      incidentMarkerRef.current.setLatLng([latitude, longitude]);
-      if (incidentRadiusCircleRef.current) {
-        incidentRadiusCircleRef.current.setLatLng([latitude, longitude]);
-      }
-      incidentMapInstanceRef.current.panTo([latitude, longitude]);
-    }
-  }, [latitude, longitude]);
-
 
   // Handle FormType Switching with realistic pre-populated test cases
   const handleSelectFormType = (type: 'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH', presetMode: 'ERROR_DEMO' | 'VALID_DEMO' = 'ERROR_DEMO') => {
@@ -1508,52 +1384,196 @@ export const FormAndIssueReporting: React.FC = () => {
     }
   };
 
-  // Handle High-Accuracy HTML5 Geolocation API (R=25m) and auto-map into boxes
+  const watchIdRef = useRef<number | null>(null);
+  const watchTimerRef = useRef<any>(null);
+  const pinDebounceRef = useRef<any>(null);
+
+  // High-Accuracy HTML5 Geolocation API with watchPosition (up to 15s or until accuracy <= 30m)
   const handleGetLocation = useCallback(
-    (isAutoScan: boolean = false) => {
+    (_isAutoScan: boolean = false) => {
       if (!navigator.geolocation) {
-        setLocationSource('manual_pin');
-        if (!isAutoScan) {
-          alert('Trình duyệt của bạn không hỗ trợ định vị GPS. Bạn có thể bấm chọn vị trí trực tiếp trên bản đồ.');
-        } else {
-          reverseGeocodeAndMap(latitude, longitude, 8, currentWard.officeAddress);
-        }
+        setLocationSource('WARD_DEFAULT');
+        setGpsScanBanner('Trình duyệt không hỗ trợ định vị GPS. Vui lòng bấm vào bản đồ hoặc kéo ghim để chọn vị trí sự cố.');
         return;
       }
+
+      if (watchIdRef.current !== null) {
+        navigator.geolocation.clearWatch(watchIdRef.current);
+        watchIdRef.current = null;
+      }
+      if (watchTimerRef.current) {
+        clearTimeout(watchTimerRef.current);
+        watchTimerRef.current = null;
+      }
+
       setGpsLoading(true);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude: lat, longitude: lon, accuracy } = pos.coords;
-          const nearest = findNearestWardByCoords(lat, lon);
-          const acc = Math.round(accuracy || 8);
-          setGpsAccuracy(acc);
-          setLocationSource('gps');
-          // If auto-scanning on a desktop PC far outside An Giang (> 80km), keep current ward coords unless user clicked manual GPS scan
-          if (isAutoScan && nearest.distanceMeters > 80000) {
-            reverseGeocodeAndMap(currentWard.lat, currentWard.lon, 8, currentWard.officeAddress);
-          } else {
-            reverseGeocodeAndMap(lat, lon, acc);
-          }
-          if (acc > 100) {
-            setGpsScanBanner(`Vị trí định vị có sai số ±${acc}m do tín hiệu yếu. Vui lòng kéo ghim trên bản đồ để chỉnh lại vị trí chính xác.`);
-          }
-          setGpsLoading(false);
-        },
-        () => {
-          setLocationSource('manual_pin');
-          setGpsScanBanner('Không thể lấy GPS thiết bị (bị từ chối hoặc lỗi tín hiệu). Vui lòng chọn hoặc kéo ghim trên bản đồ.');
-          reverseGeocodeAndMap(latitude, longitude, 10, addressText || currentWard.officeAddress);
-          setGpsLoading(false);
-        },
-        {
-          enableHighAccuracy: true,
-          maximumAge: 0,
-          timeout: 8000,
+      setGpsScanBanner('Đang xác định vị trí GPS...');
+
+      let bestPos: GeolocationPosition | null = null;
+
+      const finishLocation = async (pos: GeolocationPosition) => {
+        if (watchIdRef.current !== null) {
+          navigator.geolocation.clearWatch(watchIdRef.current);
+          watchIdRef.current = null;
         }
-      );
+        if (watchTimerRef.current) {
+          clearTimeout(watchTimerRef.current);
+          watchTimerRef.current = null;
+        }
+
+        const { latitude: lat, longitude: lon, accuracy } = pos.coords;
+        const acc = Math.round(accuracy || 10);
+        setLatitude(lat);
+        setLongitude(lon);
+        setGpsAccuracy(acc);
+        setUserGpsLocation({ lat, lon, accuracy: acc });
+        setLocationSource('GPS');
+        setGpsLoading(false);
+
+        if (acc <= 30) {
+          setGpsScanBanner(`Đã định vị thành công (Độ chính xác ~${acc}m).`);
+        } else {
+          setGpsScanBanner(`Tín hiệu GPS yếu (Độ chính xác ~${acc}m). Vui lòng kéo ghim trên bản đồ để chỉnh lại.`);
+        }
+
+        if (!isAddressManuallyEdited) {
+          try {
+            const nearest = findNearestWardByCoords(lat, lon);
+            const addr = await reverseGeocodeIncident(lat, lon, currentWard.officeAddress, nearest.ward.name);
+            mapLocationToBoxes(addr);
+          } catch (err) {
+            console.warn('Geocoding error:', err);
+          }
+        }
+      };
+
+      try {
+        watchIdRef.current = navigator.geolocation.watchPosition(
+          (pos) => {
+            if (!bestPos || pos.coords.accuracy < bestPos.coords.accuracy) {
+              bestPos = pos;
+            }
+            if (pos.coords.accuracy <= 30) {
+              finishLocation(pos);
+            }
+          },
+          (err) => {
+            console.warn('Geolocation watch error:', err);
+            if (watchIdRef.current !== null) {
+              navigator.geolocation.clearWatch(watchIdRef.current);
+              watchIdRef.current = null;
+            }
+            if (watchTimerRef.current) {
+              clearTimeout(watchTimerRef.current);
+              watchTimerRef.current = null;
+            }
+            setGpsLoading(false);
+            setLocationSource('WARD_DEFAULT');
+            if (err.code === 1) {
+              setGpsScanBanner('Chưa cấp quyền vị trí. Vui lòng bấm vào bản đồ hoặc kéo ghim đỏ để chọn vị trí sự cố.');
+            } else if (err.code === 3) {
+              setGpsScanBanner('Hết thời gian chờ GPS (tín hiệu yếu). Vui lòng bấm vào bản đồ hoặc kéo ghim đỏ để chọn vị trí.');
+            } else {
+              setGpsScanBanner('Không thể xác định GPS. Vui lòng bấm vào bản đồ hoặc kéo ghim đỏ để chọn vị trí sự cố.');
+            }
+          },
+          {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 15000,
+          }
+        );
+
+        // 15-second cutoff to take the best reading seen so far
+        watchTimerRef.current = setTimeout(() => {
+          if (bestPos) {
+            finishLocation(bestPos);
+          } else {
+            if (watchIdRef.current !== null) {
+              navigator.geolocation.clearWatch(watchIdRef.current);
+              watchIdRef.current = null;
+            }
+            setGpsLoading(false);
+            setLocationSource('WARD_DEFAULT');
+            setGpsScanBanner('Không nhận được tín hiệu GPS trong 15 giây. Vui lòng bấm vào bản đồ hoặc kéo ghim đỏ để chọn vị trí sự cố.');
+          }
+        }, 15000);
+      } catch {
+        setGpsLoading(false);
+        setLocationSource('WARD_DEFAULT');
+        setGpsScanBanner('Lỗi khởi tạo GPS. Vui lòng chọn vị trí trên bản đồ.');
+      }
     },
-    [reverseGeocodeAndMap, latitude, longitude, currentWard.lat, currentWard.lon, currentWard.officeAddress, addressText]
+    [currentWard.officeAddress, isAddressManuallyEdited, mapLocationToBoxes]
   );
+
+  const handleLocationChange = useCallback(
+    (lat: number, lon: number, source: 'GPS' | 'PIN_DRAGGED', accuracyM?: number) => {
+      setLatitude(lat);
+      setLongitude(lon);
+      setLocationSource(source);
+      if (accuracyM !== undefined) {
+        setGpsAccuracy(accuracyM);
+      } else if (source === 'PIN_DRAGGED') {
+        setGpsAccuracy(5);
+      }
+
+      if (source === 'PIN_DRAGGED') {
+        setGpsScanBanner('Đã cập nhật vị trí từ ghim bản đồ.');
+      }
+
+      if (!isAddressManuallyEdited) {
+        if (pinDebounceRef.current) {
+          clearTimeout(pinDebounceRef.current);
+        }
+        pinDebounceRef.current = setTimeout(async () => {
+          try {
+            const nearest = findNearestWardByCoords(lat, lon);
+            const addr = await reverseGeocodeIncident(lat, lon, currentWard.officeAddress, nearest.ward.name);
+            mapLocationToBoxes(addr);
+          } catch (err) {
+            console.warn('Pin reverse geocode error:', err);
+          }
+        }, 500);
+      }
+    },
+    [currentWard.officeAddress, isAddressManuallyEdited, mapLocationToBoxes]
+  );
+
+  const handleRecenterToGps = useCallback(() => {
+    if (userGpsLocation) {
+      setLatitude(userGpsLocation.lat);
+      setLongitude(userGpsLocation.lon);
+      setGpsAccuracy(userGpsLocation.accuracy);
+      setLocationSource('GPS');
+      setGpsScanBanner(`Đã quay lại vị trí GPS (Độ chính xác ~${userGpsLocation.accuracy}m).`);
+      if (!isAddressManuallyEdited) {
+        const nearest = findNearestWardByCoords(userGpsLocation.lat, userGpsLocation.lon);
+        reverseGeocodeIncident(userGpsLocation.lat, userGpsLocation.lon, currentWard.officeAddress, nearest.ward.name)
+          .then(mapLocationToBoxes)
+          .catch(() => {});
+      }
+    } else {
+      handleGetLocation(false);
+    }
+  }, [userGpsLocation, handleGetLocation, isAddressManuallyEdited, currentWard.officeAddress, mapLocationToBoxes]);
+
+  const handleResetAddressFromPin = useCallback(async () => {
+    setIsAddressManuallyEdited(false);
+    try {
+      const nearest = findNearestWardByCoords(latitude, longitude);
+      const addr = await reverseGeocodeIncident(latitude, longitude, currentWard.officeAddress, nearest.ward.name);
+      mapLocationToBoxes(addr);
+      setGpsScanBanner(`Đã cập nhật lại địa chỉ từ vị trí ghim bản đồ: "${addr}"`);
+    } catch {
+      // ignore
+    }
+  }, [latitude, longitude, currentWard.officeAddress, mapLocationToBoxes]);
+
+  const handleAddressTextChange = useCallback((newText: string) => {
+    setAddressText(newText);
+    setIsAddressManuallyEdited(true);
+  }, []);
 
   // Auto-scan GPS first whenever citizen opens the "Báo Sự Cố Hiện Trường" tab
   const hasAutoScannedRef = useRef(false);
@@ -1577,6 +1597,7 @@ export const FormAndIssueReporting: React.FC = () => {
       const simLat = Number((target.lat + 0.00035).toFixed(6));
       const simLon = Number((target.lon + 0.00025).toFixed(6));
       const fullAddr = `${streetLandmark}, ${target.name}, Tỉnh An Giang`;
+      setLocationSource('PIN_DRAGGED');
       reverseGeocodeAndMap(simLat, simLon, 5, fullAddr);
       setGpsLoading(false);
     }, 250);
@@ -1590,6 +1611,11 @@ export const FormAndIssueReporting: React.FC = () => {
 
   // Handle Incident Report (Phone is OPTIONAL; blocks auto-routing when ward is 'unverified' or undetermined)
   const handleReport = async () => {
+    if (locationSource === 'WARD_DEFAULT') {
+      alert('Vui lòng chạm vào bản đồ hoặc kéo ghim đỏ để xác nhận vị trí sự cố trước khi gửi báo cáo.');
+      return;
+    }
+
     const cleanPhone = reporterPhone.replace(/[\s.\-()]/g, '');
     if (cleanPhone && !isValidPhone(cleanPhone)) {
       setPhoneError(
@@ -3490,7 +3516,7 @@ export const FormAndIssueReporting: React.FC = () => {
           unverifiedSampleWard={unverifiedSampleWard}
           locationSource={locationSource}
           addressText={addressText}
-          setAddressText={setAddressText}
+          setAddressText={handleAddressTextChange}
           resolvedJurisdiction={resolvedJurisdiction}
           manualWardSelectRef={manualWardSelectRef}
           setLatitude={setLatitude}
@@ -3516,6 +3542,11 @@ export const FormAndIssueReporting: React.FC = () => {
           incidentMapContainerRef={incidentMapContainerRef}
           reportResult={reportResult}
           myIncidents={myIncidents}
+          userGpsLocation={userGpsLocation}
+          onLocationChange={handleLocationChange}
+          onRecenterToGps={handleRecenterToGps}
+          isAddressManuallyEdited={isAddressManuallyEdited}
+          onResetAddressFromPin={handleResetAddressFromPin}
         />
       )}
 
