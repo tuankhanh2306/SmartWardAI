@@ -523,7 +523,7 @@ function validateTkBtxh(
   const warnings: string[] = [];
   const extra = input.extra || {};
 
-  // 1. Mốc tuổi người cao tuổi (>= 80 hoặc >= 75 hộ nghèo/cận nghèo) hoặc khuyết tật nặng/đặc biệt nặng
+  // 1. Mốc tuổi người cao tuổi (>= 75 diện thường hoặc >= 70 hộ nghèo/cận nghèo theo Luật BHXH 2024 & NĐ 20/2021) hoặc khuyết tật nặng/đặc biệt nặng
   const age = computeExactAge(input.dateOfBirth, refDate);
   const hasSevereDisability =
     extra.disabilityLevel === 'SEVERE' || extra.disabilityLevel === 'EXTREMELY_SEVERE';
@@ -532,12 +532,12 @@ function validateTkBtxh(
 
   const eligible = Boolean(
     hasSevereDisability ||
-      (age && !age.isFuture && age.years >= 80) ||
-      (age && !age.isFuture && age.years >= 75 && isPoorOrNearPoor)
+      (age && !age.isFuture && age.years >= 75) ||
+      (age && !age.isFuture && age.years >= 70 && isPoorOrNearPoor)
   );
 
   fieldValidations.push({
-    fieldName: 'Điều kiện hưởng trợ cấp BTXH (NĐ 20/2021 & NĐ 335/2026)',
+    fieldName: 'Điều kiện Mốc tuổi (≥ 75 tuổi hoặc ≥ 70 tuổi hộ nghèo theo Luật BHXH 2024 / Khuyết tật nặng)',
     providedValue: `${input.dateOfBirth} (${age?.years ?? 0} tuổi) | ${
       hasSevereDisability
         ? 'Khuyết tật nặng/đặc biệt nặng'
@@ -549,7 +549,7 @@ function validateTkBtxh(
     errorCode: eligible ? undefined : 'INELIGIBLE_SOCIAL_PROTECTION_AGE',
     errorMessage: eligible
       ? undefined
-      : `CHƯA ĐỦ ĐIỀU KIỆN HƯỞNG TRỢ CẤP: Yêu cầu người cao tuổi từ đủ 80 tuổi (hoặc từ đủ 75 tuổi thuộc hộ nghèo/cận nghèo) hoặc có Giấy xác nhận khuyết tật mức độ nặng/đặc biệt nặng (hiện ${
+      : `CHƯA ĐỦ ĐIỀU KIỆN MỐC TUỔI (Luật BHXH 2024 & Nghị định 20/2021/NĐ-CP): Người cao tuổi không có lương hưu phải từ đủ 75 tuổi trở lên (hoặc từ đủ 70 tuổi nếu thuộc hộ nghèo/cận nghèo) hoặc có Giấy xác nhận khuyết tật nặng/đặc biệt nặng (hiện ${
           age?.years ?? 0
         } tuổi).`,
     confidenceScore: eligible ? 0.99 : 0.3,

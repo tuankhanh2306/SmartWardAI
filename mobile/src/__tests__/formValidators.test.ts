@@ -166,14 +166,14 @@ describe('formValidators — Động cơ kiểm định tất định 4 nhóm t�
   });
 
   // ==========================================================================
-  // 4. TK-BTXH (NĐ 20/2021 & NĐ 335/2026 & Đề án 06)
+  // 4. TK-BTXH (Luật BHXH 2024, NĐ 20/2021 & NĐ 335/2026 & Đề án 06)
   // ==========================================================================
-  it('TK-BTXH: Hợp lệ cho người >= 80 tuổi hoặc >= 75 tuổi hộ nghèo có STK ngân hàng', () => {
-    const elder80 = validateAdministrativeForm({
+  it('TK-BTXH: Hợp lệ cho người >= 75 tuổi diện thường hoặc >= 70 tuổi hộ nghèo có STK ngân hàng (Luật BHXH 2024)', () => {
+    const elder76 = validateAdministrativeForm({
       formType: 'TK-BTXH',
       fullName: 'PHẠM VĂN BẢY',
-      citizenCccd: '089045009988',
-      dateOfBirth: '1945-05-01', // 81 tuổi
+      citizenCccd: '089050009988',
+      dateOfBirth: '1950-05-01', // 76 tuổi (>= 75 tuổi diện thường)
       referenceDate: REF_DATE,
       extra: {
         householdStatus: 'NORMAL',
@@ -181,13 +181,13 @@ describe('formValidators — Động cơ kiểm định tất định 4 nhóm t�
         bankAccount: '102003456789',
       },
     });
-    expect(elder80.valid).toBe(true);
+    expect(elder76.valid).toBe(true);
 
-    const poor75 = validateAdministrativeForm({
+    const poor71 = validateAdministrativeForm({
       formType: 'TK-BTXH',
       fullName: 'TRẦN THỊ TÁM',
-      citizenCccd: '089050009977',
-      dateOfBirth: '1950-10-01', // 76 tuổi
+      citizenCccd: '089055009977',
+      dateOfBirth: '1955-10-01', // 71 tuổi (>= 70 tuổi hộ nghèo)
       referenceDate: REF_DATE,
       extra: {
         householdStatus: 'POOR',
@@ -195,10 +195,10 @@ describe('formValidators — Động cơ kiểm định tất định 4 nhóm t�
         bankAccount: '012345678901',
       },
     });
-    expect(poor75.valid).toBe(true);
+    expect(poor71.valid).toBe(true);
   });
 
-  it('TK-BTXH: Hợp lệ cho người khuyết tật nặng dưới 75 tuổi khi có STK ngân hàng', () => {
+  it('TK-BTXH: Hợp lệ cho người khuyết tật nặng dưới 70 tuổi khi có STK ngân hàng', () => {
     const res = validateAdministrativeForm({
       formType: 'TK-BTXH',
       fullName: 'LÊ VĂN TƯ',
@@ -219,7 +219,7 @@ describe('formValidators — Động cơ kiểm định tất định 4 nhóm t�
       formType: 'TK-BTXH',
       fullName: 'NGUYỄN VĂN SÁU',
       citizenCccd: '089056001122',
-      dateOfBirth: '1956-01-01', // 70 tuổi
+      dateOfBirth: '1956-01-01', // 70 tuổi (chưa đủ 75 diện thường)
       referenceDate: REF_DATE,
       extra: {
         householdStatus: 'NORMAL',

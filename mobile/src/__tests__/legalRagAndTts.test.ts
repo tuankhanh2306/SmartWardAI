@@ -117,6 +117,48 @@ describe('legalRagAndTts — Chặng M2 (40 TTHC, Guardrail θ=0.78, Template Ex
     expect(html).toContain('TTHC-CR-01');
   });
 
+  it('khớp 100% chuẩn thể thức 1 trang A4 cho 4 nhóm biểu mẫu (CT01, TK-KS, TK-KH, TK-BTXH)', () => {
+    // 1. CT01 (Bộ Công an)
+    const ct01Desc = getTemplateFileDescriptor('TTHC-CR-01', 'Đăng ký thường trú', 'CT01');
+    const ct01Html = buildOfficialTemplateHtml(ct01Desc, 'Xã An Phú');
+    expect(ct01Html).toContain('Mẫu CT01 ban hành kèm theo Thông tư số 66/2023/TT-BCA');
+    expect(ct01Html).toContain('TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ');
+    expect(ct01Html).toContain('Kính gửi:</b> Công an Xã An Phú');
+    expect(ct01Html).toContain('Ý KIẾN CỦA CHỦ HỘ');
+    expect(ct01Html).toContain('Ý KIẾN CỦA CHỦ SỞ HỮU CHỖ Ở HỢP PHÁP');
+    expect(ct01Html).toContain('Ý KIẾN CỦA CHA/MẸ/NGƯỜI GIÁM HỘ');
+    expect(ct01Html).toContain('NGƯỜI KÊ KHAI');
+    expect(ct01Html).not.toContain('CÔNG AN TỈNH AN GIANG');
+
+    // 2. TK-KS (Bộ Tư pháp)
+    const ksDesc = getTemplateFileDescriptor('TTHC-HT-01', 'Đăng ký khai sinh', 'TK-KS');
+    const ksHtml = buildOfficialTemplateHtml(ksDesc, 'Phường Mỹ Bình');
+    expect(ksHtml).toContain('TỜ KHAI ĐĂNG KÝ KHAI SINH');
+    expect(ksHtml).toContain('Phụ lục 5 Thông tư số 04/2024/TT-BTP');
+    expect(ksHtml).toContain('Đề nghị cấp bản sao: Có □ , Không □');
+    expect(ksHtml).toContain('Số lượng: ....... bản');
+    expect(ksHtml).toContain('ghi bằng chữ:');
+    expect(ksHtml).toContain('Thông tin về Giấy chứng nhận kết hôn');
+
+    // 3. TK-KH (Luật HN&GĐ)
+    const khDesc = getTemplateFileDescriptor('TTHC-HT-02', 'Đăng ký kết hôn', 'TK-KH');
+    const khHtml = buildOfficialTemplateHtml(khDesc, 'Xã Bình Thạnh Đông');
+    expect(khHtml).toContain('TỜ KHAI ĐĂNG KÝ KẾT HÔN');
+    expect(khHtml).toContain('Ảnh 3x4<br/>Bên nữ');
+    expect(khHtml).toContain('Ảnh 3x4<br/>Bên nam');
+    expect(khHtml).toContain('BÊN NỮ');
+    expect(khHtml).toContain('BÊN NAM');
+    expect(khHtml).toContain('Lần kết hôn thứ mấy');
+
+    // 4. TK-BTXH (Luật BHXH 2024)
+    const btxhDesc = getTemplateFileDescriptor('TTHC-BT-01', 'Trợ cấp BTXH', 'TK-BTXH');
+    const btxhHtml = buildOfficialTemplateHtml(btxhDesc, 'Phường Châu Phú B');
+    expect(btxhHtml).toContain('TỜ KHAI THÔNG TIN ĐỀ NGHỊ TRỢ CẤP XÃ HỘI HÀNG THÁNG');
+    expect(btxhHtml).toContain('Mẫu số 01');
+    expect(btxhHtml).toContain('Luật BHXH 2024');
+    expect(btxhHtml).toContain('Đề án 06 chi trả an sinh không dùng tiền mặt');
+  });
+
   it('MOB-2.8: Kỷ luật cấm tuyệt đối nút In (window.print / Print.printAsync) trên Tab 1 & Exporter', () => {
     const filesToAudit = [
       resolve(__dirname, '../screens/LegalRagChatScreen.tsx'),
