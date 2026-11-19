@@ -90,7 +90,37 @@ jobs:
         run: npm run build
 
   # ============================================================================
-  # 3. DOCKER COMPOSE CONFIG & RESOURCE BUDGET VALIDATION (<= 2048 MiB RAM)
+  # 3. MOBILE CI: Node 20, Expo SDK 52 TypeScript & Vitest Test Suite
+  # ============================================================================
+  mobile-ci:
+    name: Mobile CI (React Native / Expo SDK 52)
+    needs: [docs-governance]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install Mobile Dependencies
+        working-directory: ./mobile
+        run: npm ci
+
+      - name: Mobile TypeScript Verification
+        working-directory: ./mobile
+        run: npm run typecheck
+
+      - name: Run Mobile Vitest Suite (73 Unit & Adversarial Tests)
+        working-directory: ./mobile
+        run: npm test
+
+  # ============================================================================
+  # 4. DOCKER COMPOSE CONFIG & RESOURCE BUDGET VALIDATION (<= 2048 MiB RAM)
   # ============================================================================
   docker-compose-check:
     name: Docker Compose & Resource Limits Validation
@@ -129,12 +159,12 @@ jobs:
           [ "$HTTP_GET_TRACK" != "200" ]
 
   # ============================================================================
-  # 4. CONTINUOUS DEPLOYMENT (CD): Automated Server Deployment via SSH
+  # 5. CONTINUOUS DEPLOYMENT (CD): Automated Server Deployment via SSH
   # Triggered only when commits land on 'main' and all CI jobs pass.
   # ============================================================================
   deploy:
     name: Continuous Deployment (Production VPS / Server)
-    needs: [backend-ci, frontend-ci, docker-compose-check]
+    needs: [backend-ci, frontend-ci, mobile-ci, docker-compose-check]
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
