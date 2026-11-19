@@ -11,6 +11,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Linking,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -24,13 +25,13 @@ import {
   Building2,
   CheckCircle2,
   CloudUpload,
-  Crosshair,
   ExternalLink,
   MapPin,
   Navigation,
   Phone,
   RotateCcw,
   Send,
+  Settings,
   Shield,
   WifiOff,
 } from 'lucide-react-native';
@@ -38,7 +39,7 @@ import { MobileIncidentMap } from '../components/MobileIncidentMap';
 import { flushOfflineIncidentQueue } from '../api/offlineSyncManager';
 import { useAccessibility } from '../context/AccessibilityContext';
 import { useWard } from '../context/WardContext';
-import { resolveWardFromLocationBox } from '../core/angiangWards';
+import { findNearestWardByGps, resolveWardFromLocationBox } from '../core/angiangWards';
 import {
   executeIncidentSubmission,
   INCIDENT_CATEGORY_OPTIONS,
@@ -58,6 +59,12 @@ import {
 } from '../theme/tokens';
 import type { IncidentCategory } from '../types/api.types';
 
+const mobileGeocodeCache = new Map<string, string>();
+
+function getMobileGeocodeCacheKey(lat: number, lon: number): string {
+  return `${lat.toFixed(4)},${lon.toFixed(4)}`;
+}
+
 export const FieldIncidentReportScreen: React.FC = () => {
   const { currentWard } = useWard();
   const { typography, fontScaleMode } = useAccessibility();
@@ -67,14 +74,23 @@ export const FieldIncidentReportScreen: React.FC = () => {
   const [latitude, setLatitude] = useState<number>(currentWard.lat);
   const [longitude, setLongitude] = useState<number>(currentWard.lon);
   const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
+  const [userGpsLocation, setUserGpsLocation] = useState<{ lat: number; lon: number; accuracy: number } | null>(null);
   const [locating, setLocating] = useState<boolean>(false);
+  const [isGeocoding, setIsGeocoding] = useState<boolean>(false);
+  const [permissionDenied, setPermissionDenied] = useState<boolean>(false);
   const [gpsBanner, setGpsBanner] = useState<string | null>(null);
   const [locationSource, setLocationSource] = useState<'GPS' | 'PIN_DRAGGED' | 'WARD_DEFAULT'>('WARD_DEFAULT');
   const [isAddressManuallyEdited, setIsAddressManuallyEdited] = useState<boolean>(false);
 
-  // Watch subscription ref for clean termination
+  // Watch subscription & timer refs for clean termination without race conditions
   const watchSubRef = useRef<Location.LocationSubscription | null>(null);
+  const webWatchIdRef = useRef<number | null>(null);
   const watchTimeoutRef = useRef<any>(null);
+  const pinDebounceRef = useRef<any>(null);
+  const locationSourceRef = useRef<'GPS' | 'PIN_DRAGGED' | 'WARD_DEFAULT'>(locationSource);
+  useEffect(() => {
+    locationSourceRef.current = locationSource;
+  }, [locationSource]);
 
   // Form fields (MOB-4.8 & MOB-4.9)
   const [category, setCategory] = useState<IncidentCategory>('ROAD_DAMAGE');
@@ -89,6 +105,25 @@ export const FieldIncidentReportScreen: React.FC = () => {
   const [offlineQueue, setOfflineQueue] = useState<OfflineIncidentQueueRow[]>([]);
   const [flushNotice, setFlushNotice] = useState<string | null>(null);
 
+  const stopAllGpsWatchers = useCallback(() => {
+    if (watchSubRef.current) {
+      try {
+        watchSubRef.current.remove();
+      } catch {}
+      watchSubRef.current = null;
+    }
+    if (webWatchIdRef.current !== null && typeof navigator !== 'undefined' && (navigator as any).geolocation) {
+      try {
+        (navigator as any).geolocation.clearWatch(webWatchIdRef.current);
+      } catch {}
+      webWatchIdRef.current = null;
+    }
+    if (watchTimeoutRef.current) {
+      clearTimeout(watchTimeoutRef.current);
+      watchTimeoutRef.current = null;
+    }
+  }, []);
+
   const loadOfflineQueue = useCallback(async () => {
     const rows = await getOfflineIncidentQueue();
     setOfflineQueue(rows);
@@ -98,13 +133,21 @@ export const FieldIncidentReportScreen: React.FC = () => {
     void loadOfflineQueue();
   }, [loadOfflineQueue]);
 
-  // Keep default coordinates synced when user switches ward and hasn't locked GPS yet
+  // Reset default unconfirmed coordinates when user switches ward in Header
+  const prevWardCodeRef = useRef<string>(currentWard.code);
   useEffect(() => {
-    if (gpsAccuracy === null) {
+    if (prevWardCodeRef.current !== currentWard.code) {
+      prevWardCodeRef.current = currentWard.code;
+      stopAllGpsWatchers();
+      setLocating(false);
       setLatitude(currentWard.lat);
       setLongitude(currentWard.lon);
+      setGpsAccuracy(null);
+      setLocationSource('WARD_DEFAULT');
+      setIsAddressManuallyEdited(false);
+      setAddressText('');
     }
-  }, [currentWard.lat, currentWard.lon, gpsAccuracy]);
+  }, [currentWard.code, currentWard.lat, currentWard.lon, stopAllGpsWatchers]);
 
   // MOB-4.8: Live Cross-Ward Jurisdiction Routing
   const routedJurisdiction = useMemo(
@@ -118,101 +161,137 @@ export const FieldIncidentReportScreen: React.FC = () => {
     [addressText, latitude, longitude, currentWard.code]
   );
 
-  // Cleanup watch subscription on unmount
+  // Cleanup watch subscription and debounce timers on unmount
   useEffect(() => {
     return () => {
-      if (watchSubRef.current) {
-        watchSubRef.current.remove();
-        watchSubRef.current = null;
-      }
-      if (watchTimeoutRef.current) {
-        clearTimeout(watchTimeoutRef.current);
-        watchTimeoutRef.current = null;
+      stopAllGpsWatchers();
+      if (pinDebounceRef.current) {
+        clearTimeout(pinDebounceRef.current);
+        pinDebounceRef.current = null;
       }
     };
-  }, []);
+  }, [stopAllGpsWatchers]);
 
-  const handleLocationChange = async (lat: number, lon: number, source: 'PIN_DRAGGED') => {
-    setLatitude(lat);
-    setLongitude(lon);
-    setLocationSource(source);
-    setGpsAccuracy(5);
-    setGpsBanner('Đã cập nhật vị trí từ ghim bản đồ.');
-
-    if (!isAddressManuallyEdited) {
+  const resolveAddressFromCoords = useCallback(
+    async (lat: number, lon: number): Promise<string> => {
+      const cacheKey = getMobileGeocodeCacheKey(lat, lon);
+      if (mobileGeocodeCache.has(cacheKey)) {
+        return mobileGeocodeCache.get(cacheKey)!;
+      }
+      const nearest = findNearestWardByGps(lat, lon);
       try {
         const geos = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lon });
         if (geos && geos[0]) {
           const g = geos[0];
-          const formatted = [g.streetNumber, g.street, g.district || g.subregion, g.city || g.region]
+          const raw = [g.streetNumber, g.street, g.district || g.subregion, g.city || g.region]
             .filter(Boolean)
             .join(', ');
-          if (formatted) setAddressText(formatted);
+          if (raw) {
+            const withWard =
+              nearest.ward.name && !raw.toLowerCase().includes(nearest.ward.name.toLowerCase())
+                ? `${raw} (${nearest.ward.name})`
+                : raw;
+            mobileGeocodeCache.set(cacheKey, withWard);
+            return withWard;
+          }
         }
-      } catch {}
+      } catch {
+        // Reverse geocoding unavailable or quota reached
+      }
+      return '';
+    },
+    []
+  );
+
+  const handleLocationChange = (lat: number, lon: number, source: 'PIN_DRAGGED') => {
+    // Cancel any ongoing background GPS watcher so it never overwrites the user's dragged pin
+    stopAllGpsWatchers();
+    setLocating(false);
+
+    setLatitude(lat);
+    setLongitude(lon);
+    setLocationSource(source);
+    setGpsAccuracy(5);
+    setGpsBanner('Đang tìm địa chỉ...');
+
+    if (!isAddressManuallyEdited) {
+      setIsGeocoding(true);
+      if (pinDebounceRef.current) {
+        clearTimeout(pinDebounceRef.current);
+      }
+      pinDebounceRef.current = setTimeout(async () => {
+        try {
+          const formatted = await resolveAddressFromCoords(lat, lon);
+          setAddressText(formatted);
+          if (formatted) {
+            setGpsBanner(`Đã cập nhật vị trí từ ghim bản đồ: "${formatted}"`);
+          } else {
+            setGpsBanner('Đã cập nhật tọa độ từ ghim. Không lấy được địa chỉ tự động, bạn vẫn có thể gửi bằng tọa độ.');
+          }
+        } catch {
+          setAddressText('');
+          setGpsBanner('Đã cập nhật tọa độ từ ghim bản đồ.');
+        } finally {
+          setIsGeocoding(false);
+        }
+      }, 500);
+    } else {
+      setGpsBanner('Đã cập nhật tọa độ từ ghim bản đồ (giữ nguyên địa chỉ bạn đã nhập tay).');
     }
   };
 
   // High-accuracy GPS + Reverse Geocode (Location.Accuracy.High, watchPosition up to 15s or <= 30m)
   const handleLocateGps = async () => {
     if (locating) return;
+    stopAllGpsWatchers();
     setLocating(true);
-    setGpsBanner('Đang định vị GPS chính xác cao...');
+    setPermissionDenied(false);
+    setGpsBanner('Đang xác định vị trí...');
 
-    if (watchSubRef.current) {
-      watchSubRef.current.remove();
-      watchSubRef.current = null;
-    }
-    if (watchTimeoutRef.current) {
-      clearTimeout(watchTimeoutRef.current);
-      watchTimeoutRef.current = null;
-    }
+    // Web Fallback ONLY when running on Web platform (e.g. Safari on iOS / Chrome on Android)
+    const nav =
+      Platform.OS === 'web' && typeof navigator !== 'undefined'
+        ? (navigator as unknown as {
+            geolocation?: {
+              watchPosition: (
+                success: (pos: { coords: { latitude: number; longitude: number; accuracy?: number } }) => void,
+                error: (err: any) => void,
+                options?: { enableHighAccuracy?: boolean; timeout?: number; maximumAge?: number }
+              ) => number;
+              clearWatch: (id: number) => void;
+            };
+          })
+        : undefined;
 
-    // Web Fallback (e.g. Safari on iOS / Chrome on Android)
-    const nav = typeof navigator !== 'undefined' ? (navigator as unknown as {
-      geolocation?: {
-        watchPosition: (
-          success: (pos: { coords: { latitude: number; longitude: number; accuracy?: number } }) => void,
-          error: (err: unknown) => void,
-          options?: { enableHighAccuracy?: boolean; timeout?: number; maximumAge?: number }
-        ) => number;
-        clearWatch: (id: number) => void;
-      };
-    }) : undefined;
-
-    if (nav?.geolocation) {
+    if (Platform.OS === 'web' && nav?.geolocation) {
       let bestPos: { coords: { latitude: number; longitude: number; accuracy?: number } } | null = null;
-      let webWatchId: number | null = null;
 
       const finishWeb = async (pos: { coords: { latitude: number; longitude: number; accuracy?: number } }) => {
-        if (webWatchId !== null && nav.geolocation) {
-          nav.geolocation.clearWatch(webWatchId);
-        }
+        stopAllGpsWatchers();
         const lat = Number(pos.coords.latitude.toFixed(6));
         const lon = Number(pos.coords.longitude.toFixed(6));
         const acc = Math.max(3, Math.round(pos.coords.accuracy ?? 10));
         setLatitude(lat);
         setLongitude(lon);
         setGpsAccuracy(acc);
+        setUserGpsLocation({ lat, lon, accuracy: acc });
         setLocationSource('GPS');
-        setGpsBanner(`Đã nhận GPS từ thiết bị (độ chính xác ±${acc}m).`);
+        setGpsBanner(
+          acc <= 30
+            ? `Độ chính xác ~${acc} m.`
+            : `GPS yếu (Độ chính xác ~${acc} m). Bạn có thể kéo ghim để chỉnh lại.`
+        );
         setLocating(false);
 
         if (!isAddressManuallyEdited) {
-          try {
-            const geos = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lon });
-            if (geos && geos[0]) {
-              const g = geos[0];
-              const formatted = [g.streetNumber, g.street, g.district || g.subregion, g.city || g.region]
-                .filter(Boolean)
-                .join(', ');
-              if (formatted) setAddressText(formatted);
-            }
-          } catch {}
+          setIsGeocoding(true);
+          const formatted = await resolveAddressFromCoords(lat, lon);
+          setAddressText(formatted);
+          setIsGeocoding(false);
         }
       };
 
-      webWatchId = nav.geolocation.watchPosition(
+      webWatchIdRef.current = nav.geolocation.watchPosition(
         (pos) => {
           if (!bestPos || (pos.coords.accuracy ?? 999) < (bestPos.coords.accuracy ?? 999)) {
             bestPos = pos;
@@ -223,8 +302,16 @@ export const FieldIncidentReportScreen: React.FC = () => {
         },
         (err) => {
           console.warn('Web geolocation error:', err);
-          setLocationSource('WARD_DEFAULT');
-          setGpsBanner('Chưa cấp quyền vị trí hoặc tín hiệu yếu. Vui lòng bấm vào bản đồ hoặc kéo ghim để chọn vị trí sự cố.');
+          stopAllGpsWatchers();
+          if (locationSourceRef.current !== 'PIN_DRAGGED') {
+            setLocationSource('WARD_DEFAULT');
+          }
+          if (err?.code === 1) {
+            setPermissionDenied(true);
+            setGpsBanner('Chưa cấp quyền vị trí. Vui lòng bật quyền vị trí hoặc chạm/kéo ghim đỏ trên bản đồ để chọn vị trí sự cố.');
+          } else {
+            setGpsBanner('GPS yếu. Vui lòng bấm vào bản đồ hoặc kéo ghim để chọn vị trí sự cố.');
+          }
           setLocating(false);
         },
         { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
@@ -234,23 +321,26 @@ export const FieldIncidentReportScreen: React.FC = () => {
         if (bestPos) {
           void finishWeb(bestPos);
         } else {
-          if (webWatchId !== null && nav.geolocation) {
-            nav.geolocation.clearWatch(webWatchId);
+          stopAllGpsWatchers();
+          if (locationSourceRef.current !== 'PIN_DRAGGED') {
+            setLocationSource('WARD_DEFAULT');
           }
-          setLocationSource('WARD_DEFAULT');
-          setGpsBanner('Hết thời gian chờ GPS (15s). Vui lòng chạm bản đồ hoặc kéo ghim để chọn vị trí.');
+          setGpsBanner('GPS yếu (hết 15s chờ). Vui lòng chạm bản đồ hoặc kéo ghim để chọn vị trí.');
           setLocating(false);
         }
       }, 15000);
       return;
     }
 
-    // Native App (Expo Location API)
+    // Native App (Expo Location API — iOS & Android)
     try {
       const perm = await Location.requestForegroundPermissionsAsync();
       if (perm.status !== 'granted') {
-        setLocationSource('WARD_DEFAULT');
-        setGpsBanner('Chưa cấp quyền vị trí. Vui lòng bấm vào bản đồ hoặc kéo ghim đỏ để chọn vị trí sự cố.');
+        if (locationSourceRef.current !== 'PIN_DRAGGED') {
+          setLocationSource('WARD_DEFAULT');
+        }
+        setPermissionDenied(true);
+        setGpsBanner('Chưa cấp quyền vị trí. Vui lòng mở Cài đặt để cấp quyền hoặc chạm/kéo ghim đỏ trên bản đồ.');
         setLocating(false);
         return;
       }
@@ -258,14 +348,7 @@ export const FieldIncidentReportScreen: React.FC = () => {
       let bestPos: Location.LocationObject | null = null;
 
       const finishNative = async (pos: Location.LocationObject) => {
-        if (watchSubRef.current) {
-          watchSubRef.current.remove();
-          watchSubRef.current = null;
-        }
-        if (watchTimeoutRef.current) {
-          clearTimeout(watchTimeoutRef.current);
-          watchTimeoutRef.current = null;
-        }
+        stopAllGpsWatchers();
 
         const lat = Number(pos.coords.latitude.toFixed(6));
         const lon = Number(pos.coords.longitude.toFixed(6));
@@ -273,21 +356,20 @@ export const FieldIncidentReportScreen: React.FC = () => {
         setLatitude(lat);
         setLongitude(lon);
         setGpsAccuracy(acc);
+        setUserGpsLocation({ lat, lon, accuracy: acc });
         setLocationSource('GPS');
-        setGpsBanner(`Đã nhận GPS từ thiết bị (độ chính xác ±${acc}m).`);
+        setGpsBanner(
+          acc <= 30
+            ? `Độ chính xác ~${acc} m.`
+            : `GPS yếu (Độ chính xác ~${acc} m). Bạn có thể kéo ghim đỏ để chỉnh lại.`
+        );
         setLocating(false);
 
         if (!isAddressManuallyEdited) {
-          try {
-            const geos = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lon });
-            if (geos && geos[0]) {
-              const g = geos[0];
-              const formatted = [g.streetNumber, g.street, g.district || g.subregion, g.city || g.region]
-                .filter(Boolean)
-                .join(', ');
-              if (formatted) setAddressText(formatted);
-            }
-          } catch {}
+          setIsGeocoding(true);
+          const formatted = await resolveAddressFromCoords(lat, lon);
+          setAddressText(formatted);
+          setIsGeocoding(false);
         }
       };
 
@@ -311,19 +393,21 @@ export const FieldIncidentReportScreen: React.FC = () => {
         if (bestPos) {
           void finishNative(bestPos);
         } else {
-          if (watchSubRef.current) {
-            watchSubRef.current.remove();
-            watchSubRef.current = null;
+          stopAllGpsWatchers();
+          if (locationSourceRef.current !== 'PIN_DRAGGED') {
+            setLocationSource('WARD_DEFAULT');
           }
-          setLocationSource('WARD_DEFAULT');
-          setGpsBanner('Không nhận được tín hiệu GPS trong 15s. Vui lòng bấm vào bản đồ hoặc kéo ghim để chọn vị trí sự cố.');
+          setGpsBanner('GPS yếu (không nhận được tín hiệu trong 15s). Vui lòng bấm vào bản đồ hoặc kéo ghim để chọn vị trí sự cố.');
           setLocating(false);
         }
       }, 15000);
     } catch (err) {
       console.warn('Native location watch error:', err);
-      setLocationSource('WARD_DEFAULT');
-      setGpsBanner('Không thể kết nối vệ tinh GPS. Vui lòng chạm vào bản đồ để chọn vị trí sự cố.');
+      stopAllGpsWatchers();
+      if (locationSourceRef.current !== 'PIN_DRAGGED') {
+        setLocationSource('WARD_DEFAULT');
+      }
+      setGpsBanner('GPS yếu hoặc không thể kết nối vệ tinh. Vui lòng chạm vào bản đồ để chọn vị trí sự cố.');
       setLocating(false);
     }
   };
@@ -394,21 +478,45 @@ export const FieldIncidentReportScreen: React.FC = () => {
         latitude={latitude}
         longitude={longitude}
         locationSource={locationSource}
+        userGpsLocation={userGpsLocation}
         gpsAccuracy={gpsAccuracy}
         locating={locating}
         onLocateGps={() => {
           void handleLocateGps();
         }}
         onLocationChange={(lat, lon, src) => {
-          void handleLocationChange(lat, lon, src);
+          handleLocationChange(lat, lon, src);
         }}
         wardName={currentWard.name}
       />
 
-      {/* GPS Banner thông báo trạng thái */}
+      {/* GPS Banner thông báo trạng thái + Nút mở cài đặt khi bị từ chối quyền */}
       {gpsBanner && (
         <View style={styles.gpsBannerWrap}>
           <Text style={styles.gpsBannerText}>{gpsBanner}</Text>
+          {permissionDenied && (
+            <Pressable
+              onPress={() => {
+                void Linking.openSettings();
+              }}
+              style={{
+                marginTop: 4,
+                alignSelf: 'flex-start',
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 5,
+                backgroundColor: '#92400E',
+                paddingHorizontal: 10,
+                paddingVertical: 5,
+                borderRadius: 6,
+              }}
+            >
+              <Settings size={12} color="#FFFFFF" />
+              <Text style={{ fontSize: 11, fontWeight: '700', color: '#FFFFFF' }}>
+                Mở Cài đặt vị trí
+              </Text>
+            </Pressable>
+          )}
         </View>
       )}
 
@@ -425,10 +533,14 @@ export const FieldIncidentReportScreen: React.FC = () => {
             <Pressable
               key={idx}
               onPress={() => {
+                stopAllGpsWatchers();
+                setLocating(false);
+                setPermissionDenied(false);
                 setLatitude(preset.lat);
                 setLongitude(preset.lon);
                 setGpsAccuracy(4);
                 setLocationSource('PIN_DRAGGED');
+                setIsAddressManuallyEdited(false);
                 setAddressText(preset.addr);
                 setGpsBanner(`Đã ghim GPS tại ${preset.label} (${preset.lat}, ${preset.lon}). Vòng gom cụm R = 25m đã kích hoạt.`);
               }}
@@ -472,21 +584,20 @@ export const FieldIncidentReportScreen: React.FC = () => {
 
         <View style={styles.field}>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
-            <Text style={[styles.label, typography.captionSm]}>Địa chỉ hiện trường</Text>
+            <Text style={[styles.label, typography.captionSm]}>
+              {isGeocoding ? 'Địa chỉ hiện trường (Đang tìm địa chỉ...)' : 'Địa chỉ hiện trường'}
+            </Text>
             {isAddressManuallyEdited && (
               <Pressable
                 onPress={async () => {
                   setIsAddressManuallyEdited(false);
+                  setIsGeocoding(true);
                   try {
-                    const geos = await Location.reverseGeocodeAsync({ latitude, longitude });
-                    if (geos && geos[0]) {
-                      const g = geos[0];
-                      const formatted = [g.streetNumber, g.street, g.district || g.subregion, g.city || g.region]
-                        .filter(Boolean)
-                        .join(', ');
-                      if (formatted) setAddressText(formatted);
-                    }
-                  } catch {}
+                    const formatted = await resolveAddressFromCoords(latitude, longitude);
+                    setAddressText(formatted);
+                  } catch {} finally {
+                    setIsGeocoding(false);
+                  }
                 }}
                 style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}
               >
