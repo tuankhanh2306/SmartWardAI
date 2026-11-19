@@ -14,13 +14,15 @@ Usage:
 import os
 import sys
 import argparse
+import io
+import wave
 from pathlib import Path
 from contextlib import asynccontextmanager
 import joblib
 import numpy as np
 import onnxruntime as ort
 from transformers import AutoTokenizer
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel, Field
 import uvicorn
 
@@ -54,7 +56,7 @@ class PipelineResponse(BaseModel):
     pgvector_string: str
 
 def init_models():
-    global tokenizer, ort_session, intent_classifier, normalizer
+    global tokenizer, ort_session, intent_classifier, normalizer, piper_voice
     print("Loading PhoBERT Bi-Encoder & Intent Classifier into Sidecar...")
     model_dir = str(BASE_DIR / "ml" / "models" / "fine_tuned_biencoder")
     onnx_path = str(BASE_DIR / "ml" / "models" / "bkai_finetuned_int8.onnx")
@@ -70,6 +72,21 @@ def init_models():
     clf_dict = joblib.load(clf_path)
     intent_classifier = clf_dict['classifier']
     normalizer = VietnameseTextNormalizer()
+
+    # Load Piper TTS Vietnamese Model if present
+    tts_model_path = BASE_DIR / "ml" / "models" / "tts" / "vi_VN-vais1000-medium.onnx"
+    if tts_model_path.exists():
+        try:
+            from piper.voice import PiperVoice
+            piper_voice = PiperVoice.load(str(tts_model_path))
+            print("Piper TTS Vietnamese model loaded successfully!")
+        except Exception as e:
+            print(f"Warning: Failed to load Piper TTS model: {e}")
+            piper_voice = None
+    else:
+        print("Note: Piper TTS model file not found, TTS endpoint will be disabled.")
+        piper_voice = None
+
     print("Sidecar models loaded successfully!")
 
 @asynccontextmanager
@@ -79,8 +96,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="SmartWard AI Sidecar",
-    description="Local Bi-Encoder & Intent Classification Service for SmartWard AI",
-    version="1.0.0",
+    description="Local Bi-Encoder, Intent Classification & Piper TTS Service for SmartWard AI",
+    version="1.1.0",
     lifespan=lifespan
 )
 
@@ -89,6 +106,7 @@ tokenizer = None
 ort_session = None
 intent_classifier = None
 normalizer = None
+piper_voice = None
 
 @app.get("/health")
 def health():
@@ -98,7 +116,9 @@ def health():
         "model": "bkai_pho_bert_ft_v1",
         "embedding_dim": 768,
         "quantization": "Dynamic INT8",
-        "supported_intents": CLASSES
+        "supported_intents": CLASSES,
+        "tts_enabled": piper_voice is not None,
+        "tts_model": "vi_VN-vais1000-medium" if piper_voice is not None else None
     }
 
 def _embed(text: str) -> np.ndarray:
@@ -196,6 +216,22 @@ def pipeline_endpoint(payload: TextInput):
         embedding=vec.tolist(),
         pgvector_string=_to_pgvector(vec)
     )
+
+@app.post("/tts")
+def tts_endpoint(payload: TextInput):
+    if not payload.text or not payload.text.strip():
+        raise HTTPException(status_code=400, detail="Text cannot be empty")
+    if piper_voice is None:
+        raise HTTPException(status_code=503, detail="TTS model is not loaded in sidecar")
+    
+    try:
+        clean_text = payload.text.strip()
+        buf = io.BytesIO()
+        with wave.open(buf, "wb") as wav_file:
+            piper_voice.synthesize_wav(clean_text, wav_file)
+        return Response(content=buf.getvalue(), media_type="audio/wav")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"TTS synthesis error: {str(e)}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
