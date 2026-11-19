@@ -422,6 +422,9 @@ export const LegalRagChatScreen: React.FC = () => {
             ) : (
               turns.map((turn) => {
                 const guardrail = evaluateRagGuardrailState(turn.response);
+                const isGreeting =
+                  !guardrail.isAbstained &&
+                  (!turn.response.citations || turn.response.citations.length === 0);
                 const primaryCitation = turn.response.citations?.[0];
                 const procedureCode =
                   primaryCitation?.procedureCode || turn.fiveParts?.procedureCode || 'TTHC-AG';
@@ -483,11 +486,17 @@ export const LegalRagChatScreen: React.FC = () => {
                               style={[styles.answerTitle, typography.headingMd]}
                               numberOfLines={2}
                             >
-                              {procedureName}
+                              {isGreeting
+                                ? `Trợ lý Một Cửa • ${currentWard.name}`
+                                : procedureName}
                             </Text>
                             <VoiceReaderToggle
                               itemId={turn.id}
-                              textToRead={`${procedureName}. ${turn.response.answer}`}
+                              textToRead={
+                                isGreeting
+                                  ? turn.response.answer
+                                  : `${procedureName}. ${turn.response.answer}`
+                              }
                             />
                           </View>
 
@@ -534,32 +543,67 @@ export const LegalRagChatScreen: React.FC = () => {
                             </Text>
                           )}
 
-                          <View style={styles.hairline} />
+                          {isGreeting ? (
+                            turn.response.suggestions && turn.response.suggestions.length > 0 ? (
+                              <View style={styles.greetingSuggestionsContainer}>
+                                <Text style={[styles.greetingSuggestionsTitle, typography.captionSm]}>
+                                  Gợi ý câu hỏi phổ biến:
+                                </Text>
+                                <View style={styles.greetingSuggestionsRow}>
+                                  {turn.response.suggestions.map((suggestion, sIdx) => (
+                                    <Pressable
+                                      key={`sug-${sIdx}`}
+                                      accessibilityRole="button"
+                                      onPress={() => {
+                                        const cleanPrompt = suggestion.replace(/^[^\w\s]+\s*/, '');
+                                        void handleAskQuestion(cleanPrompt);
+                                      }}
+                                      style={({ pressed }) => [
+                                        styles.greetingSuggestionChip,
+                                        pressed && styles.pressed,
+                                      ]}
+                                    >
+                                      <Text
+                                        style={[styles.greetingSuggestionText, typography.captionSm]}
+                                        numberOfLines={1}
+                                      >
+                                        {suggestion}
+                                      </Text>
+                                    </Pressable>
+                                  ))}
+                                </View>
+                              </View>
+                            ) : null
+                          ) : (
+                            <>
+                              <View style={styles.hairline} />
 
-                          <TemplateDownloadBar
-                            procedureCode={procedureCode}
-                            procedureName={procedureName}
-                            wardName={currentWard.name}
-                            formType={matchedFormType}
-                            legalBasis={legalBasis}
-                          />
+                              <TemplateDownloadBar
+                                procedureCode={procedureCode}
+                                procedureName={procedureName}
+                                wardName={currentWard.name}
+                                formType={matchedFormType}
+                                legalBasis={legalBasis}
+                              />
 
-                          {matchedFormType ? (
-                            <Pressable
-                              accessibilityRole="button"
-                              onPress={() => handleNavigateToPrecheck(matchedFormType)}
-                              style={({ pressed }) => [
-                                styles.handoffBtn,
-                                pressed && styles.pressed,
-                              ]}
-                            >
-                              <FileCheck2 size={16} color={COLORS.citizenCrimson} />
-                              <Text style={styles.handoffBtnText} numberOfLines={1}>
-                                Kiểm tra tờ khai ({matchedFormType})
-                              </Text>
-                              <ArrowRight size={15} color={COLORS.citizenCrimson} />
-                            </Pressable>
-                          ) : null}
+                              {matchedFormType ? (
+                                <Pressable
+                                  accessibilityRole="button"
+                                  onPress={() => handleNavigateToPrecheck(matchedFormType)}
+                                  style={({ pressed }) => [
+                                    styles.handoffBtn,
+                                    pressed && styles.pressed,
+                                  ]}
+                                >
+                                  <FileCheck2 size={16} color={COLORS.citizenCrimson} />
+                                  <Text style={styles.handoffBtnText} numberOfLines={1}>
+                                    Kiểm tra tờ khai ({matchedFormType})
+                                  </Text>
+                                  <ArrowRight size={15} color={COLORS.citizenCrimson} />
+                                </Pressable>
+                              ) : null}
+                            </>
+                          )}
                         </View>
                       )}
                     </View>
@@ -899,6 +943,33 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     flex: 1,
+  },
+  greetingSuggestionsContainer: {
+    gap: SPACING.xs,
+    paddingTop: SPACING.xs,
+  },
+  greetingSuggestionsTitle: {
+    color: COLORS.textSecondary,
+    fontWeight: '700',
+  },
+  greetingSuggestionsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: SPACING.xs,
+  },
+  greetingSuggestionChip: {
+    minHeight: 34,
+    backgroundColor: COLORS.canvas,
+    borderWidth: 1,
+    borderColor: COLORS.borderDefault,
+    borderRadius: RADIUS.full,
+    paddingHorizontal: SPACING.sm + 4,
+    paddingVertical: 6,
+    justifyContent: 'center',
+  },
+  greetingSuggestionText: {
+    color: COLORS.citizenCrimson,
+    fontWeight: '700',
   },
   composerBar: {
     backgroundColor: COLORS.card,

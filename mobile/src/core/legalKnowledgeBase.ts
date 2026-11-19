@@ -789,6 +789,186 @@ const OUT_OF_SCOPE_PATTERNS = [
   'khoi to hinh su',
 ];
 
+const EXACT_GREETINGS = new Set([
+  'hi',
+  'hello',
+  'hey',
+  'alo',
+  'chao',
+  'xin chao',
+  'kinh chao',
+  'chao ban',
+  'chao ban nha',
+  'chao ban nhe',
+  'chao anh chi',
+  'chao can bo',
+  'chao bot',
+  'chao ad',
+  'chao uy ban',
+  'kinh chao uy ban',
+  'chao anh',
+  'chao chi',
+  'chao em',
+  'can bo oi',
+  'ad oi',
+  'bot oi',
+  'ban la ai',
+  'ai do',
+  'ban la cai gi',
+  'chuc nang cua tro ly',
+  'ban giup duoc gi',
+  'ban co the lam gi',
+  'ban lam viec the nao',
+  'huong dan su dung',
+  'gioi thieu',
+  'gioi thieu ban than',
+  'good morning',
+  'good afternoon',
+  'good evening',
+  'start',
+  'bat dau',
+  'ok',
+  'oke',
+  'ok ban',
+  'oke ban',
+  'cam on',
+  'thank',
+  'thanks',
+  'thank you',
+  'tuyet voi',
+  'tot lam',
+  'tam biet',
+  'bye',
+  'bye bye',
+  'hen gap lai',
+]);
+
+const AMBIGUOUS_HELP_PATTERNS = [
+  'tu van',
+  'tuw van',
+  'giup toi',
+  'giupf toi',
+  'giups toi',
+  'giup minh',
+  'giup em',
+  'giup voi',
+  'can giup',
+  'ho tro toi',
+  'cho toi hoi',
+  'muon hoi',
+  'can tu van',
+  'huong dan giup',
+  'co the tu van',
+  'co the giup',
+  'hoi chut',
+  'can ho tro',
+  'tu van giup',
+];
+
+const THANKS_PATTERNS = [
+  'cam on',
+  'cam on ban',
+  'cam on can bo',
+  'cam on nha',
+  'cam on nhe',
+  'cam on nhieu',
+  'thanks',
+  'thank you',
+  'tuyet voi',
+  'tot lam',
+  'rat tot',
+  'chu dao qua',
+  'duoc roi',
+  'hieu roi',
+  'ro roi',
+  'ok ban',
+  'oke ban',
+];
+
+const GOODBYE_PATTERNS = [
+  'tam biet',
+  'bye',
+  'bye bye',
+  'hen gap lai',
+  'chao tam biet',
+];
+
+export function isGreetingOrSmallTalk(question: string, normQuestion?: string): boolean {
+  if (!question || !question.trim()) return false;
+  const raw = question.trim().toLowerCase();
+  const normQ = normQuestion ?? normalizeVietnameseText(raw);
+  const cleanNorm = normQ
+    .replace(/[!?.,;:~@#$%^&*()_+={}\[\]|\\<>\/]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (!cleanNorm) return false;
+
+  // If query mentions any procedure keyword from 40 TTHC, it is a specific procedure question!
+  for (const entry of AN_GIANG_40_PROCEDURES) {
+    const normCode = normalizeVietnameseText(entry.procedureCode);
+    if (cleanNorm.includes(normCode)) return false;
+    for (const kw of entry.keywords) {
+      if (cleanNorm.includes(kw)) {
+        return false;
+      }
+    }
+  }
+
+  // Exact set match
+  if (EXACT_GREETINGS.has(cleanNorm)) {
+    return true;
+  }
+
+  // Thanks & Goodbye pattern match
+  if (
+    THANKS_PATTERNS.some((p) => cleanNorm === p || cleanNorm.startsWith(p + ' ')) ||
+    GOODBYE_PATTERNS.some((p) => cleanNorm === p || cleanNorm.startsWith(p + ' '))
+  ) {
+    return true;
+  }
+
+  // Common root/typo match (e.g. "hiii", "helloo", "chaof", "chaogf")
+  const tokens = cleanNorm.split(' ');
+  const firstToken = tokens[0] || '';
+  if (
+    /^hi+$/.test(firstToken) ||
+    /^hello+$/.test(firstToken) ||
+    /^helo+$/.test(firstToken) ||
+    /^alo+$/.test(firstToken)
+  ) {
+    if (tokens.length <= 4) return true;
+  }
+  if (['chao', 'chaof', 'chaogf', 'chaoof', 'xinchao'].includes(firstToken)) {
+    if (tokens.length <= 4) return true;
+  }
+  if (tokens.length >= 2 && tokens[0] === 'xin' && tokens[1].startsWith('chao')) {
+    if (tokens.length <= 5) return true;
+  }
+
+  // Short queries <= 50 chars matching greeting regex or ambiguous help patterns
+  if (cleanNorm.length <= 50) {
+    if (
+      /^(hi+|hello+|hey+|alo+|chao|xin\s+chao|kinh\s+chao|cam\s+on|thank|thanks|tam\s+biet|bye)(\s+.*)?$/i.test(
+        cleanNorm
+      )
+    ) {
+      return true;
+    }
+    if (
+      /^(ban|bot|tro\s+ly)\s+(la\s+ai|co\s+the\s+lam\s+gi|giup\s+gi|giup\s+duoc\s+gi)/i.test(
+        cleanNorm
+      )
+    ) {
+      return true;
+    }
+    if (AMBIGUOUS_HELP_PATTERNS.some((p) => cleanNorm.includes(p))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
 /**
  * Offline Legal RAG Fallback with strict Abstention Guardrail:
  * - S_max >= 0.78 -> Direct grounded 5-part answer
@@ -804,6 +984,41 @@ export function evaluateOfflineLegalRag(
   const normQ = normalizeVietnameseText(question);
   const threshold = DOMAIN_THRESHOLDS.ragDirectAnswerSimilarity; // 0.78
   const hitlLower = DOMAIN_THRESHOLDS.ragHitlLowerSimilarity; // 0.42
+
+  if (isGreetingOrSmallTalk(question, normQ)) {
+    const isThanks =
+      normQ.includes('cam on') ||
+      normQ.includes('thanks') ||
+      normQ === 'ok' ||
+      normQ === 'oke';
+    const isGoodbye = normQ.includes('tam biet') || normQ.includes('bye');
+
+    let answerText = `Xin chào bạn! Tôi là Trợ lý Pháp lý Một Cửa tại UBND ${wardName}.\n\nTôi sẵn sàng giải đáp và hướng dẫn bạn chuẩn bị hồ sơ 40 thủ tục hành chính cấp xã (Cư trú CT01, Khai sinh, Kết hôn, Trợ cấp xã hội, Chứng thực sao y...). Bạn đang cần làm thủ tục gì hôm nay?`;
+
+    if (isThanks) {
+      answerText = `Rất vui được hỗ trợ bạn! Nếu cần tra cứu thêm thủ tục hành chính hoặc tiền kiểm tra biểu mẫu tờ khai tại UBND ${wardName}, bạn cứ nhắn tôi bất cứ lúc nào nhé.`;
+    } else if (isGoodbye) {
+      answerText = `Tạm biệt bạn! Chúc bạn một ngày tốt lành và thực hiện công việc suôn sẻ tại UBND ${wardName}. Khi nào cần tra cứu thủ tục, tôi luôn sẵn sàng hỗ trợ!`;
+    }
+
+    return {
+      answer: answerText,
+      abstained: false,
+      maxSimilarity: 1.0,
+      appliedThreshold: threshold,
+      citations: [],
+      suggestions: [
+        '👶 Đăng ký khai sinh cho bé',
+        '💍 Đăng ký kết hôn & Giấy độc thân',
+        '🏠 Đăng ký thường trú (Mẫu CT01)',
+        '🤝 Trợ cấp bảo trợ xã hội (TK-BTXH)',
+      ],
+      cached: true,
+      responseTimeMs: Math.max(1, Date.now() - started),
+      disclaimer: `Trợ lý Pháp lý Số UBND ${wardName} sẵn sàng hỗ trợ công dân.`,
+      hitlQueued: false,
+    };
+  }
 
   if (!normQ || OUT_OF_SCOPE_PATTERNS.some((p) => normQ.includes(p))) {
     return {
