@@ -30,6 +30,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 BASE_DIR = Path(__file__).resolve().parents[2]
 sys.path.append(str(BASE_DIR / 'ml' / 'src'))
 from enhanced_pipeline import VietnameseTextNormalizer, CLASSES
+from tts_normalizer import normalize_text_for_tts
 
 class TextInput(BaseModel):
     text: str = Field(..., min_length=1, max_length=2000, description="Input text to process (max 2000 characters)")
@@ -56,7 +57,7 @@ class PipelineResponse(BaseModel):
     pgvector_string: str
 
 def init_models():
-    global tokenizer, ort_session, intent_classifier, normalizer, piper_voice
+    global tokenizer, ort_session, intent_classifier, normalizer, piper_voice, active_tts_model_name
     print("Loading PhoBERT Bi-Encoder & Intent Classifier into Sidecar...")
     model_dir = str(BASE_DIR / "ml" / "models" / "fine_tuned_biencoder")
     onnx_path = str(BASE_DIR / "ml" / "models" / "bkai_finetuned_int8.onnx")
@@ -73,19 +74,31 @@ def init_models():
     intent_classifier = clf_dict['classifier']
     normalizer = VietnameseTextNormalizer()
 
-    # Load Piper TTS Vietnamese Model if present
-    tts_model_path = BASE_DIR / "ml" / "models" / "tts" / "vi_VN-vais1000-medium.onnx"
-    if tts_model_path.exists():
+    # Load Piper TTS Vietnamese Model (prefer Southern Male voice vietthao3886, then VPBank, fallback to vais1000)
+    vietthao_model_path = BASE_DIR / "ml" / "models" / "tts" / "vietthao3886.onnx"
+    vpbank_model_path = BASE_DIR / "ml" / "models" / "tts" / "vi_VN-csa-voice-piper-v3-medium.onnx"
+    vais_model_path = BASE_DIR / "ml" / "models" / "tts" / "vi_VN-vais1000-medium.onnx"
+    
+    selected_model_path = None
+    for candidate in [vietthao_model_path, vpbank_model_path, vais_model_path]:
+        if candidate.exists():
+            selected_model_path = candidate
+            break
+
+    if selected_model_path is not None:
         try:
             from piper.voice import PiperVoice
-            piper_voice = PiperVoice.load(str(tts_model_path))
-            print("Piper TTS Vietnamese model loaded successfully!")
+            piper_voice = PiperVoice.load(str(selected_model_path))
+            active_tts_model_name = selected_model_path.stem
+            print(f"Piper TTS Vietnamese Southern Male model '{active_tts_model_name}' loaded successfully!")
         except Exception as e:
             print(f"Warning: Failed to load Piper TTS model: {e}")
             piper_voice = None
+            active_tts_model_name = None
     else:
         print("Note: Piper TTS model file not found, TTS endpoint will be disabled.")
         piper_voice = None
+        active_tts_model_name = None
 
     print("Sidecar models loaded successfully!")
 
@@ -107,6 +120,7 @@ ort_session = None
 intent_classifier = None
 normalizer = None
 piper_voice = None
+active_tts_model_name = None
 
 @app.get("/health")
 def health():
@@ -118,7 +132,7 @@ def health():
         "quantization": "Dynamic INT8",
         "supported_intents": CLASSES,
         "tts_enabled": piper_voice is not None,
-        "tts_model": "vi_VN-vais1000-medium" if piper_voice is not None else None
+        "tts_model": active_tts_model_name
     }
 
 def _embed(text: str) -> np.ndarray:
@@ -225,10 +239,19 @@ def tts_endpoint(payload: TextInput):
         raise HTTPException(status_code=503, detail="TTS model is not loaded in sidecar")
     
     try:
-        clean_text = payload.text.strip()
+        from piper.config import SynthesisConfig
+        
+        # 1. Expand administrative acronyms & insert natural prosody breathing pauses
+        spoken_text = normalize_text_for_tts(payload.text)
+        if not spoken_text.strip():
+            spoken_text = payload.text.strip()
+            
+        # 2. Synthesize with natural cadence (length_scale=1.05) and emotion variance
         buf = io.BytesIO()
+        speaker_id = 0 if getattr(piper_voice.config, 'num_speakers', 1) > 1 else None
+        syn = SynthesisConfig(speaker_id=speaker_id, length_scale=1.05, noise_scale=0.667)
         with wave.open(buf, "wb") as wav_file:
-            piper_voice.synthesize_wav(clean_text, wav_file)
+            piper_voice.synthesize_wav(spoken_text, wav_file, syn_config=syn)
         return Response(content=buf.getvalue(), media_type="audio/wav")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"TTS synthesis error: {str(e)}")

@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { askLegalRag, submitRagFeedback, synthesizeSpeech, type RagResponse, type LegalCitation } from '../api/client';
+import { normalizeTextForTts } from '../utils/ttsTextNormalizer';
 import { useNavigate } from 'react-router-dom';
 import { useWard } from '../context/WardContext';
 import { useAccessibility } from '../context/AccessibilityContext';
@@ -719,14 +720,8 @@ export const CitizenPortal: React.FC = () => {
   const startSpeech = useCallback((text: string, id: string) => {
     stopSpeech();
 
-    // Clean brackets, chunk codes, hashtags and markdown characters for natural pronunciation
-    const clean = text
-      .replace(/\[[A-Za-z0-9_\-]+\]/g, '')
-      .replace(/[*#_~`>]/g, ' ')
-      .replace(/•/g, ', ')
-      .replace(/\n+/g, '. ')
-      .replace(/\s+/g, ' ')
-      .trim();
+    // Clean and expand administrative acronyms (e.g. CCCD -> Căn cước công dân, UBND -> Ủy ban nhân dân)
+    const clean = normalizeTextForTts(text);
 
     if (!clean) return;
 
