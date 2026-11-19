@@ -151,7 +151,7 @@ const tc5b = validateCitizenDossierInputs('Lê', '089205023490', '0918234567', '
 assert(!tc5b.valid && tc5b.field === 'fullName', 'Must reject 2-character full name ("Lê")');
 
 // Test Case 6: Valid Inputs Pass
-const tc6 = validateCitizenDossierInputs('NGUYỄN MINH TUẤN KHANH', '089205023490', '0918234567', 'khanhblue06@gmail.com');
+const tc6 = validateCitizenDossierInputs('NGUYỄN MINH TUẤN KHANH', '089205023490', '0918234567', 'congdan.test@example.invalid');
 assert(tc6.valid === true, 'Must accept fully valid inputs with 12-digit CCCD and 10-digit phone');
 
 // =================================================================
@@ -170,7 +170,7 @@ function simulateSubmitWorkflow(apiWillFail = false) {
   const cleanFullName = 'NGUYỄN MINH TUẤN KHANH';
   const cleanCccd = '089205023490';
   const cleanPhone = '0918234567';
-  const cleanEmail = 'khanhblue06@gmail.com';
+  const cleanEmail = 'congdan.test@example.invalid';
 
   let submitRes;
   try {

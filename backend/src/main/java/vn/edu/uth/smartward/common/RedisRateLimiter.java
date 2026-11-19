@@ -131,4 +131,57 @@ public class RedisRateLimiter {
         }
         return true;
     }
+
+    private final java.util.concurrent.ConcurrentHashMap<String, TrackingWindow> inMemoryVaultLimits = new java.util.concurrent.ConcurrentHashMap<>();
+
+    /**
+     * Enforces Vault upload limits: 20 uploads / 10 minutes per real client IP,
+     * plus optional session quota of 10 uploads / 30 minutes per X-Upload-Session.
+     */
+    public boolean allowVaultUpload(String clientIp, String uploadSessionId) {
+        String safeIp = (clientIp != null && !clientIp.isBlank()) ? clientIp.trim() : "anonymous";
+        if (!checkWindowLimit("smartward:ratelimit:vault:ip:" + safeIp, 20, Duration.ofMinutes(10))) {
+            log.warn("Vault upload rate limit EXCEEDED for IP: {} (>20 / 10m)", safeIp);
+            return false;
+        }
+        if (uploadSessionId != null && !uploadSessionId.isBlank()) {
+            String safeSession = uploadSessionId.trim().replaceAll("[^a-zA-Z0-9._-]", "_");
+            if (!checkWindowLimit("smartward:ratelimit:vault:session:" + safeSession, 10, Duration.ofMinutes(30))) {
+                log.warn("Vault upload session quota EXCEEDED for session: {} (>10 / 30m)", safeSession);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean checkWindowLimit(String key, int maxLimit, Duration ttl) {
+        try {
+            if (stringRedisTemplate != null) {
+                Long currentCount = stringRedisTemplate.opsForValue().increment(key);
+                if (currentCount != null && currentCount == 1) {
+                    stringRedisTemplate.expire(key, ttl);
+                }
+                if (currentCount != null && currentCount > maxLimit) {
+                    return false;
+                }
+                return true;
+            }
+        } catch (Exception e) {
+            log.warn("Redis unavailable for vault rate limit, falling back to in-memory guard: {}", e.getMessage());
+        }
+
+        long now = System.currentTimeMillis();
+        long ttlMs = ttl.toMillis();
+        TrackingWindow window = inMemoryVaultLimits.compute(key, (k, existing) -> {
+            if (existing == null || existing.expiresAtEpochMs < now) {
+                TrackingWindow nw = new TrackingWindow();
+                nw.count = 1;
+                nw.expiresAtEpochMs = now + ttlMs;
+                return nw;
+            }
+            existing.count++;
+            return existing;
+        });
+        return window.count <= maxLimit;
+    }
 }

@@ -6,14 +6,19 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import lombok.RequiredArgsConstructor;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import vn.edu.uth.smartward.common.ApiResponse;
+import vn.edu.uth.smartward.common.BusinessException;
+import vn.edu.uth.smartward.common.ClientIpResolver;
+import vn.edu.uth.smartward.common.ErrorCode;
+import vn.edu.uth.smartward.common.RedisRateLimiter;
 import vn.edu.uth.smartward.vault.dto.VaultUploadResponse;
 
 /**
@@ -22,11 +27,25 @@ import vn.edu.uth.smartward.vault.dto.VaultUploadResponse;
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/vault")
-@RequiredArgsConstructor
 @Tag(name = "Document Vault", description = "Kho Hồ sơ Không Tin Cậy (Zero-Trust Document Vault) - Áp dụng các biện pháp kỹ thuật bảo vệ dữ liệu theo định hướng Nghị định 13/2023/NĐ-CP")
 public class VaultController {
 
     private final ZeroTrustVaultService vaultService;
+    private final RedisRateLimiter rateLimiter;
+    private final ClientIpResolver clientIpResolver;
+
+    @Autowired
+    public VaultController(ZeroTrustVaultService vaultService,
+                           @Autowired(required = false) RedisRateLimiter rateLimiter,
+                           @Autowired(required = false) ClientIpResolver clientIpResolver) {
+        this.vaultService = vaultService;
+        this.rateLimiter = rateLimiter;
+        this.clientIpResolver = clientIpResolver != null ? clientIpResolver : new ClientIpResolver();
+    }
+
+    public VaultController(ZeroTrustVaultService vaultService) {
+        this(vaultService, null, new ClientIpResolver());
+    }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
@@ -44,7 +63,30 @@ public class VaultController {
             @RequestParam("file") MultipartFile file,
 
             @Parameter(description = "Loại tài liệu (ví dụ: CCCD_FRONT, CCCD_BACK, CT01_FORM)")
-            @RequestParam(value = "documentType", defaultValue = "CIVIC_DOCUMENT") String documentType) {
+            @RequestParam(value = "documentType", defaultValue = "CIVIC_DOCUMENT") String documentType,
+            @RequestHeader(value = "X-Upload-Session", required = false) String uploadSessionId,
+            HttpServletRequest request) {
+
+        long contentLength = request != null ? request.getContentLengthLong() : -1L;
+        if (contentLength > ZeroTrustVaultService.MAX_UPLOAD_SIZE_BYTES + (64L * 1024L)) {
+            throw new BusinessException(ErrorCode.VALIDATION_FAILED,
+                    "Dung lượng yêu cầu tải lên vượt quá giới hạn tối đa 5 MB.");
+        }
+        if (file == null || file.isEmpty()) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "Tệp tài liệu tải lên không được để trống.");
+        }
+        if (file.getSize() > ZeroTrustVaultService.MAX_UPLOAD_SIZE_BYTES) {
+            throw new BusinessException(ErrorCode.VALIDATION_FAILED,
+                    "Kích thước tệp vượt quá giới hạn tối đa 5 MB.");
+        }
+
+        if (rateLimiter != null) {
+            String clientIp = clientIpResolver.resolve(request);
+            if (!rateLimiter.allowVaultUpload(clientIp, uploadSessionId)) {
+                throw new BusinessException(ErrorCode.RATE_LIMIT_EXCEEDED,
+                        "Bạn đã vượt quá giới hạn tải lên tài liệu (tối đa 20 lần / 10 phút hoặc 10 tệp / phiên). Vui lòng thử lại sau.");
+            }
+        }
 
         log.info("Received document upload to Vault: filename='{}', type='{}', size={} bytes",
                 vn.edu.uth.smartward.common.FilenameUtils.sanitizeFilename(file.getOriginalFilename()), documentType, file.getSize());

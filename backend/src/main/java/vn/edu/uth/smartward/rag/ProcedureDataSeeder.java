@@ -26,29 +26,34 @@ public class ProcedureDataSeeder implements CommandLineRunner {
     private final ObjectMapper objectMapper;
     private final vn.edu.uth.smartward.ai.AiModelClient aiModelClient;
 
+    public static final List<String> SKIPPED_DEPRECATED_CODES = List.of("TTHC-BT-06", "TTHC-CR-05", "TTHC-CT-03");
+
     @Override
     public void run(String... args) {
-        log.info("Starting synchronization and seeding of verified administrative procedures...");
+        log.info("Starting non-destructive initial seeding check for administrative procedures...");
 
-        // 1. Remove deprecated duplicate records if present in database
-        List<String> deprecatedCodes = List.of("TTHC-BT-06", "TTHC-CR-05", "TTHC-CT-03");
-        for (String deprecatedCode : deprecatedCodes) {
+        // Clean up any deprecated procedures previously seeded in database so catalog strictly has 40 TTHC
+        for (String deprecatedCode : SKIPPED_DEPRECATED_CODES) {
             try {
                 procedureRepository.findByProcedureCode(deprecatedCode).ifPresent(proc -> {
-                    log.info("Removing deprecated duplicate procedure from database: {}", deprecatedCode);
+                    chunkRepository.deleteAll(chunkRepository.findByProcedureId(proc.getId()));
                     procedureRepository.delete(proc);
+                    log.info("Removed deprecated procedure {} from database.", deprecatedCode);
                 });
-            } catch (Exception e) {
-                log.warn("Could not delete deprecated procedure {}: {}", deprecatedCode, e.getMessage());
+            } catch (Exception ex) {
+                log.warn("Could not delete deprecated procedure {}, marking INACTIVE: {}", deprecatedCode, ex.getMessage());
+                procedureRepository.findByProcedureCode(deprecatedCode).ifPresent(proc -> {
+                    proc.setStatus("INACTIVE");
+                    procedureRepository.save(proc);
+                });
             }
         }
 
-        // 2. Load and upsert all standard seed procedures from classpath
         PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 
         try {
             Resource[] resources = resolver.getResources("classpath:db/seed/procedures/*.json");
-            log.info("Found {} procedure seed files to synchronize.", resources.length);
+            log.info("Found {} procedure seed files to check (insert-only, never overwrite DB).", resources.length);
 
             int seededCount = 0;
             for (Resource res : resources) {
@@ -59,30 +64,31 @@ public class ProcedureDataSeeder implements CommandLineRunner {
                     if (procCode == null || procCode.isBlank()) {
                         continue;
                     }
-
-                    Optional<AdminProcedure> existingOpt = procedureRepository.findByProcedureCode(procCode);
-                    AdminProcedure proc;
-                    boolean isNew = existingOpt.isEmpty();
-                    if (isNew) {
-                        proc = AdminProcedure.builder()
-                                .procedureCode(procCode)
-                                .build();
-                    } else {
-                        proc = existingOpt.get();
+                    if (SKIPPED_DEPRECATED_CODES.contains(procCode.trim().toUpperCase())) {
+                        log.debug("Skipping deprecated seed file for procedureCode={}", procCode);
+                        continue;
                     }
 
-                    proc.setPortalCode(root.path("officialPortalCode").asText(proc.getPortalCode()));
-                    proc.setProcedureName(root.path("procedureName").asText(proc.getProcedureName()));
-                    proc.setCategory(root.path("category").asText(proc.getCategory() != null ? proc.getCategory() : "Hành chính công"));
-                    proc.setAgency(root.path("agency").asText(proc.getAgency() != null ? proc.getAgency() : "Ủy ban nhân dân cấp xã / phường"));
-                    proc.setProcessingTime(root.path("processingTime").asText(proc.getProcessingTime() != null ? proc.getProcessingTime() : "Theo quy định"));
-                    proc.setFee(root.path("fee").asText(proc.getFee() != null ? proc.getFee() : "Theo quy định"));
-                    proc.setSourceUrl(root.path("sourceUrl").asText(proc.getSourceUrl()));
-                    proc.setStatus("ACTIVE");
+                    if (procedureRepository.existsByProcedureCode(procCode)
+                            || procedureRepository.findByProcedureCode(procCode).isPresent()) {
+                        log.debug("Procedure {} already exists in database; preserving governance state and chunks.", procCode);
+                        continue;
+                    }
+
+                    AdminProcedure proc = AdminProcedure.builder()
+                            .procedureCode(procCode)
+                            .portalCode(root.path("officialPortalCode").asText(null))
+                            .procedureName(root.path("procedureName").asText(procCode))
+                            .category(root.path("category").asText("Hành chính công"))
+                            .agency(root.path("agency").asText("Ủy ban nhân dân cấp xã / phường"))
+                            .processingTime(root.path("processingTime").asText("Theo quy định"))
+                            .fee(root.path("fee").asText("Theo quy định"))
+                            .sourceUrl(root.path("sourceUrl").asText(null))
+                            .status("ACTIVE")
+                            .build();
 
                     AdminProcedure savedProc = procedureRepository.save(proc);
 
-                    // Import or update predefined chunks idempotently
                     JsonNode chunksNode = root.path("chunks");
                     if (chunksNode.isArray()) {
                         for (JsonNode cNode : chunksNode) {
@@ -92,16 +98,8 @@ public class ProcedureDataSeeder implements CommandLineRunner {
                             }
 
                             try {
-                                Optional<LegalChunk> existingChunkOpt = chunkRepository.findByChunkCode(chunkCode);
-                                LegalChunk chunk;
-                                if (existingChunkOpt.isPresent()) {
-                                    chunk = existingChunkOpt.get();
-                                    chunk.setProcedure(savedProc);
-                                } else {
-                                    chunk = LegalChunk.builder()
-                                            .procedure(savedProc)
-                                            .chunkCode(chunkCode)
-                                            .build();
+                                if (chunkRepository.findByChunkCode(chunkCode).isPresent()) {
+                                    continue;
                                 }
 
                                 String chunkType = cNode.path("chunkType").asText("OVERVIEW");
@@ -109,10 +107,17 @@ public class ProcedureDataSeeder implements CommandLineRunner {
                                 String content = cNode.path("content").asText();
                                 String legalRef = cNode.path("legalReference").asText();
 
-                                chunk.setChunkType(chunkType);
-                                chunk.setTitle(title);
-                                chunk.setContent(content);
-                                chunk.setLegalReference(legalRef);
+                                LegalChunk chunk = LegalChunk.builder()
+                                        .procedure(savedProc)
+                                        .chunkCode(chunkCode)
+                                        .chunkType(chunkType)
+                                        .title(title)
+                                        .content(content)
+                                        .legalReference(legalRef)
+                                        .status("ACTIVE")
+                                        .effectiveDate(LocalDate.now())
+                                        .build();
+
                                 if (cNode.has("headerPath")) {
                                     chunk.setHeaderPath(cNode.path("headerPath").asText());
                                 }
@@ -125,10 +130,6 @@ public class ProcedureDataSeeder implements CommandLineRunner {
                                 if (cNode.has("pipelineVersion")) {
                                     chunk.setPipelineVersion(cNode.path("pipelineVersion").asText());
                                 }
-                                chunk.setStatus("ACTIVE");
-                                if (chunk.getEffectiveDate() == null) {
-                                    chunk.setEffectiveDate(LocalDate.now());
-                                }
 
                                 String activeModelId = aiModelClient.getEmbeddingModelId() != null
                                         ? aiModelClient.getEmbeddingModelId()
@@ -137,7 +138,7 @@ public class ProcedureDataSeeder implements CommandLineRunner {
                                 if (cNode.has("embedding") && !cNode.path("embedding").asText().isBlank()) {
                                     chunk.setEmbedding(cNode.path("embedding").asText());
                                     chunk.setEmbeddingModel("bkai_pho_bert_ft_v1");
-                                } else if (chunk.getEmbedding() == null) {
+                                } else {
                                     try {
                                         chunk.setEmbedding(aiModelClient.toPgVectorString(aiModelClient.generateEmbedding(title + " " + content)));
                                         chunk.setEmbeddingModel(activeModelId);
@@ -150,7 +151,7 @@ public class ProcedureDataSeeder implements CommandLineRunner {
 
                                 chunkRepository.save(chunk);
                             } catch (Exception chunkEx) {
-                                log.warn("Failed to upsert chunk {} for procedure {}: {}", chunkCode, procCode, chunkEx.getMessage());
+                                log.warn("Failed to insert chunk {} for procedure {}: {}", chunkCode, procCode, chunkEx.getMessage());
                             }
                         }
                     }
@@ -161,7 +162,7 @@ public class ProcedureDataSeeder implements CommandLineRunner {
                 }
             }
 
-            log.info("Successfully synchronized {} administrative procedures into database.", seededCount);
+            log.info("Non-destructive procedure seeding completed: {} new procedures inserted.", seededCount);
             backfillMissingEmbeddings();
 
         } catch (Exception e) {

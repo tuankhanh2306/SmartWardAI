@@ -1,147 +1,224 @@
-# SmartWard AI: Nền Tảng Hỗ Trợ Thủ Tục Hành Chính & Phân Luồng Phản Ánh Cấp Phường/Xã
+# SmartWard AI — Nền Tảng Hỗ Trợ Thủ Tục Hành Chính & Phân Luồng Phản Ánh Cấp Phường/Xã
 
-> **Đề tài:** Báo cáo Thực tập Doanh nghiệp & Đồ án Tốt nghiệp Kỹ sư CNTT – Viện Đào tạo Chất lượng cao, Trường ĐH Giao thông vận tải TP.HCM (UTH)  
-> **Sinh viên thực hiện:** Trịnh Tuấn Khánh (MSSV: 089205023490 - Lớp: CN2301CLCB)  
-> **Giáo viên hướng dẫn:** TS. Lê Văn Quốc Anh (UTH)  
-> **Đơn vị tiếp nhận thực tập:** Viettel An Giang – Chi nhánh Tập đoàn Công nghiệp – Viễn thông Quân đội  
-> **Mô hình kiến trúc:** Modular Monolith (Spring Boot 3.3.5 + Java 21) & Web Responsive / PWA (React 18 + Vite)  
-> **Ràng buộc hạ tầng:** Zero-Cost Architecture (Toàn bộ Docker Stack $\le 2048\text{ MiB}$ RAM, 0 VNĐ chi phí vận hành)
-
----
-
-## 1. Tóm Tắt Nhanh Dự Án (Executive Summary)
-
-**SmartWard AI** giải quyết 2 bài toán nhức nhối trong xử lý thông tin tại Bộ phận Tiếp nhận và Trả kết quả (Bộ phận Một cửa) và quản lý trật tự đô thị tại **96 Xã, Phường và Đặc khu thuộc tỉnh An Giang**:
-1. **Sai sót hồ sơ hành chính:** Người dân thường khai sai cấu trúc 12 số CCCD, mâu thuẫn ngày tháng trên Giấy chứng sinh, chưa đủ tuổi kết hôn theo Luật HN&GĐ hoặc ghi mục đích xác nhận độc thân chung chung dẫn đến hồ sơ bị trả về bổ sung nhiều lần.
-2. **Quá tải, trùng lặp & lệch địa bàn phản ánh dân sinh:** Nhiều người dân cùng phản ánh một sự cố hiện trường (hư đường, ngập nước, cháy đèn đường) hoặc đi ngang qua xã/phường khác gặp sự cố nhưng không biết gửi về đâu, GPS lệch trong hẻm hoặc thiếu số điện thoại liên hệ xác minh.
-
-### 4 Module Nghiệp Vụ Cốt Lõi:
-* **Module 1 – Legal RAG & Abstention Guardrail:** Tư vấn pháp lý chuẩn xác dựa trên **40 thủ tục hành chính (TTHC)** cấp xã chuẩn hóa theo quy định mới nhất 2026 của UBND tỉnh An Giang. Nếu điểm tương đồng cosine cao nhất $S_{\max} < \theta$ ($\theta = 0.78$), hệ thống **bắt buộc từ chối sinh chữ tự do** để triệt tiêu hoàn toàn ảo giác pháp lý.
-* **Module 2 – Multi-Form Deterministic Validation Engine (4 Nhóm Tờ Khai Trọng Tâm):** Kết hợp Multimodal Vision OCR, quét mã QR mặt trước CCCD và **Động cơ quy tắc tất định (Java + TypeScript Rule Engine)** kiểm tra 4 nhóm biểu mẫu cốt lõi:
-  1. **`CT01` (Tờ khai thay đổi thông tin cư trú - TT 116/2026/TT-BCA):** Kiểm tra cấu trúc 12 số CCCD người kê khai và chủ hộ, tuổi chủ hộ $\ge 18$, cờ xác nhận qua VNeID (`vneidHostConfirmed`), và cơ chế miễn nộp lại giấy tờ đã số hóa (`VERIFIED_VIA_VNEID_QR` theo NĐ 309/2026/NĐ-CP).
-  2. **`TK-KS` (Tờ khai Đăng ký khai sinh - Thông tư 04/2020/TT-BTP):** Đối chiếu chéo (Cross-check) Tờ khai với **Giấy chứng sinh** và quy tắc pháp lý khi cha mẹ chưa đăng ký kết hôn.
-  3. **`TK-KH` (Tờ khai Đăng ký kết hôn & Xác nhận tình trạng hôn nhân):** Kiểm tra độ tuổi kết hôn hợp pháp tính chính xác đến từng ngày (Nam $\ge 20$ tuổi, Nữ $\ge 18$ tuổi) và chặn các mục đích xác nhận độc thân mơ hồ.
-  4. **`TK-BTXH` (Tờ khai Trợ cấp Bảo trợ xã hội - Mẫu 01 NĐ 20/2021/NĐ-CP & NĐ 335/2026/NĐ-CP):** Kiểm tra điều kiện người cao tuổi / khuyết tật nặng và tài khoản chi trả không dùng tiền mặt Đề án 06.
-* **Module 3 – High-Precision 25m GPS, Auto-Mapping & Cross-Ward Triage:**
-  - **Quét GPS chính xác cao ($R = 25\text{m}$) & Tự động điền ô vị trí/nội dung:** Tự động bắt GPS hiện trường, hỗ trợ chỉnh sửa tay và bắt buộc SĐT liên hệ khẩn cấp (`reporterPhone`).
-  - **Định tuyến liên xã/phường tự động (`Cross-Ward Jurisdiction Routing`):** Dựa trên địa chỉ để gửi báo cáo về đúng UBND Xã/Phường nơi xảy ra sự cố.
-  - **Gom cụm 2 pha (Spatial-Semantic):** Pha 1 lọc bán kính địa lý $R = 25\text{m}$ bằng Redis GEO (`GEOSEARCH`); Pha 2 lọc danh mục nghiệp vụ và so khớp vector ngữ nghĩa $\tau = 0.82$ bằng pgvector cosine.
-* **Module 4 – Zero-Trust Document Vault & 1-Dashboard Officer Workspace:**
-  - **Phân quyền giao diện nghiêm ngặt (Role-Based Partitioning):** Cổng Công dân và Bàn Cán bộ tách biệt hoàn toàn (`/officer/ward/:wardCode`). Che mờ số CCCD dạng `********1234` bảo vệ quyền riêng tư theo Nghị định 13/2023/NĐ-CP.
-  - **Bảo vệ dữ liệu cá nhân:** Tự động đóng dấu mờ chéo (Dynamic Watermark), chống Pixel Flood OOM (tối đa 4096px, 16M pixels), mã hóa AES-256-GCM trước khi lưu MinIO, băm SHA-256 mã token trong DB và cấp link xem 1 lần duy nhất qua One-Time Token tự hủy trên Redis (`GETDEL`).
+> **Đề tài:** Báo cáo Thực tập Doanh nghiệp & Đồ án Tốt nghiệp Kỹ sư CNTT – Viện Đào tạo Chất lượng cao, Trường Đại học Giao thông Vận tải TP. Hồ Chí Minh (UTH)  
+> **Sinh viên thực hiện:** Nguyễn Minh Tuấn Khanh (MSSV: `089205023490` • Lớp: `CN2301CLCB`)  
+> **Giảng viên hướng dẫn:** TS. Lê Văn Quốc Anh (UTH)  
+> **Đơn vị thực tập:** Viettel An Giang – Chi nhánh Tập đoàn Công nghiệp – Viễn thông Quân đội  
+> **Kiến trúc kỹ thuật:** Modular Monolith (`Spring Boot 3.3.5` + `Java 21`) & Feature-Sliced Web PWA (`React 18` + `TypeScript` + `Vite 6`)  
+> **Ràng buộc hạ tầng:** Zero-Cost Architecture (Toàn bộ 6 container Docker vận hành $\le 2048\text{ MiB}$ RAM, chi phí bản quyền 0 VNĐ)
 
 ---
 
-## 2. Kiến Trúc Hệ Thống (Modular Monolith)
+## 1. Giới Thiệu Hệ Thống (System Overview)
 
+**SmartWard AI** là nền tảng số hóa hành chính công cấp cơ sở, được thiết kế chuyên biệt cho **Bộ phận Tiếp nhận và Trả kết quả (Bộ phận Một cửa)** và công tác điều hành trật tự đô thị tại **96 Xã, Phường và Đặc khu thuộc tỉnh An Giang**.
+
+Hệ thống giải quyết trực diện **2 điểm nghẽn lớn nhất** tại chính quyền cấp xã/phường hiện nay:
+1. **Hồ sơ hành chính bị trả lại nhiều lần do lỗi kê khai:** Người dân thường lúng túng trước các biểu mẫu pháp lý, ghi sai cấu trúc 12 số CCCD, lệch thông tin giữa Tờ khai khai sinh và Giấy chứng sinh, chưa đủ tuổi kết hôn theo ngày sinh, hoặc ghi mục đích xác nhận tình trạng hôn nhân quá chung chung.
+2. **Quá tải, trùng lặp và lệch địa bàn khi tiếp nhận phản ánh dân sinh:** Nhiều người dân cùng báo một sự cố (sạt lở, hư đường, ngập nước, mất điện chiếu sáng) làm ngập hàng đợi cán bộ, hoặc người dân đi ngang qua địa bàn xã khác gặp sự cố nhưng gửi nhầm về UBND nơi cư trú.
+
+### 4 Phân Hệ Nghiệp Vụ Cốt Lõi
+* **Phân hệ 1 — Trợ lý Pháp lý AI RAG & Chốt chặn Chống ảo giác (Legal RAG & Abstention Guardrail):**
+  Tư vấn chính xác **40 thủ tục hành chính (TTHC)** cấp xã theo cấu trúc 5 mục chuẩn hóa (Cơ quan thực hiện, Thành phần hồ sơ, Trình tự, Thời hạn & Lệ phí, Căn cứ pháp lý). Áp dụng cơ chế ngưỡng tin cậy hai tầng ($\theta = 0.78$ và $\theta_{\text{lower}} = 0.42$): tự động trả lời khi độ tương đồng cao, chuyển vào hàng đợi cán bộ kiểm duyệt (**HITL Gray-Zone Queue**) khi nằm trong vùng xám, và từ chối an toàn khi câu hỏi nằm ngoài thẩm quyền cấp xã.
+* **Phân hệ 2 — Tiền kiểm định Tờ khai Đa biểu mẫu & AI Thị giác (Multi-Form Precheck & Vision OCR):**
+  Kết hợp quét mã QR thẻ CCCD gắn chip, nhận diện quang học (Tesseract.js WASM + Vision OCR) và **Động cơ quy tắc tất định (GoF Strategy Pattern)** để rà soát lỗi logic trên 4 nhóm tờ khai trọng tâm:
+  1. **`CT01` (Thay đổi thông tin cư trú – TT 66/2023/TT-BCA & TT 116/2026/TT-BCA):** Gửi trực tiếp Công an cấp xã; kiểm tra 12 số ĐDCN, tự động đồng bộ thông tin khi người khai là Chủ hộ, kiểm tra tuổi chủ hộ $\ge 18$ và miễn bản sao giấy tờ khi đã xác thực qua VNeID/QR (NĐ 309/2026/NĐ-CP).
+  2. **`TK-KS` (Đăng ký khai sinh – TT 04/2020/TT-BTP):** Đối chiếu chéo (Cross-check) từng trường với **Giấy chứng sinh bệnh viện** và tự động kích hoạt danh mục thủ tục ghép *Nhận cha, mẹ, con* nếu cha mẹ chưa đăng ký kết hôn.
+  3. **`TK-KH` (Đăng ký kết hôn & Xác nhận tình trạng hôn nhân – Luật HN&GĐ 2014):** Kiểm tra độ tuổi kết hôn hợp pháp tính đến từng ngày (Nam $\ge 20$, Nữ $\ge 18$), kiểm tra quyết định ly hôn/giấy chứng tử và chặn các mục đích xác nhận độc thân mơ hồ.
+  4. **`TK-BTXH` (Trợ cấp Bảo trợ xã hội – NĐ 20/2021/NĐ-CP & Luật BHXH 2024):** Kiểm tra mốc tuổi hưởng trợ cấp hưu trí xã hội ($\ge 75$ tuổi, hoặc $\ge 70$ tuổi với hộ nghèo/cận nghèo), mức độ khuyết tật và tài khoản nhận chi trả an sinh Đề án 06.
+* **Phân hệ 3 — Định vị Sự cố Hiện trường GIS ($R = 25\text{m}$) & Gom cụm 2 Pha (Spatial-Semantic Triage):**
+  Tự động định vị GPS hiện trường, định tuyến liên xã/phường (**Cross-Ward Jurisdiction Routing**) về đúng UBND nơi phát sinh sự cố dựa trên dữ liệu ranh giới GIS đã xác minh, và gom cụm các tin báo trùng điểm trong bán kính $R = 25\text{m}$ (Redis GEO) kết hợp độ tương đồng ngữ nghĩa $\tau \ge 0.82$.
+* **Phân hệ 4 — Kho Tài liệu Mật Zero-Trust OTT Vault & Bàn Điều hành Cán bộ Tập trung:**
+  Tài liệu nhạy cảm của công dân được kiểm tra chống tràn bộ nhớ ảnh (Anti-Pixel-Flood), đóng dấu mờ bảo mật (**Java2D Dynamic Watermark**), mã hóa **AES-256-GCM** trên MinIO và cấp mã xem **1 lần duy nhất (One-Time Token)** tự hủy nguyên tử qua lệnh Redis `GETDEL` (trả về `HTTP 410 GONE` ở lần mở thứ hai), tuân thủ nghiêm ngặt Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân.
+
+---
+
+## 2. Lợi Ích Mang Lại (Key Benefits & Impact)
+
+| Đối tượng thụ hưởng | Lợi ích thực tiễn mang lại |
+| :--- | :--- |
+| **👨‍👩‍👧‍👦 Người dân (Công dân 96 Xã/Phường)** | • **Không còn cảnh đi lại nhiều lần:** Biết ngay tờ khai sai ở mục nào trước khi bước chân đến UBND hoặc Công an xã.<br>• **Tiện lợi cho mọi lứa tuổi:** Hỗ trợ nhập liệu bằng giọng nói tiếng Việt, đọc to văn bản (TTS), phóng to chữ `A++`, quét mã QR CCCD điền tự động 100% các ô.<br>• **Đúng biểu mẫu nhà nước:** Xem trước bản mẫu đã điền ví dụ minh họa và tải về bản **mẫu trắng chuẩn A4 (`.docx` / `.pdf`)** để in ký.<br>• **Nhận lịch hẹn miễn phí:** Nhận **Phiếu hẹn điện tử có mã QR** qua Email hoàn toàn miễn phí (không tốn phí SMS/Zalo) và tra cứu tiến độ SLA mọi lúc. |
+| **🏛️ Cán bộ Một cửa & UBND Cấp xã** | • **Giảm 70–80% áp lực kiểm tra thủ công:** Hồ sơ gửi lên đã qua chốt chặn độ nét ảnh (Laplacian Sharpness Gate) và kiểm tra logic tự động.<br>• **Chống quá tải tin báo sự cố:** Hàng chục tin báo trùng một ổ gà hay điểm ngập trong bán kính $25\text{m}$ được gom tự động thành **1 cụm sự cố duy nhất** trên bản đồ.<br>• **An toàn pháp lý & bảo mật:** Mọi thao tác duyệt hồ sơ, mở ảnh Vault hay cập nhật quy trình đều được ghi vết vào bảng `audit_log` bất biến (Immutable Audit Trail). |
+| **💻 Đơn vị Vận hành & Chuyển đổi số** | • **Chi phí hạ tầng tối thiểu (Zero-Cost):** Toàn bộ 6 container chạy mượt mà trong gói **2.0 GB RAM**, triển khai được ngay trên máy chủ sẵn có tại địa phương.<br>• **Chịu lỗi cao (Resilient Fallback):** Khi đứt cáp hoặc hết hạn mức Gemini API, hệ thống tự động chuyển sang cơ chế trích xuất tất định và mô hình cục bộ mà không làm gián đoạn dịch vụ công. |
+
+---
+
+## 3. Kiến Trúc & Cấu Trúc Dự Án Chuẩn Hóa (Project Architecture)
+
+```text
+SmartWardAI/
+├── backend/                        # Spring Boot 3.3.5 (Java 21) — Modular Monolith theo Domain
+│   └── src/main/
+│       ├── java/vn/edu/uth/smartward/
+│       │   ├── ai/                 # Gemini AI Client, Sidecar Client & Deterministic Fallback
+│       │   ├── audit/              # Immutable Audit Trail (ghi vết mọi tác vụ nhạy cảm)
+│       │   ├── common/             # GlobalExceptionHandler, RateLimiter, QueryCache, ApiResponse
+│       │   ├── config/             # Cấu hình WebMvc, CORS, OpenAPI, Security Interceptors
+│       │   ├── dossier/            # Quản lý hồ sơ Một cửa, SLA & gói con dossier/dto/
+│       │   ├── evaluation/         # Động cơ thực nghiệm khoa học trả lời RQ1, RQ2, RQ3
+│       │   ├── formcheck/          # OCR Precheck & gói formcheck/strategy/ (GoF Strategy Pattern)
+│       │   ├── geo/                # Kiểm chứng tọa độ GIS 96 xã/phường An Giang
+│       │   ├── rag/                # Hybrid Search (BM25 + Vector), HITL Queue & Procedure Governance
+│       │   ├── security/           # Xác thực JWT HMAC-SHA256, RBAC Cán bộ/Admin, Brute-force Lockout
+│       │   ├── triage/             # Phân luồng sự cố 2 pha (Redis GEO R=25m + Semantic Clustering)
+│       │   └── vault/              # Zero-Trust Vault (AES-256-GCM, Java2D Watermark, Redis GETDEL OTT)
+│       └── resources/
+│           └── db/
+│               ├── migration/      # Flyway DDL Schema & Triggers (V1, V3, V4, V6, V7, V9, V10)
+│               └── seed/           # Flyway Seed Data tách biệt (V2 160 chunks, V5 40 TTHC, V8 96 xã)
+├── frontend/                       # React 18 + TypeScript + Vite 6 + Tailwind CSS
+│   ├── src/
+│   │   ├── api/                    # Barrel client.ts + 6 module miền nghiệp vụ trong api/modules/
+│   │   ├── components/             # UI Components dùng chung (Navbar, A4DocumentModal, CccdQrScanner...)
+│   │   ├── context/                # WardContext (96 xã), RoleContext (5-phút Citizen / Standing Officer)
+│   │   ├── data/                   # Barrel a4FormTemplates.ts (data/templates/) & anGiangWards.ts (data/wards/)
+│   │   ├── features/               # Feature-Sliced UI (citizen-forms, civic-incident, dossier-tracking, officer-dashboard)
+│   │   ├── pages/                  # Các trang điều phối chính (Onboarding, CitizenPortal, FormAndIssue, Dashboard...)
+│   │   ├── services/               # Tesseract OCR WASM, Gemini Client, Intent Classifier, Diacritics Restorer
+│   │   └── utils/                  # CCCD QR Parser, GIS Polygon Validator, DOCX/PDF Generator
+│   └── scripts/                    # Bộ 12 Suite Regression Guard (run_all_tests.mjs) & E2E Tests
+├── ml/                             # PhoBERT ONNX INT8 Sidecar (FastAPI) & kịch bản huấn luyện
+├── data-pipeline/                  # Pipeline thu thập, chuẩn hóa 40 TTHC & đồng bộ Single Source of Truth
+├── evaluation/                     # Bộ dữ liệu kiểm định, kịch bản đối kháng & biểu đồ thực nghiệm
+├── scripts/                        # Script sao lưu/phục hồi DB & kiểm tra Governance tài liệu
+├── docs/                           # Toàn bộ tài liệu kiến trúc, đặc tả API, báo cáo tuần & Sprint Board
+└── docker-compose.yml              # Cấu hình 6 container khống chế tổng RAM <= 2048 MiB
 ```
-                                  NGƯỜI DÙNG (96 XÃ/PHƯỜNG/ĐẶC KHU AN GIANG)
-               ┌──────────────────────────────────────┴──────────────────────────────────────┐
-               ▼                                                                             ▼
-     CÔNG DÂN (Mobile-first PWA: /citizen, /citizen/form)            CÁN BỘ XÃ (1-Dashboard Tập Trung: /officer/ward/:code)
-  - Cổng Hỏi đáp AI RAG 40 TTHC (TTS đọc to, cỡ chữ A++)           - Xác thực Thẻ công chức / VNeID (OfficerAuthModal)
-  - Tiền kiểm định 4 nhóm tờ khai (CT01, TK-KS, TK-KH, TK-BTXH)    - Bàn điều hành duy nhất (Progressive Disclosure Drawer)
-  - Báo sự cố GPS R=25m tự điền ô vị trí + SĐT khẩn cấp            - Nhận sự cố liên xã/phường + Bấm gọi SĐT người dân
-  - Tự động định tuyến báo cáo về đúng UBND Xã/Phường sở tại       - Bản đồ GIS thu gọn + Duyệt hồ sơ Watermark NĐ 13/2023
-               │                                                                             │
-               └──────────────────────────────────────┬──────────────────────────────────────┘
-                                                      ▼
-                                      FRONTEND: REACT + VITE + TAILWIND
-                                                      │
-                                                      ▼ (RESTful API / JSON)
-               ┌─────────────────────────────────────────────────────────────────────────────┐
-               │                      BACKEND: SPRING BOOT 3.3 (JAVA 21)                     │
-               │                              (Modular Monolith)                             │
-               │  ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌────────────┐ │
-               │  │ 1. Legal RAG    │ │ 2. Multi-Form   │ │ 3. Triage GEO   │ │ 4. Vault   │ │
-               │  │ & Guardrail     │ │ Rule Engine (4) │ │ R=25m & Routing │ │ Document   │ │
-               │  └────────┬────────┘ └────────┬────────┘ └────────┬────────┘ └──────┬─────┘ │
-               └───────────┼───────────────────┼───────────────────┼─────────────────┼───────┘
-                           ▼                   ▼                   ▼                 ▼
-              ┌─────────────────────┐ ┌──────────────┐ ┌───────────────┐ ┌─────────────────┐
-              │ PostgreSQL 16       │ │ Redis 7      │ │ MinIO S3      │ │ Google AI       │
-              │ + pgvector (448MB)  │ │ (128MB)      │ │ (256MB)       │ │ Gemini / Mock   │
-              │ - Relational Tables │ │ - GEO R=25m  │ │ - AES-256-GCM │ │ - Embedding 768 │
-              │ - HNSW Vector Index │ │ - 1-Time Tok │ │ - 7-day ILM   │ │ - Vision OCR    │
-              └─────────────────────┘ └──────────────┘ └───────────────┘ └─────────────────┘
-```
 
 ---
 
-## 3. Hướng Dẫn Khởi Chạy Nhanh (Quickstart)
+## 4. Hướng Dẫn Cài Đặt & Khởi Chạy (Installation & Quickstart)
 
-### Cách 1: Đóng gói Toàn diện Docker Compose (Khuyến nghị triển khai Production/Demo)
+### Yêu cầu môi trường
+* **Chạy bằng Docker (Khuyên dùng):** Docker Desktop / Docker Engine $\ge 24.0$ và Docker Compose v2.
+* **Chạy trực tiếp trên máy (Local Dev):** JDK 21, Node.js $\ge 20$, Maven (đã tích hợp sẵn wrapper `./mvnw`).
+
+### Cách 1: Khởi chạy trọn gói bằng Docker Compose (1 lệnh duy nhất)
 ```bash
-# 1. Tạo file cấu hình từ template
+# 1. Tạo tệp biến môi trường từ mẫu chuẩn
 cp .env.example .env
 
-# 2. Xây dựng và khởi động toàn bộ cụm dịch vụ
+# 2. Khởi dựng và chạy toàn bộ 6 container dưới nền
 docker compose up --build -d
 
-# 3. Kiểm tra trạng thái sức khỏe các container
+# 3. Kiểm tra trạng thái hoạt động và mức tiêu thụ RAM (< 2048 MiB)
 docker compose ps
+docker stats --no-stream
 ```
 
-#### Danh mục Đường dẫn Giao diện (Routes) theo Phân quyền:
-* 📍 **Cổng Chọn Địa Bàn (96 Xã/Phường An Giang):** `http://localhost:3000/onboarding`
-* 🌐 **Cổng Dịch Vụ Công Dân (Hỏi đáp AI 40 TTHC):** `http://localhost:3000/citizen`
-* 📝 **Tiền Kiểm Định Tờ Khai & Báo Sự Cố (GPS 25m):** `http://localhost:3000/citizen/form`
-* 🛡️ **Bàn Điều Hành Cán Bộ Xã:** `http://localhost:3000/officer/ward/AG_P_LONGXUYEN`
-* 📑 **API Documentation (Swagger UI):** `http://localhost:8080/swagger-ui.html`
-* 💓 **Endpoint Kiểm tra Sức khỏe:** `http://localhost:8080/api/v1/health`
-
-### Cách 2: Chạy Từng Phân Hệ ở Môi Trường Cục Bộ (Local Development)
+### Cách 2: Khởi chạy Môi trường Phát triển Cục bộ (Local Development)
 ```bash
-# Bước 1: Khởi động hạ tầng CSDL
+# Bước 1: Bật các container cơ sở dữ liệu nền (PostgreSQL + pgvector, Redis, MinIO)
 docker compose up -d postgres redis minio minio-init
 
-# Bước 2: Khởi động Backend Spring Boot (Java 21)
+# Bước 2: Chạy Backend Spring Boot (Cổng 8080)
 cd backend
-./mvnw clean test           # Chạy toàn bộ 420 unit & integration tests
-./mvnw spring-boot:run      # Profile dev (offline mock AI tự động)
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
 
-# Bước 3: Khởi động Frontend Vite Dev Server
+# Bước 3: Mở terminal mới và chạy Frontend Vite (Cổng 3000)
 cd frontend
 npm install
-npm run dev                 # Truy cập http://localhost:3000
+npm run dev
 ```
 
 ---
 
-## 4. Ngân Sách Tài Nguyên Zero-Cost ($\le 2048\text{ MiB}$ RAM)
+## 5. Hướng Dẫn Sử Dụng Chi Tiết Theo Vai Trò (Step-by-Step Usage Guide)
 
-| Phân hệ / Container | Image / Dockerfile | Giới hạn Cứng (`mem_limit`) | Vai trò nghiệp vụ |
+Sau khi khởi động hệ thống, mở trình duyệt tại **`http://localhost:3000`**:
+
+### A. Dành cho Người dân (Cổng Dịch vụ Công dân — Phiên làm việc an toàn 5 phút)
+
+1. **Bước 1 — Chọn địa bàn & Vai trò (`/onboarding`):**
+   * Tại màn hình chào mừng, chọn **Xã / Phường / Đặc khu** nơi bạn đang sinh sống hoặc cần làm thủ tục (trong danh mục 96 đơn vị hành chính tỉnh An Giang), sau đó bấm **"Tôi là Người dân"**.
+2. **Bước 2 — Hỏi đáp Thủ tục Hành chính với AI RAG (`/citizen`):**
+   * Nhập câu hỏi tự nhiên (hỗ trợ cả tiếng Việt không dấu/viết tắt như *"lam khai sinh can gi"*, *"dk ket hon mat bao lau"*) hoặc bấm **biểu tượng Micro** để nói trực tiếp.
+   * Hệ thống trả về hướng dẫn chuẩn 5 mục kèm trích dẫn điều khoản pháp lý và các nút gợi ý hỏi tiếp theo ngữ cảnh (*"còn lệ phí bao nhiêu?"*, *"nộp ở đâu?"*). Bấm nút **Đọc to** nếu cần nghe phát âm hoặc nút **`A++`** trên thanh công cụ để tăng cỡ chữ cho người lớn tuổi.
+3. **Bước 3 — Xem mẫu, Tải mẫu A4 & Tiền kiểm định Tờ khai bằng AI (`/citizen/form#form`):**
+   * Chọn 1 trong 4 nhóm biểu mẫu (`Mẫu CT01 Cư trú`, `TK-KS Khai sinh`, `TK-KH Kết hôn`, `TK-BTXH Bảo trợ xã hội`).
+   * **Xem & Tải mẫu A4:** Bấm **"Xem & Tải Mẫu A4"**. Bản xem trước trên màn hình hiển thị dữ liệu ví dụ mẫu để bạn biết cách điền; khi bấm **"Tải Mẫu Word (.docx)"** hoặc **"Tải File PDF (.pdf)"**, hệ thống xuất ra **biểu mẫu trống 100%** đúng thể thức Nghị định 30/2020/NĐ-CP để bạn tự điền.
+   * **Quét AI OCR / Mã QR CCCD:** Tải ảnh chụp tờ khai/tệp `.docx` lên hoặc bấm **"Quét Mã QR CCCD"**. AI sẽ kiểm tra độ sắc nét của ảnh, tự động trích xuất và điền đầy đủ 100% các ô thông tin ở Bước 2 (kèm huy hiệu xanh `[✓ Đã map đúng ...]`).
+   * **Kiểm tra & Gửi sơ duyệt:** Nhập địa chỉ Email nhận kết quả và bấm **"Kiểm Tra & Gửi Sơ Duyệt Cán Bộ"**. Hệ thống đối soát toàn bộ quy tắc pháp lý và cấp **Mã số hồ sơ** (ví dụ: `HS-20261118-LONGXUYEN-0001`).
+4. **Bước 4 — Tra cứu Tiến độ Hồ sơ & Nhận Phiếu hẹn QR (`/citizen/form#tracking`):**
+   * Chuyển sang tab **"Tra Cứu Hồ Sơ"**, nhập **Mã số hồ sơ** và **4 số cuối CCCD** để xem trạng thái xử lý thời gian thực, thời hạn cam kết SLA và tải về **Phiếu hẹn điện tử có mã QR** ngay khi cán bộ phê duyệt.
+5. **Bước 5 — Báo cáo Sự cố Hiện trường định vị GPS $R=25\text{m}$ (`/citizen/form#incident`):**
+   * Chuyển sang tab **"Phản Ánh Sự Cố"**, bấm **"Lấy Lại Vị Trí GPS"** hoặc kéo ghim đỏ trên bản đồ tới đúng vị trí ổ gà/ngập nước.
+   * Hệ thống tự động xác định đúng UBND xã/phường quản lý tọa độ đó (hoặc yêu cầu chọn tay nếu tọa độ thuộc vùng chưa xác minh GIS), chọn mức độ khẩn cấp và gửi báo cáo.
+
+---
+
+### B. Dành cho Cán bộ Một cửa & Quản trị viên (`/officer/ward/:wardCode`)
+
+1. **Đăng nhập xác thực công chức:**
+   * Từ màn hình `/onboarding` hoặc nút chuyển vai trò trên thanh điều hướng, chọn **"Cán bộ Ủy ban"** và đăng nhập bằng tài khoản công chức mẫu:
+     * **Mã thẻ công chức (`Badge ID`):** `CC-AG-8942` (Cán bộ Tư pháp – Hộ tịch) hoặc `ADMIN-AG-0001` (Quản trị viên)
+     * **Mã PIN bảo mật:** `2026`
+2. **Sơ duyệt Hồ sơ Một cửa & Mở Kho Zero-Trust Vault (Tab `Sơ Duyệt Hồ Sơ`):**
+   * Bấm vào một hồ sơ trong danh sách để mở **Ngăn thẩm định (Slide-over Drawer)** bên phải.
+   * Xem kết quả tiền kiểm tra AI, bấm **"Mở Bản Chụp (1 Lần)"** để giải mã tài liệu từ MinIO kèm dấu mờ *`CHỈ DÙNG ĐỂ SƠ DUYỆT HỒ SƠ TẠI UBND`*. Ngay sau khi đóng, token tự hủy vĩnh viễn trên Redis (`HTTP 410 GONE`).
+   * Bấm **"Duyệt Hợp Lệ & Gửi Email + Mã QR"** để cấp mã lịch hẹn tự động hoặc **"Yêu Cầu Bổ Sung"** kèm lý do cụ thể.
+3. **Phê duyệt Câu hỏi Vùng xám (Tab `Duyệt Câu Hỏi AI - HITL`):**
+   * Xem các câu hỏi của người dân có độ tin cậy nằm trong vùng xám $[0.42, 0.78)$, hiệu chỉnh câu trả lời gợi ý và bấm **"Phê Duyệt Hướng Dẫn"** để nạp vào bộ nhớ đệm phục vụ các lượt hỏi sau.
+4. **Điều phối Cụm Sự cố & Bản đồ Điểm nóng (Tab `Sự Cố Dân Sinh` & `Bản Đồ GIS`):**
+   * Theo dõi các cụm sự cố đã được gom tự động trong bán kính $25\text{m}$, bấm gọi trực tiếp SĐT người báo tin để xác minh và chuyển trạng thái từ *Chờ tiếp nhận* $\rightarrow$ *Đang xử lý* $\rightarrow$ *Đã khắc phục xong*.
+
+---
+
+## 6. Kiểm Thử Tự Động & Đảm Bảo Chất Lượng (Testing & Verification)
+
+Hệ thống được bảo vệ bởi **12 bộ kiểm thử Regression Guard** ở Frontend và **hơn 420 bài kiểm thử đơn vị / đối kháng JUnit 5** ở Backend:
+
+```bash
+# 1. Chạy toàn bộ 12 bộ kiểm thử chấp nhận, đối kháng, build Vite & JUnit RAG (Khuyên dùng)
+cd frontend
+npm run test:all
+
+# 2. Kiểm tra kiểu tĩnh TypeScript (0 lỗi)
+npm run lint
+
+# 3. Chạy toàn bộ bộ kiểm thử JUnit 5 & Adversarial Harness ở Backend
+cd ../backend
+./mvnw test -B
+
+# 4. Khởi chạy & kiểm thử Ứng dụng Di động SmartWard AI Mobile (Expo SDK 52 — iOS / Android / Web Preview)
+cd ../mobile
+npm install --legacy-peer-deps
+npx tsc --noEmit && npm test
+npx expo start          # Quét QR trên ứng dụng Expo Go (cùng mạng Wi-Fi)
+npx expo start --web    # Mô phỏng đa màn hình điện thoại (SE 320px -> Pro Max 430px) ngay trên trình duyệt / VS Code
+
+# 5. Kiểm tra quy chuẩn quản trị tài liệu thư mục gốc (Docs Governance Gate)
+cd ..
+powershell -ExecutionPolicy Bypass -File scripts/check-docs-governance.ps1
+```
+
+---
+
+## 7. Ngân Sách Tài Nguyên Zero-Cost ($\le 2048\text{ MiB}$ RAM)
+
+| Container | Image / Nguồn | Trần RAM (`mem_limit`) | Vai trò trong kiến trúc |
 | :--- | :--- | :---: | :--- |
-| **`smartward-postgres`** | `pgvector/pgvector:pg16` | **448 MiB** | CSDL quan hệ ACID (Flyway V1–V5) & Chỉ mục HNSW 768 chiều |
-| **`smartward-redis`** | `redis:7-alpine` | **128 MiB** | Bộ lọc GEO $R=25\text{m}$, Cache đa địa phương & One-Time Token |
-| **`smartward-minio`** | `minio/minio:latest` | **256 MiB** | Lưu trữ tài liệu scan mã hóa AES-256-GCM (tự hủy sau 7 ngày) |
-| **`smartward-ai-sidecar`**| `./ml/sidecar/Dockerfile` | **384 MiB** | FastAPI Local AI Sidecar (PhoBERT ONNX INT8 + Lifespan) |
-| **`smartward-backend`** | `./backend/Dockerfile` | **768 MiB** | Spring Boot 3.3.5 (Java 21, JVM Heap `-Xmx512m`) |
-| **`smartward-frontend`**| `./frontend/Dockerfile` | **64 MiB** | Nginx Alpine phục vụ Web PWA tĩnh & Reverse Proxy API |
-| **TỔNG CỘNG** | **6 Containers Thường Trực** | **`2048 MiB` (2.0 GiB)** | **Đạt 100% cam kết ngân sách RAM $\le 2.0\text{ GiB}$** |
+| **`smartward-postgres`** | `pgvector/pgvector:pg16` | **448 MiB** | CSDL quan hệ ACID (Flyway `db/migration` & `db/seed`) + HNSW Vector Index |
+| **`smartward-redis`** | `redis:7-alpine` | **128 MiB** | Chỉ mục không gian GEO $R=25\text{m}$, Rate Limiter, Cache & One-Time Token (`GETDEL`) |
+| **`smartward-minio`** | `minio/minio:latest` | **256 MiB** | Lưu trữ đối tượng mã hóa AES-256-GCM cho tài liệu công dân (vòng đời tự xóa 7 ngày) |
+| **`smartward-ai-sidecar`** | `./ml/sidecar/Dockerfile` | **384 MiB** | Dịch vụ AI cục bộ FastAPI (PhoBERT ONNX INT8 lượng tử hóa) |
+| **`smartward-backend`** | `./backend/Dockerfile` | **768 MiB** | Máy chủ ứng dụng Spring Boot 3.3.5 (Java 21, JVM Heap `-Xmx512m`) |
+| **`smartward-frontend`** | `./frontend/Dockerfile` | **64 MiB** | Máy chủ Nginx Alpine phân phối giao diện tĩnh PWA & Reverse Proxy |
+| **TỔNG CỘNG** | **6 Containers** | **`2048 MiB` (2.0 GiB)** | **Tuân thủ tuyệt đối ngân sách phần cứng $\le 2.0\text{ GiB}$ RAM** |
 
 ---
 
-## 5. Bản Đồ Tài Liệu Dự Án (Documentation Map)
+## 8. Bản Đồ Tài Liệu Chuyên Sâu (Documentation Map)
 
-> 💡 **Mọi tài liệu chi tiết đã được quy hoạch vào thư mục [`docs/`](docs/README.md) theo chuẩn cấu trúc dự án chuyên nghiệp:**
+Toàn bộ tài liệu thiết kế, đặc tả kỹ thuật và báo cáo thực tập được quy hoạch chuẩn hóa trong thư mục [`docs/`](docs/README.md):
 
-| Nhóm Tài liệu | Đường dẫn chi tiết | Nội dung & Mục đích tra cứu |
-| :--- | :--- | :--- |
-| **🗺️ Mục Lục Điều Hướng** | [`docs/README.md`](docs/README.md) | Bản đồ tra cứu toàn diện và chỉ mục nhanh toàn dự án. |
-| **📋 Đặc Tả Toàn Diện Dự Án**| [`docs/project/PROJECT.md`](docs/project/PROJECT.md) | Bối cảnh, Yêu cầu gốc R1–R5, Bảng tính năng F1–F18 & Milestone M1–M4. |
-| **⚙️ Đặc Tả Kỹ Thuật API/DB** | [`docs/architecture/SYSTEM_SPECIFICATION.md`](docs/architecture/SYSTEM_SPECIFICATION.md) | Đặc tả 10 REST APIs, cấu trúc Entity, HNSW, quy tắc Rule Engine. |
-| **🔄 Kiến Trúc & Luồng Dữ Liệu**| [`docs/architecture/ARCHITECTURE_AND_FLOWS.md`](docs/architecture/ARCHITECTURE_AND_FLOWS.md) | Sơ đồ tuần tự (Sequence Diagram), luồng RAG, Triage 2 pha, Vault OTT. |
-| **🔒 Ràng Buộc Hệ Thống** | [`docs/architecture/PROJECT_CONSTRAINTS.md`](docs/architecture/PROJECT_CONSTRAINTS.md) | Quy định trần RAM $\le 2048\text{MB}$, Zero-Cost 0 VNĐ, bảo vệ dữ liệu NĐ 13. |
-| **🌿 Quy Trình Git Phân Nhánh** | [`docs/architecture/GIT_WORKFLOW.md`](docs/architecture/GIT_WORKFLOW.md) | Quy chuẩn Conventional Commits, phân nhánh `develop`/`feature`, release. |
-| **🚀 Lộ Trình Triển Khai** | [`docs/roadmap/ROADMAP.md`](docs/roadmap/ROADMAP.md) | Bảng trạng thái M1–M4 (100% Hoàn thành) & Kế hoạch đưa lên Production. |
-| **📱 Đặc Tả Ứng Dụng Mobile** | [`docs/specs/MOBILE_APP_SPEC.md`](docs/specs/MOBILE_APP_SPEC.md) | Kiến trúc React Native + Expo SDK 52, 6 màn hình chuyên biệt. |
-| **🧪 Sẵn Sàng Kiểm Thử** | [`docs/testing/TEST_READY.md`](docs/testing/TEST_READY.md) | Báo cáo 420/420 Backend tests PASS, 44 Frontend acceptance tests PASS. |
-| **🏢 Báo Cáo Doanh Nghiệp** | [`docs/reports/MENTOR_TECHNICAL_BRIEFING.md`](docs/reports/MENTOR_TECHNICAL_BRIEFING.md) | Báo cáo kỹ thuật dành cho Mentor Viettel An Giang và Giảng viên UTH. |
-| **📝 Sprint Board Sống** | [`docs/TODO_SPRINT_BOARD.md`](docs/TODO_SPRINT_BOARD.md) | Bảng theo dõi tiến độ công việc sống cập nhật liên tục qua 12 tuần. |
-
----
-
-## 6. Ghi Chú Cấu Hình Đám Mây (Cloud Deployment)
-- Hệ thống hỗ trợ triển khai cấu hình tĩnh Frontend lên VNeID/Web Gateway hoặc Vercel thông qua tệp cấu hình chuẩn [`vercel.json`](vercel.json).
-- Vận hành cụm máy chủ Backend/Database sử dụng tập lệnh tự động hóa [`deploy.sh`](deploy.sh) trên môi trường VPS Ubuntu/Linux hoặc cụm máy chủ Docker Compose nội bộ.
+* 🗺️ **Mục lục điều hướng tài liệu:** [`docs/README.md`](docs/README.md)
+* 📋 **Đặc tả toàn diện yêu cầu & tính năng (R1–R5, F1–F18):** [`docs/project/PROJECT.md`](docs/project/PROJECT.md)
+* ⚙️ **Đặc tả kỹ thuật REST API, Lược đồ CSDL & Rule Engine:** [`docs/architecture/SYSTEM_SPECIFICATION.md`](docs/architecture/SYSTEM_SPECIFICATION.md)
+* 🔄 **Sơ đồ kiến trúc & Luồng tuần tự (Sequence Diagrams):** [`docs/architecture/ARCHITECTURE_AND_FLOWS.md`](docs/architecture/ARCHITECTURE_AND_FLOWS.md)
+* 🔒 **Ràng buộc kỹ thuật & Bảo vệ dữ liệu Nghị định 13/2023/NĐ-CP:** [`docs/architecture/PROJECT_CONSTRAINTS.md`](docs/architecture/PROJECT_CONSTRAINTS.md)
+* 🌿 **Quy chuẩn phân nhánh Git & Quy tắc đóng góp:** [`AGENTS.md`](AGENTS.md) & [`docs/architecture/GIT_WORKFLOW.md`](docs/architecture/GIT_WORKFLOW.md)
+* 🧪 **Báo cáo sẵn sàng kiểm thử (Test Readiness):** [`docs/testing/TEST_READY.md`](docs/testing/TEST_READY.md)
+* 🏢 **Báo cáo kỹ thuật gửi Mentor Viettel An Giang & Giảng viên UTH:** [`docs/reports/MENTOR_TECHNICAL_BRIEFING.md`](docs/reports/MENTOR_TECHNICAL_BRIEFING.md)
+* 📝 **Bảng theo dõi tiến độ Sprint Board:** [`docs/TODO_SPRINT_BOARD.md`](docs/TODO_SPRINT_BOARD.md) & [`docs/roadmap/MOBILE_TODO_SPRINT_BOARD.md`](docs/roadmap/MOBILE_TODO_SPRINT_BOARD.md)
+* 📱 **Kế hoạch & Đặc tả Phân hệ Di động (`mobile/`):** [`docs/roadmap/MOBILE_DEVELOPMENT_PLAN.md`](docs/roadmap/MOBILE_DEVELOPMENT_PLAN.md) & [`docs/specs/MOBILE_APP_SPEC.md`](docs/specs/MOBILE_APP_SPEC.md)

@@ -463,7 +463,7 @@ export const PerWardDashboard: React.FC = () => {
                 ? 'HAS_ERRORS'
                 : 'PENDING',
             cccd: s.citizenCccd,
-            citizenEmail: (s.formData as any)?.email || (s.formData as any)?.citizenEmail || 'khanhblue06@gmail.com',
+            citizenEmail: (s.formData as any)?.email || (s.formData as any)?.citizenEmail || '',
             contactPhone: (s.formData as any)?.phone || (s.formData as any)?.phoneNumber || '0918234567',
             appointmentCode: s.appointmentCode,
             officerFeedback: s.officerFeedback,
@@ -520,7 +520,7 @@ export const PerWardDashboard: React.FC = () => {
       officerCustomNote.trim() ||
       `Hồ sơ đã được công chức Một cửa UBND ${ward.name} sơ duyệt HỢP LỆ. Kính mời công dân mang bản chính đến Quầy Một cửa (Luồng ưu tiên Đã sơ duyệt) để ký trực tiếp và nhận kết quả.`;
     const appointmentCode = `LH-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.floor(1000 + Math.random() * 9000)}`;
-    const recipientEmail = target?.citizenEmail || 'khanhblue06@gmail.com';
+    const recipientEmail = target?.citizenEmail || '';
 
     try {
       await reviewOfficerDossier(dossierId, {
@@ -554,7 +554,9 @@ export const PerWardDashboard: React.FC = () => {
     );
     setOfficerCustomNote('');
     setToastBanner(
-      `Đã sơ duyệt HỢP LỆ hồ sơ ${dossierId}, cấp Mã QR ${appointmentCode} và gửi Email thông báo tới ${recipientEmail}!`
+      recipientEmail
+        ? `Đã sơ duyệt HỢP LỆ hồ sơ ${dossierId}, cấp Mã QR ${appointmentCode} và gửi Email thông báo tới ${recipientEmail}!`
+        : `Đã sơ duyệt HỢP LỆ hồ sơ ${dossierId} và cấp Mã QR ${appointmentCode}!`
     );
     setTimeout(() => setToastBanner(null), 5000);
     setSelectedDossier(null);
@@ -566,7 +568,7 @@ export const PerWardDashboard: React.FC = () => {
     const feedback =
       officerCustomNote.trim() ||
       `Đề nghị công dân kiểm tra, chỉnh sửa lại thông tin sai lệch trên tờ khai giấy gốc và gửi lại ảnh chụp rõ nét để cán bộ Một cửa UBND ${ward.name} sơ duyệt lại.`;
-    const recipientEmail = target?.citizenEmail || 'khanhblue06@gmail.com';
+    const recipientEmail = target?.citizenEmail || '';
 
     try {
       await reviewOfficerDossier(dossierId, {

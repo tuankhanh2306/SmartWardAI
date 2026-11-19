@@ -9,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -32,6 +33,8 @@ import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.lenient;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -51,12 +54,37 @@ class OfficerRbacAdversarialTest {
     private RagQueryService ragQueryService;
 
     private static final String TEST_JWT_SECRET = "SmartWardAI_UnitTest_JwtSecret_32B_Key_Strict_Security!";
+    private static final String TEST_OFFICER_PIN = "OfficerRbac2026!";
     private String validOfficerToken;
+    private OfficerRepository mockOfficerRepo;
 
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
-        officerAuthService = new OfficerAuthService(objectMapper);
+        mockOfficerRepo = mock(OfficerRepository.class);
+        String hashedPin = new BCryptPasswordEncoder(4).encode(TEST_OFFICER_PIN);
+        Officer testOfficer = Officer.builder()
+                .badgeId("CC-AG-8942")
+                .fullName("Trần Quốc Bảo — Cán bộ Tư pháp - Hộ tịch")
+                .wardCode("AG_P_LONGXUYEN")
+                .role("OFFICER")
+                .passwordHash(hashedPin)
+                .mustChangePin(false)
+                .active(true)
+                .build();
+        Officer pendingPinOfficer = Officer.builder()
+                .badgeId("CC-AG-PENDING")
+                .fullName("Cán bộ Chưa Đổi PIN")
+                .wardCode("AG_P_LONGXUYEN")
+                .role("OFFICER")
+                .passwordHash(hashedPin)
+                .mustChangePin(true)
+                .active(true)
+                .build();
+        lenient().when(mockOfficerRepo.findByBadgeIdIgnoreCase("CC-AG-8942")).thenReturn(Optional.of(testOfficer));
+        lenient().when(mockOfficerRepo.findByBadgeIdIgnoreCase("CC-AG-PENDING")).thenReturn(Optional.of(pendingPinOfficer));
+
+        officerAuthService = new OfficerAuthService(objectMapper, null, mockOfficerRepo, null);
         ReflectionTestUtils.setField(officerAuthService, "jwtSecret", TEST_JWT_SECRET);
         ReflectionTestUtils.setField(officerAuthService, "tokenTtlHours", 8);
 
@@ -71,7 +99,7 @@ class OfficerRbacAdversarialTest {
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
 
-        OfficerAuthService.LoginResponse login = officerAuthService.authenticate("CC-AG-8942", "8942", "WARD-AG-01");
+        OfficerAuthService.LoginResponse login = officerAuthService.authenticate("CC-AG-8942", TEST_OFFICER_PIN, "WARD-AG-01");
         validOfficerToken = "Bearer " + login.token();
     }
 
@@ -301,12 +329,18 @@ class OfficerRbacAdversarialTest {
         }
 
         @Test
-        @DisplayName("GET /api/v1/dossiers/track (Public track) without Bearer -> NOT rejected by RBAC (200 OK)")
-        void trackDossier_public_shouldReturn200() throws Exception {
+        @DisplayName("GET /api/v1/dossiers/track is REMOVED (not 200), while POST /api/v1/dossiers/track returns 200 OK")
+        void trackDossier_getRemoved_postReturns200() throws Exception {
+            mockMvc.perform(get("/api/v1/dossiers/track")
+                            .param("dossierCode", "HS-20261111-BENNGHE-0001")
+                            .param("last4Cccd", "2345")
+                            .contentType(MediaType.APPLICATION_JSON))
+                    .andExpect(status().is4xxClientError());
+
             DossierTrackingResponse res = DossierTrackingResponse.builder()
                     .dossierCode("HS-20261111-BENNGHE-0001")
-                    .procedureCode("TTHC-CT-01")
-                    .procedureName("Đăng ký thường trú")
+                    .procedureCode("TTHC-HT-01")
+                    .procedureName("Đăng ký khai sinh")
                     .wardCode("WARD-AG-01")
                     .citizenCccd("********2345")
                     .status("PENDING")
@@ -316,20 +350,32 @@ class OfficerRbacAdversarialTest {
             when(dossierService.trackDossier(eq("HS-20261111-BENNGHE-0001"), eq("2345"), any()))
                     .thenReturn(res);
 
-            mockMvc.perform(get("/api/v1/dossiers/track")
-                            .param("dossierCode", "HS-20261111-BENNGHE-0001")
-                            .param("last4Cccd", "2345")
-                            .contentType(MediaType.APPLICATION_JSON))
+            mockMvc.perform(post("/api/v1/dossiers/track")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"dossierCode\":\"HS-20261111-BENNGHE-0001\",\"last4Cccd\":\"2345\"}"))
                     .andExpect(status().isOk())
                     .andExpect(jsonPath("$.success").value(true))
                     .andExpect(jsonPath("$.data.dossierCode").value("HS-20261111-BENNGHE-0001"));
         }
 
         @Test
+        @DisplayName("Token with mustChangePin=true is blocked (403) on officer business routes via OfficerAuthInterceptor")
+        void mustChangePinOfficer_blockedFromBusinessRoutes() throws Exception {
+            OfficerAuthService.LoginResponse pendingLogin =
+                    officerAuthService.authenticate("CC-AG-PENDING", TEST_OFFICER_PIN, null);
+            assertTrue(pendingLogin.mustChangePin());
+
+            mockMvc.perform(get("/api/v1/dossiers/officer/list")
+                            .header("Authorization", "Bearer " + pendingLogin.token()))
+                    .andExpect(status().isForbidden())
+                    .andExpect(jsonPath("$.message").value(org.hamcrest.Matchers.containsString("SW_403_MUST_CHANGE_PIN")));
+        }
+
+        @Test
         @DisplayName("POST /api/v1/officer/login without Bearer -> NOT rejected by RBAC (200 OK)")
         void officerLogin_public_shouldReturn200() throws Exception {
             OfficerAuthController.OfficerLoginRequest req =
-                    new OfficerAuthController.OfficerLoginRequest("CC-AG-8942", "8942", "WARD-AG-01");
+                    new OfficerAuthController.OfficerLoginRequest("CC-AG-8942", TEST_OFFICER_PIN, "WARD-AG-01");
 
             mockMvc.perform(post("/api/v1/officer/login")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -344,7 +390,7 @@ class OfficerRbacAdversarialTest {
         @DisplayName("POST /api/v1/auth/officer/login alias without Bearer -> NOT rejected by RBAC (200 OK)")
         void officerLoginAlias_public_shouldReturn200() throws Exception {
             OfficerAuthController.OfficerLoginRequest req =
-                    new OfficerAuthController.OfficerLoginRequest("CC-AG-8942", "8942", "WARD-AG-01");
+                    new OfficerAuthController.OfficerLoginRequest("CC-AG-8942", TEST_OFFICER_PIN, "WARD-AG-01");
 
             mockMvc.perform(post("/api/v1/auth/officer/login")
                             .contentType(MediaType.APPLICATION_JSON)
@@ -414,20 +460,20 @@ class OfficerRbacAdversarialTest {
         @DisplayName("Security Secret: JWT_SECRET requires >= 32 bytes (256-bit)")
         void jwtSecretLengthEnforcement() {
             // Key < 32 bytes MUST throw BusinessException
-            OfficerAuthService serviceShortKey = new OfficerAuthService(new ObjectMapper());
+            OfficerAuthService serviceShortKey = new OfficerAuthService(new ObjectMapper(), null, mockOfficerRepo, null);
             ReflectionTestUtils.setField(serviceShortKey, "jwtSecret", "short_key_under_32_bytes!");
 
             BusinessException ex = assertThrows(BusinessException.class, () ->
-                    serviceShortKey.authenticate("CC-AG-8942", "8942", "WARD-AG-01")
+                    serviceShortKey.authenticate("CC-AG-8942", TEST_OFFICER_PIN, "WARD-AG-01")
             );
             assertEquals(ErrorCode.INTERNAL_SERVER_ERROR, ex.getErrorCode());
             assertTrue(ex.getMessage().contains("32 bytes"), "Error message must indicate 32 bytes requirement");
 
             // Key >= 32 bytes MUST succeed
-            OfficerAuthService serviceValidKey = new OfficerAuthService(new ObjectMapper());
+            OfficerAuthService serviceValidKey = new OfficerAuthService(new ObjectMapper(), null, mockOfficerRepo, null);
             ReflectionTestUtils.setField(serviceValidKey, "jwtSecret", "SmartWardAI_ValidKey_32BytesMin!");
             assertDoesNotThrow(() ->
-                    serviceValidKey.authenticate("CC-AG-8942", "8942", "WARD-AG-01")
+                    serviceValidKey.authenticate("CC-AG-8942", TEST_OFFICER_PIN, "WARD-AG-01")
             );
         }
 

@@ -269,6 +269,85 @@ public class CitizenDossierService {
         return list.stream().map(this::mapToOfficerDto).toList();
     }
 
+    /**
+     * MOB-0.5: Officer counter QR pass lookup supporting:
+     * - Full SmartWard QR payload: SMARTWARD_PASS|{dossierCode}|{appointmentCode}|{wardCode}
+     * - Direct dossier code: HS-...
+     * - Direct appointment code: LH-YYYYMMDD-XXXX
+     * Enforces SEC-09 strict ward isolation and masks citizen CCCD.
+     */
+    @Transactional(readOnly = true)
+    public OfficerDossierDto lookupOfficerDossierByQr(String rawCode, OfficerAuthService.OfficerPrincipal principal) {
+        if (rawCode == null || rawCode.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã QR hoặc mã phiếu hẹn không được để trống.");
+        }
+
+        if (principal != null && "ADMIN".equalsIgnoreCase(principal.role())) {
+            throw new BusinessException(
+                    ErrorCode.FORBIDDEN,
+                    "Quản trị viên không truy cập trực tiếp quầy thẩm định hồ sơ cấp xã."
+            );
+        }
+
+        String trimmed = rawCode.trim();
+        String candidateDossierCode = null;
+        String candidateAppointmentCode = null;
+
+        if (trimmed.toUpperCase().startsWith("SMARTWARD_PASS|")) {
+            String[] parts = trimmed.split("\\|", -1);
+            if (parts.length > 1 && !parts[1].isBlank()) {
+                candidateDossierCode = parts[1].trim();
+            }
+            if (parts.length > 2 && !parts[2].isBlank()) {
+                candidateAppointmentCode = parts[2].trim();
+            }
+        } else if (trimmed.toUpperCase().startsWith("LH-")) {
+            candidateAppointmentCode = trimmed;
+        } else {
+            candidateDossierCode = trimmed;
+            candidateAppointmentCode = trimmed;
+        }
+
+        Optional<CitizenDossier> found = Optional.empty();
+        if (candidateDossierCode != null && !candidateDossierCode.isBlank()) {
+            found = dossierRepository.findByDossierCodeIgnoreCase(candidateDossierCode);
+        }
+        if (found.isEmpty() && candidateAppointmentCode != null && !candidateAppointmentCode.isBlank()) {
+            found = dossierRepository.findByAppointmentCodeIgnoreCase(candidateAppointmentCode);
+        }
+
+        CitizenDossier dossier = found.orElseThrow(() -> new BusinessException(
+                ErrorCode.RESOURCE_NOT_FOUND,
+                "Không tìm thấy hồ sơ tương ứng với mã QR / lịch hẹn: " + trimmed
+        ));
+
+        // SEC-09: Strict Ward Isolation
+        if (principal != null && principal.wardCode() != null && !principal.wardCode().isBlank()) {
+            String officerWard = principal.wardCode().trim();
+            String dossierWard = dossier.getWardCode() != null ? dossier.getWardCode().trim() : "";
+            if (!officerWard.equalsIgnoreCase(dossierWard)) {
+                log.warn("SEC-09: Officer '{}' of ward '{}' attempted cross-ward QR lookup for dossier '{}' (ward '{}').",
+                        principal.badgeId(), officerWard, dossier.getDossierCode(), dossierWard);
+                if (auditService != null) {
+                    auditService.logAction(principal.badgeId(), officerWard, "CROSS_WARD_QR_LOOKUP_BLOCKED",
+                            "DOSSIER", dossier.getDossierCode(), "127.0.0.1", null);
+                }
+                throw new BusinessException(
+                        ErrorCode.FORBIDDEN,
+                        "SEC-09: Cán bộ thuộc đơn vị " + officerWard + " không có quyền tra cứu phiếu hẹn thuộc đơn vị " + dossierWard + "."
+                );
+            }
+        }
+
+        if (auditService != null) {
+            String actor = principal != null ? principal.badgeId() : "OFFICER";
+            String ward = principal != null && principal.wardCode() != null ? principal.wardCode() : dossier.getWardCode();
+            auditService.logAction(actor, ward, "DOSSIER_QR_LOOKUP", "DOSSIER", dossier.getDossierCode(), "127.0.0.1", null);
+        }
+
+        return mapToOfficerDto(dossier);
+    }
+
     @Transactional
     public CitizenDossier reviewDossier(String dossierCode, OfficerReviewRequest req, OfficerAuthService.OfficerPrincipal principal) {
         if (dossierCode == null || dossierCode.isBlank()) {

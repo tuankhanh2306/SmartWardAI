@@ -12,7 +12,7 @@ import java.util.List;
 @Configuration
 public class CorsConfig {
 
-    @Value("${smartward.cors.allowed-origins:http://localhost:3000,http://localhost:5173}")
+    @Value("${smartward.cors.allowed-origins:http://localhost:3000,http://localhost:5173,http://localhost:8081,http://10.0.2.2:8081,http://192.168.*.*:*,exp://*}")
     private List<String> allowedOrigins;
 
     @Bean
@@ -20,8 +20,23 @@ public class CorsConfig {
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         CorsConfiguration config = new CorsConfiguration();
         config.setAllowCredentials(true);
-        config.setAllowedOriginPatterns(allowedOrigins);
+        List<String> safeOrigins = (allowedOrigins == null ? List.<String>of() : allowedOrigins).stream()
+                .map(String::trim)
+                .filter(o -> !o.isEmpty() && !"*".equals(o))
+                .toList();
+        if (safeOrigins.isEmpty()) {
+            safeOrigins = List.of(
+                    "http://localhost:3000",
+                    "http://localhost:5173",
+                    "http://localhost:8081",
+                    "http://10.0.2.2:8081",
+                    "http://192.168.*.*:*",
+                    "exp://*"
+            );
+        }
+        config.setAllowedOriginPatterns(safeOrigins);
         config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("X-Correlation-ID", "X-Correlation-Id", "Content-Disposition"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         source.registerCorsConfiguration("/**", config);
         return new CorsFilter(source);

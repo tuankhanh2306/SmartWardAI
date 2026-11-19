@@ -506,7 +506,21 @@ class ProcedureGovernanceServiceTest {
     @Test
     @DisplayName("10. OfficerAuthInterceptor enforces 401 on missing/expired JWT and 403 when ROLE_OFFICER calls Admin endpoints")
     void testOfficerAuthInterceptor_missingToken401_expiredToken401_officerOnAdminEndpoint403() {
-        OfficerAuthService authService = new OfficerAuthService(objectMapper);
+        var mockOfficerRepo = mock(vn.edu.uth.smartward.security.OfficerRepository.class);
+        var encoder = new org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder(4);
+        when(mockOfficerRepo.findByBadgeIdIgnoreCase("CC-AG-8942")).thenReturn(Optional.of(
+                vn.edu.uth.smartward.security.Officer.builder()
+                        .badgeId("CC-AG-8942").fullName("Trần Quốc Bảo").wardCode("AG_P_LONGXUYEN")
+                        .role("OFFICER").passwordHash(encoder.encode("OfficerGov2026!"))
+                        .mustChangePin(false).active(true).build()));
+        when(mockOfficerRepo.findByBadgeIdIgnoreCase("ADM-AG-0001")).thenReturn(Optional.of(
+                vn.edu.uth.smartward.security.Officer.builder()
+                        .badgeId("ADM-AG-0001").fullName("Lê Văn Quản Trị").wardCode("AG_PROVINCE")
+                        .role("ADMIN").passwordHash(encoder.encode("AdminGov2026!"))
+                        .mustChangePin(false).active(true).build()));
+        when(mockOfficerRepo.save(any())).thenAnswer(inv -> inv.getArgument(0));
+
+        OfficerAuthService authService = new OfficerAuthService(objectMapper, null, mockOfficerRepo, null);
         org.springframework.test.util.ReflectionTestUtils.setField(authService, "jwtSecret", "0123456789abcdef0123456789abcdef0123456789abcdef");
         org.springframework.test.util.ReflectionTestUtils.setField(authService, "tokenTtlHours", 8);
 
@@ -523,7 +537,7 @@ class ProcedureGovernanceServiceTest {
 
         // 10b. Expired token -> 401 UNAUTHORIZED
         org.springframework.test.util.ReflectionTestUtils.setField(authService, "tokenTtlHours", -1);
-        String expiredToken = authService.authenticate("CC-AG-8942", "8942", "AG_P_LONGXUYEN").token();
+        String expiredToken = authService.authenticate("CC-AG-8942", "OfficerGov2026!", "AG_P_LONGXUYEN").token();
         org.springframework.test.util.ReflectionTestUtils.setField(authService, "tokenTtlHours", 8);
 
         org.springframework.mock.web.MockHttpServletRequest reqExpired =
@@ -534,7 +548,7 @@ class ProcedureGovernanceServiceTest {
                 .satisfies(ex -> assertEquals(ErrorCode.UNAUTHORIZED, ((BusinessException) ex).getErrorCode()));
 
         // 10c. Valid OFFICER token can access /api/v1/admin/procedures and submit proposals, but gets 403 on /api/v1/admin/proposals/1/approve
-        String officerToken = authService.authenticate("CC-AG-8942", "8942", "AG_P_LONGXUYEN").token();
+        String officerToken = authService.authenticate("CC-AG-8942", "OfficerGov2026!", "AG_P_LONGXUYEN").token();
 
         org.springframework.mock.web.MockHttpServletRequest reqOfficerAllowed =
                 new org.springframework.mock.web.MockHttpServletRequest("POST", "/api/v1/admin/proposals/101/submit");
@@ -549,7 +563,7 @@ class ProcedureGovernanceServiceTest {
                 .satisfies(ex -> assertEquals(ErrorCode.FORBIDDEN, ((BusinessException) ex).getErrorCode()));
 
         // 10d. Valid ADMIN token is allowed on /api/v1/admin/proposals/101/approve
-        String adminToken = authService.authenticate("ADM-AG-0001", "9999", "AG_P_LONGXUYEN").token();
+        String adminToken = authService.authenticate("ADM-AG-0001", "AdminGov2026!", "AG_P_LONGXUYEN").token();
         org.springframework.mock.web.MockHttpServletRequest reqAdminAllowed =
                 new org.springframework.mock.web.MockHttpServletRequest("POST", "/api/v1/admin/proposals/101/approve");
         reqAdminAllowed.addHeader("Authorization", "Bearer " + adminToken);

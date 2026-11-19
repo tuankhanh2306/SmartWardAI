@@ -80,7 +80,7 @@ export const FormAndIssueReporting: React.FC = () => {
   const [myDossiers, setMyDossiers] = useState<LiveFormDossier[]>(() => getLiveSubmittedDossiers());
   const [myIncidents, setMyIncidents] = useState<LiveCitizenIncident[]>(() => getLiveSubmittedIncidents());
   const [emailNotifications, setEmailNotifications] = useState<EmailNotificationItem[]>(() => getCitizenEmailNotifications());
-  const [citizenEmail, setCitizenEmail] = useState<string>('khanhblue06@gmail.com');
+  const [citizenEmail, setCitizenEmail] = useState<string>('');
   const [visionGateResult, setVisionGateResult] = useState<VisionQualityGateResult | null>(null);
   const qrPassRef = useRef<HTMLDivElement>(null);
   const [isExportingQrPass, setIsExportingQrPass] = useState<boolean>(false);
@@ -287,6 +287,10 @@ export const FormAndIssueReporting: React.FC = () => {
   const [guardianCccd, setGuardianCccd] = useState('');
   const [guardianRelation, setGuardianRelation] = useState('Con đẻ');
   const [guardianPhone, setGuardianPhone] = useState('');
+  const [socialTargetGroup, setSocialTargetGroup] = useState<string>('ELDERLY_PENSION');
+  const [hasBhyt, setHasBhyt] = useState<'YES' | 'NO'>('YES');
+  const [bhytNumber, setBhytNumber] = useState('');
+  const [paymentMethod, setPaymentMethod] = useState<'BANK' | 'CASH' | 'EWALLET'>('BANK');
 
   // A4 Printable Administrative Document Modal Preview (Nghị định 30/2020/NĐ-CP)
   const [showPrintModal, setShowPrintModal] = useState(false);
@@ -1253,7 +1257,6 @@ export const FormAndIssueReporting: React.FC = () => {
       setHostRelation(mappedHostRelation);
       setDeclarationScope(mappedDeclarationScope);
       setIssueDate(mappedIssueDate || '2021-07-10');
-      if (!citizenEmail) setCitizenEmail('khanhblue06@gmail.com');
 
       let mappedCount = 10;
 
@@ -2693,6 +2696,14 @@ export const FormAndIssueReporting: React.FC = () => {
                   setGuardianPhone={setGuardianPhone}
                   bankAccount={bankAccount}
                   setBankAccount={setBankAccount}
+                  socialTargetGroup={socialTargetGroup}
+                  setSocialTargetGroup={setSocialTargetGroup}
+                  hasBhyt={hasBhyt}
+                  setHasBhyt={setHasBhyt}
+                  bhytNumber={bhytNumber}
+                  setBhytNumber={setBhytNumber}
+                  paymentMethod={paymentMethod}
+                  setPaymentMethod={setPaymentMethod}
                 />
 
                 {/* Field 5: Nơi đề nghị cư trú / Quê quán / Địa chỉ thường trú */}
@@ -3573,6 +3584,10 @@ export const FormAndIssueReporting: React.FC = () => {
           guardianCccd,
           guardianRelation,
           guardianPhone,
+          socialTargetGroup,
+          hasBhyt,
+          bhytNumber,
+          paymentMethod,
         }}
       />
 
