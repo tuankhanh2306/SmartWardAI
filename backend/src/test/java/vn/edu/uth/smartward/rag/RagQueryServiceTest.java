@@ -462,6 +462,56 @@ class RagQueryServiceTest {
     }
 
     @Test
+    void testHitlQueuePersistence_survivesBackendRestartViaRepository() {
+        // Simulated shared PostgreSQL store backed by a Map across two RagQueryService instances
+        java.util.Map<String, HitlGrayZoneItem> persistedStore = new java.util.LinkedHashMap<>();
+        HitlGrayZoneRepository repo = mock(HitlGrayZoneRepository.class);
+        when(repo.save(any(HitlGrayZoneItem.class))).thenAnswer(inv -> {
+            HitlGrayZoneItem item = inv.getArgument(0);
+            persistedStore.put(item.getId(), item);
+            return item;
+        });
+        when(repo.findAllByOrderByCreatedAtTsDesc()).thenAnswer(inv -> new java.util.ArrayList<>(persistedStore.values()));
+        when(repo.findById(anyString())).thenAnswer(inv -> Optional.ofNullable(persistedStore.get(inv.getArgument(0))));
+        when(repo.existsByQueryIgnoreCase(anyString())).thenAnswer(inv -> {
+            String q = inv.getArgument(0);
+            return persistedStore.values().stream().anyMatch(i -> i.getQuery().equalsIgnoreCase(q));
+        });
+
+        // Instance 1 (Before restart): gray-zone query enters queue
+        RagQueryService serviceBeforeRestart = new RagQueryService(chunkRepository, aiModelClient, queryCacheService, redisRateLimiter);
+        ReflectionTestUtils.setField(serviceBeforeRestart, "hitlRepository", repo);
+        ReflectionTestUtils.setField(serviceBeforeRestart, "defaultThreshold", 0.78);
+        ReflectionTestUtils.setField(serviceBeforeRestart, "defaultThetaLower", 0.42);
+        ReflectionTestUtils.setField(serviceBeforeRestart, "defaultTopK", 3);
+
+        when(redisRateLimiter.isAllowed(anyString())).thenReturn(true);
+        when(queryCacheService.getCachedResponse(anyString(), eq(RagAskResponse.class))).thenReturn(Optional.empty());
+        when(aiModelClient.generateEmbedding(anyString())).thenReturn(new float[768]);
+        when(aiModelClient.toPgVectorString(any())).thenReturn("[0.1, 0.2]");
+        LegalChunkMatch grayMatch = createMockChunkMatch("HT-09-DK", "Cấp lại trích lục", "Điều kiện", "Nội dung...", "Luật Hộ tịch", 0.55);
+        when(chunkRepository.findTopKSimilarChunksWithMetadata(anyString(), eq(3))).thenReturn(List.of(grayMatch));
+
+        serviceBeforeRestart.askQuestion(RagAskRequest.builder().question("Mất bản chính khai sinh năm 1995 xin ở đâu?").build(), "127.0.0.1");
+        assertEquals(1, persistedStore.size());
+        String savedId = persistedStore.keySet().iterator().next();
+
+        // Instance 2 (Fresh instance after simulated restart): still sees the pending item & resolves it
+        RagQueryService serviceAfterRestart = new RagQueryService(chunkRepository, aiModelClient, queryCacheService, redisRateLimiter);
+        ReflectionTestUtils.setField(serviceAfterRestart, "hitlRepository", repo);
+        ReflectionTestUtils.setField(serviceAfterRestart, "defaultThreshold", 0.78);
+
+        var loadedQueue = serviceAfterRestart.getHitlQueue();
+        assertEquals(1, loadedQueue.size());
+        assertEquals("Mất bản chính khai sinh năm 1995 xin ở đâu?", loadedQueue.get(0).getQuery());
+        assertEquals("PENDING", loadedQueue.get(0).getStatus());
+
+        var resolved = serviceAfterRestart.resolveHitlItem(savedId, "Câu trả lời đã xác minh", "Cán bộ An");
+        assertEquals("APPROVED", resolved.getStatus());
+        assertEquals("APPROVED", persistedStore.get(savedId).getStatus());
+    }
+
+    @Test
     void testResolveHitlItem_shouldApproveItemAndCacheVerifiedResponseFor24Hours() {
         var queue = ragQueryService.getHitlQueue();
         assertFalse(queue.isEmpty(), "HITL queue must be seeded with initial gray-zone items");

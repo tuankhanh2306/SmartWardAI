@@ -101,8 +101,10 @@ public class CitizenDossierService {
         String dossierCode = generateDossierCode(req.wardCode());
 
         String procedureCode = req.procedureCode().trim();
-        int workingDays = resolveStatutoryWorkingDays(procedureCode);
-        Instant slaDeadline = calculateWorkingDayDeadline(Instant.now(), workingDays, VN_ZONE);
+        Integer workingDays = resolveStatutoryWorkingDays(procedureCode);
+        Instant slaDeadline = (workingDays != null && workingDays > 0)
+                ? calculateWorkingDayDeadline(Instant.now(), workingDays, VN_ZONE)
+                : null;
 
         String formDataJson = serializeToJson(req.formData(), "{}");
         String precheckReportJson = serializeToJson(req.precheckReport(), null);
@@ -524,13 +526,23 @@ public class CitizenDossierService {
         return current.withHour(17).withMinute(0).withSecond(0).withNano(0).toInstant();
     }
 
-    private int resolveStatutoryWorkingDays(String procedureCode) {
-        if (procedureCode == null) return 3;
-        String clean = procedureCode.trim().toUpperCase();
-        if (clean.contains("HT-01") || clean.contains("HT-13") || clean.contains("CR-02")) {
-            return 1; // 1-day statutory SLA for Vital Civil Registrations (Birth / Death)
+    /**
+     * Resolves verified statutory SLA working days strictly from DB configuration.
+     * Returns NULL when sla_working_days has not been verified/configured so the UI displays
+     * "Chưa xác định (chờ cán bộ Một cửa xác nhận)" instead of a guessed deadline.
+     */
+    private Integer resolveStatutoryWorkingDays(String procedureCode) {
+        if (procedureCode == null || procedureCode.isBlank() || procedureRepository == null) {
+            return null;
         }
-        return 3;
+        try {
+            return procedureRepository.findByProcedureCode(procedureCode.trim())
+                    .map(AdminProcedure::getSlaWorkingDays)
+                    .filter(days -> days != null && days > 0)
+                    .orElse(null);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     private String resolveProcedureName(String procedureCode) {

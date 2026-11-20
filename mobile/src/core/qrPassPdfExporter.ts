@@ -15,6 +15,15 @@ function escapeHtml(text: string | null | undefined): string {
     .replace(/"/g, '&quot;');
 }
 
+export const UNVERIFIED_SLA_TEXT = 'Chưa xác định (chờ cán bộ Một cửa xác nhận)';
+
+export function formatMobileSlaDeadline(slaDeadline?: string | null): string {
+  if (!slaDeadline || !slaDeadline.trim()) {
+    return UNVERIFIED_SLA_TEXT;
+  }
+  return slaDeadline.trim();
+}
+
 export function getDossierStatusVietnamese(status: string): string {
   switch ((status || '').toUpperCase()) {
     case 'APPROVED':
@@ -110,9 +119,10 @@ export function buildElectronicQrPassHtml(pass: WalletQrPassRow): string {
     </div>
     <table class="grid">
       <tr><td class="k">Họ và tên công dân</td><td class="v">${escapeHtml(pass.citizen_name)}</td></tr>
-      <tr><td class="k">CCCD (Che mờ NĐ 13)</td><td class="v">${escapeHtml(pass.citizen_cccd_mask)}</td></tr>
+      <tr><td class="k">CCCD (Che mờ bảo mật)</td><td class="v">${escapeHtml(pass.citizen_cccd_mask)}</td></tr>
       <tr><td class="k">Mã hồ sơ đồng bộ Web</td><td class="v">${escapeHtml(pass.dossier_code)}</td></tr>
       <tr><td class="k">Thủ tục hành chính</td><td class="v">${escapeHtml(pass.procedure_name)} (${escapeHtml(pass.procedure_code)})</td></tr>
+      <tr><td class="k">Thời hạn giải quyết</td><td class="v">${escapeHtml(formatMobileSlaDeadline(pass.sla_deadline))}</td></tr>
       <tr><td class="k">Trạng thái hồ sơ</td><td class="v">${escapeHtml(statusVi)}</td></tr>
       ${pass.officer_feedback ? `<tr><td class="k">Lời dặn của Cán bộ</td><td class="v">${escapeHtml(pass.officer_feedback)}</td></tr>` : ''}
     </table>

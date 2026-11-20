@@ -11,6 +11,7 @@ import {
   submitDossier,
   trackDossier,
   synthesizeSpeech,
+  formatSlaDeadlineVi,
   type FormPrecheckResponse,
   type IssueReportResponse,
   type LiveFormDossier,
@@ -934,7 +935,7 @@ export const FormAndIssueReporting: React.FC = () => {
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert('Kích thước tệp vượt quá 5MB theo hạn mức Zero-Trust Vault (Nghị định 13/2023/NĐ-CP). Vui lòng chọn tệp nhẹ hơn.');
+      alert('Kích thước tệp vượt quá 5MB theo hạn mức Zero-Trust Vault. Vui lòng chọn tệp nhẹ hơn.');
       return;
     }
 
@@ -3271,7 +3272,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <span className="text-[#64748B]">Thời hạn giải quyết (SLA):</span>
                       <span className="font-semibold text-[#166534]">
-                        {new Date(submittedDossier.slaDeadline).toLocaleDateString('vi-VN')} (17:00:00)
+                        {formatSlaDeadlineVi(submittedDossier.slaDeadline, true)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">

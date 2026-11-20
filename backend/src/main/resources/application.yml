@@ -6,6 +6,7 @@ spring:
     name: smartward-backend
   flyway:
     out-of-order: false
+    locations: classpath:db/migration,classpath:db/seed
   profiles:
     active: ${SPRING_PROFILES_ACTIVE:prod}
   servlet:

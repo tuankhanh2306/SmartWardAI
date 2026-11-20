@@ -43,6 +43,9 @@ public class AdminProcedure {
     @Column(name = "processing_time", columnDefinition = "TEXT")
     private String processingTime;
 
+    @Column(name = "sla_working_days")
+    private Integer slaWorkingDays;
+
     @Column(name = "fee", columnDefinition = "TEXT")
     private String fee;
 

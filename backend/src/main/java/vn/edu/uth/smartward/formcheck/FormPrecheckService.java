@@ -98,7 +98,7 @@ public class FormPrecheckService {
 
     public static final String LEGAL_DISCLAIMER =
             "Hệ thống SmartWard AI chỉ thực hiện sơ duyệt và cảnh báo lỗi logic để hỗ trợ công dân hoàn thiện hồ sơ giấy trước khi nộp. " +
-            "Hệ thống không tự ý sửa đổi hồ sơ và không thay thế quyết định thẩm tra chính thức của cán bộ Một cửa theo Nghị định 13/2023/NĐ-CP.";
+            "Hệ thống không tự ý sửa đổi hồ sơ và không thay thế quyết định thẩm tra chính thức của cán bộ Một cửa theo quy định pháp luật hiện hành về bảo vệ dữ liệu cá nhân.";
 
     /**
      * Executes end-to-end precheck on an uploaded declaration form image.
