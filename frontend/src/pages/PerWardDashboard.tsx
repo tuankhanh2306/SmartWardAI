@@ -60,6 +60,8 @@ interface LocalIncident {
   reporterPhone?: string;
   reporterHomeWardName?: string;
   officerNote?: string;
+  locationSource?: string;
+  locationAccuracyM?: number;
   is_mock?: boolean;
 }
 
@@ -1023,11 +1025,13 @@ export const PerWardDashboard: React.FC = () => {
       const mappedClusters: LocalIncident[] = nearbyClusters.map((c) => {
         const catMap: Record<string, LocalIncident['category']> = {
           ROAD_DAMAGE: 'Cơ sở hạ tầng',
-          FLOODING: 'Cơ sở hạ tầng',
+          FLOODING: 'Ngập nước & Thủy lợi',
           ENVIRONMENT: 'Môi trường & Rác thải',
           GARBAGE: 'Môi trường & Rác thải',
           LIGHTING: 'Chiếu sáng đô thị',
+          LIGHTING_ELECTRICAL: 'Chiếu sáng đô thị',
           ORDER_SECURITY: 'An ninh trật tự',
+          SECURITY: 'An ninh trật tự',
         };
         const statusMap: Record<string, LocalIncident['status']> = {
           OPEN: 'PENDING',
@@ -1036,10 +1040,10 @@ export const PerWardDashboard: React.FC = () => {
         };
         return {
           id: c.clusterCode,
-          category: catMap[c.category] || 'Cơ sở hạ tầng',
+          category: catMap[(c.category || '').toUpperCase()] || 'Cơ sở hạ tầng',
           title: c.title,
           description: c.descriptionSummary || c.title,
-          address: `${ward.name}, ${ward.province}`,
+          address: c.addressText || `${ward.name}, ${ward.province}`,
           lat: c.centroidLatitude,
           lon: c.centroidLongitude,
           reportedTime: 'Vừa cập nhật',
@@ -1047,6 +1051,8 @@ export const PerWardDashboard: React.FC = () => {
           urgency: c.reportCount >= 4 ? 'HIGH' : c.reportCount >= 2 ? 'MEDIUM' : 'LOW',
           duplicatesMerged: c.reportCount,
           reporterPhone: '0988.***.012',
+          locationSource: c.locationSource,
+          locationAccuracyM: c.locationAccuracyM,
           officerNote: `Đã tổng hợp các phản ánh trùng vị trí từ người dân.`,
         };
       });

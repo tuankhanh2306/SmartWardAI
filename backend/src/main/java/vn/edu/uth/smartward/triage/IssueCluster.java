@@ -53,6 +53,9 @@ public class IssueCluster {
     @Builder.Default
     private String status = "OPEN";
 
+    @Transient
+    private String wardCode;
+
     @OneToMany(mappedBy = "cluster", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default
     private List<CivicReport> reports = new ArrayList<>();

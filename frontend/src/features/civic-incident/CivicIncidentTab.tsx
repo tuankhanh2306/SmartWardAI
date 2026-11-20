@@ -237,12 +237,13 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                   <span id="p4-cat-label" className="text-xs font-bold text-[#334155]">
                     2. Chọn lĩnh vực sự cố &amp; mức độ ưu tiên:
                   </span>
-                  <div role="group" aria-labelledby="p4-cat-label" className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div role="group" aria-labelledby="p4-cat-label" className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {[
                       { id: 'ROAD_DAMAGE', label: 'Hạ Tầng Đường' },
                       { id: 'FLOODING', label: 'Ngập Nước' },
+                      { id: 'LIGHTING_ELECTRICAL', label: 'Chiếu Sáng / Điện' },
                       { id: 'ENVIRONMENT', label: 'Môi Trường' },
-                      { id: 'LIGHTING', label: 'Chiếu Sáng' },
+                      { id: 'ORDER_SECURITY', label: 'Trật Tự Đô Thị' },
                     ].map((cat) => (
                       <button
                         key={cat.id}

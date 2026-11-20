@@ -118,6 +118,7 @@ public class OfficerSecurityConfig {
                         .requestMatchers("/api/v1/dossiers/officer/**").hasRole("OFFICER")
                         .requestMatchers("/api/v1/dossiers/*/review").hasRole("OFFICER")
                         .requestMatchers("/api/v1/rag/hitl-queue/**", "/api/v1/rag/hitl/**").hasRole("OFFICER")
+                        .requestMatchers("/api/v1/issues/officer/**").hasRole("OFFICER")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/issues/clusters/*/status").hasRole("OFFICER")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/issues/clusters/*/status").hasRole("OFFICER")
                         .requestMatchers("/api/v1/forms/submissions/**").hasRole("OFFICER")
