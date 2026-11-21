@@ -558,7 +558,7 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                       <span className="font-bold">Kho Lưu Trữ Tạm Xem 1 Lần (Zero-Trust OTT Vault)</span>
                       <span className="text-[11px] text-[#0F766E]/80">
                         {vaultStatus === 'CONSUMED_410' || (vaultTokenConsumed && !showVaultScan)
-                          ? 'Token xem 1 lần đã tự hủy vĩnh viễn trên Redis (Nghị định 13/2023/NĐ-CP)'
+                          ? 'Token xem 1 lần đã tự hủy vĩnh viễn trên Redis theo quy định bảo vệ dữ liệu cá nhân'
                           : 'Bản chụp đính kèm chỉ mở được duy nhất 01 lần để bảo vệ dữ liệu cá nhân'}
                       </span>
                     </div>
@@ -597,14 +597,14 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                   </button>
                 </div>
 
-                {/* BANNER ĐỎ CẢNH BÁO TỰ HỦY NGHỊ ĐỊNH 13/2023/NĐ-CP (HTTP 410 GONE) */}
+                {/* BANNER ĐỎ CẢNH BÁO TỰ HỦY TÀI LIỆU MỘT LẦN (HTTP 410 GONE) */}
                 {(vaultStatus === 'CONSUMED_410' || (vaultTokenConsumed && !showVaultScan)) && (
                   <div className="p-3.5 rounded-xl bg-[#FEF2F2] border border-[#FECACA] flex items-start gap-2.5 text-xs text-[#991B1B] animate-fadeIn">
                     <AlertTriangle className="w-4 h-4 text-[#DC2626] shrink-0 mt-0.5" />
                     <div className="flex flex-col gap-0.5">
-                      <span className="font-bold">Tài liệu bảo mật đã tự hủy theo Nghị định 13/2023/NĐ-CP</span>
+                      <span className="font-bold">Tài liệu bảo mật đã tự hủy theo quy định bảo vệ dữ liệu cá nhân</span>
                       <span className="text-[11px] text-[#B91C1C]">
-                        Mã token truy cập một lần (One-Time Token) đã bị tiêu hủy vĩnh viễn khỏi Redis bằng lệnh nguyên tử GETDEL. Mọi nỗ lực truy cập lại đều bị máy chủ từ chối với mã phản hồi HTTP 410 GONE để chống sao chép và bảo vệ quyền riêng tư công dân.
+                        Mã token truy cập một lần (One-Time Token) đã bị tiêu hủy vĩnh viễn khỏi Redis sau khi hoàn tất lượt xem đầu tiên. Mọi nỗ lực truy cập lại đều bị máy chủ từ chối với mã phản hồi HTTP 410 GONE để chống sao chép và bảo vệ quyền riêng tư công dân.
                       </span>
                     </div>
                   </div>

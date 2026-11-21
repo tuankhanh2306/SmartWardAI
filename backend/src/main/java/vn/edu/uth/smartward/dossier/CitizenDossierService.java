@@ -37,6 +37,7 @@ public class CitizenDossierService {
     private final RedisRateLimiter rateLimiter;
     private final DossierEventRepository dossierEventRepository;
     private final vn.edu.uth.smartward.audit.AuditService auditService;
+    private static final int MAX_IDEMPOTENCY_CACHE_SIZE = 1000;
     private final Map<String, DossierSubmissionResponse> idempotencyCache = new java.util.concurrent.ConcurrentHashMap<>();
 
     public static final java.time.ZoneId VN_ZONE = java.time.ZoneId.of("Asia/Ho_Chi_Minh");
@@ -136,6 +137,9 @@ public class CitizenDossierService {
                 .build();
 
         if (req.idempotencyKey() != null && !req.idempotencyKey().isBlank()) {
+            if (idempotencyCache.size() >= MAX_IDEMPOTENCY_CACHE_SIZE) {
+                idempotencyCache.clear();
+            }
             idempotencyCache.put(req.idempotencyKey().trim(), response);
         }
 
