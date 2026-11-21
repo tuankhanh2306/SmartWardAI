@@ -76,6 +76,8 @@ public class OfficerAuthService {
     @Value("${smartward.bootstrap.secret-file:}")
     private String bootstrapSecretFile;
 
+    private static final int MAX_AUTH_FAILURES = 5;
+    private static final int MAX_REVOKED_CACHE_SIZE = 2000;
     private final Set<String> revokedTokenIds = ConcurrentHashMap.newKeySet();
 
     public record OfficerPrincipal(String badgeId, String fullName, String wardCode, String role, String tokenId, long expiresAtEpochSec, boolean mustChangePin) {
@@ -116,6 +118,10 @@ public class OfficerAuthService {
     }
 
     public LoginResponse authenticate(String badgeId, String pin, String requestedWardCode) {
+        return authenticate(badgeId, pin, requestedWardCode, "127.0.0.1");
+    }
+
+    public LoginResponse authenticate(String badgeId, String pin, String requestedWardCode, String clientIp) {
         if (badgeId == null || badgeId.isBlank() || pin == null || pin.isBlank()) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "Vui lòng nhập đầy đủ mã công chức và mật khẩu/mã PIN.");
         }
@@ -125,10 +131,12 @@ public class OfficerAuthService {
         }
 
         String normalizedBadge = badgeId.trim().toUpperCase();
+        String effectiveIp = (clientIp != null && !clientIp.isBlank()) ? clientIp.trim() : "127.0.0.1";
+
         Optional<Officer> dbOfficerOpt = officerRepository.findByBadgeIdIgnoreCase(normalizedBadge);
         if (dbOfficerOpt.isEmpty()) {
             if (auditService != null) {
-                auditService.logAction(normalizedBadge, "UNKNOWN", "LOGIN_FAILED", "OFFICER", normalizedBadge, "127.0.0.1", null);
+                auditService.logAction(normalizedBadge, "UNKNOWN", "LOGIN_FAILED", "OFFICER", normalizedBadge, effectiveIp, null);
             }
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "Mã công chức hoặc mật khẩu không hợp lệ.");
         }
@@ -138,9 +146,13 @@ public class OfficerAuthService {
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "Tài khoản cán bộ đã bị vô hiệu hóa.");
         }
 
-        if (officer.getLockedUntil() != null && officer.getLockedUntil().isAfter(Instant.now())) {
+        boolean lockedByIp = isRedisIpAuthLocked(normalizedBadge, effectiveIp);
+        boolean lockedGlobally = (stringRedisTemplate == null)
+                && officer.getLockedUntil() != null
+                && officer.getLockedUntil().isAfter(Instant.now());
+        if (lockedByIp || lockedGlobally) {
             if (auditService != null) {
-                auditService.logAction(normalizedBadge, officer.getWardCode(), "LOGIN_LOCKED", "OFFICER", normalizedBadge, "127.0.0.1", null);
+                auditService.logAction(normalizedBadge, officer.getWardCode(), "LOGIN_LOCKED", "OFFICER", normalizedBadge, effectiveIp, null);
             }
             throw new BusinessException(ErrorCode.UNAUTHORIZED,
                     "Tài khoản bị tạm khóa 15 phút do nhập sai thông tin 5 lần liên tiếp.");
@@ -163,33 +175,80 @@ public class OfficerAuthService {
         }
 
         if (!match) {
-            int failed = (officer.getFailedAttempts() != null ? officer.getFailedAttempts() : 0) + 1;
-            if (failed >= 5) {
-                officer.setLockedUntil(Instant.now().plus(Duration.ofMinutes(15)));
-                officer.setFailedAttempts(0);
-            } else {
-                officer.setFailedAttempts(failed);
-            }
-            officerRepository.save(officer);
+            recordFailedAttempt(officer, normalizedBadge, effectiveIp);
             if (auditService != null) {
-                auditService.logAction(normalizedBadge, officer.getWardCode(), "LOGIN_FAILED", "OFFICER", normalizedBadge, "127.0.0.1", null);
+                auditService.logAction(normalizedBadge, officer.getWardCode(), "LOGIN_FAILED", "OFFICER", normalizedBadge, effectiveIp, null);
             }
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "Mã công chức hoặc mật khẩu không hợp lệ.");
         }
 
         boolean mustChangePin = Boolean.TRUE.equals(officer.getMustChangePin());
 
-        officer.setFailedAttempts(0);
-        officer.setLockedUntil(null);
+        clearFailedAttempts(officer, normalizedBadge, effectiveIp);
         officer.setLastLogin(Instant.now());
         officerRepository.save(officer);
 
         if (auditService != null) {
-            auditService.logAction(normalizedBadge, officer.getWardCode(), "LOGIN_SUCCESS", "OFFICER", normalizedBadge, "127.0.0.1", null);
+            auditService.logAction(normalizedBadge, officer.getWardCode(), "LOGIN_SUCCESS", "OFFICER", normalizedBadge, effectiveIp, null);
         }
 
         String effectiveWard = "ADMIN".equalsIgnoreCase(officer.getRole()) ? "AG_PROVINCE" : officer.getWardCode();
         return issueSessionToken(officer.getBadgeId(), officer.getFullName(), effectiveWard, officer.getRole(), requestedWardCode, mustChangePin);
+    }
+
+    private String authFailRedisKey(String normalizedBadge, String effectiveIp) {
+        return "smartward:auth:fail:" + normalizedBadge + ":" + effectiveIp;
+    }
+
+    private boolean isRedisIpAuthLocked(String normalizedBadge, String effectiveIp) {
+        if (stringRedisTemplate == null) {
+            return false;
+        }
+        try {
+            var ops = stringRedisTemplate.opsForValue();
+            if (ops == null) return false;
+            String raw = ops.get(authFailRedisKey(normalizedBadge, effectiveIp));
+            return raw != null && Integer.parseInt(raw.trim()) >= MAX_AUTH_FAILURES;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void recordFailedAttempt(Officer officer, String normalizedBadge, String effectiveIp) {
+        if (stringRedisTemplate != null) {
+            try {
+                var ops = stringRedisTemplate.opsForValue();
+                if (ops != null) {
+                    String key = authFailRedisKey(normalizedBadge, effectiveIp);
+                    Long count = ops.increment(key);
+                    if (count != null && count == 1L) {
+                        stringRedisTemplate.expire(key, Duration.ofMinutes(15));
+                    }
+                    return;
+                }
+            } catch (Exception e) {
+                log.warn("Redis unavailable while tracking failed login attempts, falling back to DB: {}", e.getMessage());
+            }
+        }
+        int failed = (officer.getFailedAttempts() != null ? officer.getFailedAttempts() : 0) + 1;
+        if (failed >= MAX_AUTH_FAILURES) {
+            officer.setLockedUntil(Instant.now().plus(Duration.ofMinutes(15)));
+            officer.setFailedAttempts(0);
+        } else {
+            officer.setFailedAttempts(failed);
+        }
+        officerRepository.save(officer);
+    }
+
+    private void clearFailedAttempts(Officer officer, String normalizedBadge, String effectiveIp) {
+        if (stringRedisTemplate != null) {
+            try {
+                stringRedisTemplate.delete(authFailRedisKey(normalizedBadge, effectiveIp));
+            } catch (Exception ignored) {
+            }
+        }
+        officer.setFailedAttempts(0);
+        officer.setLockedUntil(null);
     }
 
     private LoginResponse issueSessionToken(String badgeId, String fullName, String wardCode, String role, String requestedWardCode, boolean mustChangePin) {
@@ -210,6 +269,11 @@ public class OfficerAuthService {
     }
 
     public ChangePinResponse changePin(String badgeId, String currentPin, String newPin, String confirmPin, String authorizationHeader) {
+        return changePin(badgeId, currentPin, newPin, confirmPin, authorizationHeader, "127.0.0.1");
+    }
+
+    public ChangePinResponse changePin(String badgeId, String currentPin, String newPin, String confirmPin, String authorizationHeader, String clientIp) {
+        String effectiveIp = (clientIp != null && !clientIp.isBlank()) ? clientIp.trim() : "127.0.0.1";
         if (badgeId == null || badgeId.isBlank()) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã công chức không được để trống.");
         }
@@ -274,7 +338,7 @@ public class OfficerAuthService {
 
         if (!match) {
             if (auditService != null) {
-                auditService.logAction(normalizedBadge, officer.getWardCode(), "PIN_CHANGE_FAILED", "OFFICER", normalizedBadge, "127.0.0.1", null);
+                auditService.logAction(normalizedBadge, officer.getWardCode(), "PIN_CHANGE_FAILED", "OFFICER", normalizedBadge, effectiveIp, null);
             }
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "Mã PIN hiện tại không chính xác.");
         }
@@ -288,7 +352,7 @@ public class OfficerAuthService {
         officerRepository.save(officer);
 
         if (auditService != null) {
-            auditService.logAction(normalizedBadge, officer.getWardCode(), "PIN_CHANGED", "OFFICER", normalizedBadge, "127.0.0.1", null);
+            auditService.logAction(normalizedBadge, officer.getWardCode(), "PIN_CHANGED", "OFFICER", normalizedBadge, effectiveIp, null);
         }
 
         cleanupBootstrapSecretFileIfAllAdminsReady(officer.getRole());
@@ -437,6 +501,9 @@ public class OfficerAuthService {
                 } catch (Exception e) {
                     log.warn("Redis unavailable during token revocation, falling back to local set: {}", e.getMessage());
                 }
+            }
+            if (revokedTokenIds.size() >= MAX_REVOKED_CACHE_SIZE) {
+                revokedTokenIds.clear();
             }
             revokedTokenIds.add(jti);
         } catch (Exception ignored) {

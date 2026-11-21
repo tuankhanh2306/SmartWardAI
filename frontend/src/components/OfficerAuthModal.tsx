@@ -18,7 +18,7 @@ export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onCl
   const location = useLocation();
 
   const [badgeId, setBadgeId] = useState(officerProfile.badgeId);
-  const [pin, setPin] = useState('8942');
+  const [pin, setPin] = useState(import.meta.env.DEV ? '8942' : '');
   const [error, setError] = useState<string | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -146,16 +146,18 @@ export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onCl
             </p>
           )}
 
-          {/* Quick Demo Login Option */}
-          <button
-            type="button"
-            disabled={isSubmitting}
-            onClick={handleQuickDemoLogin}
-            className="w-full py-2.5 px-3 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#0F2942] text-xs font-bold border border-[#CBD5E1] flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer disabled:opacity-50"
-          >
-            <Check className="w-4 h-4 text-[#0F766E]" />
-            <span>{isSubmitting ? 'Đang xác thực...' : 'Đăng Nhập Nhanh: Thẻ Cán Bộ Mẫu (Trần Quốc Bảo - CC-AG-8942)'}</span>
-          </button>
+          {/* Quick Demo Login Option (DEV only) */}
+          {import.meta.env.DEV && (
+            <button
+              type="button"
+              disabled={isSubmitting}
+              onClick={handleQuickDemoLogin}
+              className="w-full py-2.5 px-3 rounded-xl bg-[#F8FAFC] hover:bg-[#F1F5F9] text-[#0F2942] text-xs font-bold border border-[#CBD5E1] flex items-center justify-center gap-2 transition active:scale-98 cursor-pointer disabled:opacity-50"
+            >
+              <Check className="w-4 h-4 text-[#0F766E]" />
+              <span>{isSubmitting ? 'Đang xác thực...' : 'Đăng Nhập Nhanh: Thẻ Cán Bộ Mẫu (Trần Quốc Bảo - CC-AG-8942)'}</span>
+            </button>
+          )}
 
           {/* Action Buttons */}
           <div className="flex items-center justify-end gap-2.5 pt-2">

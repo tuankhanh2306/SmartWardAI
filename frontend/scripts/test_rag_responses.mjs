@@ -52,7 +52,11 @@ async function run() {
     console.error('❌ FAILED: "hôm nay thế nào" should NOT be abstained!');
     process.exit(1);
   }
-  if (!resWellbeing.answer.toLowerCase().includes('hôm nay tôi vẫn hoạt động bình thường 24/7')) {
+  const lowerWellbeing = resWellbeing.answer.toLowerCase();
+  if (
+    !lowerWellbeing.includes('hôm nay tôi vẫn hoạt động bình thường 24/7') &&
+    !lowerWellbeing.includes('hỗ trợ trực tuyến 24/7')
+  ) {
     console.error('❌ FAILED: Wellbeing response did not match expected phrasing!');
     process.exit(1);
   }

@@ -398,4 +398,29 @@ class CitizenDossierServiceTest {
                 .isInstanceOf(BusinessException.class)
                 .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode()).isEqualTo(ErrorCode.FORBIDDEN));
     }
+
+    @Test
+    @DisplayName("BUG-02: idempotencyCache never grows unboundedly above 1000 entries")
+    void idempotencyCache_isStrictlyBoundedAt1000Entries() {
+        when(dossierRepository.existsByDossierCode(any())).thenReturn(false);
+        when(dossierRepository.save(any(CitizenDossier.class))).thenAnswer(inv -> {
+            CitizenDossier arg = inv.getArgument(0);
+            arg.setCreatedAt(Instant.now());
+            return arg;
+        });
+
+        for (int i = 0; i < 1005; i++) {
+            dossierService.submitDossier(SubmitDossierRequest.builder()
+                    .procedureCode("TTHC-CT-01")
+                    .wardCode("AG_P_LONGXUYEN")
+                    .citizenCccd("089095012345")
+                    .idempotencyKey("KEY-" + i)
+                    .build());
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, ?> cache = (Map<String, ?>) org.springframework.test.util.ReflectionTestUtils.getField(dossierService, "idempotencyCache");
+        assertThat(cache).isNotNull();
+        assertThat(cache.size()).isLessThanOrEqualTo(1000);
+    }
 }
