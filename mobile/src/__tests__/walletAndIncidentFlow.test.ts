@@ -8,7 +8,9 @@ import {
 } from '../core/incidentSubmitter';
 import {
   buildElectronicQrPassHtml,
+  formatMobileSlaDeadline,
   getDossierStatusVietnamese,
+  UNVERIFIED_SLA_TEXT,
 } from '../core/qrPassPdfExporter';
 import {
   buildSmartWardPassPayload,
@@ -80,6 +82,11 @@ describe('walletAndIncidentFlow — Chặng M4 (Ví Mã QR Offline, Xuất PDF &
     expect(found?.qr_payload).toBe(
       'SMARTWARD_PASS|HS-OFFLINE-2026-01|LH-20261118-7777|AG_DK_PHUQUOC'
     );
+
+    expect(formatMobileSlaDeadline(null)).toBe(UNVERIFIED_SLA_TEXT);
+    const offlineHtml = buildElectronicQrPassHtml(pass);
+    expect(offlineHtml).toContain(UNVERIFIED_SLA_TEXT);
+    expect(offlineHtml).not.toContain('NĐ 13');
   });
 
   it('kiểm định đủ 5 danh mục sự cố chuẩn Backend và chặn khi thiếu SĐT khẩn cấp hoặc mô tả < 10 ký tự', () => {

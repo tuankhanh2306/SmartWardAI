@@ -76,7 +76,7 @@ export interface DossierPipelineResult {
   fieldValidations: FieldValidation[];
   warnings: string[];
   dossierCode?: string;
-  slaDeadline?: string;
+  slaDeadline?: string | null;
   vaultToken?: string;
   walletRow?: WalletQrPassRow;
   tempFileCleaned?: boolean;
@@ -232,7 +232,7 @@ export async function executeDossierSubmissionPipeline(
       }
     }
 
-    // Decree 13/2023/ND-CP: Remove temporary cached image file immediately after upload
+    // Remove temporary cached image file immediately after upload under personal data minimization
     if (input.attachment.isTempCacheFile) {
       tempFileCleaned = await deleteTempFile(input.attachment.uri);
     }

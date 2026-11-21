@@ -1,0 +1,150 @@
+package vn.edu.uth.smartward.security;
+
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.test.web.servlet.MockMvc;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
+import vn.edu.uth.smartward.dossier.CitizenDossier;
+import vn.edu.uth.smartward.dossier.CitizenDossierRepository;
+import vn.edu.uth.smartward.dossier.CitizenDossierService;
+import vn.edu.uth.smartward.dossier.dto.DossierSubmissionResponse;
+import vn.edu.uth.smartward.dossier.dto.SubmitDossierRequest;
+import vn.edu.uth.smartward.rag.HitlGrayZoneItem;
+import vn.edu.uth.smartward.rag.HitlGrayZoneRepository;
+
+import java.time.Duration;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+/**
+ * Real infrastructure integration smoke test:
+ * Boots the FULL Spring Boot context WITHOUT excluding DataSource, JPA, Flyway, or Redis auto-configurations,
+ * running Flyway V1..V14 + seed migrations against real PostgreSQL (pgvector:pg16) and Redis (7.2.5-alpine)
+ * with Hibernate ddl-auto=validate.
+ */
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+        properties = {
+                "spring.jpa.hibernate.ddl-auto=validate",
+                "spring.flyway.enabled=true",
+                "spring.flyway.locations=classpath:db/migration,classpath:db/seed",
+                "spring.flyway.out-of-order=false",
+                "smartward.security.jwt-secret=sw_sec_real_it_8f9b4c2e1a7d6e3f5b0c9a8d7e6f5a4b_2026",
+                "smartward.vault.encryption-key=sw_vlt_real_it_3a7e9c1f5b8d2a6e0c4f7b9e1d3a5c7f_2026",
+                "smartward.bootstrap.init-admins=false",
+                "smartward.ai.sidecar.enabled=false",
+                "smartward.ai.gemini.api-key=mock-key-for-local-testing"
+        }
+)
+@AutoConfigureMockMvc
+@Testcontainers(disabledWithoutDocker = true)
+@DisplayName("Real Boot Smoke Test: Full @SpringBootTest + Flyway V1..V14 + ddl-auto=validate + Redis AOF/noeviction")
+class RealDatabaseAndRedisBootSmokeTest {
+
+    private static final String REDIS_PASS = "smartward_it_redis_secret";
+
+    @Container
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>(
+            DockerImageName.parse("pgvector/pgvector:pg16").asCompatibleSubstituteFor("postgres")
+    )
+            .withDatabaseName("smartward_it_db")
+            .withUsername("smartward")
+            .withPassword("smartward_it_secret");
+
+    @Container
+    static GenericContainer<?> redis = new GenericContainer<>(
+            DockerImageName.parse("redis:7.2.5-alpine")
+    )
+            .withExposedPorts(6379)
+            .withCommand(
+                    "redis-server",
+                    "--requirepass", REDIS_PASS,
+                    "--appendonly", "yes",
+                    "--maxmemory", "100mb",
+                    "--maxmemory-policy", "noeviction"
+            );
+
+    @DynamicPropertySource
+    static void registerDynamicProperties(DynamicPropertyRegistry registry) {
+        registry.add("spring.datasource.url", postgres::getJdbcUrl);
+        registry.add("spring.datasource.username", postgres::getUsername);
+        registry.add("spring.datasource.password", postgres::getPassword);
+        registry.add("spring.data.redis.host", redis::getHost);
+        registry.add("spring.data.redis.port", () -> redis.getMappedPort(6379));
+        registry.add("spring.data.redis.password", () -> REDIS_PASS);
+    }
+
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private CitizenDossierService dossierService;
+
+    @Autowired
+    private CitizenDossierRepository dossierRepository;
+
+    @Autowired
+    private HitlGrayZoneRepository hitlRepository;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Test
+    @DisplayName("Full context boots against PostgreSQL + Redis, /api/v1/health returns UP, null SLA & HITL persist")
+    void fullContextBootAndCorePersistence() throws Exception {
+        // 1. Live /api/v1/health returns HTTP 200 & status UP
+        mockMvc.perform(get("/api/v1/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.status").value("UP"));
+
+        // 2. Unverified procedure SLA persists as NULL into real PostgreSQL citizen_dossiers
+        DossierSubmissionResponse submission = dossierService.submitDossier(SubmitDossierRequest.builder()
+                .procedureCode("TTHC-CT-01")
+                .wardCode("AG_P_LONGXUYEN")
+                .citizenCccd("089095001234")
+                .formData(Map.of("fullName", "NGUYEN VAN TEST"))
+                .build());
+        assertThat(submission.slaDeadline()).isNull();
+
+        CitizenDossier persistedDossier = dossierRepository.findByDossierCodeIgnoreCase(submission.dossierCode())
+                .orElseThrow();
+        assertThat(persistedDossier.getSlaDeadline()).isNull();
+
+        // 3. HITL queue seeded in V14 exists in PostgreSQL and supports persistence across restarts
+        assertThat(hitlRepository.findById("HITL-AG-001")).isPresent();
+        HitlGrayZoneItem createdHitl = hitlRepository.saveAndFlush(HitlGrayZoneItem.builder()
+                .id("HITL-IT-001")
+                .query("Câu hỏi kiểm thử tồn tại sau restart?")
+                .wardName("Phường Long Xuyên")
+                .similarityScore(0.55)
+                .candidateChunkCode("TTHC-CT-01")
+                .candidateProcedureName("Chứng thực")
+                .legalReference("Nghị định thử nghiệm")
+                .suggestedAnswer("Đang chờ cán bộ duyệt")
+                .status("PENDING")
+                .createdAt("2026-11-20 09:00")
+                .build());
+        assertThat(hitlRepository.findById(createdHitl.getId())).isPresent();
+
+        // 4. Real Redis with --appendonly yes and --maxmemory-policy noeviction accepts and deletes keys
+        stringRedisTemplate.opsForValue().set("smartward:it:ott", "DOC_IT_01", Duration.ofMinutes(5));
+        assertThat(stringRedisTemplate.opsForValue().get("smartward:it:ott")).isEqualTo("DOC_IT_01");
+        stringRedisTemplate.delete("smartward:it:ott");
+        assertThat(stringRedisTemplate.opsForValue().get("smartward:it:ott")).isNull();
+    }
+}

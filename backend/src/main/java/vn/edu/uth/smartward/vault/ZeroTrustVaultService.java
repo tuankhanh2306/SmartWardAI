@@ -34,11 +34,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Zero-Trust Document Vault Service implementing Decree 13/2023/ND-CP compliance:
+ * Zero-Trust Document Vault Service applying technical safeguards under applicable personal data protection laws:
  * 1. Semi-transparent dynamic watermarking via Java2D
  * 2. Authenticated symmetric encryption using AES/GCM/NoPadding (256-bit key)
  * 3. Encrypted object storage on MinIO
- * 4. Ephemeral One-Time Access Token on Redis with atomic GETDEL and 24-hour TTL
+ * 4. Ephemeral One-Time Access Token on Redis (24-hour TTL), consumed ONLY after download & decryption succeed
  */
 @Slf4j
 @Service
@@ -180,16 +180,13 @@ public class ZeroTrustVaultService {
     }
 
     /**
-     * Consumes One-Time Token using atomic Redis GETDEL (Fail-Closed).
-     * Second view attempt strictly throws HTTP 410 GONE.
+     * Consumes One-Time Token safely:
+     * Verify token -> Download & Decrypt -> Mark viewed & Delete token ONLY AFTER SUCCESS.
+     * Intermediate failures (MinIO outage, network drop, decryption error) preserve the token so the officer can retry.
+     * Subsequent attempts after a successful view strictly throw HTTP 410 GONE.
      *
      * @param oneTimeToken single-use access token
      * @return decrypted, watermarked image bytes for viewing
-     */
-    /**
-     * Consumes One-Time Token safely (6.5):
-     * Verify token -> Download & Decrypt -> Mark viewed & Delete token ON SUCCESS.
-     * Intermediate failures (network/decryption) will not destroy citizen documents.
      */
     @Transactional
     public byte[] consumeOneTimeDocument(String oneTimeToken) {
@@ -203,10 +200,6 @@ public class ZeroTrustVaultService {
         String docCode = null;
         try {
             docCode = stringRedisTemplate.opsForValue().get(redisKey);
-            if (docCode == null) {
-                // Support mock environments or legacy callers that stubbed getAndDelete
-                docCode = stringRedisTemplate.opsForValue().getAndDelete(redisKey);
-            }
         } catch (Exception e) {
             log.warn("Redis read failure for vault token: {}", e.getMessage());
             if (failClosed) {
@@ -223,7 +216,7 @@ public class ZeroTrustVaultService {
                 if (Boolean.TRUE.equals(doc.getIsViewed()) || doc.getExpiresAt().isBefore(OffsetDateTime.now())) {
                     log.warn("Access denied for token {}: already consumed or expired", oneTimeToken);
                     throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
-                            "Liên kết truy cập tài liệu đã hết hạn hoặc đã được sử dụng một lần theo Nghị định 13/2023/NĐ-CP.");
+                            "Liên kết truy cập tài liệu đã hết hạn hoặc đã được sử dụng một lần theo quy định bảo vệ dữ liệu cá nhân.");
                 }
                 docCode = doc.getDocumentCode();
             } else {
@@ -239,20 +232,25 @@ public class ZeroTrustVaultService {
         if (Boolean.TRUE.equals(document.getIsViewed()) ||
                 (document.getExpiresAt() != null && document.getExpiresAt().isBefore(OffsetDateTime.now()))) {
             throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
-                    "Liên kết truy cập tài liệu đã được sử dụng một lần theo Nghị định 13/2023/NĐ-CP.");
+                    "Liên kết truy cập tài liệu đã được sử dụng một lần theo quy định bảo vệ dữ liệu cá nhân.");
         }
 
-        // 3. Download Ciphertext from MinIO
+        // 3. Download Ciphertext from MinIO (failures here must NOT burn the token)
         byte[] encryptedBytes = downloadFromMinio(document.getMinioObjectPath());
 
-        // 4. Decrypt AES-256-GCM Ciphertext
+        // 4. Decrypt AES-256-GCM Ciphertext (failures here must NOT burn the token)
         byte[] decryptedBytes = decryptAesGcm(encryptedBytes);
 
-        // 5. SUCCESS: Atomically mark viewed and delete token from Redis (Safe Order)
+        // 5. SUCCESS: Atomically mark viewed and delete token from Redis ONLY after download + decrypt succeed
         int updatedRows = documentRepository.markAsViewedAtomically(docCode);
-        if (updatedRows == 0 && Boolean.TRUE.equals(document.getIsViewed())) {
-            throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
-                    "Liên kết truy cập tài liệu đã được sử dụng đồng thời bởi phiên khác.");
+        if (updatedRows == 0) {
+            boolean alreadyViewedInDb = documentRepository.findByDocumentCode(docCode)
+                    .map(d -> Boolean.TRUE.equals(d.getIsViewed()))
+                    .orElse(false);
+            if (alreadyViewedInDb || Boolean.TRUE.equals(document.getIsViewed())) {
+                throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
+                        "Liên kết truy cập tài liệu đã được sử dụng đồng thời bởi phiên khác.");
+            }
         }
         document.setIsViewed(true);
         documentRepository.save(document);

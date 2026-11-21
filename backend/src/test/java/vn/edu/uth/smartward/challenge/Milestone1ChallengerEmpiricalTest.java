@@ -486,7 +486,7 @@ public class Milestone1ChallengerEmpiricalTest {
             ValueOperations<String, String> valueOperations = mock(ValueOperations.class);
 
             when(redisTemplate.opsForValue()).thenReturn(valueOperations);
-            when(valueOperations.getAndDelete(anyString())).thenReturn(null); // Redis miss / fallback
+            when(valueOperations.get(anyString())).thenReturn(null); // Redis miss / fallback
 
             ZeroTrustVaultService vaultService = new ZeroTrustVaultService(
                     minioClient, watermarkService, redisTemplate, documentRepository

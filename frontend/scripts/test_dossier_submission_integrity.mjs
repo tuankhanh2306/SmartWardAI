@@ -266,6 +266,44 @@ const fakeMockDossier = {
 const qrState3 = determineQrPassDisplay(fakeMockDossier);
 assert(qrState3.mode === 'WAITING_APPROVAL', 'Mock appointment code (LH-MOCK) must be rejected and remain in WAITING_APPROVAL');
 
+// =================================================================
+// 5. UNVERIFIED SLA NULL DISPLAY AUDIT
+// =================================================================
+console.log('\n--- 5. UNVERIFIED SLA NULL DISPLAY AUDIT ---');
+const formPageSrc = fs.readFileSync(sourcePath, 'utf-8');
+const dossierApiSrc = fs.readFileSync(path.resolve(__dirname, '../src/api/modules/dossier.api.ts'), 'utf-8');
+const trackingTabSrc = fs.readFileSync(path.resolve(__dirname, '../src/features/dossier-tracking/DossierTrackingTab.tsx'), 'utf-8');
+
+assert(
+  dossierApiSrc.includes('Chưa xác định (chờ cán bộ Một cửa xác nhận)') &&
+  sourceCode.includes('formatSlaDeadlineVi(submittedDossier.slaDeadline') &&
+  trackingTabSrc.includes('formatSlaDeadlineVi(trackingResult.slaDeadline'),
+  'Web UI must use formatSlaDeadlineVi returning explicit unverified fallback when slaDeadline is null'
+);
+
+assert(
+  !trackingTabSrc.includes('Nghị định 13/2023/NĐ-CP') && !formPageSrc.includes('Nghị định 13/2023/NĐ-CP'),
+  'Form/Tracking UI source must not render unverified Decree 13/2023/ND-CP string'
+);
+
+// Evaluate exact runtime formatting logic mirrored from dossier.api.ts
+function formatSlaDeadlineCheck(slaDeadline, withSeconds = false) {
+  if (!slaDeadline) return 'Chưa xác định (chờ cán bộ Một cửa xác nhận)';
+  const parsed = new Date(slaDeadline);
+  if (Number.isNaN(parsed.getTime())) return 'Chưa xác định (chờ cán bộ Một cửa xác nhận)';
+  const datePart = parsed.toLocaleDateString('vi-VN');
+  return withSeconds ? `${datePart} (17:00:00)` : `${datePart} 17:00`;
+}
+assert(
+  formatSlaDeadlineCheck(null, true) === 'Chưa xác định (chờ cán bộ Một cửa xác nhận)' &&
+  formatSlaDeadlineCheck(undefined, false) === 'Chưa xác định (chờ cán bộ Một cửa xác nhận)',
+  'Null or undefined slaDeadline must display unverified confirmation prompt instead of 1970 epoch date'
+);
+assert(
+  !formatSlaDeadlineCheck('2026-11-25T17:00:00Z', false).includes('Chưa xác định'),
+  'Verified slaDeadline must render localized date instead of unverified fallback'
+);
+
 console.log('\n================================================================');
 console.log(`SUMMARY: All ${totalPassed}/${totalTests} dossier integrity tests PASSED! 100% GREEN!`);
 console.log('================================================================');

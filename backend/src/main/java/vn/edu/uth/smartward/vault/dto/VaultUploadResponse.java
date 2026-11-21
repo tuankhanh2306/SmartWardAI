@@ -34,6 +34,6 @@ public class VaultUploadResponse {
     @Schema(description = "Thuật toán mã hóa đối xứng áp dụng", example = "AES/GCM/NoPadding (256-bit)")
     private String encryptionAlgorithm;
 
-    @Schema(description = "Thông báo xác nhận bảo mật Nghị định 13/2023/NĐ-CP")
+    @Schema(description = "Thông báo xác nhận bảo mật tài liệu và cấp liên kết xem một lần")
     private String message;
 }

@@ -49,6 +49,7 @@ import {
   type DossierPipelineResult,
   type SelectedAttachment,
 } from '../core/dossierSubmitter';
+import { formatMobileSlaDeadline } from '../core/qrPassPdfExporter';
 import {
   evaluateDocumentVisionGate,
   resizeImageForUpload,
@@ -638,8 +639,7 @@ export const SmartFormPrecheckScreen: React.FC = () => {
 
           {submitResult.dossierCode ? (
             <Text style={styles.dossierCodeText}>
-              Mã hồ sơ: {submitResult.dossierCode}
-              {submitResult.slaDeadline ? ` • Hạn trả: ${submitResult.slaDeadline}` : ''}
+              {`Mã hồ sơ: ${submitResult.dossierCode} • Hạn trả: ${formatMobileSlaDeadline(submitResult.slaDeadline)}`}
             </Text>
           ) : null}
 

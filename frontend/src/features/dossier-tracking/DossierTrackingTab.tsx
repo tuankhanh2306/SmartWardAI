@@ -3,7 +3,7 @@ import {
   AlertCircle, AlertTriangle, Calendar, Clock, FileCheck2, RefreshCw, Search
 } from 'lucide-react';
 import type { WardItem } from '../../data/anGiangWards';
-import type { DossierTrackingResponse, LiveFormDossier } from '../../api/client';
+import { formatSlaDeadlineVi, type DossierTrackingResponse, type LiveFormDossier } from '../../api/client';
 
 export interface DossierTrackingTabProps {
   currentWard: WardItem;
@@ -78,7 +78,7 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                     className="w-full h-11 px-3.5 rounded-xl border border-[#CBD5E1] font-mono text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#B90E23] focus:bg-white transition-all bg-[#F8FAFC]"
                   />
                   <span className="text-[11px] text-slate-600">
-                    Hệ thống đối soát 4 số cuối với hồ sơ lưu trữ để bảo vệ bí mật đời tư công dân theo Nghị định 13/2023/NĐ-CP.
+                    Hệ thống đối soát 4 số cuối với hồ sơ lưu trữ để bảo vệ dữ liệu cá nhân công dân theo quy định pháp luật hiện hành.
                   </span>
                 </div>
 
@@ -199,7 +199,7 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                         </div>
                       </div>
                       <span className="font-mono font-extrabold text-sm text-[#1D4ED8]">
-                        {new Date(trackingResult.slaDeadline).toLocaleDateString('vi-VN')} 17:00
+                        {formatSlaDeadlineVi(trackingResult.slaDeadline, false)}
                       </span>
                     </div>
 
