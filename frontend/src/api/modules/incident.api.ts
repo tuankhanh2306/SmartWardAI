@@ -11,6 +11,10 @@ export interface IssueCluster {
   descriptionSummary: string;
   status: string;
   reportCount: number;
+  addressText?: string;
+  locationSource?: string;
+  locationAccuracyM?: number;
+  wardCode?: string;
   createdAt: string;
   lastReportAt: string;
 }
@@ -107,7 +111,7 @@ export function updateLiveIncidentStatus(
 }
 
 function mapCategoryCodeToLabel(code: string): string {
-  switch (code) {
+  switch ((code || '').trim().toUpperCase()) {
     case 'ROAD_DAMAGE':
       return 'Cơ sở hạ tầng';
     case 'FLOODING':
@@ -115,8 +119,10 @@ function mapCategoryCodeToLabel(code: string): string {
     case 'ENVIRONMENT':
       return 'Môi trường & Rác thải';
     case 'LIGHTING':
+    case 'LIGHTING_ELECTRICAL':
       return 'Chiếu sáng đô thị';
     case 'SECURITY':
+    case 'ORDER_SECURITY':
       return 'An ninh trật tự';
     default:
       return 'Cơ sở hạ tầng';
@@ -273,24 +279,51 @@ export const reportIssue = async (data: {
   }
 };
 
+function mapRawClusters(rawList: any[]): IssueCluster[] {
+  return rawList.map((item) => ({
+    id: String(item.id ?? item.clusterCode),
+    clusterCode: item.clusterCode,
+    category: item.category,
+    centroidLatitude: Number(item.centerLatitude ?? item.centroidLatitude ?? 10.3864),
+    centroidLongitude: Number(item.centerLongitude ?? item.centroidLongitude ?? 105.4352),
+    title: item.title || 'Sự cố hiện trường',
+    descriptionSummary: item.descriptionSummary || item.title || '',
+    status: item.status || 'OPEN',
+    reportCount: item.reportCount ?? 1,
+    addressText: item.addressText ?? undefined,
+    locationSource: item.locationSource ?? undefined,
+    locationAccuracyM: typeof item.locationAccuracyM === 'number' ? item.locationAccuracyM : undefined,
+    wardCode: item.wardCode ?? undefined,
+    createdAt: item.firstReportedAt || item.createdAt || new Date().toISOString(),
+    lastReportAt: item.lastReportedAt || item.createdAt || new Date().toISOString(),
+  }));
+}
+
 export const getIssueClusters = async (): Promise<IssueCluster[]> => {
+  const hasOfficerToken =
+    typeof window !== 'undefined' &&
+    Boolean(
+      window.sessionStorage?.getItem('smartward_officer_token') ||
+        window.localStorage?.getItem('smartward_officer_token')
+    );
+
+  if (hasOfficerToken) {
+    try {
+      const officerResp = await api.get<any>('/issues/officer/clusters');
+      const rawOfficerList: any[] = officerResp.data?.data ?? officerResp.data;
+      if (Array.isArray(rawOfficerList)) {
+        return mapRawClusters(rawOfficerList);
+      }
+    } catch {
+      // Fall back to public clusters endpoint if token lacks officer role or expired
+    }
+  }
+
   try {
     const resp = await api.get<any>('/issues/clusters');
     const rawList: any[] = resp.data?.data ?? resp.data;
     if (Array.isArray(rawList)) {
-      return rawList.map((item) => ({
-        id: String(item.id ?? item.clusterCode),
-        clusterCode: item.clusterCode,
-        category: item.category,
-        centroidLatitude: Number(item.centerLatitude ?? item.centroidLatitude ?? 10.3864),
-        centroidLongitude: Number(item.centerLongitude ?? item.centroidLongitude ?? 105.4352),
-        title: item.title || 'Sự cố hiện trường',
-        descriptionSummary: item.descriptionSummary || item.title || '',
-        status: item.status || 'OPEN',
-        reportCount: item.reportCount ?? 1,
-        createdAt: item.firstReportedAt || item.createdAt || new Date().toISOString(),
-        lastReportAt: item.lastReportedAt || item.createdAt || new Date().toISOString(),
-      }));
+      return mapRawClusters(rawList);
     }
     return [];
   } catch {

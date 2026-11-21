@@ -6,9 +6,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.util.ReflectionTestUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import vn.edu.uth.smartward.ai.AiModelClient;
+import vn.edu.uth.smartward.geo.GeoValidatorService;
 import vn.edu.uth.smartward.triage.dto.CivicReportRequest;
 import vn.edu.uth.smartward.triage.dto.CivicReportResponse;
+import vn.edu.uth.smartward.triage.dto.IssueClusterDto;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
@@ -268,5 +271,172 @@ class TwoStageTriageServiceTest {
         assertEquals("Số 15 Võ Oanh, Phường 25", saved.getAddressText());
         assertEquals("PIN_DRAGGED", saved.getLocationSource());
         assertEquals(5.0, saved.getLocationAccuracyM());
+    }
+
+    @Test
+    void testGetActiveClusters_returnsRealLocationMetadataWithoutHardcodingGps() {
+        IssueCluster pinCluster = IssueCluster.builder()
+                .id(10L)
+                .clusterCode("CLUST_PIN_01")
+                .category("ROAD_DAMAGE")
+                .title("Ổ gà đường Trần Hưng Đạo")
+                .centerLatitude(new BigDecimal("10.3839650"))
+                .centerLongitude(new BigDecimal("105.4267160"))
+                .reportCount(1)
+                .status("OPEN")
+                .reports(List.of(CivicReport.builder()
+                        .reportCode("RPT_PIN_01")
+                        .category("ROAD_DAMAGE")
+                        .addressText("Số 18 Trần Hưng Đạo, Phường Long Xuyên")
+                        .locationSource("PIN_DRAGGED")
+                        .locationAccuracyM(6.5)
+                        .build()))
+                .build();
+
+        IssueCluster nullSourceCluster = IssueCluster.builder()
+                .id(11L)
+                .clusterCode("CLUST_NULL_SRC")
+                .category("FLOODING")
+                .title("Ngập nước hẻm nhỏ")
+                .centerLatitude(new BigDecimal("10.3840000"))
+                .centerLongitude(new BigDecimal("105.4268000"))
+                .reportCount(1)
+                .status("OPEN")
+                .reports(List.of(CivicReport.builder()
+                        .reportCode("RPT_NULL_01")
+                        .category("FLOODING")
+                        .addressText("Hẻm 2, Phường Long Xuyên")
+                        .locationSource(null)
+                        .locationAccuracyM(null)
+                        .build()))
+                .build();
+
+        when(clusterRepository.findByStatus("OPEN")).thenReturn(List.of(pinCluster, nullSourceCluster));
+
+        List<IssueClusterDto> dtos = triageService.getActiveClusters("OPEN", null);
+        assertEquals(2, dtos.size());
+
+        IssueClusterDto pinDto = dtos.get(0);
+        assertEquals("Số 18 Trần Hưng Đạo, Phường Long Xuyên", pinDto.getAddressText());
+        assertEquals("PIN_DRAGGED", pinDto.getLocationSource());
+        assertEquals(6.5, pinDto.getLocationAccuracyM());
+
+        IssueClusterDto nullDto = dtos.get(1);
+        assertEquals("Hẻm 2, Phường Long Xuyên", nullDto.getAddressText());
+        assertNull(nullDto.getLocationSource(), "Must NOT hardcode 'GPS' when report locationSource is null");
+        assertNull(nullDto.getLocationAccuracyM());
+    }
+
+    @Test
+    void testFlow01_webLightingAndMobileLightingElectricalWithin25m_mustMergeIntoSingleCluster() {
+        ReflectionTestUtils.setField(triageService, "defaultRadiusMeters", 25.0);
+
+        float[] vec = new float[768];
+        vec[0] = 1.0f;
+        when(aiModelClient.generateEmbedding(anyString())).thenReturn(vec);
+        when(aiModelClient.toPgVectorString(any())).thenReturn("[1.0, 0.0]");
+        when(spatialIndexService.findNearbyClusters(anyDouble(), anyDouble(), eq(25.0)))
+                .thenReturn(Collections.emptyList())
+                .thenReturn(List.of(new SpatialCandidate("CLUST_LIGHT_01", 8.0)));
+        when(clusterRepository.save(any(IssueCluster.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        // 1. Report from Web using legacy alias category "LIGHTING"
+        CivicReportRequest webReq = CivicReportRequest.builder()
+                .category("LIGHTING")
+                .description("Đèn đường số 12 bị tắt cả tuần nay")
+                .latitude(new BigDecimal("10.3839650"))
+                .longitude(new BigDecimal("105.4267160"))
+                .locationSource("GPS")
+                .build();
+        CivicReportResponse webResp = triageService.processReport(webReq);
+        assertTrue(webResp.isNewCluster());
+        assertEquals("LIGHTING_ELECTRICAL", webResp.getCategory());
+
+        IssueCluster createdCluster = IssueCluster.builder()
+                .id(1L)
+                .clusterCode("CLUST_LIGHT_01")
+                .category(webResp.getCategory())
+                .title("Đèn đường số 12 bị tắt cả tuần nay")
+                .centerLatitude(new BigDecimal("10.3839650"))
+                .centerLongitude(new BigDecimal("105.4267160"))
+                .centerEmbedding("[1.0, 0.0]")
+                .reportCount(1)
+                .status("OPEN")
+                .lastReportedAt(OffsetDateTime.now())
+                .build();
+        when(clusterRepository.findByClusterCode("CLUST_LIGHT_01")).thenReturn(Optional.of(createdCluster));
+
+        // 2. Report from Mobile using canonical "LIGHTING_ELECTRICAL" within 8m <= 25m
+        CivicReportRequest mobileReq = CivicReportRequest.builder()
+                .category("LIGHTING_ELECTRICAL")
+                .description("Trụ đèn đường số 12 không sáng vào ban đêm")
+                .latitude(new BigDecimal("10.3840100"))
+                .longitude(new BigDecimal("105.4267500"))
+                .locationSource("PIN_DRAGGED")
+                .build();
+        CivicReportResponse mobileResp = triageService.processReport(mobileReq);
+
+        assertFalse(mobileResp.isNewCluster(), "Web LIGHTING and Mobile LIGHTING_ELECTRICAL within R<=25m must merge into 1 cluster");
+        assertEquals("CLUST_LIGHT_01", mobileResp.getClusterCode());
+        assertEquals(2, mobileResp.getClusterReportCount());
+        assertEquals("LIGHTING_ELECTRICAL", mobileResp.getCategory());
+    }
+
+    @Test
+    void testSec02_publicSanitizesCoordinatesAndOfficerIsolatesByWard() {
+        GeoValidatorService realGeoValidator = new GeoValidatorService(new ObjectMapper());
+        realGeoValidator.init();
+
+        TwoStageTriageService geoAwareTriage = new TwoStageTriageService(
+                spatialIndexService,
+                clusterRepository,
+                reportRepository,
+                aiModelClient,
+                realGeoValidator
+        );
+
+        IssueCluster longXuyenCluster = IssueCluster.builder()
+                .id(1L)
+                .clusterCode("CLUST_LX_01")
+                .category("ROAD_DAMAGE")
+                .title("Sụt lún đường Trần Hưng Đạo")
+                .centerLatitude(new BigDecimal("10.3839651"))
+                .centerLongitude(new BigDecimal("105.4267162"))
+                .reportCount(2)
+                .status("OPEN")
+                .reports(List.of(CivicReport.builder()
+                        .reportCode("RPT_LX_01")
+                        .category("ROAD_DAMAGE")
+                        .addressText("Số 18 Trần Hưng Đạo, Phường Long Xuyên")
+                        .locationSource("PIN_DRAGGED")
+                        .locationAccuracyM(5.0)
+                        .build()))
+                .build();
+
+        when(clusterRepository.findByStatus("OPEN")).thenReturn(List.of(longXuyenCluster));
+
+        // 1. Public view: coords rounded to 3 decimals, no addressText, no accuracy, no locationSource
+        List<IssueClusterDto> publicDtos = geoAwareTriage.getPublicActiveClusters("OPEN", null);
+        assertEquals(1, publicDtos.size());
+        IssueClusterDto pub = publicDtos.get(0);
+        assertEquals(new BigDecimal("10.384"), pub.getCenterLatitude());
+        assertEquals(new BigDecimal("105.427"), pub.getCenterLongitude());
+        assertNull(pub.getAddressText());
+        assertNull(pub.getLocationAccuracyM());
+        assertNull(pub.getLocationSource());
+
+        // 2. Long Xuyên officer sees full 7-decimal coords and address details
+        List<IssueClusterDto> lxOfficerDtos = geoAwareTriage.getOfficerClusters("OPEN", null, "AG_P_LONGXUYEN");
+        assertEquals(1, lxOfficerDtos.size());
+        IssueClusterDto lxDto = lxOfficerDtos.get(0);
+        assertEquals(new BigDecimal("10.3839651"), lxDto.getCenterLatitude());
+        assertEquals(new BigDecimal("105.4267162"), lxDto.getCenterLongitude());
+        assertEquals("Số 18 Trần Hưng Đạo, Phường Long Xuyên", lxDto.getAddressText());
+        assertEquals("PIN_DRAGGED", lxDto.getLocationSource());
+        assertEquals(5.0, lxDto.getLocationAccuracyM());
+
+        // 3. Châu Đốc officer cannot see Long Xuyên cluster
+        List<IssueClusterDto> cdOfficerDtos = geoAwareTriage.getOfficerClusters("OPEN", null, "AG_P_CHAUDOC");
+        assertTrue(cdOfficerDtos.isEmpty(), "Officer of Châu Đốc must NOT see Long Xuyên clusters");
     }
 }

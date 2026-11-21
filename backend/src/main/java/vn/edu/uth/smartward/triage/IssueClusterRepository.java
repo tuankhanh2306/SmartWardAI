@@ -1,5 +1,6 @@
 package vn.edu.uth.smartward.triage;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -11,7 +12,9 @@ public interface IssueClusterRepository extends JpaRepository<IssueCluster, Long
 
     Optional<IssueCluster> findByClusterCode(String clusterCode);
 
+    @EntityGraph(attributePaths = {"reports"})
     List<IssueCluster> findByCategoryAndStatus(String category, String status);
 
+    @EntityGraph(attributePaths = {"reports"})
     List<IssueCluster> findByStatus(String status);
 }

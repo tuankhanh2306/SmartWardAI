@@ -50,6 +50,9 @@ public class IssueClusterDto {
     @Schema(description = "Sai số định vị (m)")
     private Double locationAccuracyM;
 
+    @Schema(description = "Mã đơn vị hành chính cấp xã/phường", example = "AG_P_LONGXUYEN")
+    private String wardCode;
+
     @Schema(description = "Thời điểm nhận phản ánh đầu tiên")
     private OffsetDateTime firstReportedAt;
 
