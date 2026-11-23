@@ -1,0 +1,347 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const ROOT = path.resolve(__dirname, '..');
+
+const CHECK_MODE = process.argv.includes('--check');
+
+const PATHS = {
+  wardsSource: path.join(ROOT, 'backend/src/main/resources/geo/wards.geo.json'),
+  wardsDataMirror: path.join(ROOT, 'data/wards.geo.json'),
+  frontendWardsCatalog: path.join(ROOT, 'frontend/src/data/wards/anGiangWardsCatalog.ts'),
+  mobileWardsCatalog: path.join(ROOT, 'mobile/src/core/angiangWardsCatalog.ts'),
+  proceduresSeedDir: path.join(ROOT, 'backend/src/main/resources/db/seed/procedures'),
+  frontendProceduresCatalog: path.join(ROOT, 'frontend/src/data/proceduresCatalog.ts'),
+  mobileKnowledgeBase: path.join(ROOT, 'mobile/src/core/legalKnowledgeBase.ts'),
+};
+
+const DEFAULT_WORKING_HOURS =
+  'Sáng: 07:00 – 11:00 | Chiều: 13:00 – 17:00 (Thứ 2 – Thứ 6)';
+
+function normalizeNewlines(text) {
+  return text.replace(/\r\n/g, '\n');
+}
+
+function getWardTypeDefaults(type) {
+  if (type === 'Đặc khu') {
+    return {
+      totalOpenIncidents: 3,
+      solvedRate: 98.2,
+      onlineServices: [
+        'Đăng ký khai sinh',
+        'Đăng ký kết hôn',
+        'Mẫu CT01 Cư trú',
+        'Chứng thực bản sao',
+        'Thủ tục hàng hải & du lịch',
+        'Bảo trợ xã hội hải đảo',
+      ],
+    };
+  }
+  if (type === 'Phường') {
+    return {
+      totalOpenIncidents: 4,
+      solvedRate: 98.2,
+      onlineServices: [
+        'Đăng ký khai sinh',
+        'Đăng ký kết hôn',
+        'Mẫu CT01 Cư trú',
+        'Chứng thực bản sao',
+        'Xác nhận độc thân',
+        'Trợ cấp bảo trợ XH',
+      ],
+    };
+  }
+  return {
+    totalOpenIncidents: 4,
+    solvedRate: 98.2,
+    onlineServices: [
+      'Đăng ký khai sinh',
+      'Đăng ký kết hôn',
+      'Mẫu CT01 Cư trú',
+      'Chứng thực bản sao',
+      'Đăng ký biến động đất đai',
+      'Hỗ trợ nông nghiệp số',
+    ],
+  };
+}
+
+function generateWardsCatalogTs(geoJson) {
+  const features = Array.isArray(geoJson.features) ? geoJson.features : [];
+  const counts = { Phường: 0, Xã: 0, 'Đặc khu': 0, other: 0 };
+
+  const items = features.map((feature) => {
+    const props = feature.properties || {};
+    const type = props.type || 'Xã';
+    if (type in counts) counts[type] += 1;
+    else counts.other += 1;
+
+    const defaults = getWardTypeDefaults(type);
+    const ring =
+      feature.geometry &&
+      Array.isArray(feature.geometry.coordinates) &&
+      Array.isArray(feature.geometry.coordinates[0])
+        ? feature.geometry.coordinates[0]
+        : undefined;
+
+    const item = {
+      code: props.ward_code,
+      name: props.name,
+      type,
+      area: props.area ?? '',
+      province: props.province ?? 'Tỉnh An Giang',
+      officeAddress: props.officeAddress ?? '',
+      phoneNumber: props.phoneNumber ?? '',
+      lat: props.lat,
+      lon: props.lng,
+      workingHours: props.workingHours ?? DEFAULT_WORKING_HOURS,
+      onlineServices: defaults.onlineServices,
+      totalOpenIncidents: defaults.totalOpenIncidents,
+      solvedRate: defaults.solvedRate,
+    };
+
+    if (props.coord_source) {
+      item.coordSource = props.coord_source;
+    }
+    if (props.accuracy_note) {
+      item.accuracyNote = props.accuracy_note;
+    }
+    if (ring && ring.length > 0) {
+      item.boundary = ring;
+    }
+
+    return item;
+  });
+
+  const summaryParts = [];
+  if (counts.Phường > 0) summaryParts.push(`${counts.Phường} Phường`);
+  if (counts.Xã > 0) summaryParts.push(`${counts.Xã} Xã`);
+  if (counts['Đặc khu'] > 0) summaryParts.push(`${counts['Đặc khu']} Đặc khu`);
+  if (counts.other > 0) summaryParts.push(`${counts.other} Khác`);
+
+  const formattedItems = items
+    .map((item) => {
+      const lines = [
+        `  {`,
+        `    code: ${JSON.stringify(item.code)},`,
+        `    name: ${JSON.stringify(item.name)},`,
+        `    type: ${JSON.stringify(item.type)},`,
+        `    area: ${JSON.stringify(item.area)},`,
+        `    province: ${JSON.stringify(item.province)},`,
+        `    officeAddress: ${JSON.stringify(item.officeAddress)},`,
+        `    phoneNumber: ${JSON.stringify(item.phoneNumber)},`,
+        `    lat: ${JSON.stringify(item.lat)},`,
+        `    lon: ${JSON.stringify(item.lon)},`,
+        `    workingHours: ${JSON.stringify(item.workingHours)},`,
+        `    onlineServices: ${JSON.stringify(item.onlineServices)},`,
+        `    totalOpenIncidents: ${item.totalOpenIncidents},`,
+        `    solvedRate: ${item.solvedRate},`,
+      ];
+      if (item.coordSource) lines.push(`    coordSource: ${JSON.stringify(item.coordSource)},`);
+      if (item.accuracyNote) lines.push(`    accuracyNote: ${JSON.stringify(item.accuracyNote)},`);
+      if (item.boundary) lines.push(`    boundary: ${JSON.stringify(item.boundary)},`);
+      lines.push(`  }`);
+      return lines.join('\n');
+    })
+    .join(',\n');
+
+  return (
+    `/**\n` +
+    ` * AUTO-GENERATED by scripts/sync-shared-catalogs.mjs — DO NOT EDIT MANUALLY.\n` +
+    ` * Single Source of Truth: backend/src/main/resources/geo/wards.geo.json\n` +
+    ` * Tổng cộng: ${items.length} Đơn vị Hành chính trực thuộc (${summaryParts.join(', ')})\n` +
+    ` */\n\n` +
+    `export interface WardItem {\n` +
+    `  code: string;\n` +
+    `  name: string;\n` +
+    `  type: 'Phường' | 'Xã' | 'Thị trấn' | 'Đặc khu';\n` +
+    `  area: string;\n` +
+    `  province: string;\n` +
+    `  officeAddress: string;\n` +
+    `  phoneNumber: string;\n` +
+    `  lat: number;\n` +
+    `  lon: number;\n` +
+    `  workingHours: string;\n` +
+    `  onlineServices: string[];\n` +
+    `  totalOpenIncidents: number;\n` +
+    `  solvedRate: number;\n` +
+    `  boundary?: [number, number][]; // Polygon ring in [lng, lat] GeoJSON format\n` +
+    `  coordSource?: 'official_gis' | 'osm' | 'manual_verified' | 'unverified';\n` +
+    `  accuracyNote?: string;\n` +
+    `}\n\n` +
+    `export const AN_GIANG_WARDS: WardItem[] = [\n${formattedItems}\n];\n`
+  );
+}
+
+function loadBackendProcedureSeeds() {
+  const files = fs
+    .readdirSync(PATHS.proceduresSeedDir)
+    .filter((f) => f.endsWith('.json'))
+    .sort((a, b) => a.localeCompare(b, 'en'));
+
+  const seeds = files.map((file) => {
+    const raw = fs.readFileSync(path.join(PATHS.proceduresSeedDir, file), 'utf8');
+    return JSON.parse(raw);
+  });
+
+  seeds.sort((a, b) => String(a.procedureCode).localeCompare(String(b.procedureCode), 'en'));
+  return seeds;
+}
+
+function generateProceduresCatalogTs(seeds) {
+  const catalog = seeds.map((seed) => ({
+    code: seed.procedureCode,
+    name: seed.procedureName,
+    category: seed.category,
+    portalCode: seed.officialPortalCode || '',
+    chunksCount:
+      typeof seed.chunksCount === 'number'
+        ? seed.chunksCount
+        : Array.isArray(seed.chunks)
+          ? seed.chunks.length
+          : 0,
+  }));
+
+  return (
+    `/**\n` +
+    ` * AUTO-GENERATED by scripts/sync-shared-catalogs.mjs — DO NOT EDIT MANUALLY.\n` +
+    ` * Single Source of Truth: backend/src/main/resources/db/seed/procedures/*.json\n` +
+    ` */\n\n` +
+    `export interface ProcedureCatalogItem {\n` +
+    `  code: string;\n` +
+    `  name: string;\n` +
+    `  category: string;\n` +
+    `  portalCode: string;\n` +
+    `  chunksCount: number;\n` +
+    `  fee?: string;\n` +
+    `}\n\n` +
+    `export const PROCEDURES_CATALOG: ProcedureCatalogItem[] = ${JSON.stringify(catalog, null, 2)};\n`
+  );
+}
+
+function checkMobileKnowledgeBaseParity(seeds) {
+  const src = fs.readFileSync(PATHS.mobileKnowledgeBase, 'utf8');
+  const blocks = src.split(/\{\r?\n\s*procedureCode:\s*'/).slice(1);
+  const errors = [];
+
+  const mobileByCode = new Map();
+  for (const block of blocks) {
+    const code = block.split("'")[0];
+    const portalMatch = block.match(/officialPortalCode:\s*'([^']*)'/);
+    const chunksMatch = block.match(/chunksCount:\s*(\d+)/);
+
+    if (mobileByCode.has(code)) {
+      errors.push(`Duplicate procedureCode in mobile legalKnowledgeBase.ts: ${code}`);
+    }
+    mobileByCode.set(code, {
+      officialPortalCode: portalMatch ? portalMatch[1] : '',
+      chunksCount: chunksMatch ? Number(chunksMatch[1]) : -1,
+    });
+  }
+
+  const seedByCode = new Map();
+  for (const seed of seeds) {
+    const expectedChunks =
+      typeof seed.chunksCount === 'number'
+        ? seed.chunksCount
+        : Array.isArray(seed.chunks)
+          ? seed.chunks.length
+          : 0;
+    seedByCode.set(seed.procedureCode, {
+      officialPortalCode: seed.officialPortalCode || '',
+      chunksCount: expectedChunks,
+    });
+  }
+
+  for (const [code, seedInfo] of seedByCode.entries()) {
+    if (!mobileByCode.has(code)) {
+      errors.push(`Missing procedureCode in mobile legalKnowledgeBase.ts: ${code}`);
+      continue;
+    }
+    const mobInfo = mobileByCode.get(code);
+    if (mobInfo.officialPortalCode !== seedInfo.officialPortalCode) {
+      errors.push(
+        `officialPortalCode mismatch for ${code}: mobile='${mobInfo.officialPortalCode}' vs seed='${seedInfo.officialPortalCode}'`
+      );
+    }
+    if (mobInfo.chunksCount !== seedInfo.chunksCount) {
+      errors.push(
+        `chunksCount mismatch for ${code}: mobile=${mobInfo.chunksCount} vs seed=${seedInfo.chunksCount}`
+      );
+    }
+  }
+
+  for (const code of mobileByCode.keys()) {
+    if (!seedByCode.has(code)) {
+      errors.push(`Extra procedureCode in mobile legalKnowledgeBase.ts not found in seeds: ${code}`);
+    }
+  }
+
+  return { count: mobileByCode.size, errors };
+}
+
+function syncOrCheckTarget(filePath, expectedContent) {
+  const relPath = path.relative(ROOT, filePath).replace(/\\/g, '/');
+  const exists = fs.existsSync(filePath);
+  const currentContent = exists ? fs.readFileSync(filePath, 'utf8') : '';
+  const isEqual = exists && normalizeNewlines(currentContent) === normalizeNewlines(expectedContent);
+
+  if (CHECK_MODE) {
+    if (!isEqual) {
+      return { relPath, ok: false, status: exists ? 'DRIFT_DETECTED' : 'MISSING' };
+    }
+    return { relPath, ok: true, status: 'IN_SYNC' };
+  }
+
+  if (!isEqual) {
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, expectedContent, 'utf8');
+    return { relPath, ok: true, status: 'UPDATED' };
+  }
+  return { relPath, ok: true, status: 'UNCHANGED' };
+}
+
+function main() {
+  const rawGeoJson = fs.readFileSync(PATHS.wardsSource, 'utf8');
+  const geoJson = JSON.parse(rawGeoJson);
+  const wardsTs = generateWardsCatalogTs(geoJson);
+
+  const seeds = loadBackendProcedureSeeds();
+  const proceduresTs = generateProceduresCatalogTs(seeds);
+
+  const results = [
+    syncOrCheckTarget(PATHS.wardsDataMirror, rawGeoJson),
+    syncOrCheckTarget(PATHS.frontendWardsCatalog, wardsTs),
+    syncOrCheckTarget(PATHS.mobileWardsCatalog, wardsTs),
+    syncOrCheckTarget(PATHS.frontendProceduresCatalog, proceduresTs),
+  ];
+
+  const parity = checkMobileKnowledgeBaseParity(seeds);
+
+  for (const r of results) {
+    console.log(`[${r.status}] ${r.relPath}`);
+  }
+  console.log(
+    `[${parity.errors.length === 0 ? 'IN_SYNC' : 'DRIFT_DETECTED'}] mobile/src/core/legalKnowledgeBase.ts (${parity.count}/${seeds.length} procedures parity checked)`
+  );
+
+  const hasTargetFailure = results.some((r) => !r.ok);
+  if (parity.errors.length > 0) {
+    console.error('\nMobile legalKnowledgeBase parity errors:');
+    for (const err of parity.errors) {
+      console.error(`  - ${err}`);
+    }
+  }
+
+  if (hasTargetFailure || parity.errors.length > 0) {
+    if (CHECK_MODE && hasTargetFailure) {
+      console.error('\nCatalog drift detected! Run: node scripts/sync-shared-catalogs.mjs');
+    }
+    process.exit(1);
+  }
+}
+
+main();
