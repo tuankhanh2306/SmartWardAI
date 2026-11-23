@@ -149,4 +149,23 @@ class ProcedureServiceTest {
         assertEquals(1, result.get("totalChunks"));
         assertEquals(1, result.get("reindexed"));
     }
+
+    @Test
+    void testGetProcedureByCode_lowercaseTrimmed_shouldNormalizeToUppercase() {
+        AdminProcedure proc = AdminProcedure.builder()
+                .id(1L)
+                .procedureCode("TTHC-HT-01")
+                .procedureName("Thủ tục đăng ký khai sinh")
+                .category("Hộ tịch")
+                .status("ACTIVE")
+                .build();
+
+        when(procedureRepository.findByProcedureCode("TTHC-HT-01")).thenReturn(Optional.of(proc));
+        when(chunkRepository.findByProcedureId(1L)).thenReturn(List.of());
+
+        ProcedureDetailDto detail = procedureService.getProcedureByCode(" tthc-ht-01 ");
+
+        assertEquals("TTHC-HT-01", detail.getProcedureCode());
+        verify(procedureRepository).findByProcedureCode("TTHC-HT-01");
+    }
 }

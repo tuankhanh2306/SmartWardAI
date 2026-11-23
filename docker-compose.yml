@@ -1,9 +1,9 @@
 # ==============================================================================
 # SMARTWARD AI — DOCKER COMPOSE RESOURCE BUDGET (<= 2048 MiB / 2.0 GiB RAM)
-#   1. postgres:    448 MiB
+#   1. postgres:    320 MiB
 #   2. redis:       128 MiB
 #   3. minio:       256 MiB
-#   4. ai-sidecar:  384 MiB
+#   4. ai-sidecar:  512 MiB
 #   5. backend:     768 MiB
 #   6. frontend:     64 MiB
 #   -----------------------
@@ -14,13 +14,13 @@
 services:
   # =====================================================================
   # 1. PostgreSQL 16 with pgvector extension
-  # Resource Limit: 448MB RAM
+  # Resource Limit: 320MB RAM
   # =====================================================================
   postgres:
     image: pgvector/pgvector:pg16
     container_name: smartward-postgres
     restart: unless-stopped
-    mem_limit: 448m
+    mem_limit: 320m
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-smartward_db}
       POSTGRES_USER: ${POSTGRES_USER:-smartward}
@@ -88,7 +88,7 @@ services:
 
   # =====================================================================
   # 4. Local AI Sidecar Microservice (FastAPI + PhoBERT INT8)
-  # Resource Limit: 384MB RAM (SEC-07: Internal only, no exposed host ports)
+  # Resource Limit: 512MB RAM (SEC-07: Internal only, no exposed host ports)
   # =====================================================================
   ai-sidecar:
     build:
@@ -96,7 +96,7 @@ services:
       dockerfile: ml/sidecar/Dockerfile
     container_name: smartward-ai-sidecar
     restart: unless-stopped
-    mem_limit: 384m
+    mem_limit: 512m
     networks:
       - smartward-internal
     healthcheck:
@@ -138,6 +138,11 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-mock-offline-mode}
       SIDECAR_URL: http://ai-sidecar:8000
       SIDECAR_ENABLED: "true"
+      SPRINGDOC_API_DOCS_ENABLED: ${SWAGGER_ENABLED:-false}
+      SPRINGDOC_SWAGGER_UI_ENABLED: ${SWAGGER_ENABLED:-false}
+      SIDECAR_TIMEOUT_MS: ${SIDECAR_TIMEOUT_MS:-4000}
+      VOICE_TIMEOUT_SECONDS: ${VOICE_TIMEOUT_SECONDS:-10}
+      RATE_LIMIT_RPM: ${RATE_LIMIT_RPM:-30}
     ports:
       - "127.0.0.1:${SERVER_PORT:-8080}:8080"
     networks:

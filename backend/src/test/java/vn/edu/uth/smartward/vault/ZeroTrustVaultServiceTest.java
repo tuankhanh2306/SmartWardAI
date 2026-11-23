@@ -3,6 +3,7 @@ package vn.edu.uth.smartward.vault;
 import io.minio.GetObjectArgs;
 import io.minio.GetObjectResponse;
 import io.minio.MinioClient;
+import io.minio.RemoveObjectArgs;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -59,6 +60,8 @@ class ZeroTrustVaultServiceTest {
         ReflectionTestUtils.setField(vaultService, "tokenTtlHours", 24);
         ReflectionTestUtils.setField(vaultService, "rawEncryptionKey", "SmartWardAI_UnitTest_VaultKey_32B_Key!");
         ReflectionTestUtils.setField(vaultService, "failClosed", true);
+        lenient().when(valueOperations.setIfAbsent(startsWith("smartward:vault:lock:"), eq("1"), any(Duration.class)))
+                .thenReturn(true);
     }
 
     @Test
@@ -217,13 +220,29 @@ class ZeroTrustVaultServiceTest {
         when(minioClient.getObject(any(GetObjectArgs.class))).thenReturn(badResponse);
 
         assertThrows(BusinessException.class, () -> vaultService.consumeOneTimeDocument(token));
-        verify(stringRedisTemplate, never()).delete(anyString());
+        verify(stringRedisTemplate, never()).delete(redisKey);
         verify(documentRepository, never()).markAsViewedAtomically(anyString());
         assertFalse(Boolean.TRUE.equals(doc.getIsViewed()));
     }
 
     @Test
-    void testStoreDocument_whenRedisOomNoEviction_shouldFailClosedWithStorageUnavailable() {
+    void testConsumeOneTimeDocument_whenRedisLockHeldByConcurrentRequest_shouldThrow410Gone() throws Exception {
+        String token = "OTT_concurrent_lock_held";
+        String lockKey = "smartward:vault:lock:" + token;
+
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.setIfAbsent(eq(lockKey), eq("1"), any(Duration.class))).thenReturn(false);
+
+        BusinessException ex = assertThrows(BusinessException.class, () ->
+                vaultService.consumeOneTimeDocument(token)
+        );
+        assertEquals(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED, ex.getErrorCode());
+        verify(minioClient, never()).getObject(any(GetObjectArgs.class));
+        verify(documentRepository, never()).markAsViewedAtomically(anyString());
+    }
+
+    @Test
+    void testStoreDocument_whenRedisOomNoEviction_shouldFailClosedWithStorageUnavailable() throws Exception {
         byte[] validPng = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
         when(watermarkService.applyWatermark(any())).thenReturn(validPng);
         when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
@@ -234,6 +253,7 @@ class ZeroTrustVaultServiceTest {
                 vaultService.storeDocumentBytes(validPng, "cccd.png", "CCCD_FRONT")
         );
         assertEquals(ErrorCode.STORAGE_UNAVAILABLE, ex.getErrorCode());
+        verify(minioClient).removeObject(any(RemoveObjectArgs.class));
         verify(documentRepository, never()).save(any());
     }
 

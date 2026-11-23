@@ -69,14 +69,14 @@ public class VaultController {
 
         long contentLength = request != null ? request.getContentLengthLong() : -1L;
         if (contentLength > ZeroTrustVaultService.MAX_UPLOAD_SIZE_BYTES + (64L * 1024L)) {
-            throw new BusinessException(ErrorCode.VALIDATION_FAILED,
+            throw new BusinessException(ErrorCode.PAYLOAD_TOO_LARGE,
                     "Dung lượng yêu cầu tải lên vượt quá giới hạn tối đa 5 MB.");
         }
         if (file == null || file.isEmpty()) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Tệp tài liệu tải lên không được để trống.");
         }
         if (file.getSize() > ZeroTrustVaultService.MAX_UPLOAD_SIZE_BYTES) {
-            throw new BusinessException(ErrorCode.VALIDATION_FAILED,
+            throw new BusinessException(ErrorCode.PAYLOAD_TOO_LARGE,
                     "Kích thước tệp vượt quá giới hạn tối đa 5 MB.");
         }
 

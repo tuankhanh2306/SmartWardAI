@@ -116,3 +116,43 @@
    * Chia nhỏ `RagQueryService` (`1,440 LOC`) thành `RagGreetingRouter`, `VectorHybridRetriever`, `CitationPostVerifier`, `HitlQueueService`.
    * Chia `FormAndIssueReporting` (`3,756 LOC`) và cấu hình `manualChunks` trong Vite cho `jspdf`/`html2canvas`/`docx` (`pdfExporter` đang `593.92 kB`).
    * Khắc phục những mục kiến trúc còn mở trong Mục 5 [SYSTEM_OVERVIEW.md](file:///e:/SmartWardAI/docs/project/SYSTEM_OVERVIEW.md): thêm `key_id` xoay khóa Vault, `index_status` bất đồng bộ khi publish TTHC, thay JWT tự viết bằng `nimbus-jose-jwt`, và tách rate limit theo JWT/session thay vì thuần IP (tránh chặn cả quầy UBND sau NAT).
+
+---
+
+## 5. Kết Quả Khắc Phục & Kiểm Thử Gối Đầu — Pha A + Pha B (Trước vs. Sau)
+
+> **Nhánh khắc phục:** `bugfix/qa-phase-a-b-hardening` (từ `develop` `e93385d`) $\rightarrow$ **kiểm thử gối đầu 2 vòng** (Gate 1 Testcontainers `104/104` $\rightarrow$ Gate 2 Full Regression Backend/Web/Mobile $\rightarrow$ rebuild 6 containers Docker và đo lại thực tế qua `qa_live_probe_after.mjs`, Playwright Edge, và `run_all_e2e_tests.mjs`).
+
+### 5.1. Những Gì Đã Thực Hiện (Pha A + Pha B)
+
+1. **Sửa lỗi ánh xạ `pgvector` trong Hibernate/JPA (`BUG-QA-01`):** Gắn `@ColumnTransformer(write = "CAST(? AS vector)")` tại [IssueCluster.java](file:///e:/SmartWardAI/backend/src/main/java/vn/edu/uth/smartward/triage/IssueCluster.java) và [LegalChunk.java](file:///e:/SmartWardAI/backend/src/main/java/vn/edu/uth/smartward/rag/LegalChunk.java), đồng thời bổ sung bài test thật `POST /api/v1/issues/report` + merge cụm + update `legal_chunks` trên Testcontainers Postgres `pgvector:pg16` trong [RealDatabaseAndRedisBootSmokeTest.java](file:///e:/SmartWardAI/backend/src/test/java/vn/edu/uth/smartward/security/RealDatabaseAndRedisBootSmokeTest.java).
+2. **Đồng bộ xác thực Redis & đóng bề mặt Swagger (`BUG-QA-02`, `BUG-QA-05`):** Bổ sung `spring.data.redis.password: ${REDIS_PASSWORD:}` vào [application.yml](file:///e:/SmartWardAI/backend/src/main/resources/application.yml) và [application-dev.yml](file:///e:/SmartWardAI/backend/src/main/resources/application-dev.yml); tắt mặc định `springdoc` ở `application.yml` & [docker-compose.yml](file:///e:/SmartWardAI/docker-compose.yml); bổ sung `remoteip.internal-proxies` vào [application-prod.yml](file:///e:/SmartWardAI/backend/src/main/resources/application-prod.yml); chặn mọi key tiền tố `mock*` trong [GeminiAiClient.java](file:///e:/SmartWardAI/backend/src/main/java/vn/edu/uth/smartward/ai/GeminiAiClient.java).
+3. **Gia cố Zero-Trust Vault & Chốt chặn Race Condition TOCTOU (`BUG-QA-05`, `PERF-02`):**
+   * Bổ sung xóa bù trừ MinIO (`removeFromMinioBestEffort`) khi ghi Redis hoặc lưu PostgreSQL thất bại trong [ZeroTrustVaultService.java](file:///e:/SmartWardAI/backend/src/main/java/vn/edu/uth/smartward/vault/ZeroTrustVaultService.java).
+   * Bổ sung khóa phân tán Redis `SETNX` (`smartward:vault:lock:<token>`, TTL `5s`) và loại bỏ fallback L1-cache/overwrite cũ sau `markAsViewedAtomically`.
+   * Khóa `GET /api/v1/vault/view/**` bằng `ROLE_OFFICER` trong [OfficerSecurityConfig.java](file:///e:/SmartWardAI/backend/src/main/java/vn/edu/uth/smartward/security/OfficerSecurityConfig.java) và [OfficerAuthInterceptor.java](file:///e:/SmartWardAI/backend/src/main/java/vn/edu/uth/smartward/security/OfficerAuthInterceptor.java) (Web/Mobile vốn gọi qua Axios + `Bearer` token).
+   * Bổ sung khóa phân mảnh 64 stripes cho `Idempotency-Key` đồng thời trong [TwoStageTriageService.java](file:///e:/SmartWardAI/backend/src/main/java/vn/edu/uth/smartward/triage/TwoStageTriageService.java).
+4. **Mở quyền Camera/Mic/GPS & sửa CSP Google Fonts trên Nginx (`BUG-QA-03`, `BUG-QA-06`):** Cập nhật `Permissions-Policy` thành `(self)` và mở `style-src`/`font-src`/`img-src blob:` trong [nginx.conf](file:///e:/SmartWardAI/frontend/nginx.conf); gỡ link `Material Symbols` thừa trong [index.html](file:///e:/SmartWardAI/frontend/index.html).
+5. **Tái cân đối RAM `2048 MiB`, Sidecar Timeout & Chuẩn hóa HTTP (`BUG-QA-04`, `BUG-QA-08`):**
+   * Chuyển `postgres: 448m -> 320m`, nâng `ai-sidecar: 384m -> 512m` trong [docker-compose.yml](file:///e:/SmartWardAI/docker-compose.yml) (tổng giữ nguyên **`2048 MiB`**); nâng `SIDECAR_TIMEOUT_MS` từ `2000 -> 4000`.
+   * Thêm `ErrorCode.PAYLOAD_TOO_LARGE` (`SW_413`, HTTP `413`) cho file `> 5 MB` tại [ErrorCode.java](file:///e:/SmartWardAI/backend/src/main/java/vn/edu/uth/smartward/common/ErrorCode.java), [GlobalExceptionHandler.java](file:///e:/SmartWardAI/backend/src/main/java/vn/edu/uth/smartward/common/GlobalExceptionHandler.java), [VaultController.java](file:///e:/SmartWardAI/backend/src/main/java/vn/edu/uth/smartward/vault/VaultController.java), [ZeroTrustVaultService.java](file:///e:/SmartWardAI/backend/src/main/java/vn/edu/uth/smartward/vault/ZeroTrustVaultService.java).
+   * Chuẩn hóa uppercase `procedureCode` tại [ProcedureService.java](file:///e:/SmartWardAI/backend/src/main/java/vn/edu/uth/smartward/rag/ProcedureService.java).
+
+### 5.2. Bảng So Sánh Đo Đạc Thực Tế Trước vs. Sau Khắc Phục
+
+| Hạng mục kiểm chứng | Trước khắc phục (`15152d4`) | Sau khắc phục (`bugfix/qa-phase-a-b-hardening`) | Trạng thái |
+| :--- | :--- | :--- | :---: |
+| **Backend JUnit + Testcontainers** | `550` run (`549` PASS, `0` fail, `1` skip) | **`554` run (`553` PASS, `0` fail, `1` skip pre-existing)** | ✅ **PASS** |
+| **Frontend Web / Mobile Tests** | Web `11/11` PASS • Mobile `77/77` PASS | Web `11/11` PASS (`0` TS errors) • Mobile `77/77` PASS (`0` TS errors) | ✅ **PASS** |
+| **`POST /api/v1/issues/report` (`pgvector`)** | **HTTP `500`** (`PSQLException` cast `vector`) | **HTTP `200`** (p50 **`46.29 ms`**, p95 **`55.35 ms`**); replay `Idempotency-Key` khớp `100%` | ✅ **FIXED (P0)** |
+| **Triage 10-Way Race (`Idempotency-Key`)** | Blocked bởi lỗi `500` | **`10 × HTTP 200`**, `distinctCount = 1`, `maxClusterReportCountObserved = 1` | ✅ **FIXED (`PERF-02`)** |
+| **`POST /api/v1/vault/upload`** | **HTTP `503`** (Redis `NOAUTH`) + file rác MinIO | **HTTP `200`** + xóa bù trừ MinIO nếu Redis/DB lỗi | ✅ **FIXED (P0)** |
+| **`GET /api/v1/vault/view/{token}` (RBAC + Chaos + Race)** | `permitAll()` (blocked bởi `503`) | Ẩn danh `401` (không cháy token) $\rightarrow$ Officer `200` $\rightarrow$ lặp `410`; **MinIO `pause` (`404` $\rightarrow$ `200` $\rightarrow$ `410`)**; **10-way race = `1×200, 9×410`** | ✅ **FIXED (P1/`ARCH-04`/`PERF-02`)** |
+| **Redis Warm Cache & Rate Limit (`PERF-04`)** | `/rag/ask` lặp p95 `68.99 ms`; **`0/25` bị `429`** (fail-open) | `/rag/ask` warm p50 **`15.11 ms`**, p95 **`23.16 ms`**; burst kích hoạt **`10/25` HTTP `429`** (30 req/phút) | ✅ **FIXED (P0/`PERF-04`)** |
+| **Swagger Surface trên Docker** | `/v3/api-docs` & `/swagger-ui` trả **`200`** | Cả 2 trả **`404`** | ✅ **FIXED (P1)** |
+| **Nginx `Permissions-Policy` & CSP Console** | Chặn camera/mic/GPS `()`; **22 console errors** (14 CSP + 8 OSM DNS) | **`camera=(self), microphone=(self), geolocation=(self)`**; **`0` lỗi CSP** (`8` `ERR_NAME_NOT_RESOLVED` chỉ từ tile OSM offline) | ✅ **FIXED (P1/P2)** |
+| **RAM 6 Containers & AI Sidecar 10-Worker Stress** | `ai-sidecar` `374.4/384 MiB` (`97.5%`), `/embed` `321.9–350.8 ms`, `/classify` `1.25–1.28 s`, `/tts` **`1.97–2.02 s`** | `ai-sidecar` **`444.8/512 MiB` idle**, **`487.5/512 MiB` peak**; tổng idle **`975.68`**, stress **`1,075.60 / 2048 MiB`** (`OOM=false`, `Restarts=0`); `/embed` **`33.8–34.5 ms` (~10×)**, `/classify` **`258.3–266.5 ms` (~5×)**, `/pipeline` **`251.9–260.2 ms` (~5×)**, `/tts` **`316.5–318.8 ms` (>6×)**, `/api/v1/voice/synthesize` **`200` (`82.38 ms`)** | ✅ **FIXED (P1)** |
+| **HTTP Contracts (`BUG-QA-08`)** | File `> 5MB` $\rightarrow$ **`400`**; `GET /procedures/tthc-ht-01` $\rightarrow$ **`404`** | File `> 5MB` $\rightarrow$ **`413` (`SW_413`)**; `GET /procedures/tthc-ht-01` $\rightarrow$ **`200`** | ✅ **FIXED (P2)** |
+| **Live 161-Case E2E (`run_all_e2e_tests.mjs`)** | `107 / 161 PASS (66.5%)`, `54 FAIL` | **`111 / 161 PASS (68.9%)`**, `50 FAIL` (`T2_F02_04`, `T1_F09_01`, `T2_F09_01`, `T2_F09_02` PASS; 50 fail còn lại do `BUG-QA-09` E2E harness cũ + Vault `/view` giờ yêu cầu JWT `401`) | ⚠️ **Cải thiện (còn Pha C `BUG-QA-09`)** |
+
+*Ghi nhận phụ cho Pha C:* Ở chế độ `dev` (`.env` bật `vn.edu.uth.smartward: DEBUG`), [SpatialIndexService.java](file:///e:/SmartWardAI/backend/src/main/java/vn/edu/uth/smartward/triage/SpatialIndexService.java#L36) vẫn ghi `log.debug("... lon={}, lat={}")` tọa độ đầy đủ (được ẩn khi chạy `prod` với mức `INFO`); nên làm tròn/bỏ tọa độ ở dòng debug này trong đợt Pha C cùng `BUG-QA-07` (`320px` overflow + `/onboarding` Axe), `BUG-QA-09`, và `BUG-QA-10`.

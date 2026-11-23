@@ -17,9 +17,16 @@ import vn.edu.uth.smartward.triage.dto.IssueClusterDto;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -530,5 +537,57 @@ class TwoStageTriageServiceTest {
 
         assertTrue(triageService.getIdempotencyCacheSize() <= TwoStageTriageService.MAX_IDEMPOTENCY_CACHE_SIZE,
                 "In-memory idempotencyCache must remain bounded at <= 1000 entries");
+    }
+
+    @Test
+    void testProcessReport_concurrentSameIdempotencyKey_executesOnlyOnce() throws Exception {
+        CivicReportRequest request = CivicReportRequest.builder()
+                .category("FLOODING")
+                .description("Ngập cục bộ trước cổng UBND phường sau mưa lớn")
+                .latitude(new BigDecimal("10.3839650"))
+                .longitude(new BigDecimal("105.4267160"))
+                .locationSource("GPS")
+                .wardCode("AG_P_LONGXUYEN")
+                .build();
+
+        float[] mockVec = new float[768];
+        mockVec[0] = 1.0f;
+        when(aiModelClient.generateEmbedding(anyString())).thenReturn(mockVec);
+        when(aiModelClient.toPgVectorString(any())).thenReturn("[1.0, 0.0]");
+        when(spatialIndexService.findNearbyClusters(anyDouble(), anyDouble(), anyDouble()))
+                .thenReturn(Collections.emptyList());
+        when(clusterRepository.save(any(IssueCluster.class))).thenAnswer(inv -> {
+            Thread.sleep(15);
+            return inv.getArgument(0);
+        });
+
+        int threads = 10;
+        ExecutorService pool = Executors.newFixedThreadPool(threads);
+        CountDownLatch ready = new CountDownLatch(threads);
+        CountDownLatch start = new CountDownLatch(1);
+        List<Future<CivicReportResponse>> futures = new ArrayList<>();
+
+        for (int i = 0; i < threads; i++) {
+            futures.add(pool.submit(() -> {
+                ready.countDown();
+                start.await();
+                return triageService.processReport(request, "OFFLINE_CONCURRENT_RACE_01");
+            }));
+        }
+
+        ready.await();
+        start.countDown();
+
+        Set<String> reportCodes = new HashSet<>();
+        for (Future<CivicReportResponse> f : futures) {
+            CivicReportResponse res = f.get();
+            assertNotNull(res);
+            reportCodes.add(res.getReportCode());
+        }
+        pool.shutdownNow();
+
+        assertEquals(1, reportCodes.size(), "All 10 concurrent threads with the same Idempotency-Key must share 1 reportCode");
+        verify(clusterRepository, times(1)).save(any(IssueCluster.class));
+        verify(reportRepository, times(1)).save(any(CivicReport.class));
     }
 }

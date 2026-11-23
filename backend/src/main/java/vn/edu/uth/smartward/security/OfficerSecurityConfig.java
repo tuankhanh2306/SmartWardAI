@@ -90,7 +90,6 @@ public class OfficerSecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/dossiers").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/dossiers/track").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/vault/upload").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/vault/view/**").permitAll()
 
                         // 3. API Documentation (dev/staging/test/eval)
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
