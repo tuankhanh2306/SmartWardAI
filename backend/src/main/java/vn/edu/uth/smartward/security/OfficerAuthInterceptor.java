@@ -29,7 +29,7 @@ public class OfficerAuthInterceptor implements HandlerInterceptor {
                 || uri.startsWith("/api/v1/dossiers/officer")
                 || (uri.startsWith("/api/v1/dossiers/") && uri.endsWith("/review"))
                 || uri.startsWith("/api/v1/forms/submissions")
-                || (uri.startsWith("/api/v1/vault/") && !uri.startsWith("/api/v1/vault/upload") && !uri.startsWith("/api/v1/vault/view/"));
+                || (uri.startsWith("/api/v1/vault/") && !uri.startsWith("/api/v1/vault/upload"));
 
         if (!requiresOfficerRole) {
             return true;

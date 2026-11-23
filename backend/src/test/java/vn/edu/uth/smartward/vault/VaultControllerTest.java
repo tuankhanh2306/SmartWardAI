@@ -137,7 +137,7 @@ class VaultControllerTest {
     }
 
     @Test
-    void testUploadDocument_exceeding5MbLimit_returns422BeforeReadingStream() throws Exception {
+    void testUploadDocument_exceeding5MbLimit_returns413BeforeReadingStream() throws Exception {
         when(clientIpResolver.resolve(any())).thenReturn("198.51.100.10");
         when(rateLimiter.allowVaultUpload(anyString(), any())).thenReturn(true);
 
@@ -148,7 +148,7 @@ class VaultControllerTest {
         mockMvc.perform(multipart("/api/v1/vault/upload")
                         .file(file)
                         .param("documentType", "CCCD_FRONT"))
-                .andExpect(status().isUnprocessableEntity())
-                .andExpect(jsonPath("$.errorCode").value("SW_422"));
+                .andExpect(status().isPayloadTooLarge())
+                .andExpect(jsonPath("$.errorCode").value("SW_413"));
     }
 }

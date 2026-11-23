@@ -1,6 +1,9 @@
 server:
   port: ${PORT:${SERVER_PORT:8080}}
   forward-headers-strategy: NATIVE
+  tomcat:
+    remoteip:
+      internal-proxies: ${TRUSTED_INTERNAL_PROXIES:127\.0\.0\.1|0:0:0:0:0:0:0:1|172\.28\.0\.\d+}
 
 spring:
   datasource:

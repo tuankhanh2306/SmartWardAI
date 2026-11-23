@@ -14,12 +14,17 @@ spring:
       enabled: true
       max-file-size: 5MB
       max-request-size: 5MB
+  data:
+    redis:
+      password: ${REDIS_PASSWORD:}
 
 # OpenAPI Swagger Documentation
 springdoc:
   api-docs:
+    enabled: ${SPRINGDOC_API_DOCS_ENABLED:false}
     path: /v3/api-docs
   swagger-ui:
+    enabled: ${SPRINGDOC_SWAGGER_UI_ENABLED:false}
     path: /swagger-ui.html
     operationsSorter: method
     tagsSorter: alpha
@@ -60,7 +65,9 @@ smartward:
     sidecar:
       enabled: ${SIDECAR_ENABLED:true}
       url: ${SIDECAR_URL:http://localhost:8000}
-      timeout-ms: ${SIDECAR_TIMEOUT_MS:2000}
+      timeout-ms: ${SIDECAR_TIMEOUT_MS:4000}
+    voice:
+      timeout-seconds: ${VOICE_TIMEOUT_SECONDS:10}
     triage:
       default-radius-meters: ${TRIAGE_DEFAULT_RADIUS_METERS:25.0}
       default-similarity-threshold: ${TRIAGE_DEFAULT_SIMILARITY_THRESHOLD:0.82}

@@ -1,14 +1,18 @@
 package vn.edu.uth.smartward.security;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -21,12 +25,17 @@ import vn.edu.uth.smartward.dossier.dto.DossierSubmissionResponse;
 import vn.edu.uth.smartward.dossier.dto.SubmitDossierRequest;
 import vn.edu.uth.smartward.rag.HitlGrayZoneItem;
 import vn.edu.uth.smartward.rag.HitlGrayZoneRepository;
+import vn.edu.uth.smartward.rag.LegalChunk;
+import vn.edu.uth.smartward.rag.LegalChunkRepository;
 
 import java.time.Duration;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -101,6 +110,12 @@ class RealDatabaseAndRedisBootSmokeTest {
     private HitlGrayZoneRepository hitlRepository;
 
     @Autowired
+    private LegalChunkRepository legalChunkRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+    @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
     @Test
@@ -146,5 +161,54 @@ class RealDatabaseAndRedisBootSmokeTest {
         assertThat(stringRedisTemplate.opsForValue().get("smartward:it:ott")).isEqualTo("DOC_IT_01");
         stringRedisTemplate.delete("smartward:it:ott");
         assertThat(stringRedisTemplate.opsForValue().get("smartward:it:ott")).isNull();
+
+        // 5. Real PostgreSQL pgvector insert + merge update + Idempotency-Key on /api/v1/issues/report
+        String issueBody = objectMapper.writeValueAsString(Map.of(
+                "category", "LIGHTING",
+                "description", "Đèn đường Nguyễn Huệ bị tắt gây mất an toàn giao thông ban đêm",
+                "latitude", 10.3839654,
+                "longitude", 105.4267168,
+                "wardCode", "AG_P_LONGXUYEN",
+                "locationSource", "GPS"
+        ));
+        MvcResult rpt1 = mockMvc.perform(post("/api/v1/issues/report")
+                        .header("Idempotency-Key", "IT-PGVEC-01")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(issueBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.newCluster").value(true))
+                .andReturn();
+        JsonNode rpt1Data = objectMapper.readTree(rpt1.getResponse().getContentAsString()).path("data");
+        String firstReportCode = rpt1Data.path("reportCode").asText();
+        String clusterCode = rpt1Data.path("clusterCode").asText();
+        assertThat(firstReportCode).isNotBlank();
+        assertThat(clusterCode).isNotBlank();
+
+        // Replay with same Idempotency-Key returns exact same reportCode
+        mockMvc.perform(post("/api/v1/issues/report")
+                        .header("Idempotency-Key", "IT-PGVEC-01")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(issueBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.reportCode").value(firstReportCode));
+
+        // Second distinct report merges into the cluster and executes UPDATE issue_clusters SET center_embedding = CAST(? AS vector)
+        mockMvc.perform(post("/api/v1/issues/report")
+                        .header("Idempotency-Key", "IT-PGVEC-02")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(issueBody))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.newCluster").value(false))
+                .andExpect(jsonPath("$.data.clusterCode").value(clusterCode))
+                .andExpect(jsonPath("$.data.clusterReportCount").value(2));
+
+        // 6. Real PostgreSQL pgvector update on legal_chunks.embedding succeeds without PSQLException
+        List<LegalChunk> chunks = legalChunkRepository.findAll();
+        assertThat(chunks).isNotEmpty();
+        LegalChunk targetChunk = chunks.get(0);
+        String vec768 = "[" + String.join(",", Collections.nCopies(768, "0.01")) + "]";
+        targetChunk.setEmbedding(vec768);
+        legalChunkRepository.saveAndFlush(targetChunk);
     }
 }

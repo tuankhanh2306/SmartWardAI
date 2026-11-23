@@ -611,4 +611,31 @@ class SmartWardSecurityFilterChainAllowlistTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.errorCode").value("SW_401"));
     }
+
+    @Test
+    @DisplayName("GET /api/v1/vault/view/{token} requires ROLE_OFFICER: anonymous -> 401, ADMIN -> 403, mustChangePin -> 403, OFFICER -> 200")
+    void vaultViewEndpoint_requiresOfficerRole_blocksAnonymous401AndAdmin403() throws Exception {
+        byte[] fakePng = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
+        when(vaultService.consumeOneTimeDocument("OTT_test_secure")).thenReturn(fakePng);
+
+        mockMvc.perform(get("/api/v1/vault/view/OTT_test_secure"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errorCode").value("SW_401"));
+
+        mockMvc.perform(get("/api/v1/vault/view/OTT_test_secure")
+                        .header("Authorization", adminBearerToken))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("SW_403"));
+
+        mockMvc.perform(get("/api/v1/vault/view/OTT_test_secure")
+                        .header("Authorization", pendingPinBearerToken))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("SW_403_MUST_CHANGE_PIN"));
+
+        mockMvc.perform(get("/api/v1/vault/view/OTT_test_secure")
+                        .header("Authorization", officerBearerToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.IMAGE_PNG))
+                .andExpect(content().bytes(fakePng));
+    }
 }

@@ -107,10 +107,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     protected ResponseEntity<Object> handleMaxUploadSizeExceededException(
             MaxUploadSizeExceededException ex, HttpHeaders headers, HttpStatusCode status, WebRequest request) {
         ApiResponse<Void> response = ApiResponse.error(
-                "Kích thước tệp vượt quá hạn mức tối đa cho phép (5 MB).",
-                "SW_FILE_TOO_LARGE"
+                ErrorCode.PAYLOAD_TOO_LARGE.getDefaultMessage(),
+                ErrorCode.PAYLOAD_TOO_LARGE.getCode()
         );
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE).body(response);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)

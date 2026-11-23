@@ -2,7 +2,7 @@
 
 > **Kiến trúc kỹ thuật:** Modular Monolith (`Spring Boot 3.3.5` + `Java 21`), Feature-Sliced Web PWA (`React 18` + `TypeScript` + `Vite 6`), Native Mobile App (`React Native` + `Expo SDK 52`) & AI Sidecar (`FastAPI` + `PhoBERT ONNX INT8`)  
 > **Ràng buộc hạ tầng:** Zero-Cost Architecture (Toàn bộ 6 container Docker vận hành `<= 2048 MiB` RAM, chi phí bản quyền 0 VNĐ)  
-> **Tình trạng kiểm chứng gần nhất (`develop`, 23/11/2026):** `550` JUnit Tests (`549` PASS gồm Testcontainers + `1` skip pre-existing, `0` fail) • `11/11` Frontend Suites & Vite Build PASS • `77/77` Mobile Vitest PASS • `6/6` Docker Containers Healthy (`926.91 / 2048 MiB` idle, bản build trước Chặng 3–4) • `sync-shared-catalogs --check` PASS
+> **Tình trạng kiểm chứng gần nhất (`develop`, 23/11/2026 — sau Pha A + Pha B):** `554` JUnit Tests (`553` PASS gồm Testcontainers `pgvector`/Redis + `1` skip pre-existing, `0` fail) • `11/11` Frontend Suites & Vite Build PASS • `77/77` Mobile Vitest PASS • `6/6` Docker Containers Healthy (`975.68 / 2048 MiB` idle, `1,075.60 / 2048 MiB` sau 10-worker AI stress, `0` OOM) • `sync-shared-catalogs --check` PASS
 
 ---
 
@@ -296,15 +296,15 @@ powershell -ExecutionPolicy Bypass -File scripts/check-docs-governance.ps1
 
 | Container | Image / Nguồn (`docker-compose.yml`) | Trần RAM (`mem_limit`) | RAM Idle đo thực tế (`23/11/2026`)* | Vai trò trong hệ thống |
 | :--- | :--- | :---: | :---: | :--- |
-| **`smartward-postgres`** | `pgvector/pgvector:pg16` | **448 MiB** | `52.36 MiB` (`11.69%`) | CSDL quan hệ ACID, Flyway migrations & HNSW Vector Index |
-| **`smartward-redis`** | `redis:7.2.5-alpine` (`--appendonly yes`, `maxmemory 100mb`, `noeviction`) | **128 MiB** | `10.82 MiB` (`8.46%`) | Redis GEO $R=25\text{m}$, Rate Limit, Auth Lockout, Cache, Idempotency & OTT Vault |
-| **`smartward-minio`** | `${MINIO_IMAGE:-minio/minio:latest}` (`pull_policy: if_not_present`) | **256 MiB** | `101.4 MiB` (`39.61%`) | Lưu trữ đối tượng mã hóa AES-256-GCM cho hồ sơ Vault |
-| **`smartward-ai-sidecar`** | `./ml/sidecar/Dockerfile` | **384 MiB** | `380.8 MiB` (`99.16%`) | Dịch vụ AI cục bộ FastAPI (PhoBERT ONNX INT8 & Piper TTS) |
-| **`smartward-backend`** | `./backend/Dockerfile` (`Xmx 512m`) | **768 MiB** | `365.3 MiB` (`47.56%`) | API Spring Boot 3.3.5 (Java 21) |
-| **`smartward-frontend`** | `./frontend/Dockerfile` (Nginx Alpine) | **64 MiB** | `16.23 MiB` (`25.37%`) | Phân phối Web PWA tĩnh & Reverse Proxy |
-| **TỔNG CỘNG** | **6 Containers** | **`2048 MiB` (2.0 GiB)** | **`926.91 MiB` (idle)** | *Lưu ý: `ai-sidecar` đạt `99.16%` giới hạn `384 MiB` ngay lúc rỗi; cần đo thêm dưới tải thật.* |
+| **`smartward-postgres`** | `pgvector/pgvector:pg16` | **320 MiB** | `28.23 MiB` (`8.82%`) | CSDL quan hệ ACID, Flyway migrations & HNSW Vector Index |
+| **`smartward-redis`** | `redis:7.2.5-alpine` (`--appendonly yes`, `maxmemory 100mb`, `noeviction`) | **128 MiB** | `8.91 MiB` (`6.96%`) | Redis GEO $R=25\text{m}$, Rate Limit, Auth Lockout, Cache, Idempotency & OTT Vault |
+| **`smartward-minio`** | `${MINIO_IMAGE:-minio/minio:latest}` (`pull_policy: if_not_present`) | **256 MiB** | `110.30 MiB` (`43.07%`) | Lưu trữ đối tượng mã hóa AES-256-GCM cho hồ sơ Vault |
+| **`smartward-ai-sidecar`** | `./ml/sidecar/Dockerfile` | **512 MiB** | `444.80 MiB` (`86.88%`) | Dịch vụ AI cục bộ FastAPI (PhoBERT ONNX INT8 & Piper TTS) |
+| **`smartward-backend`** | `./backend/Dockerfile` (`Xmx 512m`) | **768 MiB** | `367.90 MiB` (`47.91%`) | API Spring Boot 3.3.5 (Java 21) |
+| **`smartward-frontend`** | `./frontend/Dockerfile` (Nginx Alpine) | **64 MiB** | `15.54 MiB` (`24.27%`) | Phân phối Web PWA tĩnh & Reverse Proxy |
+| **TỔNG CỘNG** | **6 Containers** | **`2048 MiB` (2.0 GiB)** | **`975.68 MiB` (idle)** | *Sau stress 10-worker AI Sidecar đạt peak `1,075.60 / 2048 MiB` (`0` OOM / `0` Restart).* |
 
-*\*Số liệu RAM idle đo bằng `docker stats --no-stream` trên `develop` tại commit `5601f01` (trước khi tách lazy modal & script sync catalog của Chặng 3–4).*
+*\*Số liệu RAM idle/stress đo bằng `docker stats --no-stream` trên `bugfix/qa-phase-a-b-hardening` sau khi rebuild đầy đủ 6 container Docker.*
 
 ---
 

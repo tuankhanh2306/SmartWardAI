@@ -35,6 +35,7 @@ spring:
     redis:
       host: ${REDIS_HOST:localhost}
       port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
       timeout: 3000ms
 
 # MinIO Client Configuration
@@ -52,6 +53,12 @@ smartward:
     jwt-secret: ${JWT_SECRET}
     token-ttl-hours: ${OFFICER_TOKEN_TTL_HOURS:8}
     enforce-officer-auth: ${ENFORCE_OFFICER_AUTH:true}
+
+springdoc:
+  api-docs:
+    enabled: ${SPRINGDOC_API_DOCS_ENABLED:true}
+  swagger-ui:
+    enabled: ${SPRINGDOC_SWAGGER_UI_ENABLED:true}
 
 logging:
   level:

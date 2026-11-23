@@ -35,12 +35,12 @@ flowchart TD
 
     subgraph AppLayer["Tầng 2: Xử lý Nghiệp vụ & AI Sidecar"]
         Backend["Spring Boot 3 Modular Monolith (Java 21 / 768 MiB)"]
-        Sidecar["Local AI Sidecar FastAPI (PhoBERT ONNX INT8 + Piper TTS / 384 MiB)"]
+        Sidecar["Local AI Sidecar FastAPI (PhoBERT ONNX INT8 + Piper TTS / 512 MiB)"]
         Gemini["External LLM Fallback (Gemini API - tắt mặc định ở prod)"]
     end
 
     subgraph DataLayer["Tầng 3: Lưu trữ & Bộ nhớ Đệm (smartward-internal)"]
-        PG["PostgreSQL 16 + pgvector (768 chiều / 448 MiB)"]
+        PG["PostgreSQL 16 + pgvector (768 chiều / 320 MiB)"]
         Redis["Redis 7.2.5 (AOF + noeviction, GEO 25m, OTT, Rate Limit / 128 MiB)"]
         MinIO["MinIO Object Storage (.enc Ciphertext / 256 MiB)"]
     end
@@ -61,8 +61,8 @@ Theo [docker-compose.yml](file:///e:/SmartWardAI/docker-compose.yml), 6 containe
 | STT | Container / Service | Image / Công nghệ | Trần RAM (`mem_limit`) | Vai trò & Cấu hình tài nguyên |
 | :--- | :--- | :--- | :--- | :--- |
 | 1 | `smartward-backend` | Spring Boot 3 / Java 21 (Heap `-Xmx512m`) | **768 MiB** | API REST, Legal RAG, Form Rules, GeoValidator, Triage 2 pha, Zero-Trust Vault, RBAC |
-| 2 | `smartward-postgres` | `pgvector/pgvector:pg16` | **448 MiB** | CSDL quan hệ (nguồn dữ liệu chuẩn) + vector 768 chiều (`14` Flyway migrations `V1..V14`) |
-| 3 | `smartward-ai-sidecar` | Python FastAPI + `bkai_finetuned_int8.onnx` + Piper TTS | **384 MiB** | Chuẩn hóa tiếng Việt vùng miền, Vector hóa 768d, phân loại 6 ý định, TTS WAV miền Tây |
+| 2 | `smartward-postgres` | `pgvector/pgvector:pg16` | **320 MiB** | CSDL quan hệ (nguồn dữ liệu chuẩn) + vector 768 chiều (`14` Flyway migrations `V1..V14`) |
+| 3 | `smartward-ai-sidecar` | Python FastAPI + `bkai_finetuned_int8.onnx` + Piper TTS | **512 MiB** | Chuẩn hóa tiếng Việt vùng miền, Vector hóa 768d, phân loại 6 ý định, TTS WAV miền Tây |
 | 4 | `smartward-minio` | `minio/minio:RELEASE.2024-05-10T01-41-38Z` | **256 MiB** | Lưu trữ đối tượng `.enc` mã hóa `AES-256-GCM` |
 | 5 | `smartward-redis` | `redis:7.2.5-alpine` (`--appendonly yes --maxmemory 100mb --maxmemory-policy noeviction`) | **128 MiB** | Chừa `28 MiB` đệm cho kết nối & AOF buffer; lưu token `OTT_`, chỉ mục `GEO`, cache & rate limit |
 | 6 | `smartward-frontend` | React + Vite + Tailwind + Nginx Alpine | **64 MiB** | Phục vụ Web SPA tĩnh & Reverse Proxy sang Backend |
@@ -269,7 +269,10 @@ Ngoài các hạng mục đã được vá ở `bugfix/hardening-vault-redis-sla
 * **Phiên kiểm chứng Chặng 4 (`2026-11-23`, nhánh `feature/sync-shared-catalogs` từ `develop`):**
   1. **SSOT Sync Script ([sync-shared-catalogs.mjs](file:///e:/SmartWardAI/scripts/sync-shared-catalogs.mjs)):** Sinh đồng bộ `data/wards.geo.json`, [anGiangWardsCatalog.ts](file:///e:/SmartWardAI/frontend/src/data/wards/anGiangWardsCatalog.ts), [angiangWardsCatalog.ts](file:///e:/SmartWardAI/mobile/src/core/angiangWardsCatalog.ts) (`96` đơn vị) và [proceduresCatalog.ts](file:///e:/SmartWardAI/frontend/src/data/proceduresCatalog.ts) (`40` thủ tục); `node scripts/sync-shared-catalogs.mjs --check` báo `IN_SYNC` toàn bộ (gồm `40/40` kiểm parity với [legalKnowledgeBase.ts](file:///e:/SmartWardAI/mobile/src/core/legalKnowledgeBase.ts)).
   2. **Hồi quy sau đồng bộ:** `check-docs-governance.ps1` **PASS**; Web Frontend (`CI_FRONTEND_ONLY=true`) **11/11 PASS**; Mobile `npm.cmd run typecheck && npm.cmd test` **9/9 files, 77/77 tests PASS**.
+* **Phiên khắc phục QA Pha A + B (`2026-11-23`, nhánh `bugfix/qa-phase-a-b-hardening` từ `develop`):**
+  1. **Sửa triệt để các lỗi P0/P1 & chuẩn hóa hợp đồng (`BUG-QA-01..06`, `BUG-QA-08`):** Bổ sung `@ColumnTransformer(write = "CAST(? AS vector)")` cho `IssueCluster` & `LegalChunk`; kế thừa `REDIS_PASSWORD` tại `application.yml` & `application-dev.yml`; tắt `springdoc` mặc định & trên Compose; khóa `GET /api/v1/vault/view/**` sau `ROLE_OFFICER`, thêm xóa bù trừ MinIO, khóa Redis `SETNX` 5s cho Vault và khóa 64-stripe `Idempotency-Key` cho Triage; mở `Permissions-Policy (self)` & CSP Google Fonts + `blob:`; chuẩn HTTP `413` (`SW_413`) và lookup mã TTHC uppercase.
+  2. **Tái cân đối RAM `2048 MiB` (`postgres: 320m`, `ai-sidecar: 512m`):** Tổng RAM đo thực tế lúc rỗi **`975.68 / 2048 MiB`** (`ai-sidecar: 444.8/512 MiB`), sau stress 10-worker đạt peak **`1,075.60 / 2048 MiB`** (`ai-sidecar: 487.5/512 MiB`, `0` OOM / `0` Restart); độ trễ Sidecar 10-worker giảm 5×–10× (`/embed` `33.8–34.5 ms`, `/tts` `316.5–318.8 ms`).
+  3. **Hồi quy & kiểm chứng live (`554` JUnit + Testcontainers):** Backend **`553 PASS, 0 FAIL, 1 skip`** (gồm `RealDatabaseAndRedisBootSmokeTest` test thật `POST /api/v1/issues/report` + merge `pgvector`); Web `11/11 PASS`; Mobile `77/77 PASS`; Playwright `0` lỗi CSP (`8` DNS offline OSM tiles); `qa_live_probe_after.mjs` xác nhận `10-way` Vault (`1×200, 9×410`), `10-way` Triage (`distinctCount=1`), `ARCH-04` MinIO pause (`404 -> 200 -> 410`), `PERF-04` Rate Limiter (`10/25` `429`), và Swagger `404`.
 * **Lưu ý & Rủi ro còn mở sau phiên `2026-11-23`:**
   * `docker-compose.yml` tạm dùng `${MINIO_IMAGE:-minio/minio:latest}` với `pull_policy: if_not_present` từ cache cục bộ do tag `minio/minio:RELEASE.2024-05-10T01-41-38Z` bị từ chối pull (`pull access denied`/`unauthorized`); CI/VPS mới chưa cache sẵn `minio/minio:latest` cần cung cấp biến `MINIO_IMAGE` hợp lệ.
-  * Image Docker đã build ở phiên `5601f01` **chưa rebuild lại** sau các thay đổi code của Chặng 3 & Chặng 4; đồng thời `7` tên thủ tục và `2` category trong `backend/src/main/resources/db/seed/procedures/*.json` mang câu chữ gốc từ nguồn nay được phản ánh nguyên văn sang `proceduresCatalog.ts` cho tới khi rà soát chuẩn hóa ở JSON gốc.
-  * `ProcedureDataSeeder` vẫn ghi log SQL không chặn boot (`column "embedding" is of type vector but expression is of type character varying`) trên `legal_chunks` khi chạy `RealDatabaseAndRedisBootSmokeTest`, và `ChallengerM3AdversarialTest` còn `1` bài pre-existing bị skip.
+  * Còn tồn đọng thuộc Pha C (không chặn vận hành cốt lõi): `BUG-QA-07` (`320px` overflow `9px` ở `/citizen/form` & vi phạm Axe trên `/onboarding`), `BUG-QA-09` (bộ E2E 161 cases cũ lệch `ApiResponse`/auth, hiện đạt `111/161`), `BUG-QA-10` (nợ kỹ thuật nhỏ & `@Disabled` ở `ChallengerM3AdversarialTest`), và `log.debug` tọa độ thô tại `SpatialIndexService:36` khi bật profile `dev`.

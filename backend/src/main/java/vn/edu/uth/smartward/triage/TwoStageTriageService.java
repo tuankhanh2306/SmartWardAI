@@ -74,6 +74,17 @@ public class TwoStageTriageService {
     private static final String IDEMPOTENCY_REDIS_PREFIX = "smartward:triage:idempotency:";
     private static final Duration IDEMPOTENCY_TTL = Duration.ofHours(24);
     static final int MAX_IDEMPOTENCY_CACHE_SIZE = 1000;
+    private static final int IDEMPOTENCY_STRIPE_COUNT = 64;
+
+    private final Object[] idempotencyStripes = createStripes(IDEMPOTENCY_STRIPE_COUNT);
+
+    private static Object[] createStripes(int count) {
+        Object[] arr = new Object[count];
+        for (int i = 0; i < count; i++) {
+            arr[i] = new Object();
+        }
+        return arr;
+    }
 
     @Autowired(required = false)
     private StringRedisTemplate stringRedisTemplate;
@@ -197,9 +208,17 @@ public class TwoStageTriageService {
             return cached;
         }
 
-        CivicReportResponse response = executeProcessReport(request);
-        storeIdempotentResponse(key, response);
-        return response;
+        synchronized (idempotencyStripes[Math.floorMod(key.hashCode(), idempotencyStripes.length)]) {
+            cached = lookupIdempotentResponse(key);
+            if (cached != null) {
+                log.info("Idempotency-Key '{}' cache hit (in-flight lock) — returning '{}' without duplicate report",
+                        key, cached.getReportCode());
+                return cached;
+            }
+            CivicReportResponse response = executeProcessReport(request);
+            storeIdempotentResponse(key, response);
+            return response;
+        }
     }
 
     private CivicReportResponse executeProcessReport(CivicReportRequest request) {
