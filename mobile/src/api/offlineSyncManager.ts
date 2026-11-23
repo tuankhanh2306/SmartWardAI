@@ -23,7 +23,10 @@ export interface OfflineIncidentFlushResult {
 /**
  * Attempts to flush all queued offline civic incident reports to POST /api/v1/issues/report.
  */
-export async function flushOfflineIncidentQueue(): Promise<OfflineIncidentFlushResult> {
+export async function flushOfflineIncidentQueue(
+  deps: { submitApi?: typeof submitCivicIncidentReport } = {}
+): Promise<OfflineIncidentFlushResult> {
+  const submitApi = deps.submitApi ?? submitCivicIncidentReport;
   const queue = await getOfflineIncidentQueue();
   let syncedCount = 0;
   let failedCount = 0;
@@ -31,7 +34,7 @@ export async function flushOfflineIncidentQueue(): Promise<OfflineIncidentFlushR
   for (const item of queue) {
     try {
       const payload = JSON.parse(item.payload_json) as CivicReportRequest;
-      await submitCivicIncidentReport(payload);
+      await submitApi(payload, { idempotencyKey: item.local_id });
       await removeOfflineIncident(item.local_id);
       syncedCount += 1;
     } catch (err) {

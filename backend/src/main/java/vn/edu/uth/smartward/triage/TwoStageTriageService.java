@@ -1,10 +1,12 @@
 package vn.edu.uth.smartward.triage;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.uth.smartward.ai.AiModelClient;
@@ -18,10 +20,12 @@ import vn.edu.uth.smartward.triage.dto.IssueClusterDto;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Two-Stage Spatial-Semantic Incident Triage Engine.
@@ -66,6 +70,61 @@ public class TwoStageTriageService {
 
     @Value("${smartward.triage.active-window-hours:72}")
     private int activeWindowHours;
+
+    private static final String IDEMPOTENCY_REDIS_PREFIX = "smartward:triage:idempotency:";
+    private static final Duration IDEMPOTENCY_TTL = Duration.ofHours(24);
+    static final int MAX_IDEMPOTENCY_CACHE_SIZE = 1000;
+
+    @Autowired(required = false)
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired(required = false)
+    private ObjectMapper objectMapper;
+
+    private final Map<String, CivicReportResponse> idempotencyCache = new ConcurrentHashMap<>();
+
+    void setIdempotencyDependencies(StringRedisTemplate stringRedisTemplate, ObjectMapper objectMapper) {
+        this.stringRedisTemplate = stringRedisTemplate;
+        this.objectMapper = objectMapper;
+    }
+
+    int getIdempotencyCacheSize() {
+        return idempotencyCache.size();
+    }
+
+    private CivicReportResponse lookupIdempotentResponse(String key) {
+        if (stringRedisTemplate != null && objectMapper != null) {
+            try {
+                String raw = stringRedisTemplate.opsForValue().get(IDEMPOTENCY_REDIS_PREFIX + key);
+                if (raw != null && !raw.isBlank()) {
+                    return objectMapper.readValue(raw, CivicReportResponse.class);
+                }
+            } catch (Exception e) {
+                log.warn("Redis idempotency lookup failed for key '{}', falling back to memory cache: {}",
+                        key, e.getMessage());
+            }
+        }
+        return idempotencyCache.get(key);
+    }
+
+    private void storeIdempotentResponse(String key, CivicReportResponse response) {
+        if (response == null) {
+            return;
+        }
+        if (stringRedisTemplate != null && objectMapper != null) {
+            try {
+                String json = objectMapper.writeValueAsString(response);
+                stringRedisTemplate.opsForValue().set(IDEMPOTENCY_REDIS_PREFIX + key, json, IDEMPOTENCY_TTL);
+            } catch (Exception e) {
+                log.warn("Redis idempotency write failed for key '{}' (DB save preserved): {}",
+                        key, e.getMessage());
+            }
+        }
+        if (idempotencyCache.size() >= MAX_IDEMPOTENCY_CACHE_SIZE) {
+            idempotencyCache.clear();
+        }
+        idempotencyCache.put(key, response);
+    }
 
     public static String normalizeCategory(String rawCategory) {
         if (rawCategory == null || rawCategory.isBlank()) {
@@ -115,6 +174,35 @@ public class TwoStageTriageService {
      */
     @Transactional
     public CivicReportResponse processReport(CivicReportRequest request) {
+        return executeProcessReport(request);
+    }
+
+    /**
+     * Idempotent incident ingestion entry point used when retrying queued offline mobile reports.
+     */
+    @Transactional
+    public CivicReportResponse processReport(CivicReportRequest request, String idempotencyKey) {
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            return executeProcessReport(request);
+        }
+        String key = idempotencyKey.trim();
+        if (key.length() > 128) {
+            key = key.substring(0, 128);
+        }
+
+        CivicReportResponse cached = lookupIdempotentResponse(key);
+        if (cached != null) {
+            log.info("Idempotency-Key '{}' cache hit — returning previous triage result '{}' without duplicate report",
+                    key, cached.getReportCode());
+            return cached;
+        }
+
+        CivicReportResponse response = executeProcessReport(request);
+        storeIdempotentResponse(key, response);
+        return response;
+    }
+
+    private CivicReportResponse executeProcessReport(CivicReportRequest request) {
         double lon = request.getLongitude().doubleValue();
         double lat = request.getLatitude().doubleValue();
         String normalizedCategory = normalizeCategory(request.getCategory());

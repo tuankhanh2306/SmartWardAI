@@ -5,6 +5,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.test.util.ReflectionTestUtils;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import vn.edu.uth.smartward.ai.AiModelClient;
@@ -438,5 +440,95 @@ class TwoStageTriageServiceTest {
         // 3. Châu Đốc officer cannot see Long Xuyên cluster
         List<IssueClusterDto> cdOfficerDtos = geoAwareTriage.getOfficerClusters("OPEN", null, "AG_P_CHAUDOC");
         assertTrue(cdOfficerDtos.isEmpty(), "Officer of Châu Đốc must NOT see Long Xuyên clusters");
+    }
+
+    @Test
+    void testProcessReport_duplicateIdempotencyKey_returnsCachedResponseWithoutDuplicateSave() {
+        CivicReportRequest request = CivicReportRequest.builder()
+                .category("FLOODING")
+                .description("Ngập sâu 35cm trước cổng chợ Long Xuyên")
+                .latitude(new BigDecimal("10.3839650"))
+                .longitude(new BigDecimal("105.4267160"))
+                .locationSource("GPS")
+                .wardCode("AG_P_LONGXUYEN")
+                .build();
+
+        float[] mockVec = new float[768];
+        mockVec[0] = 1.0f;
+        when(aiModelClient.generateEmbedding(anyString())).thenReturn(mockVec);
+        when(aiModelClient.toPgVectorString(any())).thenReturn("[1.0, 0.0]");
+        when(spatialIndexService.findNearbyClusters(anyDouble(), anyDouble(), anyDouble()))
+                .thenReturn(Collections.emptyList());
+        when(clusterRepository.save(any(IssueCluster.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        CivicReportResponse first = triageService.processReport(request, "OFFLINE_INC_DUP_001");
+        CivicReportResponse second = triageService.processReport(request, "OFFLINE_INC_DUP_001");
+
+        assertNotNull(first);
+        assertEquals(first.getReportCode(), second.getReportCode());
+        assertEquals(first.getClusterCode(), second.getClusterCode());
+        verify(clusterRepository, times(1)).save(any(IssueCluster.class));
+        verify(reportRepository, times(1)).save(any(CivicReport.class));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testProcessReport_redisIdempotencyHit_shortCircuitsProcessing() throws Exception {
+        StringRedisTemplate redisTemplate = mock(StringRedisTemplate.class);
+        ValueOperations<String, String> valueOps = mock(ValueOperations.class);
+        when(redisTemplate.opsForValue()).thenReturn(valueOps);
+
+        ObjectMapper mapper = new ObjectMapper();
+        CivicReportResponse stored = CivicReportResponse.builder()
+                .reportCode("RPT_REDIS_HIT_001")
+                .clusterCode("CLUST_REDIS_HIT_001")
+                .newCluster(true)
+                .category("ROAD_DAMAGE")
+                .clusterReportCount(1)
+                .build();
+        when(valueOps.get("smartward:triage:idempotency:OFFLINE_INC_REDIS_1"))
+                .thenReturn(mapper.writeValueAsString(stored));
+
+        triageService.setIdempotencyDependencies(redisTemplate, mapper);
+
+        CivicReportRequest request = CivicReportRequest.builder()
+                .category("ROAD_DAMAGE")
+                .description("Hố ga mất nắp nguy hiểm cho người đi bộ")
+                .latitude(new BigDecimal("10.3839650"))
+                .longitude(new BigDecimal("105.4267160"))
+                .locationSource("GPS")
+                .build();
+
+        CivicReportResponse replayed = triageService.processReport(request, "OFFLINE_INC_REDIS_1");
+
+        assertEquals("RPT_REDIS_HIT_001", replayed.getReportCode());
+        assertEquals("CLUST_REDIS_HIT_001", replayed.getClusterCode());
+        verifyNoInteractions(aiModelClient, reportRepository, clusterRepository);
+    }
+
+    @Test
+    void testProcessReport_idempotencyCacheIsBoundedAt1000() {
+        CivicReportRequest request = CivicReportRequest.builder()
+                .category("ENVIRONMENT")
+                .description("Rác sinh hoạt tồn đọng 3 ngày chưa thu gom")
+                .latitude(new BigDecimal("10.3839650"))
+                .longitude(new BigDecimal("105.4267160"))
+                .locationSource("GPS")
+                .build();
+
+        float[] mockVec = new float[768];
+        mockVec[0] = 1.0f;
+        when(aiModelClient.generateEmbedding(anyString())).thenReturn(mockVec);
+        when(aiModelClient.toPgVectorString(any())).thenReturn("[1.0, 0.0]");
+        when(spatialIndexService.findNearbyClusters(anyDouble(), anyDouble(), anyDouble()))
+                .thenReturn(Collections.emptyList());
+        when(clusterRepository.save(any(IssueCluster.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        for (int i = 0; i < 1050; i++) {
+            triageService.processReport(request, "OFFLINE_INC_CAP_" + i);
+        }
+
+        assertTrue(triageService.getIdempotencyCacheSize() <= TwoStageTriageService.MAX_IDEMPOTENCY_CACHE_SIZE,
+                "In-memory idempotencyCache must remain bounded at <= 1000 entries");
     }
 }
