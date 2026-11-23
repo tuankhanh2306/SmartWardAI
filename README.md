@@ -1,9 +1,5 @@
 # SmartWard AI — Nền Tảng Hỗ Trợ Thủ Tục Hành Chính & Phân Luồng Phản Ánh Cấp Phường/Xã
 
-> **Đề tài:** Báo cáo Thực tập Doanh nghiệp & Đồ án Tốt nghiệp Kỹ sư CNTT – Viện Đào tạo Chất lượng cao, Trường Đại học Giao thông Vận tải TP. Hồ Chí Minh (UTH)  
-> **Sinh viên thực hiện:** Nguyễn Minh Tuấn Khanh (MSSV: `089205023490` • Lớp: `CN2301CLCB`)  
-> **Giảng viên hướng dẫn:** TS. Lê Văn Quốc Anh (UTH)  
-> **Đơn vị thực tập:** Viettel An Giang – Chi nhánh Tập đoàn Công nghiệp – Viễn thông Quân đội  
 > **Kiến trúc kỹ thuật:** Modular Monolith (`Spring Boot 3.3.5` + `Java 21`), Feature-Sliced Web PWA (`React 18` + `TypeScript` + `Vite 6`), Native Mobile App (`React Native` + `Expo SDK 52`) & AI Sidecar (`FastAPI` + `PhoBERT ONNX INT8`)  
 > **Ràng buộc hạ tầng:** Zero-Cost Architecture (Toàn bộ 6 container Docker vận hành `<= 2048 MiB` RAM, chi phí bản quyền 0 VNĐ)  
 > **Tình trạng kiểm chứng gần nhất (`develop`, 23/11/2026):** `550` JUnit Tests (`549` PASS gồm Testcontainers + `1` skip pre-existing, `0` fail) • `11/11` Frontend Suites & Vite Build PASS • `77/77` Mobile Vitest PASS • `6/6` Docker Containers Healthy (`926.91 / 2048 MiB` idle, bản build trước Chặng 3–4) • `sync-shared-catalogs --check` PASS
