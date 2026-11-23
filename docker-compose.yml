@@ -64,7 +64,8 @@ services:
   # Resource Limit: 256MB RAM
   # =====================================================================
   minio:
-    image: minio/minio:RELEASE.2024-05-10T01-41-38Z
+    image: ${MINIO_IMAGE:-minio/minio:latest}
+    pull_policy: if_not_present
     container_name: smartward-minio
     restart: unless-stopped
     mem_limit: 256m
