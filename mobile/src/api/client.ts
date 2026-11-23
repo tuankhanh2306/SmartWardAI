@@ -254,9 +254,16 @@ export async function reviewOfficerDossier(
 // ============================================================================
 
 export async function submitCivicIncidentReport(
-  request: CivicReportRequest
+  request: CivicReportRequest,
+  options?: { idempotencyKey?: string }
 ): Promise<CivicReportResponse> {
-  const resp = await apiClient.post<ApiResponse<CivicReportResponse>>('/issues/report', request);
+  const idempotencyKey = (options?.idempotencyKey || '').trim();
+  const config = idempotencyKey ? { headers: { 'Idempotency-Key': idempotencyKey } } : undefined;
+  const resp = await apiClient.post<ApiResponse<CivicReportResponse>>(
+    '/issues/report',
+    request,
+    config
+  );
   return unwrapData(resp.data);
 }
 

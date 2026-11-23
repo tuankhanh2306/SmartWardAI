@@ -24,7 +24,7 @@ import { extractFormWithVision, normalizeDateToYMD, type ExtractedFormFieldsResu
 import { analyzeImageQuality, verifyTemplateMatch, type VisionQualityGateResult } from '../services/tesseractOcr';
 import { exportElementToPdf } from '../utils/pdfExporter';
 import { useWard } from '../context/WardContext';
-import A4DocumentModal from '../components/A4DocumentModal';
+const A4DocumentModal = React.lazy(() => import('../components/A4DocumentModal'));
 import { SpecializedFormFields } from '../features/citizen-forms/SpecializedFormFields';
 import { CivicIncidentTab } from '../features/civic-incident/CivicIncidentTab';
 import { DossierTrackingTab } from '../features/dossier-tracking/DossierTrackingTab';
@@ -3637,102 +3637,106 @@ export const FormAndIssueReporting: React.FC = () => {
       {/* ========================================================================= */}
       {/* MODAL: XEM TRƯỚC & IN TỜ KHAI CHUẨN A4 (NGHỊ ĐỊNH 30/2020/NĐ-CP)          */}
       {/* ========================================================================= */}
-      <A4DocumentModal
-        isOpen={showPrintModal}
-        onClose={() => setShowPrintModal(false)}
-        formType={selectedFormType}
-        procedureCode={
-          selectedFormType === 'CT01'
-            ? 'TTHC-CR-01'
-            : selectedFormType === 'TK-KS'
-            ? 'TTHC-HT-01'
-            : selectedFormType === 'TK-KH'
-            ? (marriageMode === 'MARRIAGE_REGISTRATION' ? 'TTHC-HT-02' : 'TTHC-HT-11')
-            : 'TTHC-BT-01'
-        }
-        marriageMode={marriageMode}
-        procedureTitle={
-          selectedFormType === 'CT01'
-            ? 'Tờ khai thay đổi thông tin cư trú (Mẫu CT01 - TT 66/2023 & TT 53/2025/TT-BCA)'
-            : selectedFormType === 'TK-KS'
-            ? 'Tờ khai đăng ký khai sinh (Phụ lục 5 - Thông tư 04/2024/TT-BTP & TT 04/2020/TT-BTP)'
-            : selectedFormType === 'TK-KH'
-            ? (marriageMode === 'MARRIAGE_REGISTRATION'
-                ? 'Tờ khai đăng ký kết hôn (Phụ lục 5 - Thông tư 04/2024/TT-BTP)'
-                : 'Tờ khai cấp Giấy xác nhận tình trạng hôn nhân (Phụ lục 5 - Thông tư 04/2024/TT-BTP)')
-            : 'Tờ khai thông tin đề nghị trợ cấp xã hội (Nghị định 20/2021/NĐ-CP, NĐ 76/2024 & Luật BHXH 2024)'
-        }
-        legalBasis={
-          selectedFormType === 'CT01'
-            ? 'Theo Thông tư số 66/2023/TT-BCA & Thông tư số 53/2025/TT-BCA của Bộ Công an'
-            : selectedFormType === 'TK-KS'
-            ? 'Theo Thông tư số 04/2024/TT-BTP (sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP) của Bộ Tư pháp'
-            : selectedFormType === 'TK-KH'
-            ? 'Theo Luật Hôn nhân và Gia đình 2014 & Thông tư 04/2024/TT-BTP (sửa đổi TT 04/2020/TT-BTP)'
-            : 'Theo Nghị định số 20/2021/NĐ-CP, Nghị định số 76/2024/NĐ-CP & Luật BHXH 2024'
-        }
-        initialData={{
-          fullName,
-          gender,
-          dob,
-          idNumber: cccd,
-          phone: phoneNumber,
-          address,
-          // CT01
-          hostName,
-          hostCccd,
-          hostRelation,
-          declarationScope,
-          // TK-KS
-          childName: selectedFormType === 'TK-KS' ? fullName : undefined,
-          birthDate: selectedFormType === 'TK-KS' ? dob : undefined,
-          birthPlace: childBirthPlace,
-          childEthnicity,
-          childNationality,
-          birthCertNumber,
-          birthCertIssueDate,
-          fatherName,
-          fatherDob,
-          fatherResidence,
-          motherName,
-          motherDob,
-          motherResidence,
-          // TK-KH
-          spouseName: partnerName,
-          spouseDob: partnerDob,
-          spouseGender: partnerGender,
-          spouseIdNumber: partnerCccd,
-          spouseAddress: partnerAddress,
-          applicantEthnicity,
-          spouseEthnicity: partnerEthnicity,
-          applicantNationality,
-          spouseNationality: partnerNationality,
-          applicantMarriageCount,
-          spouseMarriageCount: partnerMarriageCount,
-          issueDate,
-          maritalCertPurpose,
-          divorceJudgmentNumber,
-          divorceJudgmentDate,
-          deathCertNumber,
-          deathCertDate,
-          // TK-BTXH
-          householdStatus,
-          poorHouseholdBookNumber,
-          disabilityLevel,
-          disabilityCertNumber,
-          disabilityCertIssueDate,
-          disabilityCertIssuer,
-          bankAccount,
-          guardianName,
-          guardianCccd,
-          guardianRelation,
-          guardianPhone,
-          socialTargetGroup,
-          hasBhyt,
-          bhytNumber,
-          paymentMethod,
-        }}
-      />
+      {showPrintModal && (
+        <React.Suspense fallback={null}>
+          <A4DocumentModal
+            isOpen={showPrintModal}
+            onClose={() => setShowPrintModal(false)}
+            formType={selectedFormType}
+            procedureCode={
+              selectedFormType === 'CT01'
+                ? 'TTHC-CR-01'
+                : selectedFormType === 'TK-KS'
+                ? 'TTHC-HT-01'
+                : selectedFormType === 'TK-KH'
+                ? (marriageMode === 'MARRIAGE_REGISTRATION' ? 'TTHC-HT-02' : 'TTHC-HT-11')
+                : 'TTHC-BT-01'
+            }
+            marriageMode={marriageMode}
+            procedureTitle={
+              selectedFormType === 'CT01'
+                ? 'Tờ khai thay đổi thông tin cư trú (Mẫu CT01 - TT 66/2023 & TT 53/2025/TT-BCA)'
+                : selectedFormType === 'TK-KS'
+                ? 'Tờ khai đăng ký khai sinh (Phụ lục 5 - Thông tư 04/2024/TT-BTP & TT 04/2020/TT-BTP)'
+                : selectedFormType === 'TK-KH'
+                ? (marriageMode === 'MARRIAGE_REGISTRATION'
+                    ? 'Tờ khai đăng ký kết hôn (Phụ lục 5 - Thông tư 04/2024/TT-BTP)'
+                    : 'Tờ khai cấp Giấy xác nhận tình trạng hôn nhân (Phụ lục 5 - Thông tư 04/2024/TT-BTP)')
+                : 'Tờ khai thông tin đề nghị trợ cấp xã hội (Nghị định 20/2021/NĐ-CP, NĐ 76/2024 & Luật BHXH 2024)'
+            }
+            legalBasis={
+              selectedFormType === 'CT01'
+                ? 'Theo Thông tư số 66/2023/TT-BCA & Thông tư số 53/2025/TT-BCA của Bộ Công an'
+                : selectedFormType === 'TK-KS'
+                ? 'Theo Thông tư số 04/2024/TT-BTP (sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP) của Bộ Tư pháp'
+                : selectedFormType === 'TK-KH'
+                ? 'Theo Luật Hôn nhân và Gia đình 2014 & Thông tư 04/2024/TT-BTP (sửa đổi TT 04/2020/TT-BTP)'
+                : 'Theo Nghị định số 20/2021/NĐ-CP, Nghị định số 76/2024/NĐ-CP & Luật BHXH 2024'
+            }
+            initialData={{
+              fullName,
+              gender,
+              dob,
+              idNumber: cccd,
+              phone: phoneNumber,
+              address,
+              // CT01
+              hostName,
+              hostCccd,
+              hostRelation,
+              declarationScope,
+              // TK-KS
+              childName: selectedFormType === 'TK-KS' ? fullName : undefined,
+              birthDate: selectedFormType === 'TK-KS' ? dob : undefined,
+              birthPlace: childBirthPlace,
+              childEthnicity,
+              childNationality,
+              birthCertNumber,
+              birthCertIssueDate,
+              fatherName,
+              fatherDob,
+              fatherResidence,
+              motherName,
+              motherDob,
+              motherResidence,
+              // TK-KH
+              spouseName: partnerName,
+              spouseDob: partnerDob,
+              spouseGender: partnerGender,
+              spouseIdNumber: partnerCccd,
+              spouseAddress: partnerAddress,
+              applicantEthnicity,
+              spouseEthnicity: partnerEthnicity,
+              applicantNationality,
+              spouseNationality: partnerNationality,
+              applicantMarriageCount,
+              spouseMarriageCount: partnerMarriageCount,
+              issueDate,
+              maritalCertPurpose,
+              divorceJudgmentNumber,
+              divorceJudgmentDate,
+              deathCertNumber,
+              deathCertDate,
+              // TK-BTXH
+              householdStatus,
+              poorHouseholdBookNumber,
+              disabilityLevel,
+              disabilityCertNumber,
+              disabilityCertIssueDate,
+              disabilityCertIssuer,
+              bankAccount,
+              guardianName,
+              guardianCccd,
+              guardianRelation,
+              guardianPhone,
+              socialTargetGroup,
+              hasBhyt,
+              bhytNumber,
+              paymentMethod,
+            }}
+          />
+        </React.Suspense>
+      )}
 
       {/* F7: Real CCCD QR Scanner Modal (WebRTC & Image Upload) */}
       <CccdQrScannerModal

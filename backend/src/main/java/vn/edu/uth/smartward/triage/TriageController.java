@@ -45,7 +45,8 @@ public class TriageController {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "422", description = "Dữ liệu phản ánh không hợp lệ (tọa độ ngoài phạm vi, thiếu mô tả)")
     })
     public ResponseEntity<ApiResponse<CivicReportResponse>> reportIssue(
-            @Valid @RequestBody CivicReportRequest request) {
+            @Valid @RequestBody CivicReportRequest request,
+            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencyKey) {
 
         double coarseLat = request.getLatitude() != null ? request.getLatitude().doubleValue() : 0.0;
         double coarseLon = request.getLongitude() != null ? request.getLongitude().doubleValue() : 0.0;
@@ -54,7 +55,9 @@ public class TriageController {
                 String.format(Locale.US, "%.3f", coarseLat),
                 String.format(Locale.US, "%.3f", coarseLon));
 
-        CivicReportResponse response = triageService.processReport(request);
+        CivicReportResponse response = (idempotencyKey != null && !idempotencyKey.isBlank())
+                ? triageService.processReport(request, idempotencyKey.trim())
+                : triageService.processReport(request);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 

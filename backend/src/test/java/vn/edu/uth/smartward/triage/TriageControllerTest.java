@@ -19,6 +19,7 @@ import java.util.List;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -141,5 +142,37 @@ class TriageControllerTest {
                         .requestAttr("officerPrincipal", lxOfficer))
                 .andExpect(status().isForbidden())
                 .andExpect(jsonPath("$.success").value(false));
+    }
+
+    @Test
+    void testReportIssue_withIdempotencyKeyHeader_forwardsKeyToService() throws Exception {
+        CivicReportResponse mockResponse = CivicReportResponse.builder()
+                .reportCode("RPT_20261123_001")
+                .clusterCode("CLUST_20261123_001")
+                .newCluster(true)
+                .category("ROAD_DAMAGE")
+                .clusterReportCount(1)
+                .build();
+
+        when(triageService.processReport(any(CivicReportRequest.class), eq("OFFLINE_INC_TEST_001")))
+                .thenReturn(mockResponse);
+
+        CivicReportRequest request = CivicReportRequest.builder()
+                .category("ROAD_DAMAGE")
+                .description("Mặt đường sụt lún đoạn qua chợ Long Xuyên")
+                .latitude(BigDecimal.valueOf(10.3839650))
+                .longitude(BigDecimal.valueOf(105.4267160))
+                .locationSource("GPS")
+                .build();
+
+        mockMvc.perform(post("/api/v1/issues/report")
+                        .header("Idempotency-Key", "OFFLINE_INC_TEST_001")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.data.reportCode").value("RPT_20261123_001"));
+
+        verify(triageService).processReport(any(CivicReportRequest.class), eq("OFFLINE_INC_TEST_001"));
     }
 }
