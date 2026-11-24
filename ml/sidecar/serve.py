@@ -62,17 +62,37 @@ def init_models():
     model_dir = str(BASE_DIR / "ml" / "models" / "fine_tuned_biencoder")
     onnx_path = str(BASE_DIR / "ml" / "models" / "bkai_finetuned_int8.onnx")
     clf_path = str(BASE_DIR / "ml" / "models" / "intent_classifier.joblib")
-    
-    tokenizer = AutoTokenizer.from_pretrained(model_dir)
-    
-    opts = ort.SessionOptions()
-    opts.intra_op_num_threads = 4
-    opts.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
-    ort_session = ort.InferenceSession(onnx_path, opts, providers=['CPUExecutionProvider'])
-    
-    clf_dict = joblib.load(clf_path)
-    intent_classifier = clf_dict['classifier']
+
     normalizer = VietnameseTextNormalizer()
+
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(model_dir)
+    except Exception as e:
+        print(f"Warning: Failed to load tokenizer from {model_dir}: {e}")
+        tokenizer = None
+
+    if Path(onnx_path).is_file():
+        try:
+            opts = ort.SessionOptions()
+            opts.intra_op_num_threads = 4
+            opts.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
+            ort_session = ort.InferenceSession(onnx_path, opts, providers=['CPUExecutionProvider'])
+        except Exception as e:
+            print(f"Warning: Failed to load ONNX bi-encoder model from {onnx_path}: {e}")
+            ort_session = None
+    else:
+        print(
+            f"Note: ONNX bi-encoder model not found at {onnx_path}. "
+            "Running sidecar in degraded mode (TTS & text normalization active; /embed returns 503 for backend fallback)."
+        )
+        ort_session = None
+
+    try:
+        clf_dict = joblib.load(clf_path)
+        intent_classifier = clf_dict['classifier']
+    except Exception as e:
+        print(f"Warning: Failed to load intent classifier from {clf_path}: {e}")
+        intent_classifier = None
 
     # Load Piper TTS Vietnamese Model (prefer Southern Male voice vietthao3886, then VPBank, fallback to vais1000)
     vietthao_model_path = BASE_DIR / "ml" / "models" / "tts" / "vietthao3886.onnx"
@@ -130,12 +150,16 @@ def health():
         "model": "bkai_pho_bert_ft_v1",
         "embedding_dim": 768,
         "quantization": "Dynamic INT8",
+        "onnx_loaded": ort_session is not None,
+        "mode": "onnx-int8" if ort_session is not None else "degraded-no-onnx",
         "supported_intents": CLASSES,
         "tts_enabled": piper_voice is not None,
         "tts_model": active_tts_model_name
     }
 
 def _embed(text: str) -> np.ndarray:
+    if ort_session is None or tokenizer is None:
+        raise HTTPException(status_code=503, detail="ONNX bi-encoder model is not loaded in sidecar")
     enc = tokenizer([text], padding=True, truncation=True, max_length=256, return_tensors="np")
     feed = {'input_ids': enc['input_ids'], 'attention_mask': enc['attention_mask']}
     out = ort_session.run(None, feed)[0]
@@ -160,6 +184,8 @@ def embed_endpoint(payload: TextInput):
 def classify_endpoint(payload: TextInput):
     if not payload.text or not payload.text.strip():
         raise HTTPException(status_code=400, detail="Text cannot be empty")
+    if intent_classifier is None:
+        raise HTTPException(status_code=503, detail="Intent classifier model is not loaded in sidecar")
     
     norm_res = normalizer.normalize(payload.text)
     clean_t = norm_res['substantive'] or norm_res['normalized']
@@ -192,6 +218,8 @@ def classify_endpoint(payload: TextInput):
 def pipeline_endpoint(payload: TextInput):
     if not payload.text or not payload.text.strip():
         raise HTTPException(status_code=400, detail="Text cannot be empty")
+    if intent_classifier is None:
+        raise HTTPException(status_code=503, detail="Intent classifier model is not loaded in sidecar")
     
     raw = payload.text.strip()
     norm_res = normalizer.normalize(raw)
