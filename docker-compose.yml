@@ -64,7 +64,7 @@ services:
   # Resource Limit: 256MB RAM
   # =====================================================================
   minio:
-    image: ${MINIO_IMAGE:-minio/minio:latest}
+    image: ${MINIO_IMAGE:-coollabsio/minio:RELEASE.2025-10-15T17-29-55Z}
     pull_policy: if_not_present
     container_name: smartward-minio
     restart: unless-stopped
