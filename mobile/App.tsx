@@ -1,6 +1,6 @@
 /**
  * SmartWard AI Mobile — Root Application Entrypoint
- * Expo SDK 52 + TypeScript + Multi-Phone Responsive Preview Bar (Web) + Native SafeArea
+ * Expo SDK 57 + TypeScript + Multi-Phone Responsive Preview Bar (Web) + Native SafeArea
  */
 
 import React, { useEffect, useState } from 'react';
@@ -107,7 +107,7 @@ export default function App() {
         <AccessibilityProvider>
           <WardProvider>
             <OfficerAuthProvider>
-              <StatusBar style="light" backgroundColor={COLORS.citizenCrimson} />
+              <StatusBar style="light" />
               <AppShell />
             </OfficerAuthProvider>
           </WardProvider>

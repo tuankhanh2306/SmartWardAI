@@ -12,11 +12,11 @@ import {
   Modal,
   Platform,
   Pressable,
-  SafeAreaView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { QrCode, Sparkles, X } from 'lucide-react-native';
 import { parseCccdQrString, type DecodedCccdQr } from '../core/cccdQrParser';
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
   frameOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     alignItems: 'center',
     justifyContent: 'center',
     gap: SPACING.lg,

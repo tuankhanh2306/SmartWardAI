@@ -90,20 +90,20 @@ jobs:
         run: npm run build
 
   # ============================================================================
-  # 3. MOBILE CI: Node 20, Expo SDK 52 TypeScript & Vitest Test Suite
+  # 3. MOBILE CI: Node 22, Expo SDK 57 TypeScript & Vitest Test Suite
   # ============================================================================
   mobile-ci:
-    name: Mobile CI (React Native / Expo SDK 52)
+    name: Mobile CI (React Native / Expo SDK 57)
     needs: [docs-governance]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 20
+      - name: Set up Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: mobile/package-lock.json
 

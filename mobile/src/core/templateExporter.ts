@@ -608,7 +608,7 @@ export async function exportTemplateDocument(
   }
 
   try {
-    const FileSystem = await import('expo-file-system');
+    const FileSystem = await import('expo-file-system/legacy');
     const Sharing = await import('expo-sharing');
     const baseDir = FileSystem.documentDirectory || FileSystem.cacheDirectory || '';
 
