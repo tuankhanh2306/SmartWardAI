@@ -1,6 +1,6 @@
 /**
  * SmartWard AI Mobile — Root Application Entrypoint
- * Expo SDK 57 + TypeScript + Multi-Phone Responsive Preview Bar (Web) + Native SafeArea
+ * Expo SDK 58 + TypeScript + Multi-Phone Responsive Preview Bar (Web) + Native SafeArea
  */
 
 import React, { useEffect, useState } from 'react';

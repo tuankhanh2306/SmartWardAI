@@ -80,7 +80,7 @@ export const LegalRagChatScreen: React.FC = () => {
   const { typography, fontScaleMode, stopSpeaking } = useAccessibility();
   const responsive = useResponsivePhone(fontScaleMode);
 
-  const chatScrollRef = useRef<ScrollView>(null);
+  const chatScrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
 
   const [subTab, setSubTab] = useState<'chat' | 'catalog'>('chat');
   const [procedures, setProcedures] = useState<ProcedureItem[]>(AN_GIANG_40_PROCEDURES);

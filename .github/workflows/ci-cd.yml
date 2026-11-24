@@ -90,10 +90,10 @@ jobs:
         run: npm run build
 
   # ============================================================================
-  # 3. MOBILE CI: Node 22, Expo SDK 57 TypeScript & Vitest Test Suite
+  # 3. MOBILE CI: Node 22, Expo SDK 58 TypeScript & Vitest Test Suite
   # ============================================================================
   mobile-ci:
-    name: Mobile CI (React Native / Expo SDK 57)
+    name: Mobile CI (React Native / Expo SDK 58)
     needs: [docs-governance]
     runs-on: ubuntu-latest
     steps:
