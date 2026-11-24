@@ -17,11 +17,24 @@ public class MinioConfig {
     @Value("${minio.secret-key:minio_secret_key}")
     private String secretKey;
 
+    @Value("${minio.region:}")
+    private String region;
+
+    @Value("${minio.virtual-style:false}")
+    private boolean virtualStyle;
+
     @Bean
     public MinioClient minioClient() {
-        return MinioClient.builder()
+        MinioClient.Builder builder = MinioClient.builder()
                 .endpoint(endpoint)
-                .credentials(accessKey, secretKey)
-                .build();
+                .credentials(accessKey, secretKey);
+        if (region != null && !region.isBlank()) {
+            builder.region(region.trim());
+        }
+        MinioClient client = builder.build();
+        if (virtualStyle) {
+            client.enableVirtualStyleEndpoint();
+        }
+        return client;
     }
 }

@@ -43,6 +43,8 @@ minio:
   access-key: ${MINIO_ACCESS_KEY:${MINIO_ROOT_USER:minio_admin}}
   secret-key: ${MINIO_SECRET_KEY:${MINIO_ROOT_PASSWORD:minio_secret_key}}
   bucket: ${MINIO_BUCKET_NAME:smartward-vault}
+  region: ${MINIO_REGION:}
+  virtual-style: ${MINIO_VIRTUAL_STYLE:false}
 
 smartward:
   vault:
