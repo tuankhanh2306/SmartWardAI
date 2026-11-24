@@ -34,7 +34,43 @@ import type {
   VaultUploadResponse,
 } from '../types/api.types';
 
-export function resolveDefaultApiBaseUrl(customWindow?: { location?: { hostname?: string } }): string {
+export const DEFAULT_EMULATOR_API_BASE_URL = 'http://10.0.2.2:8080/api/v1';
+export const RAG_EXPLICIT_TIMEOUT_MS = 12000;
+export const RAG_AUTO_LAN_TIMEOUT_MS = 4500;
+export const PROCEDURES_SYNC_TIMEOUT_MS = 4000;
+export const RAG_CIRCUIT_COOLDOWN_MS = 45000;
+
+export function extractLanHostFromExpoUri(rawUri?: string | null): string | null {
+  if (!rawUri || typeof rawUri !== 'string') return null;
+  const trimmed = rawUri.trim();
+  if (!trimmed) return null;
+
+  const withoutScheme = trimmed.replace(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//, '');
+  const authority = withoutScheme.split('/')[0]?.split('?')[0]?.trim() || '';
+  const hostWithoutPort = authority.replace(/:\d+$/, '').trim();
+  const normalized = hostWithoutPort.toLowerCase();
+  if (!normalized) return null;
+
+  if (
+    normalized === '10.0.2.2' ||
+    normalized === 'localhost' ||
+    normalized === '127.0.0.1' ||
+    normalized === '0.0.0.0' ||
+    normalized.endsWith('.exp.direct') ||
+    normalized.endsWith('.ngrok.io') ||
+    normalized.endsWith('.ngrok-free.app') ||
+    normalized.endsWith('.trycloudflare.com')
+  ) {
+    return null;
+  }
+
+  return hostWithoutPort;
+}
+
+export function resolveDefaultApiBaseUrl(
+  customWindow?: { location?: { hostname?: string } },
+  options?: { hostUri?: string | null }
+): string {
   if (process.env.EXPO_PUBLIC_API_BASE_URL) {
     return process.env.EXPO_PUBLIC_API_BASE_URL.replace(/\/+$/, '');
   }
@@ -52,13 +88,22 @@ export function resolveDefaultApiBaseUrl(customWindow?: { location?: { hostname?
     }
   }
 
-  return 'http://10.0.2.2:8080/api/v1';
+  // When running inside Expo Go over Wi-Fi LAN
+  const lanHost = extractLanHostFromExpoUri(options?.hostUri);
+  if (lanHost) {
+    return `http://${lanHost}:8080/api/v1`;
+  }
+
+  return DEFAULT_EMULATOR_API_BASE_URL;
 }
 
 const DEFAULT_API_BASE_URL = resolveDefaultApiBaseUrl();
 
 let currentWardCode = DEFAULT_WARD.code;
 let unauthorizedHandler: (() => void) | null = null;
+let runtimePlatformOs = 'unknown';
+let hasExplicitApiBaseUrl = Boolean(process.env.EXPO_PUBLIC_API_BASE_URL);
+let ragBackendCircuitOpenUntil = 0;
 
 export const apiClient: AxiosInstance = axios.create({
   baseURL: DEFAULT_API_BASE_URL,
@@ -69,15 +114,89 @@ export const apiClient: AxiosInstance = axios.create({
   },
 });
 
+export function configureRuntimeApiBaseUrl(params: {
+  platformOs?: string;
+  scriptUrl?: string | null;
+}): string {
+  runtimePlatformOs = params.platformOs || 'unknown';
+  if (!process.env.EXPO_PUBLIC_API_BASE_URL && !hasExplicitApiBaseUrl && runtimePlatformOs !== 'web') {
+    const lanHost = extractLanHostFromExpoUri(params.scriptUrl);
+    if (lanHost) {
+      apiClient.defaults.baseURL = `http://${lanHost}:8080/api/v1`;
+      ragBackendCircuitOpenUntil = 0;
+    }
+  }
+  return getApiBaseUrl();
+}
+
 export function setApiBaseUrl(url: string): void {
   const normalized = url.trim().replace(/\/+$/, '');
   if (normalized) {
     apiClient.defaults.baseURL = normalized;
+    hasExplicitApiBaseUrl = true;
+    resetRagBackendCircuit();
   }
 }
 
 export function getApiBaseUrl(): string {
   return String(apiClient.defaults.baseURL || DEFAULT_API_BASE_URL);
+}
+
+export function isUnreachableIosDefaultUrl(): boolean {
+  return runtimePlatformOs === 'ios' && getApiBaseUrl() === DEFAULT_EMULATOR_API_BASE_URL;
+}
+
+export function shouldSkipRagOnlineCall(now = Date.now()): boolean {
+  return isUnreachableIosDefaultUrl() || now < ragBackendCircuitOpenUntil;
+}
+
+export function markRagBackendNetworkFailure(now = Date.now()): void {
+  ragBackendCircuitOpenUntil = now + RAG_CIRCUIT_COOLDOWN_MS;
+}
+
+export function markRagBackendSuccess(): void {
+  ragBackendCircuitOpenUntil = 0;
+}
+
+export function resetRagBackendCircuit(): void {
+  ragBackendCircuitOpenUntil = 0;
+}
+
+export function isNetworkOrTimeoutError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const errObj = error as {
+    response?: unknown;
+    code?: unknown;
+    message?: unknown;
+    isAxiosError?: boolean;
+    request?: unknown;
+  };
+  if (errObj.response) return false;
+  if (errObj.isAxiosError) return true;
+
+  const code = typeof errObj.code === 'string' ? errObj.code.toUpperCase() : '';
+  if (
+    code === 'ECONNABORTED' ||
+    code === 'ERR_NETWORK' ||
+    code === 'ECONNREFUSED' ||
+    code === 'ETIMEDOUT' ||
+    code === 'ENOTFOUND' ||
+    code === 'EAI_AGAIN' ||
+    code === 'EHOSTUNREACH'
+  ) {
+    return true;
+  }
+
+  if (errObj.request) return true;
+  const message = typeof errObj.message === 'string' ? errObj.message : '';
+  return /network|timeout|exceeded|aborted|econn|etimedout/i.test(message);
+}
+
+export function resetRuntimeApiConfigForTests(): void {
+  runtimePlatformOs = 'unknown';
+  hasExplicitApiBaseUrl = Boolean(process.env.EXPO_PUBLIC_API_BASE_URL);
+  ragBackendCircuitOpenUntil = 0;
+  apiClient.defaults.baseURL = resolveDefaultApiBaseUrl();
 }
 
 export function setActiveWardHeader(wardCode: string): void {
@@ -90,14 +209,18 @@ export function setOnUnauthorizedHandler(handler: (() => void) | null): void {
   unauthorizedHandler = handler;
 }
 
-// Request Interceptor: attach Authorization Bearer token & X-Ward-Code
+// Request Interceptor: attach Authorization Bearer token (skip protected lookup on public RAG routes) & X-Ward-Code
 apiClient.interceptors.request.use(async (config) => {
   config.headers = config.headers || {};
   config.headers['X-Ward-Code'] = currentWardCode;
 
-  const token = await getOfficerToken();
-  if (token && !isJwtExpired(token)) {
-    config.headers['Authorization'] = `Bearer ${token}`;
+  const reqUrl = String(config.url || '');
+  const isPublicCitizenEndpoint = reqUrl.includes('/rag/ask') || reqUrl.includes('/procedures');
+  if (!isPublicCitizenEndpoint) {
+    const token = await getOfficerToken();
+    if (token && !isJwtExpired(token)) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+    }
   }
   return config;
 });
@@ -141,7 +264,13 @@ export async function fetchProcedures(params?: {
   category?: string;
   keyword?: string;
 }): Promise<ProcedureItem[]> {
-  const resp = await apiClient.get<ApiResponse<ProcedureItem[]>>('/procedures', { params });
+  if (isUnreachableIosDefaultUrl()) {
+    throw new Error('IOS_UNREACHABLE_DEFAULT_HOST');
+  }
+  const resp = await apiClient.get<ApiResponse<ProcedureItem[]>>('/procedures', {
+    params,
+    timeout: PROCEDURES_SYNC_TIMEOUT_MS,
+  });
   const list = unwrapData(resp.data);
   return Array.isArray(list) ? list : [];
 }
@@ -153,12 +282,33 @@ export async function fetchProcedureDetail(procedureCode: string): Promise<Proce
   return unwrapData(resp.data);
 }
 
-export async function askLegalRag(request: RagAskRequest): Promise<RagAskResponse> {
-  const resp = await apiClient.post<ApiResponse<RagAskResponse>>('/rag/ask', {
-    ...request,
-    threshold: request.threshold ?? 0.78,
-  });
-  return unwrapData(resp.data);
+export async function askLegalRag(
+  request: RagAskRequest,
+  options?: { bypassCircuit?: boolean; timeoutMs?: number }
+): Promise<RagAskResponse> {
+  if (!options?.bypassCircuit && shouldSkipRagOnlineCall()) {
+    throw new Error('RAG_BACKEND_CIRCUIT_OPEN');
+  }
+  const timeout =
+    options?.timeoutMs ??
+    (hasExplicitApiBaseUrl ? RAG_EXPLICIT_TIMEOUT_MS : RAG_AUTO_LAN_TIMEOUT_MS);
+  try {
+    const resp = await apiClient.post<ApiResponse<RagAskResponse>>(
+      '/rag/ask',
+      {
+        ...request,
+        threshold: request.threshold ?? 0.78,
+      },
+      { timeout }
+    );
+    markRagBackendSuccess();
+    return unwrapData(resp.data);
+  } catch (error) {
+    if (isNetworkOrTimeoutError(error)) {
+      markRagBackendNetworkFailure();
+    }
+    throw error;
+  }
 }
 
 // ============================================================================
