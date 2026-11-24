@@ -81,10 +81,11 @@ services:
     networks:
       - smartward-internal
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "mc", "ready", "local"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 10s
 
   # =====================================================================
   # 4. Local AI Sidecar Microservice (FastAPI + PhoBERT INT8)
@@ -103,7 +104,8 @@ services:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 15s
       timeout: 5s
-      retries: 3
+      retries: 5
+      start_period: 30s
 
   # =====================================================================
   # 6. Spring Boot 3.3 Backend API
@@ -161,6 +163,7 @@ services:
       interval: 15s
       timeout: 5s
       retries: 5
+      start_period: 30s
 
   # =====================================================================
   # 7. React 18 + Vite Frontend PWA (Nginx Alpine)
