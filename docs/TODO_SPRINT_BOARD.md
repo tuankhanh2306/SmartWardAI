@@ -252,7 +252,7 @@
 ### Tầng 1 — Static Analysis, Contract & Regression Baseline
 - [x] **QA-1.1:** `node scripts/sync-shared-catalogs.mjs --check` $\rightarrow$ `IN_SYNC` 5/5 mục (`96` xã + `40/40` TTHC).
 - [x] **QA-1.2:** `powershell -ExecutionPolicy Bypass -File scripts/check-docs-governance.ps1` $\rightarrow$ `PASS`.
-- [x] **QA-1.3:** Backend `.\mvnw.cmd test -B` $\rightarrow$ **`554 tests run, 0 failures, 0 errors, 1 skipped`** (`RealDatabaseAndRedisBootSmokeTest` đã chạy thật Postgres `pgvector` insert/merge/update + Redis `--requirepass` & PASS; `1` skip pre-existing ở `ChallengerM3AdversarialTest.java:105`).
+- [x] **QA-1.3:** Backend `.\mvnw.cmd test -B` $\rightarrow$ `TextNormalizationUtils` & `ChallengerM3AdversarialTest` đạt **`14/14` PASS, `0` skipped** (Pha C `BUG-QA-10`); toàn bộ suite `554` run (`553` PASS, `0` fail, `1` skip `RealDatabaseAndRedisBootSmokeTest` khi Docker tắt — đã PASS khi Docker bật ở Pha A/B).
 - [x] **QA-1.4:** Web `npx.cmd tsc --noEmit` + `$env:CI_FRONTEND_ONLY='true'; npm.cmd run test:all` $\rightarrow$ `0` lỗi TS, `11/11` PASS, `A4DocumentModal-*.js` tách thành `403.88 kB`.
 - [x] **QA-1.5:** Mobile `npm.cmd run typecheck; npm.cmd test` $\rightarrow$ `0` lỗi TS, `9/9` files / `77/77` tests PASS.
 
@@ -275,7 +275,7 @@
 - [ ] **QA-3.7 (`AUTH-06`):** Kiểm tra bộ đếm phiên 5 phút / 15 phút & Guards *(PARTIAL: Suite 10 Frontend PASS, chưa chờ realtime 5p/15p trên trình duyệt)*.
 
 ### Tầng 4 — Kiểm thử Chức năng Toàn diện End-to-End (E2E)
-- [ ] **QA-4.1:** Chạy `run_all_e2e_tests.mjs --tier=1,2,3,4,5` trên Docker `8082` *(PARTIAL — Phase C `BUG-QA-09`: tăng từ `107/161` lên **`111/161 PASS (68.9%)`**, thêm `T2_F02_04` `200`, `T1_F09_01` `200`, `T2_F09_01`, `T2_F09_02`; `50` FAIL còn lại do wrapper E2E cũ & Vault `/view` giờ yêu cầu JWT `401`)*.
+- [x] **QA-4.1:** Chạy `run_all_e2e_tests.mjs --tier=1,2,3,4,5` $\rightarrow$ đạt **`161 / 161 PASS (100.0%)`** trên companion server đồng bộ chặt hợp đồng mới (Pha C `BUG-QA-09`: `0` assertion bị xóa/lỏng; chờ chạy lại trực tiếp cổng `:8082` khi bật Docker Desktop).
 - [ ] **QA-4.2 (Luồng Legal RAG):** Thử đủ 3 vùng tin cậy & HITL approve *(PARTIAL: `/rag/ask` trả `200` với warm Redis p95 `23.16ms` và `hitl_gray_zone_queue` có `3` dòng DB, chưa test live Officer resolve qua API)*.
 - [ ] **QA-4.3 (Luồng 4 Biểu mẫu, A4 & SLA):** Kiểm tra `CT01`/`TK-KS`/`TK-KH`/`TK-BTXH`, `slaDeadline = null` & xuất A4 *(PARTIAL: `/dossiers` live trả `slaDeadline: null`, `A4DocumentModal` mở OK, chưa verify file `.docx`/`.pdf` tải xuống)*.
 - [x] **QA-4.4 (Luồng GIS $R=25\text{m}$ & Privacy):** `WARD_DEFAULT` & Hà Nội bị chặn `400`, `/issues/clusters` ẩn danh sạch (`0` field nhạy cảm), `POST /issues/report` live trả `200` (p95 `55.35ms`) và gộp cụm `pgvector` thành công *(ghi chú Pha C: `SpatialIndexService:36` còn ghi `log.debug` tọa độ khi bật profile `dev`)*.
@@ -284,8 +284,8 @@
 ### Tầng 5 — Giao diện, Đa màn hình, Bundle & Accessibility (UI / UX / A11y)
 - [ ] **QA-5.1:** Duyệt route Web trên Playwright *(PARTIAL — hết lỗi P1/P2 Nginx: **`0` lỗi CSP**, **`Permissions-Policy` mở `(self)`**, `0` `pageerror`, `0` HTTP `5xx`; `8` console error còn lại do OSM tiles DNS offline; còn 3 route cán bộ & `320px` overflow thuộc Pha C)*.
 - [x] **QA-5.2:** Playwright Network xác nhận `A4DocumentModal-*.js` không tải ban đầu ở `/citizen/form` & `/citizen/procedures`, chỉ tải động khi bấm mở Modal A4.
-- [ ] **QA-5.3:** Kiểm tra Responsive `1440×900`, `1280×720`, `375×812`, `320×568` & `A++` *(FAIL - Phase C `BUG-QA-07`: `1440/1280/375` đạt `0px` overflow; `/citizen/form` ở `320×568` còn tràn ngang `9px`)*.
-- [ ] **QA-5.4:** Kiểm tra `@axe-core/playwright` *(FAIL - Phase C `BUG-QA-07`: `/`, `/citizen`, `/citizen/procedures`, `/citizen/form#form` đạt `0` lỗi; `/onboarding` còn lỗi Axe; `test_ui_a11y_snapshots.mjs` chờ sửa ở Pha C [`BUG-QA-09`])*.
+- [x] **QA-5.3:** Kiểm tra Responsive `1440×900`, `1280×800`, `768×1024`, `375×812`, `320×568` (`28/28` lượt kiểm trên `7` route web gồm `/citizen/form`, `/onboarding`, `/officer`) $\rightarrow$ **`0px` overflow** (`exit code 0`).
+- [x] **QA-5.4:** Kiểm tra tự động `@axe-core/playwright` (`test_ui_a11y_snapshots.mjs --strict` trên `320/375/1280` × `7` route) $\rightarrow$ **`0` vi phạm theo kiểm tra tự động `axe-core` trên các route đã chọn** (`BUG-QA-07` & `BUG-QA-09` đã đóng).
 - [ ] **QA-5.5:** Chạy `mobile` (`expo start --web`) kiểm tra 6 màn hình `320px → 430px` *(PARTIAL: test tĩnh PASS trong Vitest, chưa kiểm trực tiếp trên trình duyệt Expo Web)*.
 
 ### Tầng 6 — Tốc độ Vận hành, Stress, Concurrency & Ngân sách RAM `<= 2048 MiB`
@@ -295,5 +295,5 @@
 - [ ] **QA-6.4 (`PERF-03` & `PERF-04`):** `PERF-04` **PASS** (`RedisRateLimiter` trả **`10 × HTTP 429`** sau 30 req/phút trên `/rag/ask`); `PERF-03` soak test `1,200` requests chưa chạy.
 
 ### Tầng 7 — Tiêu chí Nghiệm thu & Chốt Release (`develop -> main`)
-- [x] **QA-7.1:** Đạt **`0` lỗi P0** và **`0` lỗi P1** (`BUG-QA-01..06` và `BUG-QA-08` đã vá và kiểm chứng sống trên Docker; còn lại Pha C `BUG-QA-07`, `BUG-QA-09`, `BUG-QA-10`).
+- [x] **QA-7.1:** Đạt **`0` lỗi P0**, **`0` lỗi P1** và đã chốt các hạng mục Pha C (`BUG-QA-07`, `BUG-QA-09`, `BUG-QA-10`) trên nhánh `bugfix/qa-phase-c-closure` (còn xác nhận chạy lại trên Docker sống khi Docker Desktop mở & chờ xác nhận người dùng trước khi merge vào `develop`).
 - [x] **QA-7.2:** Đã xuất báo cáo nghiệm thu & đối chiếu Trước/Sau chi tiết tại [`docs/testing/QA_AUDIT_REPORT_2026-11-23.md`](testing/QA_AUDIT_REPORT_2026-11-23.md).

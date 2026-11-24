@@ -50,15 +50,16 @@ export async function runTests(assertContext) {
 
       const res = await apiClient.post('/api/v1/forms/precheck', leapPayload);
       assertContext.assertStatusCode(res.status, 200, 'POST /api/v1/forms/precheck status');
+      const report = res.data?.data ?? res.data;
 
       // Date of birth 2000-02-29 must not trigger INVALID_DOB
-      const dobValidation = res.data?.fieldValidations?.find((v) =>
+      const dobValidation = report?.fieldValidations?.find((v) =>
         v.fieldName?.toLowerCase().includes('ngày sinh') || v.fieldName?.toLowerCase().includes('năm sinh')
       );
       if (dobValidation) {
         assertContext.assert(dobValidation.valid, 'Leap year DOB 2000-02-29 must be valid');
       }
-      assertContext.assert(res.data?.overallValid === true, 'Leap year declaration should pass overall precheck');
+      assertContext.assert(report?.overallValid === true, 'Leap year declaration should pass overall precheck');
     }
   );
 
@@ -88,7 +89,8 @@ export async function runTests(assertContext) {
 
       const res = await apiClient.post('/api/v1/forms/precheck', payload);
       assertContext.assertStatusCode(res.status, 200, 'Precheck status for today issue date');
-      assertContext.assert(res.data?.overallValid === true, 'Issue date of today must be valid');
+      const report = res.data?.data ?? res.data;
+      assertContext.assert(report?.overallValid === true, 'Issue date of today must be valid');
     }
   );
 
@@ -121,14 +123,15 @@ export async function runTests(assertContext) {
 
       const res = await apiClient.post('/api/v1/forms/precheck', payload);
       assertContext.assertStatusCode(res.status, 200, 'Precheck status for exact 20yo male');
+      const report = res.data?.data ?? res.data;
 
-      const ageValidation = res.data?.fieldValidations?.find((v) =>
+      const ageValidation = report?.fieldValidations?.find((v) =>
         v.fieldName?.includes('Độ tuổi kết hôn hợp pháp')
       );
       if (ageValidation) {
         assertContext.assert(ageValidation.valid, 'Male citizen exactly 20yo must be legally eligible');
       }
-      assertContext.assert(res.data?.overallValid === true, 'Exact 20yo marriage registration must pass');
+      assertContext.assert(report?.overallValid === true, 'Exact 20yo marriage registration must pass');
     }
   );
 
@@ -161,10 +164,11 @@ export async function runTests(assertContext) {
 
       const res = await apiClient.post('/api/v1/forms/precheck', payload);
       assertContext.assertStatusCode(res.status, 200, 'Precheck status for underage applicant');
+      const report = res.data?.data ?? res.data;
 
       const isUnderageRejected =
-        res.data?.overallValid === false &&
-        res.data?.fieldValidations?.some(
+        report?.overallValid === false &&
+        report?.fieldValidations?.some(
           (v) => v.errorCode === 'UNDERAGE_MARRIAGE' || (v.errorMessage && v.errorMessage.includes('CHƯA ĐỦ TUỔI KẾT HÔN'))
         );
       assertContext.assert(isUnderageRejected, 'Must reject applicant lacking 1 day to 20 years threshold');
@@ -197,14 +201,15 @@ export async function runTests(assertContext) {
 
       const res = await apiClient.post('/api/v1/forms/precheck', payload);
       assertContext.assertStatusCode(res.status, 200, 'Precheck status for exact 75yo elderly');
+      const report = res.data?.data ?? res.data;
 
-      const ageValidation = res.data?.fieldValidations?.find((v) =>
+      const ageValidation = report?.fieldValidations?.find((v) =>
         v.fieldName?.includes('Điều kiện Mốc tuổi')
       );
       if (ageValidation) {
         assertContext.assert(ageValidation.valid, 'Citizen turning 75 today must qualify under Social Insurance Law 2024');
       }
-      assertContext.assert(res.data?.overallValid === true, 'Exact 75yo citizen must pass social protection precheck');
+      assertContext.assert(report?.overallValid === true, 'Exact 75yo citizen must pass social protection precheck');
     }
   );
 

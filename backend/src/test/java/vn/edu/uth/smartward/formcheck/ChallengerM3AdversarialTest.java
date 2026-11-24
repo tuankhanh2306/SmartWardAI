@@ -2,7 +2,6 @@ package vn.edu.uth.smartward.formcheck;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -86,23 +85,22 @@ class ChallengerM3AdversarialTest {
         }
 
         @Test
-        @DisplayName("BUG REPRODUCTION: Year Substring Pollutes Day Parsing in Verbal Date")
+        @DisplayName("Regression Guard: Year Substring No Longer Pollutes Day Parsing in Verbal Date")
         void testReproduceBug_verbalDateYearSubstringPollution() {
             // "ba mươi tháng tư năm hai nghìn không trăm hai mươi lăm" (April 30, 2025)
-            // Expectation: 2025-04-30
-            // Actual Bug: Day matches "hai mươi lăm" inside year phrase 2025 ("hai nghìn không trăm hai mươi lăm"),
-            // resulting in 2025-04-25 instead of 2025-04-30!
+            // Previously regressed to 2025-04-25 when "hai mươi lăm" in the year phrase matched day parsing.
             String rawDate = "ba mươi tháng tư năm hai nghìn không trăm hai mươi lăm";
             String actual = TextNormalizationUtils.parseVerbalVietnameseDate(rawDate);
+            assertEquals("2025-04-30", actual,
+                    "Partitioned day/month/year clauses must parse statutory date 2025-04-30 cleanly");
 
-            // Empirically asserts the bug:
-            assertEquals("2025-04-25", actual,
-                    "Empirical proof of bug: day is prematurely parsed as 25 due to year phrase containing 'hai mươi lăm'");
-            assertNotEquals("2025-04-30", actual,
-                    "Flawed logic fails to produce statutory date 2025-04-30");
+            // Guard "tháng năm" (May) against being mistaken for the year delimiter "năm"
+            String may2025 = TextNormalizationUtils.parseVerbalVietnameseDate(
+                    "ngày mười lăm tháng năm năm hai nghìn không trăm hai mươi lăm");
+            assertEquals("2025-05-15", may2025,
+                    "'tháng năm' must resolve to month 05 while trailing 'năm 2025' resolves to year 2025");
         }
 
-        @Disabled("Target statutory requirement: Will fail until TextNormalizationUtils partitions day and year clauses before regex matching")
         @Test
         @DisplayName("Target Fix Oracle: Statutory Date April 30, 2025")
         void testStatutoryTarget_april30_2025() {

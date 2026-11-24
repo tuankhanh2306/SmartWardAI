@@ -2096,11 +2096,11 @@ export const FormAndIssueReporting: React.FC = () => {
                   </div>
 
                   {/* Input Method Switcher: PC Upload vs Mobile Camera vs Manual */}
-                  <div className="inline-flex shrink-0 p-1 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] self-start sm:self-auto">
+                  <div className="flex flex-wrap sm:inline-flex sm:flex-nowrap max-w-full p-1 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] self-start sm:self-auto gap-1 sm:gap-0">
                     <button
                       type="button"
                       onClick={() => setInputMode('upload')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
+                      className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
                         inputMode === 'upload'
                           ? 'bg-[#B90E23] text-white shadow-xs'
                           : 'text-[#334155] hover:text-[#750715]'
@@ -2113,7 +2113,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setInputMode('camera')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
+                      className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
                         inputMode === 'camera'
                           ? 'bg-[#B90E23] text-white shadow-xs'
                           : 'text-[#334155] hover:text-[#750715]'
@@ -2129,7 +2129,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         setInputMode('manual');
                         handleRemoveFile();
                       }}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
+                      className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
                         inputMode === 'manual'
                           ? 'bg-[#B90E23] text-white shadow-xs'
                           : 'text-[#334155] hover:text-[#750715]'
