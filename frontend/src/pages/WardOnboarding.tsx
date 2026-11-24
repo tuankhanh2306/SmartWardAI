@@ -76,7 +76,11 @@ export const WardOnboarding: React.FC = () => {
         iconAnchor: [20, 20],
       });
 
-      const marker = L.marker([selected.lat, selected.lon], { icon: civicIcon })
+      const marker = L.marker([selected.lat, selected.lon], {
+        icon: civicIcon,
+        title: `Vị trí trụ sở UBND ${selected.name}`,
+        alt: `Vị trí trụ sở UBND ${selected.name}`,
+      })
         .addTo(map)
         .bindPopup(
           `<div class="p-2 text-xs font-sans">
@@ -85,6 +89,11 @@ export const WardOnboarding: React.FC = () => {
             <span class="text-[11px] font-bold text-[#00687A]">📞 Hotline: ${selected.phoneNumber}</span>
           </div>`
         );
+
+      const markerEl = marker.getElement();
+      if (markerEl) {
+        markerEl.setAttribute('aria-label', `Vị trí trụ sở UBND ${selected.name}`);
+      }
 
       mapInstanceRef.current = map;
       markerRef.current = marker;
@@ -121,6 +130,11 @@ export const WardOnboarding: React.FC = () => {
 
       if (markerRef.current) {
         markerRef.current.setLatLng([selected.lat, selected.lon]);
+        const updatedEl = markerRef.current.getElement();
+        if (updatedEl) {
+          updatedEl.setAttribute('aria-label', `Vị trí trụ sở UBND ${selected.name}`);
+          updatedEl.setAttribute('title', `Vị trí trụ sở UBND ${selected.name}`);
+        }
         markerRef.current.setPopupContent(
           `<div class="p-2 text-xs font-sans">
             <b class="text-[#00236F] text-sm block mb-1">UBND ${selected.name}</b>
@@ -162,7 +176,7 @@ export const WardOnboarding: React.FC = () => {
             <h1 className="text-lg sm:text-xl font-extrabold text-[#0F2942] tracking-tight">
               Chọn Xã / Phường / Đặc Khu (Tỉnh An Giang)
             </h1>
-            <p className="mt-0.5 text-xs text-[#64748B]">
+            <p className="mt-0.5 text-xs text-[#475569]">
               Kết nối 96 đơn vị hành chính cấp cơ sở (14 Phường • 79 Xã • 3 Đặc khu) với Trợ lý Một cửa và Bản đồ sự cố.
             </p>
           </div>
@@ -185,12 +199,13 @@ export const WardOnboarding: React.FC = () => {
         <div className="lg:col-span-5 flex flex-col bg-white rounded-2xl border border-[#CBD5E1] shadow-2xs p-4 gap-3.5 max-h-[680px]">
           {/* Search Input Bar */}
           <div className="relative flex items-center">
-            <Search className="w-4 h-4 text-[#64748B] absolute left-3.5 pointer-events-none" />
+            <Search className="w-4 h-4 text-[#475569] absolute left-3.5 pointer-events-none" />
             <input
               type="text"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
               placeholder="Tìm xã, phường, đặc khu (VD: Long Xuyên, Châu Đốc, Phú Quốc...)"
+              aria-label="Tìm xã, phường, đặc khu tỉnh An Giang"
               className="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] focus:outline-hidden focus:border-[#0F2942] focus:bg-white text-[#0F172A] transition-all"
             />
           </div>
@@ -213,9 +228,14 @@ export const WardOnboarding: React.FC = () => {
           </div>
 
           {/* Communes List (Scrollable) */}
-          <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+          <div
+            tabIndex={0}
+            role="region"
+            aria-label="Danh sách đơn vị hành chính tỉnh An Giang"
+            className="flex-1 overflow-y-auto space-y-2 pr-1 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#0F2942] rounded-xl"
+          >
             {filteredWards.length === 0 ? (
-              <div className="py-12 text-center text-xs text-[#64748B]">
+              <div className="py-12 text-center text-xs text-[#475569]">
                 Không tìm thấy xã/phường phù hợp với từ khóa "{keyword}".
               </div>
             ) : (
@@ -243,7 +263,7 @@ export const WardOnboarding: React.FC = () => {
                         <span className="text-xs font-bold text-[#0F172A] tracking-tight">
                           {ward.name}
                         </span>
-                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[#64748B]">
+                        <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[#475569]">
                           <span>{ward.area}</span>
                           <span>•</span>
                           <span className="font-medium text-[#0F766E]">{ward.type}</span>
@@ -275,10 +295,10 @@ export const WardOnboarding: React.FC = () => {
             <div ref={mapContainerRef} className="w-full h-full" />
 
             {/* Floating Top Badge on Map */}
-            <div className="absolute top-3 left-3 z-20 px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border border-[#CBD5E1] shadow-sm flex items-center gap-2 text-xs">
-              <span className="w-2 h-2 rounded-full bg-[#16A34A]" />
+            <div className="absolute top-3 left-3 z-20 max-w-[calc(100%-24px)] px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border border-[#CBD5E1] shadow-sm flex flex-wrap items-center gap-2 text-xs">
+              <span className="w-2 h-2 rounded-full bg-[#15803D] shrink-0" />
               <span className="font-bold text-[#0F2942]">UBND {selected.name}</span>
-              <span className="text-[#64748B] font-mono">({selected.lat.toFixed(6)}, {selected.lon.toFixed(6)})</span>
+              <span className="text-[#475569] font-mono">({selected.lat.toFixed(6)}, {selected.lon.toFixed(6)})</span>
             </div>
           </div>
 
@@ -314,7 +334,7 @@ export const WardOnboarding: React.FC = () => {
               <div className="flex items-start gap-2.5 text-xs text-[#0F172A]">
                 <MapPin className="w-4 h-4 text-[#0F2942] shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold block text-[#64748B] text-[11px]">Địa chỉ trụ sở:</span>
+                  <span className="font-bold block text-[#475569] text-[11px]">Địa chỉ trụ sở:</span>
                   <span>{selected.officeAddress}</span>
                 </div>
               </div>
@@ -322,7 +342,7 @@ export const WardOnboarding: React.FC = () => {
               <div className="flex items-start gap-2.5 text-xs text-[#0F172A]">
                 <Phone className="w-4 h-4 text-[#0F766E] shrink-0 mt-0.5" />
                 <div>
-                  <span className="font-bold block text-[#64748B] text-[11px]">Hotline Một Cửa:</span>
+                  <span className="font-bold block text-[#475569] text-[11px]">Hotline Một Cửa:</span>
                   <span className="font-bold text-[#0F766E]">{selected.phoneNumber}</span>
                 </div>
               </div>
@@ -331,15 +351,15 @@ export const WardOnboarding: React.FC = () => {
             {/* Key Metrics Row */}
             <div className="grid grid-cols-3 gap-3 text-center">
               <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                <span className="text-[11px] text-[#64748B] block">Đúng hạn</span>
-                <span className="text-base font-extrabold text-[#16A34A]">{selected.solvedRate}%</span>
+                <span className="text-[11px] text-[#475569] block">Đúng hạn</span>
+                <span className="text-base font-extrabold text-[#15803D]">{selected.solvedRate}%</span>
               </div>
               <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                <span className="text-[11px] text-[#64748B] block">Sự cố mở</span>
+                <span className="text-[11px] text-[#475569] block">Sự cố mở</span>
                 <span className="text-base font-extrabold text-[#0F2942]">{selected.totalOpenIncidents} ca</span>
               </div>
               <div className="p-2.5 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0]">
-                <span className="text-[11px] text-[#64748B] block">Giờ làm việc</span>
+                <span className="text-[11px] text-[#475569] block">Giờ làm việc</span>
                 <span className="text-xs font-bold text-[#0F172A] mt-1 block">07:00 – 17:00</span>
               </div>
             </div>

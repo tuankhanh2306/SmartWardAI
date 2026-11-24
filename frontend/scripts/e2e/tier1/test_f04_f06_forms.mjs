@@ -29,10 +29,11 @@ export async function runTests(assertContext) {
       const res = await apiClient.post('/api/v1/forms/precheck', payload);
       assertContext.assertStatusCode(res.status, 200, 'POST /api/v1/forms/precheck status');
 
+      const report = res.data?.data ?? res.data;
       const isMissingHostFlagged =
-        res.data?.overallValid === false ||
-        (Array.isArray(res.data?.warnings) &&
-          res.data.warnings.some((w) => w.includes('thuê') || w.includes('chủ hộ')));
+        report?.overallValid === false ||
+        (Array.isArray(report?.warnings) &&
+          report.warnings.some((w) => w.includes('thuê') || w.includes('chủ hộ')));
       assertContext.assert(isMissingHostFlagged, 'Must detect missing host consent for rented residence');
     }
   );
@@ -45,7 +46,8 @@ export async function runTests(assertContext) {
       const payload = TK_KS_FIXTURES.VALID_STANDARD;
       const res = await apiClient.post('/api/v1/forms/precheck', payload);
       assertContext.assertStatusCode(res.status, 200, 'POST /api/v1/forms/precheck status');
-      assertContext.assert(res.data?.overallValid === true, 'TK-KS should pass precheck when details are complete');
+      const report = res.data?.data ?? res.data;
+      assertContext.assert(report?.overallValid === true, 'TK-KS should pass precheck when details are complete');
     }
   );
 
@@ -57,7 +59,8 @@ export async function runTests(assertContext) {
       const payload = TK_KH_FIXTURES.VALID_MARRIAGE_REGISTRATION;
       const res = await apiClient.post('/api/v1/forms/precheck', payload);
       assertContext.assertStatusCode(res.status, 200, 'POST /api/v1/forms/precheck status');
-      assertContext.assert(res.data?.overallValid === true, 'Marriage registration should pass when ages >= statutory threshold');
+      const report = res.data?.data ?? res.data;
+      assertContext.assert(report?.overallValid === true, 'Marriage registration should pass when ages >= statutory threshold');
     }
   );
 
@@ -69,7 +72,8 @@ export async function runTests(assertContext) {
       const payload = TK_KH_FIXTURES.VALID_MARITAL_STATUS_CERTIFICATE_SPECIFIC;
       const res = await apiClient.post('/api/v1/forms/precheck', payload);
       assertContext.assertStatusCode(res.status, 200, 'POST /api/v1/forms/precheck status');
-      assertContext.assert(res.data?.overallValid === true, 'Specific marital status certificate purpose should pass');
+      const report = res.data?.data ?? res.data;
+      assertContext.assert(report?.overallValid === true, 'Specific marital status certificate purpose should pass');
     }
   );
 
@@ -81,7 +85,8 @@ export async function runTests(assertContext) {
       const payload = TK_BTXH_FIXTURES.VALID_ELDERLY_76_YEARS;
       const res = await apiClient.post('/api/v1/forms/precheck', payload);
       assertContext.assertStatusCode(res.status, 200, 'POST /api/v1/forms/precheck status');
-      assertContext.assert(res.data?.overallValid === true, 'Elderly >= 75 years must qualify for social protection');
+      const report = res.data?.data ?? res.data;
+      assertContext.assert(report?.overallValid === true, 'Elderly >= 75 years must qualify for social protection');
     }
   );
 

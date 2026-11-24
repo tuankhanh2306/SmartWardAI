@@ -20,6 +20,7 @@ const frontendDir = path.resolve(currentDir, '../..');
 const rootDir = path.resolve(frontendDir, '..');
 
 const VIEWPORTS = [
+  { name: '320', width: 320, height: 568 },
   { name: '375', width: 375, height: 812 },
   { name: '768', width: 768, height: 1024 },
   { name: '1280', width: 1280, height: 800 },
@@ -89,10 +90,77 @@ async function enterCitizenRole(page, baseUrl) {
   await page.waitForURL('**/citizen', { timeout: 10000 });
 }
 
+async function installOfficerPreviewRoutes(page) {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+  const payload = Buffer.from(
+    JSON.stringify({
+      sub: 'CC-AG-8942',
+      role: 'OFFICER',
+      wardCode: 'AG_P_LONGXUYEN',
+      exp: Math.floor(Date.now() / 1000) + 28800,
+    })
+  ).toString('base64url');
+  const previewJwt = `${header}.${payload}.preview_signature`;
+
+  await page.route('**/api/v1/**', async (route) => {
+    const reqUrl = route.request().url();
+    if (reqUrl.includes('/auth/officer/login') || reqUrl.includes('/officer/login')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          message: 'OK',
+          data: {
+            token: previewJwt,
+            badgeId: 'CC-AG-8942',
+            fullName: 'Trần Quốc Bảo — Cán bộ Tư pháp - Hộ tịch',
+            wardCode: 'AG_P_LONGXUYEN',
+            role: 'OFFICER',
+            expiresAtEpochSec: Math.floor(Date.now() / 1000) + 28800,
+            mustChangePin: false,
+          },
+        }),
+      });
+    }
+    if (reqUrl.includes('/auth/officer/me') || reqUrl.includes('/officer/me')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          data: {
+            badgeId: 'CC-AG-8942',
+            fullName: 'Trần Quốc Bảo — Cán bộ Tư pháp - Hộ tịch',
+            wardCode: 'AG_P_LONGXUYEN',
+            role: 'OFFICER',
+            mustChangePin: false,
+          },
+        }),
+      });
+    }
+    if (reqUrl.includes('/auth/officer/logout')) {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ success: true, data: { revoked: true } }),
+      });
+    }
+    return route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({ success: true, data: [] }),
+    });
+  });
+}
+
 async function enterOfficerRole(page, baseUrl) {
+  await installOfficerPreviewRoutes(page);
   await resetSession(page, baseUrl);
-  await page.getByRole('button', { name: /Đăng nhập với tư cách Cán bộ/i }).click();
   await page.getByRole('button', { name: /Đăng nhập Cán bộ/i }).click();
+  await page.locator('input[type="text"]').first().fill('CC-AG-8942');
+  await page.locator('input[type="password"]').first().fill('SmartWardQa2026!');
+  await page.getByRole('button', { name: /Đăng nhập Hệ thống/i }).click();
   await page.waitForURL('**/officer/**', { timeout: 15000 });
 }
 
@@ -150,7 +218,7 @@ async function auditScreen(page, AxeBuilder, config, baseUrl, outDir) {
     await page.screenshot({ path: screenshotPath, fullPage: true });
 
     let axeSummary = null;
-    if (vp.name === '375' || vp.name === '1280') {
+    if (vp.name === '320' || vp.name === '375' || vp.name === '1280') {
       const axeResults = await new AxeBuilder({ page })
         .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
         .analyze();
@@ -202,6 +270,7 @@ async function main() {
 
     const targets = [
       { name: 'gateway', path: '/', role: 'public' },
+      { name: 'onboarding', path: '/onboarding', role: 'public' },
       {
         name: 'citizen-chat',
         path: '/citizen',
@@ -215,6 +284,7 @@ async function main() {
           }
         },
       },
+      { name: 'citizen-procedures', path: '/citizen/procedures', role: 'citizen' },
       { name: 'citizen-form', path: '/citizen/form#form', role: 'citizen' },
       { name: 'citizen-incident', path: '/citizen/form#incident', role: 'citizen' },
       { name: 'officer-dashboard', path: '/officer', role: 'officer', setup: enterOfficerRole },
@@ -227,6 +297,7 @@ async function main() {
     for (const target of targets) {
       reports.push(await auditScreen(page, AxeBuilder, target, baseUrl, outDir));
     }
+    await page.unroute('**/api/v1/**').catch(() => {});
 
     const reportPath = path.join(outDir, 'audit-report.json');
     fs.writeFileSync(reportPath, JSON.stringify({ generatedAt: new Date().toISOString(), baseUrl, reports }, null, 2));

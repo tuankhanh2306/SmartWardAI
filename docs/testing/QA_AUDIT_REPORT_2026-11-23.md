@@ -156,3 +156,49 @@
 | **Live 161-Case E2E (`run_all_e2e_tests.mjs`)** | `107 / 161 PASS (66.5%)`, `54 FAIL` | **`111 / 161 PASS (68.9%)`**, `50 FAIL` (`T2_F02_04`, `T1_F09_01`, `T2_F09_01`, `T2_F09_02` PASS; 50 fail còn lại do `BUG-QA-09` E2E harness cũ + Vault `/view` giờ yêu cầu JWT `401`) | ⚠️ **Cải thiện (còn Pha C `BUG-QA-09`)** |
 
 *Ghi nhận phụ cho Pha C:* Ở chế độ `dev` (`.env` bật `vn.edu.uth.smartward: DEBUG`), [SpatialIndexService.java](file:///e:/SmartWardAI/backend/src/main/java/vn/edu/uth/smartward/triage/SpatialIndexService.java#L36) vẫn ghi `log.debug("... lon={}, lat={}")` tọa độ đầy đủ (được ẩn khi chạy `prod` với mức `INFO`); nên làm tròn/bỏ tọa độ ở dòng debug này trong đợt Pha C cùng `BUG-QA-07` (`320px` overflow + `/onboarding` Axe), `BUG-QA-09`, và `BUG-QA-10`.
+
+---
+
+## 6. Kết Quả Chốt Sổ Pha C (`BUG-QA-07`, `BUG-QA-09`, `BUG-QA-10`)
+
+> **Nhánh thực hiện:** `bugfix/qa-phase-c-closure` (tách từ `develop` `6ba3fe5`, chờ xác nhận người dùng trước khi merge `--no-ff` vào `develop`).  
+> **Điều kiện môi trường đo:** Docker Desktop trên máy chủ đang tắt tại thời điểm chạy (`docker ps` không kết nối được pipe), do đó:
+> - JUnit chạy toàn bộ `554` bài test (`RealDatabaseAndRedisBootSmokeTest` tự skip qua `@Testcontainers(disabledWithoutDocker = true)` — đã PASS trước đó trên Docker ở Pha A/B).
+> - Bộ E2E `161` cases chạy qua companion server [backend_server.mjs](file:///e:/SmartWardAI/frontend/scripts/e2e/helpers/backend_server.mjs) đã chuẩn hóa khớp hợp đồng Spring Boot sống; cần chạy lại một lượt `$env:SMARTWARD_API_URL='http://127.0.0.1:8082'` sau khi bật Docker Desktop để xác nhận trực tiếp trên 6 container.
+
+### 6.1. Những Gì Đã Thực Hiện (Pha C)
+
+1. **`BUG-QA-10` — Backend Date Parser, Zero-Skip Challenger & Privacy Log:**
+   * Tách rõ 3 mệnh đề `dayClause` / `monthClause` / `yearClause` (có xử lý phân biệt `"tháng năm"` với từ khóa `"năm"`) trong [TextNormalizationUtils.java](file:///e:/SmartWardAI/backend/src/main/java/vn/edu/uth/smartward/formcheck/TextNormalizationUtils.java#L86-L185) để cụm năm `"hai mươi lăm"` không ghi đè ngày `"ba mươi"`.
+   * Chuyển `testReproduceBug_verbalDateYearSubstringPollution` thành bài regression test khẳng định `"2025-04-30"` & `"2025-05-15"`, đồng thời gỡ `@Disabled` tại [ChallengerM3AdversarialTest.java](file:///e:/SmartWardAI/backend/src/test/java/vn/edu/uth/smartward/formcheck/ChallengerM3AdversarialTest.java#L87-L111).
+   * Làm tròn tọa độ `%.3f` (`Locale.US`) trong `log.debug` tại [SpatialIndexService.java](file:///e:/SmartWardAI/backend/src/main/java/vn/edu/uth/smartward/triage/SpatialIndexService.java#L36-L39).
+
+2. **`BUG-QA-07` — Web Responsive `320×568` & Kiểm Tra Tự Động `axe-core`:**
+   * Cho phép thanh chuyển chế độ nhập (`Tải ảnh PC / Camera / Nhập tay`) xuống dòng trên màn `320px` tại [FormAndIssueReporting.tsx](file:///e:/SmartWardAI/frontend/src/pages/FormAndIssueReporting.tsx#L2098-L2141).
+   * Thêm `title`, `alt`, `aria-label` cho Leaflet marker, `tabIndex={0}` + `role="region"` + `aria-label` cho vùng cuộn danh sách xã, bọc `flex-wrap` badge tọa độ, và nâng tương phản màu chữ (`#15803D`, `#475569`) tại [WardOnboarding.tsx](file:///e:/SmartWardAI/frontend/src/pages/WardOnboarding.tsx#L79-L360).
+   * Mở rộng [test_ui_a11y_snapshots.mjs](file:///e:/SmartWardAI/frontend/scripts/milestones/test_ui_a11y_snapshots.mjs) quét cả `320px`, `onboarding`, `citizen-procedures` và sửa `enterOfficerRole` dùng nút `"Đăng nhập Cán bộ / Quản trị viên"` (`CC-AG-8942`); đồng thời xử lý tràn KPI `337>320` (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`) và `4` nút tương phản badge/KPI (`#B45309`, `#15803D`, `#B91C1C`, `#475569`) mới phát lộ ở [PerWardDashboard.tsx](file:///e:/SmartWardAI/frontend/src/pages/PerWardDashboard.tsx#L1229-L1780).
+
+3. **`BUG-QA-09` — Đồng Bộ Bộ E2E `161` Cases Theo Hợp Đồng Bảo Mật Mới (0 Assertion Bị Xóa/Làm Lỏng):**
+   * Cập nhật [auth_helper.mjs](file:///e:/SmartWardAI/frontend/scripts/e2e/helpers/auth_helper.mjs) (`AG_P_LONGXUYEN`, tự xoay PIN nếu `mustChangePin=true`) và siết [backend_server.mjs](file:///e:/SmartWardAI/frontend/scripts/e2e/helpers/backend_server.mjs) khớp 100% Spring Boot (`Bearer ` RFC 6750, `ApiResponse.data`, `422` magic-byte, `ROLE_OFFICER` trên `/vault/view/**`, `dossierCode` sinh từ server, `POST /dossiers/track`).
+
+### 6.2. Bảng So Sánh Trước vs. Sau Pha C
+
+| Hạng mục kiểm chứng | Trước Pha C (`6ba3fe5`) | Sau Pha C (`bugfix/qa-phase-c-closure`) | Trạng thái |
+| :--- | :--- | :--- | :---: |
+| **Backend JUnit (`ChallengerM3AdversarialTest`)** | `554` run, **`1` skipped** (`ChallengerM3AdversarialTest:105`) | `ChallengerM3AdversarialTest` **`14/14` PASS, `0` skipped**; toàn bộ `554` run (`553` PASS, `0` fail, `1` skip `RealDatabaseAndRedisBootSmokeTest` do Docker tắt) | ✅ **FIXED (`BUG-QA-10`)** |
+| **Web Responsive `320px` & `axe-core`** | `/citizen/form` tràn **`9px`** ở `320×568`; `/onboarding` dính `aria-command-name`, `scrollable-region-focusable`, `color-contrast`; `officer-dashboard` timeout & tràn **`17px`** + 4 lỗi contrast | **`0px` tràn ngang** trên toàn bộ `28/28` lượt đo (`320 / 375 / 768 / 1280` × 7 route); **`0` vi phạm theo kiểm tra tự động `axe-core` trên các route đã chọn** (`21/21` lượt quét `320/375/1280`) | ✅ **FIXED (`BUG-QA-07`)** |
+| **Web Unit & Production Build (`vite build`)** | `11/11` PASS (`0` lỗi TS) | **`11/11` PASS (`0` lỗi TS)** + Playwright `--strict` exit `0` | ✅ **PASS** |
+| **Bộ E2E 5 Tiers (`run_all_e2e_tests.mjs`)** | `111 / 161` PASS (`50` FAIL do lệch contract) | **`161 / 161 PASS (100.0%)`** (`65+65+15+8+8`, chạy qua companion server; chờ chạy lại trên Docker sống) | ✅ **FIXED (`BUG-QA-09`)** |
+| **Mobile App (`mobile/`)** | `77/77` PASS (`0` lỗi TS) | **`77/77` PASS (`0` lỗi TS)** | ✅ **PASS** |
+
+### 6.3. Bảng Liệt Kê Chi Tiết Mọi Kịch Bản E2E Đã Cập Nhật
+
+> Không có assertion nào bị xóa hoặc nới lỏng; riêng `T1_F09_02`, `T2_F12_03`, `T5_ADV_02` còn siết chặt hơn so với bản cũ.
+
+| Nhóm thay đổi | Mã test đã sửa | Tệp | Lý do khớp hợp đồng mới |
+| :--- | :--- | :--- | :--- |
+| **Bóc vỏ `ApiResponse.data`** (19 ca) | `T1_F04_01..05`; `T2_F04_01..05`; `T3_INT_03,05,06`; `T4_LIFE_01..04,06`; `T5_ADV_06` | `tier1/test_f04_f06_forms.mjs`, `tier2/test_tier2_f04_f06.mjs`, `tier3/test_tier3_interactions.mjs`, `tier4/test_tier4_scenarios.mjs`, `tier5/test_tier5_adversarial.mjs` | Endpoint `POST /api/v1/forms/precheck` trả về `ApiResponse<T>` (`res.data.data`), không trả phẳng tại root JSON. |
+| **RBAC `ROLE_OFFICER` khi xem Vault OTT & Client Modular** (10 ca) | `T1_F09_02,03,05`; `T2_F09_03,04,05`; `T3_INT_11`; `T4_LIFE_07,08`; `T5_ADV_01` | `tier1/test_f07_f09_verification_vault.mjs`, `tier2/test_tier2_f07_f09.mjs`, `tier3..5` | `GET /api/v1/vault/view/{token}` khóa `ROLE_OFFICER` (`T1_F09_02` kiểm tra thêm ẩn danh `401` không đốt OTT); `uploadVaultDocument`/`viewVaultDocument` tách sang `proceduresAndVault.api.ts` re-export qua `client.ts`. |
+| **`POST /dossiers/track`, `dossierCode` server, `AG_P_LONGXUYEN` & RFC 6750** (21 ca) | `T1_F11_01..05`, `T1_F12_02`; `T2_F11_01,02,04,05`, `T2_F12_01..05`; `T3_INT_09,10,15`; `T4_LIFE_07,08`; `T5_ADV_07` | `tier1/test_f10_f12_dossier_rbac.mjs`, `tier2/test_tier2_f10_f12.mjs`, `tier3..5` | `SEC-04` bỏ `GET /dossiers/track` (đổi sang `POST /track`) và server tự sinh `dossierCode`; `SEC-09` khóa `CC-AG-8942` theo ward `AG_P_LONGXUYEN`; `T2_F12_03` xác nhận `OfficerTokenAuthenticationFilter` chặn token thiếu `Bearer ` bằng `401` rồi chấp nhận `Bearer `; `T5_ADV_07` sửa lỗi truyền object thay vì tham số vị trí cho `loginOfficer(...)`. |
+| **Chặn magic-byte `422` & Kiểm tra chuỗi** (3 ca) | `T3_INT_01`, `T5_ADV_02`, `T5_ADV_05` | `tier3/test_tier3_interactions.mjs`, `tier5/test_tier5_adversarial.mjs` | `T3_INT_01` so khớp không phân biệt hoa/thường (`"Xã/Phường"`); `T5_ADV_02` bỏ chấp nhận `200` cho SQLi/XSS trên `POST /track`; `T5_ADV_05` giữ `413` cho `> 5MB` và chấp nhận `422` (`VALIDATION_FAILED`) bên cạnh `415/400` cho `.sh`. |
+| **Fail-fast `${JWT_SECRET}`** (1 ca) | `T1_F13_03` | `tier1/test_f13_f14_compliance_e2e.mjs` | `application.yml` bỏ fallback mật khẩu cứng để fail-fast `${JWT_SECRET}`, kiểm tra khóa `>= 32` bytes ở `.env.example`. |

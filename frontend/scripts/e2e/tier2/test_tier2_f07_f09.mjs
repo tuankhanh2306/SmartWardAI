@@ -9,6 +9,7 @@
 
 import path from 'node:path';
 import { apiClient } from '../helpers/api_client.mjs';
+import { loginOfficer } from '../helpers/auth_helper.mjs';
 import { parseCccdQrString, STATIC_CCCD_FIXTURES } from '../fixtures/cccd_qr_fixtures.mjs';
 import { createSampleFileBuffer } from '../fixtures/vault_document_fixtures.mjs';
 
@@ -318,8 +319,14 @@ export async function runTests(assertContext) {
       const token = uploadRes.data?.data?.oneTimeToken;
       assertContext.assert(Boolean(token), 'Must have OTT');
 
-      // Access immediately while active
-      const viewRes = await apiClient.get(`/api/v1/vault/view/${token}`);
+      // Access immediately while active with ROLE_OFFICER JWT
+      const authRes = await loginOfficer();
+      const officerToken = authRes.data?.data?.token;
+      assertContext.assert(Boolean(officerToken), 'Must obtain officer token');
+
+      const viewRes = await apiClient.get(`/api/v1/vault/view/${token}`, {
+        headers: { Authorization: `Bearer ${officerToken}` },
+      });
       assertContext.assertStatusCode(viewRes.status, 200, 'First view must succeed');
     }
   );
@@ -341,10 +348,14 @@ export async function runTests(assertContext) {
       const token = uploadRes.data?.data?.oneTimeToken;
       assertContext.assert(Boolean(token), 'Must receive OTT token');
 
+      const authRes = await loginOfficer();
+      const officerToken = authRes.data?.data?.token;
+      assertContext.assert(Boolean(officerToken), 'Must obtain officer token');
+
       // 2. Dispatch two simultaneous GET requests for the same token
       const [resA, resB] = await Promise.all([
-        apiClient.get(`/api/v1/vault/view/${token}`),
-        apiClient.get(`/api/v1/vault/view/${token}`),
+        apiClient.get(`/api/v1/vault/view/${token}`, { headers: { Authorization: `Bearer ${officerToken}` } }),
+        apiClient.get(`/api/v1/vault/view/${token}`, { headers: { Authorization: `Bearer ${officerToken}` } }),
       ]);
 
       const statuses = [resA.status, resB.status];
@@ -363,8 +374,14 @@ export async function runTests(assertContext) {
     { testId: 'T2_F09_05', featureCode: 'F9', tierCode: 'tier2' },
     'Fake token injection (/api/v1/vault/view/FAKE_TOKEN_INJECTION) safely returns HTTP 410 GONE without stack leak',
     async () => {
+      const authRes = await loginOfficer();
+      const officerToken = authRes.data?.data?.token;
+      assertContext.assert(Boolean(officerToken), 'Must obtain officer token');
+
       const fakeToken = 'FAKE_TOKEN_INJECTION_SQLI_%27_OR_1%3D1';
-      const res = await apiClient.get(`/api/v1/vault/view/${fakeToken}`);
+      const res = await apiClient.get(`/api/v1/vault/view/${fakeToken}`, {
+        headers: { Authorization: `Bearer ${officerToken}` },
+      });
 
       const isSafeStatus = res.status === 410 || res.status === 400 || res.status === 404;
       assertContext.assert(

@@ -51,18 +51,25 @@ export async function runTests(assertContext) {
     }
   );
 
-  // T1_F13_03: JWT_SECRET length >= 32 bytes (256-bit)
+  // T1_F13_03: JWT_SECRET fail-fast in application.yml & >= 32 bytes (256-bit) in .env.example
   await assertContext.runTest(
     { testId: 'T1_F13_03', featureCode: 'F13', tierCode: 'tier1' },
-    'JWT_SECRET default length is >= 32 bytes (256-bit required for HMAC-SHA256)',
+    'JWT_SECRET uses fail-fast placeholder in application.yml and >= 32 bytes (256-bit) in .env.example',
     async () => {
       const appYmlPath = path.join(PROJECT_ROOT, 'backend/src/main/resources/application.yml');
       const appYmlContent = fs.readFileSync(appYmlPath, 'utf8');
+      const hasFailFastPlaceholder = /jwt-secret:\s*\$\{JWT_SECRET\}/.test(appYmlContent);
+      assertContext.assert(
+        hasFailFastPlaceholder,
+        'application.yml must enforce fail-fast jwt-secret: ${JWT_SECRET} without weak hardcoded default'
+      );
 
-      const jwtSecretMatch = appYmlContent.match(/jwt-secret:\s*\$\{JWT_SECRET:([^}]+)\}/);
-      const defaultSecret = jwtSecretMatch ? jwtSecretMatch[1].trim() : '';
-      const byteLength = Buffer.byteLength(defaultSecret, 'utf8');
-      assertContext.assert(byteLength >= 32, `JWT secret byte length: ${byteLength} bytes`);
+      const envExamplePath = path.join(PROJECT_ROOT, '.env.example');
+      const envExampleContent = fs.readFileSync(envExamplePath, 'utf8');
+      const jwtSecretMatch = envExampleContent.match(/JWT_SECRET=([^\r\n]+)/);
+      const envSecret = jwtSecretMatch ? jwtSecretMatch[1].trim() : '';
+      const byteLength = Buffer.byteLength(envSecret, 'utf8');
+      assertContext.assert(byteLength >= 32, `.env.example JWT_SECRET byte length: ${byteLength} bytes`);
     }
   );
 

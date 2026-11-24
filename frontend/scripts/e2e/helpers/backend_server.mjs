@@ -66,12 +66,12 @@ function signJwt(payload) {
 }
 
 function verifyJwt(rawToken) {
-  if (!rawToken) return null;
-  let token = rawToken.trim();
-  if (token.toLowerCase().startsWith('bearer ')) {
-    token = token.slice(7).trim();
-  }
-  if (revokedTokensSet.has(token)) return null;
+  if (!rawToken || typeof rawToken !== 'string') return null;
+  const trimmed = rawToken.trim();
+  // Enforce RFC 6750 "Bearer " scheme matching OfficerTokenAuthenticationFilter
+  if (!trimmed.toLowerCase().startsWith('bearer ')) return null;
+  const token = trimmed.slice(7).trim();
+  if (!token || revokedTokensSet.has(token)) return null;
 
   const parts = token.split('.');
   if (parts.length !== 3) return null;
@@ -412,11 +412,9 @@ export function createBackendServer() {
         }
 
         return sendJson(200, {
-          overallValid,
-          status: overallValid ? 'VALID' : 'INVALID',
-          fieldValidations,
-          warnings,
-          errors,
+          success: true,
+          status: 200,
+          message: 'SUCCESS',
           data: {
             overallValid,
             status: overallValid ? 'VALID' : 'INVALID',
@@ -432,15 +430,25 @@ export function createBackendServer() {
         // Enforce 5MB limit
         if (rawBody.length > 5 * 1024 * 1024) {
           return sendJson(413, {
+            success: false,
             status: 413,
+            errorCode: 'SW_413',
             message: 'FILE_SIZE_EXCEEDS_5MB',
           });
         }
 
         const bodyPrefix = rawBody.subarray(0, 1024).toString('utf8');
-        if (bodyPrefix.includes('.exe') || bodyPrefix.includes('.sh') || bodyPrefix.includes('application/x-msdownload') || bodyPrefix.includes('x-sh')) {
-          return sendJson(415, {
-            status: 415,
+        if (
+          bodyPrefix.includes('.exe') ||
+          bodyPrefix.includes('.sh') ||
+          bodyPrefix.includes('#!/bin/') ||
+          bodyPrefix.includes('application/x-msdownload') ||
+          bodyPrefix.includes('x-sh')
+        ) {
+          return sendJson(422, {
+            success: false,
+            status: 422,
+            errorCode: 'SW_422',
             message: 'UNSUPPORTED_OR_MALICIOUS_MEDIA_TYPE',
           });
         }
@@ -456,6 +464,7 @@ export function createBackendServer() {
         });
 
         return sendJson(200, {
+          success: true,
           status: 200,
           message: 'FILE_ENCRYPTED_AND_UPLOADED',
           data: {
@@ -472,14 +481,26 @@ export function createBackendServer() {
         });
       }
 
-      // --- 5. ZERO-TRUST VAULT VIEW OTT (Atomic GETDEL 410 GONE) ---
+      // --- 5. ZERO-TRUST VAULT VIEW OTT (ROLE_OFFICER + Atomic GETDEL 410 GONE) ---
       if (pathname.startsWith('/api/v1/vault/view/') && method === 'GET') {
+        const officer = verifyJwt(req.headers['authorization'] || '');
+        if (!officer || officer.role !== 'OFFICER') {
+          return sendJson(401, {
+            success: false,
+            status: 401,
+            errorCode: 'SW_401',
+            message: 'Yêu cầu xác thực cán bộ (401 Unauthorized).',
+          });
+        }
+
         const token = pathname.replace('/api/v1/vault/view/', '').trim();
         const entry = vaultTokensMap.get(token);
 
         if (!entry || entry.consumed) {
           return sendJson(410, {
+            success: false,
             status: 410,
+            errorCode: 'SW_410',
             message: 'TOKEN_EXPIRED_OR_CONSUMED',
           });
         }
@@ -500,11 +521,17 @@ export function createBackendServer() {
       // --- 6. CITIZEN DOSSIERS API ---
       if (pathname === '/api/v1/dossiers' && method === 'POST') {
         const body = jsonBody;
-        const code = body.dossierCode || `HS-${Date.now().toString().slice(-6)}`;
+        const rawWard = String(body.wardCode || 'AG_P_LONGXUYEN').trim();
+        const wardShort = rawWard.replace(/[^A-Za-z0-9]/g, '').slice(-6).toUpperCase() || 'WARD';
+        const now = new Date();
+        const ymd = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}`;
+        const rand4 = crypto.randomBytes(2).toString('hex').toUpperCase();
+        // SEC-04: Server generates dossierCode
+        const code = `HS-${ymd}-${wardShort}-${rand4}`;
         const record = {
           dossierCode: code,
           procedureCode: body.procedureCode || 'TTHC-CR-01',
-          wardCode: body.wardCode || 'WARD-AG-01',
+          wardCode: rawWard,
           citizenCccd: body.citizenCccd || '',
           formData: body.formData || {},
           status: 'PENDING',
@@ -516,6 +543,7 @@ export function createBackendServer() {
         dossiersMap.set(code.toLowerCase(), record);
 
         return sendJson(201, {
+          success: true,
           status: 201,
           message: 'DOSSIER_SUBMITTED',
           data: record,
@@ -523,39 +551,63 @@ export function createBackendServer() {
       }
 
       if (pathname === '/api/v1/dossiers/track' && method === 'GET') {
-        const dossierCode = (parsedUrl.searchParams.get('dossierCode') || '').toLowerCase();
-        const last4 = parsedUrl.searchParams.get('last4Cccd') || parsedUrl.searchParams.get('citizenCccd') || '';
+        return sendJson(405, {
+          success: false,
+          status: 405,
+          errorCode: 'SW_405_METHOD_NOT_ALLOWED',
+          message: "Phương thức HTTP 'GET' không được hỗ trợ cho endpoint này.",
+        });
+      }
 
-        const record = dossiersMap.get(dossierCode);
+      if (pathname === '/api/v1/dossiers/track' && method === 'POST') {
+        const dossierCode = String(jsonBody.dossierCode || '').trim();
+        const last4 = String(jsonBody.last4Cccd || '').trim();
+
+        if (!dossierCode || !/^\d{4}$/.test(last4)) {
+          return sendJson(422, {
+            success: false,
+            status: 422,
+            errorCode: 'SW_422',
+            message: 'Dữ liệu gửi lên không đúng định dạng hoặc thiếu trường bắt buộc.',
+          });
+        }
+
+        const record = dossiersMap.get(dossierCode.toLowerCase());
         if (!record) {
-          return sendJson(404, { status: 404, message: 'DOSSIER_NOT_FOUND' });
+          return sendJson(404, { success: false, status: 404, errorCode: 'SW_404', message: 'DOSSIER_NOT_FOUND' });
         }
 
-        if (last4 && record.citizenCccd && !record.citizenCccd.endsWith(last4)) {
-          return sendJson(403, { status: 403, message: 'CCCD_MISMATCH' });
+        if (record.citizenCccd && !record.citizenCccd.endsWith(last4)) {
+          return sendJson(403, { success: false, status: 403, errorCode: 'SW_403', message: 'CCCD_MISMATCH' });
         }
 
-        return sendJson(200, { status: 200, message: 'SUCCESS', data: record });
+        return sendJson(200, { success: true, status: 200, message: 'SUCCESS', data: record });
       }
 
       if (pathname.startsWith('/api/v1/dossiers/') && pathname.endsWith('/review') && method === 'PUT') {
         const authHeader = req.headers['authorization'] || '';
         const officer = verifyJwt(authHeader);
         if (!officer || officer.role !== 'OFFICER') {
-          return sendJson(401, { status: 401, message: 'UNAUTHORIZED_OFFICER_REQUIRED' });
+          return sendJson(401, {
+            success: false,
+            status: 401,
+            errorCode: 'SW_401',
+            message: 'Yêu cầu xác thực cán bộ (401 Unauthorized).',
+          });
         }
 
         const match = pathname.match(/\/api\/v1\/dossiers\/([^/]+)\/review/);
         const code = match ? match[1].toLowerCase() : '';
 
-        // Cross-ward check
+        // Cross-ward check (normalized uppercase)
+        const officerWard = String(officer.wardCode || 'AG_P_LONGXUYEN').trim().toUpperCase();
         const existingRecord = dossiersMap.get(code);
-        if (existingRecord && existingRecord.wardCode && officer.wardCode && existingRecord.wardCode !== officer.wardCode) {
-          return sendJson(403, { status: 403, message: 'CROSS_WARD_ACCESS_FORBIDDEN' });
+        if (existingRecord && existingRecord.wardCode && existingRecord.wardCode.trim().toUpperCase() !== officerWard) {
+          return sendJson(403, { success: false, status: 403, errorCode: 'SW_403', message: 'CROSS_WARD_ACCESS_FORBIDDEN' });
         }
         if (code.includes('foreign') || code.includes('ward-ag-02') || code.includes('ward-b')) {
-          if (officer.wardCode === 'WARD-AG-01' || officer.wardCode === 'WARD-HCMC-01' || officer.wardCode !== 'WARD-B') {
-            return sendJson(403, { status: 403, message: 'CROSS_WARD_ACCESS_FORBIDDEN' });
+          if (officerWard !== 'WARD-B' && officerWard !== 'WARD-AG-02') {
+            return sendJson(403, { success: false, status: 403, errorCode: 'SW_403', message: 'CROSS_WARD_ACCESS_FORBIDDEN' });
           }
         }
 
@@ -564,28 +616,19 @@ export function createBackendServer() {
 
         // Rejection must have reason
         if (status === 'REJECTED' && !feedback.trim()) {
-          return sendJson(400, { status: 400, message: 'REJECTION_REASON_MANDATORY' });
+          return sendJson(400, { success: false, status: 400, errorCode: 'SW_400', message: 'REJECTION_REASON_MANDATORY' });
         }
 
         let record = dossiersMap.get(code);
         if (!record) {
-          record = {
-            dossierCode: code.toUpperCase(),
-            procedureCode: 'TTHC-CR-01',
-            wardCode: officer.wardCode || 'WARD-AG-01',
-            citizenCccd: '089095012345',
-            status,
-            officerFeedback: feedback,
-            appointmentCode: jsonBody.appointmentCode || null,
-          };
-          dossiersMap.set(code, record);
+          return sendJson(404, { success: false, status: 404, errorCode: 'SW_404', message: 'DOSSIER_NOT_FOUND' });
         } else {
           record.status = status;
           record.officerFeedback = feedback;
           if (jsonBody.appointmentCode) record.appointmentCode = jsonBody.appointmentCode;
         }
 
-        return sendJson(200, { status: 200, message: 'DOSSIER_REVIEWED', data: record });
+        return sendJson(200, { success: true, status: 200, message: 'DOSSIER_REVIEWED', data: record });
       }
 
       // --- 7. OFFICER AUTH & RBAC ---
@@ -597,25 +640,44 @@ export function createBackendServer() {
 
         // SQL Injection / Invalid PIN check
         if (!pin || pin === '0000' || pin.includes("'") || pin.includes('=')) {
-          return sendJson(401, { status: 401, success: false, message: 'INVALID_OFFICER_PIN' });
+          return sendJson(401, {
+            status: 401,
+            success: false,
+            errorCode: 'SW_401',
+            message: 'INVALID_OFFICER_PIN',
+          });
         }
 
+        const effectiveBadge = badgeId || 'CC-AG-8942';
+        const effectiveWard = wardCode || (effectiveBadge.toUpperCase() === 'CC-AG-8942' ? 'AG_P_LONGXUYEN' : 'AG_P_LONGXUYEN');
+
         const token = signJwt({
-          sub: badgeId || 'CC-AG-8942',
+          sub: effectiveBadge,
           role: 'OFFICER',
-          wardCode: wardCode || 'WARD-AG-01',
+          wardCode: effectiveWard,
           exp: Math.floor(Date.now() / 1000) + 8 * 3600,
         });
 
         return sendJson(200, {
+          success: true,
           status: 200,
           message: 'LOGIN_SUCCESS',
           data: {
             token,
             role: 'OFFICER',
-            badgeId: badgeId || 'CC-AG-8942',
-            wardCode: wardCode || 'WARD-AG-01',
+            badgeId: effectiveBadge,
+            wardCode: effectiveWard,
+            mustChangePin: false,
           },
+        });
+      }
+
+      if (pathname === '/api/v1/auth/officer/change-pin' && method === 'POST') {
+        return sendJson(200, {
+          success: true,
+          status: 200,
+          message: 'PIN_CHANGED',
+          data: { badgeId: jsonBody.badgeId || 'CC-AG-8942', success: true },
         });
       }
 
@@ -623,16 +685,22 @@ export function createBackendServer() {
         const auth = req.headers['authorization'] || '';
         let token = auth.replace(/^Bearer /i, '').trim();
         if (token) revokedTokensSet.add(token);
-        return sendJson(200, { status: 200, message: 'LOGGED_OUT' });
+        return sendJson(200, { success: true, status: 200, message: 'LOGGED_OUT' });
       }
 
       if (pathname === '/api/v1/auth/officer/me' && method === 'GET') {
         const auth = req.headers['authorization'] || '';
         const officer = verifyJwt(auth);
         if (!officer) {
-          return sendJson(401, { status: 401, message: 'INVALID_OR_REVOKED_TOKEN' });
+          return sendJson(401, {
+            success: false,
+            status: 401,
+            errorCode: 'SW_401',
+            message: 'INVALID_OR_REVOKED_TOKEN',
+          });
         }
         return sendJson(200, {
+          success: true,
           status: 200,
           message: 'SUCCESS',
           data: {
@@ -647,9 +715,15 @@ export function createBackendServer() {
         const auth = req.headers['authorization'] || '';
         const officer = verifyJwt(auth);
         if (!officer || officer.role !== 'OFFICER') {
-          return sendJson(401, { status: 401, message: 'Mã token chữ ký không hợp lệ hoặc thiếu quyền Cán bộ' });
+          return sendJson(401, {
+            success: false,
+            status: 401,
+            errorCode: 'SW_401',
+            message: 'Yêu cầu xác thực cán bộ — Mã token chữ ký không hợp lệ hoặc thiếu quyền Cán bộ',
+          });
         }
         return sendJson(200, {
+          success: true,
           status: 200,
           message: 'SUCCESS',
           data: [{ id: 'HQ-01', query: 'Cấp lại thẻ BHYT', similarity: 0.65 }],
