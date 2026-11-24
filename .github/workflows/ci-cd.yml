@@ -133,6 +133,7 @@ jobs:
       - name: Initialize Environment Template with CI Secrets
         run: |
           cp .env.example .env
+          sed -i 's/^SPRING_PROFILES_ACTIVE=.*/SPRING_PROFILES_ACTIVE=prod/' .env
           sed -i 's/^VAULT_ENCRYPTION_KEY=.*/VAULT_ENCRYPTION_KEY=sw_vlt_3a7e9c1f5b8d2a6e0c4f7b9e1d3a5c7f_ci_2026/' .env
           sed -i 's/^JWT_SECRET=.*/JWT_SECRET=sw_sec_8f9b4c2e1a7d6e3f5b0c9a8d7e6f5a4b_ci_2026/' .env
 
