@@ -20,7 +20,7 @@ export interface DossierSubmissionResponse {
   procedureCode: string;
   wardCode: string;
   status: string;
-  slaDeadline: string;
+  slaDeadline?: string | null;
   createdAt: string;
 }
 
@@ -41,7 +41,7 @@ export interface DossierTrackingResponse {
   wardCode: string;
   citizenCccd: string;
   status: 'PENDING' | 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'REJECTED' | string;
-  slaDeadline: string;
+  slaDeadline?: string | null;
   officerFeedback?: string;
   appointmentCode?: string;
   precheckReport?: any;
@@ -68,7 +68,7 @@ export interface OfficerDossierItem {
   citizenCccd: string;
   citizenName: string;
   status: 'PENDING' | 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'REJECTED' | 'VALID' | 'HAS_ERRORS' | string;
-  slaDeadline: string;
+  slaDeadline?: string | null;
   officerFeedback?: string;
   appointmentCode?: string;
   formData: Record<string, any>;
@@ -76,6 +76,24 @@ export interface OfficerDossierItem {
   vaultDocIds?: string[];
   createdAt: string;
   updatedAt: string;
+}
+
+export const UNVERIFIED_SLA_TEXT = 'Chưa xác định (chờ cán bộ Một cửa xác nhận)';
+
+/**
+ * Formats an optional ISO SLA deadline for citizen display; returns explicit fallback text
+ * when procedural working days are unverified (sla_working_days = NULL).
+ */
+export function formatSlaDeadlineVi(slaDeadline?: string | null, withSeconds = false): string {
+  if (!slaDeadline) {
+    return UNVERIFIED_SLA_TEXT;
+  }
+  const parsed = new Date(slaDeadline);
+  if (Number.isNaN(parsed.getTime())) {
+    return UNVERIFIED_SLA_TEXT;
+  }
+  const datePart = parsed.toLocaleDateString('vi-VN');
+  return withSeconds ? `${datePart} (17:00:00)` : `${datePart} 17:00`;
 }
 
 /**

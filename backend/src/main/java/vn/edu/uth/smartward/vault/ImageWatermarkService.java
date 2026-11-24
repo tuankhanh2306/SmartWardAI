@@ -20,7 +20,7 @@ import java.util.Iterator;
 /**
  * Java2D Watermarking Service for Administrative Citizen Documents.
  * Draws semi-transparent diagonal watermarks across uploaded documents to prevent
- * unauthorized repurposing or data theft under Decree 13/2023/ND-CP.
+ * unauthorized repurposing or data theft in accordance with personal data protection requirements.
  */
 @Slf4j
 @Service

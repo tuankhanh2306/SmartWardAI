@@ -5,6 +5,10 @@ import {
   executeDossierSubmissionPipeline,
   FORM_TYPE_TO_PROCEDURE,
 } from '../core/dossierSubmitter';
+import {
+  formatMobileSlaDeadline,
+  UNVERIFIED_SLA_TEXT,
+} from '../core/qrPassPdfExporter';
 import { simulateVisionGatePreset } from '../core/visionQualityGate';
 import { getAllWalletQrPasses } from '../storage/sqliteDb';
 
@@ -236,5 +240,63 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
     expect(code).not.toMatch(/window\.print\s*\(/);
     expect(code).not.toMatch(/Print\.printAsync\s*\(/);
     expect(code).toContain('Miễn phí 100%');
+    expect(code).toContain('formatMobileSlaDeadline');
+  });
+
+  it('trả slaDeadline = null khi thủ tục chưa xác minh và hiển thị "Chưa xác định (chờ cán bộ Một cửa xác nhận)"', async () => {
+    const precheckApi = vi.fn().mockResolvedValue({
+      submissionCode: 'PC-NULL-SLA-01',
+      formType: 'CT01',
+      valid: true,
+      overallConfidence: 0.99,
+      fieldValidations: [],
+      warnings: [],
+      processedAt: '2026-11-20T09:00:00Z',
+      processingTimeMs: 10,
+    });
+    const vaultUploadApi = vi.fn();
+    const submitDossierApi = vi.fn().mockResolvedValue({
+      dossierCode: 'HS-20261120-AG_P_LONGXUYEN-9999',
+      procedureCode: 'TTHC-CR-01',
+      wardCode: 'AG_P_LONGXUYEN',
+      status: 'PENDING',
+      slaDeadline: null,
+      createdAt: '2026-11-20T09:00:00Z',
+    });
+
+    const res = await executeDossierSubmissionPipeline(
+      {
+        wardCode: 'AG_P_LONGXUYEN',
+        wardName: 'Phường Long Xuyên',
+        visionGate: simulateVisionGatePreset('GOOD', 'CT01'),
+        attachment: null,
+        validationInput: {
+          formType: 'CT01',
+          fullName: 'NGUYỄN VĂN AN',
+          citizenCccd: '089095001234',
+          dateOfBirth: '1995-01-10',
+          gender: 'Nam',
+          address: 'Phường Long Xuyên, An Giang',
+          citizenEmail: 'an.nguyen@gmail.com',
+          phoneNumber: '0918111222',
+          qrVerified: true,
+          referenceDate: REF_DATE,
+          extra: {
+            hostCccdNumber: '089075001122',
+            hostDateOfBirth: '1975-03-10',
+            vneidHostConfirmed: true,
+          },
+        },
+      },
+      { precheckApi, vaultUploadApi, submitDossierApi }
+    );
+
+    expect(res.success).toBe(true);
+    expect(res.slaDeadline).toBeNull();
+    expect(res.walletRow?.sla_deadline).toBeNull();
+    expect(formatMobileSlaDeadline(res.slaDeadline)).toBe(UNVERIFIED_SLA_TEXT);
+    expect(formatMobileSlaDeadline(res.slaDeadline)).toBe(
+      'Chưa xác định (chờ cán bộ Một cửa xác nhận)'
+    );
   });
 });

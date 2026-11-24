@@ -15,7 +15,7 @@ import {
 import { PROCEDURES_CATALOG, type ProcedureCatalogItem } from '../data/proceduresCatalog';
 import { getProcedures } from '../api/client';
 import { useWard } from '../context/WardContext';
-import A4DocumentModal from '../components/A4DocumentModal';
+const A4DocumentModal = React.lazy(() => import('../components/A4DocumentModal'));
 
 export const ProceduresCatalogPage: React.FC = () => {
   const navigate = useNavigate();
@@ -553,37 +553,39 @@ export const ProceduresCatalogPage: React.FC = () => {
       </div>
 
       {/* A4 Printable Document Modal */}
-      {selectedProcedureForModal && (
-        <A4DocumentModal
-          isOpen={isModalOpen}
-          onClose={() => {
-            setIsModalOpen(false);
-            setSelectedProcedureForModal(null);
-          }}
-          formType={getFormType(selectedProcedureForModal.code)}
-          procedureCode={selectedProcedureForModal.code}
-          procedureTitle={selectedProcedureForModal.name}
-          legalBasis="Theo Quyết định công bố TTHC cấp Xã/Phường"
-          initialData={(() => {
-            try {
-              const saved = localStorage.getItem('smartward_citizen_profile');
-              if (saved) {
-                const p = JSON.parse(saved);
-                return {
-                  fullName: p.fullName,
-                  gender: p.gender,
-                  dob: p.dob || p.dateOfBirth,
-                  idNumber: p.idNumber || p.citizenCccd,
-                  phone: p.phone || p.phoneNumber || currentWard.phoneNumber,
-                  address: p.address || `${currentWard.name}, Tỉnh An Giang`,
-                };
+      {selectedProcedureForModal && isModalOpen && (
+        <React.Suspense fallback={null}>
+          <A4DocumentModal
+            isOpen={isModalOpen}
+            onClose={() => {
+              setIsModalOpen(false);
+              setSelectedProcedureForModal(null);
+            }}
+            formType={getFormType(selectedProcedureForModal.code)}
+            procedureCode={selectedProcedureForModal.code}
+            procedureTitle={selectedProcedureForModal.name}
+            legalBasis="Theo Quyết định công bố TTHC cấp Xã/Phường"
+            initialData={(() => {
+              try {
+                const saved = localStorage.getItem('smartward_citizen_profile');
+                if (saved) {
+                  const p = JSON.parse(saved);
+                  return {
+                    fullName: p.fullName,
+                    gender: p.gender,
+                    dob: p.dob || p.dateOfBirth,
+                    idNumber: p.idNumber || p.citizenCccd,
+                    phone: p.phone || p.phoneNumber || currentWard.phoneNumber,
+                    address: p.address || `${currentWard.name}, Tỉnh An Giang`,
+                  };
+                }
+              } catch {
+                // Ignore JSON parse errors
               }
-            } catch {
-              // Ignore JSON parse errors
-            }
-            return undefined;
-          })()}
-        />
+              return undefined;
+            })()}
+          />
+        </React.Suspense>
       )}
     </main>
   );

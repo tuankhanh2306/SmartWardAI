@@ -7,6 +7,7 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
+import vn.edu.uth.smartward.audit.AuditService;
 import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ErrorCode;
 
@@ -14,6 +15,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -302,5 +304,75 @@ class OfficerAuthServiceTest {
 
         OfficerAuthService.LoginResponse otpLogin = officerAuthService.authenticate("CC-AG-8942", issued.oneTimePin(), null);
         assertTrue(otpLogin.mustChangePin());
+    }
+
+    @Test
+    void testAuthenticate_logsRealClientIp_notHardcodedLocalhost() {
+        AuditService auditService = mock(AuditService.class);
+        OfficerAuthService auditedAuth = new OfficerAuthService(new ObjectMapper(), null, officerRepository, auditService);
+        ReflectionTestUtils.setField(auditedAuth, "jwtSecret", TEST_JWT_SECRET);
+        ReflectionTestUtils.setField(auditedAuth, "tokenTtlHours", 8);
+
+        assertThrows(BusinessException.class, () ->
+                auditedAuth.authenticate("CC-AG-8942", "WrongPin!", null, "203.0.113.45"));
+        verify(auditService).logAction("CC-AG-8942", "AG_P_LONGXUYEN", "LOGIN_FAILED", "OFFICER", "CC-AG-8942", "203.0.113.45", null);
+
+        OfficerAuthService.LoginResponse ok = auditedAuth.authenticate("CC-AG-8942", OFFICER_PIN, null, "203.0.113.45");
+        assertNotNull(ok.token());
+        verify(auditService).logAction("CC-AG-8942", "AG_P_LONGXUYEN", "LOGIN_SUCCESS", "OFFICER", "CC-AG-8942", "203.0.113.45", null);
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testRedisIpLockout_blocksAttackerIpWithoutLockingOutCounterIp() {
+        AuditService auditService = mock(AuditService.class);
+        StringRedisTemplate mockRedis = mock(StringRedisTemplate.class);
+        ValueOperations<String, String> mockOps = mock(ValueOperations.class);
+        Map<String, Integer> counters = new ConcurrentHashMap<>();
+        when(mockRedis.opsForValue()).thenReturn(mockOps);
+        when(mockOps.get(anyString())).thenAnswer(inv -> {
+            Integer v = counters.get(inv.<String>getArgument(0));
+            return v != null ? String.valueOf(v) : null;
+        });
+        when(mockOps.increment(anyString())).thenAnswer(inv -> {
+            String key = inv.getArgument(0);
+            int next = counters.merge(key, 1, Integer::sum);
+            return (long) next;
+        });
+
+        OfficerAuthService svc = new OfficerAuthService(new ObjectMapper(), mockRedis, officerRepository, auditService);
+        ReflectionTestUtils.setField(svc, "jwtSecret", TEST_JWT_SECRET);
+        ReflectionTestUtils.setField(svc, "tokenTtlHours", 8);
+
+        // Attacker IP fails 5 times on known badge CC-AG-8942
+        for (int i = 0; i < 5; i++) {
+            assertThrows(BusinessException.class, () ->
+                    svc.authenticate("CC-AG-8942", "WrongPin!", null, "203.0.113.99"));
+        }
+
+        // 6th attempt from attacker IP is locked even with any PIN
+        assertThrows(BusinessException.class, () ->
+                svc.authenticate("CC-AG-8942", OFFICER_PIN, null, "203.0.113.99"));
+        verify(auditService).logAction("CC-AG-8942", "AG_P_LONGXUYEN", "LOGIN_LOCKED", "OFFICER", "CC-AG-8942", "203.0.113.99", null);
+
+        // Real officer at UBND counter IP (10.0.0.15) is NOT locked out (prevents badgeId DoS)
+        OfficerAuthService.LoginResponse counterLogin = svc.authenticate("CC-AG-8942", OFFICER_PIN, null, "10.0.0.15");
+        assertNotNull(counterLogin.token());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testRevokedTokenIds_isStrictlyBoundedAgainstMemoryGrowth() {
+        Set<String> revokedSet = (Set<String>) ReflectionTestUtils.getField(officerAuthService, "revokedTokenIds");
+        assertNotNull(revokedSet);
+        for (int i = 0; i < 2000; i++) {
+            revokedSet.add("pre-jti-" + i);
+        }
+        assertEquals(2000, revokedSet.size());
+
+        OfficerAuthService.LoginResponse login = officerAuthService.authenticate("CC-AG-8942", OFFICER_PIN, null);
+        officerAuthService.revokeToken("Bearer " + login.token());
+        assertEquals(1, revokedSet.size(), "revokeToken must bound fallback revokedTokenIds set instead of growing unboundedly");
+        assertThrows(BusinessException.class, () -> officerAuthService.verifyToken("Bearer " + login.token()));
     }
 }

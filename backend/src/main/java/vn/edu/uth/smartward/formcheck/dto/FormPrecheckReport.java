@@ -37,6 +37,6 @@ public class FormPrecheckReport {
     @Schema(description = "Tổng kết đánh giá hồ sơ")
     private String summaryMessage;
 
-    @Schema(description = "Tuyên bố trách nhiệm và quy tắc bảo mật Nghị định 13/2023/NĐ-CP")
+    @Schema(description = "Tuyên bố trách nhiệm và quy tắc bảo vệ dữ liệu cá nhân theo quy định pháp luật hiện hành")
     private String disclaimer;
 }

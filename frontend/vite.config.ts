@@ -7,6 +7,11 @@ export default defineConfig({
   server: {
     port: 3000,
     proxy: {
+      '/api/v1/voice/synthesize': {
+        target: process.env.VITE_VOICE_PROXY_TARGET || 'http://localhost:8000',
+        rewrite: () => '/tts',
+        changeOrigin: true,
+      },
       '/api': {
         target: process.env.VITE_API_PROXY_TARGET || 'http://localhost:8082',
         changeOrigin: true,

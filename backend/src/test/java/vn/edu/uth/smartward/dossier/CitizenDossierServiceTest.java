@@ -45,9 +45,8 @@ class CitizenDossierServiceTest {
     }
 
     @Test
-    @DisplayName("Submit dossier successfully with auto-generated code and 3-day SLA")
+    @DisplayName("Submit dossier returns NULL slaDeadline when procedure sla_working_days is unverified/null")
     void submitDossier_autoGenerateCode_success() {
-        when(dossierRepository.countByDossierCodeStartingWith(any())).thenReturn(0L);
         when(dossierRepository.existsByDossierCode(any())).thenReturn(false);
         when(dossierRepository.save(any(CitizenDossier.class))).thenAnswer(invocation -> {
             CitizenDossier arg = invocation.getArgument(0);
@@ -72,16 +71,18 @@ class CitizenDossierServiceTest {
         assertThat(res.procedureCode()).isEqualTo("TTHC-CT-01");
         assertThat(res.wardCode()).isEqualTo("WARD-AG-01");
         assertThat(res.status()).isEqualTo("PENDING");
-        assertThat(res.slaDeadline()).isNotNull();
+        assertThat(res.slaDeadline()).isNull();
 
         verify(dossierRepository, times(1)).save(any(CitizenDossier.class));
     }
 
     @Test
-    @DisplayName("Submit vital civil registration (Birth HT-01) assigns 1-day statutory SLA")
-    void submitDossier_vitalRecord_1DaySla() {
-        when(dossierRepository.countByDossierCodeStartingWith(any())).thenReturn(0L);
+    @DisplayName("Submit dossier computes slaDeadline ONLY when procedure has verified slaWorkingDays")
+    void submitDossier_verifiedProcedureSlaWorkingDays_computesDeadline() {
         when(dossierRepository.existsByDossierCode(any())).thenReturn(false);
+        when(procedureRepository.findByProcedureCode("TTHC-HT-01")).thenReturn(Optional.of(
+                AdminProcedure.builder().procedureCode("TTHC-HT-01").procedureName("Đăng ký khai sinh").slaWorkingDays(1).build()
+        ));
         when(dossierRepository.save(any(CitizenDossier.class))).thenAnswer(inv -> inv.getArgument(0));
 
         SubmitDossierRequest req = SubmitDossierRequest.builder()
@@ -93,8 +94,27 @@ class CitizenDossierServiceTest {
 
         DossierSubmissionResponse res = dossierService.submitDossier(req);
         assertThat(res.status()).isEqualTo("PENDING");
-        // Verify SLA deadline is computed
         assertThat(res.slaDeadline()).isAfter(Instant.now());
+    }
+
+    @Test
+    @DisplayName("Submit dossier for HT-01 without DB slaWorkingDays returns NULL slaDeadline (no 1-day/3-day hardcoded default)")
+    void submitDossier_unverifiedProcedureWithoutSlaWorkingDays_returnsNull() {
+        when(dossierRepository.existsByDossierCode(any())).thenReturn(false);
+        when(procedureRepository.findByProcedureCode("TTHC-HT-01")).thenReturn(Optional.of(
+                AdminProcedure.builder().procedureCode("TTHC-HT-01").procedureName("Đăng ký khai sinh").slaWorkingDays(null).build()
+        ));
+        when(dossierRepository.save(any(CitizenDossier.class))).thenAnswer(inv -> inv.getArgument(0));
+
+        SubmitDossierRequest req = SubmitDossierRequest.builder()
+                .procedureCode("TTHC-HT-01")
+                .wardCode("WARD-AG-01")
+                .citizenCccd("089095012345")
+                .formData(Map.of("childName", "NGUYEN CON"))
+                .build();
+
+        DossierSubmissionResponse res = dossierService.submitDossier(req);
+        assertThat(res.slaDeadline()).isNull();
     }
 
     @Test
@@ -377,5 +397,30 @@ class CitizenDossierServiceTest {
         assertThatThrownBy(() -> dossierService.lookupOfficerDossierByQr("LH-20261118-9999", longXuyenOfficer))
                 .isInstanceOf(BusinessException.class)
                 .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode()).isEqualTo(ErrorCode.FORBIDDEN));
+    }
+
+    @Test
+    @DisplayName("BUG-02: idempotencyCache never grows unboundedly above 1000 entries")
+    void idempotencyCache_isStrictlyBoundedAt1000Entries() {
+        when(dossierRepository.existsByDossierCode(any())).thenReturn(false);
+        when(dossierRepository.save(any(CitizenDossier.class))).thenAnswer(inv -> {
+            CitizenDossier arg = inv.getArgument(0);
+            arg.setCreatedAt(Instant.now());
+            return arg;
+        });
+
+        for (int i = 0; i < 1005; i++) {
+            dossierService.submitDossier(SubmitDossierRequest.builder()
+                    .procedureCode("TTHC-CT-01")
+                    .wardCode("AG_P_LONGXUYEN")
+                    .citizenCccd("089095012345")
+                    .idempotencyKey("KEY-" + i)
+                    .build());
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, ?> cache = (Map<String, ?>) org.springframework.test.util.ReflectionTestUtils.getField(dossierService, "idempotencyCache");
+        assertThat(cache).isNotNull();
+        assertThat(cache.size()).isLessThanOrEqualTo(1000);
     }
 }

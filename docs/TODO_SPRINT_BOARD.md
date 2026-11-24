@@ -237,3 +237,63 @@
 - [ ] **Task 20.3:** Auto-fill thông tin vào Tờ khai Mẫu CT01 trên mobile chỉ trong 0.5 giây.
 - [ ] **Task 20.4:** Kiểm thử toàn diện liên thông Web PWA + Mobile App + Backend Core.
 - [ ] **Task 20.5:** Hoàn thiện video demo kịch bản nghiệp vụ sẵn sàng cho đề tài NCKH UTH (Tháng 3/2027).
+
+---
+
+## 4. KẾ HOẠCH KIỂM THỬ TỔNG THỂ CHUẨN SOFTWARE ENGINEER (QA MASTER CHECKLIST — 2026-11-23)
+
+> Mục tiêu: Đánh giá toàn diện chức năng, giao diện, logic đăng nhập/RBAC, kiến trúc chịu lỗi và tốc độ vận hành trên nhánh `develop` (`15152d4`). Báo cáo kết quả chi tiết xem tại [`docs/testing/QA_AUDIT_REPORT_2026-11-23.md`](testing/QA_AUDIT_REPORT_2026-11-23.md).
+
+### Pre-Flight — Đồng bộ Môi trường Sạch
+- [x] **QA-0.1:** Đã chạy `docker compose up -d --build` từ `develop` (`15152d4`).
+- [x] **QA-0.2:** Xác nhận 6/6 container `Up (healthy)`, `/api/v1/health = UP`, Web `/health = 200`, `OOMKilled = false`.
+- [ ] **QA-0.3:** Chuẩn bị song song 2 hồ sơ kiểm thử: **Prod-like Docker (`prod`)** và **Dev/Test Harness (`dev`)** *(PARTIAL: `.env` trên host đặt `SPRING_PROFILES_ACTIVE=dev` nên Compose chạy ở profile `dev`, chưa chạy phiên đo thuần `prod`)*.
+
+### Tầng 1 — Static Analysis, Contract & Regression Baseline
+- [x] **QA-1.1:** `node scripts/sync-shared-catalogs.mjs --check` $\rightarrow$ `IN_SYNC` 5/5 mục (`96` xã + `40/40` TTHC).
+- [x] **QA-1.2:** `powershell -ExecutionPolicy Bypass -File scripts/check-docs-governance.ps1` $\rightarrow$ `PASS`.
+- [x] **QA-1.3:** Backend `.\mvnw.cmd test -B` $\rightarrow$ `TextNormalizationUtils` & `ChallengerM3AdversarialTest` đạt **`14/14` PASS, `0` skipped** (Pha C `BUG-QA-10`); toàn bộ suite `554` run (`553` PASS, `0` fail, `1` skip `RealDatabaseAndRedisBootSmokeTest` khi Docker tắt — đã PASS khi Docker bật ở Pha A/B).
+- [x] **QA-1.4:** Web `npx.cmd tsc --noEmit` + `$env:CI_FRONTEND_ONLY='true'; npm.cmd run test:all` $\rightarrow$ `0` lỗi TS, `11/11` PASS, `A4DocumentModal-*.js` tách thành `403.88 kB`.
+- [x] **QA-1.5:** Mobile `npm.cmd run typecheck; npm.cmd test` $\rightarrow$ `0` lỗi TS, `9/9` files / `77/77` tests PASS.
+
+### Tầng 2 — Kiến trúc, Độ bền Dữ liệu & Chaos Engineering
+- [ ] **QA-2.1 (`ARCH-01`):** Kiểm tra Flyway boot trên PostgreSQL volume rỗng vs volume cũ *(PARTIAL: volume cũ boot `0` lỗi `PSQLException`/`NOAUTH`; RealDatabaseAndRedisBootSmokeTest chạy Flyway V1..V14 + seed `legal_chunks` & `issue_clusters` thành công trên Postgres rỗng Testcontainers; chưa xóa hẳn Docker volume local `postgres_data` để test cold boot trên Compose)*.
+- [x] **QA-2.2 (`ARCH-02`):** Đã kiểm tra Redis AOF `/data/appendonlydir` và `docker compose restart backend redis` $\rightarrow$ `/api/v1/health = UP`, số dòng PostgreSQL (`11 / 6 / 12 / 3 / 17`) giữ nguyên 100%.
+- [ ] **QA-2.3 (`ARCH-03`):** Xóa chỉ mục Redis GEO rồi gọi `POST /api/v1/issues/clusters/rebuild-index` bằng quyền `ADMIN` *(NOT RUN trực tiếp trên Docker)*.
+- [x] **QA-2.4 (`ARCH-04`):** `docker pause smartward-minio` giữa lúc Officer xem ảnh Vault $\rightarrow$ trả `404` không làm cháy OTT $\rightarrow$ `docker unpause` thử lại trả **`200`** $\rightarrow$ lần xem tiếp theo trả **`410 GONE`**.
+- [ ] **QA-2.5 (`ARCH-05`):** Bơm Redis tới `maxmemory 100mb` kiểm tra `noeviction` *(NOT RUN trên môi trường live)*.
+- [ ] **QA-2.6 (`ARCH-06`):** `docker pause smartward-ai-sidecar` kiểm tra timeout/fallback khi gọi `/rag/ask` & `/voice/synthesize` *(NOT RUN)*.
+- [x] **QA-2.7 (`ARCH-07`):** Kiểm tra bề mặt trên Docker $\rightarrow$ `/v3/api-docs` = `404`, `/swagger-ui/index.html` = `404`, `anyRequest().denyAll()` = `401`, CORS xấu = `403`.
+
+### Tầng 3 — Logic Đăng nhập, Phiên & Ma trận Phân quyền RBAC
+- [ ] **QA-3.1:** Kiểm định ma trận phân quyền 5 danh tính *(PARTIAL: JUnit RBAC pass 100%, ẩn danh bị chặn `401` `7/7` API live gồm `/vault/view/**`, và Officer `CC-AG-8942` đăng nhập + đổi PIN `mustChangePin` live thành công trên Docker; bộ E2E cũ `BUG-QA-09` còn fail do dùng PIN `'8942'`)*.
+- [ ] **QA-3.2 (`AUTH-01`):** Khóa brute-force theo `(badgeId, clientIp)` *(PARTIAL: đã pass JUnit `OfficerAuthServiceTest`, chưa bắn 2 IP khác nhau trên Docker)*.
+- [ ] **QA-3.3 (`AUTH-02`):** Audit IP thật & chống giả mạo header *(PARTIAL: đã pass JUnit `OfficerAuthServiceTest`, chưa test spoof header live qua Nginx)*.
+- [ ] **QA-3.4 (`AUTH-03`):** Vòng đời JWT (`GET /me` $\rightarrow$ `POST /logout` $\rightarrow$ dùng lại trả `401`) *(PARTIAL: đã pass unit/mock suite, chưa chạy riêng test revoke trên Docker)*.
+- [x] **QA-3.5 (`AUTH-04`):** Đã kiểm tra DOM thực tế `/` & `frontend/dist/assets`: không còn PIN `'8942'` khởi tạo hay nút *"Đăng nhập nhanh"*.
+- [x] **QA-3.6 (`AUTH-05`):** Giới hạn `/dossiers/track` (`[404×5, 429]` PASS) & khóa `GET /api/v1/vault/view/{token}` chỉ cho **`ROLE_OFFICER`** (ẩn danh trả `401` không đốt token, Officer trả `200 -> 410`).
+- [ ] **QA-3.7 (`AUTH-06`):** Kiểm tra bộ đếm phiên 5 phút / 15 phút & Guards *(PARTIAL: Suite 10 Frontend PASS, chưa chờ realtime 5p/15p trên trình duyệt)*.
+
+### Tầng 4 — Kiểm thử Chức năng Toàn diện End-to-End (E2E)
+- [x] **QA-4.1:** Chạy `run_all_e2e_tests.mjs --tier=1,2,3,4,5` $\rightarrow$ đạt **`161 / 161 PASS (100.0%)`** trên companion server đồng bộ chặt hợp đồng mới (Pha C `BUG-QA-09`: `0` assertion bị xóa/lỏng; chờ chạy lại trực tiếp cổng `:8082` khi bật Docker Desktop).
+- [ ] **QA-4.2 (Luồng Legal RAG):** Thử đủ 3 vùng tin cậy & HITL approve *(PARTIAL: `/rag/ask` trả `200` với warm Redis p95 `23.16ms` và `hitl_gray_zone_queue` có `3` dòng DB, chưa test live Officer resolve qua API)*.
+- [ ] **QA-4.3 (Luồng 4 Biểu mẫu, A4 & SLA):** Kiểm tra `CT01`/`TK-KS`/`TK-KH`/`TK-BTXH`, `slaDeadline = null` & xuất A4 *(PARTIAL: `/dossiers` live trả `slaDeadline: null`, `A4DocumentModal` mở OK, chưa verify file `.docx`/`.pdf` tải xuống)*.
+- [x] **QA-4.4 (Luồng GIS $R=25\text{m}$ & Privacy):** `WARD_DEFAULT` & Hà Nội bị chặn `400`, `/issues/clusters` ẩn danh sạch (`0` field nhạy cảm), `POST /issues/report` live trả `200` (p95 `55.35ms`) và gộp cụm `pgvector` thành công *(ghi chú Pha C: `SpatialIndexService:36` còn ghi `log.debug` tọa độ khi bật profile `dev`)*.
+- [ ] **QA-4.5 (Mobile Offline & Maker-Checker):** Idempotency retry & Maker-Checker *(PARTIAL: Mobile Vitest `77/77` PASS + `Idempotency-Key` live cả tuần tự lẫn 10-luồng đồng thời đạt `distinctCount = 1`; chưa test Maker-Checker live)*.
+
+### Tầng 5 — Giao diện, Đa màn hình, Bundle & Accessibility (UI / UX / A11y)
+- [ ] **QA-5.1:** Duyệt route Web trên Playwright *(PARTIAL — hết lỗi P1/P2 Nginx: **`0` lỗi CSP**, **`Permissions-Policy` mở `(self)`**, `0` `pageerror`, `0` HTTP `5xx`; `8` console error còn lại do OSM tiles DNS offline; còn 3 route cán bộ & `320px` overflow thuộc Pha C)*.
+- [x] **QA-5.2:** Playwright Network xác nhận `A4DocumentModal-*.js` không tải ban đầu ở `/citizen/form` & `/citizen/procedures`, chỉ tải động khi bấm mở Modal A4.
+- [x] **QA-5.3:** Kiểm tra Responsive `1440×900`, `1280×800`, `768×1024`, `375×812`, `320×568` (`28/28` lượt kiểm trên `7` route web gồm `/citizen/form`, `/onboarding`, `/officer`) $\rightarrow$ **`0px` overflow** (`exit code 0`).
+- [x] **QA-5.4:** Kiểm tra tự động `@axe-core/playwright` (`test_ui_a11y_snapshots.mjs --strict` trên `320/375/1280` × `7` route) $\rightarrow$ **`0` vi phạm theo kiểm tra tự động `axe-core` trên các route đã chọn** (`BUG-QA-07` & `BUG-QA-09` đã đóng).
+- [ ] **QA-5.5:** Chạy `mobile` (`expo start --web`) kiểm tra 6 màn hình `320px → 430px` *(PARTIAL: test tĩnh PASS trong Vitest, chưa kiểm trực tiếp trên trình duyệt Expo Web)*.
+
+### Tầng 6 — Tốc độ Vận hành, Stress, Concurrency & Ngân sách RAM `<= 2048 MiB`
+- [ ] **QA-6.1 (Latency SLOs):** Đo p50/p95 endpoint chính *(PARTIAL: `/health` p95 `16.8ms`, `/procedures` `39.9ms`, `/issues/clusters` `24.3ms`, `/rag/ask` warm **`23.16ms`**, `/issues/report` **`55.35ms`**, `/vault` upload+view **`107.43ms`**, `/voice/synthesize` **`82.38ms`** PASS; chưa benchmark đồng thời `/auth/officer/login`)*.
+- [x] **QA-6.2 (`PERF-01` — Stress `smartward-ai-sidecar`):** Đã nâng trần lên **`512 MiB`** (`postgres` giảm `320 MiB`, tổng giữ **`2048 MiB`**); bắn `10` worker / `12` call $\rightarrow$ `12/12` `200 OK` (`/embed` `34ms`, `/tts` **`318ms`** nhanh hơn **6×**), `OOMKilled = false`, tổng RAM peak **`1,075.60 / 2,048 MiB`**.
+- [x] **QA-6.3 (`PERF-02` — Race Condition TOCTOU):** Bắn 10 request song song: `/vault/view/{token}` trả đúng **`1 × 200` + `9 × 410`**; `/issues/report` cùng `Idempotency-Key` trả **`10 × 200`** với **`distinctCount = 1`**, `clusterReportCount = 1`.
+- [ ] **QA-6.4 (`PERF-03` & `PERF-04`):** `PERF-04` **PASS** (`RedisRateLimiter` trả **`10 × HTTP 429`** sau 30 req/phút trên `/rag/ask`); `PERF-03` soak test `1,200` requests chưa chạy.
+
+### Tầng 7 — Tiêu chí Nghiệm thu & Chốt Release (`develop -> main`)
+- [x] **QA-7.1:** Đạt **`0` lỗi P0**, **`0` lỗi P1** và đã chốt các hạng mục Pha C (`BUG-QA-07`, `BUG-QA-09`, `BUG-QA-10`) trên nhánh `bugfix/qa-phase-c-closure` (còn xác nhận chạy lại trên Docker sống khi Docker Desktop mở & chờ xác nhận người dùng trước khi merge vào `develop`).
+- [x] **QA-7.2:** Đã xuất báo cáo nghiệm thu & đối chiếu Trước/Sau chi tiết tại [`docs/testing/QA_AUDIT_REPORT_2026-11-23.md`](testing/QA_AUDIT_REPORT_2026-11-23.md).

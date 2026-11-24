@@ -79,8 +79,9 @@ public class ProcedureService {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã thủ tục không được để trống");
         }
 
-        AdminProcedure proc = procedureRepository.findByProcedureCode(procedureCode)
-                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Không tìm thấy thủ tục với mã: " + procedureCode));
+        String normalizedCode = procedureCode.trim().toUpperCase(Locale.ROOT);
+        AdminProcedure proc = procedureRepository.findByProcedureCode(normalizedCode)
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Không tìm thấy thủ tục với mã: " + normalizedCode));
 
         List<LegalChunk> chunks = chunkRepository.findByProcedureId(proc.getId());
 
@@ -130,8 +131,9 @@ public class ProcedureService {
         log.info("Admin triggered procedure re-indexing: code='{}', forceAll={}", procedureCode, forceAll);
         List<LegalChunk> targetChunks;
         if (procedureCode != null && !procedureCode.isBlank()) {
-            AdminProcedure proc = procedureRepository.findByProcedureCode(procedureCode)
-                    .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Không tìm thấy thủ tục: " + procedureCode));
+            String normalizedCode = procedureCode.trim().toUpperCase(Locale.ROOT);
+            AdminProcedure proc = procedureRepository.findByProcedureCode(normalizedCode)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Không tìm thấy thủ tục: " + normalizedCode));
             targetChunks = chunkRepository.findByProcedureId(proc.getId());
         } else {
             targetChunks = chunkRepository.findAll();

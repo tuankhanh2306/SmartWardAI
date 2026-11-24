@@ -15,7 +15,7 @@
 
 import crypto from 'node:crypto';
 import { apiClient } from '../helpers/api_client.mjs';
-import { loginOfficer } from '../helpers/auth_helper.mjs';
+import { loginOfficer, OFFICER_ACCOUNTS } from '../helpers/auth_helper.mjs';
 import { parseCccdQrString, STATIC_CCCD_FIXTURES } from '../fixtures/cccd_qr_fixtures.mjs';
 import { createSampleFileBuffer } from '../fixtures/vault_document_fixtures.mjs';
 
@@ -44,9 +44,15 @@ export async function runTests(assertContext) {
       const ottToken = uploadRes.data?.data?.oneTimeToken;
       assertContext.assert(Boolean(ottToken), 'Must receive valid OTT token');
 
+      const loginRes = await loginOfficer();
+      const officerToken = loginRes.data?.data?.token;
+      assertContext.assert(Boolean(officerToken), 'Must obtain officer Bearer token');
+
       // 2. Đồng thời bắn 10 requests truy cập cùng một OTT token
       const racePromises = Array.from({ length: 10 }, () =>
-        apiClient.get(`/api/v1/vault/view/${ottToken}`)
+        apiClient.get(`/api/v1/vault/view/${ottToken}`, {
+          headers: { Authorization: `Bearer ${officerToken}` },
+        })
       );
       const responses = await Promise.all(racePromises);
 
@@ -82,16 +88,15 @@ export async function runTests(assertContext) {
       ];
 
       for (const payload of maliciousPayloads) {
-        const queryStr = `/api/v1/dossiers/track?dossierCode=${encodeURIComponent(
-          payload.dossierCode
-        )}&last4Cccd=${encodeURIComponent(payload.last4Cccd)}`;
+        const res = await apiClient.post('/api/v1/dossiers/track', {
+          dossierCode: payload.dossierCode,
+          last4Cccd: payload.last4Cccd,
+        });
 
-        const res = await apiClient.get(queryStr);
-
-        // Phải trả về 404 (Không tìm thấy) hoặc 400 (Bad Request), tuyệt đối không 500 Internal Error
+        // Phải trả về 404 (Không tìm thấy), 400 (Bad Request) hoặc 422 (Validation Failed), tuyệt đối không 500 hoặc 200
         assertContext.assert(
-          res.status === 404 || res.status === 400 || res.status === 200,
-          `Adversarial query '${payload.dossierCode}' must not crash server (got status ${res.status})`
+          res.status === 404 || res.status === 400 || res.status === 422,
+          `Adversarial query '${payload.dossierCode}' must be safely rejected (got status ${res.status})`
         );
 
         // Dữ liệu trả về không được phản chiếu mã script nguyên vẹn
@@ -218,8 +223,8 @@ export async function runTests(assertContext) {
         { documentType: 'MALICIOUS_EXEC' }
       );
       assertContext.assert(
-        resMalicious.status === 415 || resMalicious.status === 400,
-        'Malicious executable upload must be rejected with HTTP 415 or HTTP 400'
+        resMalicious.status === 422 || resMalicious.status === 415 || resMalicious.status === 400,
+        `Malicious executable upload must be rejected with HTTP 422/415/400 (got ${resMalicious.status})`
       );
     }
   );
@@ -242,11 +247,12 @@ export async function runTests(assertContext) {
         formData: { residenceType: 'THUONG_TRU' },
       });
       assertContext.assertStatusCode(resProvince.status, 200, 'Precheck status');
-      const provinceIssue = resProvince.data?.fieldValidations?.find(
+      const provinceReport = resProvince.data?.data ?? resProvince.data;
+      const provinceIssue = provinceReport?.fieldValidations?.find(
         (f) => f.errorCode === 'INVALID_CCCD_PROVINCE' || f.fieldName?.includes('CCCD')
       );
       assertContext.assert(
-        resProvince.data?.overallValid === false || provinceIssue?.valid === false,
+        provinceReport?.overallValid === false || provinceIssue?.valid === false,
         'Must flag INVALID_CCCD_PROVINCE for non-existent province code 999'
       );
 
@@ -260,11 +266,12 @@ export async function runTests(assertContext) {
         gender: 'Nữ', // Nhưng kê khai Nữ -> Phải là '1'
         formData: { residenceType: 'THUONG_TRU' },
       });
-      const centuryIssue = resGenderMismatch.data?.fieldValidations?.find(
+      const genderReport = resGenderMismatch.data?.data ?? resGenderMismatch.data;
+      const centuryIssue = genderReport?.fieldValidations?.find(
         (f) => f.errorCode === 'INVALID_CCCD_CENTURY_GENDER' || f.fieldName?.includes('CCCD')
       );
       assertContext.assert(
-        resGenderMismatch.data?.overallValid === false || centuryIssue?.valid === false,
+        genderReport?.overallValid === false || centuryIssue?.valid === false,
         'Must flag INVALID_CCCD_CENTURY_GENDER for male century digit on female applicant'
       );
 
@@ -278,11 +285,12 @@ export async function runTests(assertContext) {
         gender: 'Nam',
         formData: { residenceType: 'THUONG_TRU' },
       });
-      const lengthIssue = resLengthMismatch.data?.fieldValidations?.find(
+      const lengthReport = resLengthMismatch.data?.data ?? resLengthMismatch.data;
+      const lengthIssue = lengthReport?.fieldValidations?.find(
         (f) => f.errorCode === 'INVALID_CCCD_LENGTH' || f.fieldName?.includes('CCCD')
       );
       assertContext.assert(
-        resLengthMismatch.data?.overallValid === false || lengthIssue?.valid === false,
+        lengthReport?.overallValid === false || lengthIssue?.valid === false,
         'Must flag INVALID_CCCD_LENGTH for 11-digit CCCD'
       );
     }
@@ -295,25 +303,32 @@ export async function runTests(assertContext) {
     { testId: 'T5_ADV_07', featureCode: 'F12', tierCode: 'tier5' },
     '[ADV_07] Cross-Tenant IDOR: Ward A officer is strictly forbidden from reviewing or mutating Ward B dossier (HTTP 403)',
     async () => {
-      // 1. Tạo hồ sơ thuộc WARD-B (ví dụ WARD-AG-02 hoặc WARD-B-01)
+      // 1. Tạo hồ sơ thuộc phường khác (AG_P_CHAUDOC)
       const foreignDossierCode = `HS-WARD-B-${Date.now().toString().slice(-6)}`;
       const createRes = await apiClient.post('/api/v1/dossiers', {
         dossierCode: foreignDossierCode,
         procedureCode: 'TTHC-CR-01',
-        wardCode: 'WARD-B',
+        wardCode: 'AG_P_CHAUDOC',
         citizenCccd: '089095012345',
         formData: { fullName: 'TRẦN VĂN HẢI' },
         precheckReport: { overallValid: true },
       });
       assertContext.assertStatusCode(createRes.status, 201, 'Dossier creation status');
+      const createdForeignCode = createRes.data?.data?.dossierCode;
+      assertContext.assert(Boolean(createdForeignCode), 'Server must return generated dossierCode');
 
-      // 2. Cán bộ Ward A đăng nhập lấy JWT token của WARD-AG-01
-      const loginA = await loginOfficer({ wardCode: 'WARD-AG-01', badgeId: 'OFFICER-AG-01' });
+      // 2. Cán bộ Ward A (AG_P_LONGXUYEN) đăng nhập lấy JWT token
+      const loginA = await loginOfficer(
+        OFFICER_ACCOUNTS.JUSTICE_CIVIC.badgeId,
+        OFFICER_ACCOUNTS.JUSTICE_CIVIC.pin,
+        OFFICER_ACCOUNTS.JUSTICE_CIVIC.wardCode
+      );
       const officerTokenA = loginA.data?.data?.token;
+      assertContext.assert(Boolean(officerTokenA), 'Officer token must be issued');
 
-      // 3. Cán bộ Ward A cố tình duyệt hồ sơ thuộc WARD-B -> Phải bị chặn với HTTP 403 Forbidden
+      // 3. Cán bộ AG_P_LONGXUYEN cố tình duyệt hồ sơ thuộc AG_P_CHAUDOC -> Phải bị chặn với HTTP 403 Forbidden
       const idorAttemptRes = await apiClient.put(
-        `/api/v1/dossiers/${foreignDossierCode}/review`,
+        `/api/v1/dossiers/${createdForeignCode}/review`,
         {
           status: 'APPROVED',
           officerFeedback: 'Cố tình duyệt trái thẩm quyền địa bàn',

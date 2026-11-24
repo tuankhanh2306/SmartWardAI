@@ -10,6 +10,7 @@ COPY ml/sidecar/requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY ml ml
+RUN python ml/models/tts/download_tts_model.py
 
 ENV PYTHONPATH=/app/ml/src
 

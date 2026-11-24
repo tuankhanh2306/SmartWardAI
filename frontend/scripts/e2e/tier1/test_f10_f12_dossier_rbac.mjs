@@ -108,6 +108,7 @@ export async function runTests(assertContext) {
   console.log('\n--- [TIER 1] Running F11: Dossier Tracking & Management Tests ---');
 
   const testDossierCode = `HS-E2E-${Date.now().toString().slice(-6)}`;
+  let createdDossierCode = testDossierCode;
   const testCccd = '089095012345';
   const testLast4Cccd = '2345';
 
@@ -119,7 +120,7 @@ export async function runTests(assertContext) {
       const payload = {
         dossierCode: testDossierCode,
         procedureCode: 'TTHC-CR-01',
-        wardCode: 'WARD-AG-01',
+        wardCode: OFFICER_ACCOUNTS.JUSTICE_CIVIC.wardCode,
         citizenCccd: testCccd,
         formData: {
           fullName: 'NGUYỄN VĂN AN',
@@ -135,30 +136,38 @@ export async function runTests(assertContext) {
 
       const res = await apiClient.post('/api/v1/dossiers', payload);
       assertContext.assertStatusCode(res.status, 201, 'POST /api/v1/dossiers status');
+      createdDossierCode = res.data?.data?.dossierCode;
+      assertContext.assert(
+        Boolean(createdDossierCode),
+        'Server must return generated dossierCode in ApiResponse.data'
+      );
     }
   );
 
-  // T1_F11_02: Citizen tracks dossier with matching code & last 4 CCCD digits
+  // T1_F11_02: Citizen tracks dossier with matching code & last 4 CCCD digits via POST /track (SEC-04)
   await assertContext.runTest(
     { testId: 'T1_F11_02', featureCode: 'F11', tierCode: 'tier1' },
-    'GET /api/v1/dossiers/track returns dossier status and SLA when last 4 CCCD digits match',
+    'POST /api/v1/dossiers/track returns dossier status and SLA when last 4 CCCD digits match',
     async () => {
-      const res = await apiClient.get(
-        `/api/v1/dossiers/track?dossierCode=${testDossierCode}&last4Cccd=${testLast4Cccd}`
-      );
-      assertContext.assertStatusCode(res.status, 200, 'GET /api/v1/dossiers/track status');
+      const res = await apiClient.post('/api/v1/dossiers/track', {
+        dossierCode: createdDossierCode,
+        last4Cccd: testLast4Cccd,
+      });
+      assertContext.assertStatusCode(res.status, 200, 'POST /api/v1/dossiers/track status');
+      assertContext.assertEqual(res.data?.data?.dossierCode, createdDossierCode, 'Tracked dossier code must match');
     }
   );
 
   // T1_F11_03: Citizen tracks dossier with wrong last 4 CCCD digits (Access Control)
   await assertContext.runTest(
     { testId: 'T1_F11_03', featureCode: 'F11', tierCode: 'tier1' },
-    'GET /api/v1/dossiers/track rejects inquiry when last 4 CCCD digits do not match citizen record',
+    'POST /api/v1/dossiers/track rejects inquiry when last 4 CCCD digits do not match citizen record',
     async () => {
-      const res = await apiClient.get(
-        `/api/v1/dossiers/track?dossierCode=${testDossierCode}&last4Cccd=9999`
-      );
-      const isRejected = res.status === 403 || res.status === 404 || res.status === 400 || !res.ok;
+      const res = await apiClient.post('/api/v1/dossiers/track', {
+        dossierCode: createdDossierCode,
+        last4Cccd: '9999',
+      });
+      const isRejected = res.status === 403 || res.status === 404 || res.status === 400 || res.status === 422 || !res.ok;
       assertContext.assert(isRejected, 'Must reject inquiry with mismatched CCCD digits');
     }
   );
@@ -172,7 +181,7 @@ export async function runTests(assertContext) {
       const officerToken = loginRes.data?.data?.token;
 
       const res = await apiClient.put(
-        `/api/v1/dossiers/${testDossierCode}/review`,
+        `/api/v1/dossiers/${createdDossierCode}/review`,
         {
           status: 'APPROVED',
           officerFeedback: 'Hồ sơ đầy đủ, hẹn đối chiếu bản chính.',
@@ -195,7 +204,7 @@ export async function runTests(assertContext) {
       const officerToken = loginRes.data?.data?.token;
 
       const res = await apiClient.put(
-        `/api/v1/dossiers/${testDossierCode}/review`,
+        `/api/v1/dossiers/${createdDossierCode}/review`,
         {
           status: 'SUPPLEMENT_REQUIRED',
           officerFeedback: 'Vui lòng bổ sung bản chụp mặt sau CCCD và hợp đồng thuê nhà.',
@@ -236,7 +245,7 @@ export async function runTests(assertContext) {
       const res = await apiClient.post('/api/v1/auth/officer/login', {
         badgeId: OFFICER_ACCOUNTS.JUSTICE_CIVIC.badgeId,
         pin: '0000',
-        wardCode: 'WARD-AG-01',
+        wardCode: OFFICER_ACCOUNTS.JUSTICE_CIVIC.wardCode,
       });
       assertContext.assertStatusCode(res.status, 401, 'Invalid PIN must return 401');
     }

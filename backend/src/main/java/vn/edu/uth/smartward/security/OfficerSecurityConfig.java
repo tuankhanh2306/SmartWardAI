@@ -82,6 +82,7 @@ public class OfficerSecurityConfig {
                                 "/api/v1/auth/officer/change-pin", "/api/v1/officer/change-pin", "/api/v1/auth/change-pin"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/rag/ask", "/api/v1/rag/feedback").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/voice/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/procedures/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/issues/report").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/issues/clusters/**").permitAll()
@@ -89,7 +90,6 @@ public class OfficerSecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/dossiers").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/dossiers/track").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/vault/upload").permitAll()
-                        .requestMatchers(HttpMethod.GET, "/api/v1/vault/view/**").permitAll()
 
                         // 3. API Documentation (dev/staging/test/eval)
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
@@ -117,6 +117,7 @@ public class OfficerSecurityConfig {
                         .requestMatchers("/api/v1/dossiers/officer/**").hasRole("OFFICER")
                         .requestMatchers("/api/v1/dossiers/*/review").hasRole("OFFICER")
                         .requestMatchers("/api/v1/rag/hitl-queue/**", "/api/v1/rag/hitl/**").hasRole("OFFICER")
+                        .requestMatchers("/api/v1/issues/officer/**").hasRole("OFFICER")
                         .requestMatchers(HttpMethod.PATCH, "/api/v1/issues/clusters/*/status").hasRole("OFFICER")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/issues/clusters/*/status").hasRole("OFFICER")
                         .requestMatchers("/api/v1/forms/submissions/**").hasRole("OFFICER")

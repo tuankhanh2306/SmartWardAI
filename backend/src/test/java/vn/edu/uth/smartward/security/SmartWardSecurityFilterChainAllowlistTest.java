@@ -524,6 +524,35 @@ class SmartWardSecurityFilterChainAllowlistTest {
     }
 
     @Test
+    @DisplayName("SEC-02: GET /api/v1/issues/officer/clusters blocks anonymous (401), admin (403), cross-ward (403) and allows own-ward officer (200)")
+    void officerClusters_securityFilterAndWardIsolation() throws Exception {
+        // 1. Anonymous blocked (401)
+        mockMvc.perform(get("/api/v1/issues/officer/clusters"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errorCode").value("SW_401"));
+
+        // 2. Admin blocked (403)
+        mockMvc.perform(get("/api/v1/issues/officer/clusters")
+                        .header("Authorization", adminBearerToken))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("SW_403"));
+
+        // 3. Cross-ward request by Officer blocked (403)
+        mockMvc.perform(get("/api/v1/issues/officer/clusters")
+                        .param("wardCode", "AG_P_CHAUDOC")
+                        .header("Authorization", officerBearerToken))
+                .andExpect(status().isForbidden());
+
+        // 4. Own-ward Officer succeeds (200)
+        when(triageService.getOfficerClusters(anyString(), any(), anyString()))
+                .thenReturn(Collections.emptyList());
+        mockMvc.perform(get("/api/v1/issues/officer/clusters")
+                        .header("Authorization", officerBearerToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
     @DisplayName("POST /api/v1/admin/officers/{badgeId}/issue-pin requires ADMIN role (OFFICER -> 403, ADMIN -> 200)")
     void adminIssueOneTimePin_adminOnly() throws Exception {
         mockMvc.perform(post("/api/v1/admin/officers/CC-AG-8942/issue-pin")
@@ -581,5 +610,32 @@ class SmartWardSecurityFilterChainAllowlistTest {
                         .header("Authorization", tempBearer))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.errorCode").value("SW_401"));
+    }
+
+    @Test
+    @DisplayName("GET /api/v1/vault/view/{token} requires ROLE_OFFICER: anonymous -> 401, ADMIN -> 403, mustChangePin -> 403, OFFICER -> 200")
+    void vaultViewEndpoint_requiresOfficerRole_blocksAnonymous401AndAdmin403() throws Exception {
+        byte[] fakePng = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A};
+        when(vaultService.consumeOneTimeDocument("OTT_test_secure")).thenReturn(fakePng);
+
+        mockMvc.perform(get("/api/v1/vault/view/OTT_test_secure"))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.errorCode").value("SW_401"));
+
+        mockMvc.perform(get("/api/v1/vault/view/OTT_test_secure")
+                        .header("Authorization", adminBearerToken))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("SW_403"));
+
+        mockMvc.perform(get("/api/v1/vault/view/OTT_test_secure")
+                        .header("Authorization", pendingPinBearerToken))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("SW_403_MUST_CHANGE_PIN"));
+
+        mockMvc.perform(get("/api/v1/vault/view/OTT_test_secure")
+                        .header("Authorization", officerBearerToken))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.IMAGE_PNG))
+                .andExpect(content().bytes(fakePng));
     }
 }

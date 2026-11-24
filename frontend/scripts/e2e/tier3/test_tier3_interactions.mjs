@@ -23,7 +23,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { apiClient } from '../helpers/api_client.mjs';
-import { loginOfficer } from '../helpers/auth_helper.mjs';
+import { loginOfficer, OFFICER_ACCOUNTS } from '../helpers/auth_helper.mjs';
 import { parseCccdQrString, STATIC_CCCD_FIXTURES } from '../fixtures/cccd_qr_fixtures.mjs';
 import { TK_KS_FIXTURES } from '../fixtures/form_tk_ks_fixtures.mjs';
 import { OCR_CROSS_CHECK_FIXTURES, createSampleFileBuffer } from '../fixtures/vault_document_fixtures.mjs';
@@ -61,8 +61,9 @@ export async function runTests(assertContext) {
       const sampleProc = procedures.find((p) => p.procedureCode === 'TTHC-HT-01');
       assertContext.assert(Boolean(sampleProc), 'TTHC-HT-01 must be present in procedures list');
       if (sampleProc?.agency) {
+        const agencyLower = sampleProc.agency.toLowerCase();
         assertContext.assert(
-          sampleProc.agency.includes('xã') || sampleProc.agency.includes('phường'),
+          agencyLower.includes('xã') || agencyLower.includes('phường'),
           'Procedure agency must specify commune-level authority'
         );
       }
@@ -140,9 +141,10 @@ export async function runTests(assertContext) {
       // Step 3: Trigger backend form precheck
       const res = await apiClient.post('/api/v1/forms/precheck', autoFilledPayload);
       assertContext.assertStatusCode(res.status, 200, 'POST /api/v1/forms/precheck status');
-      assertContext.assert(res.data?.overallValid === true, 'Auto-filled CT01 form from QR must pass precheck');
+      const report = res.data?.data ?? res.data;
+      assertContext.assert(report?.overallValid === true, 'Auto-filled CT01 form from QR must pass precheck');
 
-      const cccdValidation = res.data?.fieldValidations?.find(
+      const cccdValidation = report?.fieldValidations?.find(
         (f) => f.fieldName?.toLowerCase().includes('cccd') || f.fieldName?.toLowerCase().includes('định danh')
       );
       assertContext.assert(cccdValidation?.valid === true, 'Citizen CCCD must be validated successfully');
@@ -209,12 +211,13 @@ export async function runTests(assertContext) {
 
       const resInvalid = await apiClient.post('/api/v1/forms/precheck', invalidPayload);
       assertContext.assertStatusCode(resInvalid.status, 200, 'Precheck status for unmarried without combined');
+      const invalidReport = resInvalid.data?.data ?? resInvalid.data;
 
-      const paternityValidation = resInvalid.data?.fieldValidations?.find(
+      const paternityValidation = invalidReport?.fieldValidations?.find(
         (f) => f.errorCode === 'UNMARRIED_PARENTS_PATERNITY_REQUIRED' || f.fieldName?.includes('Cha Mẹ')
       );
       assertContext.assert(
-        resInvalid.data?.overallValid === false && paternityValidation?.valid === false,
+        invalidReport?.overallValid === false && paternityValidation?.valid === false,
         'Form precheck must fail when parents are unmarried and fatherName is declared'
       );
       assertContext.assertEqual(
@@ -242,7 +245,8 @@ export async function runTests(assertContext) {
       };
       const resValid = await apiClient.post('/api/v1/forms/precheck', validPayload);
       assertContext.assertStatusCode(resValid.status, 200, 'Precheck status for married parents');
-      assertContext.assert(resValid.data?.overallValid === true, 'Standard birth registration must pass precheck');
+      const validReport = resValid.data?.data ?? resValid.data;
+      assertContext.assert(validReport?.overallValid === true, 'Standard birth registration must pass precheck');
     }
   );
 
@@ -257,15 +261,16 @@ export async function runTests(assertContext) {
       const conflictPayload = TK_KS_FIXTURES.INVALID_DOB_MISMATCH_GCS;
       const resConflict = await apiClient.post('/api/v1/forms/precheck', conflictPayload);
       assertContext.assertStatusCode(resConflict.status, 200, 'POST /api/v1/forms/precheck status');
+      const conflictReport = resConflict.data?.data ?? resConflict.data;
 
       const isConflictDetected =
-        resConflict.data?.overallValid === false ||
-        (Array.isArray(resConflict.data?.fieldValidations) &&
-          resConflict.data.fieldValidations.some(
+        conflictReport?.overallValid === false ||
+        (Array.isArray(conflictReport?.fieldValidations) &&
+          conflictReport.fieldValidations.some(
             (fv) => fv.errorCode?.includes('BIRTH_CERT') || fv.errorMessage?.includes('chứng sinh')
           )) ||
-        (Array.isArray(resConflict.data?.warnings) &&
-          resConflict.data.warnings.some((w) => w.includes('chứng sinh') || w.includes('ngày sinh')));
+        (Array.isArray(conflictReport?.warnings) &&
+          conflictReport.warnings.some((w) => w.includes('chứng sinh') || w.includes('ngày sinh')));
 
       assertContext.assert(isConflictDetected, 'Date discrepancy between form and GCS must be flagged');
 
@@ -344,34 +349,40 @@ export async function runTests(assertContext) {
   // T3_INT_09 (F10 + F11): Database Persistence -> Tra cứu tiến độ (mã + 4 số cuối CCCD)
   // -------------------------------------------------------------------------
   const trackingDossierCode = `HS-T3-TRACK-${Date.now().toString().slice(-6)}`;
+  let createdTrackCode = trackingDossierCode;
   const trackingCccd = '079302009876'; // Last 4: 9876
 
   await assertContext.runTest(
     { testId: 'T3_INT_09', featureCode: 'F11', tierCode: 'tier3' },
-    '[F10+F11] Dossier progress inquiry verifies last 4 CCCD digits against PostgreSQL record',
+    '[F10+F11] Dossier progress inquiry verifies last 4 CCCD digits against PostgreSQL record via POST /track',
     async () => {
       // Create dossier first
-      await apiClient.post('/api/v1/dossiers', {
+      const submitRes = await apiClient.post('/api/v1/dossiers', {
         dossierCode: trackingDossierCode,
         procedureCode: 'TTHC-CR-01',
-        wardCode: 'WARD-AG-01',
+        wardCode: OFFICER_ACCOUNTS.JUSTICE_CIVIC.wardCode,
         citizenCccd: trackingCccd,
         formData: { fullName: 'TRẦN THỊ HỒNG NHUNG' },
         precheckReport: { overallValid: true },
         vaultDocIds: [],
       });
+      assertContext.assertStatusCode(submitRes.status, 201, 'Create tracking dossier status');
+      createdTrackCode = submitRes.data?.data?.dossierCode;
+      assertContext.assert(Boolean(createdTrackCode), 'Must capture server-generated dossierCode');
 
       // Legitimate citizen query: matching dossierCode + last4Cccd
-      const resMatch = await apiClient.get(
-        `/api/v1/dossiers/track?dossierCode=${trackingDossierCode}&last4Cccd=9876`
-      );
+      const resMatch = await apiClient.post('/api/v1/dossiers/track', {
+        dossierCode: createdTrackCode,
+        last4Cccd: '9876',
+      });
       assertContext.assertStatusCode(resMatch.status, 200, 'Legitimate dossier tracking status');
-      assertContext.assertEqual(resMatch.data?.data?.dossierCode, trackingDossierCode, 'Tracked dossier code matches');
+      assertContext.assertEqual(resMatch.data?.data?.dossierCode, createdTrackCode, 'Tracked dossier code matches');
 
       // Unauthorized snooping attempt: wrong last 4 digits
-      const resWrong = await apiClient.get(
-        `/api/v1/dossiers/track?dossierCode=${trackingDossierCode}&last4Cccd=0000`
-      );
+      const resWrong = await apiClient.post('/api/v1/dossiers/track', {
+        dossierCode: createdTrackCode,
+        last4Cccd: '0000',
+      });
       const isBlocked = resWrong.status === 403 || resWrong.status === 404 || !resWrong.ok;
       assertContext.assert(isBlocked, 'Inquiry with mismatched last 4 CCCD digits must be rejected');
     }
@@ -391,7 +402,7 @@ export async function runTests(assertContext) {
       };
 
       // Attempt 1: Anonymous request without token -> MUST fail with 401
-      const resAnon = await apiClient.put(`/api/v1/dossiers/${trackingDossierCode}/review`, reviewPayload, {
+      const resAnon = await apiClient.put(`/api/v1/dossiers/${createdTrackCode}/review`, reviewPayload, {
         headers: { Authorization: '' },
       });
       assertContext.assertStatusCode(resAnon.status, 401, 'Anonymous review attempt must return HTTP 401');
@@ -401,7 +412,7 @@ export async function runTests(assertContext) {
       const officerToken = loginRes.data?.data?.token;
       assertContext.assert(Boolean(officerToken), 'Officer login must yield valid Bearer JWT');
 
-      const resAuth = await apiClient.put(`/api/v1/dossiers/${trackingDossierCode}/review`, reviewPayload, {
+      const resAuth = await apiClient.put(`/api/v1/dossiers/${createdTrackCode}/review`, reviewPayload, {
         headers: { Authorization: `Bearer ${officerToken}` },
       });
       assertContext.assertStatusCode(resAuth.status, 200, 'Officer review with Bearer token must return HTTP 200');
@@ -428,12 +439,20 @@ export async function runTests(assertContext) {
       const freshOttToken = uploadRes.data?.data?.oneTimeToken;
       assertContext.assert(Boolean(freshOttToken), 'Must obtain active One-Time Token');
 
+      const loginRes = await loginOfficer();
+      const officerToken = loginRes.data?.data?.token;
+      assertContext.assert(Boolean(officerToken), 'Must obtain officer Bearer token');
+
       // Step 2: First view by officer -> Returns 200 with decrypted image binary
-      const firstView = await apiClient.get(`/api/v1/vault/view/${freshOttToken}`);
+      const firstView = await apiClient.get(`/api/v1/vault/view/${freshOttToken}`, {
+        headers: { Authorization: `Bearer ${officerToken}` },
+      });
       assertContext.assertStatusCode(firstView.status, 200, 'First view status must be HTTP 200');
 
       // Step 3: Replay / second view attempt -> Token already consumed, returns HTTP 410 GONE
-      const secondView = await apiClient.get(`/api/v1/vault/view/${freshOttToken}`);
+      const secondView = await apiClient.get(`/api/v1/vault/view/${freshOttToken}`, {
+        headers: { Authorization: `Bearer ${officerToken}` },
+      });
       assertContext.assertStatusCode(secondView.status, 410, 'Second view must return HTTP 410 GONE (Self-Destruction)');
     }
   );
@@ -574,7 +593,7 @@ export async function runTests(assertContext) {
       const payload = {
         dossierCode: comboDossierCode,
         procedureCode: 'TTHC-HT-01',
-        wardCode: 'WARD-AG-01',
+        wardCode: OFFICER_ACCOUNTS.JUSTICE_CIVIC.wardCode,
         citizenCccd: qrParsed.data.cccdNumber,
         formData: {
           fullName: qrParsed.data.fullName,
@@ -591,12 +610,15 @@ export async function runTests(assertContext) {
 
       const submitRes = await apiClient.post('/api/v1/dossiers', payload);
       assertContext.assertStatusCode(submitRes.status, 201, 'POST /api/v1/dossiers combo status');
+      const createdComboCode = submitRes.data?.data?.dossierCode;
+      assertContext.assert(Boolean(createdComboCode), 'Server must return generated dossierCode');
 
-      // Step 4: Track dossier using last 4 digits of parsed QR CCCD
+      // Step 4: Track dossier using last 4 digits of parsed QR CCCD via POST /track
       const last4 = qrParsed.data.cccdNumber.slice(-4);
-      const trackRes = await apiClient.get(
-        `/api/v1/dossiers/track?dossierCode=${comboDossierCode}&last4Cccd=${last4}`
-      );
+      const trackRes = await apiClient.post('/api/v1/dossiers/track', {
+        dossierCode: createdComboCode,
+        last4Cccd: last4,
+      });
       assertContext.assertStatusCode(trackRes.status, 200, 'Tracking combo dossier with QR CCCD last 4 digits');
     }
   );

@@ -1,10 +1,12 @@
 package vn.edu.uth.smartward.triage;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import vn.edu.uth.smartward.ai.AiModelClient;
@@ -18,10 +20,12 @@ import vn.edu.uth.smartward.triage.dto.IssueClusterDto;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Two-Stage Spatial-Semantic Incident Triage Engine.
@@ -67,21 +71,174 @@ public class TwoStageTriageService {
     @Value("${smartward.triage.active-window-hours:72}")
     private int activeWindowHours;
 
+    private static final String IDEMPOTENCY_REDIS_PREFIX = "smartward:triage:idempotency:";
+    private static final Duration IDEMPOTENCY_TTL = Duration.ofHours(24);
+    static final int MAX_IDEMPOTENCY_CACHE_SIZE = 1000;
+    private static final int IDEMPOTENCY_STRIPE_COUNT = 64;
+
+    private final Object[] idempotencyStripes = createStripes(IDEMPOTENCY_STRIPE_COUNT);
+
+    private static Object[] createStripes(int count) {
+        Object[] arr = new Object[count];
+        for (int i = 0; i < count; i++) {
+            arr[i] = new Object();
+        }
+        return arr;
+    }
+
+    @Autowired(required = false)
+    private StringRedisTemplate stringRedisTemplate;
+
+    @Autowired(required = false)
+    private ObjectMapper objectMapper;
+
+    private final Map<String, CivicReportResponse> idempotencyCache = new ConcurrentHashMap<>();
+
+    void setIdempotencyDependencies(StringRedisTemplate stringRedisTemplate, ObjectMapper objectMapper) {
+        this.stringRedisTemplate = stringRedisTemplate;
+        this.objectMapper = objectMapper;
+    }
+
+    int getIdempotencyCacheSize() {
+        return idempotencyCache.size();
+    }
+
+    private CivicReportResponse lookupIdempotentResponse(String key) {
+        if (stringRedisTemplate != null && objectMapper != null) {
+            try {
+                String raw = stringRedisTemplate.opsForValue().get(IDEMPOTENCY_REDIS_PREFIX + key);
+                if (raw != null && !raw.isBlank()) {
+                    return objectMapper.readValue(raw, CivicReportResponse.class);
+                }
+            } catch (Exception e) {
+                log.warn("Redis idempotency lookup failed for key '{}', falling back to memory cache: {}",
+                        key, e.getMessage());
+            }
+        }
+        return idempotencyCache.get(key);
+    }
+
+    private void storeIdempotentResponse(String key, CivicReportResponse response) {
+        if (response == null) {
+            return;
+        }
+        if (stringRedisTemplate != null && objectMapper != null) {
+            try {
+                String json = objectMapper.writeValueAsString(response);
+                stringRedisTemplate.opsForValue().set(IDEMPOTENCY_REDIS_PREFIX + key, json, IDEMPOTENCY_TTL);
+            } catch (Exception e) {
+                log.warn("Redis idempotency write failed for key '{}' (DB save preserved): {}",
+                        key, e.getMessage());
+            }
+        }
+        if (idempotencyCache.size() >= MAX_IDEMPOTENCY_CACHE_SIZE) {
+            idempotencyCache.clear();
+        }
+        idempotencyCache.put(key, response);
+    }
+
+    public static String normalizeCategory(String rawCategory) {
+        if (rawCategory == null || rawCategory.isBlank()) {
+            return "ROAD_DAMAGE";
+        }
+        String upper = rawCategory.trim().toUpperCase(Locale.ROOT);
+        return switch (upper) {
+            case "LIGHTING", "LIGHTING_ELECTRICAL", "ELECTRICAL" -> "LIGHTING_ELECTRICAL";
+            case "SECURITY", "ORDER_SECURITY", "PUBLIC_ORDER" -> "ORDER_SECURITY";
+            case "GARBAGE", "ENVIRONMENT", "SANITATION" -> "ENVIRONMENT";
+            case "FLOOD", "FLOODING" -> "FLOODING";
+            case "ROAD", "ROAD_DAMAGE", "INFRASTRUCTURE" -> "ROAD_DAMAGE";
+            default -> upper;
+        };
+    }
+
+    public static IssueClusterDto sanitizeForPublic(IssueClusterDto dto) {
+        if (dto == null) {
+            return null;
+        }
+        BigDecimal roundedLat = dto.getCenterLatitude() != null
+                ? dto.getCenterLatitude().setScale(3, RoundingMode.HALF_UP)
+                : null;
+        BigDecimal roundedLon = dto.getCenterLongitude() != null
+                ? dto.getCenterLongitude().setScale(3, RoundingMode.HALF_UP)
+                : null;
+        return IssueClusterDto.builder()
+                .id(dto.getId())
+                .clusterCode(dto.getClusterCode())
+                .category(dto.getCategory())
+                .title(dto.getTitle())
+                .centerLatitude(roundedLat)
+                .centerLongitude(roundedLon)
+                .reportCount(dto.getReportCount())
+                .status(dto.getStatus())
+                .addressText(null)
+                .locationSource(null)
+                .locationAccuracyM(null)
+                .wardCode(dto.getWardCode())
+                .firstReportedAt(dto.getFirstReportedAt())
+                .lastReportedAt(dto.getLastReportedAt())
+                .build();
+    }
+
     /**
      * Triages an incoming citizen report into an existing cluster or spawns a new one.
      */
     @Transactional
     public CivicReportResponse processReport(CivicReportRequest request) {
+        return executeProcessReport(request);
+    }
+
+    /**
+     * Idempotent incident ingestion entry point used when retrying queued offline mobile reports.
+     */
+    @Transactional
+    public CivicReportResponse processReport(CivicReportRequest request, String idempotencyKey) {
+        if (idempotencyKey == null || idempotencyKey.isBlank()) {
+            return executeProcessReport(request);
+        }
+        String key = idempotencyKey.trim();
+        if (key.length() > 128) {
+            key = key.substring(0, 128);
+        }
+
+        CivicReportResponse cached = lookupIdempotentResponse(key);
+        if (cached != null) {
+            log.info("Idempotency-Key '{}' cache hit — returning previous triage result '{}' without duplicate report",
+                    key, cached.getReportCode());
+            return cached;
+        }
+
+        synchronized (idempotencyStripes[Math.floorMod(key.hashCode(), idempotencyStripes.length)]) {
+            cached = lookupIdempotentResponse(key);
+            if (cached != null) {
+                log.info("Idempotency-Key '{}' cache hit (in-flight lock) — returning '{}' without duplicate report",
+                        key, cached.getReportCode());
+                return cached;
+            }
+            CivicReportResponse response = executeProcessReport(request);
+            storeIdempotentResponse(key, response);
+            return response;
+        }
+    }
+
+    private CivicReportResponse executeProcessReport(CivicReportRequest request) {
         double lon = request.getLongitude().doubleValue();
         double lat = request.getLatitude().doubleValue();
+        String normalizedCategory = normalizeCategory(request.getCategory());
 
         // Privacy protection: log coarse/masked location only (BƯỚC 4)
         log.info("Processing civic report in category '{}' for ward '{}' near coarse [{}, {}]",
-                request.getCategory(), request.getWardCode(),
+                normalizedCategory, request.getWardCode(),
                 String.format(java.util.Locale.US, "%.3f", lat),
                 String.format(java.util.Locale.US, "%.3f", lon));
 
         // BƯỚC 2 & BƯỚC 4: Strict Territorial & Geographic Boundary Validation
+        if ("WARD_DEFAULT".equalsIgnoreCase(request.getLocationSource())) {
+            log.warn("Civic report rejected because location has not been confirmed by user (WARD_DEFAULT)");
+            throw new BusinessException(ErrorCode.INVALID_REQUEST,
+                    "Vị trí sự cố chưa được xác nhận. Vui lòng bấm lấy GPS hoặc kéo ghim trên bản đồ trước khi gửi phản ánh.");
+        }
+
         if (geoValidatorService != null) {
             GeoValidationResult geoResult = geoValidatorService.validateWardPoint(lat, lon, request.getWardCode());
             if (!geoResult.valid()) {
@@ -124,11 +281,11 @@ public class TwoStageTriageService {
                 continue;
             }
 
-            // CRITICAL BUSINESS RULE: Must match the exact incident category
-            // (e.g. Prevents merging Road Damage with Flooding at the same intersection)
-            if (!cluster.getCategory().equalsIgnoreCase(request.getCategory())) {
+            // CRITICAL BUSINESS RULE: Must match the normalized incident category
+            // (e.g. Unifies LIGHTING <-> LIGHTING_ELECTRICAL while preventing merging Road Damage with Flooding)
+            if (!normalizeCategory(cluster.getCategory()).equalsIgnoreCase(normalizedCategory)) {
                 log.debug("Discarding cluster {} due to category mismatch ({} vs {})",
-                        cluster.getClusterCode(), cluster.getCategory(), request.getCategory());
+                        cluster.getClusterCode(), cluster.getCategory(), normalizedCategory);
                 continue;
             }
 
@@ -165,6 +322,13 @@ public class TwoStageTriageService {
             bestCluster = null;
         }
 
+        String normalizedSource = (request.getLocationSource() != null && !request.getLocationSource().isBlank())
+                ? request.getLocationSource().trim().toUpperCase(Locale.ROOT)
+                : null;
+        String cleanWardCode = (request.getWardCode() != null && !request.getWardCode().isBlank())
+                ? request.getWardCode().trim()
+                : null;
+
         if (bestCluster != null && bestSimilarity >= defaultSimilarityThreshold) {
             // MERGE INTO EXISTING CLUSTER
             int oldCount = bestCluster.getReportCount() != null ? bestCluster.getReportCount() : 1;
@@ -185,6 +349,10 @@ public class TwoStageTriageService {
             float[] oldVec = parseVector(bestCluster.getCenterEmbedding());
             float[] newCentroidVec = updateRunningAverageVector(oldVec, reportEmbedding, oldCount, newCount);
 
+            bestCluster.setCategory(normalizedCategory);
+            if (cleanWardCode != null) {
+                bestCluster.setWardCode(cleanWardCode);
+            }
             bestCluster.setCenterLatitude(newLat);
             bestCluster.setCenterLongitude(newLon);
             bestCluster.setCenterEmbedding(aiModelClient.toPgVectorString(newCentroidVec));
@@ -196,17 +364,17 @@ public class TwoStageTriageService {
             // Update Redis GEO spatial index with new centroid
             spatialIndexService.addClusterLocation(bestCluster.getClusterCode(), newLon.doubleValue(), newLat.doubleValue());
 
-            // Save CivicReport
             CivicReport report = CivicReport.builder()
                     .reportCode(reportCode)
                     .cluster(bestCluster)
-                    .category(request.getCategory())
+                    .category(normalizedCategory)
                     .description(request.getDescription())
                     .latitude(request.getLatitude())
                     .longitude(request.getLongitude())
                     .imageUrl(request.getImageUrl())
+                    .addressText(request.getAddressText())
                     .locationAccuracyM(request.getLocationAccuracyM())
-                    .locationSource(request.getLocationSource() != null ? request.getLocationSource() : "gps")
+                    .locationSource(normalizedSource)
                     .status("SUBMITTED")
                     .build();
 
@@ -219,7 +387,7 @@ public class TwoStageTriageService {
                     .reportCode(reportCode)
                     .clusterCode(bestCluster.getClusterCode())
                     .newCluster(false)
-                    .category(request.getCategory())
+                    .category(normalizedCategory)
                     .clusterReportCount(newCount)
                     .distanceToCenterMeters(bestDistance)
                     .similarityScore(bestSimilarity)
@@ -239,7 +407,8 @@ public class TwoStageTriageService {
 
             IssueCluster newCluster = IssueCluster.builder()
                     .clusterCode(clusterCode)
-                    .category(request.getCategory())
+                    .category(normalizedCategory)
+                    .wardCode(cleanWardCode)
                     .title(title)
                     .centerLatitude(request.getLatitude())
                     .centerLongitude(request.getLongitude())
@@ -256,17 +425,17 @@ public class TwoStageTriageService {
             // Add to Redis GEO index
             spatialIndexService.addClusterLocation(clusterCode, lon, lat);
 
-            // Save CivicReport
             CivicReport report = CivicReport.builder()
                     .reportCode(reportCode)
                     .cluster(savedCluster)
-                    .category(request.getCategory())
+                    .category(normalizedCategory)
                     .description(request.getDescription())
                     .latitude(request.getLatitude())
                     .longitude(request.getLongitude())
                     .imageUrl(request.getImageUrl())
+                    .addressText(request.getAddressText())
                     .locationAccuracyM(request.getLocationAccuracyM())
-                    .locationSource(request.getLocationSource() != null ? request.getLocationSource() : "gps")
+                    .locationSource(normalizedSource)
                     .status("SUBMITTED")
                     .build();
 
@@ -278,7 +447,7 @@ public class TwoStageTriageService {
                     .reportCode(reportCode)
                     .clusterCode(clusterCode)
                     .newCluster(true)
-                    .category(request.getCategory())
+                    .category(normalizedCategory)
                     .clusterReportCount(1)
                     .distanceToCenterMeters(0.0)
                     .similarityScore(1.0)
@@ -286,37 +455,127 @@ public class TwoStageTriageService {
                     .addressText(request.getAddressText())
                     .targetWardName(request.getWardName())
                     .message(String.format("Đã khởi tạo cụm sự cố mới (%s). Hệ thống đang phân luồng tới đơn vị phụ trách lĩnh vực %s.",
-                            clusterCode, request.getCategory()))
+                            clusterCode, normalizedCategory))
                     .build();
         }
     }
 
     /**
-     * Lists active incident clusters for officer map view and dashboard.
+     * Lists active incident clusters for map view and dashboard.
      */
+    @Transactional(readOnly = true)
     public List<IssueClusterDto> getActiveClusters(String status, String category) {
         String effectiveStatus = (status != null && !status.isBlank()) ? status : "OPEN";
+        List<IssueCluster> byStatus = clusterRepository.findByStatus(effectiveStatus);
         List<IssueCluster> clusters;
 
         if (category != null && !category.isBlank()) {
-            clusters = clusterRepository.findByCategoryAndStatus(category, effectiveStatus);
+            String targetCategory = normalizeCategory(category);
+            if (byStatus != null && !byStatus.isEmpty()) {
+                clusters = byStatus.stream()
+                        .filter(c -> normalizeCategory(c.getCategory()).equalsIgnoreCase(targetCategory))
+                        .toList();
+            } else {
+                List<IssueCluster> byCat = clusterRepository.findByCategoryAndStatus(targetCategory, effectiveStatus);
+                clusters = byCat != null ? byCat : Collections.emptyList();
+            }
         } else {
-            clusters = clusterRepository.findByStatus(effectiveStatus);
+            clusters = byStatus != null ? byStatus : Collections.emptyList();
         }
 
-        return clusters.stream().map(c -> IssueClusterDto.builder()
+        return clusters.stream().map(this::toClusterDto).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<IssueClusterDto> getPublicActiveClusters(String status, String category) {
+        return getActiveClusters(status, category).stream()
+                .map(TwoStageTriageService::sanitizeForPublic)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<IssueClusterDto> getOfficerClusters(String status, String category, String officerWardCode) {
+        List<IssueClusterDto> all = getActiveClusters(status, category);
+        if (officerWardCode == null || officerWardCode.isBlank() || "AG_PROVINCE".equalsIgnoreCase(officerWardCode.trim())) {
+            return all;
+        }
+        String cleanOfficerWard = officerWardCode.trim();
+        return all.stream()
+                .filter(dto -> belongsToWard(dto, cleanOfficerWard))
+                .toList();
+    }
+
+    private boolean belongsToWard(IssueClusterDto dto, String officerWardCode) {
+        if (dto.getWardCode() != null && !dto.getWardCode().isBlank()) {
+            return dto.getWardCode().trim().equalsIgnoreCase(officerWardCode);
+        }
+        if (geoValidatorService != null && dto.getCenterLatitude() != null && dto.getCenterLongitude() != null) {
+            return geoValidatorService.validateWardPoint(
+                    dto.getCenterLatitude().doubleValue(),
+                    dto.getCenterLongitude().doubleValue(),
+                    officerWardCode
+            ).valid();
+        }
+        return false;
+    }
+
+    private String resolveClusterWardCode(double lat, double lon) {
+        if (geoValidatorService == null) {
+            return null;
+        }
+        String bestWardCode = null;
+        double minDist = Double.POSITIVE_INFINITY;
+        for (GeoValidatorService.WardGeoDefinition def : geoValidatorService.getAllWards()) {
+            GeoValidationResult check = geoValidatorService.validateWardPoint(lat, lon, def.getWardCode());
+            if (check.valid()) {
+                double dist = GeoValidatorService.calculateHaversineMeters(lat, lon, def.getLat(), def.getLng());
+                if (dist < minDist) {
+                    minDist = dist;
+                    bestWardCode = def.getWardCode();
+                }
+            }
+        }
+        return bestWardCode;
+    }
+
+    private IssueClusterDto toClusterDto(IssueCluster c) {
+        String addr = null;
+        String locSource = null;
+        Double acc = null;
+        if (c.getReports() != null && !c.getReports().isEmpty()) {
+            CivicReport latest = c.getReports().get(c.getReports().size() - 1);
+            addr = latest.getAddressText();
+            locSource = latest.getLocationSource();
+            acc = latest.getLocationAccuracyM();
+        }
+
+        String resolvedWardCode = c.getWardCode();
+        if ((resolvedWardCode == null || resolvedWardCode.isBlank())
+                && geoValidatorService != null
+                && c.getCenterLatitude() != null
+                && c.getCenterLongitude() != null) {
+            resolvedWardCode = resolveClusterWardCode(
+                    c.getCenterLatitude().doubleValue(),
+                    c.getCenterLongitude().doubleValue()
+            );
+        }
+
+        return IssueClusterDto.builder()
                 .id(c.getId())
                 .clusterCode(c.getClusterCode())
-                .category(c.getCategory())
+                .category(normalizeCategory(c.getCategory()))
                 .title(c.getTitle())
                 .centerLatitude(c.getCenterLatitude())
                 .centerLongitude(c.getCenterLongitude())
                 .reportCount(c.getReportCount())
                 .status(c.getStatus())
+                .addressText(addr)
+                .locationSource(locSource)
+                .locationAccuracyM(acc)
+                .wardCode(resolvedWardCode)
                 .firstReportedAt(c.getFirstReportedAt())
                 .lastReportedAt(c.getLastReportedAt())
-                .build()
-        ).toList();
+                .build();
     }
 
     /**
@@ -350,18 +609,7 @@ public class TwoStageTriageService {
             log.info("Cluster {} updated to status {} in DB and Redis GEO", clusterCode, upperStatus);
         }
 
-        return IssueClusterDto.builder()
-                .id(saved.getId())
-                .clusterCode(saved.getClusterCode())
-                .category(saved.getCategory())
-                .title(saved.getTitle())
-                .centerLatitude(saved.getCenterLatitude())
-                .centerLongitude(saved.getCenterLongitude())
-                .reportCount(saved.getReportCount())
-                .status(saved.getStatus())
-                .firstReportedAt(saved.getFirstReportedAt())
-                .lastReportedAt(saved.getLastReportedAt())
-                .build();
+        return toClusterDto(saved);
     }
 
     /**

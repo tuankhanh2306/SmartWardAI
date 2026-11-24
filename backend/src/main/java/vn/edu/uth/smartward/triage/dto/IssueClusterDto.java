@@ -41,6 +41,18 @@ public class IssueClusterDto {
     @Schema(description = "Trạng thái xử lý (OPEN, IN_PROGRESS, RESOLVED)", example = "OPEN")
     private String status;
 
+    @Schema(description = "Địa chỉ hiện trường đại diện")
+    private String addressText;
+
+    @Schema(description = "Nguồn gốc tọa độ (GPS, PIN_DRAGGED, MANUAL)")
+    private String locationSource;
+
+    @Schema(description = "Sai số định vị (m)")
+    private Double locationAccuracyM;
+
+    @Schema(description = "Mã đơn vị hành chính cấp xã/phường", example = "AG_P_LONGXUYEN")
+    private String wardCode;
+
     @Schema(description = "Thời điểm nhận phản ánh đầu tiên")
     private OffsetDateTime firstReportedAt;
 

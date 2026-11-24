@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
-import L from 'leaflet';
 import {
   precheckForm,
   reportIssue,
@@ -11,6 +10,8 @@ import {
   getLiveSubmittedIncidents,
   submitDossier,
   trackDossier,
+  synthesizeSpeech,
+  formatSlaDeadlineVi,
   type FormPrecheckResponse,
   type IssueReportResponse,
   type LiveFormDossier,
@@ -23,7 +24,7 @@ import { extractFormWithVision, normalizeDateToYMD, type ExtractedFormFieldsResu
 import { analyzeImageQuality, verifyTemplateMatch, type VisionQualityGateResult } from '../services/tesseractOcr';
 import { exportElementToPdf } from '../utils/pdfExporter';
 import { useWard } from '../context/WardContext';
-import A4DocumentModal from '../components/A4DocumentModal';
+const A4DocumentModal = React.lazy(() => import('../components/A4DocumentModal'));
 import { SpecializedFormFields } from '../features/citizen-forms/SpecializedFormFields';
 import { CivicIncidentTab } from '../features/civic-incident/CivicIncidentTab';
 import { DossierTrackingTab } from '../features/dossier-tracking/DossierTrackingTab';
@@ -36,6 +37,8 @@ import {
   resolveVerifiedJurisdiction,
   validateWardPoint,
 } from '../utils/geoUtils';
+import { normalizeTextForTts } from '../utils/ttsTextNormalizer';
+import { reverseGeocodeIncident } from '../features/civic-incident/geocodingService';
 
 import {
   FileCheck2,
@@ -333,13 +336,16 @@ export const FormAndIssueReporting: React.FC = () => {
   const [manualWardCode, setManualWardCode] = useState<string>('');
   const manualWardSelectRef = useRef<HTMLSelectElement>(null);
   const [description, setDescription] = useState(
-    `[Tại: Khu vực trung tâm ${currentWard.name}, Tỉnh An Giang] Đoạn đường gần ${currentWard.officeAddress} bị sụt lún ổ gà sâu gây nguy hiểm cho người đi đường, cần cán bộ giám sát kiểm tra xử lý khẩn cấp.`
+    `[Tại: ${currentWard.officeAddress}] Mặt đường bị sụt lún ổ gà sâu gây nguy hiểm cho người đi đường, cần cán bộ giám sát kiểm tra xử lý khẩn cấp.`
   );
   const [addressText, setAddressText] = useState(`${currentWard.officeAddress}`);
   const [latitude, setLatitude] = useState(currentWard.lat);
   const [longitude, setLongitude] = useState(currentWard.lon);
   const [gpsAccuracy, setGpsAccuracy] = useState<number | null>(null);
-  const [locationSource, setLocationSource] = useState<'gps' | 'manual_pin' | 'address_geocode'>('gps');
+  const [locationSource, setLocationSource] = useState<'GPS' | 'PIN_DRAGGED' | 'WARD_DEFAULT'>('WARD_DEFAULT');
+  const [isAddressManuallyEdited, setIsAddressManuallyEdited] = useState(false);
+  const [isGeocodingAddress, setIsGeocodingAddress] = useState(false);
+  const [userGpsLocation, setUserGpsLocation] = useState<{ lat: number; lon: number; accuracy: number } | null>(null);
   const [gpsScanBanner, setGpsScanBanner] = useState<string | null>(null);
   const [gpsLoading, setGpsLoading] = useState(false);
   const [reportLoading, setReportLoading] = useState(false);
@@ -348,8 +354,23 @@ export const FormAndIssueReporting: React.FC = () => {
   // Text-To-Speech (Hỗ trợ người cao tuổi & khiếm thị theo Đề án 06 với 2 chế độ TẮT / MỞ)
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const currentAudioUrlRef = useRef<string | null>(null);
 
   const stopSpeech = useCallback(() => {
+    if (currentAudioRef.current) {
+      try {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.currentTime = 0;
+      } catch {}
+      currentAudioRef.current = null;
+    }
+    if (currentAudioUrlRef.current) {
+      try {
+        URL.revokeObjectURL(currentAudioUrlRef.current);
+      } catch {}
+      currentAudioUrlRef.current = null;
+    }
     if ('speechSynthesis' in window) {
       try {
         if (window.speechSynthesis.paused) {
@@ -370,24 +391,11 @@ export const FormAndIssueReporting: React.FC = () => {
     };
   }, [stopSpeech]);
 
-  const startSpeech = useCallback((text: string, id: string) => {
+  const fallbackWebSpeech = useCallback((clean: string, id: string) => {
     if (!('speechSynthesis' in window)) {
-      alert('Trình duyệt của bạn hiện chưa hỗ trợ tính năng đọc âm thanh.');
+      setSpeakingId(null);
       return;
     }
-
-    stopSpeech();
-
-    const clean = text
-      .replace(/\[[A-Za-z0-9_\-]+\]/g, '')
-      .replace(/[*#_~`>]/g, ' ')
-      .replace(/•/g, ', ')
-      .replace(/\n+/g, '. ')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    if (!clean) return;
-
     setTimeout(() => {
       try {
         const utterance = new SpeechSynthesisUtterance(clean);
@@ -420,7 +428,46 @@ export const FormAndIssueReporting: React.FC = () => {
         setSpeakingId(null);
       }
     }, 50);
-  }, [stopSpeech]);
+  }, []);
+
+  const startSpeech = useCallback((text: string, id: string) => {
+    stopSpeech();
+
+    // Clean and expand administrative acronyms (e.g. CCCD -> Căn cước công dân, UBND -> Ủy ban nhân dân)
+    const clean = normalizeTextForTts(text);
+
+    if (!clean) return;
+
+    setSpeakingId(id);
+
+    // Try local AI Sidecar Piper TTS first, then fallback to Web Speech API
+    synthesizeSpeech(clean)
+      .then((blob) => {
+        const audioUrl = URL.createObjectURL(blob);
+        currentAudioUrlRef.current = audioUrl;
+        const audio = new Audio(audioUrl);
+        currentAudioRef.current = audio;
+
+        audio.onended = () => {
+          stopSpeech();
+        };
+        audio.onerror = () => {
+          console.warn('Audio playback error, falling back to Web Speech API');
+          stopSpeech();
+          fallbackWebSpeech(clean, id);
+        };
+
+        audio.play().catch((err) => {
+          console.warn('Audio play() rejected:', err);
+          stopSpeech();
+          fallbackWebSpeech(clean, id);
+        });
+      })
+      .catch((err) => {
+        console.info('Sidecar TTS unavailable, falling back to browser Web Speech API:', err);
+        fallbackWebSpeech(clean, id);
+      });
+  }, [stopSpeech, fallbackWebSpeech]);
 
   const toggleSpeech = useCallback((text: string, id: string) => {
     if (speakingId === id) {
@@ -433,9 +480,6 @@ export const FormAndIssueReporting: React.FC = () => {
 
   // Incident Map Pin Dropper Refs
   const incidentMapContainerRef = useRef<HTMLDivElement>(null);
-  const incidentMapInstanceRef = useRef<L.Map | null>(null);
-  const incidentMarkerRef = useRef<L.Marker | null>(null);
-  const incidentRadiusCircleRef = useRef<L.Circle | null>(null);
 
   // Helper to map scanned/selected location into BOTH the Location Box (addressText) and Content Box (description)
   const mapLocationToBoxes = useCallback((newAddress: string) => {
@@ -447,7 +491,7 @@ export const FormAndIssueReporting: React.FC = () => {
       const body =
         stripped ||
         'Phát hiện sự cố hư hỏng hạ tầng gây mất an toàn giao thông, đề nghị cán bộ giám sát kiểm tra xử lý khẩn cấp.';
-      return `[Tại: ${newAddress}] ${body}`;
+      return newAddress.trim() ? `[Tại: ${newAddress.trim()}] ${body}` : body;
     });
   }, []);
 
@@ -462,9 +506,11 @@ export const FormAndIssueReporting: React.FC = () => {
     []
   );
 
-  // If citizen manually types or picks a verified ward far from current GPS coords, pan map preview cleanly
+  // Only pan default map center when location is still unconfirmed (WARD_DEFAULT) and not actively scanning GPS
   useEffect(() => {
     if (
+      locationSource === 'WARD_DEFAULT' &&
+      !gpsLoading &&
       resolvedJurisdiction.ward &&
       (resolvedJurisdiction.matchedBy === 'TEXT_BOX' || resolvedJurisdiction.matchedBy === 'MANUAL_SELECT') &&
       resolvedJurisdiction.distanceMeters > 3500
@@ -472,7 +518,7 @@ export const FormAndIssueReporting: React.FC = () => {
       setLatitude(resolvedJurisdiction.ward.lat);
       setLongitude(resolvedJurisdiction.ward.lon);
     }
-  }, [resolvedJurisdiction]);
+  }, [resolvedJurisdiction, locationSource, gpsLoading]);
 
   // Reverse geocode coordinates and map into boxes
   const reverseGeocodeAndMap = useCallback(
@@ -549,135 +595,14 @@ export const FormAndIssueReporting: React.FC = () => {
       prevWardRef.current = currentWard.code;
       setLatitude(currentWard.lat);
       setLongitude(currentWard.lon);
+      setLocationSource('WARD_DEFAULT');
+      setIsAddressManuallyEdited(false);
       mapLocationToBoxes(currentWard.officeAddress);
       if (!ocrSuccess) {
         setAddress((prev) => (prev.startsWith('Số 12,') || !prev ? `Số 12, ${currentWard.officeAddress}` : prev));
       }
     }
   }, [currentWard.code, currentWard.lat, currentWard.lon, currentWard.name, currentWard.officeAddress, ocrSuccess, mapLocationToBoxes]);
-
-  // Leaflet Interactive Pin Dropper for Incident Tab (with tight R=25m spatial circle)
-  useEffect(() => {
-    if (activeTab !== 'incident' || !incidentMapContainerRef.current) return;
-
-    if (incidentMapInstanceRef.current) {
-      incidentMapInstanceRef.current.remove();
-      incidentMapInstanceRef.current = null;
-    }
-
-    const container = incidentMapContainerRef.current;
-    const map = L.map(container, {
-      zoomControl: false,
-      preferCanvas: true,
-    }).setView([latitude, longitude], 17);
-
-    L.control.zoom({ position: 'bottomright' }).addTo(map);
-
-    const tileLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=vi', {
-      subdomains: ['0', '1', '2', '3'],
-      attribution: '&copy; OpenStreetMap contributors &bull; Dữ liệu GIS Hành chính An Giang 2026 (ODbL)',
-      maxZoom: 20,
-      keepBuffer: 4,
-    });
-
-    tileLayer.on('tileerror', (err: any) => {
-      const tile = err?.tile as HTMLImageElement | undefined;
-      const coords = err?.coords;
-      if (tile && coords && !tile.dataset.fallback) {
-        tile.dataset.fallback = '1';
-        tile.src = `https://a.basemaps.cartocdn.com/rastertiles/voyager/${coords.z}/${coords.x}/${coords.y}.png`;
-      }
-    });
-
-    tileLayer.addTo(map);
-
-    const pinIcon = L.divIcon({
-      className: 'custom-pin-marker',
-      html: `
-        <div class="relative flex items-center justify-center w-8 h-8 -ml-1 -mt-3 cursor-pointer">
-          <div class="w-7 h-7 rounded-full bg-[#BA1A1A] border-2 border-white shadow-lg flex items-center justify-center text-white text-xs font-bold ring-2 ring-red-300">
-            !
-          </div>
-        </div>
-      `,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
-    });
-
-    const marker = L.marker([latitude, longitude], {
-      icon: pinIcon,
-      draggable: true,
-    }).addTo(map);
-
-    // Tight R = 25m spatial precision circle
-    const radiusCircle = L.circle([latitude, longitude], {
-      radius: 25,
-      color: '#00687A',
-      weight: 2,
-      fillColor: '#57DFFE',
-      fillOpacity: 0.25,
-    }).addTo(map);
-
-    marker.on('dragend', (e) => {
-      const pos = e.target.getLatLng();
-      setLocationSource('manual_pin');
-      setGpsAccuracy(5);
-      reverseGeocodeAndMap(pos.lat, pos.lng, 5);
-    });
-
-    map.on('click', (e) => {
-      marker.setLatLng(e.latlng);
-      radiusCircle.setLatLng(e.latlng);
-      setLocationSource('manual_pin');
-      setGpsAccuracy(5);
-      reverseGeocodeAndMap(e.latlng.lat, e.latlng.lng, 5);
-    });
-
-    incidentMapInstanceRef.current = map;
-    incidentMarkerRef.current = marker;
-    incidentRadiusCircleRef.current = radiusCircle;
-
-    const rafId = requestAnimationFrame(() => map.invalidateSize({ animate: false }));
-    const t1 = setTimeout(() => map.invalidateSize({ animate: false }), 100);
-    const t2 = setTimeout(() => map.invalidateSize({ animate: false }), 350);
-    const t3 = setTimeout(() => map.invalidateSize({ animate: false }), 700);
-
-    let resizeObserver: ResizeObserver | null = null;
-    if (typeof ResizeObserver !== 'undefined') {
-      resizeObserver = new ResizeObserver(() => {
-        if (incidentMapInstanceRef.current) {
-          incidentMapInstanceRef.current.invalidateSize({ animate: false });
-        }
-      });
-      resizeObserver.observe(container);
-    }
-
-    return () => {
-      cancelAnimationFrame(rafId);
-      clearTimeout(t1);
-      clearTimeout(t2);
-      clearTimeout(t3);
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-      }
-      map.remove();
-      incidentMapInstanceRef.current = null;
-      incidentMarkerRef.current = null;
-      incidentRadiusCircleRef.current = null;
-    };
-  }, [activeTab]);
-
-  // Sync marker & 25m precision circle position when GPS button or coordinates update
-  useEffect(() => {
-    if (incidentMarkerRef.current && incidentMapInstanceRef.current) {
-      incidentMarkerRef.current.setLatLng([latitude, longitude]);
-      if (incidentRadiusCircleRef.current) {
-        incidentRadiusCircleRef.current.setLatLng([latitude, longitude]);
-      }
-      incidentMapInstanceRef.current.panTo([latitude, longitude]);
-    }
-  }, [latitude, longitude]);
-
 
   // Handle FormType Switching with realistic pre-populated test cases
   const handleSelectFormType = (type: 'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH', presetMode: 'ERROR_DEMO' | 'VALID_DEMO' = 'ERROR_DEMO') => {
@@ -1010,7 +935,7 @@ export const FormAndIssueReporting: React.FC = () => {
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert('Kích thước tệp vượt quá 5MB theo hạn mức Zero-Trust Vault (Nghị định 13/2023/NĐ-CP). Vui lòng chọn tệp nhẹ hơn.');
+      alert('Kích thước tệp vượt quá 5MB theo hạn mức Zero-Trust Vault. Vui lòng chọn tệp nhẹ hơn.');
       return;
     }
 
@@ -1465,52 +1390,253 @@ export const FormAndIssueReporting: React.FC = () => {
     }
   };
 
-  // Handle High-Accuracy HTML5 Geolocation API (R=25m) and auto-map into boxes
+  const watchIdRef = useRef<number | null>(null);
+  const watchTimerRef = useRef<any>(null);
+  const pinDebounceRef = useRef<any>(null);
+  const locationSourceRef = useRef<'GPS' | 'PIN_DRAGGED' | 'WARD_DEFAULT'>(locationSource);
+  useEffect(() => {
+    locationSourceRef.current = locationSource;
+  }, [locationSource]);
+
+  const stopActiveGpsWatch = useCallback(() => {
+    if (watchIdRef.current !== null && typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.clearWatch(watchIdRef.current);
+      watchIdRef.current = null;
+    }
+    if (watchTimerRef.current) {
+      clearTimeout(watchTimerRef.current);
+      watchTimerRef.current = null;
+    }
+  }, []);
+
+  // Clean up any running geolocation watchers and debounce timers on unmount
+  useEffect(() => {
+    return () => {
+      stopActiveGpsWatch();
+      if (pinDebounceRef.current) {
+        clearTimeout(pinDebounceRef.current);
+        pinDebounceRef.current = null;
+      }
+    };
+  }, [stopActiveGpsWatch]);
+
+  // High-Accuracy HTML5 Geolocation API with watchPosition (up to 15s or until accuracy <= 30m)
   const handleGetLocation = useCallback(
-    (isAutoScan: boolean = false) => {
+    (_isAutoScan: boolean = false) => {
       if (!navigator.geolocation) {
-        setLocationSource('manual_pin');
-        if (!isAutoScan) {
-          alert('Trình duyệt của bạn không hỗ trợ định vị GPS. Bạn có thể bấm chọn vị trí trực tiếp trên bản đồ.');
-        } else {
-          reverseGeocodeAndMap(latitude, longitude, 8, currentWard.officeAddress);
-        }
+        setLocationSource('WARD_DEFAULT');
+        setGpsScanBanner('Trình duyệt không hỗ trợ định vị GPS. Vui lòng bấm vào bản đồ hoặc kéo ghim để chọn vị trí sự cố.');
         return;
       }
+
+      stopActiveGpsWatch();
+
       setGpsLoading(true);
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const { latitude: lat, longitude: lon, accuracy } = pos.coords;
-          const nearest = findNearestWardByCoords(lat, lon);
-          const acc = Math.round(accuracy || 8);
-          setGpsAccuracy(acc);
-          setLocationSource('gps');
-          // If auto-scanning on a desktop PC far outside An Giang (> 80km), keep current ward coords unless user clicked manual GPS scan
-          if (isAutoScan && nearest.distanceMeters > 80000) {
-            reverseGeocodeAndMap(currentWard.lat, currentWard.lon, 8, currentWard.officeAddress);
-          } else {
-            reverseGeocodeAndMap(lat, lon, acc);
-          }
-          if (acc > 100) {
-            setGpsScanBanner(`Vị trí định vị có sai số ±${acc}m do tín hiệu yếu. Vui lòng kéo ghim trên bản đồ để chỉnh lại vị trí chính xác.`);
-          }
-          setGpsLoading(false);
-        },
-        () => {
-          setLocationSource('manual_pin');
-          setGpsScanBanner('Không thể lấy GPS thiết bị (bị từ chối hoặc lỗi tín hiệu). Vui lòng chọn hoặc kéo ghim trên bản đồ.');
-          reverseGeocodeAndMap(latitude, longitude, 10, addressText || currentWard.officeAddress);
-          setGpsLoading(false);
-        },
-        {
-          enableHighAccuracy: true,
-          maximumAge: 0,
-          timeout: 8000,
+      setGpsScanBanner('Đang xác định vị trí...');
+
+      let bestPos: GeolocationPosition | null = null;
+
+      const finishLocation = async (pos: GeolocationPosition) => {
+        stopActiveGpsWatch();
+
+        const { latitude: lat, longitude: lon, accuracy } = pos.coords;
+        const acc = Math.round(accuracy || 10);
+        setLatitude(lat);
+        setLongitude(lon);
+        setGpsAccuracy(acc);
+        setUserGpsLocation({ lat, lon, accuracy: acc });
+        setLocationSource('GPS');
+        setGpsLoading(false);
+
+        if (acc <= 30) {
+          setGpsScanBanner(`Đã định vị thành công (Độ chính xác ~${acc} m).`);
+        } else {
+          setGpsScanBanner(`GPS yếu (Độ chính xác ~${acc} m). Vui lòng kéo ghim trên bản đồ để chỉnh lại.`);
         }
-      );
+
+        if (!isAddressManuallyEdited) {
+          setIsGeocodingAddress(true);
+          // Clear stale default ward address while geocoding so jurisdiction router uses GPS coords immediately
+          mapLocationToBoxes('');
+          try {
+            const nearest = findNearestWardByCoords(lat, lon);
+            const addr = await reverseGeocodeIncident(lat, lon, currentWard.officeAddress, nearest.ward.name);
+            mapLocationToBoxes(addr);
+            if (!addr) {
+              setGpsScanBanner(
+                `Độ chính xác ~${acc} m. Không lấy được địa chỉ tự động, bạn có thể nhập tay hoặc gửi trực tiếp bằng tọa độ.`
+              );
+            }
+          } catch (err) {
+            console.warn('Geocoding error:', err);
+            mapLocationToBoxes('');
+          } finally {
+            setIsGeocodingAddress(false);
+          }
+        }
+      };
+
+      try {
+        watchIdRef.current = navigator.geolocation.watchPosition(
+          (pos) => {
+            if (!bestPos || pos.coords.accuracy < bestPos.coords.accuracy) {
+              bestPos = pos;
+            }
+            if (pos.coords.accuracy <= 30) {
+              void finishLocation(pos);
+            }
+          },
+          (err) => {
+            console.warn('Geolocation watch error:', err);
+            stopActiveGpsWatch();
+            setGpsLoading(false);
+            // Do not overwrite user's dragged pin if they already confirmed pin location while GPS was scanning
+            if (locationSourceRef.current !== 'PIN_DRAGGED') {
+              setLocationSource('WARD_DEFAULT');
+            }
+            if (err.code === 1) {
+              setGpsScanBanner('Chưa cấp quyền vị trí (hãy bật quyền vị trí trong Cài đặt trình duyệt) hoặc kéo ghim đỏ để chọn vị trí sự cố.');
+            } else if (err.code === 3) {
+              setGpsScanBanner('GPS yếu (hết thời gian chờ 15s). Vui lòng bấm vào bản đồ hoặc kéo ghim đỏ để chọn vị trí.');
+            } else {
+              setGpsScanBanner('Không thể xác định GPS. Vui lòng bấm vào bản đồ hoặc kéo ghim đỏ để chọn vị trí sự cố.');
+            }
+          },
+          {
+            enableHighAccuracy: true,
+            maximumAge: 0,
+            timeout: 15000,
+          }
+        );
+
+        // 15-second cutoff to take the best reading seen so far
+        watchTimerRef.current = setTimeout(() => {
+          if (bestPos) {
+            void finishLocation(bestPos);
+          } else {
+            stopActiveGpsWatch();
+            setGpsLoading(false);
+            if (locationSourceRef.current !== 'PIN_DRAGGED') {
+              setLocationSource('WARD_DEFAULT');
+            }
+            setGpsScanBanner('GPS yếu (không nhận được tín hiệu trong 15 giây). Vui lòng bấm vào bản đồ hoặc kéo ghim đỏ để chọn vị trí sự cố.');
+          }
+        }, 15000);
+      } catch {
+        setGpsLoading(false);
+        if (locationSourceRef.current !== 'PIN_DRAGGED') {
+          setLocationSource('WARD_DEFAULT');
+        }
+        setGpsScanBanner('Lỗi khởi tạo GPS. Vui lòng chọn vị trí trên bản đồ.');
+      }
     },
-    [reverseGeocodeAndMap, latitude, longitude, currentWard.lat, currentWard.lon, currentWard.officeAddress, addressText]
+    [currentWard.officeAddress, isAddressManuallyEdited, mapLocationToBoxes, stopActiveGpsWatch]
   );
+
+  const handleLocationChange = useCallback(
+    (lat: number, lon: number, source: 'GPS' | 'PIN_DRAGGED', accuracyM?: number) => {
+      // Cancel any pending background GPS watch so it cannot overwrite the user's manual pin drop
+      stopActiveGpsWatch();
+      setGpsLoading(false);
+
+      setLatitude(lat);
+      setLongitude(lon);
+      setLocationSource(source);
+      if (accuracyM !== undefined) {
+        setGpsAccuracy(accuracyM);
+      } else if (source === 'PIN_DRAGGED') {
+        setGpsAccuracy(5);
+      }
+
+      if (source === 'PIN_DRAGGED') {
+        setGpsScanBanner('Đang tìm địa chỉ từ vị trí ghim...');
+      }
+
+      if (!isAddressManuallyEdited) {
+        setIsGeocodingAddress(true);
+        // Clear stale ward address immediately so jurisdiction routing follows the pin coordinates
+        mapLocationToBoxes('');
+        if (pinDebounceRef.current) {
+          clearTimeout(pinDebounceRef.current);
+        }
+        pinDebounceRef.current = setTimeout(async () => {
+          try {
+            const nearest = findNearestWardByCoords(lat, lon);
+            const addr = await reverseGeocodeIncident(lat, lon, currentWard.officeAddress, nearest.ward.name);
+            mapLocationToBoxes(addr);
+            if (addr) {
+              setGpsScanBanner(`Đã cập nhật vị trí từ ghim bản đồ: "${addr}"`);
+            } else {
+              setGpsScanBanner('Đã cập nhật tọa độ từ ghim. Không lấy được địa chỉ tự động, bạn có thể nhập tay hoặc gửi bằng tọa độ.');
+            }
+          } catch (err) {
+            console.warn('Pin reverse geocode error:', err);
+            mapLocationToBoxes('');
+            setGpsScanBanner('Đã cập nhật tọa độ từ ghim. Bạn có thể tự nhập địa chỉ hoặc gửi trực tiếp bằng tọa độ.');
+          } finally {
+            setIsGeocodingAddress(false);
+          }
+        }, 500);
+      } else if (source === 'PIN_DRAGGED') {
+        setGpsScanBanner('Đã cập nhật tọa độ từ ghim bản đồ (giữ nguyên địa chỉ bạn đã nhập tay).');
+      }
+    },
+    [currentWard.officeAddress, isAddressManuallyEdited, mapLocationToBoxes, stopActiveGpsWatch]
+  );
+
+  const handleRecenterToGps = useCallback(() => {
+    if (userGpsLocation) {
+      stopActiveGpsWatch();
+      setGpsLoading(false);
+      setLatitude(userGpsLocation.lat);
+      setLongitude(userGpsLocation.lon);
+      setGpsAccuracy(userGpsLocation.accuracy);
+      setLocationSource('GPS');
+      setGpsScanBanner(`Đã quay lại vị trí GPS (Độ chính xác ~${userGpsLocation.accuracy} m).`);
+      if (!isAddressManuallyEdited) {
+        setIsGeocodingAddress(true);
+        mapLocationToBoxes('');
+        const nearest = findNearestWardByCoords(userGpsLocation.lat, userGpsLocation.lon);
+        reverseGeocodeIncident(userGpsLocation.lat, userGpsLocation.lon, currentWard.officeAddress, nearest.ward.name)
+          .then((addr) => {
+            mapLocationToBoxes(addr);
+          })
+          .catch(() => {
+            mapLocationToBoxes('');
+          })
+          .finally(() => {
+            setIsGeocodingAddress(false);
+          });
+      }
+    } else {
+      handleGetLocation(false);
+    }
+  }, [userGpsLocation, handleGetLocation, isAddressManuallyEdited, currentWard.officeAddress, mapLocationToBoxes, stopActiveGpsWatch]);
+
+  const handleResetAddressFromPin = useCallback(async () => {
+    setIsAddressManuallyEdited(false);
+    setIsGeocodingAddress(true);
+    setGpsScanBanner('Đang tìm địa chỉ...');
+    try {
+      const nearest = findNearestWardByCoords(latitude, longitude);
+      const addr = await reverseGeocodeIncident(latitude, longitude, currentWard.officeAddress, nearest.ward.name);
+      mapLocationToBoxes(addr);
+      if (addr) {
+        setGpsScanBanner(`Đã cập nhật lại địa chỉ từ vị trí ghim bản đồ: "${addr}"`);
+      } else {
+        setGpsScanBanner('Không lấy được địa chỉ tự động từ dịch vụ bản đồ. Bạn vẫn có thể gửi báo cáo bằng tọa độ.');
+      }
+    } catch {
+      mapLocationToBoxes('');
+    } finally {
+      setIsGeocodingAddress(false);
+    }
+  }, [latitude, longitude, currentWard.officeAddress, mapLocationToBoxes]);
+
+  const handleAddressTextChange = useCallback((newText: string) => {
+    setAddressText(newText);
+    setIsAddressManuallyEdited(true);
+  }, []);
 
   // Auto-scan GPS first whenever citizen opens the "Báo Sự Cố Hiện Trường" tab
   const hasAutoScannedRef = useRef(false);
@@ -1527,6 +1653,7 @@ export const FormAndIssueReporting: React.FC = () => {
   const handleSimulateCrossWardGps = (targetWardCode: string, streetLandmark: string) => {
     const target = AN_GIANG_WARDS.find((w) => w.code === targetWardCode);
     if (!target) return;
+    stopActiveGpsWatch();
     setManualWardCode('');
     setGpsLoading(true);
     setReportResult(null);
@@ -1534,6 +1661,8 @@ export const FormAndIssueReporting: React.FC = () => {
       const simLat = Number((target.lat + 0.00035).toFixed(6));
       const simLon = Number((target.lon + 0.00025).toFixed(6));
       const fullAddr = `${streetLandmark}, ${target.name}, Tỉnh An Giang`;
+      setLocationSource('PIN_DRAGGED');
+      setIsAddressManuallyEdited(false);
       reverseGeocodeAndMap(simLat, simLon, 5, fullAddr);
       setGpsLoading(false);
     }, 250);
@@ -1545,8 +1674,13 @@ export const FormAndIssueReporting: React.FC = () => {
     return /^(0|\+84)(3|5|7|8|9|2)[0-9]{8,9}$/.test(clean);
   };
 
-  // Handle Incident Report (Phone is OPTIONAL; blocks auto-routing when ward is 'unverified' or undetermined)
+  // Handle Incident Report (Phone is OPTIONAL; allows submitting by coordinates even if geocoding left addressText empty)
   const handleReport = async () => {
+    if (locationSource === 'WARD_DEFAULT') {
+      alert('Vui lòng chạm vào bản đồ hoặc kéo ghim đỏ để xác nhận vị trí sự cố trước khi gửi báo cáo.');
+      return;
+    }
+
     const cleanPhone = reporterPhone.replace(/[\s.\-()]/g, '');
     if (cleanPhone && !isValidPhone(cleanPhone)) {
       setPhoneError(
@@ -1557,8 +1691,8 @@ export const FormAndIssueReporting: React.FC = () => {
     }
     setPhoneError(null);
 
-    if (!addressText.trim()) {
-      alert('Vui lòng quét GPS hoặc nhập vị trí hiện trường sự cố.');
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      alert('Tọa độ vị trí chưa hợp lệ. Vui lòng quét GPS hoặc chạm bản đồ để chọn vị trí.');
       return;
     }
     if (!description.trim()) {
@@ -1574,12 +1708,15 @@ export const FormAndIssueReporting: React.FC = () => {
 
     const targetWard: WardItem = resolvedJurisdiction.ward;
 
-    // BƯỚC 4: Client-side validator before submission (allow explicitly chosen manual ward if within province bounds)
+    // BƯỚC 4: Client-side validator before submission (checks BBOX and <= 300m ward boundary tolerance)
     const geoValidation = validateWardPoint(latitude, longitude, targetWard.code);
-    if (!geoValidation.valid && resolvedJurisdiction.matchedBy !== 'MANUAL_SELECT') {
+    if (!geoValidation.valid) {
       alert(`Vị trí phản ánh không hợp lệ [${geoValidation.errorCode}]: ${geoValidation.message}`);
       return;
     }
+
+    const finalAddressText =
+      addressText.trim() || `Tọa độ hiện trường: ${latitude.toFixed(5)}, ${longitude.toFixed(5)} (${targetWard.name})`;
 
     setReportLoading(true);
     try {
@@ -1587,7 +1724,7 @@ export const FormAndIssueReporting: React.FC = () => {
         category,
         latitude,
         longitude,
-        addressText: addressText.trim(),
+        addressText: finalAddressText,
         rawDescription: description.trim(),
         reporterPhone: cleanPhone || undefined,
         wardCode: targetWard.code,
@@ -1959,11 +2096,11 @@ export const FormAndIssueReporting: React.FC = () => {
                   </div>
 
                   {/* Input Method Switcher: PC Upload vs Mobile Camera vs Manual */}
-                  <div className="inline-flex shrink-0 p-1 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] self-start sm:self-auto">
+                  <div className="flex flex-wrap sm:inline-flex sm:flex-nowrap max-w-full p-1 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] self-start sm:self-auto gap-1 sm:gap-0">
                     <button
                       type="button"
                       onClick={() => setInputMode('upload')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
+                      className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
                         inputMode === 'upload'
                           ? 'bg-[#B90E23] text-white shadow-xs'
                           : 'text-[#334155] hover:text-[#750715]'
@@ -1976,7 +2113,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setInputMode('camera')}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
+                      className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
                         inputMode === 'camera'
                           ? 'bg-[#B90E23] text-white shadow-xs'
                           : 'text-[#334155] hover:text-[#750715]'
@@ -1992,7 +2129,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         setInputMode('manual');
                         handleRemoveFile();
                       }}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
+                      className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
                         inputMode === 'manual'
                           ? 'bg-[#B90E23] text-white shadow-xs'
                           : 'text-[#334155] hover:text-[#750715]'
@@ -3135,7 +3272,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <span className="text-[#64748B]">Thời hạn giải quyết (SLA):</span>
                       <span className="font-semibold text-[#166534]">
-                        {new Date(submittedDossier.slaDeadline).toLocaleDateString('vi-VN')} (17:00:00)
+                        {formatSlaDeadlineVi(submittedDossier.slaDeadline, true)}
                       </span>
                     </div>
                     <div className="flex items-center justify-between">
@@ -3447,7 +3584,7 @@ export const FormAndIssueReporting: React.FC = () => {
           unverifiedSampleWard={unverifiedSampleWard}
           locationSource={locationSource}
           addressText={addressText}
-          setAddressText={setAddressText}
+          setAddressText={handleAddressTextChange}
           resolvedJurisdiction={resolvedJurisdiction}
           manualWardSelectRef={manualWardSelectRef}
           setLatitude={setLatitude}
@@ -3473,6 +3610,12 @@ export const FormAndIssueReporting: React.FC = () => {
           incidentMapContainerRef={incidentMapContainerRef}
           reportResult={reportResult}
           myIncidents={myIncidents}
+          userGpsLocation={userGpsLocation}
+          onLocationChange={handleLocationChange}
+          onRecenterToGps={handleRecenterToGps}
+          isAddressManuallyEdited={isAddressManuallyEdited}
+          isGeocodingAddress={isGeocodingAddress}
+          onResetAddressFromPin={handleResetAddressFromPin}
         />
       )}
 
@@ -3494,102 +3637,106 @@ export const FormAndIssueReporting: React.FC = () => {
       {/* ========================================================================= */}
       {/* MODAL: XEM TRƯỚC & IN TỜ KHAI CHUẨN A4 (NGHỊ ĐỊNH 30/2020/NĐ-CP)          */}
       {/* ========================================================================= */}
-      <A4DocumentModal
-        isOpen={showPrintModal}
-        onClose={() => setShowPrintModal(false)}
-        formType={selectedFormType}
-        procedureCode={
-          selectedFormType === 'CT01'
-            ? 'TTHC-CR-01'
-            : selectedFormType === 'TK-KS'
-            ? 'TTHC-HT-01'
-            : selectedFormType === 'TK-KH'
-            ? (marriageMode === 'MARRIAGE_REGISTRATION' ? 'TTHC-HT-02' : 'TTHC-HT-11')
-            : 'TTHC-BT-01'
-        }
-        marriageMode={marriageMode}
-        procedureTitle={
-          selectedFormType === 'CT01'
-            ? 'Tờ khai thay đổi thông tin cư trú (Mẫu CT01 - TT 66/2023 & TT 53/2025/TT-BCA)'
-            : selectedFormType === 'TK-KS'
-            ? 'Tờ khai đăng ký khai sinh (Phụ lục 5 - Thông tư 04/2024/TT-BTP & TT 04/2020/TT-BTP)'
-            : selectedFormType === 'TK-KH'
-            ? (marriageMode === 'MARRIAGE_REGISTRATION'
-                ? 'Tờ khai đăng ký kết hôn (Phụ lục 5 - Thông tư 04/2024/TT-BTP)'
-                : 'Tờ khai cấp Giấy xác nhận tình trạng hôn nhân (Phụ lục 5 - Thông tư 04/2024/TT-BTP)')
-            : 'Tờ khai thông tin đề nghị trợ cấp xã hội (Nghị định 20/2021/NĐ-CP, NĐ 76/2024 & Luật BHXH 2024)'
-        }
-        legalBasis={
-          selectedFormType === 'CT01'
-            ? 'Theo Thông tư số 66/2023/TT-BCA & Thông tư số 53/2025/TT-BCA của Bộ Công an'
-            : selectedFormType === 'TK-KS'
-            ? 'Theo Thông tư số 04/2024/TT-BTP (sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP) của Bộ Tư pháp'
-            : selectedFormType === 'TK-KH'
-            ? 'Theo Luật Hôn nhân và Gia đình 2014 & Thông tư 04/2024/TT-BTP (sửa đổi TT 04/2020/TT-BTP)'
-            : 'Theo Nghị định số 20/2021/NĐ-CP, Nghị định số 76/2024/NĐ-CP & Luật BHXH 2024'
-        }
-        initialData={{
-          fullName,
-          gender,
-          dob,
-          idNumber: cccd,
-          phone: phoneNumber,
-          address,
-          // CT01
-          hostName,
-          hostCccd,
-          hostRelation,
-          declarationScope,
-          // TK-KS
-          childName: selectedFormType === 'TK-KS' ? fullName : undefined,
-          birthDate: selectedFormType === 'TK-KS' ? dob : undefined,
-          birthPlace: childBirthPlace,
-          childEthnicity,
-          childNationality,
-          birthCertNumber,
-          birthCertIssueDate,
-          fatherName,
-          fatherDob,
-          fatherResidence,
-          motherName,
-          motherDob,
-          motherResidence,
-          // TK-KH
-          spouseName: partnerName,
-          spouseDob: partnerDob,
-          spouseGender: partnerGender,
-          spouseIdNumber: partnerCccd,
-          spouseAddress: partnerAddress,
-          applicantEthnicity,
-          spouseEthnicity: partnerEthnicity,
-          applicantNationality,
-          spouseNationality: partnerNationality,
-          applicantMarriageCount,
-          spouseMarriageCount: partnerMarriageCount,
-          issueDate,
-          maritalCertPurpose,
-          divorceJudgmentNumber,
-          divorceJudgmentDate,
-          deathCertNumber,
-          deathCertDate,
-          // TK-BTXH
-          householdStatus,
-          poorHouseholdBookNumber,
-          disabilityLevel,
-          disabilityCertNumber,
-          disabilityCertIssueDate,
-          disabilityCertIssuer,
-          bankAccount,
-          guardianName,
-          guardianCccd,
-          guardianRelation,
-          guardianPhone,
-          socialTargetGroup,
-          hasBhyt,
-          bhytNumber,
-          paymentMethod,
-        }}
-      />
+      {showPrintModal && (
+        <React.Suspense fallback={null}>
+          <A4DocumentModal
+            isOpen={showPrintModal}
+            onClose={() => setShowPrintModal(false)}
+            formType={selectedFormType}
+            procedureCode={
+              selectedFormType === 'CT01'
+                ? 'TTHC-CR-01'
+                : selectedFormType === 'TK-KS'
+                ? 'TTHC-HT-01'
+                : selectedFormType === 'TK-KH'
+                ? (marriageMode === 'MARRIAGE_REGISTRATION' ? 'TTHC-HT-02' : 'TTHC-HT-11')
+                : 'TTHC-BT-01'
+            }
+            marriageMode={marriageMode}
+            procedureTitle={
+              selectedFormType === 'CT01'
+                ? 'Tờ khai thay đổi thông tin cư trú (Mẫu CT01 - TT 66/2023 & TT 53/2025/TT-BCA)'
+                : selectedFormType === 'TK-KS'
+                ? 'Tờ khai đăng ký khai sinh (Phụ lục 5 - Thông tư 04/2024/TT-BTP & TT 04/2020/TT-BTP)'
+                : selectedFormType === 'TK-KH'
+                ? (marriageMode === 'MARRIAGE_REGISTRATION'
+                    ? 'Tờ khai đăng ký kết hôn (Phụ lục 5 - Thông tư 04/2024/TT-BTP)'
+                    : 'Tờ khai cấp Giấy xác nhận tình trạng hôn nhân (Phụ lục 5 - Thông tư 04/2024/TT-BTP)')
+                : 'Tờ khai thông tin đề nghị trợ cấp xã hội (Nghị định 20/2021/NĐ-CP, NĐ 76/2024 & Luật BHXH 2024)'
+            }
+            legalBasis={
+              selectedFormType === 'CT01'
+                ? 'Theo Thông tư số 66/2023/TT-BCA & Thông tư số 53/2025/TT-BCA của Bộ Công an'
+                : selectedFormType === 'TK-KS'
+                ? 'Theo Thông tư số 04/2024/TT-BTP (sửa đổi, bổ sung Thông tư số 04/2020/TT-BTP) của Bộ Tư pháp'
+                : selectedFormType === 'TK-KH'
+                ? 'Theo Luật Hôn nhân và Gia đình 2014 & Thông tư 04/2024/TT-BTP (sửa đổi TT 04/2020/TT-BTP)'
+                : 'Theo Nghị định số 20/2021/NĐ-CP, Nghị định số 76/2024/NĐ-CP & Luật BHXH 2024'
+            }
+            initialData={{
+              fullName,
+              gender,
+              dob,
+              idNumber: cccd,
+              phone: phoneNumber,
+              address,
+              // CT01
+              hostName,
+              hostCccd,
+              hostRelation,
+              declarationScope,
+              // TK-KS
+              childName: selectedFormType === 'TK-KS' ? fullName : undefined,
+              birthDate: selectedFormType === 'TK-KS' ? dob : undefined,
+              birthPlace: childBirthPlace,
+              childEthnicity,
+              childNationality,
+              birthCertNumber,
+              birthCertIssueDate,
+              fatherName,
+              fatherDob,
+              fatherResidence,
+              motherName,
+              motherDob,
+              motherResidence,
+              // TK-KH
+              spouseName: partnerName,
+              spouseDob: partnerDob,
+              spouseGender: partnerGender,
+              spouseIdNumber: partnerCccd,
+              spouseAddress: partnerAddress,
+              applicantEthnicity,
+              spouseEthnicity: partnerEthnicity,
+              applicantNationality,
+              spouseNationality: partnerNationality,
+              applicantMarriageCount,
+              spouseMarriageCount: partnerMarriageCount,
+              issueDate,
+              maritalCertPurpose,
+              divorceJudgmentNumber,
+              divorceJudgmentDate,
+              deathCertNumber,
+              deathCertDate,
+              // TK-BTXH
+              householdStatus,
+              poorHouseholdBookNumber,
+              disabilityLevel,
+              disabilityCertNumber,
+              disabilityCertIssueDate,
+              disabilityCertIssuer,
+              bankAccount,
+              guardianName,
+              guardianCccd,
+              guardianRelation,
+              guardianPhone,
+              socialTargetGroup,
+              hasBhyt,
+              bhytNumber,
+              paymentMethod,
+            }}
+          />
+        </React.Suspense>
+      )}
 
       {/* F7: Real CCCD QR Scanner Modal (WebRTC & Image Upload) */}
       <CccdQrScannerModal

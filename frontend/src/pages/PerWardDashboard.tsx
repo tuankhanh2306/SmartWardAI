@@ -60,6 +60,8 @@ interface LocalIncident {
   reporterPhone?: string;
   reporterHomeWardName?: string;
   officerNote?: string;
+  locationSource?: string;
+  locationAccuracyM?: number;
   is_mock?: boolean;
 }
 
@@ -654,10 +656,9 @@ export const PerWardDashboard: React.FC = () => {
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-      const tileLayer = L.tileLayer('https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}&hl=vi', {
-        subdomains: ['0', '1', '2', '3'],
-        attribution: '&copy; OpenStreetMap contributors &bull; Dữ liệu GIS Hành chính An Giang 2026 (ODbL)',
-        maxZoom: 20,
+      const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &bull; Dữ liệu GIS Hành chính An Giang 2026 (ODbL)',
+        maxZoom: 19,
         keepBuffer: 4,
       });
 
@@ -1024,11 +1025,13 @@ export const PerWardDashboard: React.FC = () => {
       const mappedClusters: LocalIncident[] = nearbyClusters.map((c) => {
         const catMap: Record<string, LocalIncident['category']> = {
           ROAD_DAMAGE: 'Cơ sở hạ tầng',
-          FLOODING: 'Cơ sở hạ tầng',
+          FLOODING: 'Ngập nước & Thủy lợi',
           ENVIRONMENT: 'Môi trường & Rác thải',
           GARBAGE: 'Môi trường & Rác thải',
           LIGHTING: 'Chiếu sáng đô thị',
+          LIGHTING_ELECTRICAL: 'Chiếu sáng đô thị',
           ORDER_SECURITY: 'An ninh trật tự',
+          SECURITY: 'An ninh trật tự',
         };
         const statusMap: Record<string, LocalIncident['status']> = {
           OPEN: 'PENDING',
@@ -1037,10 +1040,10 @@ export const PerWardDashboard: React.FC = () => {
         };
         return {
           id: c.clusterCode,
-          category: catMap[c.category] || 'Cơ sở hạ tầng',
+          category: catMap[(c.category || '').toUpperCase()] || 'Cơ sở hạ tầng',
           title: c.title,
           description: c.descriptionSummary || c.title,
-          address: `${ward.name}, ${ward.province}`,
+          address: c.addressText || `${ward.name}, ${ward.province}`,
           lat: c.centroidLatitude,
           lon: c.centroidLongitude,
           reportedTime: 'Vừa cập nhật',
@@ -1048,6 +1051,8 @@ export const PerWardDashboard: React.FC = () => {
           urgency: c.reportCount >= 4 ? 'HIGH' : c.reportCount >= 2 ? 'MEDIUM' : 'LOW',
           duplicatesMerged: c.reportCount,
           reporterPhone: '0988.***.012',
+          locationSource: c.locationSource,
+          locationAccuracyM: c.locationAccuracyM,
           officerNote: `Đã tổng hợp các phản ánh trùng vị trí từ người dân.`,
         };
       });
@@ -1126,7 +1131,7 @@ export const PerWardDashboard: React.FC = () => {
                   Đơn vị phụ trách:
                 </span>
                 <span
-                  className="bg-white/10 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-white/20 inline-flex items-center gap-1.5"
+                  className="bg-white/10 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-white/20 inline-flex flex-wrap items-center gap-1.5 max-w-full"
                   title="Phạm vi thẩm quyền được khóa cố định theo tài khoản công chức (SEC-09)"
                 >
                   <span>UBND {ward.name} ({ward.code})</span>
@@ -1156,7 +1161,7 @@ export const PerWardDashboard: React.FC = () => {
           </div>
 
           {/* Quick Action Navigation Dock */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
             <button
               onClick={() => navigate('/officer/procedures')}
               className="px-3 py-2 bg-[#00796B] hover:bg-[#00695C] text-white rounded-xl text-xs font-bold border border-white/25 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-sm"
@@ -1221,23 +1226,23 @@ export const PerWardDashboard: React.FC = () => {
       {/* ========================================================================= */}
       {/* 2. HIGH-SIGNAL METRIC TILES (COMPACT & SYNCHRONIZED)                      */}
       {/* ========================================================================= */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-4 w-full grid grid-cols-2 lg:grid-cols-4 gap-3.5 z-10">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-4 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 z-10">
         {/* KPI 1: Phản ánh cần xử lý */}
         <div
           onClick={() => handleTabChange('INCIDENTS')}
-          className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-between cursor-pointer hover:border-[#0F2942] transition-all"
+          className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-between gap-3 cursor-pointer hover:border-[#0F2942] transition-all min-w-0"
         >
-          <div>
-            <span className="text-xs font-bold text-[#64748B] uppercase">Phản ánh cần xử lý</span>
+          <div className="min-w-0">
+            <span className="text-xs font-bold text-[#475569] uppercase">Phản ánh cần xử lý</span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-2xl font-extrabold text-[#0F2942]">{pendingIncidentsCount + inProgressCount}</span>
-              <span className="text-xs text-[#64748B]">/ {incidents.length} ca</span>
+              <span className="text-xs text-[#475569]">/ {incidents.length} ca</span>
             </div>
-            <span className="text-xs text-[#D97706] font-semibold block">
+            <span className="text-xs text-[#B45309] font-semibold block">
               {pendingIncidentsCount} ca mới chưa tiếp nhận
             </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-[#FEF3C7] text-[#D97706] flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-[#FEF3C7] text-[#B45309] flex items-center justify-center shrink-0">
             <AlertTriangle className="w-5 h-5" />
           </div>
         </div>
@@ -1245,13 +1250,13 @@ export const PerWardDashboard: React.FC = () => {
         {/* KPI 2: Câu hỏi cần giải đáp */}
         <div
           onClick={() => handleTabChange('HITL')}
-          className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-between cursor-pointer hover:border-[#0F2942] transition-all"
+          className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-between gap-3 cursor-pointer hover:border-[#0F2942] transition-all min-w-0"
         >
-          <div>
-            <span className="text-xs font-bold text-[#64748B] uppercase">Câu hỏi cần giải đáp</span>
+          <div className="min-w-0">
+            <span className="text-xs font-bold text-[#475569] uppercase">Câu hỏi cần giải đáp</span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-2xl font-extrabold text-[#0F2942]">{pendingHitlCount}</span>
-              <span className="text-xs text-[#64748B]">câu hỏi</span>
+              <span className="text-xs text-[#475569]">câu hỏi</span>
             </div>
             <span className="text-xs text-[#0F766E] font-semibold block">
               {hitlItems.length - pendingHitlCount} câu đã phản hồi
@@ -1265,15 +1270,15 @@ export const PerWardDashboard: React.FC = () => {
         {/* KPI 3: Hồ sơ chờ sơ duyệt */}
         <div
           onClick={() => handleTabChange('FORMS')}
-          className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-between cursor-pointer hover:border-[#0F2942] transition-all"
+          className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-between gap-3 cursor-pointer hover:border-[#0F2942] transition-all min-w-0"
         >
-          <div>
-            <span className="text-xs font-bold text-[#64748B] uppercase">Hồ sơ chờ duyệt</span>
+          <div className="min-w-0">
+            <span className="text-xs font-bold text-[#475569] uppercase">Hồ sơ chờ duyệt</span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-2xl font-extrabold text-[#0F766E]">{dossiers.length}</span>
-              <span className="text-xs text-[#64748B]">tờ khai</span>
+              <span className="text-xs text-[#475569]">tờ khai</span>
             </div>
-            <span className="text-xs text-[#16A34A] font-semibold block">
+            <span className="text-xs text-[#15803D] font-semibold block">
               CT01, Khai sinh, Kết hôn, BTXH
             </span>
           </div>
@@ -1283,16 +1288,16 @@ export const PerWardDashboard: React.FC = () => {
         </div>
 
         {/* KPI 4: Tỷ lệ đúng hạn */}
-        <div className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-between">
-          <div>
-            <span className="text-xs font-bold text-[#64748B] uppercase">Tiến độ giải quyết</span>
+        <div className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-between gap-3 min-w-0">
+          <div className="min-w-0">
+            <span className="text-xs font-bold text-[#475569] uppercase">Tiến độ giải quyết</span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-extrabold text-[#16A34A]">{ward.solvedRate}%</span>
-              <span className="text-xs text-[#64748B]">đúng hạn</span>
+              <span className="text-2xl font-extrabold text-[#15803D]">{ward.solvedRate}%</span>
+              <span className="text-xs text-[#475569]">đúng hạn</span>
             </div>
-            <span className="text-xs text-[#64748B]">Chuẩn ISO Một Cửa</span>
+            <span className="text-xs text-[#475569]">Chuẩn ISO Một Cửa</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-[#ECFDF5] text-[#16A34A] border border-[#A7F3D0] flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-[#ECFDF5] text-[#15803D] border border-[#A7F3D0] flex items-center justify-center shrink-0">
             <TrendingUp className="w-5 h-5" />
           </div>
         </div>
@@ -1520,9 +1525,9 @@ export const PerWardDashboard: React.FC = () => {
                           <span
                             className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
                               inc.urgency === 'HIGH'
-                                ? 'bg-[#FEE2E2] text-[#DC2626] border border-[#FCA5A5]'
+                                ? 'bg-[#FEE2E2] text-[#B91C1C] border border-[#FCA5A5]'
                                 : inc.urgency === 'MEDIUM'
-                                ? 'bg-[#FEF3C7] text-[#D97706] border border-[#FDE68A]'
+                                ? 'bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]'
                                 : 'bg-[#F0FDFA] text-[#0F766E] border border-[#99F6E4]'
                             }`}
                           >
@@ -1728,7 +1733,7 @@ export const PerWardDashboard: React.FC = () => {
             {/* Dossiers Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs sm:text-sm text-[#0F172A]">
-                <thead className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-xs font-bold text-[#64748B] uppercase tracking-wider">
+                <thead className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-xs font-bold text-[#475569] uppercase tracking-wider">
                   <tr>
                     <th className="p-3.5">Mã Hồ Sơ</th>
                     <th className="p-3.5">Công Dân</th>
@@ -1747,14 +1752,14 @@ export const PerWardDashboard: React.FC = () => {
                     >
                       <td className="p-3.5 font-mono font-bold text-[#0F2942]">
                         {d.id}
-                        <span className="block text-xs font-sans text-[#64748B] font-normal">{d.submittedAt}</span>
+                        <span className="block text-xs font-sans text-[#475569] font-normal">{d.submittedAt}</span>
                       </td>
                       <td className="p-3.5 font-bold text-[#0F172A]">
                         {d.citizenName}
                       </td>
                       <td className="p-3.5">
                         <span className="font-semibold text-[#0F766E] block">{d.procedure}</span>
-                        <span className="text-xs text-[#64748B]">Mẫu: {d.formType}</span>
+                        <span className="text-xs text-[#475569]">Mẫu: {d.formType}</span>
                       </td>
                       <td className="p-3.5 font-mono text-xs font-bold text-[#334155]">
                         {d.cccd}
@@ -1762,11 +1767,11 @@ export const PerWardDashboard: React.FC = () => {
                       <td className="p-3.5 text-center">
                         {d.status === 'VALID' ? (
                           <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#ECFDF5] text-[#166534] border border-[#86EFAC] inline-flex items-center gap-1">
-                            <Check className="w-3.5 h-3.5 text-[#16A34A]" /> Hợp lệ
+                            <Check className="w-3.5 h-3.5 text-[#15803D]" /> Hợp lệ
                           </span>
                         ) : d.status === 'HAS_ERRORS' ? (
-                          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#FEF2F2] text-[#DC2626] border border-[#FCA5A5] inline-flex items-center gap-1">
-                            <AlertTriangle className="w-3.5 h-3.5 text-[#DC2626]" /> {d.errorCount} lỗi cần sửa
+                          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#FEF2F2] text-[#B91C1C] border border-[#FCA5A5] inline-flex items-center gap-1">
+                            <AlertTriangle className="w-3.5 h-3.5 text-[#B91C1C]" /> {d.errorCount} lỗi cần sửa
                           </span>
                         ) : (
                           <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] inline-flex items-center gap-1">

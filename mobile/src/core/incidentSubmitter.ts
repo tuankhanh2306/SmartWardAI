@@ -7,7 +7,7 @@
  */
 
 import { submitCivicIncidentReport } from '../api/client';
-import { resolveWardFromLocationBox } from './angiangWards';
+import { BBOX_AN_GIANG, resolveWardFromLocationBox } from './angiangWards';
 import { enqueueOfflineIncident } from '../storage/sqliteDb';
 import { DOMAIN_THRESHOLDS } from '../theme/tokens';
 import type {
@@ -61,6 +61,8 @@ export interface IncidentDraftInput {
   latitude: number;
   longitude: number;
   fallbackWardCode: string;
+  locationSource?: 'GPS' | 'PIN_DRAGGED' | 'WARD_DEFAULT';
+  locationAccuracyM?: number;
 }
 
 export interface IncidentValidationResult {
@@ -70,6 +72,10 @@ export interface IncidentValidationResult {
 
 export function validateIncidentDraft(input: IncidentDraftInput): IncidentValidationResult {
   const errors: string[] = [];
+
+  if (input.locationSource === 'WARD_DEFAULT') {
+    errors.push('Vị trí sự cố chưa được xác nhận. Vui lòng bấm lấy GPS hoặc kéo ghim đỏ trên bản đồ để xác nhận vị trí.');
+  }
 
   if (!INCIDENT_CATEGORY_OPTIONS.some((c) => c.key === input.category)) {
     errors.push('Vui lòng chọn loại sự cố hợp lệ.');
@@ -87,6 +93,15 @@ export function validateIncidentDraft(input: IncidentDraftInput): IncidentValida
 
   if (!Number.isFinite(input.latitude) || !Number.isFinite(input.longitude)) {
     errors.push('Tọa độ GPS chưa hợp lệ. Vui lòng bấm Định vị GPS.');
+  } else if (input.latitude > 90 || (input.latitude > 50 && input.longitude < 20)) {
+    errors.push('Tọa độ kinh độ và vĩ độ bị đảo ngược hoặc không thuộc hệ WGS84.');
+  } else if (
+    input.latitude < BBOX_AN_GIANG.minLat ||
+    input.latitude > BBOX_AN_GIANG.maxLat ||
+    input.longitude < BBOX_AN_GIANG.minLng ||
+    input.longitude > BBOX_AN_GIANG.maxLng
+  ) {
+    errors.push('Tọa độ nằm ngoài phạm vi địa bàn Tỉnh An Giang và các Đặc khu hải đảo.');
   }
 
   return { valid: errors.length === 0, errors };
@@ -151,6 +166,8 @@ export async function executeIncidentSubmission(
     reporterPhone: input.reporterPhone.trim(),
     wardCode: routed.ward.code,
     wardName: routed.ward.name,
+    locationSource: input.locationSource || 'GPS',
+    locationAccuracyM: input.locationAccuracyM,
   };
 
   try {

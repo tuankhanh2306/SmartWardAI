@@ -6,7 +6,7 @@ Tests the SmartWard AI Sidecar endpoints locally without opening a socket port.
 
 import sys
 sys.stdout.reconfigure(encoding='utf-8')
-from serve import init_models, health, embed_endpoint, classify_endpoint, pipeline_endpoint, TextInput
+from serve import init_models, health, embed_endpoint, classify_endpoint, pipeline_endpoint, tts_endpoint, TextInput
 
 def main():
     print("Testing Sidecar endpoints directly...")
@@ -47,6 +47,12 @@ def main():
     print("Intent:", res_p.intent)
     print("Confidence:", res_p.confidence)
     print("Pgvector string preview:", res_p.pgvector_string[:40] + "...")
+    # 5. TTS Piper Test
+    res_tts = tts_endpoint(TextInput(text="Kính chào quý công dân đến với SmartWard AI."))
+    print(f"\nTTS test: Generated audio bytes length = {len(res_tts.body)}, media_type = {res_tts.media_type}")
+    assert len(res_tts.body) > 1000
+    assert res_tts.media_type == "audio/wav"
+
     print("\nALL SIDECAR LOCAL TESTS PASSED!")
 
 if __name__ == '__main__':

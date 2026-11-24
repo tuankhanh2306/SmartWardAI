@@ -48,6 +48,9 @@ public class RagQueryService {
     private AdminProcedureRepository procedureRepository;
 
     @Autowired(required = false)
+    private HitlGrayZoneRepository hitlRepository;
+
+    @Autowired(required = false)
     private org.springframework.core.env.Environment environment;
 
     public record WardOfficeInfo(String wardCode, String wardName, String officeAddress) {}
@@ -1003,7 +1006,7 @@ public class RagQueryService {
                 .cached(false)
                 .suggestions(suggestions)
                 .responseTimeMs(System.currentTimeMillis() - startTime)
-                .disclaimer("Danh mục 40 TTHC cấp xã chuẩn hóa theo Nghị định 13/2023 và Đề án 06.")
+                .disclaimer("Danh mục 40 TTHC cấp xã chuẩn hóa theo bộ dữ liệu hành chính địa phương.")
                 .build();
     }
 
@@ -1230,6 +1233,34 @@ public class RagQueryService {
     private synchronized void enqueueGrayZoneItem(String query, String wardName, double similarityScore,
                                                   LegalChunkMatch topCandidate, String draftGuidance) {
         if (query == null || query.isBlank()) return;
+        String effectiveWard = (wardName != null && !wardName.isBlank()) ? wardName : "Phường Mỹ Bình";
+        double roundedScore = Math.round(similarityScore * 1000.0) / 1000.0;
+        String chunkCode = topCandidate != null ? topCandidate.getChunkCode() : "UNKNOWN";
+        String procName = topCandidate != null ? topCandidate.getProcedureName() : "Thủ tục hành chính cấp xã";
+        String legalRef = topCandidate != null ? topCandidate.getLegalReference() : "Đang rà soát";
+        String createdAt = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
+
+        if (hitlRepository != null) {
+            if (hitlRepository.existsByQueryIgnoreCase(query)) {
+                return;
+            }
+            String id = "HITL-AG-" + UUID.randomUUID().toString().replace("-", "").substring(0, 8).toUpperCase(Locale.ROOT);
+            HitlGrayZoneItem entity = HitlGrayZoneItem.builder()
+                    .id(id)
+                    .query(query)
+                    .wardName(effectiveWard)
+                    .similarityScore(roundedScore)
+                    .candidateChunkCode(chunkCode)
+                    .candidateProcedureName(procName)
+                    .legalReference(legalRef)
+                    .suggestedAnswer(draftGuidance)
+                    .status("PENDING")
+                    .createdAt(createdAt)
+                    .build();
+            hitlRepository.save(entity);
+            return;
+        }
+
         boolean alreadyExists = hitlQueue.stream()
                 .anyMatch(item -> query.equalsIgnoreCase(item.getQuery()));
         if (alreadyExists) return;
@@ -1238,14 +1269,14 @@ public class RagQueryService {
         HitlGrayZoneItemDto newItem = HitlGrayZoneItemDto.builder()
                 .id(id)
                 .query(query)
-                .wardName(wardName != null && !wardName.isBlank() ? wardName : "Phường Mỹ Bình")
-                .similarityScore(Math.round(similarityScore * 1000.0) / 1000.0)
-                .candidateChunkCode(topCandidate != null ? topCandidate.getChunkCode() : "UNKNOWN")
-                .candidateProcedureName(topCandidate != null ? topCandidate.getProcedureName() : "Thủ tục hành chính cấp xã")
-                .legalReference(topCandidate != null ? topCandidate.getLegalReference() : "Đang rà soát")
+                .wardName(effectiveWard)
+                .similarityScore(roundedScore)
+                .candidateChunkCode(chunkCode)
+                .candidateProcedureName(procName)
+                .legalReference(legalRef)
                 .suggestedAnswer(draftGuidance)
                 .status("PENDING")
-                .createdAt(LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")))
+                .createdAt(createdAt)
                 .build();
 
         hitlQueue.add(0, newItem);
@@ -1256,9 +1287,31 @@ public class RagQueryService {
 
     /**
      * Returns the current Human-in-the-Loop (HITL) Gray-Zone review queue.
+     * Reads from PostgreSQL when repository is available so pending items survive backend restarts.
      */
     public List<HitlGrayZoneItemDto> getHitlQueue() {
+        if (hitlRepository != null) {
+            return hitlRepository.findAllByOrderByCreatedAtTsDesc().stream()
+                    .map(RagQueryService::toHitlDto)
+                    .toList();
+        }
         return Collections.unmodifiableList(hitlQueue);
+    }
+
+    private static HitlGrayZoneItemDto toHitlDto(HitlGrayZoneItem entity) {
+        return HitlGrayZoneItemDto.builder()
+                .id(entity.getId())
+                .query(entity.getQuery())
+                .wardName(entity.getWardName())
+                .similarityScore(entity.getSimilarityScore())
+                .candidateChunkCode(entity.getCandidateChunkCode())
+                .candidateProcedureName(entity.getCandidateProcedureName())
+                .legalReference(entity.getLegalReference())
+                .suggestedAnswer(entity.getSuggestedAnswer())
+                .status(entity.getStatus())
+                .createdAt(entity.getCreatedAt())
+                .resolvedBy(entity.getResolvedBy())
+                .build();
     }
 
     /**
@@ -1266,58 +1319,74 @@ public class RagQueryService {
      * so future identical citizen queries immediately receive the verified answer.
      */
     public HitlGrayZoneItemDto resolveHitlItem(String id, String approvedAnswer, String officerName) {
-        for (int i = 0; i < hitlQueue.size(); i++) {
-            HitlGrayZoneItemDto item = hitlQueue.get(i);
-            if (item.getId().equalsIgnoreCase(id)) {
-                String effectiveOfficer = (officerName != null && !officerName.isBlank())
-                        ? officerName.trim() : "Cán bộ Một cửa";
-                HitlGrayZoneItemDto updated = HitlGrayZoneItemDto.builder()
-                        .id(item.getId())
-                        .query(item.getQuery())
-                        .wardName(item.getWardName())
-                        .similarityScore(item.getSimilarityScore())
-                        .candidateChunkCode(item.getCandidateChunkCode())
-                        .candidateProcedureName(item.getCandidateProcedureName())
-                        .legalReference(item.getLegalReference())
-                        .suggestedAnswer(approvedAnswer.trim())
-                        .status("APPROVED")
-                        .createdAt(item.getCreatedAt())
-                        .resolvedBy(effectiveOfficer)
-                        .build();
+        String effectiveOfficer = (officerName != null && !officerName.isBlank())
+                ? officerName.trim() : "Cán bộ Một cửa";
 
-                hitlQueue.set(i, updated);
+        HitlGrayZoneItemDto updated = null;
+        if (hitlRepository != null) {
+            HitlGrayZoneItem entity = hitlRepository.findById(id)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,
+                            "Không tìm thấy yêu cầu vùng xám với mã: " + id));
+            entity.setSuggestedAnswer(approvedAnswer.trim());
+            entity.setStatus("APPROVED");
+            entity.setResolvedBy(effectiveOfficer);
+            HitlGrayZoneItem saved = hitlRepository.save(entity);
+            updated = toHitlDto(saved);
+        } else {
+            for (int i = 0; i < hitlQueue.size(); i++) {
+                HitlGrayZoneItemDto item = hitlQueue.get(i);
+                if (item.getId().equalsIgnoreCase(id)) {
+                    updated = HitlGrayZoneItemDto.builder()
+                            .id(item.getId())
+                            .query(item.getQuery())
+                            .wardName(item.getWardName())
+                            .similarityScore(item.getSimilarityScore())
+                            .candidateChunkCode(item.getCandidateChunkCode())
+                            .candidateProcedureName(item.getCandidateProcedureName())
+                            .legalReference(item.getLegalReference())
+                            .suggestedAnswer(approvedAnswer.trim())
+                            .status("APPROVED")
+                            .createdAt(item.getCreatedAt())
+                            .resolvedBy(effectiveOfficer)
+                            .build();
 
-                // Immediately cache the officer-verified response for 24 hours (86400s)
-                LegalCitationDto citation = LegalCitationDto.builder()
-                        .chunkCode(updated.getCandidateChunkCode())
-                        .procedureName(updated.getCandidateProcedureName())
-                        .legalReference(updated.getLegalReference())
-                        .similarityScore(updated.getSimilarityScore())
-                        .build();
-
-                RagAskResponse verifiedResponse = RagAskResponse.builder()
-                        .answer(updated.getSuggestedAnswer())
-                        .abstained(false)
-                        .maxSimilarity(updated.getSimilarityScore())
-                        .appliedThreshold(defaultThreshold)
-                        .citations(List.of(citation))
-                        .cached(true)
-                        .suggestions(List.of("👶 Đăng ký khai sinh", "💍 Đăng ký kết hôn", "🏠 Đăng ký thường trú (CT01)", "📋 Xem 40 thủ tục"))
-                        .responseTimeMs(5)
-                        .disclaimer(LEGAL_DISCLAIMER)
-                        .build();
-
-                String ward = updated.getWardName() != null ? updated.getWardName().trim() : "";
-                queryCacheService.putResponse(updated.getQuery(), verifiedResponse, 86400);
-                if (!ward.isEmpty()) {
-                    queryCacheService.putResponse(updated.getQuery() + "::" + ward, verifiedResponse, 86400);
+                    hitlQueue.set(i, updated);
+                    break;
                 }
-                log.info("[HITL_RESOLVED] Item {} approved by '{}' and cached for query: '{}' (ward: '{}')",
-                        id, effectiveOfficer, truncate(updated.getQuery(), 40), ward);
-                return updated;
+            }
+            if (updated == null) {
+                throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Không tìm thấy yêu cầu vùng xám với mã: " + id);
             }
         }
-        throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Không tìm thấy yêu cầu vùng xám với mã: " + id);
+
+        // Immediately cache the officer-verified response for 24 hours (86400s)
+        LegalCitationDto citation = LegalCitationDto.builder()
+                .chunkCode(updated.getCandidateChunkCode())
+                .procedureName(updated.getCandidateProcedureName())
+                .legalReference(updated.getLegalReference())
+                .similarityScore(updated.getSimilarityScore())
+                .build();
+
+        RagAskResponse verifiedResponse = RagAskResponse.builder()
+                .answer(updated.getSuggestedAnswer())
+                .abstained(false)
+                .maxSimilarity(updated.getSimilarityScore())
+                .appliedThreshold(defaultThreshold)
+                .citations(List.of(citation))
+                .cached(true)
+                .suggestions(List.of("👶 Đăng ký khai sinh", "💍 Đăng ký kết hôn", "🏠 Đăng ký thường trú (CT01)", "📋 Xem 40 thủ tục"))
+                .responseTimeMs(5)
+                .disclaimer(LEGAL_DISCLAIMER)
+                .build();
+
+        String ward = updated.getWardName() != null ? updated.getWardName().trim() : "";
+        queryCacheService.putResponse(updated.getQuery(), verifiedResponse, 86400);
+        if (!ward.isEmpty()) {
+            queryCacheService.putResponse(updated.getQuery() + "::" + ward, verifiedResponse, 86400);
+        }
+        log.info("[HITL_RESOLVED] Item {} approved by '{}' and cached for query: '{}' (ward: '{}')",
+                id, effectiveOfficer, truncate(updated.getQuery(), 40), ward);
+        return updated;
     }
 
     private String truncate(String text, int maxLen) {

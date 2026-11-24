@@ -88,59 +88,96 @@ public final class TextNormalizationUtils {
         int month = 0;
         int year = 0;
 
-        // 1. Day parsing
-        if (lower.contains("mười lăm")) day = 15;
-        else if (lower.contains("mùng một") || lower.contains("mồng một")) day = 1;
-        else if (lower.contains("mười một")) day = 11;
-        else if (lower.contains("mười hai")) day = 12;
-        else if (lower.contains("mười ba")) day = 13;
-        else if (lower.contains("mười bốn")) day = 14;
-        else if (lower.contains("mười sáu")) day = 16;
-        else if (lower.contains("mười bảy")) day = 17;
-        else if (lower.contains("mười tám")) day = 18;
-        else if (lower.contains("mười chín")) day = 19;
-        else if (lower.contains("hai mươi lăm")) day = 25;
-        else if (lower.contains("hai mươi mốt")) day = 21;
-        else if (lower.contains("hai mươi")) day = 20;
-        else if (lower.contains("ba mươi mốt")) day = 31;
-        else if (lower.contains("ba mươi")) day = 30;
+        // Partition string into explicit day / month / year clauses so year numerals (e.g. "... hai mươi lăm")
+        // never pollute day parsing.
+        int thangIdx = lower.indexOf("tháng");
+        int afterMonthKeyword = 0;
+        if (thangIdx >= 0) {
+            afterMonthKeyword = lower.startsWith("tháng năm", thangIdx)
+                    ? thangIdx + "tháng năm".length()
+                    : thangIdx + "tháng".length();
+        }
+        int namIdx = -1;
+        Matcher namMatcher = Pattern.compile("(?U)\\bnăm\\b").matcher(lower);
+        if (namMatcher.find(Math.min(afterMonthKeyword, lower.length()))) {
+            namIdx = namMatcher.start();
+        }
+
+        String dayClause = (thangIdx >= 0) ? lower.substring(0, thangIdx) : lower;
+        String monthClause = (thangIdx >= 0)
+                ? ((namIdx > thangIdx) ? lower.substring(thangIdx, namIdx) : lower.substring(thangIdx))
+                : lower;
+        String yearClause = (namIdx >= 0) ? lower.substring(namIdx) : lower;
+
+        // 1. Day parsing (strictly scoped to dayClause)
+        if (dayClause.contains("ba mươi mốt")) day = 31;
+        else if (dayClause.contains("ba mươi")) day = 30;
+        else if (dayClause.contains("hai mươi chín")) day = 29;
+        else if (dayClause.contains("hai mươi tám")) day = 28;
+        else if (dayClause.contains("hai mươi bảy")) day = 27;
+        else if (dayClause.contains("hai mươi sáu")) day = 26;
+        else if (dayClause.contains("hai mươi lăm")) day = 25;
+        else if (dayClause.contains("hai mươi tư") || dayClause.contains("hai mươi bốn")) day = 24;
+        else if (dayClause.contains("hai mươi ba")) day = 23;
+        else if (dayClause.contains("hai mươi hai")) day = 22;
+        else if (dayClause.contains("hai mươi mốt")) day = 21;
+        else if (dayClause.contains("hai mươi")) day = 20;
+        else if (dayClause.contains("mười chín")) day = 19;
+        else if (dayClause.contains("mười tám")) day = 18;
+        else if (dayClause.contains("mười bảy")) day = 17;
+        else if (dayClause.contains("mười sáu")) day = 16;
+        else if (dayClause.contains("mười lăm")) day = 15;
+        else if (dayClause.contains("mười bốn") || dayClause.contains("mười tư")) day = 14;
+        else if (dayClause.contains("mười ba")) day = 13;
+        else if (dayClause.contains("mười hai")) day = 12;
+        else if (dayClause.contains("mười một")) day = 11;
+        else if (dayClause.contains("mười")) day = 10;
+        else if (dayClause.contains("mùng chín") || dayClause.contains("mồng chín")) day = 9;
+        else if (dayClause.contains("mùng tám") || dayClause.contains("mồng tám")) day = 8;
+        else if (dayClause.contains("mùng bảy") || dayClause.contains("mồng bảy")) day = 7;
+        else if (dayClause.contains("mùng sáu") || dayClause.contains("mồng sáu")) day = 6;
+        else if (dayClause.contains("mùng năm") || dayClause.contains("mồng năm")) day = 5;
+        else if (dayClause.contains("mùng bốn") || dayClause.contains("mồng bốn") || dayClause.contains("mùng tư") || dayClause.contains("mồng tư")) day = 4;
+        else if (dayClause.contains("mùng ba") || dayClause.contains("mồng ba")) day = 3;
+        else if (dayClause.contains("mùng hai") || dayClause.contains("mồng hai")) day = 2;
+        else if (dayClause.contains("mùng một") || dayClause.contains("mồng một")) day = 1;
         else {
-            Matcher m = Pattern.compile("ngày\\s*(\\d{1,2})").matcher(lower);
+            Matcher m = Pattern.compile("(?:ngày\\s*)?(\\d{1,2})").matcher(dayClause);
             if (m.find()) {
                 day = Integer.parseInt(m.group(1));
             }
         }
 
-        // 2. Month parsing
-        if (lower.contains("tháng một") || lower.contains("tháng giêng")) month = 1;
-        else if (lower.contains("tháng hai")) month = 2;
-        else if (lower.contains("tháng ba")) month = 3;
-        else if (lower.contains("tháng tư") || lower.contains("tháng bốn")) month = 4;
-        else if (lower.contains("tháng năm")) month = 5;
-        else if (lower.contains("tháng sáu")) month = 6;
-        else if (lower.contains("tháng bảy")) month = 7;
-        else if (lower.contains("tháng tám")) month = 8;
-        else if (lower.contains("tháng chín")) month = 9;
-        else if (lower.contains("tháng mười một")) month = 11;
-        else if (lower.contains("tháng mười hai") || lower.contains("tháng chạp")) month = 12;
-        else if (lower.contains("tháng mười")) month = 10;
+        // 2. Month parsing (strictly scoped to monthClause)
+        if (monthClause.contains("tháng mười một")) month = 11;
+        else if (monthClause.contains("tháng mười hai") || monthClause.contains("tháng chạp")) month = 12;
+        else if (monthClause.contains("tháng mười")) month = 10;
+        else if (monthClause.contains("tháng một") || monthClause.contains("tháng giêng")) month = 1;
+        else if (monthClause.contains("tháng hai")) month = 2;
+        else if (monthClause.contains("tháng ba")) month = 3;
+        else if (monthClause.contains("tháng tư") || monthClause.contains("tháng bốn")) month = 4;
+        else if (monthClause.contains("tháng năm")) month = 5;
+        else if (monthClause.contains("tháng sáu")) month = 6;
+        else if (monthClause.contains("tháng bảy")) month = 7;
+        else if (monthClause.contains("tháng tám")) month = 8;
+        else if (monthClause.contains("tháng chín")) month = 9;
         else {
-            Matcher m = Pattern.compile("tháng\\s*(\\d{1,2})").matcher(lower);
+            Matcher m = Pattern.compile("tháng\\s*(\\d{1,2})").matcher(monthClause);
             if (m.find()) {
                 month = Integer.parseInt(m.group(1));
             }
         }
 
-        // 3. Year parsing
-        if (lower.contains("hai nghìn không trăm hai mươi sáu") || lower.contains("2026")) year = 2026;
-        else if (lower.contains("hai nghìn không trăm hai mươi lăm") || lower.contains("2025")) year = 2025;
-        else if (lower.contains("hai nghìn không trăm hai mươi tư") || lower.contains("2024")) year = 2024;
-        else if (lower.contains("hai nghìn không trăm hai mươi ba") || lower.contains("2023")) year = 2023;
-        else if (lower.contains("hai nghìn không trăm hai mươi hai") || lower.contains("2022")) year = 2022;
-        else if (lower.contains("hai nghìn không trăm hai mươi mốt") || lower.contains("2021")) year = 2021;
-        else if (lower.contains("hai nghìn không trăm hai mươi") || lower.contains("2020")) year = 2020;
+        // 3. Year parsing (strictly scoped to yearClause)
+        if (yearClause.contains("hai nghìn không trăm hai mươi sáu") || yearClause.contains("2026")) year = 2026;
+        else if (yearClause.contains("hai nghìn không trăm hai mươi lăm") || yearClause.contains("2025")) year = 2025;
+        else if (yearClause.contains("hai nghìn không trăm hai mươi tư") || yearClause.contains("2024")) year = 2024;
+        else if (yearClause.contains("hai nghìn không trăm hai mươi ba") || yearClause.contains("2023")) year = 2023;
+        else if (yearClause.contains("hai nghìn không trăm hai mươi hai") || yearClause.contains("2022")) year = 2022;
+        else if (yearClause.contains("hai nghìn không trăm hai mươi mốt") || yearClause.contains("2021")) year = 2021;
+        else if (yearClause.contains("hai nghìn không trăm hai mươi") || yearClause.contains("2020")) year = 2020;
         else {
-            Matcher m = Pattern.compile("năm\\s*(\\d{4})").matcher(lower);
+            Matcher m = Pattern.compile("năm\\s*(\\d{4})").matcher(yearClause);
             if (m.find()) {
                 year = Integer.parseInt(m.group(1));
             }

@@ -14,13 +14,15 @@ Usage:
 import os
 import sys
 import argparse
+import io
+import wave
 from pathlib import Path
 from contextlib import asynccontextmanager
 import joblib
 import numpy as np
 import onnxruntime as ort
 from transformers import AutoTokenizer
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Response
 from pydantic import BaseModel, Field
 import uvicorn
 
@@ -28,6 +30,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 BASE_DIR = Path(__file__).resolve().parents[2]
 sys.path.append(str(BASE_DIR / 'ml' / 'src'))
 from enhanced_pipeline import VietnameseTextNormalizer, CLASSES
+from tts_normalizer import normalize_text_for_tts
 
 class TextInput(BaseModel):
     text: str = Field(..., min_length=1, max_length=2000, description="Input text to process (max 2000 characters)")
@@ -54,22 +57,69 @@ class PipelineResponse(BaseModel):
     pgvector_string: str
 
 def init_models():
-    global tokenizer, ort_session, intent_classifier, normalizer
+    global tokenizer, ort_session, intent_classifier, normalizer, piper_voice, active_tts_model_name
     print("Loading PhoBERT Bi-Encoder & Intent Classifier into Sidecar...")
     model_dir = str(BASE_DIR / "ml" / "models" / "fine_tuned_biencoder")
     onnx_path = str(BASE_DIR / "ml" / "models" / "bkai_finetuned_int8.onnx")
     clf_path = str(BASE_DIR / "ml" / "models" / "intent_classifier.joblib")
-    
-    tokenizer = AutoTokenizer.from_pretrained(model_dir)
-    
-    opts = ort.SessionOptions()
-    opts.intra_op_num_threads = 4
-    opts.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
-    ort_session = ort.InferenceSession(onnx_path, opts, providers=['CPUExecutionProvider'])
-    
-    clf_dict = joblib.load(clf_path)
-    intent_classifier = clf_dict['classifier']
+
     normalizer = VietnameseTextNormalizer()
+
+    try:
+        tokenizer = AutoTokenizer.from_pretrained(model_dir)
+    except Exception as e:
+        print(f"Warning: Failed to load tokenizer from {model_dir}: {e}")
+        tokenizer = None
+
+    if Path(onnx_path).is_file():
+        try:
+            opts = ort.SessionOptions()
+            opts.intra_op_num_threads = 4
+            opts.execution_mode = ort.ExecutionMode.ORT_SEQUENTIAL
+            ort_session = ort.InferenceSession(onnx_path, opts, providers=['CPUExecutionProvider'])
+        except Exception as e:
+            print(f"Warning: Failed to load ONNX bi-encoder model from {onnx_path}: {e}")
+            ort_session = None
+    else:
+        print(
+            f"Note: ONNX bi-encoder model not found at {onnx_path}. "
+            "Running sidecar in degraded mode (TTS & text normalization active; /embed returns 503 for backend fallback)."
+        )
+        ort_session = None
+
+    try:
+        clf_dict = joblib.load(clf_path)
+        intent_classifier = clf_dict['classifier']
+    except Exception as e:
+        print(f"Warning: Failed to load intent classifier from {clf_path}: {e}")
+        intent_classifier = None
+
+    # Load Piper TTS Vietnamese Model (prefer Southern Male voice vietthao3886, then VPBank, fallback to vais1000)
+    vietthao_model_path = BASE_DIR / "ml" / "models" / "tts" / "vietthao3886.onnx"
+    vpbank_model_path = BASE_DIR / "ml" / "models" / "tts" / "vi_VN-csa-voice-piper-v3-medium.onnx"
+    vais_model_path = BASE_DIR / "ml" / "models" / "tts" / "vi_VN-vais1000-medium.onnx"
+    
+    selected_model_path = None
+    for candidate in [vietthao_model_path, vpbank_model_path, vais_model_path]:
+        if candidate.exists():
+            selected_model_path = candidate
+            break
+
+    if selected_model_path is not None:
+        try:
+            from piper.voice import PiperVoice
+            piper_voice = PiperVoice.load(str(selected_model_path))
+            active_tts_model_name = selected_model_path.stem
+            print(f"Piper TTS Vietnamese Southern Male model '{active_tts_model_name}' loaded successfully!")
+        except Exception as e:
+            print(f"Warning: Failed to load Piper TTS model: {e}")
+            piper_voice = None
+            active_tts_model_name = None
+    else:
+        print("Note: Piper TTS model file not found, TTS endpoint will be disabled.")
+        piper_voice = None
+        active_tts_model_name = None
+
     print("Sidecar models loaded successfully!")
 
 @asynccontextmanager
@@ -79,8 +129,8 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(
     title="SmartWard AI Sidecar",
-    description="Local Bi-Encoder & Intent Classification Service for SmartWard AI",
-    version="1.0.0",
+    description="Local Bi-Encoder, Intent Classification & Piper TTS Service for SmartWard AI",
+    version="1.1.0",
     lifespan=lifespan
 )
 
@@ -89,6 +139,8 @@ tokenizer = None
 ort_session = None
 intent_classifier = None
 normalizer = None
+piper_voice = None
+active_tts_model_name = None
 
 @app.get("/health")
 def health():
@@ -98,10 +150,16 @@ def health():
         "model": "bkai_pho_bert_ft_v1",
         "embedding_dim": 768,
         "quantization": "Dynamic INT8",
-        "supported_intents": CLASSES
+        "onnx_loaded": ort_session is not None,
+        "mode": "onnx-int8" if ort_session is not None else "degraded-no-onnx",
+        "supported_intents": CLASSES,
+        "tts_enabled": piper_voice is not None,
+        "tts_model": active_tts_model_name
     }
 
 def _embed(text: str) -> np.ndarray:
+    if ort_session is None or tokenizer is None:
+        raise HTTPException(status_code=503, detail="ONNX bi-encoder model is not loaded in sidecar")
     enc = tokenizer([text], padding=True, truncation=True, max_length=256, return_tensors="np")
     feed = {'input_ids': enc['input_ids'], 'attention_mask': enc['attention_mask']}
     out = ort_session.run(None, feed)[0]
@@ -126,6 +184,8 @@ def embed_endpoint(payload: TextInput):
 def classify_endpoint(payload: TextInput):
     if not payload.text or not payload.text.strip():
         raise HTTPException(status_code=400, detail="Text cannot be empty")
+    if intent_classifier is None:
+        raise HTTPException(status_code=503, detail="Intent classifier model is not loaded in sidecar")
     
     norm_res = normalizer.normalize(payload.text)
     clean_t = norm_res['substantive'] or norm_res['normalized']
@@ -158,6 +218,8 @@ def classify_endpoint(payload: TextInput):
 def pipeline_endpoint(payload: TextInput):
     if not payload.text or not payload.text.strip():
         raise HTTPException(status_code=400, detail="Text cannot be empty")
+    if intent_classifier is None:
+        raise HTTPException(status_code=503, detail="Intent classifier model is not loaded in sidecar")
     
     raw = payload.text.strip()
     norm_res = normalizer.normalize(raw)
@@ -196,6 +258,31 @@ def pipeline_endpoint(payload: TextInput):
         embedding=vec.tolist(),
         pgvector_string=_to_pgvector(vec)
     )
+
+@app.post("/tts")
+def tts_endpoint(payload: TextInput):
+    if not payload.text or not payload.text.strip():
+        raise HTTPException(status_code=400, detail="Text cannot be empty")
+    if piper_voice is None:
+        raise HTTPException(status_code=503, detail="TTS model is not loaded in sidecar")
+    
+    try:
+        from piper.config import SynthesisConfig
+        
+        # 1. Expand administrative acronyms & insert natural prosody breathing pauses
+        spoken_text = normalize_text_for_tts(payload.text)
+        if not spoken_text.strip():
+            spoken_text = payload.text.strip()
+            
+        # 2. Synthesize with natural cadence (length_scale=1.05) and emotion variance
+        buf = io.BytesIO()
+        speaker_id = 0 if getattr(piper_voice.config, 'num_speakers', 1) > 1 else None
+        syn = SynthesisConfig(speaker_id=speaker_id, length_scale=1.05, noise_scale=0.667)
+        with wave.open(buf, "wb") as wav_file:
+            piper_voice.synthesize_wav(spoken_text, wav_file, syn_config=syn)
+        return Response(content=buf.getvalue(), media_type="audio/wav")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"TTS synthesis error: {str(e)}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

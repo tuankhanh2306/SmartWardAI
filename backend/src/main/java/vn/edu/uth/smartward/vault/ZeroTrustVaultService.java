@@ -5,6 +5,7 @@ import io.minio.GetObjectArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
+import io.minio.RemoveObjectArgs;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,11 +35,11 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Zero-Trust Document Vault Service implementing Decree 13/2023/ND-CP compliance:
+ * Zero-Trust Document Vault Service applying technical safeguards under applicable personal data protection laws:
  * 1. Semi-transparent dynamic watermarking via Java2D
  * 2. Authenticated symmetric encryption using AES/GCM/NoPadding (256-bit key)
  * 3. Encrypted object storage on MinIO
- * 4. Ephemeral One-Time Access Token on Redis with atomic GETDEL and 24-hour TTL
+ * 4. Ephemeral One-Time Access Token on Redis (24-hour TTL), consumed ONLY after download & decryption succeed
  */
 @Slf4j
 @Service
@@ -63,6 +64,8 @@ public class ZeroTrustVaultService {
     private boolean failClosed = true;
 
     private static final String REDIS_TOKEN_PREFIX = "smartward:vault:token:";
+    private static final String REDIS_LOCK_PREFIX = "smartward:vault:lock:";
+    private static final Duration VIEW_LOCK_TTL = Duration.ofSeconds(5);
     private static final String ALGORITHM = "AES/GCM/NoPadding";
     private static final int GCM_TAG_LENGTH_BITS = 128;
     private static final int GCM_IV_LENGTH_BYTES = 12;
@@ -77,14 +80,14 @@ public class ZeroTrustVaultService {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Tệp tài liệu tải lên không được để trống.");
         }
         if (file.getSize() > MAX_UPLOAD_SIZE_BYTES) {
-            throw new BusinessException(ErrorCode.VALIDATION_FAILED,
+            throw new BusinessException(ErrorCode.PAYLOAD_TOO_LARGE,
                     "Kích thước tệp vượt quá giới hạn tối đa 5 MB.");
         }
 
         try {
             byte[] originalBytes = file.getBytes();
             if (originalBytes.length > MAX_UPLOAD_SIZE_BYTES) {
-                throw new BusinessException(ErrorCode.VALIDATION_FAILED,
+                throw new BusinessException(ErrorCode.PAYLOAD_TOO_LARGE,
                         "Kích thước tệp vượt quá giới hạn tối đa 5 MB.");
             }
             validateMagicBytes(originalBytes);
@@ -148,6 +151,7 @@ public class ZeroTrustVaultService {
         } catch (Exception e) {
             if (failClosed) {
                 log.error("Redis unavailable while issuing one-time vault token (fail-closed): {}", e.getMessage());
+                removeFromMinioBestEffort(objectName);
                 throw new BusinessException(ErrorCode.STORAGE_UNAVAILABLE,
                         "Không thể khởi tạo mã truy cập một lần trên Redis. Từ chối lưu trữ để đảm bảo an toàn (Fail-Closed).");
             }
@@ -165,7 +169,17 @@ public class ZeroTrustVaultService {
                 .expiresAt(expiresAt)
                 .build();
 
-        documentRepository.save(document);
+        try {
+            documentRepository.save(document);
+        } catch (Exception e) {
+            removeFromMinioBestEffort(objectName);
+            try {
+                stringRedisTemplate.delete(redisKey);
+            } catch (Exception redisEx) {
+                log.warn("Failed to rollback Redis token {} after DB error: {}", redisKey, redisEx.getMessage());
+            }
+            throw e;
+        }
         log.info("Persisted VaultDocument [{}] with One-Time Token", docCode);
 
         return VaultUploadResponse.builder()
@@ -180,16 +194,13 @@ public class ZeroTrustVaultService {
     }
 
     /**
-     * Consumes One-Time Token using atomic Redis GETDEL (Fail-Closed).
-     * Second view attempt strictly throws HTTP 410 GONE.
+     * Consumes One-Time Token safely:
+     * Verify token -> Download & Decrypt -> Mark viewed & Delete token ONLY AFTER SUCCESS.
+     * Intermediate failures (MinIO outage, network drop, decryption error) preserve the token so the officer can retry.
+     * Subsequent attempts after a successful view strictly throw HTTP 410 GONE.
      *
      * @param oneTimeToken single-use access token
      * @return decrypted, watermarked image bytes for viewing
-     */
-    /**
-     * Consumes One-Time Token safely (6.5):
-     * Verify token -> Download & Decrypt -> Mark viewed & Delete token ON SUCCESS.
-     * Intermediate failures (network/decryption) will not destroy citizen documents.
      */
     @Transactional
     public byte[] consumeOneTimeDocument(String oneTimeToken) {
@@ -197,74 +208,101 @@ public class ZeroTrustVaultService {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã token truy cập không hợp lệ.");
         }
 
-        String redisKey = REDIS_TOKEN_PREFIX + oneTimeToken.trim();
+        String cleanToken = oneTimeToken.trim();
+        String redisKey = REDIS_TOKEN_PREFIX + cleanToken;
+        String lockKey = REDIS_LOCK_PREFIX + cleanToken;
 
-        // 1. Inspect Redis Token without prematurely destroying it
-        String docCode = null;
+        boolean lockAcquired = false;
         try {
-            docCode = stringRedisTemplate.opsForValue().get(redisKey);
-            if (docCode == null) {
-                // Support mock environments or legacy callers that stubbed getAndDelete
-                docCode = stringRedisTemplate.opsForValue().getAndDelete(redisKey);
+            Boolean acquired = stringRedisTemplate.opsForValue().setIfAbsent(lockKey, "1", VIEW_LOCK_TTL);
+            if (Boolean.FALSE.equals(acquired)) {
+                log.warn("Concurrent one-time view rejected by Redis lock for token {}",
+                        vn.edu.uth.smartward.common.FilenameUtils.maskToken(cleanToken));
+                throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
+                        "Liên kết truy cập tài liệu đang được xử lý hoặc đã được sử dụng một lần.");
             }
+            lockAcquired = Boolean.TRUE.equals(acquired);
+        } catch (BusinessException be) {
+            throw be;
         } catch (Exception e) {
-            log.warn("Redis read failure for vault token: {}", e.getMessage());
+            log.warn("Redis lock failure for vault token: {}", e.getMessage());
             if (failClosed) {
                 throw new BusinessException(ErrorCode.STORAGE_UNAVAILABLE,
                         "Hệ thống kiểm soát token một lần (Redis) không khả dụng. Từ chối truy cập tài liệu (Fail-Closed).");
             }
         }
 
-        // If not in Redis, check DB record
-        if (docCode == null || docCode.isBlank()) {
-            Optional<VaultDocument> docOpt = documentRepository.findByOneTimeToken(sha256Hex(oneTimeToken.trim()));
-            if (docOpt.isPresent()) {
-                VaultDocument doc = docOpt.get();
-                if (Boolean.TRUE.equals(doc.getIsViewed()) || doc.getExpiresAt().isBefore(OffsetDateTime.now())) {
-                    log.warn("Access denied for token {}: already consumed or expired", oneTimeToken);
-                    throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
-                            "Liên kết truy cập tài liệu đã hết hạn hoặc đã được sử dụng một lần theo Nghị định 13/2023/NĐ-CP.");
+        try {
+            // 1. Inspect Redis Token without prematurely destroying it
+            String docCode = null;
+            try {
+                docCode = stringRedisTemplate.opsForValue().get(redisKey);
+            } catch (Exception e) {
+                log.warn("Redis read failure for vault token: {}", e.getMessage());
+                if (failClosed) {
+                    throw new BusinessException(ErrorCode.STORAGE_UNAVAILABLE,
+                            "Hệ thống kiểm soát token một lần (Redis) không khả dụng. Từ chối truy cập tài liệu (Fail-Closed).");
                 }
-                docCode = doc.getDocumentCode();
-            } else {
+            }
+
+            // If not in Redis, check DB record
+            if (docCode == null || docCode.isBlank()) {
+                Optional<VaultDocument> docOpt = documentRepository.findByOneTimeToken(sha256Hex(cleanToken));
+                if (docOpt.isPresent()) {
+                    VaultDocument doc = docOpt.get();
+                    if (Boolean.TRUE.equals(doc.getIsViewed()) || doc.getExpiresAt().isBefore(OffsetDateTime.now())) {
+                        log.warn("Access denied for token {}: already consumed or expired", oneTimeToken);
+                        throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
+                                "Liên kết truy cập tài liệu đã hết hạn hoặc đã được sử dụng một lần theo quy định bảo vệ dữ liệu cá nhân.");
+                    }
+                    docCode = doc.getDocumentCode();
+                } else {
+                    throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
+                            "Liên kết truy cập không tồn tại hoặc đã bị hủy.");
+                }
+            }
+
+            // 2. Fetch Document record from Database and verify status
+            VaultDocument document = documentRepository.findByDocumentCode(docCode)
+                    .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Không tìm thấy hồ sơ tài liệu tương ứng."));
+
+            if (Boolean.TRUE.equals(document.getIsViewed()) ||
+                    (document.getExpiresAt() != null && document.getExpiresAt().isBefore(OffsetDateTime.now()))) {
                 throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
-                        "Liên kết truy cập không tồn tại hoặc đã bị hủy.");
+                        "Liên kết truy cập tài liệu đã được sử dụng một lần theo quy định bảo vệ dữ liệu cá nhân.");
+            }
+
+            // 3. Download Ciphertext from MinIO (failures here must NOT burn the token)
+            byte[] encryptedBytes = downloadFromMinio(document.getMinioObjectPath());
+
+            // 4. Decrypt AES-256-GCM Ciphertext (failures here must NOT burn the token)
+            byte[] decryptedBytes = decryptAesGcm(encryptedBytes);
+
+            // 5. SUCCESS: Atomically mark viewed and delete token from Redis ONLY after download + decrypt succeed
+            int updatedRows = documentRepository.markAsViewedAtomically(docCode);
+            if (updatedRows == 0) {
+                throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
+                        "Liên kết truy cập tài liệu đã được sử dụng đồng thời bởi phiên khác.");
+            }
+            document.setIsViewed(true);
+
+            try {
+                stringRedisTemplate.delete(redisKey);
+            } catch (Exception e) {
+                log.warn("Failed to delete consumed token from Redis: {}", e.getMessage());
+            }
+
+            log.info("Successfully consumed one-time document [{}]. Token is now permanently dead.", docCode);
+            return decryptedBytes;
+        } finally {
+            if (lockAcquired) {
+                try {
+                    stringRedisTemplate.delete(lockKey);
+                } catch (Exception ex) {
+                    log.warn("Failed to release vault lock: {}", ex.getMessage());
+                }
             }
         }
-
-        // 2. Fetch Document record from Database and verify status
-        VaultDocument document = documentRepository.findByDocumentCode(docCode)
-                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Không tìm thấy hồ sơ tài liệu tương ứng."));
-
-        if (Boolean.TRUE.equals(document.getIsViewed()) ||
-                (document.getExpiresAt() != null && document.getExpiresAt().isBefore(OffsetDateTime.now()))) {
-            throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
-                    "Liên kết truy cập tài liệu đã được sử dụng một lần theo Nghị định 13/2023/NĐ-CP.");
-        }
-
-        // 3. Download Ciphertext from MinIO
-        byte[] encryptedBytes = downloadFromMinio(document.getMinioObjectPath());
-
-        // 4. Decrypt AES-256-GCM Ciphertext
-        byte[] decryptedBytes = decryptAesGcm(encryptedBytes);
-
-        // 5. SUCCESS: Atomically mark viewed and delete token from Redis (Safe Order)
-        int updatedRows = documentRepository.markAsViewedAtomically(docCode);
-        if (updatedRows == 0 && Boolean.TRUE.equals(document.getIsViewed())) {
-            throw new BusinessException(ErrorCode.TOKEN_EXPIRED_OR_CONSUMED,
-                    "Liên kết truy cập tài liệu đã được sử dụng đồng thời bởi phiên khác.");
-        }
-        document.setIsViewed(true);
-        documentRepository.save(document);
-
-        try {
-            stringRedisTemplate.delete(redisKey);
-        } catch (Exception e) {
-            log.warn("Failed to delete consumed token from Redis: {}", e.getMessage());
-        }
-
-        log.info("Successfully consumed one-time document [{}]. Token is now permanently dead.", docCode);
-        return decryptedBytes;
     }
 
     /**
@@ -357,6 +395,23 @@ public class ZeroTrustVaultService {
         } catch (Exception e) {
             log.error("Failed to read object from MinIO: {}", e.getMessage());
             throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "Không thể tải tệp mã hóa từ MinIO: " + e.getMessage());
+        }
+    }
+
+    private void removeFromMinioBestEffort(String objectName) {
+        if (minioClient == null || objectName == null || objectName.isBlank()) {
+            return;
+        }
+        try {
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .build()
+            );
+            log.info("Compensating delete removed orphan MinIO object: {}/{}", bucketName, objectName);
+        } catch (Exception ex) {
+            log.warn("Best-effort compensating MinIO delete failed for {}/{}: {}", bucketName, objectName, ex.getMessage());
         }
     }
 

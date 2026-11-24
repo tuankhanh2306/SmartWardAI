@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Spatial Indexing Service powered by Redis GEO commands (GEOADD, GEOSEARCH).
@@ -33,7 +34,10 @@ public class SpatialIndexService {
     public void addClusterLocation(String clusterCode, double longitude, double latitude) {
         try {
             stringRedisTemplate.opsForGeo().add(GEO_KEY, new Point(longitude, latitude), clusterCode);
-            log.debug("Indexed cluster {} into Redis GEO (lon={}, lat={})", clusterCode, longitude, latitude);
+            log.debug("Indexed cluster {} into Redis GEO (lon={}, lat={})",
+                    clusterCode,
+                    String.format(Locale.US, "%.3f", longitude),
+                    String.format(Locale.US, "%.3f", latitude));
         } catch (Exception e) {
             log.warn("Failed to index cluster {} in Redis GEO: {}", clusterCode, e.getMessage());
         }

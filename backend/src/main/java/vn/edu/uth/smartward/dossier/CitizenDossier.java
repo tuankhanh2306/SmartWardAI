@@ -51,7 +51,7 @@ public class CitizenDossier {
     @Builder.Default
     private String status = "PENDING";
 
-    @Column(name = "sla_deadline", nullable = false)
+    @Column(name = "sla_deadline")
     private Instant slaDeadline;
 
     @Column(name = "officer_feedback", columnDefinition = "TEXT")

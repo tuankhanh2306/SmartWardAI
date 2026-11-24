@@ -86,10 +86,11 @@ public class GeminiAiClient implements AiModelClient {
     }
 
     private boolean hasApiKey() {
-        return apiKey != null
-                && !apiKey.trim().isEmpty()
-                && !apiKey.equalsIgnoreCase("mock-key-for-local-testing")
-                && !apiKey.startsWith("mock-key");
+        if (apiKey == null) {
+            return false;
+        }
+        String lower = apiKey.trim().toLowerCase(Locale.ROOT);
+        return !lower.isEmpty() && !lower.startsWith("mock");
     }
 
     @PostConstruct

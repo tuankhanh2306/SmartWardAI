@@ -76,6 +76,7 @@ class GeoValidatorServiceTest {
         assertFalse(r.valid());
         assertEquals(GeoValidationError.OUT_OF_WARD, r.errorCode());
         assertTrue(r.message().contains("ngoài ranh giới"));
+        assertTrue(r.message().contains("300m"));
     }
 
     @Test

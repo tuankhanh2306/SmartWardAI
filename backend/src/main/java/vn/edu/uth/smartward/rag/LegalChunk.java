@@ -2,6 +2,7 @@ package vn.edu.uth.smartward.rag;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
@@ -40,6 +41,7 @@ public class LegalChunk {
     private String legalReference;
 
     @Column(name = "embedding", columnDefinition = "vector(768)")
+    @ColumnTransformer(write = "CAST(? AS vector)")
     private String embedding;
 
     @Column(name = "embedding_model", nullable = false, length = 100)

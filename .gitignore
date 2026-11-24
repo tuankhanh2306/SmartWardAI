@@ -68,6 +68,7 @@ scratch/
 
 # Large ML Model binaries (exceeds GitHub 100MB limit)
 ml/models/*.onnx
+ml/models/**/*.onnx
 ml/models/**/*.safetensors
 ml/models/**/*.bin
 ml/models/**/*.pt

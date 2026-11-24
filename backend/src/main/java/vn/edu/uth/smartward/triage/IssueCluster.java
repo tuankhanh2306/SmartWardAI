@@ -2,6 +2,7 @@ package vn.edu.uth.smartward.triage;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.ColumnTransformer;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -39,6 +40,7 @@ public class IssueCluster {
     private BigDecimal centerLongitude;
 
     @Column(name = "center_embedding", columnDefinition = "vector(768)")
+    @ColumnTransformer(write = "CAST(? AS vector)")
     private String centerEmbedding;
 
     @Column(name = "embedding_model", nullable = false, length = 100)
@@ -52,6 +54,9 @@ public class IssueCluster {
     @Column(name = "status", nullable = false, length = 50)
     @Builder.Default
     private String status = "OPEN";
+
+    @Transient
+    private String wardCode;
 
     @OneToMany(mappedBy = "cluster", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @Builder.Default

@@ -163,14 +163,15 @@ export async function runTests(assertContext) {
   // T2_F11_01: Case-insensitive dossier code matching (hs-... vs HS-...)
   await assertContext.runTest(
     { testId: 'T2_F11_01', featureCode: 'F11', tierCode: 'tier2' },
-    'GET /api/v1/dossiers/track resolves lowercase dossierCode (hs-20261111-0001) case-insensitively',
+    'POST /api/v1/dossiers/track resolves lowercase dossierCode (hs-20261111-0001) case-insensitively',
     async () => {
       const lowercaseCode = 'hs-20261111-0001';
       const cccdSuffix = '1234';
 
-      const res = await apiClient.get(
-        `/api/v1/dossiers/track?dossierCode=${lowercaseCode}&citizenCccd=${cccdSuffix}`
-      );
+      const res = await apiClient.post('/api/v1/dossiers/track', {
+        dossierCode: lowercaseCode,
+        last4Cccd: cccdSuffix,
+      });
 
       // Dossier API must either return 200 with tracking status or 404 (not found in DB), not 500 error
       const isHandled = res.status === 200 || res.status === 404;
@@ -190,10 +191,10 @@ export async function runTests(assertContext) {
       assertContext.assertEqual(codeWithLeadingZero.length, 4, '4-digit CCCD must have length 4');
       assertContext.assertEqual(codeWithLeadingZero[0], '0', 'Leading character must remain 0');
 
-      // Test that tracking rejects anything other than exactly 4 digits
-      const res = await apiClient.get(
-        `/api/v1/dossiers/track?dossierCode=HS-20261111-0001&citizenCccd=${codeWithLeadingZero}`
-      );
+      const res = await apiClient.post('/api/v1/dossiers/track', {
+        dossierCode: 'HS-20261111-0001',
+        last4Cccd: codeWithLeadingZero,
+      });
       const isHandled = res.status === 200 || res.status === 404;
       assertContext.assert(isHandled, `Expected HTTP 200 or 404, received HTTP ${res.status}`);
     }
@@ -235,7 +236,7 @@ export async function runTests(assertContext) {
       const sampleSubmission = {
         procedureCode: 'TTHC-HT-01',
         citizenCccd: '089095012345',
-        wardCode: 'WARD-AG-01',
+        wardCode: OFFICER_ACCOUNTS.JUSTICE_CIVIC.wardCode,
         formData: { childName: 'NGUYỄN MINH KHANG' },
       };
 
@@ -258,7 +259,10 @@ export async function runTests(assertContext) {
     { testId: 'T2_F11_05', featureCode: 'F11', tierCode: 'tier2' },
     'Historical dossier archives retain completed records older than 365 days without premature purge',
     async () => {
-      const res = await apiClient.get('/api/v1/dossiers/track?dossierCode=HS-20250101-HISTORICAL&citizenCccd=1234');
+      const res = await apiClient.post('/api/v1/dossiers/track', {
+        dossierCode: 'HS-20250101-HISTORICAL',
+        last4Cccd: '1234',
+      });
       // Historical lookup should return 200 or 404, not crash
       const isHandled = res.status === 200 || res.status === 404;
       assertContext.assert(isHandled, `Expected HTTP 200 or 404 for historical dossier, received HTTP ${res.status}`);
@@ -287,8 +291,9 @@ export async function runTests(assertContext) {
 
       assertContext.assertStatusCode(res.status, 401, 'Tampered token must return HTTP 401');
       assertContext.assert(
-        res.data?.message?.includes('chữ ký') || res.data?.message?.includes('không hợp lệ'),
-        'Must report invalid signature'
+        res.data?.errorCode === 'SW_401' ||
+          /401|xác thực|chữ ký|không hợp lệ/i.test(res.data?.message || ''),
+        'Must report SW_401 / unauthorized rejection for tampered token'
       );
     }
   );
@@ -304,7 +309,7 @@ export async function runTests(assertContext) {
         JSON.stringify({
           sub: 'CC-AG-8942',
           role: 'OFFICER',
-          wardCode: 'WARD-AG-01',
+          wardCode: OFFICER_ACCOUNTS.JUSTICE_CIVIC.wardCode,
           exp: Math.floor(Date.now() / 1000) - 3600, // 1 hour ago
         })
       ).toString('base64url');
@@ -319,24 +324,27 @@ export async function runTests(assertContext) {
     }
   );
 
-  // T2_F12_03: Missing "Bearer " prefix (raw token in Authorization header)
+  // T2_F12_03: RFC 6750 strictly enforces "Bearer " prefix in Authorization header
   await assertContext.runTest(
     { testId: 'T2_F12_03', featureCode: 'F12', tierCode: 'tier2' },
-    'OfficerAuthService handles Authorization header without "Bearer " prefix cleanly without 500 error',
+    'OfficerTokenAuthenticationFilter rejects raw token missing "Bearer " prefix with 401 and accepts valid Bearer JWT',
     async () => {
       const loginRes = await loginOfficer();
       const validToken = loginRes.data?.data?.token || '';
+      assertContext.assert(Boolean(validToken), 'Must obtain valid officer token');
 
-      // Send raw token without 'Bearer ' prefix to /api/v1/auth/officer/me
-      const res = await apiClient.get('/api/v1/auth/officer/me', {
+      // Raw token without "Bearer " scheme must be rejected 401 (RFC 6750), never 500
+      const rawRes = await apiClient.get('/api/v1/auth/officer/me', {
         headers: { Authorization: validToken },
       });
+      assertContext.assertStatusCode(rawRes.status, 401, 'Raw token missing Bearer scheme must return HTTP 401');
 
-      // OfficerAuthService line 99 uses:
-      // if (token.regionMatches(true, 0, "Bearer ", 0, 7)) token = token.substring(7).trim();
-      // Raw token is parsed cleanly (200), never 500
-      assertContext.assertStatusCode(res.status, 200, 'GET /api/v1/auth/officer/me with raw token status');
-      assertContext.assertEqual(res.data?.data?.badgeId, 'CC-AG-8942', 'Verified officer badgeId');
+      // Proper "Bearer <token>" header succeeds with 200
+      const bearerRes = await apiClient.get('/api/v1/auth/officer/me', {
+        headers: { Authorization: `Bearer ${validToken}` },
+      });
+      assertContext.assertStatusCode(bearerRes.status, 200, 'GET /api/v1/auth/officer/me with Bearer token status');
+      assertContext.assertEqual(bearerRes.data?.data?.badgeId, 'CC-AG-8942', 'Verified officer badgeId');
     }
   );
 
@@ -345,11 +353,11 @@ export async function runTests(assertContext) {
     { testId: 'T2_F12_04', featureCode: 'F12', tierCode: 'tier2' },
     'Cross-ward tenant isolation blocks officer from approving foreign ward dossier',
     async () => {
-      // Officer is in WARD-AG-01
+      // Officer is in AG_P_LONGXUYEN
       const loginRes = await loginOfficer(
         OFFICER_ACCOUNTS.JUSTICE_CIVIC.badgeId,
         OFFICER_ACCOUNTS.JUSTICE_CIVIC.pin,
-        'WARD-AG-01'
+        OFFICER_ACCOUNTS.JUSTICE_CIVIC.wardCode
       );
       const token = loginRes.data?.data?.token;
 
@@ -362,9 +370,9 @@ export async function runTests(assertContext) {
         }
       );
 
-      // Must be 403 Forbidden, 404 (not found), or 500 (unimplemented M4), strictly never 200 approved
-      const isBlocked = (res.status === 403 || res.status === 404 || res.status === 500) && res.status !== 200;
-      assertContext.assert(isBlocked, `Expected cross-ward access to be blocked, got HTTP ${res.status}`);
+      // Must be 403 Forbidden or 404 (not found), strictly never 200 approved
+      const isBlocked = (res.status === 403 || res.status === 404) && res.status !== 200;
+      assertContext.assert(isBlocked, `Expected cross-ward access to be blocked (403/404), got HTTP ${res.status}`);
     }
   );
 
@@ -377,7 +385,7 @@ export async function runTests(assertContext) {
       const res = await apiClient.post('/api/v1/auth/officer/login', {
         badgeId: 'CC-AG-8942',
         pin: sqliPin,
-        wardCode: 'WARD-AG-01',
+        wardCode: OFFICER_ACCOUNTS.JUSTICE_CIVIC.wardCode,
       });
 
       assertContext.assertStatusCode(res.status, 401, 'SQL injection PIN must return HTTP 401');

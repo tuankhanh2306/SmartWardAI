@@ -53,7 +53,7 @@ export const RoleGateway: React.FC = () => {
 
   const [mode, setMode] = useState<'choice' | 'officer_form'>('choice');
   const [badgeId, setBadgeId] = useState(`CB-${currentWard.code}`);
-  const [pin, setPin] = useState('8942');
+  const [pin, setPin] = useState(import.meta.env.DEV ? '8942' : '');
   const [officerError, setOfficerError] = useState<string | null>(null);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [changePinOpen, setChangePinOpen] = useState(false);
@@ -188,7 +188,7 @@ export const RoleGateway: React.FC = () => {
               onClick={() => {
                 setOfficerError(null);
                 setBadgeId(`CB-${currentWard.code}`);
-                setPin('8942');
+                setPin(import.meta.env.DEV ? '8942' : '');
                 setMode('officer_form');
               }}
               className="w-full p-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white shadow-xs flex items-center justify-between text-left transition-all active:scale-[0.99] cursor-pointer group"
@@ -238,7 +238,7 @@ export const RoleGateway: React.FC = () => {
                     if (w) {
                       setWard(w);
                       setBadgeId(`CB-${w.code}`);
-                      setPin('8942');
+                      setPin(import.meta.env.DEV ? '8942' : '');
                       setOfficerError(null);
                     }
                   }}
@@ -291,29 +291,31 @@ export const RoleGateway: React.FC = () => {
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 pt-0.5">
-                <button
-                  type="button"
-                  onClick={handleFillWardOfficer}
-                  className="text-[#00796B] hover:underline font-semibold cursor-pointer"
-                >
-                  Xã hiện tại (CB-{currentWard.code})
-                </button>
-                <button
-                  type="button"
-                  onClick={handleFillLeadOfficer}
-                  className="text-slate-600 hover:underline font-semibold cursor-pointer"
-                >
-                  Cán bộ: CC-AG-8942
-                </button>
-                <button
-                  type="button"
-                  onClick={handleFillAdminOfficer}
-                  className="text-amber-700 hover:underline font-bold cursor-pointer"
-                >
-                  Admin: ADM-AG-0001
-                </button>
-              </div>
+              {import.meta.env.DEV && (
+                <div className="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-500 pt-0.5">
+                  <button
+                    type="button"
+                    onClick={handleFillWardOfficer}
+                    className="text-[#00796B] hover:underline font-semibold cursor-pointer"
+                  >
+                    Xã hiện tại (CB-{currentWard.code})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleFillLeadOfficer}
+                    className="text-slate-600 hover:underline font-semibold cursor-pointer"
+                  >
+                    Cán bộ: CC-AG-8942
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleFillAdminOfficer}
+                    className="text-amber-700 hover:underline font-bold cursor-pointer"
+                  >
+                    Admin: ADM-AG-0001
+                  </button>
+                </div>
+              )}
 
               <button
                 type="submit"

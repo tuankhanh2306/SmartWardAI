@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { askLegalRag, submitRagFeedback, type RagResponse, type LegalCitation } from '../api/client';
+import { askLegalRag, submitRagFeedback, synthesizeSpeech, type RagResponse, type LegalCitation } from '../api/client';
+import { normalizeTextForTts } from '../utils/ttsTextNormalizer';
 import { useNavigate } from 'react-router-dom';
 import { useWard } from '../context/WardContext';
 import { useAccessibility } from '../context/AccessibilityContext';
@@ -636,11 +637,26 @@ export const CitizenPortal: React.FC = () => {
     return () => clearTimeout(timer);
   }, [messages, loading]);
 
-  // Reference to current active utterance to prevent Chromium garbage-collection bug
+  // Reference to current active utterance or audio element to prevent GC and handle clean cancellation
   const currentUtteranceRef = useRef<SpeechSynthesisUtterance | null>(null);
+  const currentAudioRef = useRef<HTMLAudioElement | null>(null);
+  const currentAudioUrlRef = useRef<string | null>(null);
 
-  // Stop speech synthesis cleanly across all browsers
+  // Stop speech synthesis cleanly across all engines (Sidecar Piper TTS + Web Speech API)
   const stopSpeech = useCallback(() => {
+    if (currentAudioRef.current) {
+      try {
+        currentAudioRef.current.pause();
+        currentAudioRef.current.currentTime = 0;
+      } catch {}
+      currentAudioRef.current = null;
+    }
+    if (currentAudioUrlRef.current) {
+      try {
+        URL.revokeObjectURL(currentAudioUrlRef.current);
+      } catch {}
+      currentAudioUrlRef.current = null;
+    }
     if ('speechSynthesis' in window) {
       try {
         if (window.speechSynthesis.paused) {
@@ -662,28 +678,12 @@ export const CitizenPortal: React.FC = () => {
     };
   }, [stopSpeech]);
 
-  // Start speech synthesis with Vietnamese voice preference
-  const startSpeech = useCallback((text: string, id: string) => {
+  // Fallback to browser Web Speech API if local AI sidecar TTS is unavailable
+  const fallbackWebSpeech = useCallback((clean: string, id: string) => {
     if (!('speechSynthesis' in window)) {
-      alert('Trình duyệt của bạn hiện chưa hỗ trợ tính năng đọc âm thanh.');
+      setSpeakingId(null);
       return;
     }
-
-    // Stop any currently playing audio first
-    stopSpeech();
-
-    // Clean brackets, chunk codes, hashtags and markdown characters for natural pronunciation
-    const clean = text
-      .replace(/\[[A-Za-z0-9_\-]+\]/g, '')
-      .replace(/[*#_~`>]/g, ' ')
-      .replace(/•/g, ', ')
-      .replace(/\n+/g, '. ')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    if (!clean) return;
-
-    // Small delay to allow Chrome's cancel() queue to settle cleanly
     setTimeout(() => {
       try {
         const utterance = new SpeechSynthesisUtterance(clean);
@@ -691,13 +691,10 @@ export const CitizenPortal: React.FC = () => {
         utterance.rate = 0.95;
         utterance.pitch = 1.0;
 
-        // Pick Vietnamese voice if present in system voices
-        if ('speechSynthesis' in window) {
-          const voices = window.speechSynthesis.getVoices();
-          const viVoice = voices.find((v) => v.lang.toLowerCase().includes('vi'));
-          if (viVoice) {
-            utterance.voice = viVoice;
-          }
+        const voices = window.speechSynthesis.getVoices();
+        const viVoice = voices.find((v) => v.lang.toLowerCase().includes('vi'));
+        if (viVoice) {
+          utterance.voice = viVoice;
         }
 
         utterance.onend = () => {
@@ -709,7 +706,6 @@ export const CitizenPortal: React.FC = () => {
           setSpeakingId(null);
         };
 
-        // Pin reference to prevent GC while speaking
         currentUtteranceRef.current = utterance;
         setSpeakingId(id);
         window.speechSynthesis.speak(utterance);
@@ -718,7 +714,47 @@ export const CitizenPortal: React.FC = () => {
         setSpeakingId(null);
       }
     }, 50);
-  }, [stopSpeech]);
+  }, []);
+
+  // Start speech synthesis prioritizing offline Piper TTS AI model with fallback to Web Speech API
+  const startSpeech = useCallback((text: string, id: string) => {
+    stopSpeech();
+
+    // Clean and expand administrative acronyms (e.g. CCCD -> Căn cước công dân, UBND -> Ủy ban nhân dân)
+    const clean = normalizeTextForTts(text);
+
+    if (!clean) return;
+
+    setSpeakingId(id);
+
+    // 1. Try local AI Sidecar Piper TTS first (sub-15ms offline Vietnamese voice)
+    synthesizeSpeech(clean)
+      .then((blob) => {
+        const audioUrl = URL.createObjectURL(blob);
+        currentAudioUrlRef.current = audioUrl;
+        const audio = new Audio(audioUrl);
+        currentAudioRef.current = audio;
+
+        audio.onended = () => {
+          stopSpeech();
+        };
+        audio.onerror = () => {
+          console.warn('Audio playback error, falling back to Web Speech API');
+          stopSpeech();
+          fallbackWebSpeech(clean, id);
+        };
+
+        audio.play().catch((err) => {
+          console.warn('Audio play() rejected:', err);
+          stopSpeech();
+          fallbackWebSpeech(clean, id);
+        });
+      })
+      .catch((err) => {
+        console.info('Sidecar TTS unavailable, falling back to browser Web Speech API:', err);
+        fallbackWebSpeech(clean, id);
+      });
+  }, [stopSpeech, fallbackWebSpeech]);
 
   // Text-To-Speech (Hỗ trợ 2 chế độ TẮT & MỞ rõ ràng để người dân nghe và tắt khi cần)
   const toggleSpeech = useCallback((text: string, id: string) => {

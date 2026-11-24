@@ -10,6 +10,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { apiClient } from '../helpers/api_client.mjs';
+import { loginOfficer } from '../helpers/auth_helper.mjs';
 import { parseCccdQrString, STATIC_CCCD_FIXTURES } from '../fixtures/cccd_qr_fixtures.mjs';
 import { createSampleFileBuffer, OCR_CROSS_CHECK_FIXTURES } from '../fixtures/vault_document_fixtures.mjs';
 
@@ -186,16 +187,28 @@ export async function runTests(assertContext) {
     }
   );
 
-  // T1_F09_02: First view via One-Time Token returns decrypted image
+  // T1_F09_02: Anonymous view blocked (401 without consuming OTT), Officer view delivers decrypted image
   await assertContext.runTest(
     { testId: 'T1_F09_02', featureCode: 'F9', tierCode: 'tier1' },
-    'First view delivers decrypted, watermarked image binary bytes',
+    'Vault view enforces ROLE_OFFICER (401 anon without consuming OTT) and delivers watermarked bytes to officer',
     async () => {
       if (!uploadedOneTimeToken) {
         throw new Error('No uploaded One-Time Token available for view test');
       }
-      const res = await apiClient.get(`/api/v1/vault/view/${uploadedOneTimeToken}`);
-      assertContext.assertStatusCode(res.status, 200, 'First view status');
+      // Anonymous attempt must be rejected 401 and MUST NOT burn the OTT
+      const anonRes = await apiClient.get(`/api/v1/vault/view/${uploadedOneTimeToken}`, {
+        headers: { Authorization: '' },
+      });
+      assertContext.assertStatusCode(anonRes.status, 401, 'Anonymous view must be blocked with 401');
+
+      const authRes = await loginOfficer();
+      const officerToken = authRes.data?.data?.token;
+      assertContext.assert(Boolean(officerToken), 'Officer login must yield Bearer token');
+
+      const res = await apiClient.get(`/api/v1/vault/view/${uploadedOneTimeToken}`, {
+        headers: { Authorization: `Bearer ${officerToken}` },
+      });
+      assertContext.assertStatusCode(res.status, 200, 'Officer first view status');
 
       const isImage =
         res.contentType?.includes('image/') ||
@@ -212,7 +225,11 @@ export async function runTests(assertContext) {
       if (!uploadedOneTimeToken) {
         throw new Error('No uploaded One-Time Token available for replay test');
       }
-      const res = await apiClient.get(`/api/v1/vault/view/${uploadedOneTimeToken}`);
+      const authRes = await loginOfficer();
+      const officerToken = authRes.data?.data?.token;
+      const res = await apiClient.get(`/api/v1/vault/view/${uploadedOneTimeToken}`, {
+        headers: { Authorization: `Bearer ${officerToken}` },
+      });
       assertContext.assertStatusCode(res.status, 410, 'Replay view status must be 410 GONE');
     }
   );
@@ -235,16 +252,24 @@ export async function runTests(assertContext) {
     }
   );
 
-  // T1_F09_05: PerWardDashboard / client.ts integration
+  // T1_F09_05: PerWardDashboard / modular vault API client integration
   await assertContext.runTest(
     { testId: 'T1_F09_05', featureCode: 'F9', tierCode: 'tier1' },
     'Frontend client integrates real Zero-Trust Vault APIs (uploadVaultDocument, viewVaultDocument)',
     async () => {
       const clientPath = path.join(PROJECT_ROOT, 'frontend/src/api/client.ts');
+      const vaultApiPath = path.join(PROJECT_ROOT, 'frontend/src/api/modules/proceduresAndVault.api.ts');
       const clientCode = fs.readFileSync(clientPath, 'utf8');
+      const vaultApiCode = fs.existsSync(vaultApiPath) ? fs.readFileSync(vaultApiPath, 'utf8') : '';
+      const hasBarrelExport =
+        clientCode.includes('./modules/proceduresAndVault.api') ||
+        clientCode.includes('uploadVaultDocument');
       const hasVaultIntegration =
-        clientCode.includes('uploadVaultDocument') || clientCode.includes('viewVaultDocument');
-      assertContext.assert(hasVaultIntegration, 'Frontend client must integrate real Vault APIs');
+        vaultApiCode.includes('uploadVaultDocument') && vaultApiCode.includes('viewVaultDocument');
+      assertContext.assert(
+        hasBarrelExport && hasVaultIntegration,
+        'Frontend client barrel and proceduresAndVault.api.ts must integrate uploadVaultDocument & viewVaultDocument'
+      );
     }
   );
 }

@@ -157,7 +157,7 @@ export interface DossierSubmissionResponse {
   procedureCode: string;
   wardCode: string;
   status: DossierStatus | string;
-  slaDeadline: string;
+  slaDeadline?: string | null;
   createdAt: string;
 }
 
@@ -183,7 +183,7 @@ export interface DossierTrackingResponse {
   wardCode: string;
   citizenCccd: string; // Masked ********1234
   status: DossierStatus | string;
-  slaDeadline: string;
+  slaDeadline?: string | null;
   officerFeedback?: string;
   appointmentCode?: string;
   precheckReport?: Record<string, unknown>;
@@ -202,7 +202,7 @@ export interface OfficerDossierDto {
   citizenCccd: string; // Masked ********1234
   citizenName: string;
   status: DossierStatus | string;
-  slaDeadline: string;
+  slaDeadline?: string | null;
   officerFeedback?: string;
   appointmentCode?: string;
   formData: Record<string, unknown>;
@@ -241,6 +241,8 @@ export interface CivicReportRequest {
   reporterPhone: string;
   wardCode?: string;
   wardName?: string;
+  locationAccuracyM?: number;
+  locationSource?: string;
 }
 
 export interface CivicReportResponse {

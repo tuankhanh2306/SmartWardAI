@@ -11,6 +11,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { Download } from 'lucide-react-native';
 import {
   exportQrPassToPdf,
+  formatMobileSlaDeadline,
   getDossierStatusVietnamese,
 } from '../core/qrPassPdfExporter';
 import type { WalletQrPassRow } from '../storage/sqliteDb';
@@ -109,6 +110,13 @@ export const ElectronicQrPassCard: React.FC<ElectronicQrPassCardProps> = ({ pass
           <Text style={styles.infoLabel}>Thủ tục</Text>
           <Text style={styles.infoValue} numberOfLines={2}>
             {pass.procedure_name}
+          </Text>
+        </View>
+        <View style={styles.hairline} />
+        <View style={styles.infoRow}>
+          <Text style={styles.infoLabel}>Hạn giải quyết</Text>
+          <Text style={styles.infoValue} numberOfLines={2}>
+            {formatMobileSlaDeadline(pass.sla_deadline)}
           </Text>
         </View>
         <View style={styles.hairline} />

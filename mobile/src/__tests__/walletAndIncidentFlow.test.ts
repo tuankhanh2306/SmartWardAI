@@ -8,10 +8,14 @@ import {
 } from '../core/incidentSubmitter';
 import {
   buildElectronicQrPassHtml,
+  formatMobileSlaDeadline,
   getDossierStatusVietnamese,
+  UNVERIFIED_SLA_TEXT,
 } from '../core/qrPassPdfExporter';
+import { flushOfflineIncidentQueue } from '../api/offlineSyncManager';
 import {
   buildSmartWardPassPayload,
+  enqueueOfflineIncident,
   getAllWalletQrPasses,
   getOfflineIncidentQueue,
   removeOfflineIncident,
@@ -80,6 +84,11 @@ describe('walletAndIncidentFlow — Chặng M4 (Ví Mã QR Offline, Xuất PDF &
     expect(found?.qr_payload).toBe(
       'SMARTWARD_PASS|HS-OFFLINE-2026-01|LH-20261118-7777|AG_DK_PHUQUOC'
     );
+
+    expect(formatMobileSlaDeadline(null)).toBe(UNVERIFIED_SLA_TEXT);
+    const offlineHtml = buildElectronicQrPassHtml(pass);
+    expect(offlineHtml).toContain(UNVERIFIED_SLA_TEXT);
+    expect(offlineHtml).not.toContain('NĐ 13');
   });
 
   it('kiểm định đủ 5 danh mục sự cố chuẩn Backend và chặn khi thiếu SĐT khẩn cấp hoặc mô tả < 10 ký tự', () => {
@@ -103,6 +112,47 @@ describe('walletAndIncidentFlow — Chặng M4 (Ví Mã QR Offline, Xuất PDF &
 
     expect(invalid.valid).toBe(false);
     expect(invalid.errors).toHaveLength(2);
+
+    // Chặn gửi khi vị trí vẫn ở trạng thái mặc định trụ sở xã (WARD_DEFAULT) chưa xác nhận
+    const unconfirmed = validateIncidentDraft({
+      category: 'ROAD_DAMAGE',
+      description: 'Đoạn đường sụt lún ổ gà sâu nguy hiểm cho xe máy.',
+      addressText: 'Đường Trần Hưng Đạo',
+      reporterPhone: '0918234567',
+      latitude: 10.3839,
+      longitude: 105.4267,
+      fallbackWardCode: 'AG_P_LONGXUYEN',
+      locationSource: 'WARD_DEFAULT',
+    });
+    expect(unconfirmed.valid).toBe(false);
+    expect(unconfirmed.errors[0]).toContain('chưa được xác nhận');
+
+    // Chặn tọa độ ngoài phạm vi tỉnh An Giang (VD: Hà Nội 21.0285, 105.8542)
+    const outOfProvince = validateIncidentDraft({
+      category: 'ROAD_DAMAGE',
+      description: 'Đoạn đường sụt lún ổ gà sâu nguy hiểm cho xe máy.',
+      addressText: '',
+      reporterPhone: '0918234567',
+      latitude: 21.0285,
+      longitude: 105.8542,
+      fallbackWardCode: 'AG_P_LONGXUYEN',
+      locationSource: 'PIN_DRAGGED',
+    });
+    expect(outOfProvince.valid).toBe(false);
+    expect(outOfProvince.errors[0]).toContain('ngoài phạm vi địa bàn Tỉnh An Giang');
+
+    // Cho phép gửi bằng tọa độ ghim ngay cả khi geocoding lỗi (addressText rỗng)
+    const emptyAddressValidPin = validateIncidentDraft({
+      category: 'ROAD_DAMAGE',
+      description: 'Đoạn đường sụt lún ổ gà sâu nguy hiểm cho xe máy.',
+      addressText: '',
+      reporterPhone: '0918234567',
+      latitude: 10.3839,
+      longitude: 105.4267,
+      fallbackWardCode: 'AG_P_LONGXUYEN',
+      locationSource: 'PIN_DRAGGED',
+    });
+    expect(emptyAddressValidPin.valid).toBe(true);
   });
 
   it('tự động định tuyến liên xã theo ô địa chỉ & báo kết quả gộp cụm GPS R = 25m khi gửi Online', async () => {
@@ -182,6 +232,57 @@ describe('walletAndIncidentFlow — Chặng M4 (Ví Mã QR Offline, Xuất PDF &
       const src = readFileSync(f, 'utf8');
       expect(src).not.toMatch(/window\.print\s*\(/);
       expect(src).not.toMatch(/Print\.printAsync\s*\(/);
+    }
+  });
+
+  it('gửi Idempotency-Key nhất quán theo local_id khi flushOfflineIncidentQueue retry sau rớt mạng', async () => {
+    const queuedRow = await enqueueOfflineIncident({
+      category: 'FLOODING',
+      title: 'Ngập úng tuyến đường trung tâm',
+      description: 'Mặt đường ngập sâu 30cm gây chết máy nhiều xe vào giờ tan tầm.',
+      addressText: 'Đường Hai Bà Trưng, Phường Long Xuyên, Tỉnh An Giang',
+      reporterPhone: '0918234567',
+      latitude: 10.383965,
+      longitude: 105.426716,
+      wardCode: 'AG_P_LONGXUYEN',
+      wardName: 'Phường Long Xuyên',
+      locationSource: 'GPS',
+    });
+
+    try {
+      const submitApi = vi
+        .fn()
+        .mockRejectedValueOnce(new Error('Network timeout'))
+        .mockResolvedValueOnce({
+          reportCode: 'RPT-RETRY-01',
+          clusterCode: 'CLUST-LX-99',
+          newCluster: true,
+          category: 'FLOODING',
+          clusterReportCount: 1,
+          message: 'Đã tiếp nhận',
+        });
+
+      const firstFlush = await flushOfflineIncidentQueue({ submitApi });
+      expect(firstFlush.failedCount).toBe(1);
+      expect(firstFlush.syncedCount).toBe(0);
+
+      const queueAfterFirst = await getOfflineIncidentQueue();
+      const pending = queueAfterFirst.find((r) => r.local_id === queuedRow.local_id);
+      expect(pending).toBeDefined();
+      expect(pending?.retry_count).toBe(1);
+
+      const secondFlush = await flushOfflineIncidentQueue({ submitApi });
+      expect(secondFlush.syncedCount).toBe(1);
+      expect(secondFlush.failedCount).toBe(0);
+
+      const queueAfterSecond = await getOfflineIncidentQueue();
+      expect(queueAfterSecond.some((r) => r.local_id === queuedRow.local_id)).toBe(false);
+
+      expect(submitApi).toHaveBeenCalledTimes(2);
+      expect(submitApi.mock.calls[0][1]).toEqual({ idempotencyKey: queuedRow.local_id });
+      expect(submitApi.mock.calls[1][1]).toEqual({ idempotencyKey: queuedRow.local_id });
+    } finally {
+      await removeOfflineIncident(queuedRow.local_id);
     }
   });
 });

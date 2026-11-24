@@ -11,6 +11,10 @@ export interface IssueCluster {
   descriptionSummary: string;
   status: string;
   reportCount: number;
+  addressText?: string;
+  locationSource?: string;
+  locationAccuracyM?: number;
+  wardCode?: string;
   createdAt: string;
   lastReportAt: string;
 }
@@ -48,6 +52,8 @@ export interface LiveCitizenIncident {
   duplicatesMerged: number;
   reporterPhone: string;
   officerNote?: string;
+  locationSource?: string;
+  locationAccuracyM?: number;
 }
 
 const LIVE_INCIDENTS_STORAGE_KEY = 'smartward_live_incidents_v1';
@@ -105,7 +111,7 @@ export function updateLiveIncidentStatus(
 }
 
 function mapCategoryCodeToLabel(code: string): string {
-  switch (code) {
+  switch ((code || '').trim().toUpperCase()) {
     case 'ROAD_DAMAGE':
       return 'Cơ sở hạ tầng';
     case 'FLOODING':
@@ -113,8 +119,10 @@ function mapCategoryCodeToLabel(code: string): string {
     case 'ENVIRONMENT':
       return 'Môi trường & Rác thải';
     case 'LIGHTING':
+    case 'LIGHTING_ELECTRICAL':
       return 'Chiếu sáng đô thị';
     case 'SECURITY':
+    case 'ORDER_SECURITY':
       return 'An ninh trật tự';
     default:
       return 'Cơ sở hạ tầng';
@@ -134,7 +142,7 @@ export const reportIssue = async (data: {
   reporterHomeWardName?: string;
   urgency?: 'HIGH' | 'MEDIUM' | 'LOW';
   locationAccuracyM?: number;
-  locationSource?: 'gps' | 'manual_pin' | 'address_geocode';
+  locationSource?: 'GPS' | 'PIN_DRAGGED' | 'MANUAL' | 'WARD_DEFAULT' | 'gps' | 'manual_pin' | 'address_geocode' | string;
 }): Promise<IssueReportResponse> => {
   const currentWardLabel = data.wardName || 'UBND cấp Xã/Phường';
   const targetWardCode = data.wardCode || 'AG_P_LONGXUYEN';
@@ -142,6 +150,10 @@ export const reportIssue = async (data: {
   const phone = (data.reporterPhone || '').trim();
   const addr = (data.addressText || currentWardLabel).trim();
   const appliedRadius = 25.0; // High-precision GPS radius R = 25m
+
+  // Normalize source to uppercase for backend contract
+  const rawSource = data.locationSource || 'GPS';
+  const normalizedSource = rawSource === 'manual_pin' ? 'PIN_DRAGGED' : rawSource.toUpperCase();
 
   const persistToLocalWardQueue = (res: IssueReportResponse) => {
     const cleanTitle = desc.replace(/^\[[^\]]+\]\s*/, '').trim();
@@ -163,10 +175,12 @@ export const reportIssue = async (data: {
       urgency: data.urgency || 'HIGH',
       duplicatesMerged: res.totalReportsInCluster,
       reporterPhone: phone || 'Chưa cung cấp',
+      locationSource: normalizedSource,
+      locationAccuracyM: data.locationAccuracyM,
       officerNote:
         data.reporterHomeWardName && data.reporterHomeWardName !== currentWardLabel
           ? `Tin báo liên địa bàn từ công dân ${data.reporterHomeWardName} đi qua ${currentWardLabel}. Đã định vị tự động.`
-          : `Tiếp nhận tin báo qua định vị bản đồ. Cần liên hệ SĐT ${phone} để xác minh hiện trường.`,
+          : `Tiếp nhận tin báo qua định vị bản đồ (${normalizedSource}). Cần liên hệ SĐT ${phone} để xác minh hiện trường.`,
     });
   };
 
@@ -181,7 +195,7 @@ export const reportIssue = async (data: {
       wardCode: targetWardCode,
       wardName: currentWardLabel,
       locationAccuracyM: data.locationAccuracyM,
-      locationSource: data.locationSource || 'gps',
+      locationSource: normalizedSource,
     });
     const payload = resp.data?.data ?? resp.data;
     const result: IssueReportResponse = {
@@ -265,24 +279,51 @@ export const reportIssue = async (data: {
   }
 };
 
+function mapRawClusters(rawList: any[]): IssueCluster[] {
+  return rawList.map((item) => ({
+    id: String(item.id ?? item.clusterCode),
+    clusterCode: item.clusterCode,
+    category: item.category,
+    centroidLatitude: Number(item.centerLatitude ?? item.centroidLatitude ?? 10.3864),
+    centroidLongitude: Number(item.centerLongitude ?? item.centroidLongitude ?? 105.4352),
+    title: item.title || 'Sự cố hiện trường',
+    descriptionSummary: item.descriptionSummary || item.title || '',
+    status: item.status || 'OPEN',
+    reportCount: item.reportCount ?? 1,
+    addressText: item.addressText ?? undefined,
+    locationSource: item.locationSource ?? undefined,
+    locationAccuracyM: typeof item.locationAccuracyM === 'number' ? item.locationAccuracyM : undefined,
+    wardCode: item.wardCode ?? undefined,
+    createdAt: item.firstReportedAt || item.createdAt || new Date().toISOString(),
+    lastReportAt: item.lastReportedAt || item.createdAt || new Date().toISOString(),
+  }));
+}
+
 export const getIssueClusters = async (): Promise<IssueCluster[]> => {
+  const hasOfficerToken =
+    typeof window !== 'undefined' &&
+    Boolean(
+      window.sessionStorage?.getItem('smartward_officer_token') ||
+        window.localStorage?.getItem('smartward_officer_token')
+    );
+
+  if (hasOfficerToken) {
+    try {
+      const officerResp = await api.get<any>('/issues/officer/clusters');
+      const rawOfficerList: any[] = officerResp.data?.data ?? officerResp.data;
+      if (Array.isArray(rawOfficerList)) {
+        return mapRawClusters(rawOfficerList);
+      }
+    } catch {
+      // Fall back to public clusters endpoint if token lacks officer role or expired
+    }
+  }
+
   try {
     const resp = await api.get<any>('/issues/clusters');
     const rawList: any[] = resp.data?.data ?? resp.data;
     if (Array.isArray(rawList)) {
-      return rawList.map((item) => ({
-        id: String(item.id ?? item.clusterCode),
-        clusterCode: item.clusterCode,
-        category: item.category,
-        centroidLatitude: Number(item.centerLatitude ?? item.centroidLatitude ?? 10.3864),
-        centroidLongitude: Number(item.centerLongitude ?? item.centroidLongitude ?? 105.4352),
-        title: item.title || 'Sự cố hiện trường',
-        descriptionSummary: item.descriptionSummary || item.title || '',
-        status: item.status || 'OPEN',
-        reportCount: item.reportCount ?? 1,
-        createdAt: item.firstReportedAt || item.createdAt || new Date().toISOString(),
-        lastReportAt: item.lastReportedAt || item.createdAt || new Date().toISOString(),
-      }));
+      return mapRawClusters(rawList);
     }
     return [];
   } catch {

@@ -107,8 +107,45 @@ export function isPointInPolygon(lat: number, lon: number, polygonRing: [number,
 }
 
 /**
+ * Calculates approximate minimum distance in meters from point (lat, lon)
+ * to the edges of a GeoJSON polygon ring ([lng, lat][]).
+ * Matches Backend JTS polygon.distance(point) * 111000.0 logic.
+ */
+export function calculateDistanceToPolygonMeters(
+  lat: number,
+  lon: number,
+  polygonRing: [number, number][]
+): number {
+  if (!polygonRing || polygonRing.length < 2) return Number.POSITIVE_INFINITY;
+  let minDegDistSq = Number.POSITIVE_INFINITY;
+  const px = lon;
+  const py = lat;
+  const n = polygonRing.length;
+
+  for (let i = 0; i < n; i++) {
+    const [x1, y1] = polygonRing[i];
+    const [x2, y2] = polygonRing[(i + 1) % n];
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const lenSq = dx * dx + dy * dy;
+    let t = 0;
+    if (lenSq > 0) {
+      t = Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / lenSq));
+    }
+    const projX = x1 + t * dx;
+    const projY = y1 + t * dy;
+    const distSq = (px - projX) * (px - projX) + (py - projY) * (py - projY);
+    if (distSq < minDegDistSq) {
+      minDegDistSq = distSq;
+    }
+  }
+
+  return Math.sqrt(minDegDistSq) * 111000.0;
+}
+
+/**
  * Validates a coordinate point against territorial boundaries and safety checks.
- * BƯỚC 2: Shared Coordinate Validator
+ * BƯỚC 2: Shared Coordinate Validator (tight <= 300m polygon boundary tolerance matching Backend)
  */
 export function validateWardPoint(
   lat: number,
@@ -164,20 +201,29 @@ export function validateWardPoint(
     }
   }
 
-  // 4. Point-in-polygon verification
+  // 4. Point-in-polygon verification with tight <= 300m border tolerance (matching Backend GeoValidatorService)
   if (targetWard.boundary && targetWard.boundary.length >= 3) {
     const inside = isPointInPolygon(lat, lng, targetWard.boundary);
     if (!inside) {
-      // Check distance to ward center (allow up to 5000m tolerance if boundary vertex rounding)
-      const dist = calculateHaversineMeters(lat, lng, targetWard.lat, targetWard.lon);
-      if (dist > 5000) {
+      const distToBoundaryMeters = calculateDistanceToPolygonMeters(lat, lng, targetWard.boundary);
+      if (distToBoundaryMeters > 300) {
         return {
           valid: false,
           errorCode: 'OUT_OF_WARD',
-          message: `Vị trí phản ánh nằm ngoài ranh giới hành chính của ${targetWard.name}.`,
+          message: `Vị trí phản ánh (${lat.toFixed(5)}, ${lng.toFixed(5)}) nằm ngoài ranh giới hành chính của ${targetWard.name} (vượt dung sai cho phép 300m, thực tế lệch ~${Math.round(distToBoundaryMeters)}m). Vui lòng chọn đúng đơn vị hành chính quản lý.`,
           ward: targetWard,
         };
       }
+    }
+  } else {
+    const distMeters = calculateHaversineMeters(lat, lng, targetWard.lat, targetWard.lon);
+    if (distMeters > 3000) {
+      return {
+        valid: false,
+        errorCode: 'OUT_OF_WARD',
+        message: `Vị trí phản ánh cách quá xa trụ sở ${targetWard.name} (${Math.round(distMeters)}m).`,
+        ward: targetWard,
+      };
     }
   }
 
