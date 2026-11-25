@@ -1,7 +1,16 @@
 package vn.edu.uth.smartward.security;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JOSEObjectType;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -13,18 +22,14 @@ import vn.edu.uth.smartward.audit.AuditService;
 import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ErrorCode;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.security.MessageDigest;
 import java.security.SecureRandom;
+import java.text.ParseException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.Date;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -34,7 +39,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @Service
 public class OfficerAuthService {
 
-    private static final String HMAC_ALGO = "HmacSHA256";
     private static final String BASE32_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
     private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -75,6 +79,9 @@ public class OfficerAuthService {
 
     @Value("${smartward.bootstrap.secret-file:}")
     private String bootstrapSecretFile;
+
+    @Value("${smartward.security.revocation-fail-closed:true}")
+    private boolean revocationFailClosed = true;
 
     private static final int MAX_AUTH_FAILURES = 5;
     private static final int MAX_REVOKED_CACHE_SIZE = 2000;
@@ -414,6 +421,21 @@ public class OfficerAuthService {
         }
     }
 
+    /**
+     * Best-effort verification for public endpoints that optionally attach an Officer JWT
+     * (e.g. per-officer rate limiting behind shared UBND Wi-Fi).
+     */
+    public Optional<OfficerPrincipal> tryVerifyToken(String rawBearerOrToken) {
+        if (rawBearerOrToken == null || rawBearerOrToken.isBlank()) {
+            return Optional.empty();
+        }
+        try {
+            return Optional.of(verifyToken(rawBearerOrToken));
+        } catch (BusinessException e) {
+            return Optional.empty();
+        }
+    }
+
     public OfficerPrincipal verifyToken(String rawBearerOrToken) {
         if (rawBearerOrToken == null || rawBearerOrToken.isBlank()) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "Thiếu thông tin xác thực cán bộ (Authorization Bearer token).");
@@ -424,41 +446,59 @@ public class OfficerAuthService {
             token = token.substring(7).trim();
         }
 
-        String[] parts = token.split("\\.");
-        if (parts.length != 3) {
+        SignedJWT signedJwt;
+        try {
+            signedJwt = SignedJWT.parse(token);
+        } catch (ParseException e) {
             throw new BusinessException(ErrorCode.UNAUTHORIZED, "Định dạng phiên đăng nhập cán bộ không hợp lệ.");
         }
 
-        String signingInput = parts[0] + "." + parts[1];
-        String expectedSig = hmacSha256Base64Url(signingInput);
+        JWSHeader header = signedJwt.getHeader();
+        if (header == null || !JWSAlgorithm.HS256.equals(header.getAlgorithm())) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "Thuật toán chữ ký JWT không hợp lệ hoặc không được hỗ trợ.");
+        }
 
-        if (!MessageDigest.isEqual(
-                expectedSig.getBytes(StandardCharsets.UTF_8),
-                parts[2].getBytes(StandardCharsets.UTF_8))) {
-            throw new BusinessException(ErrorCode.UNAUTHORIZED, "Chữ ký phiên đăng nhập cán bộ không hợp lệ hoặc đã bị giả mạo.");
+        byte[] secretBytes = resolveSigningSecret();
+        try {
+            JWSVerifier verifier = new MACVerifier(secretBytes);
+            if (!signedJwt.verify(verifier)) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "Chữ ký phiên đăng nhập cán bộ không hợp lệ hoặc đã bị giả mạo.");
+            }
+        } catch (BusinessException e) {
+            throw e;
+        } catch (JOSEException e) {
+            throw new BusinessException(ErrorCode.UNAUTHORIZED, "Không thể xác minh chữ ký phiên đăng nhập cán bộ.");
         }
 
         try {
-            byte[] payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
-            Map<String, Object> claims = objectMapper.readValue(payloadBytes, new TypeReference<>() {});
+            JWTClaimsSet claims = signedJwt.getJWTClaimsSet();
+            String sub = claims.getSubject() != null ? claims.getSubject() : "";
+            String name = claims.getStringClaim("name") != null ? claims.getStringClaim("name") : "";
+            String wardCode = claims.getStringClaim("wardCode") != null ? claims.getStringClaim("wardCode") : "AG_P_LONGXUYEN";
+            String role = claims.getStringClaim("role") != null ? claims.getStringClaim("role") : "";
+            String jti = claims.getJWTID() != null ? claims.getJWTID() : "";
+            Date expirationTime = claims.getExpirationTime();
+            long exp = expirationTime != null ? expirationTime.toInstant().getEpochSecond() : 0L;
+            boolean claimMustChangePin = Boolean.TRUE.equals(claims.getClaim("mustChangePin"));
 
-            String sub = String.valueOf(claims.getOrDefault("sub", ""));
-            String name = String.valueOf(claims.getOrDefault("name", ""));
-            String wardCode = String.valueOf(claims.getOrDefault("wardCode", "AG_P_LONGXUYEN"));
-            String role = String.valueOf(claims.getOrDefault("role", ""));
-            String jti = String.valueOf(claims.getOrDefault("jti", ""));
-            long exp = ((Number) claims.getOrDefault("exp", 0L)).longValue();
-            boolean claimMustChangePin = Boolean.TRUE.equals(claims.get("mustChangePin"));
-
-            if (Instant.now().getEpochSecond() >= exp) {
+            if (jti.isBlank()) {
+                throw new BusinessException(ErrorCode.UNAUTHORIZED, "Phiên làm việc cán bộ thiếu mã định danh jti.");
+            }
+            if (expirationTime == null || Instant.now().getEpochSecond() >= exp) {
                 throw new BusinessException(ErrorCode.UNAUTHORIZED, "Phiên làm việc cán bộ đã hết hạn. Vui lòng đăng nhập lại.");
             }
-            boolean isRevoked = false;
+
+            boolean isRevoked;
             if (stringRedisTemplate != null) {
                 try {
                     isRevoked = Boolean.TRUE.equals(stringRedisTemplate.hasKey("smartward:auth:revoked:" + jti));
                 } catch (Exception e) {
-                    log.warn("Redis unavailable during token verification, falling back to local set: {}", e.getMessage());
+                    if (revocationFailClosed) {
+                        log.error("FAIL-CLOSED: Redis unavailable during JWT blacklist check for jti={}: {}", jti, e.getMessage());
+                        throw new BusinessException(ErrorCode.STORAGE_UNAVAILABLE,
+                                "Không thể xác minh danh sách thu hồi phiên trên Redis. Hệ thống từ chối truy cập theo chính sách fail-closed.");
+                    }
+                    log.warn("Redis unavailable during token verification (fail-open mode), falling back to local set: {}", e.getMessage());
                     isRevoked = revokedTokenIds.contains(jti);
                 }
             } else {
@@ -491,61 +531,65 @@ public class OfficerAuthService {
     }
 
     public void revokeToken(String rawBearerOrToken) {
+        OfficerPrincipal principal;
         try {
-            OfficerPrincipal principal = verifyToken(rawBearerOrToken);
-            String jti = principal.tokenId();
-            long ttlSec = Math.max(1, principal.expiresAtEpochSec() - Instant.now().getEpochSecond());
-            if (stringRedisTemplate != null) {
-                try {
-                    stringRedisTemplate.opsForValue().set("smartward:auth:revoked:" + jti, "true", Duration.ofSeconds(ttlSec));
-                } catch (Exception e) {
-                    log.warn("Redis unavailable during token revocation, falling back to local set: {}", e.getMessage());
-                }
+            principal = verifyToken(rawBearerOrToken);
+        } catch (BusinessException e) {
+            if (e.getErrorCode() == ErrorCode.STORAGE_UNAVAILABLE) {
+                throw e;
             }
-            if (revokedTokenIds.size() >= MAX_REVOKED_CACHE_SIZE) {
-                revokedTokenIds.clear();
-            }
-            revokedTokenIds.add(jti);
-        } catch (Exception ignored) {
             // Ignore invalid/expired token on logout
+            return;
+        } catch (Exception ignored) {
+            return;
+        }
+
+        String jti = principal.tokenId();
+        long ttlSec = Math.max(1, principal.expiresAtEpochSec() - Instant.now().getEpochSecond());
+        if (revokedTokenIds.size() >= MAX_REVOKED_CACHE_SIZE) {
+            revokedTokenIds.clear();
+        }
+        revokedTokenIds.add(jti);
+
+        if (stringRedisTemplate != null) {
+            try {
+                stringRedisTemplate.opsForValue().set("smartward:auth:revoked:" + jti, "true", Duration.ofSeconds(ttlSec));
+            } catch (Exception e) {
+                if (revocationFailClosed) {
+                    log.error("FAIL-CLOSED: Redis unavailable during JWT revocation for jti={}: {}", jti, e.getMessage());
+                    throw new BusinessException(ErrorCode.STORAGE_UNAVAILABLE,
+                            "Không thể ghi danh sách thu hồi phiên lên Redis. Vui lòng thử lại khi Redis ổn định.");
+                }
+                log.warn("Redis unavailable during token revocation (fail-open mode), recorded in local set only: {}", e.getMessage());
+            }
         }
     }
 
     private String signToken(String badgeId, String fullName, String wardCode, String role, String jti, long iat, long exp, boolean mustChangePin) {
+        byte[] secretBytes = resolveSigningSecret();
         try {
-            Map<String, Object> header = Map.of("alg", "HS256", "typ", "JWT");
-            Map<String, Object> payload = new LinkedHashMap<>();
-            payload.put("sub", badgeId);
-            payload.put("name", fullName);
-            payload.put("wardCode", wardCode);
-            payload.put("role", role);
-            payload.put("jti", jti);
-            payload.put("iat", iat);
-            payload.put("exp", exp);
-            payload.put("mustChangePin", mustChangePin);
+            JWSHeader header = new JWSHeader.Builder(JWSAlgorithm.HS256)
+                    .type(JOSEObjectType.JWT)
+                    .build();
+            JWTClaimsSet claims = new JWTClaimsSet.Builder()
+                    .subject(badgeId)
+                    .jwtID(jti)
+                    .issueTime(Date.from(Instant.ofEpochSecond(iat)))
+                    .expirationTime(Date.from(Instant.ofEpochSecond(exp)))
+                    .claim("name", fullName)
+                    .claim("wardCode", wardCode)
+                    .claim("role", role)
+                    .claim("mustChangePin", mustChangePin)
+                    .build();
 
-            Base64.Encoder encoder = Base64.getUrlEncoder().withoutPadding();
-            String headerB64 = encoder.encodeToString(objectMapper.writeValueAsBytes(header));
-            String payloadB64 = encoder.encodeToString(objectMapper.writeValueAsBytes(payload));
-            String signingInput = headerB64 + "." + payloadB64;
-            String signatureB64 = hmacSha256Base64Url(signingInput);
-            return signingInput + "." + signatureB64;
+            SignedJWT signedJwt = new SignedJWT(header, claims);
+            JWSSigner signer = new MACSigner(secretBytes);
+            signedJwt.sign(signer);
+            return signedJwt.serialize();
         } catch (BusinessException e) {
             throw e;
         } catch (Exception e) {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "Không thể khởi tạo token phiên cán bộ.");
-        }
-    }
-
-    private String hmacSha256Base64Url(String signingInput) {
-        byte[] secretBytes = resolveSigningSecret();
-        try {
-            Mac mac = Mac.getInstance(HMAC_ALGO);
-            mac.init(new SecretKeySpec(secretBytes, HMAC_ALGO));
-            byte[] rawHmac = mac.doFinal(signingInput.getBytes(StandardCharsets.UTF_8));
-            return Base64.getUrlEncoder().withoutPadding().encodeToString(rawHmac);
-        } catch (Exception e) {
-            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "Lỗi ký số HMAC-SHA256.");
         }
     }
 

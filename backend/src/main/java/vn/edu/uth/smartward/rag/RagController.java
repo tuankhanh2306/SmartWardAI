@@ -5,15 +5,17 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import vn.edu.uth.smartward.common.ApiResponse;
+import vn.edu.uth.smartward.common.ClientIpResolver;
 import vn.edu.uth.smartward.rag.dto.HitlGrayZoneItemDto;
 import vn.edu.uth.smartward.rag.dto.HitlResolveRequest;
 import vn.edu.uth.smartward.rag.dto.RagAskRequest;
 import vn.edu.uth.smartward.rag.dto.RagAskResponse;
+import vn.edu.uth.smartward.security.OfficerAuthService;
 
 import java.util.List;
 
@@ -23,11 +25,25 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/rag")
-@RequiredArgsConstructor
 @Tag(name = "Legal RAG", description = "Trợ lý Pháp lý và Tra cứu Thủ tục Hành chính Cấp Xã/Phường")
 public class RagController {
 
     private final RagQueryService ragQueryService;
+    private final ClientIpResolver clientIpResolver;
+    private final OfficerAuthService officerAuthService;
+
+    @Autowired
+    public RagController(RagQueryService ragQueryService,
+                         @Autowired(required = false) ClientIpResolver clientIpResolver,
+                         @Autowired(required = false) OfficerAuthService officerAuthService) {
+        this.ragQueryService = ragQueryService;
+        this.clientIpResolver = clientIpResolver != null ? clientIpResolver : new ClientIpResolver();
+        this.officerAuthService = officerAuthService;
+    }
+
+    public RagController(RagQueryService ragQueryService) {
+        this(ragQueryService, new ClientIpResolver(), null);
+    }
 
     @PostMapping("/ask")
     @Operation(
@@ -38,16 +54,26 @@ public class RagController {
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Tra cứu và phản hồi thành công (hoặc từ chối an toàn)"),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "422", description = "Dữ liệu yêu cầu không hợp lệ"),
-            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "429", description = "Vượt quá giới hạn 5 yêu cầu/phút/IP")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "429", description = "Vượt quá giới hạn yêu cầu/phút theo phiên hoặc tài khoản cán bộ")
     })
     public ResponseEntity<ApiResponse<RagAskResponse>> askQuestion(
             @Valid @RequestBody RagAskRequest request,
+            @RequestHeader(value = "X-Session-Id", required = false) String headerSessionId,
             HttpServletRequest httpRequest) {
 
         String clientIp = extractClientIp(httpRequest);
-        log.info("Received RAG ask request from IP: '{}', query: '{}'", clientIp, sanitizeForLog(request.getQuestion()));
+        String officerBadgeId = resolveOfficerBadgeId(httpRequest);
+        String effectiveSessionId = (request.getSessionId() != null && !request.getSessionId().isBlank())
+                ? request.getSessionId().trim()
+                : (headerSessionId != null && !headerSessionId.isBlank() ? headerSessionId.trim() : null);
 
-        RagAskResponse response = ragQueryService.askQuestion(request, clientIp);
+        log.info("Received RAG ask request from IP: '{}', officer: '{}', hasSession: {}, query: '{}'",
+                clientIp, officerBadgeId != null ? officerBadgeId : "-", effectiveSessionId != null,
+                sanitizeForLog(request.getQuestion()));
+
+        RagAskResponse response = (officerBadgeId != null || effectiveSessionId != null)
+                ? ragQueryService.askQuestion(request, clientIp, officerBadgeId, effectiveSessionId)
+                : ragQueryService.askQuestion(request, clientIp);
         return ResponseEntity.ok(ApiResponse.ok(response));
     }
 
@@ -102,10 +128,23 @@ public class RagController {
     }
 
     private String extractClientIp(HttpServletRequest request) {
+        return clientIpResolver.resolve(request);
+    }
+
+    private String resolveOfficerBadgeId(HttpServletRequest request) {
         if (request == null) {
-            return "127.0.0.1";
+            return null;
         }
-        return request.getRemoteAddr();
+        Object attr = request.getAttribute("officerPrincipal");
+        if (attr instanceof OfficerAuthService.OfficerPrincipal principal && principal.badgeId() != null && !principal.badgeId().isBlank()) {
+            return principal.badgeId();
+        }
+        if (officerAuthService != null) {
+            return officerAuthService.tryVerifyToken(request.getHeader("Authorization"))
+                    .map(OfficerAuthService.OfficerPrincipal::badgeId)
+                    .orElse(null);
+        }
+        return null;
     }
 
     private String sanitizeForLog(String text) {

@@ -60,4 +60,74 @@ class RedisRateLimiterTest {
 
         assertTrue(allowed, "Rate limiter should fail open to preserve system availability if Redis is down");
     }
+
+    @Test
+    void testSharedUbndWifi_distinctCitizenSessionsHaveIndependentQuotas() {
+        java.util.Map<String, Long> counters = new java.util.concurrent.ConcurrentHashMap<>();
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.increment(anyString())).thenAnswer(inv -> {
+            String key = inv.getArgument(0);
+            return counters.merge(key, 1L, Long::sum);
+        });
+
+        String sharedWifiIp = "192.168.10.25";
+
+        // Citizen A exhausts all 5 requests/min on shared UBND Wi-Fi
+        for (int i = 0; i < 5; i++) {
+            assertTrue(rateLimiter.isAllowed(sharedWifiIp, null, "citizen-session-A"));
+        }
+        assertFalse(rateLimiter.isAllowed(sharedWifiIp, null, "citizen-session-A"),
+                "Citizen A should be rate-limited on 6th request");
+
+        // Citizen B on the exact same UBND Wi-Fi IP must STILL have full independent quota
+        for (int i = 0; i < 5; i++) {
+            assertTrue(rateLimiter.isAllowed(sharedWifiIp, null, "citizen-session-B"),
+                    "Citizen B sharing UBND Wi-Fi IP must not be blocked by Citizen A");
+        }
+        assertFalse(rateLimiter.isAllowed(sharedWifiIp, null, "citizen-session-B"));
+    }
+
+    @Test
+    void testSharedUbndWifi_distinctOfficerJwtsHaveIndependentQuotas_andTakePrecedenceOverSession() {
+        java.util.Map<String, Long> counters = new java.util.concurrent.ConcurrentHashMap<>();
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.increment(anyString())).thenAnswer(inv -> {
+            String key = inv.getArgument(0);
+            return counters.merge(key, 1L, Long::sum);
+        });
+
+        String sharedCounterIp = "10.20.30.40";
+
+        // Officer 1 exhausts quota
+        for (int i = 0; i < 5; i++) {
+            assertTrue(rateLimiter.isAllowed(sharedCounterIp, "CC-AG-8942", "shared-kiosk-session"));
+        }
+        assertFalse(rateLimiter.isAllowed(sharedCounterIp, "CC-AG-8942", "shared-kiosk-session"));
+
+        // Officer 2 at the same counter IP (and even same browser session) has independent JWT quota
+        assertTrue(rateLimiter.isAllowed(sharedCounterIp, "CC-AG-1001", "shared-kiosk-session"));
+        assertTrue(counters.containsKey("smartward:ratelimit:jwt:CC-AG-8942"));
+        assertTrue(counters.containsKey("smartward:ratelimit:jwt:CC-AG-1001"));
+    }
+
+    @Test
+    void testDossierTracking_distinctSessionsSharingIpHaveIndependentBuckets() {
+        java.util.Map<String, Long> counters = new java.util.concurrent.ConcurrentHashMap<>();
+        when(stringRedisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.increment(anyString())).thenAnswer(inv -> {
+            String key = inv.getArgument(0);
+            return counters.merge(key, 1L, Long::sum);
+        });
+
+        String sharedWifiIp = "192.168.10.25";
+        String dossierCode = "HS-20261125-AG-0001";
+
+        for (int i = 0; i < 5; i++) {
+            assertTrue(rateLimiter.allowDossierTracking(sharedWifiIp, dossierCode, null, "sess-1"));
+        }
+        assertFalse(rateLimiter.allowDossierTracking(sharedWifiIp, dossierCode, null, "sess-1"));
+
+        // Different citizen session on the same Wi-Fi IP is not blocked
+        assertTrue(rateLimiter.allowDossierTracking(sharedWifiIp, dossierCode, null, "sess-2"));
+    }
 }
