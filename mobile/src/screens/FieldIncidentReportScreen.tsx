@@ -10,6 +10,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Linking,
   Platform,
   Pressable,
@@ -19,13 +20,16 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import {
   AlertTriangle,
   Building2,
+  Camera,
   CheckCircle2,
   CloudUpload,
   ExternalLink,
+  Image as ImageIcon,
   MapPin,
   Navigation,
   Phone,
@@ -33,6 +37,7 @@ import {
   Send,
   Settings,
   Shield,
+  Trash2,
   WifiOff,
 } from 'lucide-react-native';
 import { MobileIncidentMap } from '../components/MobileIncidentMap';
@@ -45,6 +50,7 @@ import {
   INCIDENT_CATEGORY_OPTIONS,
   type IncidentSubmissionOutcome,
 } from '../core/incidentSubmitter';
+import { resizeImageForUpload } from '../core/visionQualityGate';
 import {
   getOfflineIncidentQueue,
   type OfflineIncidentQueueRow,
@@ -97,6 +103,11 @@ export const FieldIncidentReportScreen: React.FC = () => {
   const [addressText, setAddressText] = useState<string>('');
   const [description, setDescription] = useState<string>('');
   const [reporterPhone, setReporterPhone] = useState<string>('');
+
+  // Field Photos (TASK-029: up to 3 compressed photos <= 1920px)
+  const [photos, setPhotos] = useState<Array<{ uri: string; warning?: string }>>([]);
+  const [cameraPermissionDenied, setCameraPermissionDenied] = useState<boolean>(false);
+  const [photoBusy, setPhotoBusy] = useState<boolean>(false);
 
   // Submission & Offline Queue state (MOB-4.10)
   const [submitting, setSubmitting] = useState<boolean>(false);
@@ -412,6 +423,72 @@ export const FieldIncidentReportScreen: React.FC = () => {
     }
   };
 
+  const addCompressedPhotoAsset = async (
+    asset: { uri: string; width?: number; height?: number; fileSize?: number },
+    replaceIndex?: number
+  ) => {
+    const resized = await resizeImageForUpload(asset.uri, asset.width, asset.height);
+    const minEdge = Math.min(resized.width ?? asset.width ?? 1000, resized.height ?? asset.height ?? 1000);
+    const lowDetail = minEdge < 320 || (asset.fileSize !== undefined && asset.fileSize < 15 * 1024);
+    const entry = {
+      uri: resized.uri,
+      warning: lowDetail ? 'Ảnh có độ phân giải thấp hoặc hơi mờ/tối, nên chụp lại rõ nét hơn.' : undefined,
+    };
+    setPhotos((prev) => {
+      if (typeof replaceIndex === 'number' && replaceIndex >= 0 && replaceIndex < prev.length) {
+        const copy = [...prev];
+        copy[replaceIndex] = entry;
+        return copy;
+      }
+      return [...prev, entry].slice(0, 3);
+    });
+  };
+
+  const handleCapturePhoto = async (replaceIndex?: number) => {
+    if (photoBusy || (replaceIndex === undefined && photos.length >= 3)) return;
+    setPhotoBusy(true);
+    setCameraPermissionDenied(false);
+    try {
+      const perm = await ImagePicker.requestCameraPermissionsAsync();
+      if (perm.status !== 'granted') {
+        setCameraPermissionDenied(true);
+        return;
+      }
+      const res = await ImagePicker.launchCameraAsync({
+        mediaTypes: ['images'],
+        quality: 0.85,
+        exif: false,
+      });
+      if (!res.canceled && res.assets?.[0]) {
+        await addCompressedPhotoAsset(res.assets[0], replaceIndex);
+      }
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+
+  const handlePickPhotoFromLibrary = async () => {
+    if (photoBusy || photos.length >= 3) return;
+    setPhotoBusy(true);
+    try {
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (perm.status !== 'granted') return;
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsMultipleSelection: true,
+        selectionLimit: Math.max(1, 3 - photos.length),
+        quality: 0.85,
+      });
+      if (!res.canceled && res.assets?.length) {
+        for (const asset of res.assets.slice(0, 3 - photos.length)) {
+          await addCompressedPhotoAsset(asset);
+        }
+      }
+    } finally {
+      setPhotoBusy(false);
+    }
+  };
+
   // MOB-4.10: Submit 2-Phase Triage Report or Queue Offline
   const handleSubmitIncident = async () => {
     if (submitting) return;
@@ -440,11 +517,13 @@ export const FieldIncidentReportScreen: React.FC = () => {
       fallbackWardCode: currentWard.code,
       locationSource,
       locationAccuracyM: gpsAccuracy ?? undefined,
+      localPhotoUris: photos.map((p) => p.uri),
     });
 
     setOutcome(res);
     if (res.success) {
       setDescription('');
+      setPhotos([]);
       await loadOfflineQueue();
     }
     setSubmitting(false);
@@ -656,6 +735,143 @@ export const FieldIncidentReportScreen: React.FC = () => {
             placeholderTextColor={COLORS.textMuted}
             style={[styles.input, typography.bodyMd]}
           />
+        </View>
+
+        {/* TASK-029: Field Incident Photos (max 3, >=48dp touch targets, auto-resize <=1920px) */}
+        <View style={styles.field}>
+          <Text style={[styles.label, typography.captionSm]}>
+            Hình ảnh hiện trường ({photos.length}/3 ảnh — Tự nén gọn cho 4G)
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 10 }}>
+            <Pressable
+              accessibilityRole="button"
+              disabled={photoBusy || photos.length >= 3}
+              onPress={() => {
+                void handleCapturePhoto();
+              }}
+              style={({ pressed }) => [
+                {
+                  flex: 1,
+                  minHeight: Math.max(MIN_TOUCH_TARGET, 48),
+                  borderRadius: RADIUS.md,
+                  backgroundColor: photos.length >= 3 ? COLORS.textMuted : COLORS.citizenCrimson,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  paddingHorizontal: 10,
+                },
+                pressed && styles.pressed,
+              ]}
+            >
+              <Camera size={16} color="#FFFFFF" />
+              <Text style={{ color: '#FFFFFF', fontWeight: '700', fontSize: 13 }}>
+                Chụp ảnh ngay
+              </Text>
+            </Pressable>
+
+            <Pressable
+              accessibilityRole="button"
+              disabled={photoBusy || photos.length >= 3}
+              onPress={() => {
+                void handlePickPhotoFromLibrary();
+              }}
+              style={({ pressed }) => [
+                {
+                  flex: 1,
+                  minHeight: Math.max(MIN_TOUCH_TARGET, 48),
+                  borderRadius: RADIUS.md,
+                  backgroundColor: '#FFFFFF',
+                  borderWidth: 1.5,
+                  borderColor: COLORS.citizenCrimson,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                  paddingHorizontal: 10,
+                  opacity: photos.length >= 3 ? 0.5 : 1,
+                },
+                pressed && styles.pressed,
+              ]}
+            >
+              <ImageIcon size={16} color={COLORS.citizenCrimson} />
+              <Text style={{ color: COLORS.citizenCrimson, fontWeight: '700', fontSize: 13 }}>
+                Chọn từ thư viện
+              </Text>
+            </Pressable>
+          </View>
+
+          {cameraPermissionDenied ? (
+            <View style={styles.gpsBannerWrap}>
+              <Text style={styles.gpsBannerText}>
+                Chưa cấp quyền Camera. Vui lòng mở Cài đặt để cấp quyền chụp ảnh hiện trường.
+              </Text>
+              <Pressable
+                onPress={() => {
+                  void Linking.openSettings();
+                }}
+                style={{
+                  marginTop: 6,
+                  alignSelf: 'flex-start',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 5,
+                  backgroundColor: '#92400E',
+                  paddingHorizontal: 12,
+                  paddingVertical: 8,
+                  borderRadius: 8,
+                }}
+              >
+                <Settings size={13} color="#FFFFFF" />
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>
+                  Mở Cài đặt Camera
+                </Text>
+              </Pressable>
+            </View>
+          ) : null}
+
+          {photos.length > 0 ? (
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 8 }}>
+              {photos.map((photo, idx) => (
+                <View
+                  key={`${photo.uri}-${idx}`}
+                  style={{
+                    width: 104,
+                    borderRadius: RADIUS.md,
+                    borderWidth: 1,
+                    borderColor: photo.warning ? '#F59E0B' : '#CBD5E1',
+                    backgroundColor: '#F8FAFC',
+                    overflow: 'hidden',
+                  }}
+                >
+                  <Image source={{ uri: photo.uri }} style={{ width: '100%', height: 78 }} resizeMode="cover" />
+                  {photo.warning ? (
+                    <Text style={{ fontSize: 10, color: '#B45309', padding: 4 }} numberOfLines={2}>
+                      {photo.warning}
+                    </Text>
+                  ) : null}
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', padding: 4, gap: 4 }}>
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => {
+                        void handleCapturePhoto(idx);
+                      }}
+                      style={{ flex: 1, paddingVertical: 6, alignItems: 'center', backgroundColor: '#E2E8F0', borderRadius: 6 }}
+                    >
+                      <RotateCcw size={12} color="#0F172A" />
+                    </Pressable>
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => setPhotos((prev) => prev.filter((_, i) => i !== idx))}
+                      style={{ flex: 1, paddingVertical: 6, alignItems: 'center', backgroundColor: '#FEE2E2', borderRadius: 6 }}
+                    >
+                      <Trash2 size={12} color="#DC2626" />
+                    </Pressable>
+                  </View>
+                </View>
+              ))}
+            </View>
+          ) : null}
         </View>
       </View>
 

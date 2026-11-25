@@ -84,7 +84,7 @@ public class OfficerSecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/rag/ask", "/api/v1/rag/feedback").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/voice/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/procedures/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/issues/report").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/issues/report", "/api/v1/issues/photos").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/issues/clusters/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/forms/precheck").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/dossiers").permitAll()

@@ -22,6 +22,7 @@ public class OfficerAuthInterceptor implements HandlerInterceptor {
 
         boolean requiresOfficerRole =
                 uri.startsWith("/api/v1/admin/")
+                || uri.startsWith("/api/v1/issues/officer/")
                 || (uri.startsWith("/api/v1/issues/clusters/") && ("PUT".equalsIgnoreCase(method) || "PATCH".equalsIgnoreCase(method) || "DELETE".equalsIgnoreCase(method)))
                 || uri.startsWith("/api/v1/issues/spatial-index/")
                 || uri.startsWith("/api/v1/rag/hitl-queue")

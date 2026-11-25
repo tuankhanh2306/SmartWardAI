@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  AlertCircle, AlertTriangle, BookOpen, BrainCircuit, Check,
-  CheckCircle2, ExternalLink, FileCheck2, Mail, Navigation, PhoneCall, RefreshCw, ShieldCheck, Sparkles, UserCheck, X
+  AlertCircle, AlertTriangle, BookOpen, BrainCircuit, Camera, Check,
+  CheckCircle2, ExternalLink, FileCheck2, Mail, Navigation, PhoneCall, RefreshCw, ShieldCheck, Sparkles, UserCheck, X, ZoomIn
 } from 'lucide-react';
 import type { WardItem } from '../../data/anGiangWards';
-import type { HitlGrayZoneItem } from '../../api/client';
+import { fetchOfficerIncidentPhotoBlobUrl, type HitlGrayZoneItem } from '../../api/client';
 
 export interface OfficerDashboardDrawersProps {
   ward: WardItem;
@@ -43,6 +43,47 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
     vaultError, officerCustomNote, setOfficerCustomNote,
     handleApproveDossier, handleRequestSupplement,
   } = props;
+
+  // TASK-031: Load authenticated SEC-09 field incident photos & Lightbox modal
+  const [incidentPhotoBlobs, setIncidentPhotoBlobs] = useState<string[]>([]);
+  const [incidentPhotosLoading, setIncidentPhotosLoading] = useState(false);
+  const [lightboxPhotoUrl, setLightboxPhotoUrl] = useState<string | null>(null);
+
+  const selectedPhotoUrlsKey = Array.isArray(selectedIncident?.photoUrls)
+    ? (selectedIncident.photoUrls as string[]).join('|')
+    : '';
+
+  useEffect(() => {
+    let active = true;
+    const createdUrls: string[] = [];
+    setLightboxPhotoUrl(null);
+    if (!selectedPhotoUrlsKey) {
+      setIncidentPhotoBlobs([]);
+      setIncidentPhotosLoading(false);
+      return;
+    }
+    const urls = selectedPhotoUrlsKey.split('|').filter(Boolean);
+    setIncidentPhotosLoading(true);
+    Promise.all(
+      urls.map(async (u) => {
+        try {
+          const blobUrl = await fetchOfficerIncidentPhotoBlobUrl(u);
+          createdUrls.push(blobUrl);
+          return blobUrl;
+        } catch {
+          return null;
+        }
+      })
+    ).then((loaded) => {
+      if (!active) return;
+      setIncidentPhotoBlobs(loaded.filter((x): x is string => Boolean(x)));
+      setIncidentPhotosLoading(false);
+    });
+    return () => {
+      active = false;
+      createdUrls.forEach((u) => URL.revokeObjectURL(u));
+    };
+  }, [selectedPhotoUrlsKey]);
 
   return (
     <>
@@ -124,6 +165,47 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                   {selectedIncident.description || 'Không có mô tả chi tiết bổ sung.'}
                 </p>
               </div>
+
+              {/* TASK-031: Field Incident Photos Grid + Click-to-Zoom Lightbox */}
+              {((selectedIncident.photoUrls && selectedIncident.photoUrls.length > 0) || incidentPhotosLoading) && (
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-bold text-[#0F2942] flex items-center gap-1.5">
+                    <Camera className="w-4 h-4 text-[#00687A]" />
+                    <span>Ảnh hiện trường do người dân chụp ({selectedIncident.photoUrls?.length || 0} ảnh):</span>
+                  </span>
+                  {incidentPhotosLoading ? (
+                    <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#E2E8F0] text-xs text-[#64748B] flex items-center gap-2">
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin text-[#00687A]" />
+                      <span>Đang tải ảnh hiện trường bảo mật (SEC-09)...</span>
+                    </div>
+                  ) : incidentPhotoBlobs.length > 0 ? (
+                    <div className="grid grid-cols-3 gap-2">
+                      {incidentPhotoBlobs.map((blobUrl, idx) => (
+                        <button
+                          key={blobUrl}
+                          type="button"
+                          onClick={() => setLightboxPhotoUrl(blobUrl)}
+                          className="group relative aspect-square rounded-xl overflow-hidden border border-[#CBD5E1] bg-slate-100 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#0F2942]"
+                          aria-label={`Phóng to ảnh hiện trường ${idx + 1}`}
+                        >
+                          <img
+                            src={blobUrl}
+                            alt={`Ảnh hiện trường ${idx + 1}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                          />
+                          <span className="absolute bottom-1 right-1 p-1 rounded-md bg-black/60 text-white opacity-90">
+                            <ZoomIn className="w-3.5 h-3.5" />
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800">
+                      Không tải được ảnh hiện trường (kiểm tra quyền đơn vị xã/phường hoặc kết nối MinIO).
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Location and Reporter Details */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -254,6 +336,31 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
               </div>
             </div>
           </div>
+
+          {lightboxPhotoUrl && (
+            <div
+              role="dialog"
+              aria-modal="true"
+              className="fixed inset-0 z-[60] bg-black/85 flex items-center justify-center p-4"
+              onClick={() => setLightboxPhotoUrl(null)}
+            >
+              <div className="relative max-w-4xl max-h-[90vh] flex flex-col items-center gap-3" onClick={(e) => e.stopPropagation()}>
+                <button
+                  type="button"
+                  onClick={() => setLightboxPhotoUrl(null)}
+                  className="self-end px-3 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white text-xs font-bold flex items-center gap-1 cursor-pointer"
+                >
+                  <X className="w-4 h-4" />
+                  <span>Đóng ảnh</span>
+                </button>
+                <img
+                  src={lightboxPhotoUrl}
+                  alt="Ảnh hiện trường sự cố phóng to"
+                  className="max-w-full max-h-[82vh] rounded-xl object-contain shadow-2xl border border-white/20"
+                />
+              </div>
+            </div>
+          )}
         </div>
       )}
 

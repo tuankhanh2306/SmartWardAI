@@ -6,13 +6,18 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import vn.edu.uth.smartward.common.ApiResponse;
 import vn.edu.uth.smartward.common.BusinessException;
+import vn.edu.uth.smartward.common.ClientIpResolver;
 import vn.edu.uth.smartward.common.ErrorCode;
+import vn.edu.uth.smartward.common.RedisRateLimiter;
 import vn.edu.uth.smartward.security.OfficerAuthService.OfficerPrincipal;
 import vn.edu.uth.smartward.triage.dto.CivicReportRequest;
 import vn.edu.uth.smartward.triage.dto.CivicReportResponse;
@@ -27,11 +32,28 @@ import java.util.Locale;
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/issues")
-@RequiredArgsConstructor
 @Tag(name = "Civic Triage", description = "Phân luồng và Gom cụm Phản ánh Hiện trường Đô thị 2 Pha (Redis GEO + pgvector)")
 public class TriageController {
 
     private final TwoStageTriageService triageService;
+    private final IncidentPhotoService incidentPhotoService;
+    private final RedisRateLimiter rateLimiter;
+    private final ClientIpResolver clientIpResolver;
+
+    @Autowired
+    public TriageController(TwoStageTriageService triageService,
+                            @Autowired(required = false) IncidentPhotoService incidentPhotoService,
+                            @Autowired(required = false) RedisRateLimiter rateLimiter,
+                            @Autowired(required = false) ClientIpResolver clientIpResolver) {
+        this.triageService = triageService;
+        this.incidentPhotoService = incidentPhotoService;
+        this.rateLimiter = rateLimiter;
+        this.clientIpResolver = clientIpResolver != null ? clientIpResolver : new ClientIpResolver();
+    }
+
+    public TriageController(TwoStageTriageService triageService) {
+        this(triageService, null, null, new ClientIpResolver());
+    }
 
     @PostMapping("/report")
     @Operation(
@@ -59,6 +81,44 @@ public class TriageController {
                 ? triageService.processReport(request, idempotencyKey.trim())
                 : triageService.processReport(request);
         return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
+    @PostMapping(value = "/photos", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Tải ảnh hiện trường sự cố (JPEG/PNG/WebP <= 5MB, <= 4096px, tự động bóc sạch EXIF GPS/thiết bị)")
+    public ResponseEntity<ApiResponse<IncidentPhotoService.UploadedPhotoResult>> uploadIncidentPhoto(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam(value = "wardCode", required = false) String wardCode,
+            @RequestHeader(value = "X-Session-Id", required = false) String sessionId,
+            HttpServletRequest httpRequest) {
+        if (incidentPhotoService == null) {
+            throw new BusinessException(ErrorCode.STORAGE_UNAVAILABLE, "Dịch vụ lưu trữ ảnh hiện trường chưa sẵn sàng.");
+        }
+        if (rateLimiter != null) {
+            String clientIp = clientIpResolver.resolve(httpRequest);
+            if (!rateLimiter.allowVaultUpload(clientIp, sessionId)) {
+                throw new BusinessException(ErrorCode.RATE_LIMIT_EXCEEDED,
+                        "Bạn đã vượt quá giới hạn tải ảnh hiện trường. Vui lòng thử lại sau ít phút.");
+            }
+        }
+        IncidentPhotoService.UploadedPhotoResult result = incidentPhotoService.uploadPhoto(file, wardCode);
+        return ResponseEntity.ok(ApiResponse.ok("Tải ảnh hiện trường thành công (đã loại bỏ siêu dữ liệu EXIF).", result));
+    }
+
+    @GetMapping("/officer/photos/{photoKey}")
+    @Operation(summary = "Xem ảnh hiện trường sự cố dành cho Cán bộ UBND đúng xã (SEC-09, hỗ trợ xem nhiều lần)")
+    public ResponseEntity<byte[]> viewOfficerIncidentPhoto(
+            @PathVariable("photoKey") String photoKey,
+            HttpServletRequest httpRequest) {
+        if (incidentPhotoService == null) {
+            throw new BusinessException(ErrorCode.STORAGE_UNAVAILABLE, "Dịch vụ lưu trữ ảnh hiện trường chưa sẵn sàng.");
+        }
+        OfficerPrincipal principal = (OfficerPrincipal) httpRequest.getAttribute("officerPrincipal");
+        IncidentPhotoService.OfficerPhotoResource resource = incidentPhotoService.loadPhotoForOfficer(photoKey, principal);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(resource.contentType()))
+                .header(HttpHeaders.CACHE_CONTROL, "private, max-age=300")
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.photoKey() + "\"")
+                .body(resource.bytes());
     }
 
     @GetMapping("/clusters")

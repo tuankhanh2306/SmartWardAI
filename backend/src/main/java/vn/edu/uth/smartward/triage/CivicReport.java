@@ -3,9 +3,13 @@ package vn.edu.uth.smartward.triage;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "civic_reports")
@@ -41,6 +45,11 @@ public class CivicReport {
 
     @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "photo_keys", columnDefinition = "jsonb", nullable = false)
+    @Builder.Default
+    private List<String> photoKeys = new ArrayList<>();
 
     @Column(name = "address_text", columnDefinition = "TEXT")
     private String addressText;
