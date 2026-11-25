@@ -75,6 +75,13 @@ public class LegalChunk {
     @Builder.Default
     private LocalDate effectiveDate = LocalDate.now();
 
+    @Column(name = "visibility_scope", nullable = false, length = 20)
+    @Builder.Default
+    private String visibilityScope = "PUBLIC";
+
+    @Column(name = "ward_code", length = 50)
+    private String wardCode;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;

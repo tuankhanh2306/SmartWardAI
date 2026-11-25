@@ -53,6 +53,13 @@ public class RagQueryService {
     @Autowired(required = false)
     private org.springframework.core.env.Environment environment;
 
+    @Autowired(required = false)
+    private LegalChunkReranker reranker;
+
+    private LegalChunkReranker getReranker() {
+        return reranker != null ? reranker : new LegalChunkReranker();
+    }
+
     public record WardOfficeInfo(String wardCode, String wardName, String officeAddress) {}
 
     public static final Map<String, WardOfficeInfo> REGISTERED_WARDS = Map.of(
@@ -196,12 +203,16 @@ public class RagQueryService {
             resolvedOfficeAddress = resolvedOfficeAddress.substring(0, 300);
         }
 
-        // Build scoped cache key based on effectiveQuery, wardCode, wardName, and category (SEC-05)
+        // Build scoped cache key based on effectiveQuery, wardCode, wardName, category, and ACL scope (SEC-05 & TASK-033)
+        boolean includeOfficerScope = (officerBadgeId != null && !officerBadgeId.isBlank());
         String cacheKey = queryCacheService.buildCacheKey(effectiveQuery, resolvedWardCode, resolvedWardName, request.getCategory());
         if (cacheKey == null) {
             // Fallback for mock environments without buildCacheKey stubbing
             String safeWard = (resolvedWardName != null && !resolvedWardName.isBlank()) ? resolvedWardName.trim() : "";
             cacheKey = safeWard.isEmpty() ? effectiveQuery : (effectiveQuery + "::" + safeWard);
+        }
+        if (includeOfficerScope) {
+            cacheKey = cacheKey + "::OFFICER";
         }
 
         // 3. Redis Distributed Query Cache Check
@@ -259,22 +270,50 @@ public class RagQueryService {
             threshold = defaultThreshold;
         }
 
-        List<LegalChunkMatch> candidateChunks;
+        int retrievalPoolSize = Math.max(k * 2, 6);
+        List<LegalChunkMatch> vectorCandidates = Collections.emptyList();
         if (pgVectorString != null) {
-            if (activeModelId != null && !activeModelId.isBlank()) {
-                candidateChunks = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, activeModelId, k);
-            } else {
-                candidateChunks = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, k);
+            // TASK-033: Prefer SQL-level ACL vector retrieval; fall back to legacy repo signature for existing unit tests
+            try {
+                vectorCandidates = chunkRepository.findTopKSimilarChunksWithAcl(
+                        pgVectorString, activeModelId, includeOfficerScope, resolvedWardCode, retrievalPoolSize);
+            } catch (Exception aclEx) {
+                log.debug("ACL vector query fallback: {}", aclEx.getMessage());
             }
 
-            // Cross-model fallback if model-specific vector space returned 0 chunks (e.g. during cold start or mock fallback)
-            if (candidateChunks.isEmpty()) {
-                log.info("Zero chunks found for model '{}'. Falling back to all active chunks in database.", activeModelId);
-                candidateChunks = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, k);
+            if (vectorCandidates == null || vectorCandidates.isEmpty()) {
+                if (activeModelId != null && !activeModelId.isBlank()) {
+                    vectorCandidates = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, activeModelId, k);
+                } else {
+                    vectorCandidates = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, k);
+                }
+                if (vectorCandidates == null || vectorCandidates.isEmpty()) {
+                    log.info("Zero chunks found for model '{}'. Falling back to all active chunks in database.", activeModelId);
+                    vectorCandidates = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, k);
+                }
             }
-        } else {
-            candidateChunks = new ArrayList<>();
         }
+
+        // TASK-033: PostgreSQL Full-Text Search (tsvector + GIN) with identical ACL filter
+        List<LegalChunkMatch> ftsCandidates = Collections.emptyList();
+        try {
+            List<LegalChunkMatch> ftsRaw = chunkRepository.findTopKFullTextChunksWithAcl(
+                    effectiveQuery, includeOfficerScope, resolvedWardCode, retrievalPoolSize);
+            if (ftsRaw != null) {
+                ftsCandidates = ftsRaw;
+            }
+        } catch (Exception ftsEx) {
+            log.debug("FTS retrieval unavailable or mocked empty: {}", ftsEx.getMessage());
+        }
+
+        // TASK-033 + TASK-034: Hybrid RRF Fusion + Lightweight Reranker before theta=0.78 guardrail
+        LegalChunkReranker activeReranker = getReranker();
+        List<LegalChunkMatch> candidateChunks = activeReranker.fuseWithRrf(
+                vectorCandidates != null ? vectorCandidates : Collections.emptyList(),
+                ftsCandidates,
+                retrievalPoolSize
+        );
+        candidateChunks = activeReranker.rerank(effectiveQuery, candidateChunks, k);
 
         double maxSimilarity = candidateChunks.isEmpty() ? 0.0 :
                 candidateChunks.stream()

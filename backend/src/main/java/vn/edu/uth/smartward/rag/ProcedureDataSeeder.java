@@ -170,26 +170,45 @@ public class ProcedureDataSeeder implements CommandLineRunner {
         }
     }
 
-    private void backfillMissingEmbeddings() {
+    /**
+     * TASK-034: Detects legal chunks missing vectors or embedded under a different embedding_model_id
+     * and synchronizes them safely per chunk so a new deployment never returns empty RAG results.
+     */
+    public int synchronizeEmbeddingModelOnStartup() {
         try {
-            String activeModelId = aiModelClient.getEmbeddingModelId() != null
+            String activeModelId = (aiModelClient != null && aiModelClient.getEmbeddingModelId() != null && !aiModelClient.getEmbeddingModelId().isBlank())
                     ? aiModelClient.getEmbeddingModelId()
                     : "bkai_pho_bert_ft_v1";
             List<LegalChunk> mismatchedOrMissing = chunkRepository.findByEmbeddingIsNullOrEmbeddingModelNot(activeModelId);
-            if (!mismatchedOrMissing.isEmpty()) {
-                log.info("Synchronizing vector embeddings for {} chunks to active model '{}'...",
-                        mismatchedOrMissing.size(), activeModelId);
-                for (LegalChunk c : mismatchedOrMissing) {
+            if (mismatchedOrMissing == null || mismatchedOrMissing.isEmpty()) {
+                return 0;
+            }
+            log.info("TASK-034: Synchronizing vector embeddings for {} chunks to active model '{}'...",
+                    mismatchedOrMissing.size(), activeModelId);
+            int synced = 0;
+            for (LegalChunk c : mismatchedOrMissing) {
+                try {
                     float[] emb = aiModelClient.generateEmbedding(c.getTitle() + " " + c.getContent());
+                    if (emb == null || emb.length == 0) continue;
                     c.setEmbedding(aiModelClient.toPgVectorString(emb));
                     c.setEmbeddingModel(activeModelId);
+                    chunkRepository.save(c);
+                    synced++;
+                } catch (Exception perChunkEx) {
+                    log.warn("Embedding sync failed for chunk {}: {} (continuing remaining chunks)",
+                            c.getChunkCode(), perChunkEx.getMessage());
                 }
-                chunkRepository.saveAll(mismatchedOrMissing);
-                log.info("Successfully synchronized embeddings for {} chunks under model '{}'.",
-                        mismatchedOrMissing.size(), activeModelId);
             }
+            log.info("TASK-034: Synchronized {}/{} chunk embeddings under active model '{}'.",
+                    synced, mismatchedOrMissing.size(), activeModelId);
+            return synced;
         } catch (Exception e) {
-            log.warn("Could not synchronize embeddings: {}", e.getMessage());
+            log.warn("Could not synchronize embeddings on startup: {}", e.getMessage());
+            return 0;
         }
+    }
+
+    private void backfillMissingEmbeddings() {
+        synchronizeEmbeddingModelOnStartup();
     }
 }
