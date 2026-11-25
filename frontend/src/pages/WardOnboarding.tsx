@@ -298,7 +298,7 @@ export const WardOnboarding: React.FC = () => {
             <div className="absolute top-3 left-3 z-20 max-w-[calc(100%-24px)] px-3 py-1.5 rounded-xl bg-white/95 backdrop-blur-md border border-[#CBD5E1] shadow-sm flex flex-wrap items-center gap-2 text-xs">
               <span className="w-2 h-2 rounded-full bg-[#15803D] shrink-0" />
               <span className="font-bold text-[#0F2942]">UBND {selected.name}</span>
-              <span className="text-[#475569] font-mono">({selected.lat.toFixed(6)}, {selected.lon.toFixed(6)})</span>
+              <span className="text-[#475569]">{selected.area}</span>
             </div>
           </div>
 

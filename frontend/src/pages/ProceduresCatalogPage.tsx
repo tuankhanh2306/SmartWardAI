@@ -7,14 +7,19 @@ import {
   ArrowRight,
   ShieldCheck,
   ChevronRight,
+  ChevronDown,
+  ChevronUp,
   X,
   Bot,
   Loader2,
   FileDown,
+  FolderOpen,
 } from 'lucide-react';
 import { PROCEDURES_CATALOG, type ProcedureCatalogItem } from '../data/proceduresCatalog';
 import { getProcedures } from '../api/client';
 import { useWard } from '../context/WardContext';
+import DownwardDropdown from '../components/DownwardDropdown';
+import { normalizeVi, highlightMatchedText } from '../utils/highlightMatch';
 const A4DocumentModal = React.lazy(() => import('../components/A4DocumentModal'));
 
 export const ProceduresCatalogPage: React.FC = () => {
@@ -65,7 +70,41 @@ export const ProceduresCatalogPage: React.FC = () => {
   const [selectedProcedureForModal, setSelectedProcedureForModal] = useState<ProcedureCatalogItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // Search Recommendation Popover & Card Title Expand State
+  const [searchFocused, setSearchFocused] = useState(false);
+  const searchBoxRef = useRef<HTMLDivElement>(null);
+  const [expandedProcCodes, setExpandedProcCodes] = useState<Set<string>>(() => new Set());
+
   const resultsHeadingRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!searchFocused) return;
+    const handleMouseDown = (e: MouseEvent) => {
+      if (searchBoxRef.current && !searchBoxRef.current.contains(e.target as Node)) {
+        setSearchFocused(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setSearchFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [searchFocused]);
+
+  const toggleExpandProc = (code: string) => {
+    setExpandedProcCodes((prev) => {
+      const next = new Set(prev);
+      if (next.has(code)) next.delete(code);
+      else next.add(code);
+      return next;
+    });
+  };
 
   // Categories list
   const categories = useMemo(() => {
@@ -170,6 +209,72 @@ export const ProceduresCatalogPage: React.FC = () => {
     [procedures]
   );
 
+  // Dropdown options with live counts
+  const categoryOptions = useMemo(
+    () =>
+      categories.map((cat) => ({
+        value: cat,
+        label: cat === 'ALL' ? 'Tất cả nhóm' : cat,
+        count: cat === 'ALL' ? procedures.length : procedures.filter((p) => p.category === cat).length,
+      })),
+    [categories, procedures]
+  );
+
+  const feeOptions = useMemo(() => {
+    const freeCount = procedures.filter((p) => isFeeExempt(p)).length;
+    const paidCount = procedures.length - freeCount;
+    return [
+      { value: 'ALL', label: 'Tất cả', count: procedures.length },
+      { value: 'FREE', label: 'Miễn phí', count: freeCount },
+      { value: 'PAID', label: 'Có lệ phí', count: paidCount },
+    ];
+  }, [procedures]);
+
+  const modeOptions = useMemo(() => {
+    const onlineCount = procedures.filter((p) => hasDirectForm(p.code)).length;
+    const directCount = procedures.length - onlineCount;
+    return [
+      { value: 'ALL', label: 'Tất cả', count: procedures.length },
+      { value: 'ONLINE', label: 'Kê khai trực tuyến', count: onlineCount },
+      { value: 'DIRECT', label: 'Tải mẫu A4', count: directCount },
+    ];
+  }, [procedures]);
+
+  // Search Recommend Groups (Matching user screenshot with highlighted matched terms)
+  const searchRecommendationGroups = useMemo(() => {
+    if (!searchFocused) return [];
+    const cleanKw = normalizeVi(searchTerm).trim();
+
+    if (!cleanKw) {
+      // When focused with empty input, show common procedures grouped by category to aid forgotten names
+      const preferredCats = ['Hộ tịch', 'Cư trú', 'Bảo trợ xã hội'];
+      const groups: Array<[string, ProcedureCatalogItem[]]> = [];
+      for (const cat of preferredCats) {
+        const items = procedures.filter((p) => p.category === cat).slice(0, 2);
+        if (items.length > 0) groups.push([cat, items]);
+      }
+      return groups;
+    }
+
+    const matched = procedures
+      .filter(
+        (p) =>
+          normalizeVi(p.name).includes(cleanKw) ||
+          normalizeVi(p.code).includes(cleanKw) ||
+          normalizeVi(p.category).includes(cleanKw) ||
+          normalizeVi(p.portalCode).includes(cleanKw)
+      )
+      .slice(0, 8);
+
+    const map = new Map<string, ProcedureCatalogItem[]>();
+    for (const item of matched) {
+      const list = map.get(item.category) || [];
+      list.push(item);
+      map.set(item.category, list);
+    }
+    return Array.from(map.entries()).slice(0, 4);
+  }, [searchFocused, searchTerm, procedures]);
+
   return (
     <main className="bg-[#F5F6F8] min-h-[calc(100vh-4rem)] px-3 sm:px-6 lg:px-8 py-4 sm:py-6 flex flex-col justify-start relative">
       <div className="max-w-6xl mx-auto w-full flex flex-col gap-6 relative z-10">
@@ -185,7 +290,7 @@ export const ProceduresCatalogPage: React.FC = () => {
               <span>UBND {currentWard.name}</span>
             </span>
             <span className="text-slate-300">|</span>
-            <span>{officeStatusLabel}</span>
+            <span className="truncate">{officeStatusLabel}</span>
             <span className="hidden md:inline text-slate-300">|</span>
             <span className="hidden md:inline text-slate-600">{currentWard.workingHours}</span>
           </div>
@@ -201,7 +306,7 @@ export const ProceduresCatalogPage: React.FC = () => {
         {/* Elevated White Multi-Criteria Search Card (BCA Reference Style) */}
         <section
           aria-label="Bộ lọc tra cứu thủ tục hành chính"
-          className="w-full bg-white rounded-2xl p-5 sm:p-6 shadow-[0_6px_28px_rgba(15,23,42,0.06)] border border-slate-200/80"
+          className="relative z-30 w-full bg-white rounded-2xl p-5 sm:p-6 shadow-[0_6px_28px_rgba(15,23,42,0.06)] border border-slate-200/80"
         >
           <h1 className="sr-only">
             Danh mục và Tra cứu {procedures.length} Thủ tục hành chính UBND {currentWard.name}
@@ -215,7 +320,7 @@ export const ProceduresCatalogPage: React.FC = () => {
             className="flex flex-col gap-4"
           >
             {/* Row 1: Keyword + Scope Radios (Left) & Procedure Group Select (Right) */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
+            <div className="relative z-40 grid grid-cols-1 lg:grid-cols-12 gap-4 items-end">
               <div className="lg:col-span-8 flex flex-col gap-2">
                 <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5">
                   <label htmlFor="proc-keyword-input" className="text-xs font-bold text-slate-800">
@@ -251,14 +356,18 @@ export const ProceduresCatalogPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="relative">
+                <div ref={searchBoxRef} className="relative z-50">
                   <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                   <input
                     id="proc-keyword-input"
                     type="text"
                     value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Nhập từ khóa (ví dụ: thông tin cư trú, khai sinh, kết hôn, CT01...)"
+                    onFocus={() => setSearchFocused(true)}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setSearchFocused(true);
+                    }}
+                    placeholder="Nhập tên hoặc mã thủ tục (VD: khai sinh, CT01...)"
                     className="w-full h-10 pl-10 pr-9 bg-white text-xs sm:text-sm text-slate-900 rounded-lg border border-slate-300 focus:border-[#B90E23] focus:ring-2 focus:ring-[#B90E23]/15 outline-none transition"
                   />
                   {searchTerm && (
@@ -266,77 +375,128 @@ export const ProceduresCatalogPage: React.FC = () => {
                       type="button"
                       aria-label="Xóa từ khóa tìm kiếm"
                       onClick={() => setSearchTerm('')}
-                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 p-1 cursor-pointer"
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 p-1 cursor-pointer"
                     >
                       <X className="w-3.5 h-3.5" />
                     </button>
+                  )}
+
+                  {/* Search Recommend Autocomplete Popover (Highlighted Keywords & Category Grouping) */}
+                  {searchRecommendationGroups.length > 0 && (
+                    <div
+                      role="region"
+                      aria-label="Gợi ý thủ tục tìm kiếm"
+                      className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 bg-white rounded-2xl border border-slate-200 shadow-2xl p-3 max-h-80 overflow-y-auto space-y-2.5"
+                    >
+                      <div className="px-2 flex items-center justify-between text-[11px] font-semibold text-slate-600">
+                        <span>
+                          {searchTerm.trim()
+                            ? 'Gợi ý khớp từ khóa'
+                            : 'Thủ tục phổ biến'}
+                        </span>
+                        <span className="text-[10px] text-slate-600">Chọn nhanh</span>
+                      </div>
+
+                      {searchRecommendationGroups.map(([catName, items]) => (
+                        <div key={catName} className="space-y-1">
+                          <div className="flex items-center gap-2 px-2 py-1 text-xs font-bold text-slate-800">
+                            <span className="w-5 h-5 rounded-md bg-[#FFF3E6] text-[#C2410C] flex items-center justify-center shrink-0">
+                              <FolderOpen className="w-3.5 h-3.5" />
+                            </span>
+                            <span>{catName}</span>
+                          </div>
+                          {items.map((proc) => (
+                            <button
+                              key={proc.code}
+                              type="button"
+                              onClick={() => {
+                                setSearchScope('ALL');
+                                setSearchTerm(proc.name);
+                                setSearchFocused(false);
+                                resultsHeadingRef.current?.scrollIntoView({
+                                  behavior: 'smooth',
+                                  block: 'start',
+                                });
+                              }}
+                              className="w-full text-left px-2.5 py-2 rounded-xl hover:bg-slate-50 transition flex items-start gap-2.5 cursor-pointer gov-focus-ring"
+                            >
+                              <FileText className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+                              <div className="min-w-0 flex-1">
+                                <div className="text-xs sm:text-sm font-medium text-slate-900 truncate">
+                                  {highlightMatchedText(proc.name, searchTerm)}
+                                </div>
+                                <div className="text-[11px] text-slate-600 truncate mt-0.5">
+                                  &ldquo;Mã {highlightMatchedText(proc.code, searchTerm)} •{' '}
+                                  {isFeeExempt(proc) ? 'Miễn 100% lệ phí' : 'Thu phí HĐND'}&rdquo;
+                                </div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
                   )}
                 </div>
               </div>
 
               <div className="lg:col-span-4 flex flex-col gap-2">
-                <label htmlFor="proc-category-select" className="text-xs font-bold text-slate-800">
+                <label
+                  id="proc-category-label"
+                  htmlFor="proc-category-select"
+                  className="text-xs font-bold text-slate-800"
+                >
                   Nhóm thủ tục
                 </label>
-                <select
+                <DownwardDropdown
                   id="proc-category-select"
+                  labelId="proc-category-label"
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="w-full h-10 px-3 bg-white text-xs sm:text-sm text-slate-900 rounded-lg border border-slate-300 focus:border-[#B90E23] focus:ring-2 focus:ring-[#B90E23]/15 outline-none transition cursor-pointer"
-                >
-                  {categories.map((cat) => {
-                    const count =
-                      cat === 'ALL'
-                        ? procedures.length
-                        : procedures.filter((p) => p.category === cat).length;
-                    return (
-                      <option key={cat} value={cat}>
-                        {cat === 'ALL' ? `Tất cả nhóm thủ tục (${count})` : `${cat} (${count})`}
-                      </option>
-                    );
-                  })}
-                </select>
+                  options={categoryOptions}
+                  onChange={setSelectedCategory}
+                />
               </div>
             </div>
 
             {/* Row 2: Fee Status + Submission Mode + Authority */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="relative z-30 grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="proc-fee-select" className="text-xs font-semibold text-slate-700">
+                <label
+                  id="proc-fee-label"
+                  htmlFor="proc-fee-select"
+                  className="text-xs font-semibold text-slate-700"
+                >
                   Tình trạng lệ phí
                 </label>
-                <select
+                <DownwardDropdown
                   id="proc-fee-select"
+                  labelId="proc-fee-label"
                   value={feeFilter}
-                  onChange={(e) => setFeeFilter(e.target.value as 'ALL' | 'FREE' | 'PAID')}
-                  className="w-full h-10 px-3 bg-white text-xs sm:text-sm text-slate-900 rounded-lg border border-slate-300 focus:border-[#B90E23] outline-none transition cursor-pointer"
-                >
-                  <option value="ALL">Tất cả mức lệ phí</option>
-                  <option value="FREE">Miễn 100% lệ phí (Luật 2015)</option>
-                  <option value="PAID">Thu phí theo quy định HĐND</option>
-                </select>
+                  options={feeOptions}
+                  onChange={(val) => setFeeFilter(val as 'ALL' | 'FREE' | 'PAID')}
+                />
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label htmlFor="proc-mode-select" className="text-xs font-semibold text-slate-700">
+                <label
+                  id="proc-mode-label"
+                  htmlFor="proc-mode-select"
+                  className="text-xs font-semibold text-slate-700"
+                >
                   Hình thức thực hiện
                 </label>
-                <select
+                <DownwardDropdown
                   id="proc-mode-select"
+                  labelId="proc-mode-label"
                   value={modeFilter}
-                  onChange={(e) => setModeFilter(e.target.value as 'ALL' | 'ONLINE' | 'DIRECT')}
-                  className="w-full h-10 px-3 bg-white text-xs sm:text-sm text-slate-900 rounded-lg border border-slate-300 focus:border-[#B90E23] outline-none transition cursor-pointer"
-                >
-                  <option value="ALL">Tất cả hình thức</option>
-                  <option value="ONLINE">Kê khai & tiền kiểm trực tuyến</option>
-                  <option value="DIRECT">Mẫu biểu A4 chuẩn NĐ 30/2020</option>
-                </select>
+                  options={modeOptions}
+                  onChange={(val) => setModeFilter(val as 'ALL' | 'ONLINE' | 'DIRECT')}
+                />
               </div>
 
               <div className="flex flex-col gap-1.5">
                 <span className="text-xs font-semibold text-slate-700">Cơ quan tiếp nhận</span>
                 <div className="h-10 px-3 rounded-lg bg-slate-50 border border-slate-200 flex items-center text-xs sm:text-sm font-medium text-slate-800 truncate">
-                  UBND {currentWard.name} (Một cửa cấp xã)
+                  UBND {currentWard.name}
                 </div>
               </div>
             </div>
@@ -370,15 +530,15 @@ export const ProceduresCatalogPage: React.FC = () => {
                   KẾT QUẢ TRA CỨU ({filteredProcedures.length}/{procedures.length})
                 </h2>
                 <span className="text-xs text-slate-600 hidden sm:inline">
-                  Chuẩn Nghị định 30/2020/NĐ-CP
+                  Chuẩn NĐ 30/2020
                 </span>
               </div>
               <span className="block w-14 h-[3px] bg-[#B90E23]" />
             </div>
 
-            <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-stretch">
               {filteredProcedures.length === 0 ? (
-                <div className="bg-white rounded-xl border border-slate-200 text-center py-12 px-4 text-slate-600 flex flex-col items-center">
+                <div className="sm:col-span-2 bg-white rounded-xl border border-slate-200 text-center py-12 px-4 text-slate-600 flex flex-col items-center">
                   <FileText className="w-10 h-10 text-slate-400 mb-2" />
                   <p className="font-semibold text-slate-800 text-sm">
                     Không tìm thấy thủ tục phù hợp với điều kiện lọc
@@ -390,94 +550,105 @@ export const ProceduresCatalogPage: React.FC = () => {
               ) : (
                 filteredProcedures.map((proc) => {
                   const isTop4 = hasDirectForm(proc.code);
+                  const isExpanded = expandedProcCodes.has(proc.code);
+                  const isLongTitle = proc.name.length > 68;
+                  const freeFee = isFeeExempt(proc);
                   return (
                     <article
                       key={proc.code}
-                      className="group p-4 rounded-xl border border-slate-200/90 hover:border-[#FCA5A5] hover:shadow-sm transition-all bg-white flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+                      className="group h-full p-4 rounded-xl border border-slate-200/90 hover:border-[#FCA5A5] hover:shadow-sm transition-all bg-white flex flex-col justify-between gap-3"
                     >
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-1.5 mb-1.5">
-                          <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-[#FEF2F2] text-[#9F0C1E] border border-[#FECACA]">
-                            {proc.code}
-                          </span>
-                          <span className="text-[11px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-700">
-                            {proc.category}
-                          </span>
-                          {isTop4 && (
-                            <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200">
-                              Kê khai trực tuyến
+                      <div className="flex flex-col gap-2 min-w-0">
+                        <div className="flex flex-wrap items-center justify-between gap-1.5">
+                          <div className="flex items-center gap-1.5 min-w-0">
+                            <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-[#FEF2F2] text-[#9F0C1E] border border-[#FECACA] shrink-0">
+                              {proc.code}
                             </span>
-                          )}
+                            {isTop4 && (
+                              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200 shrink-0">
+                                Trực tuyến
+                              </span>
+                            )}
+                          </div>
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${
+                              freeFee
+                                ? 'text-[#065F46] bg-[#ECFDF5] border border-[#A7F3D0]'
+                                : 'text-slate-700 bg-slate-100 border border-slate-200'
+                            }`}
+                          >
+                            {freeFee ? 'Miễn phí' : 'Có thu phí'}
+                          </span>
                         </div>
 
-                        <h3 className="font-bold text-sm text-slate-900 group-hover:text-[#9F0C1E] transition-colors leading-snug">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenA4(proc)}
-                            className="text-left hover:underline cursor-pointer gov-focus-ring rounded"
-                          >
-                            {proc.name}
-                          </button>
-                        </h3>
-
-                        <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-600">
-                          <span className="inline-flex items-center gap-1">
-                            <Clock className="w-3.5 h-3.5 text-slate-500" />
-                            <span>
-                              {proc.category === 'Hộ tịch'
-                                ? '01 ngày làm việc'
-                                : proc.category === 'Cư trú'
-                                ? '01 - 03 ngày làm việc'
-                                : '03 - 05 ngày làm việc'}
-                            </span>
-                          </span>
-
-                          <span className="text-slate-300">•</span>
-
-                          {isFeeExempt(proc) ? (
-                            <span className="inline-flex items-center gap-1 font-semibold text-[#065F46] bg-[#ECFDF5] border border-[#A7F3D0] px-2 py-0.5 rounded text-[11px]">
-                              Miễn 100% lệ phí (Luật 2015)
-                            </span>
-                          ) : (
-                            <span className="font-medium text-slate-700 bg-slate-100 px-2 py-0.5 rounded text-[11px]">
-                              Theo quy định HĐND
-                            </span>
+                        <div className="flex flex-col gap-1">
+                          <h3 className="font-bold text-sm text-slate-900 group-hover:text-[#9F0C1E] transition-colors leading-snug">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenA4(proc)}
+                              className={`text-left hover:underline cursor-pointer gov-focus-ring rounded w-full ${
+                                isExpanded ? '' : 'line-clamp-2 min-h-[2.5rem]'
+                              }`}
+                            >
+                              {proc.name}
+                            </button>
+                          </h3>
+                          {isLongTitle && (
+                            <button
+                              type="button"
+                              onClick={() => toggleExpandProc(proc.code)}
+                              aria-expanded={isExpanded}
+                              className="self-start inline-flex items-center gap-0.5 text-[11px] font-semibold text-[#9F0C1E] hover:underline cursor-pointer gov-focus-ring rounded"
+                            >
+                              <span>{isExpanded ? 'Thu gọn' : 'Xem thêm'}</span>
+                              {isExpanded ? (
+                                <ChevronUp className="w-3.5 h-3.5" />
+                              ) : (
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              )}
+                            </button>
                           )}
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenA4(proc)}
-                          className="px-3 py-1.5 rounded-lg border border-slate-300 hover:border-[#B90E23] hover:bg-[#FEF2F2] text-slate-700 hover:text-[#9F0C1E] text-xs font-semibold inline-flex items-center gap-1.5 transition cursor-pointer gov-focus-ring"
-                          title="Xem trước và tải về bản Word (.docx) hoặc PDF chuẩn Nghị định 30/2020/NĐ-CP"
-                        >
-                          <FileDown className="w-3.5 h-3.5" />
-                          <span>Mẫu A4</span>
-                        </button>
+                      <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+                        <span className="text-[11px] font-medium text-slate-600 truncate min-w-0">
+                          {proc.category}
+                        </span>
 
-                        {isTop4 ? (
+                        <div className="flex items-center gap-1.5 shrink-0">
                           <button
                             type="button"
-                            onClick={() => navigate(getFormUrl(proc.code))}
-                            className="px-3.5 py-1.5 rounded-lg bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer shadow-2xs gov-focus-ring"
+                            onClick={() => handleOpenA4(proc)}
+                            className="px-2.5 py-1.5 rounded-lg border border-slate-300 hover:border-[#B90E23] hover:bg-[#FEF2F2] text-slate-700 hover:text-[#9F0C1E] text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer gov-focus-ring"
+                            title="Xem trước và tải về bản Word (.docx) hoặc PDF chuẩn Nghị định 30/2020/NĐ-CP"
                           >
-                            <span>Kê khai</span>
-                            <ArrowRight className="w-3.5 h-3.5" />
+                            <FileDown className="w-3.5 h-3.5" />
+                            <span>Mẫu A4</span>
                           </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              navigate(`/citizen?query=${encodeURIComponent('Thủ tục ' + proc.name + ' cần chuẩn bị giấy tờ gì?')}`)
-                            }
-                            className="px-3 py-1.5 rounded-lg bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#9F0C1E] border border-[#FECACA] text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer gov-focus-ring"
-                          >
-                            <Bot className="w-3.5 h-3.5" />
-                            <span>Hỏi AI</span>
-                          </button>
-                        )}
+
+                          {isTop4 ? (
+                            <button
+                              type="button"
+                              onClick={() => navigate(getFormUrl(proc.code))}
+                              className="px-3 py-1.5 rounded-lg bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer shadow-2xs gov-focus-ring"
+                            >
+                              <span>Kê khai</span>
+                              <ArrowRight className="w-3.5 h-3.5" />
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                navigate(`/citizen?query=${encodeURIComponent('Thủ tục ' + proc.name + ' cần chuẩn bị giấy tờ gì?')}`)
+                              }
+                              className="px-2.5 py-1.5 rounded-lg bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#9F0C1E] border border-[#FECACA] text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer gov-focus-ring"
+                            >
+                              <Bot className="w-3.5 h-3.5" />
+                              <span>Hỏi AI</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </article>
                   );
@@ -499,7 +670,7 @@ export const ProceduresCatalogPage: React.FC = () => {
 
             <div className="bg-white rounded-xl border border-slate-200/80 shadow-2xs p-4 flex flex-col gap-2.5">
               <p className="text-xs font-semibold text-slate-700">
-                4 thủ tục hỗ trợ tiền kiểm & kê khai trực tuyến:
+                4 thủ tục kê khai trực tuyến:
               </p>
               <div className="flex flex-col divide-y divide-slate-100">
                 {quickProcedures.map((qp) => (
@@ -544,7 +715,7 @@ export const ProceduresCatalogPage: React.FC = () => {
                   className="px-3 py-2 rounded-lg bg-white hover:bg-slate-50 text-[#750715] border border-[#E5D4B3] text-xs font-semibold flex items-center justify-center gap-1.5 transition cursor-pointer gov-focus-ring"
                 >
                   <Clock className="w-3.5 h-3.5" />
-                  <span>Tra cứu SLA</span>
+                  <span>Tra cứu hồ sơ</span>
                 </button>
               </div>
             </div>

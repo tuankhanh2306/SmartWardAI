@@ -39,6 +39,12 @@ import {
 } from '../utils/geoUtils';
 import { normalizeTextForTts } from '../utils/ttsTextNormalizer';
 import { reverseGeocodeIncident } from '../features/civic-incident/geocodingService';
+import {
+  citizenDossierFormSchema,
+  civicIncidentSchema,
+  dossierTrackingSchema,
+  extractZodFieldErrors,
+} from '../schemas/formValidation';
 
 import {
   FileCheck2,
@@ -59,6 +65,7 @@ import {
   ArrowRight,
   ChevronDown,
   ChevronLeft,
+  ChevronRight,
   ChevronUp,
   FileDown,
   Volume2,
@@ -93,6 +100,7 @@ export const FormAndIssueReporting: React.FC = () => {
   const [trackingLast4Cccd, setTrackingLast4Cccd] = useState<string>('');
   const [trackingLoading, setTrackingLoading] = useState<boolean>(false);
   const [trackingError, setTrackingError] = useState<string | null>(null);
+  const [trackingFieldErrors, setTrackingFieldErrors] = useState<Record<string, string>>({});
   const [trackingResult, setTrackingResult] = useState<DossierTrackingResponse | null>(null);
   const [submittedDossier, setSubmittedDossier] = useState<DossierSubmissionResponse | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -112,14 +120,17 @@ export const FormAndIssueReporting: React.FC = () => {
 
   const handleTrackDossier = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!trackingDossierCode.trim()) {
-      setTrackingError('Vui lòng nhập Mã hồ sơ (ví dụ: HS-20261111-BENNGHE-0001).');
+    const parsed = dossierTrackingSchema.safeParse({
+      dossierCode: trackingDossierCode,
+      last4Cccd: trackingLast4Cccd,
+    });
+    if (!parsed.success) {
+      const errs = extractZodFieldErrors(parsed.error);
+      setTrackingFieldErrors(errs);
+      setTrackingError(errs.dossierCode || errs.last4Cccd || 'Vui lòng kiểm tra lại thông tin tra cứu.');
       return;
     }
-    if (!trackingLast4Cccd.trim()) {
-      setTrackingError('Vui lòng nhập 4 số cuối số định danh/CCCD.');
-      return;
-    }
+    setTrackingFieldErrors({});
     setTrackingLoading(true);
     setTrackingError(null);
     setTrackingResult(null);
@@ -326,13 +337,18 @@ export const FormAndIssueReporting: React.FC = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dossierFullNameInputRef = useRef<HTMLInputElement>(null);
   const dossierCccdInputRef = useRef<HTMLInputElement>(null);
+  const dossierDobInputRef = useRef<HTMLInputElement>(null);
+  const dossierAddressInputRef = useRef<HTMLInputElement>(null);
+  const dossierEmailInputRef = useRef<HTMLInputElement>(null);
   const dossierPhoneInputRef = useRef<HTMLInputElement>(null);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   // Civic Incident Reporting State
   const [category, setCategory] = useState('ROAD_DAMAGE');
   const [urgency, setUrgency] = useState<'HIGH' | 'MEDIUM' | 'LOW'>('HIGH');
   const [reporterPhone, setReporterPhone] = useState<string>('');
   const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [incidentErrors, setIncidentErrors] = useState<Record<string, string>>({});
   const [manualWardCode, setManualWardCode] = useState<string>('');
   const manualWardSelectRef = useRef<HTMLSelectElement>(null);
   const [description, setDescription] = useState(
@@ -608,6 +624,8 @@ export const FormAndIssueReporting: React.FC = () => {
   const handleSelectFormType = (type: 'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH', presetMode: 'ERROR_DEMO' | 'VALID_DEMO' = 'ERROR_DEMO') => {
     setSelectedFormType(type);
     setPrecheckResult(null);
+    setFormErrors({});
+    setSubmitError(null);
 
     if (type === 'CT01') {
       if (presetMode === 'ERROR_DEMO') {
@@ -653,6 +671,7 @@ export const FormAndIssueReporting: React.FC = () => {
         setMotherName('LÊ THỊ MỸ LINH');
         setHospitalMotherName('LÊ THỊ MỸ LINH');
         setCccd('089195001234');
+        setPhoneNumber('0918234567');
         setFatherName('TRẦN VĂN HÙNG');
         setParentsMarried('YES');
         setAddress(`${currentWard.name}, Tỉnh An Giang`);
@@ -674,6 +693,7 @@ export const FormAndIssueReporting: React.FC = () => {
         setGender('Nữ');
         setDob('2003-05-12'); // Đủ > 18 tuổi
         setCccd('089303004567');
+        setPhoneNumber('0918234567');
         setPartnerName('PHẠM VĂN MINH');
         setPartnerGender('Nam');
         setPartnerDob('2001-03-10'); // Đủ > 20 tuổi
@@ -696,6 +716,7 @@ export const FormAndIssueReporting: React.FC = () => {
         setGender('Nam');
         setDob('1949-04-10'); // 77 tuổi (>= 75 tuổi theo Luật BHXH 2024)
         setCccd('089043001122');
+        setPhoneNumber('0918234567');
         setHouseholdStatus('NORMAL');
         setDisabilityLevel('NONE');
         setBankAccount('70110000889912 - VietinBank Chi nhánh An Giang');
@@ -717,38 +738,39 @@ export const FormAndIssueReporting: React.FC = () => {
       const reason = !visionGateResult.templateMatched
         ? visionGateResult.templateMessage
         : visionGateResult.qualityMessage;
-      alert(`CHỐT CHẶN CHẤT LƯỢNG ẢNH — TỪ CHỐI TIẾP NHẬN:\n\n${reason}\n\nVui lòng chụp lại ảnh rõ nét hoặc chọn đúng biểu mẫu trước khi gửi lên cán bộ sơ duyệt.`);
+      setSubmitError(`CHỐT CHẶN CHẤT LƯỢNG ẢNH: ${reason}. Vui lòng chụp lại ảnh rõ nét hoặc chọn đúng biểu mẫu ở Bước 1.`);
       return;
     }
 
-    // 2. Validate Citizen Full Name (Fix #2: strictly no fake fallback)
-    const cleanFullName = (fullName || '').trim();
-    if (!cleanFullName || cleanFullName.length < 3) {
-      alert('Vui lòng nhập đầy đủ Họ và tên công dân (tối thiểu 3 ký tự).');
-      dossierFullNameInputRef.current?.focus();
+    // 2. Validate form inputs using Zod schema
+    const parsed = citizenDossierFormSchema.safeParse({
+      fullName,
+      cccd,
+      dob,
+      address,
+      phoneNumber,
+      citizenEmail,
+    });
+    if (!parsed.success) {
+      const errs = extractZodFieldErrors(parsed.error);
+      setFormErrors(errs);
+      setSubmitError('Vui lòng kiểm tra và chỉnh sửa các mục báo đỏ bên dưới.');
+      if (errs.fullName) dossierFullNameInputRef.current?.focus();
+      else if (errs.cccd) dossierCccdInputRef.current?.focus();
+      else if (errs.dob) dossierDobInputRef.current?.focus();
+      else if (errs.address) dossierAddressInputRef.current?.focus();
+      else if (errs.citizenEmail) dossierEmailInputRef.current?.focus();
+      else if (errs.phoneNumber) dossierPhoneInputRef.current?.focus();
       return;
     }
 
-    // 3. Validate CCCD / Định danh cá nhân (đúng 12 chữ số)
-    const cleanCccd = (cccd || '').trim();
-    if (!cleanCccd || !/^\d{12}$/.test(cleanCccd)) {
-      alert('Số CCCD/ĐDCN không hợp lệ. Vui lòng nhập đúng 12 chữ số theo quy định Đề án 06.');
-      dossierCccdInputRef.current?.focus();
-      return;
-    }
-
-    // 4. Validate Contact Phone Number (10 chữ số, bắt đầu bằng 0)
-    const cleanPhone = (phoneNumber || '').trim();
-    if (!cleanPhone || !/^0\d{9}$/.test(cleanPhone)) {
-      alert('Số điện thoại liên hệ không hợp lệ (cần 10 chữ số, bắt đầu bằng 0).');
-      dossierPhoneInputRef.current?.focus();
-      return;
-    }
-
-    // 5. Validate Email for receiving precheck notification & QR appointment pass
-    const cleanEmail = citizenEmail.trim();
-    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      alert('Vui lòng nhập Địa chỉ Email hợp lệ (ví dụ: congdan@gmail.com) để hệ thống gửi thông báo kết quả sơ duyệt và Phiếu hẹn Mã QR miễn phí!');
+    setFormErrors({});
+    const cleanFullName = parsed.data.fullName;
+    const cleanCccd = parsed.data.cccd;
+    const cleanPhone = parsed.data.phoneNumber;
+    const cleanEmail = parsed.data.citizenEmail;
+    if (cleanFullName.length < 3 || !/^\d{12}$/.test(cleanCccd) || !/^0\d{9}$/.test(cleanPhone)) {
+      setSubmitError('Dữ liệu định danh (Họ tên, CCCD 12 số, SĐT 10 số) chưa đạt chuẩn quy định.');
       return;
     }
 
@@ -901,7 +923,7 @@ export const FormAndIssueReporting: React.FC = () => {
       setEmailNotifications(getCitizenEmailNotifications());
       setFormWizardStep(3);
     } catch {
-      alert('Không thể kết nối đến máy chủ backend để kiểm tra tờ khai.');
+      alert('Không thể kết nối hệ thống để kiểm tra tờ khai.');
     } finally {
       setFormLoading(false);
     }
@@ -935,7 +957,7 @@ export const FormAndIssueReporting: React.FC = () => {
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert('Kích thước tệp vượt quá 5MB theo hạn mức Zero-Trust Vault. Vui lòng chọn tệp nhẹ hơn.');
+      alert('Tệp vượt quá 5MB. Vui lòng chọn tệp nhỏ hơn.');
       return;
     }
 
@@ -980,7 +1002,7 @@ export const FormAndIssueReporting: React.FC = () => {
         isTooDark: false,
         isGlared: false,
         qualityStatus: 'GOOD',
-        qualityMessage: 'Ảnh đạt kiểm định sơ bộ HTML5 Canvas.',
+        qualityMessage: 'Ảnh rõ nét, đạt yêu cầu.',
       };
       setCanvasCheckedLocally(true);
     }
@@ -991,7 +1013,7 @@ export const FormAndIssueReporting: React.FC = () => {
         templateMatched: true,
         detectedFormCode: selectedFormType,
         detectedFormLabel: `Biểu mẫu ${selectedFormType}`,
-        templateMessage: 'Chưa gửi máy chủ do ảnh chưa đạt chốt chặn chất lượng HTML5 Canvas.',
+        templateMessage: 'Ảnh chưa đạt độ nét để gửi kiểm tra.',
       });
       setOcrError(quality.qualityMessage);
       setOcrSuccess(false);
@@ -1035,13 +1057,13 @@ export const FormAndIssueReporting: React.FC = () => {
         (!hasBackendPayload && [500, 502, 504].includes(status));
 
       if (isNetworkOrOffline) {
-        console.info('Chế độ ngoại tuyến: Máy chủ Vault (:8082) chưa kết nối, tệp được giữ cục bộ.');
+        console.info('Hệ thống lưu trữ (:8082) chưa kết nối, tệp được giữ tạm trên trình duyệt.');
         setVaultOfflineNote(
-          'Chế độ ngoại tuyến: Máy chủ lưu trữ Vault (:8082) chưa kết nối — tệp được giữ cục bộ trên trình duyệt để tiền kiểm tra.'
+          'Hệ thống lưu trữ đang bận — tệp vẫn được kiểm tra tạm trên máy.'
         );
       } else {
-        console.warn('Lỗi tải tệp lên Vault:', err);
-        setVaultUploadError('Không thể mã hóa tệp vào Vault. Tờ khai vẫn có thể tiền kiểm tra.');
+        console.warn('Lỗi lưu tệp tạm:', err);
+        setVaultUploadError('Chưa thể lưu tệp tạm thời. Bạn vẫn có thể kiểm tra tờ khai.');
       }
     } finally {
       setIsVaultUploading(false);
@@ -1073,7 +1095,7 @@ export const FormAndIssueReporting: React.FC = () => {
           templateMatched: true,
           detectedFormCode: selectedFormType,
           detectedFormLabel: `Biểu mẫu ${selectedFormType}`,
-          templateMessage: 'Ảnh bị chặn ở bước kiểm tra HTML5 Canvas tại trình duyệt.',
+          templateMessage: 'Ảnh chưa đủ rõ nét, vui lòng chụp lại.',
         });
         setOcrSuccess(false);
         setOcrConfidence(null);
@@ -1239,7 +1261,7 @@ export const FormAndIssueReporting: React.FC = () => {
     } catch (err: any) {
       setOcrSuccess(false);
       setOcrConfidence(null);
-      setOcrError('Lỗi trong quá trình trích xuất OCR: ' + (err?.message || 'Không thể đọc ảnh. Vui lòng nhập tay.'));
+      setOcrError('Không thể đọc nội dung ảnh: ' + (err?.message || 'Vui lòng nhập tay.'));
       return false;
     } finally {
       setIsOcrProcessing(false);
@@ -1309,7 +1331,7 @@ export const FormAndIssueReporting: React.FC = () => {
       isTooDark: false,
       isGlared: false,
       qualityStatus: 'GOOD',
-      qualityMessage: 'Canvas trình duyệt đạt chuẩn: Độ nét 96/100, Ánh sáng 205/255 — Đủ điều kiện gửi cán bộ.',
+      qualityMessage: 'Ảnh rõ nét (96/100), đủ điều kiện gửi hồ sơ.',
       templateMatched: true,
       detectedFormCode: selectedFormType,
       detectedFormLabel: `Biểu mẫu ${selectedFormType} chuẩn quy định`,
@@ -1330,13 +1352,13 @@ export const FormAndIssueReporting: React.FC = () => {
     });
   };
 
-  // Helper to simulate blurred / glared / wrong-template image so user can test Client Canvas & AI Gate blocking
+  // Helper to simulate blurred / glared / wrong-template image so user can test Client & AI Gate blocking
   const handleSimulateBlurredOrWrongFile = (mode: 'BLURRY' | 'GLARED' | 'WRONG_TEMPLATE') => {
     setOcrSuccess(false);
     setOcrConfidence(null);
     setCanvasCheckedLocally(true);
     if (mode === 'BLURRY') {
-      const msg = 'Ảnh bị mờ nhòe / rung tay (Độ nét Canvas 11/100). Chốt chặn HTML5 Canvas tại trình duyệt đã chặn, KHÔNG gửi tệp lên máy chủ.';
+      const msg = 'Ảnh bị mờ nhòe (11/100). Vui lòng chụp lại rõ nét hơn.';
       setOcrError(msg);
       setVisionGateResult({
         sharpnessScore: 11,
@@ -1350,10 +1372,10 @@ export const FormAndIssueReporting: React.FC = () => {
         templateMatched: true,
         detectedFormCode: selectedFormType,
         detectedFormLabel: `Biểu mẫu ${selectedFormType}`,
-        templateMessage: `Chưa gửi máy chủ vì ảnh mờ tại bước kiểm tra Canvas trình duyệt.`,
+        templateMessage: `Ảnh bị mờ, chưa thể gửi.`,
       });
     } else if (mode === 'GLARED') {
-      const msg = 'Ảnh bị lóa đèn flash / cháy sáng vùng chữ (Lóa 46%, Độ nét 16/100). Chốt chặn HTML5 Canvas đã chặn gửi — vui lòng tắt flash và chụp nghiêng nhẹ.';
+      const msg = 'Ảnh bị lóa sáng (46%). Vui lòng tắt đèn flash và chụp lại.';
       setOcrError(msg);
       setVisionGateResult({
         sharpnessScore: 16,
@@ -1367,11 +1389,11 @@ export const FormAndIssueReporting: React.FC = () => {
         templateMatched: true,
         detectedFormCode: selectedFormType,
         detectedFormLabel: `Biểu mẫu ${selectedFormType}`,
-        templateMessage: `Chưa gửi máy chủ vì vùng sáng bị chói lóa tại bước kiểm tra Canvas.`,
+        templateMessage: `Ảnh bị chói sáng, chưa thể gửi.`,
       });
     } else {
       const otherForm = selectedFormType === 'CT01' ? 'TK-KS (Tờ khai đăng ký khai sinh)' : 'CT01 (Tờ khai thay đổi cư trú)';
-      const msg = `Lệch biểu mẫu! Hệ thống nhận diện tệp tải lên là "${otherForm}", không khớp với mục bạn đang chọn là "${selectedFormType}". Chốt chặn AI đã chặn gửi!`;
+      const msg = `Lệch biểu mẫu! Tệp tải lên là "${otherForm}", không khớp với mục đang chọn ("${selectedFormType}").`;
       setOcrError(msg);
       setVisionGateResult({
         sharpnessScore: 94,
@@ -1381,7 +1403,7 @@ export const FormAndIssueReporting: React.FC = () => {
         isTooDark: false,
         isGlared: false,
         qualityStatus: 'GOOD',
-        qualityMessage: 'Canvas trình duyệt đạt chuẩn: Độ nét 94/100.',
+        qualityMessage: 'Ảnh rõ nét (94/100).',
         templateMatched: false,
         detectedFormCode: selectedFormType === 'CT01' ? 'TK-KS' : 'CT01',
         detectedFormLabel: otherForm,
@@ -1495,11 +1517,11 @@ export const FormAndIssueReporting: React.FC = () => {
               setLocationSource('WARD_DEFAULT');
             }
             if (err.code === 1) {
-              setGpsScanBanner('Chưa cấp quyền vị trí (hãy bật quyền vị trí trong Cài đặt trình duyệt) hoặc kéo ghim đỏ để chọn vị trí sự cố.');
+              setGpsScanBanner('Chưa bật GPS — chạm bản đồ hoặc kéo ghim đỏ để chọn vị trí.');
             } else if (err.code === 3) {
-              setGpsScanBanner('GPS yếu (hết thời gian chờ 15s). Vui lòng bấm vào bản đồ hoặc kéo ghim đỏ để chọn vị trí.');
+              setGpsScanBanner('GPS yếu — chạm bản đồ hoặc kéo ghim đỏ để chọn vị trí.');
             } else {
-              setGpsScanBanner('Không thể xác định GPS. Vui lòng bấm vào bản đồ hoặc kéo ghim đỏ để chọn vị trí sự cố.');
+              setGpsScanBanner('Chạm bản đồ hoặc kéo ghim đỏ để chọn vị trí sự cố.');
             }
           },
           {
@@ -1674,31 +1696,26 @@ export const FormAndIssueReporting: React.FC = () => {
     return /^(0|\+84)(3|5|7|8|9|2)[0-9]{8,9}$/.test(clean);
   };
 
-  // Handle Incident Report (Phone is OPTIONAL; allows submitting by coordinates even if geocoding left addressText empty)
+  // Handle Incident Report (Zod validation; Phone is OPTIONAL)
   const handleReport = async () => {
-    if (locationSource === 'WARD_DEFAULT') {
-      alert('Vui lòng chạm vào bản đồ hoặc kéo ghim đỏ để xác nhận vị trí sự cố trước khi gửi báo cáo.');
+    const parsed = civicIncidentSchema.safeParse({
+      locationSource,
+      latitude,
+      longitude,
+      description,
+      reporterPhone,
+    });
+    if (!parsed.success) {
+      const errs = extractZodFieldErrors(parsed.error);
+      setIncidentErrors(errs);
+      setPhoneError(errs.reporterPhone || null);
+      if (errs.reporterPhone) phoneInputRef.current?.focus();
       return;
     }
 
-    const cleanPhone = reporterPhone.replace(/[\s.\-()]/g, '');
-    if (cleanPhone && !isValidPhone(cleanPhone)) {
-      setPhoneError(
-        'Nếu nhập số điện thoại, vui lòng nhập đúng 10–11 chữ số hợp lệ (VD: 0918123456), hoặc để trống nếu không muốn cung cấp.'
-      );
-      phoneInputRef.current?.focus();
-      return;
-    }
+    setIncidentErrors({});
     setPhoneError(null);
-
-    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
-      alert('Tọa độ vị trí chưa hợp lệ. Vui lòng quét GPS hoặc chạm bản đồ để chọn vị trí.');
-      return;
-    }
-    if (!description.trim()) {
-      alert('Vui lòng nhập mô tả sự cố hiện trường.');
-      return;
-    }
+    const cleanPhone = reporterPhone.replace(/[\s.\-()]/g, '');
 
     if (!resolvedJurisdiction.canAutoRoute || !resolvedJurisdiction.ward) {
       alert('Chưa xác định được xã/phường phụ trách (dữ liệu tọa độ "unverified" hoặc ngoài vùng). Vui lòng chọn đơn vị tiếp nhận thủ công trước khi gửi!');
@@ -1753,20 +1770,20 @@ export const FormAndIssueReporting: React.FC = () => {
             {activeTab === 'form'
               ? `Kiểm Tra 4 Mẫu Tờ Khai • ${currentWard.name}`
               : activeTab === 'incident'
-              ? `Báo Sự Cố Hiện Trường (GPS) • ${currentWard.name}`
-              : `Tra Cứu Tiến Độ Hồ Sơ (SLA) • ${currentWard.name}`}
+              ? `Báo Sự Cố Hiện Trường • ${currentWard.name}`
+              : `Tra Cứu Tiến Độ Hồ Sơ • ${currentWard.name}`}
           </h1>
           <span className="block w-14 h-[3px] bg-[#B90E23] mt-1.5 mb-1.5" />
           <p className="text-xs text-slate-600">
             {activeTab === 'form'
-              ? 'Rà soát tự động 12 số CCCD, ngày sinh, điều kiện kết hôn & bảo trợ trước khi nộp quầy.'
+              ? 'Kiểm tra nhanh CCCD, ngày sinh và lỗi tờ khai trước khi nộp.'
               : activeTab === 'incident'
-              ? 'Định vị GPS tự động và chuyển thẳng về Bàn điều hành xã/phường phụ trách.'
-              : 'Tra cứu trực tuyến tiến độ giải quyết hồ sơ hành chính bằng Mã hồ sơ và 4 số cuối CCCD.'}
+              ? 'Chạm bản đồ hoặc bật GPS để gửi đúng UBND.'
+              : 'Tra cứu tiến độ hồ sơ bằng Mã hồ sơ và 4 số cuối CCCD.'}
           </p>
         </div>
 
-        <div className="p-1 bg-[#F7EEDF] rounded-xl border border-[#E5D4B3] flex flex-wrap sm:flex-nowrap items-center gap-1 self-start sm:self-auto shrink-0">
+        <div className="w-full sm:w-auto max-w-full p-1 bg-[#F7EEDF] rounded-xl border border-[#E5D4B3] flex flex-wrap sm:flex-nowrap items-center gap-1 self-start sm:self-auto shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -1797,7 +1814,7 @@ export const FormAndIssueReporting: React.FC = () => {
             }`}
           >
             <AlertTriangle className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'incident' ? 'text-amber-100' : 'text-[#5C4033]'}`} />
-            <span>Báo Sự Cố (GPS)</span>
+            <span>Báo Sự Cố</span>
           </button>
 
           <button
@@ -1814,7 +1831,7 @@ export const FormAndIssueReporting: React.FC = () => {
             }`}
           >
             <Clock className={`w-3.5 h-3.5 shrink-0 ${activeTab === 'tracking' ? 'text-amber-100' : 'text-[#5C4033]'}`} />
-            <span>Tra Cứu Hồ Sơ (SLA)</span>
+            <span>Tra Cứu Hồ Sơ</span>
           </button>
         </div>
       </div>
@@ -1825,52 +1842,84 @@ export const FormAndIssueReporting: React.FC = () => {
       {activeTab === 'form' && (
         <section className="flex flex-col gap-5 animate-fadeIn">
 
-          {/* P3: 3-Step Precheck Wizard Stepper */}
+          {/* P3: Arrow Progress Stepper (Mũi tên tiến trình, không dùng số) */}
           <nav
             aria-label="Quy trình tiền kiểm tra tờ khai 3 bước"
             className="bg-white rounded-2xl border border-[#CBD5E1] shadow-xs p-2.5 sm:p-3"
           >
-            <ol className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <ol className="flex flex-col sm:flex-row sm:items-stretch gap-2">
               {[
-                { step: 1 as const, label: 'Bước 1', title: 'Chọn Mẫu & Kiểm Ảnh (Canvas)' },
-                { step: 2 as const, label: 'Bước 2', title: 'Nhập & Đối Chiếu Tờ Khai' },
-                { step: 3 as const, label: 'Bước 3', title: 'Kết Quả Tiền Kiểm & In A4' },
-              ].map((s) => {
+                { step: 1 as const, label: 'Bước 1', title: 'Chọn mẫu & tải ảnh', Icon: Upload },
+                { step: 2 as const, label: 'Bước 2', title: 'Nhập tờ khai', Icon: PenTool },
+                { step: 3 as const, label: 'Bước 3', title: 'Kết quả & In A4', Icon: ShieldCheck },
+              ].map((s, idx, arr) => {
                 const isCurrent = formWizardStep === s.step;
                 const isDone = formWizardStep > s.step || (s.step === 3 && Boolean(precheckResult));
+                const StepIcon = isDone && !isCurrent ? Check : s.Icon;
                 return (
-                  <li key={s.step}>
-                    <button
-                      type="button"
-                      onClick={() => setFormWizardStep(s.step)}
-                      aria-current={isCurrent ? 'step' : undefined}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl border text-left transition cursor-pointer gov-focus-ring ${
-                        isCurrent
-                          ? 'bg-[#B90E23] text-white border-[#8F0A1B] shadow-xs'
-                          : isDone
-                          ? 'bg-[#F0FDF4] text-[#065F46] border-[#A7F3D0] hover:bg-[#DCFCE7]'
-                          : 'bg-[#F8FAFC] text-[#334155] border-[#CBD5E1] hover:bg-[#F1F5F9]'
-                      }`}
-                    >
-                      <span
-                        className={`w-6 h-6 rounded-full text-xs font-extrabold flex items-center justify-center shrink-0 ${
+                  <React.Fragment key={s.step}>
+                    <li className="flex-1 min-w-0">
+                      <button
+                        type="button"
+                        onClick={() => setFormWizardStep(s.step)}
+                        aria-current={isCurrent ? 'step' : undefined}
+                        className={`w-full h-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border text-left transition cursor-pointer gov-focus-ring ${
                           isCurrent
-                            ? 'bg-white text-[#750715]'
+                            ? 'bg-[#B90E23] text-white border-[#8F0A1B] shadow-xs'
                             : isDone
-                            ? 'bg-[#065F46] text-white'
-                            : 'bg-[#E2E8F0] text-[#334155]'
+                            ? 'bg-[#F0FDF4] text-[#065F46] border-[#A7F3D0] hover:bg-[#DCFCE7]'
+                            : 'bg-[#F8FAFC] text-[#334155] border-[#CBD5E1] hover:bg-[#F1F5F9]'
                         }`}
                       >
-                        {isDone && !isCurrent ? <Check className="w-3.5 h-3.5" /> : s.step}
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <span className={`block text-[10px] font-bold uppercase tracking-wider ${isCurrent ? 'text-amber-100' : 'text-[#475569]'}`}>
-                          {s.label}
-                        </span>
-                        <span className="block text-xs font-bold truncate">{s.title}</span>
-                      </div>
-                    </button>
-                  </li>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <span
+                            className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                              isCurrent
+                                ? 'bg-white/20 text-white'
+                                : isDone
+                                ? 'bg-[#065F46] text-white'
+                                : 'bg-white border border-slate-200 text-slate-700'
+                            }`}
+                          >
+                            <StepIcon className="w-3.5 h-3.5" />
+                          </span>
+                          <div className="min-w-0">
+                            <span
+                              className={`block text-[10px] font-bold uppercase tracking-wider ${
+                                isCurrent ? 'text-amber-100' : 'text-[#475569]'
+                              }`}
+                            >
+                              {s.label}
+                            </span>
+                            <span className="block text-xs font-bold truncate">{s.title}</span>
+                          </div>
+                        </div>
+                        <ChevronRight
+                          className={`w-4 h-4 shrink-0 sm:hidden ${
+                            isCurrent ? 'text-amber-200' : isDone ? 'text-[#065F46]' : 'text-slate-400'
+                          }`}
+                        />
+                      </button>
+                    </li>
+                    {idx < arr.length - 1 && (
+                      <li
+                        aria-hidden="true"
+                        className="hidden sm:flex items-center justify-center px-0.5 shrink-0"
+                      >
+                        <div
+                          className={`w-6 h-6 rounded-full flex items-center justify-center border ${
+                            formWizardStep > s.step
+                              ? 'bg-[#DCFCE7] border-[#86EFAC] text-[#065F46]'
+                              : isCurrent
+                              ? 'bg-[#FEF2F2] border-[#FECACA] text-[#B90E23]'
+                              : 'bg-slate-50 border-slate-200 text-slate-500'
+                          }`}
+                        >
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </div>
+                      </li>
+                    )}
+                  </React.Fragment>
                 );
               })}
             </ol>
@@ -1885,26 +1934,26 @@ export const FormAndIssueReporting: React.FC = () => {
                   {
                     id: 'CT01' as const,
                     badge: 'Cư trú',
-                    title: '1. Mẫu CT01 Cư Trú',
-                    desc: 'Kiểm tra 12 số CCCD, ngày sinh & địa chỉ cư trú.',
+                    title: 'CT01 — Cư trú',
+                    desc: 'CCCD, ngày sinh & địa chỉ.',
                   },
                   {
                     id: 'TK-KS' as const,
                     badge: 'Hộ tịch',
-                    title: '2. Đăng Ký Khai Sinh',
-                    desc: 'Đối chiếu Tờ khai với Giấy chứng sinh bệnh viện.',
+                    title: 'Khai sinh',
+                    desc: 'Đối chiếu giấy chứng sinh.',
                   },
                   {
                     id: 'TK-KH' as const,
                     badge: 'Tư pháp',
-                    title: '3. Kết Hôn & Độc Thân',
-                    desc: 'Kiểm tra tuổi kết hôn (Nam ≥ 20, Nữ ≥ 18) & mục đích.',
+                    title: 'Kết hôn & Độc thân',
+                    desc: 'Độ tuổi & tình trạng hôn nhân.',
                   },
                   {
                     id: 'TK-BTXH' as const,
                     badge: 'An sinh',
-                    title: '4. Trợ Cấp Bảo Trợ',
-                    desc: 'Kiểm tra tuổi ≥ 75 (Luật BHXH 2024), mức khuyết tật & STK an sinh.',
+                    title: 'Bảo trợ xã hội',
+                    desc: 'Độ tuổi, trợ cấp & STK.',
                   },
                 ].map((item) => {
                   const active = selectedFormType === item.id;
@@ -1940,16 +1989,16 @@ export const FormAndIssueReporting: React.FC = () => {
                 })}
               </div>
 
-              {/* Concise Legal Warning + Collapsible 4-Group Precheck Matrix */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
+              {/* Mandatory Legal Warning ABOVE Collapsible 4-Group Precheck Matrix */}
+              <div className="flex flex-col gap-3.5">
                 {/* Compact Mandatory Signature Rule Warning */}
-                <div className="lg:col-span-5 p-4 rounded-2xl bg-[#FEF2F2] border border-[#FCA5A5] shadow-xs flex flex-col gap-2.5">
+                <div className="w-full p-4 rounded-2xl bg-[#FEF2F2] border border-[#FCA5A5] shadow-xs flex flex-col gap-2">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
                       <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#DC2626] text-white uppercase tracking-wider">
                         Quy tắc bắt buộc
                       </span>
-                      <span className="text-xs font-bold text-[#991B1B]">• Thủ tục Chứng thực</span>
+                      <span className="text-xs font-bold text-[#991B1B]">• Chứng thực</span>
                     </div>
 
                     <button
@@ -1989,15 +2038,16 @@ export const FormAndIssueReporting: React.FC = () => {
 
                   <h3 className="text-sm font-extrabold text-[#991B1B] flex items-center gap-1.5">
                     <AlertTriangle className="w-4 h-4 text-[#DC2626] shrink-0" />
-                    <span>Tuyệt Đối KHÔNG Ký Tên Trước Ở Nhà!</span>
+                    <span>Không ký tên trước ở nhà</span>
                   </h3>
                   <p className="text-xs text-[#7F1D1D] leading-relaxed">
-                    Với <strong>Chứng thực chữ ký & Văn bản thừa kế</strong> (Nghị định 23/2015/NĐ-CP), chữ ký bắt buộc thực hiện <strong>trực tiếp trước mặt công chức Một cửa</strong>; ký sẵn ở nhà sẽ phải lập lại bản mới. Nhóm Đất đai (Mẫu 09/ĐK) cần đối chiếu kỹ Số phát hành Sổ đỏ/Sổ hồng trước khi nộp.
+                    Chứng thực chữ ký &amp; thừa kế (NĐ 23/2015): phải ký trực tiếp trước mặt công
+                    chức Một cửa. Đất đai: kiểm kỹ số Sổ đỏ/Sổ hồng.
                   </p>
                 </div>
 
                 {/* Collapsible 4 Core Form Groups Reference Matrix */}
-                <div className="lg:col-span-7 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs overflow-hidden">
+                <div className="w-full rounded-2xl bg-white border border-[#CBD5E1] shadow-xs overflow-hidden">
                   <button
                     type="button"
                     aria-expanded={showReferenceTable}
@@ -2007,10 +2057,10 @@ export const FormAndIssueReporting: React.FC = () => {
                   >
                     <div>
                       <span className="text-xs sm:text-sm font-extrabold text-[#750715] block">
-                        Bảng Đối Chiếu 4 Nhóm Hồ Sơ & Lỗi Thường Gặp
+                        Bảng đối chiếu 4 nhóm hồ sơ
                       </span>
                       <span className="text-[11px] text-[#475569]">
-                        Xem nhanh căn cứ pháp luật hiện hành (CT01, Hộ tịch, Bảo trợ) trước khi chụp ảnh
+                        Lỗi hay gặp &amp; giấy tờ cần mang
                       </span>
                     </div>
                     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-[#F1F5F9] text-[#0F172A] border border-[#CBD5E1] text-xs font-bold shrink-0">
@@ -2091,16 +2141,16 @@ export const FormAndIssueReporting: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <FileCheck2 className="w-5 h-5 text-[#B90E23]" />
                     <span className="text-sm font-bold text-[#0F172A]">
-                      Tải Ảnh / Quét Giấy Tờ — Bước Đầu Kiểm Độ Nét Tại Trình Duyệt (Canvas)
+                      Tải ảnh / quét giấy tờ
                     </span>
                   </div>
 
-                  {/* Input Method Switcher: PC Upload vs Mobile Camera vs Manual */}
-                  <div className="flex flex-wrap sm:inline-flex sm:flex-nowrap max-w-full p-1 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] self-start sm:self-auto gap-1 sm:gap-0">
+                  {/* Input Method Switcher: PC Upload vs Mobile Camera vs Manual (320px Safe Grid) */}
+                  <div className="grid grid-cols-3 sm:inline-flex w-full sm:w-auto max-w-full p-1 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] gap-1">
                     <button
                       type="button"
                       onClick={() => setInputMode('upload')}
-                      className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
+                      className={`flex items-center justify-center gap-1 px-1.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold whitespace-nowrap transition-all cursor-pointer gov-focus-ring ${
                         inputMode === 'upload'
                           ? 'bg-[#B90E23] text-white shadow-xs'
                           : 'text-[#334155] hover:text-[#750715]'
@@ -2113,7 +2163,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setInputMode('camera')}
-                      className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
+                      className={`flex items-center justify-center gap-1 px-1.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold whitespace-nowrap transition-all cursor-pointer gov-focus-ring ${
                         inputMode === 'camera'
                           ? 'bg-[#B90E23] text-white shadow-xs'
                           : 'text-[#334155] hover:text-[#750715]'
@@ -2129,7 +2179,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         setInputMode('manual');
                         handleRemoveFile();
                       }}
-                      className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg text-xs font-bold whitespace-nowrap shrink-0 transition-all cursor-pointer gov-focus-ring ${
+                      className={`flex items-center justify-center gap-1 px-1.5 sm:px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold whitespace-nowrap transition-all cursor-pointer gov-focus-ring ${
                         inputMode === 'manual'
                           ? 'bg-[#B90E23] text-white shadow-xs'
                           : 'text-[#334155] hover:text-[#750715]'
@@ -2178,10 +2228,10 @@ export const FormAndIssueReporting: React.FC = () => {
 
                           <span>
                             <span className="block text-sm font-bold text-[#0F172A]">
-                              Kéo thả ảnh chụp tờ khai / CCCD, file Word (.docx) hoặc PDF vào đây
+                              Kéo thả ảnh tờ khai, CCCD, Word (.docx) hoặc PDF
                             </span>
                             <span className="block text-xs text-[#475569] mt-1">
-                              Hoặc <span className="text-[#750715] font-bold underline">bấm để chọn tệp từ máy</span> (PNG, JPG, WEBP, DOCX, PDF tối đa 5MB)
+                              Hoặc <span className="text-[#750715] font-bold underline">bấm chọn tệp</span> (JPG, PNG, DOCX, PDF ≤ 5MB)
                             </span>
                           </span>
                         </button>
@@ -2189,7 +2239,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
                           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#CBD5E1] text-xs font-semibold text-[#750715]">
                             <Sparkles className="w-3.5 h-3.5 text-[#B90E23]" />
-                            <span>HTML5 Canvas Trình Duyệt: Chặn ảnh mờ, thiếu sáng, lóa trước khi gửi</span>
+                            <span>Tự kiểm độ nét &amp; ánh sáng tại trình duyệt</span>
                           </span>
 
                           <button
@@ -2198,34 +2248,34 @@ export const FormAndIssueReporting: React.FC = () => {
                             className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-xs font-bold text-[#750715] transition cursor-pointer gov-focus-ring"
                           >
                             <FileText className="w-3.5 h-3.5" />
-                            <span>Dùng mẫu chuẩn rõ nét</span>
+                            <span>Mẫu chuẩn</span>
                           </button>
 
                           <button
                             type="button"
                             onClick={() => handleSimulateBlurredOrWrongFile('BLURRY')}
                             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FEF2F2] hover:bg-[#FEE2E2] border border-[#FECACA] text-[11px] font-bold text-[#991B1B] transition cursor-pointer gov-focus-ring"
-                            title="Mô phỏng ảnh chụp bị mờ nhòe để kiểm thử chốt chặn Canvas trình duyệt"
+                            title="Mô phỏng ảnh chụp bị mờ nhòe"
                           >
-                            <span>Thử ảnh mờ (Canvas Chặn)</span>
+                            <span>Thử ảnh mờ</span>
                           </button>
 
                           <button
                             type="button"
                             onClick={() => handleSimulateBlurredOrWrongFile('GLARED')}
                             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FEF2F2] hover:bg-[#FEE2E2] border border-[#FECACA] text-[11px] font-bold text-[#991B1B] transition cursor-pointer gov-focus-ring"
-                            title="Mô phỏng ảnh chụp bị lóa đèn flash để kiểm thử chốt chặn Canvas trình duyệt"
+                            title="Mô phỏng ảnh chụp bị lóa đèn flash"
                           >
-                            <span>Thử lóa sáng (Canvas Chặn)</span>
+                            <span>Thử lóa sáng</span>
                           </button>
 
                           <button
                             type="button"
                             onClick={() => handleSimulateBlurredOrWrongFile('WRONG_TEMPLATE')}
                             className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFFBEB] hover:bg-[#FEF3C7] border border-[#FDE68A] text-[11px] font-bold text-[#92400E] transition cursor-pointer gov-focus-ring"
-                            title="Mô phỏng nộp nhầm tờ khai khác mục đã chọn để kiểm thử chốt chặn AI"
+                            title="Mô phỏng nộp nhầm tờ khai khác mục đã chọn"
                           >
-                            <span>Thử sai mẫu (AI Chặn)</span>
+                            <span>Thử sai mẫu</span>
                           </button>
                         </div>
                       </div>
@@ -2249,7 +2299,7 @@ export const FormAndIssueReporting: React.FC = () => {
                               </span>
                               <span className="text-xs text-[#475569]">
                                 {selectedFile ? (selectedFile.size / (1024 * 1024)).toFixed(2) + ' MB' : '2.14 MB'} •{' '}
-                                {canvasCheckedLocally ? 'Đã qua kiểm định Canvas trình duyệt' : 'Đang phân tích tệp'}
+                                {canvasCheckedLocally ? 'Đã kiểm tra độ nét' : 'Đang phân tích tệp'}
                               </span>
                             </div>
                           </div>
@@ -2304,7 +2354,7 @@ export const FormAndIssueReporting: React.FC = () => {
                         <div className="flex flex-wrap items-center justify-between gap-2 border-b border-current/15 pb-2">
                           <span className="font-extrabold flex items-center gap-1.5 text-xs">
                             <ShieldCheck className="w-4 h-4 shrink-0" />
-                            <span>Chốt Chặn HTML5 Canvas (Trình Duyệt) & Kiểm Mẫu (3 Tiêu Chí)</span>
+                            <span>Kết quả kiểm tra ảnh &amp; biểu mẫu</span>
                           </span>
                           <span
                             className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase ${
@@ -2321,14 +2371,14 @@ export const FormAndIssueReporting: React.FC = () => {
                             !visionGateResult.isGlared &&
                             visionGateResult.templateMatched
                               ? 'ĐẠT CHUẨN — SẴN SÀNG GỬI'
-                              : 'BỊ CHẶN — CHƯA GỬI MÁY CHỦ'}
+                              : 'CẦN CHỤP LẠI'}
                           </span>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
                           <div className="p-2.5 rounded-lg bg-white border border-current/15 flex flex-col gap-1">
                             <div className="flex items-center justify-between">
-                              <span className="font-bold text-[#0F172A] text-[11px]">1. Độ nét & Ánh sáng (Canvas)</span>
+                              <span className="font-bold text-[#0F172A] text-[11px]">1. Độ nét &amp; Ánh sáng</span>
                               {!visionGateResult.isBlurry && !visionGateResult.isTooDark && !visionGateResult.isGlared ? (
                                 <CheckCircle2 className="w-3.5 h-3.5 text-[#065F46]" />
                               ) : (
@@ -2387,8 +2437,8 @@ export const FormAndIssueReporting: React.FC = () => {
                       <div className="p-3.5 rounded-xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center gap-3 text-xs text-[#1E3A8A]">
                         <RefreshCw className="w-5 h-5 animate-spin text-[#1D4ED8] shrink-0" />
                         <div className="flex flex-col">
-                          <span className="font-bold">Đang kiểm tra ảnh & trích xuất thông tin...</span>
-                          <span className="text-[11px] text-[#1E40AF]">Bước đầu HTML5 Canvas tại trình duyệt; chỉ gửi máy chủ khi ảnh đạt độ nét</span>
+                          <span className="font-bold">Đang kiểm tra ảnh &amp; đọc thông tin...</span>
+                          <span className="text-[11px] text-[#1E40AF]">Tự kiểm tra độ nét trước khi gửi hồ sơ</span>
                         </div>
                       </div>
                     )}
@@ -2428,7 +2478,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     {isVaultUploading && (
                       <div className="p-3 rounded-xl bg-[#F7EEDF] border border-[#E5D4B3] flex items-center gap-2.5 text-xs text-[#750715]">
                         <RefreshCw className="w-4 h-4 animate-spin text-[#B90E23]" />
-                        <span>Đang đóng dấu watermark và mã hóa AES-256-GCM lưu trữ an toàn vào MinIO...</span>
+                        <span>Đang lưu tệp hồ sơ an toàn...</span>
                       </div>
                     )}
 
@@ -2437,14 +2487,14 @@ export const FormAndIssueReporting: React.FC = () => {
                         <div className="flex items-center gap-2">
                           <ShieldCheck className="w-4 h-4 text-[#065F46] shrink-0" />
                           <div>
-                            <span className="font-bold block">Đã lưu trữ an toàn trong Zero-Trust Vault (MinIO)</span>
+                            <span className="font-bold block">Đã lưu tệp hồ sơ an toàn</span>
                             <span className="text-[11px] text-[#065F46]">
-                              Mã tài liệu: <code className="font-mono">{vaultDocInfo.docId}</code> • Mã OTT: <code className="font-mono">{vaultDocInfo.oneTimeToken.slice(0, 16)}...</code>
+                              Mã tệp: <code className="font-mono">{vaultDocInfo.docId}</code>
                             </span>
                           </div>
                         </div>
-                        <span className="px-2 py-0.5 rounded-full bg-[#DCFCE7] text-[#065F46] font-mono text-[10px] font-bold">
-                          AES-256-GCM
+                        <span className="px-2 py-0.5 rounded-full bg-[#DCFCE7] text-[#065F46] text-[10px] font-bold">
+                          Đã bảo mật
                         </span>
                       </div>
                     )}
@@ -2489,7 +2539,7 @@ export const FormAndIssueReporting: React.FC = () => {
                 {inputMode === 'manual' && (
                   <div className="p-3.5 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-xs text-[#334155] flex items-center gap-2">
                     <PenTool className="w-4 h-4 text-[#B90E23] shrink-0" />
-                    <span>Chế độ nhập tay: Bà con chuyển sang Bước 2 để điền hoặc đối chiếu trực tiếp thông tin bản khai giấy.</span>
+                    <span>Chuyển sang Bước 2 để nhập trực tiếp thông tin tờ khai.</span>
                   </div>
                 )}
 
@@ -2502,7 +2552,7 @@ export const FormAndIssueReporting: React.FC = () => {
                       className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#F1F5F9] text-[#750715] border border-[#CBD5E1] font-bold text-xs transition cursor-pointer flex items-center gap-1.5 gov-focus-ring"
                     >
                       <QrCode className="w-4 h-4" />
-                      <span>Quét Mã QR CCCD Thật</span>
+                      <span>Quét QR CCCD</span>
                     </button>
                     <button
                       type="button"
@@ -2510,7 +2560,7 @@ export const FormAndIssueReporting: React.FC = () => {
                       className="px-3.5 py-2 rounded-xl bg-white hover:bg-[#F1F5F9] text-[#750715] border border-[#CBD5E1] font-bold text-xs transition cursor-pointer flex items-center gap-1.5 gov-focus-ring"
                     >
                       <FileDown className="w-4 h-4" />
-                      <span>Xem & Tải Mẫu A4</span>
+                      <span>Xem mẫu A4</span>
                     </button>
                   </div>
 
@@ -2526,7 +2576,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     )}
                     className="px-5 py-2.5 rounded-xl bg-[#B90E23] hover:bg-[#8F0A1B] disabled:bg-[#94A3B8] text-white font-bold text-xs flex items-center gap-2 shadow-xs transition cursor-pointer disabled:cursor-not-allowed gov-focus-ring"
                   >
-                    <span>Tiếp tục Bước 2: Điền & Đối chiếu Tờ khai</span>
+                    <span>Tiếp tục Bước 2</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -2542,10 +2592,10 @@ export const FormAndIssueReporting: React.FC = () => {
                   <FileCheck2 className="w-5 h-5 text-[#B90E23]" />
                   <div>
                     <h2 className="text-sm font-extrabold text-[#0F172A]">
-                      Bước 2: Nhập & Đối Chiếu Thông Tin ({selectedFormType})
+                      Bước 2: Nhập tờ khai ({selectedFormType})
                     </h2>
                     <span className="text-[11px] text-[#475569]">
-                      Rà soát 2 cột đầy đủ các trường bắt buộc trước khi gửi cán bộ sơ duyệt
+                      Điền đủ thông tin bắt buộc trước khi kiểm tra.
                     </span>
                   </div>
                 </div>
@@ -2555,14 +2605,14 @@ export const FormAndIssueReporting: React.FC = () => {
                   className="self-start sm:self-auto px-3 py-1.5 rounded-lg bg-[#F8FAFC] hover:bg-[#F1F5F9] border border-[#CBD5E1] text-xs font-bold text-[#334155] flex items-center gap-1 cursor-pointer gov-focus-ring"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" />
-                  <span>Đổi mẫu / Tải lại ảnh (Bước 1)</span>
+                  <span>Bước 1</span>
                 </button>
               </div>
 
               {/* Quick Test Preset Bar for Active Form Type + CCCD QR Scanner */}
               <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] flex flex-wrap items-center justify-between gap-2 text-xs">
                 <span className="font-bold text-[#750715]">
-                  Điền nhanh thông tin mẫu:
+                  Điền nhanh:
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
                   <button
@@ -2572,21 +2622,21 @@ export const FormAndIssueReporting: React.FC = () => {
                     title="Mở camera hoặc tải ảnh để quét mã QR trên thẻ CCCD thật"
                   >
                     <QrCode className="w-4 h-4" />
-                    <span>Quét Mã QR CCCD Thật</span>
+                    <span>Quét QR CCCD</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSelectFormType(selectedFormType, 'ERROR_DEMO')}
                     className="px-3 py-1.5 rounded-lg bg-[#FFFBEB] hover:bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] font-bold text-xs transition cursor-pointer gov-focus-ring"
                   >
-                    Nạp Mẫu Sai Sót Điển Hình
+                    Mẫu lỗi
                   </button>
                   <button
                     type="button"
                     onClick={() => handleSelectFormType(selectedFormType, 'VALID_DEMO')}
                     className="px-3 py-1.5 rounded-lg bg-[#ECFDF5] hover:bg-[#D1FAE5] text-[#065F46] border border-[#A7F3D0] font-bold text-xs transition cursor-pointer gov-focus-ring"
                   >
-                    Nạp Mẫu Hợp Lệ Chuẩn
+                    Mẫu chuẩn
                   </button>
                 </div>
               </div>
@@ -2615,16 +2665,16 @@ export const FormAndIssueReporting: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <label htmlFor="p3-full-name" className="text-xs font-bold text-[#334155]">
                       {selectedFormType === 'TK-KS'
-                        ? '1. Họ, chữ đệm và tên của trẻ (Trên Tờ khai Khai sinh):'
+                        ? '1. Họ và tên trẻ:'
                         : selectedFormType === 'TK-KH'
-                        ? '1. Họ, chữ đệm và tên người yêu cầu (Nam/Nữ):'
+                        ? '1. Họ và tên người yêu cầu:'
                         : selectedFormType === 'TK-BTXH'
-                        ? '1. Họ, chữ đệm và tên người đề nghị hưởng trợ cấp xã hội:'
-                        : '1. Họ, chữ đệm và tên khai sinh (Mục 1 Mẫu CT01):'}
+                        ? '1. Họ và tên người thụ hưởng:'
+                        : '1. Họ và tên khai sinh:'}
                     </label>
                     {ocrSuccess && fullName ? (
                       <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                        <Check className="w-3 h-3 text-[#065F46]" /> Đã map đúng Mục 1
+                        <Check className="w-3 h-3 text-[#065F46]" /> Đã tự điền
                       </span>
                     ) : ocrSuccess && !fullName ? (
                       <span className="text-[10px] text-[#92400E] bg-[#FFFBEB] px-2 py-0.5 rounded-full font-semibold border border-[#FDE68A]">
@@ -2638,11 +2688,24 @@ export const FormAndIssueReporting: React.FC = () => {
                     type="text"
                     value={fullName}
                     placeholder="Ví dụ: NGUYỄN TÚ"
-                    onChange={(e) => setFullName(e.target.value)}
-                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#B90E23] focus:bg-white transition-all ${
-                      ocrSuccess && fullName ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-[#F8FAFC] border-[#CBD5E1]'
+                    onChange={(e) => {
+                      setFullName(e.target.value);
+                      if (formErrors.fullName) setFormErrors((prev) => ({ ...prev, fullName: '' }));
+                    }}
+                    aria-invalid={Boolean(formErrors.fullName)}
+                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:bg-white transition-all ${
+                      formErrors.fullName
+                        ? 'border-red-500 bg-red-50/40 ring-2 ring-red-200'
+                        : ocrSuccess && fullName
+                        ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold focus:border-[#B90E23]'
+                        : 'bg-[#F8FAFC] border-[#CBD5E1] focus:border-[#B90E23]'
                     }`}
                   />
+                  {formErrors.fullName && (
+                    <p role="alert" className="text-xs font-medium text-red-700 mt-0.5">
+                      {formErrors.fullName}
+                    </p>
+                  )}
                 </div>
 
                 {/* Field 2: Số định danh cá nhân (12 số CCCD) */}
@@ -2650,12 +2713,12 @@ export const FormAndIssueReporting: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <label htmlFor="p3-cccd" className="text-xs font-bold text-[#334155]">
                       {selectedFormType === 'TK-KS'
-                        ? '2. Số ĐDCN / CCCD 12 số của Mẹ hoặc Cha:'
-                        : '2. Số định danh cá nhân (12 chữ số CCCD):'}
+                        ? '2. Số CCCD Mẹ/Cha (12 số):'
+                        : '2. Số CCCD (12 số):'}
                     </label>
                     {ocrSuccess && cccd ? (
                       <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                        <Check className="w-3 h-3 text-[#065F46]" /> Đã map ({cccd.length} số)
+                        <Check className="w-3 h-3 text-[#065F46]" /> Đã nhận ({cccd.length} số)
                       </span>
                     ) : null}
                   </div>
@@ -2666,11 +2729,24 @@ export const FormAndIssueReporting: React.FC = () => {
                     value={cccd}
                     maxLength={12}
                     placeholder="12 chữ số định danh cá nhân"
-                    onChange={(e) => setCccd(e.target.value)}
-                    className={`w-full h-10 px-3.5 rounded-xl border font-mono text-xs md:text-sm font-bold focus:outline-none focus:border-[#B90E23] focus:bg-white transition-all tracking-wider ${
-                      ocrSuccess && cccd ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 text-[#750715]' : 'bg-[#F8FAFC] border-[#CBD5E1] text-[#750715]'
+                    onChange={(e) => {
+                      setCccd(e.target.value);
+                      if (formErrors.cccd) setFormErrors((prev) => ({ ...prev, cccd: '' }));
+                    }}
+                    aria-invalid={Boolean(formErrors.cccd)}
+                    className={`w-full h-10 px-3.5 rounded-xl border font-mono text-xs md:text-sm font-bold focus:outline-none focus:bg-white transition-all tracking-wider ${
+                      formErrors.cccd
+                        ? 'border-red-500 bg-red-50/40 ring-2 ring-red-200 text-red-900'
+                        : ocrSuccess && cccd
+                        ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 text-[#750715] focus:border-[#B90E23]'
+                        : 'bg-[#F8FAFC] border-[#CBD5E1] text-[#750715] focus:border-[#B90E23]'
                     }`}
                   />
+                  {formErrors.cccd && (
+                    <p role="alert" className="text-xs font-medium text-red-700 mt-0.5">
+                      {formErrors.cccd}
+                    </p>
+                  )}
                 </div>
 
                 {/* Field 3: Ngày, tháng, năm sinh */}
@@ -2678,28 +2754,42 @@ export const FormAndIssueReporting: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <label htmlFor="p3-dob" className="text-xs font-bold text-[#334155]">
                       {selectedFormType === 'TK-KS'
-                        ? '3. Ngày sinh của trẻ ghi trên Tờ khai:'
+                        ? '3. Ngày sinh trẻ:'
                         : selectedFormType === 'TK-KH'
-                        ? '3. Ngày sinh trên CCCD (Nam ≥ 20, Nữ ≥ 18):'
+                        ? '3. Ngày sinh (Nam ≥ 20, Nữ ≥ 18):'
                         : selectedFormType === 'TK-BTXH'
-                        ? '3. Ngày sinh người cao tuổi (Luật BHXH 2024: ≥ 75 tuổi):'
-                        : '3. Ngày, tháng, năm sinh (Mục 2 Mẫu CT01):'}
+                        ? '3. Ngày sinh (≥ 75 tuổi):'
+                        : '3. Ngày sinh:'}
                     </label>
                     {ocrSuccess && dob ? (
                       <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                        <Check className="w-3 h-3 text-[#065F46]" /> Đã map đúng Mục 2
+                        <Check className="w-3 h-3 text-[#065F46]" /> Đã tự điền
                       </span>
                     ) : null}
                   </div>
                   <input
                     id="p3-dob"
+                    ref={dossierDobInputRef}
                     type="date"
                     value={dob}
-                    onChange={(e) => setDob(e.target.value)}
-                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#B90E23] focus:bg-white transition-all ${
-                      ocrSuccess && dob ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-[#F8FAFC] border-[#CBD5E1]'
+                    onChange={(e) => {
+                      setDob(e.target.value);
+                      if (formErrors.dob) setFormErrors((prev) => ({ ...prev, dob: '' }));
+                    }}
+                    aria-invalid={Boolean(formErrors.dob)}
+                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:bg-white transition-all ${
+                      formErrors.dob
+                        ? 'border-red-500 bg-red-50/40 ring-2 ring-red-200'
+                        : ocrSuccess && dob
+                        ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold focus:border-[#B90E23]'
+                        : 'bg-[#F8FAFC] border-[#CBD5E1] focus:border-[#B90E23]'
                     }`}
                   />
+                  {formErrors.dob && (
+                    <p role="alert" className="text-xs font-medium text-red-700 mt-0.5">
+                      {formErrors.dob}
+                    </p>
+                  )}
                 </div>
 
                 {/* Field 4: Giới tính */}
@@ -2710,7 +2800,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     </span>
                     {ocrSuccess && gender ? (
                       <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                        <Check className="w-3 h-3 text-[#065F46]" /> Đã map đúng Mục 3 ({gender})
+                        <Check className="w-3 h-3 text-[#065F46]" /> Đã tự điền ({gender})
                       </span>
                     ) : null}
                   </div>
@@ -2848,29 +2938,43 @@ export const FormAndIssueReporting: React.FC = () => {
                   <div className="flex items-center justify-between">
                     <label htmlFor="p3-address" className="text-xs font-bold text-[#334155]">
                       {selectedFormType === 'TK-KS'
-                        ? '5. Quê quán của trẻ & Nơi thường trú của Cha/Mẹ:'
+                        ? '5. Quê quán & nơi cư trú:'
                         : selectedFormType === 'TK-KH'
-                        ? '5. Nơi thường trú / tạm trú của một trong hai bên nộp hồ sơ:'
+                        ? '5. Địa chỉ cư trú:'
                         : selectedFormType === 'TK-BTXH'
-                        ? '5. Địa chỉ thường trú của người hưởng trợ cấp xã hội:'
-                        : '5. Nơi đề nghị đăng ký thường trú / tạm trú (Mục 10 - Nội dung đề nghị):'}
+                        ? '5. Địa chỉ thường trú:'
+                        : '5. Địa chỉ đăng ký cư trú:'}
                     </label>
                     {ocrSuccess && address ? (
                       <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                        <Check className="w-3 h-3 text-[#065F46]" /> Đã map đúng địa chỉ
+                        <Check className="w-3 h-3 text-[#065F46]" /> Đã tự điền
                       </span>
                     ) : null}
                   </div>
                   <input
                     id="p3-address"
+                    ref={dossierAddressInputRef}
                     type="text"
                     value={address}
                     placeholder="Ví dụ: 32/3 Ích, Khu phố 12, Phường..., TP. Hồ Chí Minh"
-                    onChange={(e) => setAddress(e.target.value)}
-                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#B90E23] focus:bg-white transition-all ${
-                      ocrSuccess && address ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'bg-[#F8FAFC] border-[#CBD5E1]'
+                    onChange={(e) => {
+                      setAddress(e.target.value);
+                      if (formErrors.address) setFormErrors((prev) => ({ ...prev, address: '' }));
+                    }}
+                    aria-invalid={Boolean(formErrors.address)}
+                    className={`w-full h-10 px-3.5 rounded-xl border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:bg-white transition-all ${
+                      formErrors.address
+                        ? 'border-red-500 bg-red-50/40 ring-2 ring-red-200'
+                        : ocrSuccess && address
+                        ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold focus:border-[#B90E23]'
+                        : 'bg-[#F8FAFC] border-[#CBD5E1] focus:border-[#B90E23]'
                     }`}
                   />
+                  {formErrors.address && (
+                    <p role="alert" className="text-xs font-medium text-red-700 mt-0.5">
+                      {formErrors.address}
+                    </p>
+                  )}
                 </div>
 
                 {/* Official Legal Specification Notice */}
@@ -2879,21 +2983,21 @@ export const FormAndIssueReporting: React.FC = () => {
                   <div className="flex flex-col gap-0.5">
                     <span className="font-bold">
                       {selectedFormType === 'TK-KS'
-                        ? 'Quy chuẩn Thông tư 04/2020/TT-BTP (Đăng ký khai sinh):'
+                        ? 'Lưu ý Khai sinh (TT 04/2020/TT-BTP):'
                         : selectedFormType === 'TK-KH'
-                        ? 'Quy chuẩn Luật Hôn nhân & Gia đình 2014 & Thông tư 04/2020/TT-BTP:'
+                        ? 'Lưu ý Kết hôn (Luật HNGĐ 2014):'
                         : selectedFormType === 'TK-BTXH'
-                        ? 'Quy chuẩn Luật BHXH 41/2024/QH15 & Nghị định 20/2021/NĐ-CP:'
-                        : 'Quy chuẩn Mẫu CT01 (Thông tư 66/2023/TT-BCA):'}
+                        ? 'Lưu ý Bảo trợ (Luật BHXH 2024):'
+                        : 'Lưu ý Mẫu CT01 (TT 66/2023/TT-BCA):'}
                     </span>
                     <span className="text-[11px] text-[#166534]">
                       {selectedFormType === 'TK-KS'
-                        ? 'Họ tên, ngày tháng năm sinh, giới tính của trẻ và họ tên mẹ phải khớp từng chữ với Giấy chứng sinh bản chính do bệnh viện cấp. Nếu cha mẹ chưa đăng ký kết hôn mà ghi tên cha thì phải làm thủ tục kết hợp Khai sinh + Nhận cha, mẹ, con.'
+                        ? 'Tên, ngày sinh của trẻ và mẹ phải khớp đúng Giấy chứng sinh bản chính.'
                         : selectedFormType === 'TK-KH'
-                        ? 'Nam phải từ đủ 20 tuổi, Nữ từ đủ 18 tuổi tính theo ngày tháng năm sinh. Giấy xác nhận tình trạng hôn nhân chỉ có giá trị 06 tháng và bắt buộc ghi rõ mục đích sử dụng cụ thể.'
+                        ? 'Nam đủ 20 tuổi, Nữ đủ 18 tuổi; giấy độc thân có hạn 6 tháng và nêu rõ mục đích.'
                         : selectedFormType === 'TK-BTXH'
-                        ? 'Người cao tuổi không có lương hưu từ đủ 75 tuổi (hoặc hộ nghèo/cận nghèo 70–74 tuổi theo Luật BHXH 41/2024/QH15 hiệu lực 01/07/2025) hoặc có Giấy xác nhận khuyết tật nặng/đặc biệt nặng; kèm số tài khoản ngân hàng chính chủ Đề án 06.'
-                        : 'Tờ khai CT01 hoàn toàn không có trường "Ngày cấp CCCD" (chỉ có ngày làm đơn ở cuối tờ khai). Hệ thống chỉ quét đúng các mục cần nhập (Mục 1, 2, 3, 4, 10).'}
+                        ? 'Áp dụng từ đủ 75 tuổi (hộ nghèo/cận nghèo 70–74 tuổi) hoặc khuyết tật nặng kèm STK.'
+                        : 'Mẫu CT01 (TT 66/2023/TT-BCA) không yêu cầu Ngày cấp CCCD.'}
                     </span>
                   </div>
                 </div>
@@ -2905,21 +3009,21 @@ export const FormAndIssueReporting: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <Mail className="w-4 h-4 text-[#750715] shrink-0" />
                     <span className="text-xs font-extrabold text-[#0F172A]">
-                      Thông Tin Nhận Phê Duyệt Sơ Bộ & Phiếu Hẹn Mã QR (Miễn Phí Qua Email)
+                      Nhận kết quả &amp; Mã QR qua Email
                     </span>
                   </div>
                   <span className="px-2 py-0.5 rounded-full bg-[#F7EEDF] text-[#750715] text-[10px] font-bold">
-                    100% Miễn phí • Không dùng SMS/Zalo thu phí
+                    Miễn phí
                   </span>
                 </div>
                 <p className="text-[11px] text-[#475569] leading-relaxed">
-                  Khi Cán bộ Một cửa xem duyệt hồ sơ sơ bộ và chấp thuận, hệ thống sẽ tự động gửi thông báo kèm <strong>Phiếu Hẹn Điện Tử Có Mã QR</strong> về Email của bà con và hiển thị trực tiếp trên cổng tra cứu Web.
+                  Hệ thống gửi Phiếu hẹn QR về Email khi cán bộ duyệt hồ sơ.
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center justify-between">
                       <label htmlFor="p3-citizen-email" className="text-[11px] font-bold text-[#334155]">
-                        Địa chỉ Email nhận kết quả phê duyệt & Mã QR (*):
+                        Email nhận mã QR (*):
                       </label>
                       {citizenEmail && (
                         <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
@@ -2929,19 +3033,35 @@ export const FormAndIssueReporting: React.FC = () => {
                     </div>
                     <input
                       id="p3-citizen-email"
+                      ref={dossierEmailInputRef}
                       type="email"
                       value={citizenEmail}
-                      onChange={(e) => setCitizenEmail(e.target.value)}
+                      onChange={(e) => {
+                        setCitizenEmail(e.target.value);
+                        if (formErrors.citizenEmail) {
+                          setFormErrors((prev) => ({ ...prev, citizenEmail: '' }));
+                        }
+                      }}
+                      aria-invalid={Boolean(formErrors.citizenEmail)}
                       placeholder="Ví dụ: congdan.angiang@gmail.com"
-                      className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] focus:outline-none focus:border-[#B90E23] transition ${
-                        citizenEmail ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'border-[#CBD5E1] bg-white'
+                      className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] focus:outline-none transition ${
+                        formErrors.citizenEmail
+                          ? 'border-red-500 bg-red-50/40 ring-2 ring-red-200'
+                          : citizenEmail
+                          ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold focus:border-[#B90E23]'
+                          : 'border-[#CBD5E1] bg-white focus:border-[#B90E23]'
                       }`}
                     />
+                    {formErrors.citizenEmail && (
+                      <p role="alert" className="text-xs font-medium text-red-700 mt-0.5">
+                        {formErrors.citizenEmail}
+                      </p>
+                    )}
                   </div>
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center justify-between">
                       <label htmlFor="p3-citizen-phone" className="text-[11px] font-bold text-[#334155]">
-                        Số điện thoại liên hệ & tra cứu hồ sơ (Không gửi SMS):
+                        Số điện thoại liên hệ:
                       </label>
                       {phoneNumber && (
                         <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
@@ -2954,12 +3074,27 @@ export const FormAndIssueReporting: React.FC = () => {
                       ref={dossierPhoneInputRef}
                       type="tel"
                       value={phoneNumber}
-                      onChange={(e) => setPhoneNumber(e.target.value)}
+                      onChange={(e) => {
+                        setPhoneNumber(e.target.value);
+                        if (formErrors.phoneNumber) {
+                          setFormErrors((prev) => ({ ...prev, phoneNumber: '' }));
+                        }
+                      }}
+                      aria-invalid={Boolean(formErrors.phoneNumber)}
                       placeholder="Ví dụ: 0918234567"
-                      className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] focus:outline-none focus:border-[#B90E23] transition ${
-                        phoneNumber ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold' : 'border-[#CBD5E1] bg-white'
+                      className={`w-full h-9 px-3 rounded-xl border text-xs text-[#0F172A] focus:outline-none transition ${
+                        formErrors.phoneNumber
+                          ? 'border-red-500 bg-red-50/40 ring-2 ring-red-200'
+                          : phoneNumber
+                          ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold focus:border-[#B90E23]'
+                          : 'border-[#CBD5E1] bg-white focus:border-[#B90E23]'
                       }`}
                     />
+                    {formErrors.phoneNumber && (
+                      <p role="alert" className="text-xs font-medium text-red-700 mt-0.5">
+                        {formErrors.phoneNumber}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -3005,7 +3140,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     title="Xem trước và tải về file Word (.docx) hoặc PDF chuẩn Nghị định 30/2020/NĐ-CP"
                   >
                     <FileDown className="w-4 h-4 text-[#750715]" />
-                    <span>Xem & Tải Mẫu A4</span>
+                    <span>Xem mẫu A4</span>
                   </button>
 
                   <button
@@ -3036,7 +3171,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     ) : (
                       <>
                         <Sparkles className="w-4 h-4 text-amber-100" />
-                        <span>Kiểm Tra & Chuyển Bước 3</span>
+                        <span>Kiểm tra &amp; tiếp tục</span>
                       </>
                     )}
                   </button>
@@ -3256,9 +3391,9 @@ export const FormAndIssueReporting: React.FC = () => {
                   <div className="flex items-center gap-2 text-[#166534]">
                     <CheckCircle2 className="w-5 h-5 text-[#16A34A] shrink-0" />
                     <div>
-                      <span className="font-extrabold text-sm block">Nộp Hồ Sơ Thành Công Lên Cơ Sở Dữ Liệu</span>
+                      <span className="font-extrabold text-sm block">Nộp Hồ Sơ Thành Công</span>
                       <span className="text-[11px] text-[#15803D]">
-                        Hồ sơ đã được lưu trữ an toàn trong PostgreSQL UBND {currentWard.name}.
+                        Hồ sơ đã được tiếp nhận tại UBND {currentWard.name}.
                       </span>
                     </div>
                   </div>
@@ -3270,7 +3405,7 @@ export const FormAndIssueReporting: React.FC = () => {
                       </code>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-[#64748B]">Thời hạn giải quyết (SLA):</span>
+                      <span className="text-[#64748B]">Thời hạn giải quyết:</span>
                       <span className="font-semibold text-[#166534]">
                         {formatSlaDeadlineVi(submittedDossier.slaDeadline, true)}
                       </span>
@@ -3611,11 +3746,16 @@ export const FormAndIssueReporting: React.FC = () => {
           reportResult={reportResult}
           myIncidents={myIncidents}
           userGpsLocation={userGpsLocation}
-          onLocationChange={handleLocationChange}
+          onLocationChange={(lat, lon, src, acc) => {
+            setIncidentErrors((prev) => ({ ...prev, locationSource: '' }));
+            handleLocationChange(lat, lon, src, acc);
+          }}
           onRecenterToGps={handleRecenterToGps}
           isAddressManuallyEdited={isAddressManuallyEdited}
           isGeocodingAddress={isGeocodingAddress}
           onResetAddressFromPin={handleResetAddressFromPin}
+          incidentErrors={incidentErrors}
+          onClearIncidentError={(field) => setIncidentErrors((prev) => ({ ...prev, [field]: '' }))}
         />
       )}
 
@@ -3631,6 +3771,8 @@ export const FormAndIssueReporting: React.FC = () => {
           trackingLoading={trackingLoading}
           myDossiers={myDossiers}
           trackingResult={trackingResult}
+          trackingFieldErrors={trackingFieldErrors}
+          onClearTrackingError={(field) => setTrackingFieldErrors((prev) => ({ ...prev, [field]: '' }))}
         />
       )}
 

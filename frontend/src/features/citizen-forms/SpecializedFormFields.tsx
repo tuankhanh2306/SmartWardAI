@@ -149,7 +149,7 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
 
                     <details className="sm:col-span-2 rounded-xl bg-amber-50/80 border border-amber-200 px-3.5 py-2 text-[11px] text-slate-700">
                       <summary className="cursor-pointer font-bold text-amber-950 select-none">
-                        Xem hướng dẫn Chú thích (1) – (8) khi điền Mẫu CT01 (Chỉ hiển thị trên Web, tự động ẩn khi xuất phôi A4 nộp cán bộ)
+                        Xem chú thích (1)–(8) Mẫu CT01 (ẩn khi in A4)
                       </summary>
                       <div className="mt-2 space-y-1 border-t border-amber-200/80 pt-2 leading-relaxed">
                         <div><strong>(1) Kính gửi:</strong> Cơ quan đăng ký cư trú (Công an cấp xã).</div>
@@ -164,11 +164,11 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center justify-between">
                         <label htmlFor="p3-ct01-phone" className="text-xs font-bold text-[#334155]">
-                          Số điện thoại liên hệ (Mục 5 Mẫu CT01):
+                          Số điện thoại:
                         </label>
                         {ocrSuccess && phoneNumber ? (
                           <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 5
+                            <Check className="w-3 h-3 text-[#065F46]" /> Đã tự điền
                           </span>
                         ) : null}
                       </div>
@@ -187,11 +187,11 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center justify-between">
                         <label htmlFor="p3-ct01-scope" className="text-xs font-bold text-[#334155]">
-                          Nội dung đề nghị (Mục 10 Mẫu CT01):
+                          Nội dung đề nghị:
                         </label>
                         {ocrSuccess && declarationScope ? (
                           <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 10
+                            <Check className="w-3 h-3 text-[#065F46]" /> Đã tự điền
                           </span>
                         ) : null}
                       </div>
@@ -215,11 +215,11 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center justify-between">
                         <label htmlFor="p3-ct01-host-name" className="text-xs font-bold text-[#334155]">
-                          Họ, chữ đệm và tên chủ hộ (Mục 7 Mẫu CT01):
+                          Họ tên chủ hộ:
                         </label>
                         {ocrSuccess && hostName ? (
                           <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 7
+                            <Check className="w-3 h-3 text-[#065F46]" /> Đã tự điền
                           </span>
                         ) : null}
                       </div>
@@ -238,11 +238,11 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center justify-between">
                         <label htmlFor="p3-ct01-host-cccd" className="text-xs font-bold text-[#334155]">
-                          Số định danh cá nhân của chủ hộ (Mục 9 - 12 ô):
+                          Số CCCD chủ hộ (12 số):
                         </label>
                         {ocrSuccess && hostCccd ? (
                           <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 9 ({hostCccd.length} số)
+                            <Check className="w-3 h-3 text-[#065F46]" /> Đã nhận ({hostCccd.length} số)
                           </span>
                         ) : null}
                       </div>
@@ -262,11 +262,11 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                     <div className="flex flex-col gap-1 sm:col-span-2">
                       <div className="flex items-center justify-between">
                         <label htmlFor="p3-ct01-host-rel" className="text-xs font-bold text-[#334155]">
-                          Mối quan hệ với chủ hộ (Mục 8 Mẫu CT01):
+                          Quan hệ với chủ hộ:
                         </label>
                         {ocrSuccess && hostRelation ? (
                           <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
-                            <Check className="w-3 h-3 text-[#065F46]" /> Đã map Mục 8
+                            <Check className="w-3 h-3 text-[#065F46]" /> Đã tự điền
                           </span>
                         ) : null}
                       </div>
@@ -311,7 +311,7 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
 
                     <details className="sm:col-span-2 rounded-xl bg-amber-50/80 border border-amber-200 px-3.5 py-2 text-[11px] text-slate-700">
                       <summary className="cursor-pointer font-bold text-amber-950 select-none">
-                        Xem hướng dẫn Chú thích (1) – (6) khi điền Tờ khai đăng ký khai sinh (Chỉ hiển thị trên Web, tự động ẩn khi xuất phôi A4 nộp cán bộ)
+                        Xem chú thích (1)–(6) Tờ khai Khai sinh (ẩn khi in A4)
                       </summary>
                       <div className="mt-2 space-y-1 border-t border-amber-200/80 pt-2 leading-relaxed">
                         <div><strong>(1) Kính gửi:</strong> Ghi rõ tên cơ quan đăng ký khai sinh (UBND xã, phường, thị trấn).</div>
