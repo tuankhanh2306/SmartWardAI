@@ -1,11 +1,14 @@
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-
 /**
  * Xuất trực tiếp vùng tài liệu A4 thành tệp PDF tiêu chuẩn tải về máy
  * Hoàn toàn không gọi window.print(), không mở hộp thoại in của trình duyệt.
+ * Dynamic import tách rời html2canvas & jspdf thành 2 chunk riêng (< 500 kB/chunk).
  */
 export async function exportElementToPdf(element: HTMLElement, filename: string): Promise<void> {
+  const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
+    import('html2canvas'),
+    import('jspdf'),
+  ]);
+
   const canvas = await html2canvas(element, {
     scale: 2, // Độ phân giải 2x sắc nét chuẩn in/lưu trữ hành chính
     useCORS: true,

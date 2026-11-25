@@ -30,7 +30,7 @@ Kiến trúc **Modular Monolith** cho phần lõi nghiệp vụ kết hợp **1 
 flowchart TD
     subgraph Clients["Tầng 1: Ứng dụng Đầu cuối (Web PWA & Mobile Native)"]
         Web["Web PWA (React + Vite + Nginx Alpine / 64 MiB)"]
-        Mobile["Mobile App (React Native + Expo SDK 52 + SQLite Offline)"]
+        Mobile["Mobile App (React Native 0.88.1 + Expo SDK 58 + SQLite Offline)"]
     end
 
     subgraph AppLayer["Tầng 2: Xử lý Nghiệp vụ & AI Sidecar"]

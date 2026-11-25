@@ -323,6 +323,58 @@ class CitizenDossierServiceTest {
     }
 
     @Test
+    @DisplayName("TASK-011 / BUG-013: calculateWorkingDayDeadline skips 2026 Tet Binh Ngo lunar holiday week")
+    void calculateWorkingDayDeadline_skipsTet2026() {
+        // Friday Feb 13, 2026 10:00 VN time -> 3 working days
+        // Skips Feb 14-15 (weekend), Feb 16-20 (Tet Binh Ngo), Feb 21-22 (weekend)
+        // Counts Mon Feb 23 (day 1), Tue Feb 24 (day 2), Wed Feb 25 (day 3)
+        Instant feb13 = ZonedDateTime.of(2026, 2, 13, 10, 0, 0, 0, CitizenDossierService.VN_ZONE).toInstant();
+        Instant deadline = CitizenDossierService.calculateWorkingDayDeadline(feb13, 3, CitizenDossierService.VN_ZONE);
+
+        ZonedDateTime zdt = deadline.atZone(CitizenDossierService.VN_ZONE);
+        assertThat(zdt.getYear()).isEqualTo(2026);
+        assertThat(zdt.getMonthValue()).isEqualTo(2);
+        assertThat(zdt.getDayOfMonth()).isEqualTo(25);
+        assertThat(zdt.getHour()).isEqualTo(17);
+    }
+
+    @Test
+    @DisplayName("TASK-011 / BUG-013: calculateWorkingDayDeadline skips 2026 Hung Kings' Commemoration & compensatory Monday")
+    void calculateWorkingDayDeadline_skipsHungKings2026() {
+        // Friday Apr 24, 2026 09:00 VN time -> 2 working days
+        // Skips Sat 25, Sun 26 (10/3 Lunar), Mon 27 (compensatory day)
+        // Counts Tue Apr 28 (day 1), Wed Apr 29 (day 2)
+        Instant apr24 = ZonedDateTime.of(2026, 4, 24, 9, 0, 0, 0, CitizenDossierService.VN_ZONE).toInstant();
+        Instant deadline = CitizenDossierService.calculateWorkingDayDeadline(apr24, 2, CitizenDossierService.VN_ZONE);
+
+        ZonedDateTime zdt = deadline.atZone(CitizenDossierService.VN_ZONE);
+        assertThat(zdt.getYear()).isEqualTo(2026);
+        assertThat(zdt.getMonthValue()).isEqualTo(4);
+        assertThat(zdt.getDayOfMonth()).isEqualTo(29);
+        assertThat(zdt.getHour()).isEqualTo(17);
+    }
+
+    @Test
+    @DisplayName("TASK-011 / BUG-013: calculateWorkingDayDeadline skips 2027 Tet Dinh Mui & Hung Kings 10/3 Lunar")
+    void calculateWorkingDayDeadline_skipsTetAndHungKings2027() {
+        // Tet 2027: Thu Feb 4 -> 2 working days skips Feb 5..11 (Tet + compensatory), counts Fri Feb 12 (1), Mon Feb 15 (2)
+        Instant feb4 = ZonedDateTime.of(2027, 2, 4, 14, 0, 0, 0, CitizenDossierService.VN_ZONE).toInstant();
+        ZonedDateTime tet2027 = CitizenDossierService.calculateWorkingDayDeadline(feb4, 2, CitizenDossierService.VN_ZONE)
+                .atZone(CitizenDossierService.VN_ZONE);
+        assertThat(tet2027.getYear()).isEqualTo(2027);
+        assertThat(tet2027.getMonthValue()).isEqualTo(2);
+        assertThat(tet2027.getDayOfMonth()).isEqualTo(15);
+
+        // Hung Kings 2027: Thu Apr 15 -> 1 working day skips Fri Apr 16 (10/3 Lunar) & weekend -> Mon Apr 19
+        Instant apr15 = ZonedDateTime.of(2027, 4, 15, 14, 0, 0, 0, CitizenDossierService.VN_ZONE).toInstant();
+        ZonedDateTime hung2027 = CitizenDossierService.calculateWorkingDayDeadline(apr15, 1, CitizenDossierService.VN_ZONE)
+                .atZone(CitizenDossierService.VN_ZONE);
+        assertThat(hung2027.getYear()).isEqualTo(2027);
+        assertThat(hung2027.getMonthValue()).isEqualTo(4);
+        assertThat(hung2027.getDayOfMonth()).isEqualTo(19);
+    }
+
+    @Test
     @DisplayName("MOB-0.5: Officer QR lookup resolves SMARTWARD_PASS payload and masks CCCD")
     void lookupOfficerDossierByQr_fullQrPayload_returnsMaskedDto() {
         CitizenDossier dossier = CitizenDossier.builder()

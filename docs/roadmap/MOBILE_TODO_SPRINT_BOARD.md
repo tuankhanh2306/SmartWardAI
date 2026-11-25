@@ -1,4 +1,4 @@
-# 📱 BẢNG THEO DÕI CÔNG VIỆC CHI TIẾT PHÁT TRIỂN MOBILE APP (SMARTWARD AI MOBILE — EXPO SDK 52)
+# 📱 BẢNG THEO DÕI CÔNG VIỆC CHI TIẾT PHÁT TRIỂN MOBILE APP (SMARTWARD AI MOBILE — EXPO SDK 58 / RN 0.88.1)
 
 > **Quy chiếu Đặc tả:** [`docs/roadmap/MOBILE_DEVELOPMENT_PLAN.md`](MOBILE_DEVELOPMENT_PLAN.md) | [`docs/specs/MOBILE_APP_SPEC.md`](../specs/MOBILE_APP_SPEC.md) | [`docs/specs/SMARTWARD_UNIFIED_AGENT_AND_MOBILE_SPEC.md`](../specs/SMARTWARD_UNIFIED_AGENT_AND_MOBILE_SPEC.md) | [`docs/designs/mobile/DESIGN.md`](../designs/mobile/DESIGN.md) | [`docs/designs/mobile/design-tokens.json`](../designs/mobile/design-tokens.json)  
 > **Phạm vi:** 96 Xã, Phường, Đặc khu tỉnh An Giang — 40 TTHC cấp xã chuẩn hóa 2026 — 6 Màn hình / 5 Bottom Tabs  
@@ -16,7 +16,7 @@
 | Chặng | Mã Nhánh Git (`from develop`) | Trọng tâm Kỹ thuật | Số lượng Tasks | Gate Kiểm thử | Trạng thái |
 | :---: | :--- | :--- | :---: | :--- | :---: |
 | **Chặng M0** | `feature/mobile-phase0-backend-sync` | Chuẩn hóa nhánh Git, CORS LAN/Mobile, API tra cứu QR tại quầy & đồng bộ DB | **8 Tasks** (`MOB-0.1` → `0.8`) | `524` JUnit Tests PASS | ✅ Hoàn thành |
-| **Chặng M1** | `feature/mobile-phase1-foundation` | Khởi tạo Expo SDK 52, Design Tokens `A/A+/A++`, Shared Core & Chọn 96 Xã | **14 Tasks** (`MOB-1.1` → `1.14`) | TypeScript `0 errors` + `36/36` Core Unit Tests PASS | ✅ Hoàn thành |
+| **Chặng M1** | `feature/mobile-phase1-foundation` | Khởi tạo Expo SDK 58 (RN 0.88.1), Design Tokens `A/A+/A++`, Shared Core & Chọn 96 Xã | **14 Tasks** (`MOB-1.1` → `1.14`) | TypeScript `0 errors` + `36/36` Core Unit Tests PASS | ✅ Hoàn thành |
 | **Chặng M2** | `feature/mobile-phase2-legal-rag-tts` | Tab 1 (`LegalRagChatScreen`): 40 TTHC Offline/Online, TTS `MỞ/TẮT`, Tải `.docx`/`.pdf` | **11 Tasks** (`MOB-2.1` → `2.11`) | RAG Guardrail & TTS Lifecycle (`45/45` Tests PASS) | ✅ Hoàn thành |
 | **Chặng M3** | `feature/mobile-phase3-smart-form-vision` | Tab 2 (`SmartFormPrecheckScreen`): Quét QR CCCD 60fps, AI Vision Gate 3 tiêu chí, 4 mẫu đơn | **14 Tasks** (`MOB-3.1` → `3.14`) | Vision Gate + 4-Form Rule Engine (`57/57` Tests PASS) | ✅ Hoàn thành |
 | **Chặng M4** | `feature/mobile-phase4-qr-wallet-and-gps` | Tab 3 (`DossierAndQrPassScreen` SQLite Offline + PDF) & Tab 4 (`FieldIncidentReportScreen` GPS 25m) | **11 Tasks** (`MOB-4.1` → `4.11`) | Offline Airplane Mode + GPS 25m (`63/63` Tests PASS) | ✅ Hoàn thành |
@@ -43,10 +43,10 @@
 ---
 
 ## 🏗️ CHẶNG M1: KHỞI TẠO DỰ ÁN `mobile/`, HỆ THỐNG DESIGN TOKENS & TẦNG SHARED CORE
-> **Mục tiêu:** Dựng bộ khung React Native + Expo SDK 52 hoàn chỉnh tại `e:\SmartWardAI\mobile\`, nạp bộ token thiết kế, tái sử dụng 100% thuật toán cốt lõi từ Web và hoàn thành luồng Chọn 96 Xã/Phường An Giang + Thanh Header cố định.
+> **Mục tiêu:** Dựng bộ khung React Native 0.88.1 + Expo SDK 58 hoàn chỉnh tại `e:\SmartWardAI\mobile\`, nạp bộ token thiết kế, tái sử dụng 100% thuật toán cốt lõi từ Web và hoàn thành luồng Chọn 96 Xã/Phường An Giang + Thanh Header cố định.
 
 - [x] **MOB-1.1 [Khởi tạo `mobile/package.json` & Cấu hình TypeScript]:**
-  - Khởi tạo `e:\SmartWardAI\mobile\package.json` với Expo SDK 52 (`expo`, `react`, `react-native`, `@react-navigation/native`, `@react-navigation/bottom-tabs`, `expo-camera`, `expo-location`, `expo-speech`, `expo-sqlite`, `expo-file-system`, `expo-sharing`, `expo-print`, `expo-image-picker`, `expo-document-picker`, `expo-image-manipulator`, `expo-secure-store`, `@react-native-async-storage/async-storage`, `@tanstack/react-query`, `axios`, `react-native-svg`, `react-native-qrcode-svg`, `react-native-maps`, `lucide-react-native`).
+  - Khởi tạo `e:\SmartWardAI\mobile\package.json` với Expo SDK 58 / RN 0.88.1 (`expo`, `react`, `react-native`, `@react-navigation/native`, `@react-navigation/bottom-tabs`, `expo-camera`, `expo-location`, `expo-speech`, `expo-sqlite`, `expo-file-system`, `expo-sharing`, `expo-print`, `expo-image-picker`, `expo-document-picker`, `expo-image-manipulator`, `expo-secure-store`, `@react-native-async-storage/async-storage`, `@tanstack/react-query`, `axios`, `react-native-svg`, `react-native-qrcode-svg`, `react-native-maps`, `lucide-react-native`).
   - Tạo `mobile/tsconfig.json` bật `"strict": true` và `mobile/babel.config.js`.
 - [x] **MOB-1.2 [Cấu hình Quyền Phần cứng trong `mobile/app.json`]:**
   - Khai báo đầy đủ quyền tiếng Việt rõ ràng cho người dân:
