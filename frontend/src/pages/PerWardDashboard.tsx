@@ -61,6 +61,9 @@ interface LocalIncident {
   officerNote?: string;
   locationSource?: string;
   locationAccuracyM?: number;
+  photoUrls?: string[];
+  photoCount?: number;
+  reports?: Array<{ reportCode: string; description: string; submittedAt?: string; photoUrls?: string[] }>;
   is_mock?: boolean;
 }
 
@@ -854,6 +857,7 @@ export const PerWardDashboard: React.FC = () => {
               <div class="flex items-center gap-2 mt-1">
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold text-white" style="background:${markerColor}">${inc.urgency}</span>
                 <span class="text-[10px] text-[#334155] font-semibold">${inc.duplicatesMerged} phản ánh</span>
+                ${(inc.photoCount ?? inc.photoUrls?.length ?? 0) > 0 ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 font-bold">📷 ${inc.photoCount ?? inc.photoUrls?.length} ảnh</span>` : ''}
               </div>
             </div>`
           );
@@ -1058,6 +1062,9 @@ export const PerWardDashboard: React.FC = () => {
           reporterPhone: '0988.***.012',
           locationSource: c.locationSource,
           locationAccuracyM: c.locationAccuracyM,
+          photoUrls: c.photoUrls || [],
+          photoCount: c.photoCount ?? (c.photoUrls?.length ?? 0),
+          reports: c.reports || [],
           officerNote: `Đã tổng hợp các phản ánh trùng vị trí từ người dân.`,
         };
       });
@@ -1526,6 +1533,11 @@ export const PerWardDashboard: React.FC = () => {
                             <span className="text-xs font-mono font-bold text-[#DC2626] flex items-center gap-1 mt-1">
                               <PhoneCall className="w-3 h-3 shrink-0" />
                               <span>SĐT liên hệ: {inc.reporterPhone}</span>
+                            </span>
+                          )}
+                          {(inc.photoCount ?? inc.photoUrls?.length ?? 0) > 0 && (
+                            <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md bg-sky-50 border border-sky-200 text-[11px] font-bold text-sky-800">
+                              <span>📷 {inc.photoCount ?? inc.photoUrls?.length} ảnh hiện trường</span>
                             </span>
                           )}
                         </td>

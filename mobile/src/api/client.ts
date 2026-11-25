@@ -17,6 +17,7 @@ import type {
   DossierSubmissionResponse,
   DossierTrackingRequest,
   DossierTrackingResponse,
+  IncidentPhotoUploadResponse,
   IssueClusterDto,
   OfficerChangePinRequest,
   OfficerDossierDto,
@@ -402,6 +403,23 @@ export async function reviewOfficerDossier(
 // ============================================================================
 // 4. Field Incident Reporting & 2-Phase GPS Triage (Module 3 — Verified Paths)
 // ============================================================================
+
+export async function uploadIncidentPhoto(
+  uri: string,
+  wardCode: string,
+  fileName = `incident_${Date.now()}.jpg`,
+  mimeType = 'image/jpeg'
+): Promise<IncidentPhotoUploadResponse> {
+  const formData = new FormData();
+  formData.append('file', { uri, name: fileName, type: mimeType } as unknown as Blob);
+  formData.append('wardCode', wardCode);
+  const resp = await apiClient.post<ApiResponse<IncidentPhotoUploadResponse>>(
+    '/issues/photos',
+    formData,
+    { headers: { 'Content-Type': 'multipart/form-data' } }
+  );
+  return unwrapData(resp.data);
+}
 
 export async function submitCivicIncidentReport(
   request: CivicReportRequest,

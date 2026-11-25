@@ -177,6 +177,9 @@ public class TwoStageTriageService {
                 .wardCode(dto.getWardCode())
                 .firstReportedAt(dto.getFirstReportedAt())
                 .lastReportedAt(dto.getLastReportedAt())
+                .photoUrls(null)
+                .photoCount(0)
+                .reports(null)
                 .build();
     }
 
@@ -364,6 +367,11 @@ public class TwoStageTriageService {
             // Update Redis GEO spatial index with new centroid
             spatialIndexService.addClusterLocation(bestCluster.getClusterCode(), newLon.doubleValue(), newLat.doubleValue());
 
+            List<String> sanitizedPhotoKeys = sanitizePhotoKeys(request.getPhotoKeys(), request.getImageUrl());
+            String primaryImage = (request.getImageUrl() != null && !request.getImageUrl().isBlank())
+                    ? request.getImageUrl()
+                    : (sanitizedPhotoKeys.isEmpty() ? null : sanitizedPhotoKeys.get(0));
+
             CivicReport report = CivicReport.builder()
                     .reportCode(reportCode)
                     .cluster(bestCluster)
@@ -371,7 +379,8 @@ public class TwoStageTriageService {
                     .description(request.getDescription())
                     .latitude(request.getLatitude())
                     .longitude(request.getLongitude())
-                    .imageUrl(request.getImageUrl())
+                    .imageUrl(primaryImage)
+                    .photoKeys(sanitizedPhotoKeys)
                     .addressText(request.getAddressText())
                     .locationAccuracyM(request.getLocationAccuracyM())
                     .locationSource(normalizedSource)
@@ -425,6 +434,11 @@ public class TwoStageTriageService {
             // Add to Redis GEO index
             spatialIndexService.addClusterLocation(clusterCode, lon, lat);
 
+            List<String> sanitizedPhotoKeys = sanitizePhotoKeys(request.getPhotoKeys(), request.getImageUrl());
+            String primaryImage = (request.getImageUrl() != null && !request.getImageUrl().isBlank())
+                    ? request.getImageUrl()
+                    : (sanitizedPhotoKeys.isEmpty() ? null : sanitizedPhotoKeys.get(0));
+
             CivicReport report = CivicReport.builder()
                     .reportCode(reportCode)
                     .cluster(savedCluster)
@@ -432,7 +446,8 @@ public class TwoStageTriageService {
                     .description(request.getDescription())
                     .latitude(request.getLatitude())
                     .longitude(request.getLongitude())
-                    .imageUrl(request.getImageUrl())
+                    .imageUrl(primaryImage)
+                    .photoKeys(sanitizedPhotoKeys)
                     .addressText(request.getAddressText())
                     .locationAccuracyM(request.getLocationAccuracyM())
                     .locationSource(normalizedSource)
@@ -538,15 +553,65 @@ public class TwoStageTriageService {
         return bestWardCode;
     }
 
+    private List<String> sanitizePhotoKeys(List<String> rawKeys, String legacyImageUrl) {
+        LinkedHashSet<String> clean = new LinkedHashSet<>();
+        if (rawKeys != null) {
+            for (String k : rawKeys) {
+                if (IncidentPhotoService.isValidPhotoKey(k)) {
+                    clean.add(k.trim());
+                    if (clean.size() >= 3) break;
+                }
+            }
+        }
+        if (clean.isEmpty() && IncidentPhotoService.isValidPhotoKey(legacyImageUrl)) {
+            clean.add(legacyImageUrl.trim());
+        }
+        return new ArrayList<>(clean);
+    }
+
     private IssueClusterDto toClusterDto(IssueCluster c) {
         String addr = null;
         String locSource = null;
         Double acc = null;
-        if (c.getReports() != null && !c.getReports().isEmpty()) {
-            CivicReport latest = c.getReports().get(c.getReports().size() - 1);
+        List<CivicReport> clusterReports = (c.getReports() != null && !c.getReports().isEmpty())
+                ? c.getReports()
+                : (c.getId() != null && reportRepository != null ? reportRepository.findByClusterId(c.getId()) : Collections.emptyList());
+        if (clusterReports == null) {
+            clusterReports = Collections.emptyList();
+        }
+
+        LinkedHashSet<String> aggregatedPhotoUrls = new LinkedHashSet<>();
+        List<IssueClusterDto.ClusterReportItem> reportItems = new ArrayList<>();
+
+        if (!clusterReports.isEmpty()) {
+            CivicReport latest = clusterReports.get(clusterReports.size() - 1);
             addr = latest.getAddressText();
             locSource = latest.getLocationSource();
             acc = latest.getLocationAccuracyM();
+
+            for (CivicReport r : clusterReports) {
+                List<String> rUrls = new ArrayList<>();
+                if (r.getPhotoKeys() != null) {
+                    for (String k : r.getPhotoKeys()) {
+                        if (IncidentPhotoService.isValidPhotoKey(k)) {
+                            String url = "/api/v1/issues/officer/photos/" + k.trim();
+                            rUrls.add(url);
+                            aggregatedPhotoUrls.add(url);
+                        }
+                    }
+                }
+                if (rUrls.isEmpty() && IncidentPhotoService.isValidPhotoKey(r.getImageUrl())) {
+                    String url = "/api/v1/issues/officer/photos/" + r.getImageUrl().trim();
+                    rUrls.add(url);
+                    aggregatedPhotoUrls.add(url);
+                }
+                reportItems.add(IssueClusterDto.ClusterReportItem.builder()
+                        .reportCode(r.getReportCode())
+                        .description(r.getDescription())
+                        .submittedAt(r.getSubmittedAt())
+                        .photoUrls(rUrls)
+                        .build());
+            }
         }
 
         String resolvedWardCode = c.getWardCode();
@@ -560,6 +625,7 @@ public class TwoStageTriageService {
             );
         }
 
+        List<String> photoUrlList = new ArrayList<>(aggregatedPhotoUrls);
         return IssueClusterDto.builder()
                 .id(c.getId())
                 .clusterCode(c.getClusterCode())
@@ -575,6 +641,9 @@ public class TwoStageTriageService {
                 .wardCode(resolvedWardCode)
                 .firstReportedAt(c.getFirstReportedAt())
                 .lastReportedAt(c.getLastReportedAt())
+                .photoUrls(photoUrlList)
+                .photoCount(photoUrlList.size())
+                .reports(reportItems)
                 .build();
     }
 

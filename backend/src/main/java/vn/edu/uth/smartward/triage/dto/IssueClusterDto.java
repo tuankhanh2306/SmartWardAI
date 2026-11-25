@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 /**
  * Incident cluster DTO for ward officer map view and dashboard.
@@ -58,4 +59,25 @@ public class IssueClusterDto {
 
     @Schema(description = "Thời điểm nhận phản ánh gần nhất")
     private OffsetDateTime lastReportedAt;
+
+    @Schema(description = "Danh sách đường dẫn xem ảnh hiện trường dành riêng cho Cán bộ UBND (bị xóa sạch ở API công khai)")
+    private List<String> photoUrls;
+
+    @Schema(description = "Tổng số ảnh hiện trường đính kèm trong cụm (0 ở API công khai)")
+    private Integer photoCount;
+
+    @Schema(description = "Danh sách phản ánh con trong cụm (chỉ trả về cho Cán bộ UBND)")
+    private List<ClusterReportItem> reports;
+
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ClusterReportItem {
+        private String reportCode;
+        private String description;
+        private OffsetDateTime submittedAt;
+        private List<String> photoUrls;
+    }
 }

@@ -243,6 +243,15 @@ export interface CivicReportRequest {
   wardName?: string;
   locationAccuracyM?: number;
   locationSource?: string;
+  photoKeys?: string[];
+}
+
+export interface IncidentPhotoUploadResponse {
+  photoKey: string;
+  viewUrl: string;
+  contentType: string;
+  sizeBytes: number;
+  exifStripped: boolean;
 }
 
 export interface CivicReportResponse {
@@ -276,6 +285,8 @@ export interface IssueClusterDto {
   reportCount: number;
   wardCode?: string;
   wardName?: string;
+  photoUrls?: string[];
+  photoCount?: number;
   createdAt: string;
   lastReportAt: string;
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import {
-  AlertCircle, AlertTriangle, Check, CheckCircle2,
-  Layers, MapPin, Navigation, PhoneCall, Radio, RefreshCw, RotateCcw, Send, Shield
+  AlertCircle, AlertTriangle, Camera, Check, CheckCircle2,
+  Layers, MapPin, Navigation, PhoneCall, Radio, RefreshCw, RotateCcw, Send, Shield, X
 } from 'lucide-react';
 import { AN_GIANG_WARDS, type WardItem } from '../../data/anGiangWards';
 import type { IssueReportResponse, LiveCitizenIncident } from '../../api/client';
@@ -51,6 +51,9 @@ export interface CivicIncidentTabProps {
   onResetAddressFromPin?: () => void;
   incidentErrors?: Record<string, string>;
   onClearIncidentError?: (field: string) => void;
+  incidentPhotos?: Array<{ file: File; previewUrl: string }>;
+  onAddIncidentPhotos?: (files: FileList | null) => void;
+  onRemoveIncidentPhoto?: (index: number) => void;
 }
 
 export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
@@ -64,6 +67,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
     latitude, longitude, reportResult, myIncidents,
     userGpsLocation, onLocationChange, onRecenterToGps, isAddressManuallyEdited, isGeocodingAddress, onResetAddressFromPin,
     incidentErrors, onClearIncidentError,
+    incidentPhotos = [], onAddIncidentPhotos, onRemoveIncidentPhoto,
   } = props;
 
   return (
@@ -325,6 +329,56 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                     </p>
                   )}
                 </div>
+
+                {/* TASK-031: Citizen Web Field Photos (max 3, JPEG/PNG/WebP <= 5MB) */}
+                {onAddIncidentPhotos && (
+                  <div className="flex flex-col gap-2 p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1]">
+                    <div className="flex items-center justify-between gap-2">
+                      <label htmlFor="p4-incident-photos" className="text-xs font-bold text-[#334155] flex items-center gap-1.5">
+                        <Camera className="w-3.5 h-3.5 text-[#B90E23]" />
+                        <span>Ảnh hiện trường ({incidentPhotos.length}/3 ảnh, tùy chọn)</span>
+                      </label>
+                      {incidentPhotos.length < 3 && (
+                        <label
+                          htmlFor="p4-incident-photos"
+                          className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#FEF2F2] text-[#750715] border border-[#CBD5E1] text-[11px] font-bold cursor-pointer"
+                        >
+                          + Chọn ảnh
+                        </label>
+                      )}
+                    </div>
+                    <input
+                      id="p4-incident-photos"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => {
+                        onAddIncidentPhotos(e.target.files);
+                        e.currentTarget.value = '';
+                      }}
+                    />
+                    {incidentPhotos.length > 0 && (
+                      <div className="grid grid-cols-3 gap-2">
+                        {incidentPhotos.map((item, idx) => (
+                          <div key={item.previewUrl} className="relative aspect-square rounded-lg overflow-hidden border border-[#CBD5E1] bg-white">
+                            <img src={item.previewUrl} alt={`Ảnh sự cố ${idx + 1}`} className="w-full h-full object-cover" />
+                            {onRemoveIncidentPhoto && (
+                              <button
+                                type="button"
+                                onClick={() => onRemoveIncidentPhoto(idx)}
+                                aria-label={`Xóa ảnh ${idx + 1}`}
+                                className="absolute top-1 right-1 p-1 rounded-full bg-black/70 text-white hover:bg-red-600 cursor-pointer"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* STEP 3: OPTIONAL CONTACT PHONE NUMBER */}

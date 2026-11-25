@@ -3,6 +3,7 @@ import { useLocation, useSearchParams, useNavigate } from 'react-router-dom';
 import {
   precheckForm,
   reportIssue,
+  uploadIncidentPhoto,
   getLiveSubmittedDossiers,
   saveLiveSubmittedDossier,
   getCitizenEmailNotifications,
@@ -366,6 +367,27 @@ export const FormAndIssueReporting: React.FC = () => {
   const [gpsLoading, setGpsLoading] = useState(false);
   const [reportLoading, setReportLoading] = useState(false);
   const [reportResult, setReportResult] = useState<IssueReportResponse | null>(null);
+  const [incidentPhotos, setIncidentPhotos] = useState<Array<{ file: File; previewUrl: string }>>([]);
+
+  const handleAddIncidentPhotos = useCallback((files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    setIncidentPhotos((prev) => {
+      const remaining = Math.max(0, 3 - prev.length);
+      const valid = Array.from(files)
+        .filter((f) => ['image/jpeg', 'image/png', 'image/webp'].includes(f.type) && f.size <= 5 * 1024 * 1024)
+        .slice(0, remaining)
+        .map((file) => ({ file, previewUrl: URL.createObjectURL(file) }));
+      return [...prev, ...valid];
+    });
+  }, []);
+
+  const handleRemoveIncidentPhoto = useCallback((index: number) => {
+    setIncidentPhotos((prev) => {
+      const removed = prev[index];
+      if (removed) URL.revokeObjectURL(removed.previewUrl);
+      return prev.filter((_, i) => i !== index);
+    });
+  }, []);
 
   // Text-To-Speech (Hỗ trợ người cao tuổi & khiếm thị theo Đề án 06 với 2 chế độ TẮT / MỞ)
   const [speakingId, setSpeakingId] = useState<string | null>(null);
@@ -1737,6 +1759,16 @@ export const FormAndIssueReporting: React.FC = () => {
 
     setReportLoading(true);
     try {
+      const uploadedPhotoKeys: string[] = [];
+      for (const item of incidentPhotos.slice(0, 3)) {
+        try {
+          const uploaded = await uploadIncidentPhoto(item.file, targetWard.code);
+          if (uploaded?.photoKey) uploadedPhotoKeys.push(uploaded.photoKey);
+        } catch {
+          // Non-fatal in offline demo fallback; continue submitting report
+        }
+      }
+
       const res = await reportIssue({
         category,
         latitude,
@@ -1750,8 +1782,11 @@ export const FormAndIssueReporting: React.FC = () => {
         urgency,
         locationAccuracyM: gpsAccuracy || undefined,
         locationSource,
+        photoKeys: uploadedPhotoKeys.length > 0 ? uploadedPhotoKeys : undefined,
       });
       setReportResult(res);
+      incidentPhotos.forEach((p) => URL.revokeObjectURL(p.previewUrl));
+      setIncidentPhotos([]);
       setMyIncidents(getLiveSubmittedIncidents());
     } catch {
       alert('Không thể gửi phản ánh tới hệ thống phân luồng.');
@@ -3756,6 +3791,9 @@ export const FormAndIssueReporting: React.FC = () => {
           onResetAddressFromPin={handleResetAddressFromPin}
           incidentErrors={incidentErrors}
           onClearIncidentError={(field) => setIncidentErrors((prev) => ({ ...prev, [field]: '' }))}
+          incidentPhotos={incidentPhotos}
+          onAddIncidentPhotos={handleAddIncidentPhotos}
+          onRemoveIncidentPhoto={handleRemoveIncidentPhoto}
         />
       )}
 
