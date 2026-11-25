@@ -210,6 +210,18 @@ public class FormPrecheckService {
      * - TK-BTXH: Tờ khai Trợ cấp xã hội hàng tháng (Mẫu số 01 Nghị định 20/2021/NĐ-CP)
      */
     public StructuredFormPrecheckResponse precheckStructuredForm(StructuredFormPrecheckRequest req) {
+        return evaluateStructuredForm(req, true);
+    }
+
+    /**
+     * Read-only structured draft validation for AI Agent Draft-Only flow (TASK-037).
+     * Reuses the exact deterministic form strategies without persisting any database records.
+     */
+    public StructuredFormPrecheckResponse validateStructuredDraft(StructuredFormPrecheckRequest req) {
+        return evaluateStructuredForm(req, false);
+    }
+
+    private StructuredFormPrecheckResponse evaluateStructuredForm(StructuredFormPrecheckRequest req, boolean persistAudit) {
         long startNs = System.nanoTime();
         String formType = (req.getFormType() != null && !req.getFormType().isBlank()) ? req.getFormType().trim().toUpperCase() : "CT01";
         String procedureCode = (req.getProcedureCode() != null && !req.getProcedureCode().isBlank()) ? req.getProcedureCode() : "TTHC-CT-01";
@@ -263,20 +275,22 @@ public class FormPrecheckService {
         if (elapsedMs < 1.0) elapsedMs = 4.2;
 
         String submissionId = generateSubmissionCode();
-        try {
-            FormSubmission submission = FormSubmission.builder()
-                    .submissionCode(submissionId)
-                    .formType(formType)
-                    .filePath("structured_declaration_" + formType.toLowerCase() + ".json")
-                    .ocrRawResult(objectMapper.writeValueAsString(data))
-                    .validationReport(objectMapper.writeValueAsString(validations))
-                    .isValid(overallValid)
-                    .confidenceScore(overallValid ? BigDecimal.valueOf(0.990) : BigDecimal.valueOf(0.650))
-                    .build();
-            submissionRepository.save(submission);
-            log.info("Persisted structured FormSubmission [{}] - Type: {}, Valid: {}", submissionId, formType, overallValid);
-        } catch (Exception e) {
-            log.warn("Failed to persist structured FormSubmission audit log: {}", e.getMessage());
+        if (persistAudit) {
+            try {
+                FormSubmission submission = FormSubmission.builder()
+                        .submissionCode(submissionId)
+                        .formType(formType)
+                        .filePath("structured_declaration_" + formType.toLowerCase() + ".json")
+                        .ocrRawResult(objectMapper.writeValueAsString(data))
+                        .validationReport(objectMapper.writeValueAsString(validations))
+                        .isValid(overallValid)
+                        .confidenceScore(overallValid ? BigDecimal.valueOf(0.990) : BigDecimal.valueOf(0.650))
+                        .build();
+                submissionRepository.save(submission);
+                log.info("Persisted structured FormSubmission [{}] - Type: {}, Valid: {}", submissionId, formType, overallValid);
+            } catch (Exception e) {
+                log.warn("Failed to persist structured FormSubmission audit log: {}", e.getMessage());
+            }
         }
 
         DocumentCrossCheckResult primaryCross = crossCheckResults.isEmpty() ? null : crossCheckResults.get(0);
