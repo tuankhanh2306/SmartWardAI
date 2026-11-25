@@ -1,6 +1,6 @@
 # SmartWard AI — Nền Tảng Hỗ Trợ Thủ Tục Hành Chính & Phân Luồng Phản Ánh Cấp Phường/Xã
 
-> **Kiến trúc kỹ thuật:** Modular Monolith (`Spring Boot 3.3.5` + `Java 21`), Feature-Sliced Web PWA (`React 18` + `TypeScript` + `Vite 6`), Native Mobile App (`React Native` + `Expo SDK 52`) & AI Sidecar (`FastAPI` + `PhoBERT ONNX INT8`)  
+> **Kiến trúc kỹ thuật:** Modular Monolith (`Spring Boot 3.3.5` + `Java 21`), Feature-Sliced Web PWA (`React 18` + `TypeScript` + `Vite 6`), Native Mobile App (`React Native 0.88.1` + `Expo SDK 58`) & AI Sidecar (`FastAPI` + `PhoBERT ONNX INT8`)  
 > **Ràng buộc hạ tầng:** Zero-Cost Architecture (Toàn bộ 6 container Docker vận hành `<= 2048 MiB` RAM, chi phí bản quyền 0 VNĐ)  
 > **Tình trạng kiểm chứng gần nhất (`develop`, 23/11/2026 — sau Pha A + Pha B):** `554` JUnit Tests (`553` PASS gồm Testcontainers `pgvector`/Redis + `1` skip pre-existing, `0` fail) • `11/11` Frontend Suites & Vite Build PASS • `77/77` Mobile Vitest PASS • `6/6` Docker Containers Healthy (`975.68 / 2048 MiB` idle, `1,075.60 / 2048 MiB` sau 10-worker AI stress, `0` OOM) • `sync-shared-catalogs --check` PASS
 
@@ -84,7 +84,7 @@ SmartWardAI/
 │   │   ├── services/               # Tesseract OCR WASM, Gemini Client, Intent Classifier
 │   │   └── utils/                  # CCCD QR Parser, GIS Polygon Validator, DOCX/PDF Exporter
 │   └── scripts/                    # Bộ kiểm thử hồi quy (run_all_tests.mjs — 10 suites + Vite build)
-├── mobile/                         # React Native + Expo SDK 52 + TypeScript + Vitest
+├── mobile/                         # React Native 0.88.1 + Expo SDK 58 + TypeScript + Vitest
 │   └── src/
 │       ├── api/                    # Axios client (Idempotency-Key), offlineSyncManager.ts
 │       ├── core/                   # 40 TTHC offline, angiangWardsCatalog.ts, formValidators, QR/PDF pass
@@ -194,7 +194,7 @@ npm run dev
 
 ---
 
-### Cách 4: Cài đặt & Chạy Ứng dụng Di động (`mobile/` — Expo SDK 52)
+### Cách 4: Cài đặt & Chạy Ứng dụng Di động (`mobile/` — Expo SDK 58 / RN 0.88.1)
 
 ```bash
 cd mobile

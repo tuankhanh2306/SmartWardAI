@@ -492,6 +492,33 @@ public class CitizenDossierService {
         return candidate;
     }
 
+    /**
+     * Statutory Vietnamese Lunar public holidays for 2026-2027 (Labor Code 2019 Art. 111 & 112):
+     * - 2026 Tet Binh Ngo (5 working days: Mon 16/02 -> Fri 20/02/2026) & Hung Kings' Commemoration (Sun 26/04 + Mon 27/04 compensatory)
+     * - 2027 Tet Dinh Mui (Fri 05/02 -> Thu 11/02/2027 incl. weekend compensatory days) & Hung Kings' Commemoration (Fri 16/04/2027)
+     */
+    private static final java.util.Set<java.time.LocalDate> VIETNAM_LUNAR_PUBLIC_HOLIDAYS = java.util.Set.of(
+            // 2026 Tết Nguyên Đán Bính Ngọ (29 tháng Chạp -> Mùng 4 Tết)
+            java.time.LocalDate.of(2026, 2, 16),
+            java.time.LocalDate.of(2026, 2, 17),
+            java.time.LocalDate.of(2026, 2, 18),
+            java.time.LocalDate.of(2026, 2, 19),
+            java.time.LocalDate.of(2026, 2, 20),
+            // 2026 Giỗ Tổ Hùng Vương (10/3 ÂL rơi vào Chủ Nhật 26/04 -> nghỉ bù Thứ Hai 27/04)
+            java.time.LocalDate.of(2026, 4, 26),
+            java.time.LocalDate.of(2026, 4, 27),
+            // 2027 Tết Nguyên Đán Đinh Mùi (29 tháng Chạp 05/02 -> Mùng 4 09/02 + 2 ngày nghỉ bù 10-11/02)
+            java.time.LocalDate.of(2027, 2, 5),
+            java.time.LocalDate.of(2027, 2, 6),
+            java.time.LocalDate.of(2027, 2, 7),
+            java.time.LocalDate.of(2027, 2, 8),
+            java.time.LocalDate.of(2027, 2, 9),
+            java.time.LocalDate.of(2027, 2, 10),
+            java.time.LocalDate.of(2027, 2, 11),
+            // 2027 Giỗ Tổ Hùng Vương (10/3 ÂL = Thứ Sáu 16/04/2027)
+            java.time.LocalDate.of(2027, 4, 16)
+    );
+
     public static Instant calculateWorkingDayDeadline(Instant submissionTime, int workingDays) {
         return calculateWorkingDayDeadline(submissionTime, workingDays, ZoneOffset.UTC);
     }
@@ -514,15 +541,16 @@ public class CitizenDossierService {
             DayOfWeek dow = current.getDayOfWeek();
             boolean isWeekend = (dow == DayOfWeek.SATURDAY || dow == DayOfWeek.SUNDAY);
 
-            // Statutory Vietnamese Public Holidays: 1/1, 30/4, 1/5, 2/9 (6.2)
+            // Statutory Vietnamese Public Holidays: Solar (1/1, 30/4, 1/5, 2-3/9) + Lunar (Tet & Hung Kings 2026-2027)
             int month = current.getMonthValue();
             int day = current.getDayOfMonth();
-            boolean isHoliday = (month == 1 && day == 1)
+            boolean isSolarHoliday = (month == 1 && day == 1)
                     || (month == 4 && day == 30)
                     || (month == 5 && day == 1)
                     || (month == 9 && (day == 2 || day == 3));
+            boolean isLunarHoliday = VIETNAM_LUNAR_PUBLIC_HOLIDAYS.contains(current.toLocalDate());
 
-            if (!isWeekend && !isHoliday) {
+            if (!isWeekend && !isSolarHoliday && !isLunarHoliday) {
                 added++;
             }
         }
