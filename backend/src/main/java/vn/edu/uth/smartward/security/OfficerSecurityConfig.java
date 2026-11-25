@@ -82,6 +82,7 @@ public class OfficerSecurityConfig {
                                 "/api/v1/auth/officer/change-pin", "/api/v1/officer/change-pin", "/api/v1/auth/change-pin"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/rag/ask", "/api/v1/rag/feedback").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/agent/chat").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/voice/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/procedures/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/issues/report", "/api/v1/issues/photos").permitAll()
