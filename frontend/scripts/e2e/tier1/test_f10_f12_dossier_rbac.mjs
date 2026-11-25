@@ -195,7 +195,7 @@ export async function runTests(assertContext) {
     }
   );
 
-  // T1_F11_05: Officer requests supplement with specific reason
+  // T1_F11_05: Officer requests supplement with specific reason on a fresh SUBMITTED dossier
   await assertContext.runTest(
     { testId: 'T1_F11_05', featureCode: 'F11', tierCode: 'tier1' },
     'PUT /api/v1/dossiers/{code}/review updates status to SUPPLEMENT_REQUIRED with feedback',
@@ -203,8 +203,23 @@ export async function runTests(assertContext) {
       const loginRes = await loginOfficer();
       const officerToken = loginRes.data?.data?.token;
 
+      const createSuppRes = await apiClient.post('/api/v1/dossiers', {
+        dossierCode: `HS-SUPP-${Date.now().toString().slice(-6)}`,
+        procedureCode: 'TTHC-CR-01',
+        wardCode: 'AG_P_LONGXUYEN',
+        citizenCccd: '089095012345',
+        formData: {
+          fullName: 'NGUYỄN VĂN AN',
+          address: 'Phường Mỹ Xuyên, TP Long Xuyên, An Giang',
+        },
+        precheckReport: { overallValid: true },
+      });
+      assertContext.assertStatusCode(createSuppRes.status, 201, 'Create SUBMITTED dossier for SUPPLEMENT_REQUIRED');
+      const suppDossierCode = createSuppRes.data?.data?.dossierCode;
+      assertContext.assert(Boolean(suppDossierCode), 'Fresh dossier code must be returned');
+
       const res = await apiClient.put(
-        `/api/v1/dossiers/${createdDossierCode}/review`,
+        `/api/v1/dossiers/${suppDossierCode}/review`,
         {
           status: 'SUPPLEMENT_REQUIRED',
           officerFeedback: 'Vui lòng bổ sung bản chụp mặt sau CCCD và hợp đồng thuê nhà.',

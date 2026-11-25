@@ -21,7 +21,10 @@ public class RedisRateLimiter {
     private final StringRedisTemplate stringRedisTemplate;
 
     @Value("${smartward.rate-limit.requests-per-minute:5}")
-    private int maxRequestsPerMinute;
+    private int maxRequestsPerMinute = 5;
+
+    @Value("${smartward.rate-limit.vault-uploads-per-window:20}")
+    private int maxVaultUploadsPerWindow = 20;
 
     private static final String RATE_LIMIT_PREFIX = "smartward:ratelimit:";
 
@@ -140,8 +143,8 @@ public class RedisRateLimiter {
      */
     public boolean allowVaultUpload(String clientIp, String uploadSessionId) {
         String safeIp = (clientIp != null && !clientIp.isBlank()) ? clientIp.trim() : "anonymous";
-        if (!checkWindowLimit("smartward:ratelimit:vault:ip:" + safeIp, 20, Duration.ofMinutes(10))) {
-            log.warn("Vault upload rate limit EXCEEDED for IP: {} (>20 / 10m)", safeIp);
+        if (!checkWindowLimit("smartward:ratelimit:vault:ip:" + safeIp, maxVaultUploadsPerWindow, Duration.ofMinutes(10))) {
+            log.warn("Vault upload rate limit EXCEEDED for IP: {} (>{} / 10m)", safeIp, maxVaultUploadsPerWindow);
             return false;
         }
         if (uploadSessionId != null && !uploadSessionId.isBlank()) {
