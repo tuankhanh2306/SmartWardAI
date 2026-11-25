@@ -16,13 +16,15 @@ export interface DossierTrackingTabProps {
   trackingLoading: boolean;
   myDossiers: LiveFormDossier[];
   trackingResult: DossierTrackingResponse | null;
+  trackingFieldErrors?: Record<string, string>;
+  onClearTrackingError?: (field: string) => void;
 }
 
 export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => {
   const {
     currentWard, handleTrackDossier, trackingDossierCode, setTrackingDossierCode,
     trackingLast4Cccd, setTrackingLast4Cccd, trackingError, trackingLoading,
-    myDossiers, trackingResult,
+    myDossiers, trackingResult, trackingFieldErrors, onClearTrackingError,
   } = props;
 
   return (
@@ -37,10 +39,10 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                   </div>
                   <div>
                     <h2 className="text-sm sm:text-base font-extrabold text-[#881320] uppercase tracking-wide">
-                      Tra Cứu Tiến Độ Giải Quyết Hồ Sơ
+                      Tra cứu tiến độ hồ sơ
                     </h2>
                     <p className="text-xs text-slate-600 mt-0.5">
-                      Truy vấn dữ liệu thời gian thực Một cửa UBND {currentWard.name}
+                      Dữ liệu trực tuyến UBND {currentWard.name}
                     </p>
                   </div>
                 </div>
@@ -50,35 +52,61 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
               <form onSubmit={handleTrackDossier} className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="tracking-dossier-code" className="text-xs font-bold text-[#334155] flex items-center justify-between">
-                    <span>Mã số hồ sơ (In trên biên nhận hoặc cấp khi nộp):</span>
+                    <span>Mã hồ sơ:</span>
                     <span className="text-[10px] text-[#991B1B] font-semibold">* Bắt buộc</span>
                   </label>
                   <input
                     id="tracking-dossier-code"
                     type="text"
                     value={trackingDossierCode}
-                    onChange={(e) => setTrackingDossierCode(e.target.value)}
-                    placeholder="Ví dụ: HS-20261111-BENNGHE-0001"
-                    className="w-full h-11 px-3.5 rounded-xl border border-[#CBD5E1] font-mono text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#B90E23] focus:bg-white transition-all bg-[#F8FAFC]"
+                    onChange={(e) => {
+                      setTrackingDossierCode(e.target.value);
+                      if (trackingFieldErrors?.dossierCode) onClearTrackingError?.('dossierCode');
+                    }}
+                    aria-invalid={Boolean(trackingFieldErrors?.dossierCode)}
+                    placeholder="VD: HS-2026...-0001"
+                    className={`w-full h-11 px-3.5 rounded-xl border font-mono text-xs md:text-sm text-[#0F172A] focus:outline-none focus:bg-white transition-all bg-[#F8FAFC] ${
+                      trackingFieldErrors?.dossierCode
+                        ? 'border-red-500 ring-2 ring-red-200'
+                        : 'border-[#CBD5E1] focus:border-[#B90E23]'
+                    }`}
                   />
+                  {trackingFieldErrors?.dossierCode && (
+                    <p role="alert" className="text-xs font-medium text-red-700">
+                      {trackingFieldErrors.dossierCode}
+                    </p>
+                  )}
                 </div>
 
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="tracking-last4-cccd" className="text-xs font-bold text-[#334155] flex items-center justify-between">
-                    <span>4 số cuối CCCD / Số định danh công dân:</span>
-                    <span className="text-[10px] text-[#991B1B] font-semibold">* Xác thực bảo mật</span>
+                    <span>4 số cuối CCCD:</span>
+                    <span className="text-[10px] text-[#991B1B] font-semibold">* Bảo mật</span>
                   </label>
                   <input
                     id="tracking-last4-cccd"
                     type="text"
                     maxLength={12}
                     value={trackingLast4Cccd}
-                    onChange={(e) => setTrackingLast4Cccd(e.target.value)}
-                    placeholder="Ví dụ: 1234 (hoặc đủ 12 số CCCD)"
-                    className="w-full h-11 px-3.5 rounded-xl border border-[#CBD5E1] font-mono text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#B90E23] focus:bg-white transition-all bg-[#F8FAFC]"
+                    onChange={(e) => {
+                      setTrackingLast4Cccd(e.target.value);
+                      if (trackingFieldErrors?.last4Cccd) onClearTrackingError?.('last4Cccd');
+                    }}
+                    aria-invalid={Boolean(trackingFieldErrors?.last4Cccd)}
+                    placeholder="VD: 1234 (hoặc 12 số)"
+                    className={`w-full h-11 px-3.5 rounded-xl border font-mono text-xs md:text-sm text-[#0F172A] focus:outline-none focus:bg-white transition-all bg-[#F8FAFC] ${
+                      trackingFieldErrors?.last4Cccd
+                        ? 'border-red-500 ring-2 ring-red-200'
+                        : 'border-[#CBD5E1] focus:border-[#B90E23]'
+                    }`}
                   />
+                  {trackingFieldErrors?.last4Cccd && (
+                    <p role="alert" className="text-xs font-medium text-red-700">
+                      {trackingFieldErrors.last4Cccd}
+                    </p>
+                  )}
                   <span className="text-[11px] text-slate-600">
-                    Hệ thống đối soát 4 số cuối với hồ sơ lưu trữ để bảo vệ dữ liệu cá nhân công dân theo quy định pháp luật hiện hành.
+                    Dùng để xác thực bảo mật hồ sơ của bạn.
                   </span>
                 </div>
 
@@ -102,7 +130,7 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                   ) : (
                     <>
                       <Search className="w-4 h-4" />
-                      <span>Tra Cứu Tiến Độ Ngay</span>
+                      <span>Tra cứu ngay</span>
                     </>
                   )}
                 </button>
@@ -192,7 +220,7 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                       <div className="flex items-center gap-2">
                         <Calendar className="w-4 h-4 text-[#2563EB] shrink-0" />
                         <div>
-                          <span className="font-bold block">Thời hạn cam kết giải quyết (SLA):</span>
+                          <span className="font-bold block">Hạn trả kết quả dự kiến:</span>
                           <span className="text-[11px] text-[#3B82F6]">
                             Theo quy định chuẩn dịch vụ Một cửa cấp xã
                           </span>
@@ -272,7 +300,7 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                   <div>
                     <h3 className="font-bold text-sm text-[#0F172A]">Chưa Có Kết Quả Tra Cứu</h3>
                     <p className="text-xs text-[#64748B] mt-1 max-w-xs leading-relaxed">
-                      Nhập mã hồ sơ và 4 số cuối CCCD ở khung bên trái để xem tiến độ giải quyết, phản hồi từ cán bộ Một cửa và thời hạn cam kết SLA.
+                      Nhập mã hồ sơ và 4 số cuối CCCD ở khung bên trái để xem tiến độ giải quyết, phản hồi từ cán bộ Một cửa và hạn trả kết quả dự kiến.
                     </p>
                   </div>
                 </div>
