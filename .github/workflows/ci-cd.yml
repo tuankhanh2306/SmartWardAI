@@ -79,7 +79,11 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Run Frontend Full Test Suite (11 Acceptance & Regression Suites)
+      - name: Install Playwright Chromium for Session Expiry E2E (QA-3.7)
+        working-directory: ./frontend
+        run: npx playwright install chromium
+
+      - name: Run Frontend Full Test Suite (12 Acceptance & Regression Suites)
         working-directory: ./frontend
         env:
           CI_FRONTEND_ONLY: 'true'
