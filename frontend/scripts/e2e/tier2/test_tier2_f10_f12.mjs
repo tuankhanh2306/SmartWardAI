@@ -163,9 +163,9 @@ export async function runTests(assertContext) {
   // T2_F11_01: Case-insensitive dossier code matching (hs-... vs HS-...)
   await assertContext.runTest(
     { testId: 'T2_F11_01', featureCode: 'F11', tierCode: 'tier2' },
-    'POST /api/v1/dossiers/track resolves lowercase dossierCode (hs-20261111-0001) case-insensitively',
+    'POST /api/v1/dossiers/track resolves lowercase dossierCode (hs-...) case-insensitively',
     async () => {
-      const lowercaseCode = 'hs-20261111-0001';
+      const lowercaseCode = `hs-20261111-${Date.now().toString().slice(-4)}`;
       const cccdSuffix = '1234';
 
       const res = await apiClient.post('/api/v1/dossiers/track', {
@@ -192,7 +192,7 @@ export async function runTests(assertContext) {
       assertContext.assertEqual(codeWithLeadingZero[0], '0', 'Leading character must remain 0');
 
       const res = await apiClient.post('/api/v1/dossiers/track', {
-        dossierCode: 'HS-20261111-0001',
+        dossierCode: `HS-20261111-ZERO-${Date.now().toString().slice(-4)}`,
         last4Cccd: codeWithLeadingZero,
       });
       const isHandled = res.status === 200 || res.status === 404;

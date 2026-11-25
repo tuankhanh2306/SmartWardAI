@@ -64,6 +64,8 @@ export const TK_KH_FIXTURES = {
     address: 'Phường Mỹ Xuyên, An Giang',
     formData: {
       marriageMode: 'MARRIAGE_REGISTRATION',
+      ethnicity: 'Kinh',
+      nationality: 'Việt Nam',
       previousMaritalStatus: 'DIVORCED',
       divorceJudgmentNumber: 'BA-2024-56/HNGĐ-ST',
       divorceJudgmentDate: '2024-06-20',
@@ -72,6 +74,9 @@ export const TK_KH_FIXTURES = {
       partnerCccd: '079302009876',
       partnerDob: '2002-03-12',
       partnerGender: 'Nữ',
+      partnerEthnicity: 'Kinh',
+      partnerNationality: 'Việt Nam',
+      partnerAddress: 'Phường Mỹ Xuyên, TP Long Xuyên, Tỉnh An Giang',
       maritalCertPurpose: 'Để làm thủ tục đăng ký kết hôn mới sau khi ly hôn hợp pháp',
     },
     expected: {
