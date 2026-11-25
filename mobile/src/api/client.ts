@@ -312,6 +312,58 @@ export async function askLegalRag(
   }
 }
 
+/**
+ * Multi-step Civic AI Agent chat (POST /api/v1/agent/chat) with automatic fallback to askLegalRag (/rag/ask).
+ */
+export async function askCivicAgent(
+  request: RagAskRequest,
+  options?: { bypassCircuit?: boolean; timeoutMs?: number }
+): Promise<RagAskResponse> {
+  if (!options?.bypassCircuit && shouldSkipRagOnlineCall()) {
+    throw new Error('RAG_BACKEND_CIRCUIT_OPEN');
+  }
+  const timeout =
+    options?.timeoutMs ??
+    (hasExplicitApiBaseUrl ? Math.max(RAG_EXPLICIT_TIMEOUT_MS, 6000) : RAG_AUTO_LAN_TIMEOUT_MS);
+  try {
+    const historyPayload = (request.history || []).slice(-6).map((h) => ({
+      role: h.sender === 'citizen' || h.sender === 'user' ? 'citizen' : 'assistant',
+      content: h.text,
+      procedureCode: h.procedureCode,
+    }));
+    const resp = await apiClient.post<ApiResponse<import('../types/api.types').AgentChatResponse>>(
+      '/agent/chat',
+      {
+        message: request.question,
+        history: historyPayload.length > 0 ? historyPayload : undefined,
+      },
+      { timeout }
+    );
+    const agent = unwrapData(resp.data);
+    if (agent && agent.answer) {
+      markRagBackendSuccess();
+      return {
+        answer: agent.answer,
+        abstained: Boolean(agent.abstained),
+        maxSimilarity: agent.citations?.[0]?.relevanceScore ?? (agent.abstained ? 0.4 : 0.9),
+        appliedThreshold: 0.78,
+        citations: Array.isArray(agent.citations) ? agent.citations : [],
+        cached: false,
+        responseTimeMs: agent.totalLatencyMs ?? 0,
+        disclaimer:
+          agent.disclaimer ||
+          'Trợ lý SmartWard AI hỗ trợ tra cứu và điền nháp tờ khai theo quy định hành chính.',
+        agentSteps: Array.isArray(agent.steps) ? agent.steps : [],
+        agentActionCards: Array.isArray(agent.actionCards) ? agent.actionCards : [],
+        traceId: agent.traceId,
+      };
+    }
+  } catch {
+    // Graceful fallback to legacy /api/v1/rag/ask
+  }
+  return askLegalRag(request, options);
+}
+
 // ============================================================================
 // 2. Smart Form Precheck & Zero-Trust Vault (Modules 2 & 4)
 // ============================================================================

@@ -37,6 +37,36 @@ export interface RagAskRequest {
   }>;
 }
 
+export interface AgentStep {
+  stepIndex: number;
+  toolName: string;
+  label: string;
+  success: boolean;
+  latencyMs: number;
+}
+
+export interface AgentActionCard {
+  type: 'OPEN_PREFILLED_FORM' | 'DOSSIER_STATUS' | 'WARD_ANALYTICS' | string;
+  title: string;
+  subtitle?: string;
+  payload: Record<string, unknown>;
+}
+
+export interface AgentChatResponse {
+  answer: string;
+  role: string;
+  steps: AgentStep[];
+  actionCards: AgentActionCard[];
+  citations: LegalCitation[];
+  abstained: boolean;
+  fallbackUsed: boolean;
+  budgetExhausted: boolean;
+  injectionBlocked?: boolean;
+  traceId?: string;
+  totalLatencyMs: number;
+  disclaimer?: string;
+}
+
 export interface RagAskResponse {
   answer: string;
   abstained: boolean;
@@ -49,6 +79,9 @@ export interface RagAskResponse {
   disclaimer: string;
   suggestions?: string[];
   hitlQueued?: boolean;
+  agentSteps?: AgentStep[];
+  agentActionCards?: AgentActionCard[];
+  traceId?: string;
 }
 
 export interface ProcedureItem {

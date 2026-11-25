@@ -34,7 +34,8 @@ import {
   Users,
   X,
 } from 'lucide-react-native';
-import { askLegalRag, fetchProcedures, resetRagBackendCircuit } from '../api/client';
+import { askCivicAgent, fetchProcedures, resetRagBackendCircuit } from '../api/client';
+import { AgentActionCardsMobile } from '../components/AgentActionCardsMobile';
 import { TemplateDownloadBar } from '../components/TemplateDownloadBar';
 import { VoiceReaderToggle } from '../components/VoiceReaderToggle';
 import { useAccessibility } from '../context/AccessibilityContext';
@@ -345,7 +346,7 @@ export const LegalRagChatScreen: React.FC = () => {
         if (options?.forceOnline) {
           resetRagBackendCircuit();
         }
-        const onlineResp = await askLegalRag(
+        const onlineResp = await askCivicAgent(
           {
             question: cleanQ,
             wardName: currentWard.name,
@@ -733,6 +734,18 @@ export const LegalRagChatScreen: React.FC = () => {
                               {response.answer}
                             </Text>
                           )}
+
+                          <AgentActionCardsMobile
+                            steps={response.agentSteps}
+                            cards={response.agentActionCards}
+                            onOpenPrefilledForm={(targetFormType, initialDraft) => {
+                              stopSpeaking();
+                              navigation.navigate('SmartFormTab', {
+                                initialFormType: targetFormType,
+                                initialDraft,
+                              });
+                            }}
+                          />
 
                           {isGreeting ? (
                             response.suggestions && response.suggestions.length > 0 ? (

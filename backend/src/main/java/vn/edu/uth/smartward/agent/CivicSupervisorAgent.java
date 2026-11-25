@@ -55,6 +55,8 @@ public class CivicSupervisorAgent {
     private final RagQueryService ragQueryService;
     private final AiModelClient aiModelClient;
     private final ObjectMapper objectMapper;
+    private final PromptInjectionGuard promptInjectionGuard;
+    private final AgentTraceService agentTraceService;
     private final ExecutorService toolExecutor;
 
     @Value("${smartward.agent.max-tool-calls:3}")
@@ -70,11 +72,15 @@ public class CivicSupervisorAgent {
     public CivicSupervisorAgent(ToolRegistry toolRegistry,
                                 RagQueryService ragQueryService,
                                 @Autowired(required = false) AiModelClient aiModelClient,
-                                @Autowired(required = false) ObjectMapper objectMapper) {
+                                @Autowired(required = false) ObjectMapper objectMapper,
+                                @Autowired(required = false) PromptInjectionGuard promptInjectionGuard,
+                                @Autowired(required = false) AgentTraceService agentTraceService) {
         this.toolRegistry = toolRegistry;
         this.ragQueryService = ragQueryService;
         this.aiModelClient = aiModelClient;
         this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper();
+        this.promptInjectionGuard = promptInjectionGuard != null ? promptInjectionGuard : new PromptInjectionGuard();
+        this.agentTraceService = agentTraceService;
         this.toolExecutor = Executors.newFixedThreadPool(4, runnable -> {
             Thread t = new Thread(runnable, "civic-agent-worker");
             t.setDaemon(true);
@@ -85,10 +91,17 @@ public class CivicSupervisorAgent {
     CivicSupervisorAgent(ToolRegistry toolRegistry,
                          RagQueryService ragQueryService,
                          AiModelClient aiModelClient,
+                         ObjectMapper objectMapper) {
+        this(toolRegistry, ragQueryService, aiModelClient, objectMapper, new PromptInjectionGuard(), null);
+    }
+
+    CivicSupervisorAgent(ToolRegistry toolRegistry,
+                         RagQueryService ragQueryService,
+                         AiModelClient aiModelClient,
                          ObjectMapper objectMapper,
                          int maxToolCalls,
                          long totalTimeoutMs) {
-        this(toolRegistry, ragQueryService, aiModelClient, objectMapper);
+        this(toolRegistry, ragQueryService, aiModelClient, objectMapper, new PromptInjectionGuard(), null);
         this.maxToolCalls = maxToolCalls;
         this.totalTimeoutMs = totalTimeoutMs;
     }
@@ -121,11 +134,16 @@ public class CivicSupervisorAgent {
 
         String message = request.getMessage() != null ? request.getMessage().trim() : "";
 
-        // Explicit RBAC guard when CITIZEN asks strictly for officer/admin internal ward operational analytics
-        if (role == AgentRole.CITIZEN && isWardAnalyticsIntent(message)
-                && !isDossierIntent(message) && !isFormDraftIntent(message, request.getFormType()) && !isLegalGuidanceIntent(message)) {
+        // TASK-039: Screen prompt injection / role spoof / SQL or secret extraction before any Tool or LLM call
+        PromptInjectionGuard.InspectionResult guardResult = promptInjectionGuard.inspectUserPrompt(message);
+        if (guardResult.flagged()) {
+            log.warn("PromptInjectionGuard blocked request (role={}, reason={})", role, guardResult.reason());
+            String refusal = "Yêu cầu bị từ chối do chứa mẫu chỉ thị không hợp lệ hoặc dấu hiệu can thiệp hệ thống. "
+                    + "Vui lòng đặt câu hỏi hành chính thông thường bằng tiếng Việt.";
+            long latency = System.currentTimeMillis() - startMs;
+            String traceId = recordTraceSafe(role, ctx.wardCode(), message, refusal, List.of(), latency, true, guardResult.reason());
             return AgentChatResponse.builder()
-                    .answer("Chức năng thống kê vận hành nội bộ (hồ sơ quá hạn SLA, tổng hợp sự cố cấp xã) chỉ dành cho Cán bộ xã hoặc Quản trị viên đã đăng nhập.")
+                    .answer(refusal)
                     .role(role.name())
                     .steps(List.of())
                     .actionCards(List.of())
@@ -133,7 +151,31 @@ public class CivicSupervisorAgent {
                     .abstained(true)
                     .fallbackUsed(false)
                     .budgetExhausted(false)
-                    .totalLatencyMs(System.currentTimeMillis() - startMs)
+                    .injectionBlocked(true)
+                    .traceId(traceId)
+                    .totalLatencyMs(latency)
+                    .disclaimer(AGENT_DISCLAIMER)
+                    .build();
+        }
+
+        // Explicit RBAC guard when CITIZEN asks strictly for officer/admin internal ward operational analytics
+        if (role == AgentRole.CITIZEN && isWardAnalyticsIntent(message)
+                && !isDossierIntent(message) && !isFormDraftIntent(message, request.getFormType()) && !isLegalGuidanceIntent(message)) {
+            String deniedMsg = "Chức năng thống kê vận hành nội bộ (hồ sơ quá hạn SLA, tổng hợp sự cố cấp xã) chỉ dành cho Cán bộ xã hoặc Quản trị viên đã đăng nhập.";
+            long latency = System.currentTimeMillis() - startMs;
+            String traceId = recordTraceSafe(role, ctx.wardCode(), message, deniedMsg, List.of(), latency, false, null);
+            return AgentChatResponse.builder()
+                    .answer(deniedMsg)
+                    .role(role.name())
+                    .steps(List.of())
+                    .actionCards(List.of())
+                    .citations(List.of())
+                    .abstained(true)
+                    .fallbackUsed(false)
+                    .budgetExhausted(false)
+                    .injectionBlocked(false)
+                    .traceId(traceId)
+                    .totalLatencyMs(latency)
                     .disclaimer(AGENT_DISCLAIMER)
                     .build();
         }
@@ -260,6 +302,8 @@ public class CivicSupervisorAgent {
 
         String synthesized = synthesizeAnswer(results, budgetExhausted);
         boolean allAbstained = !results.isEmpty() && results.stream().allMatch(AgentToolResult::abstained);
+        long totalLatency = System.currentTimeMillis() - startMs;
+        String traceId = recordTraceSafe(role, ctx.wardCode(), message, synthesized, executedSteps, totalLatency, false, null);
 
         return AgentChatResponse.builder()
                 .answer(synthesized)
@@ -270,9 +314,20 @@ public class CivicSupervisorAgent {
                 .abstained(allAbstained || (anyAbstained && results.size() == 1))
                 .fallbackUsed(llmFallbackTriggered)
                 .budgetExhausted(budgetExhausted)
-                .totalLatencyMs(System.currentTimeMillis() - startMs)
+                .injectionBlocked(false)
+                .traceId(traceId)
+                .totalLatencyMs(totalLatency)
                 .disclaimer(AGENT_DISCLAIMER)
                 .build();
+    }
+
+    private String recordTraceSafe(AgentRole role, String wardCode, String prompt, String answer,
+                                   List<AgentStepDto> steps, long latencyMs,
+                                   boolean injectionFlagged, String injectionReason) {
+        if (agentTraceService == null) {
+            return null;
+        }
+        return agentTraceService.recordTrace(role, wardCode, prompt, answer, steps, latencyMs, injectionFlagged, injectionReason);
     }
 
     private List<PlannedToolCall> buildExecutionPlan(AgentExecutionContext ctx) {

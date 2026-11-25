@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { askLegalRag, submitRagFeedback, synthesizeSpeech, type RagResponse, type LegalCitation } from '../api/client';
+import { askCivicAgent, submitRagFeedback, synthesizeSpeech, type RagResponse, type LegalCitation } from '../api/client';
+import { AgentActionCards } from '../components/AgentActionCards';
 import { normalizeTextForTts } from '../utils/ttsTextNormalizer';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useWard } from '../context/WardContext';
@@ -769,7 +770,7 @@ export const CitizenPortal: React.FC = () => {
       }));
 
       const reqStart = performance.now();
-      const resp = await askLegalRag(
+      const resp = await askCivicAgent(
         q,
         3,
         {
@@ -1298,11 +1299,24 @@ export const CitizenPortal: React.FC = () => {
                   >
                     {/* Message body text with 5-section badge highlights */}
                     {msg.sender === 'bot' ? (
-                      <StructuredBotMessage
-                        msg={msg}
-                        isSimpleMode={isSimpleMode}
-                        onOpenCitation={setActiveCitation}
-                      />
+                      <>
+                        <StructuredBotMessage
+                          msg={msg}
+                          isSimpleMode={isSimpleMode}
+                          onOpenCitation={setActiveCitation}
+                        />
+                        <AgentActionCards
+                          steps={msg.ragData?.agentSteps}
+                          cards={msg.ragData?.agentActionCards}
+                          onOpenPrefilledForm={(payload) => {
+                            const targetFormType = String(payload?.formType || payload?.draftPayload?.formType || 'CT01').toUpperCase();
+                            const draftPayload = payload?.draftPayload || payload || {};
+                            navigate(`/citizen/form?type=${encodeURIComponent(targetFormType)}`, {
+                              state: { agentDraft: { ...draftPayload, formType: targetFormType } },
+                            });
+                          }}
+                        />
+                      </>
                     ) : (
                       <p className="text-sm md:text-base leading-relaxed whitespace-pre-wrap">
                         {msg.text}

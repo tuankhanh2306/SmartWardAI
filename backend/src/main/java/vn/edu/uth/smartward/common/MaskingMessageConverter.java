@@ -22,7 +22,13 @@ public class MaskingMessageConverter extends MessageConverter {
 
     @Override
     public String convert(ILoggingEvent event) {
-        String message = event.getFormattedMessage();
+        return maskSensitiveData(event.getFormattedMessage());
+    }
+
+    /**
+     * Reusable PII & secret redaction helper shared by logback and agent_traces persistence (SEC-08, TASK-039).
+     */
+    public static String maskSensitiveData(String message) {
         if (message == null || message.isEmpty()) {
             return message;
         }
