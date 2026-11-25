@@ -25,6 +25,8 @@ public class AgentChatResponse {
     private boolean abstained;
     private boolean fallbackUsed;
     private boolean budgetExhausted;
+    private boolean injectionBlocked;
+    private String traceId;
     private long totalLatencyMs;
     private String disclaimer;
 

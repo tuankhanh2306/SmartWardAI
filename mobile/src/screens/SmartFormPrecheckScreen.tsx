@@ -102,9 +102,10 @@ export const SmartFormPrecheckScreen: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitResult, setSubmitResult] = useState<DossierPipelineResult | null>(null);
 
-  // Sync formType when user jumps here from Tab 1 (40 TTHC)
+  // Sync formType & optional Agent prefill draft when user jumps here from Tab 1 (40 TTHC / Civic AI Agent)
   useEffect(() => {
     const incoming = route.params?.initialFormType;
+    const draft = route.params?.initialDraft;
     if (incoming) {
       setSectionMode('form');
       setFormType(incoming);
@@ -119,7 +120,16 @@ export const SmartFormPrecheckScreen: React.FC = () => {
         );
       }
     }
-  }, [route.params?.initialFormType]);
+    if (draft) {
+      setSectionMode('form');
+      if (draft.fullName) setFullName(draft.fullName);
+      if (draft.citizenCccd) setCitizenCccd(draft.citizenCccd);
+      if (draft.dateOfBirth) setDateOfBirth(draft.dateOfBirth);
+      if (draft.gender === 'Nam' || draft.gender === 'Nữ') setGender(draft.gender);
+      if (draft.address) setAddress(draft.address);
+      if (draft.phoneNumber) setPhoneNumber(draft.phoneNumber);
+    }
+  }, [route.params?.initialFormType, route.params?.initialDraft]);
 
   const discrepancies = useMemo(() => {
     if (!decodedQr) return [];

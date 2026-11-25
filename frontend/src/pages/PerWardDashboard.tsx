@@ -6,6 +6,7 @@ import { useRole } from '../context/RoleContext';
 import { AN_GIANG_WARDS, type WardItem } from '../data/anGiangWards';
 import { calculateHaversineMeters, toLeafletLatLng } from '../utils/geoUtils';
 import Pagination from '../components/Pagination';
+import { OfficerAgentPanel } from '../components/OfficerAgentPanel';
 import {
   getHitlQueue,
   resolveHitlItem,
@@ -152,6 +153,7 @@ export const PerWardDashboard: React.FC = () => {
   const [pageSize, setPageSize] = useState<number>(5);
 
   // Progressive Disclosure: Drawer / Modal States (Only open when needed!)
+  const [officerAgentOpen, setOfficerAgentOpen] = useState<boolean>(false);
   const [selectedIncident, setSelectedIncident] = useState<LocalIncident | null>(null);
   const [expandedClusterId, setExpandedClusterId] = useState<string | null>(null);
   const [selectedHitlItem, setSelectedHitlItem] = useState<HitlGrayZoneItem | null>(null);
@@ -1178,6 +1180,15 @@ export const PerWardDashboard: React.FC = () => {
           {/* Quick Action Navigation Dock */}
           <div className="flex flex-wrap items-center gap-2 shrink-0">
             <button
+              type="button"
+              onClick={() => setOfficerAgentOpen((prev) => !prev)}
+              className="px-3 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-bold border border-white/25 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-sm"
+              title="Hỏi Trợ lý AI thống kê SLA hồ sơ & cụm sự cố tại xã"
+            >
+              <BrainCircuit className="w-3.5 h-3.5 text-sky-100" />
+              <span>Trợ lý AI Xã</span>
+            </button>
+            <button
               onClick={() => navigate('/officer/procedures')}
               className="px-3 py-2 bg-[#00796B] hover:bg-[#00695C] text-white rounded-xl text-xs font-bold border border-white/25 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-sm"
               title="Tra cứu & gửi đề xuất cập nhật nội dung 40 Thủ tục hành chính"
@@ -1241,6 +1252,13 @@ export const PerWardDashboard: React.FC = () => {
       {/* ========================================================================= */}
       {/* 2. HIGH-SIGNAL METRIC TILES (COMPACT & SYNCHRONIZED)                      */}
       {/* ========================================================================= */}
+      {officerAgentOpen && (
+        <OfficerAgentPanel
+          wardName={ward.name}
+          wardCode={ward.code}
+          onClose={() => setOfficerAgentOpen(false)}
+        />
+      )}
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-4 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 z-10">
         {/* KPI 1: Phản ánh cần xử lý */}
         <div

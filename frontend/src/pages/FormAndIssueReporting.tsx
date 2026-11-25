@@ -257,6 +257,29 @@ export const FormAndIssueReporting: React.FC = () => {
   // Specialized cross-check fields for Priority 1 (TK-KS: Birth Registration + Hospital Birth Cert)
   const [hospitalBirthDate, setHospitalBirthDate] = useState('2026-10-15');
   const [motherName, setMotherName] = useState('LÊ THỊ MỸ LINH');
+
+  // TASK-040: Apply Draft-Only prefill payload when citizen clicks "Mở tờ khai đã điền sẵn" from Civic AI Agent
+  useEffect(() => {
+    const draft = (location.state as any)?.agentDraft;
+    if (!draft || typeof draft !== 'object') return;
+
+    const rawType = String(draft.formType || '').toUpperCase();
+    if (rawType === 'CT01' || rawType === 'TK-KS' || rawType === 'TK-KH' || rawType === 'TK-BTXH') {
+      setSelectedFormType(rawType);
+    }
+    if (typeof draft.fullName === 'string' && draft.fullName.trim()) setFullName(draft.fullName.trim());
+    if (typeof draft.citizenCccd === 'string' && draft.citizenCccd.trim()) setCccd(draft.citizenCccd.trim());
+    if (typeof draft.dateOfBirth === 'string' && draft.dateOfBirth.trim()) {
+      setDob(normalizeDateToYMD(draft.dateOfBirth.trim()) || draft.dateOfBirth.trim());
+    }
+    if (typeof draft.gender === 'string' && draft.gender.trim()) setGender(draft.gender.trim());
+    if (typeof draft.address === 'string' && draft.address.trim()) setAddress(draft.address.trim());
+    if (typeof draft.phoneNumber === 'string' && draft.phoneNumber.trim()) setPhoneNumber(draft.phoneNumber.trim());
+    const nestedMother = draft.formData?.motherName;
+    if (typeof nestedMother === 'string' && nestedMother.trim()) setMotherName(nestedMother.trim());
+    setActiveTab('form');
+    setFormWizardStep(1);
+  }, [location.state]);
   const [hospitalMotherName, setHospitalMotherName] = useState('LÊ THỊ MỸ LINH');
   const [fatherName, setFatherName] = useState('TRẦN VĂN HÙNG');
   const [parentsMarried, setParentsMarried] = useState<'YES' | 'NO'>('NO');
