@@ -72,4 +72,18 @@ public class ProcedureVersion {
 
     @Column(name = "source_ref", columnDefinition = "TEXT")
     private String sourceRef;
+
+    @Column(name = "index_status", nullable = false, length = 32)
+    @Builder.Default
+    private String indexStatus = "INDEXED";
+
+    @Column(name = "index_retry_count", nullable = false)
+    @Builder.Default
+    private Integer indexRetryCount = 0;
+
+    @Column(name = "index_error", columnDefinition = "TEXT")
+    private String indexError;
+
+    @Column(name = "indexed_at")
+    private OffsetDateTime indexedAt;
 }

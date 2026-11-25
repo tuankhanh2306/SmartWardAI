@@ -78,6 +78,8 @@ smartward:
     bucket-name: ${MINIO_BUCKET_NAME:smartward-vault}
     token-ttl-hours: ${VAULT_TOKEN_TTL_HOURS:24}
     encryption-key: ${VAULT_ENCRYPTION_KEY}
+    active-key-id: ${VAULT_ACTIVE_KEY_ID:v1}
+    previous-keys: ${VAULT_PREVIOUS_KEYS:}
     fail-closed: ${VAULT_FAIL_CLOSED:true}
     watermark-text: "CHỈ DÙNG ĐỂ SƠ DUYỆT HỒ SƠ TẠI UBND"
   rate-limit:
