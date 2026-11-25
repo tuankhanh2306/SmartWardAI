@@ -273,7 +273,7 @@ class ChallengerM1EmpiricalStressTest {
         }
 
         @Test
-        @DisplayName("Scenario C1: Redis throws RedisConnectionFailureException on verifyToken -> falls back to local set")
+        @DisplayName("Scenario C1: TASK-015 fail-closed default rejects on Redis outage; explicit fail-open falls back to local set")
         void testRedisConnectionFailureOnVerify_fallsBackToLocalSet() {
             StringRedisTemplate mockRedis = mock(StringRedisTemplate.class);
             when(mockRedis.hasKey(anyString())).thenThrow(new RedisConnectionFailureException("Connection refused to Redis:6379"));
@@ -283,6 +283,13 @@ class ChallengerM1EmpiricalStressTest {
             ReflectionTestUtils.setField(authRedis, "tokenTtlHours", 8);
 
             OfficerAuthService.LoginResponse login = authRedis.authenticate("CC-AG-8942", officerPin, null);
+
+            // Default (TASK-015): fail-closed on Redis blacklist check failure
+            BusinessException failClosedEx = assertThrows(BusinessException.class, () -> authRedis.verifyToken(login.token()));
+            assertEquals(ErrorCode.STORAGE_UNAVAILABLE, failClosedEx.getErrorCode());
+
+            // Explicit fail-open mode: gracefully falls back to local revoked set
+            ReflectionTestUtils.setField(authRedis, "revocationFailClosed", false);
             OfficerAuthService.OfficerPrincipal principal = assertDoesNotThrow(() -> authRedis.verifyToken(login.token()));
             assertEquals("CC-AG-8942", principal.badgeId());
 
@@ -292,7 +299,7 @@ class ChallengerM1EmpiricalStressTest {
         }
 
         @Test
-        @DisplayName("Scenario C2: Redis throws exception on revokeToken -> in-memory set still absorbs revocation")
+        @DisplayName("Scenario C2: TASK-015 fail-closed rejects on revoke Redis failure; explicit fail-open absorbs in local set")
         @SuppressWarnings("unchecked")
         void testRedisExceptionOnRevoke_inMemorySetAbsorbsRevocation() {
             StringRedisTemplate mockRedis = mock(StringRedisTemplate.class);
@@ -307,6 +314,12 @@ class ChallengerM1EmpiricalStressTest {
 
             OfficerAuthService.LoginResponse login = authRedis.authenticate("CC-AG-8942", officerPin, null);
 
+            // Default (TASK-015): fail-closed on Redis outage during revokeToken
+            BusinessException failClosedEx = assertThrows(BusinessException.class, () -> authRedis.revokeToken(login.token()));
+            assertEquals(ErrorCode.STORAGE_UNAVAILABLE, failClosedEx.getErrorCode());
+
+            // Explicit fail-open mode: local set still absorbs revocation
+            ReflectionTestUtils.setField(authRedis, "revocationFailClosed", false);
             assertDoesNotThrow(() -> authRedis.revokeToken(login.token()));
 
             BusinessException ex = assertThrows(BusinessException.class, () -> authRedis.verifyToken(login.token()));

@@ -23,6 +23,7 @@
         <pgvector.version>0.1.6</pgvector.version>
         <minio.version>8.5.12</minio.version>
         <pdfbox.version>3.0.3</pdfbox.version>
+        <nimbus.jose.jwt.version>9.41.2</nimbus.jose.jwt.version>
     </properties>
 
     <dependencies>
@@ -98,6 +99,13 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
+        </dependency>
+
+        <!-- Standards-compliant JWT (RFC 7515 / RFC 7519) -->
+        <dependency>
+            <groupId>com.nimbusds</groupId>
+            <artifactId>nimbus-jose-jwt</artifactId>
+            <version>${nimbus.jose.jwt.version}</version>
         </dependency>
 
         <!-- Developer Tools & Boilerplate Reduction -->

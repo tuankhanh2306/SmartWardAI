@@ -140,10 +140,26 @@ public class RagQueryService {
      * Executes citizen legal inquiry with rate limit, caching, HNSW search, abstention guardrail, and citation verification.
      */
     public RagAskResponse askQuestion(RagAskRequest request, String clientIp) {
+        return askQuestion(request, clientIp, null, request != null ? request.getSessionId() : null);
+    }
+
+    /**
+     * Executes citizen/officer legal inquiry with rate limit scoped by Officer JWT > sessionId > client IP.
+     */
+    public RagAskResponse askQuestion(RagAskRequest request, String clientIp, String officerBadgeId, String sessionId) {
         long startTime = System.currentTimeMillis();
 
-        // 1. Rate Limiting Check (5 req/min/IP)
-        if (clientIp != null && !clientIp.isBlank()) {
+        // 1. Rate Limiting Check (scoped by Officer JWT > sessionId > client IP)
+        boolean hasActorOverride = (officerBadgeId != null && !officerBadgeId.isBlank())
+                || (sessionId != null && !sessionId.isBlank());
+        if (hasActorOverride) {
+            if (!redisRateLimiter.isAllowed(clientIp, officerBadgeId, sessionId)) {
+                log.warn("Rate limit exceeded for actor (officer={}, hasSession={}, ip={})",
+                        officerBadgeId != null ? officerBadgeId : "-", sessionId != null, clientIp);
+                throw new BusinessException(ErrorCode.RATE_LIMIT_EXCEEDED,
+                        "Bạn đã vượt quá giới hạn tần suất hỏi đáp trong phút hiện tại. Vui lòng chờ 1 phút trước khi hỏi tiếp.");
+            }
+        } else if (clientIp != null && !clientIp.isBlank()) {
             if (!redisRateLimiter.isAllowed(clientIp)) {
                 log.warn("Rate limit exceeded for IP: {}", clientIp);
                 throw new BusinessException(ErrorCode.RATE_LIMIT_EXCEEDED,

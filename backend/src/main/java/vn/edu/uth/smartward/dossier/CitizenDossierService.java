@@ -148,6 +148,12 @@ public class CitizenDossierService {
 
     @Transactional(readOnly = true)
     public DossierTrackingResponse trackDossier(String dossierCode, String last4Cccd, String clientIpOrLegacyCccd) {
+        return trackDossier(dossierCode, last4Cccd, clientIpOrLegacyCccd, null, null);
+    }
+
+    @Transactional(readOnly = true)
+    public DossierTrackingResponse trackDossier(String dossierCode, String last4Cccd, String clientIpOrLegacyCccd,
+                                                String officerBadgeId, String sessionId) {
         if (dossierCode == null || dossierCode.isBlank()) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã hồ sơ không được để trống.");
         }
@@ -177,11 +183,19 @@ public class CitizenDossierService {
 
         String cleanCode = dossierCode.trim();
 
-        // SEC-04: Rate limiting 5 attempts per 15 minutes per (IP, dossierCode)
-        if (rateLimiter != null && !rateLimiter.allowDossierTracking(clientIp, cleanCode)) {
-            log.warn("Rate limit exceeded for dossier tracking from IP: {}", clientIp);
-            throw new BusinessException(ErrorCode.RATE_LIMIT_EXCEEDED,
-                    "Bạn đã tra cứu sai quá 5 lần trong 15 phút. Vui lòng thử lại sau 15 phút.");
+        // SEC-04 & TASK-016: Rate limiting 5 attempts per 15 minutes per (JWT / sessionId / IP, dossierCode)
+        if (rateLimiter != null) {
+            boolean hasActorOverride = (officerBadgeId != null && !officerBadgeId.isBlank())
+                    || (sessionId != null && !sessionId.isBlank());
+            boolean allowed = hasActorOverride
+                    ? rateLimiter.allowDossierTracking(clientIp, cleanCode, officerBadgeId, sessionId)
+                    : rateLimiter.allowDossierTracking(clientIp, cleanCode);
+            if (!allowed) {
+                log.warn("Rate limit exceeded for dossier tracking (officer={}, hasSession={}, ip={})",
+                        officerBadgeId != null ? officerBadgeId : "-", sessionId != null, clientIp);
+                throw new BusinessException(ErrorCode.RATE_LIMIT_EXCEEDED,
+                        "Bạn đã tra cứu sai quá 5 lần trong 15 phút. Vui lòng thử lại sau 15 phút.");
+            }
         }
 
         final String GENERIC_NOT_FOUND_MSG = "Không tìm thấy hồ sơ hoặc 4 số cuối CCCD không trùng khớp với hồ sơ lưu trữ.";

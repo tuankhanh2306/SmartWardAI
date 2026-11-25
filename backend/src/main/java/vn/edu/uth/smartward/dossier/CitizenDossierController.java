@@ -23,16 +23,24 @@ public class CitizenDossierController {
 
     private final CitizenDossierService dossierService;
     private final ClientIpResolver clientIpResolver;
+    private final OfficerAuthService officerAuthService;
 
     @Autowired
     public CitizenDossierController(CitizenDossierService dossierService,
-                                    @Autowired(required = false) ClientIpResolver clientIpResolver) {
+                                    @Autowired(required = false) ClientIpResolver clientIpResolver,
+                                    @Autowired(required = false) OfficerAuthService officerAuthService) {
         this.dossierService = dossierService;
         this.clientIpResolver = clientIpResolver != null ? clientIpResolver : new ClientIpResolver();
+        this.officerAuthService = officerAuthService;
+    }
+
+    public CitizenDossierController(CitizenDossierService dossierService,
+                                    ClientIpResolver clientIpResolver) {
+        this(dossierService, clientIpResolver, null);
     }
 
     public CitizenDossierController(CitizenDossierService dossierService) {
-        this(dossierService, new ClientIpResolver());
+        this(dossierService, new ClientIpResolver(), null);
     }
 
     @PostMapping
@@ -50,11 +58,35 @@ public class CitizenDossierController {
     @Operation(summary = "SEC-04: Tra cứu tiến độ hồ sơ an toàn qua POST body với 4 số cuối CCCD")
     public ResponseEntity<ApiResponse<DossierTrackingResponse>> trackDossier(
             @Valid @RequestBody DossierTrackingRequest req,
+            @RequestHeader(value = "X-Session-Id", required = false) String sessionId,
             HttpServletRequest request) {
         String clientIp = clientIpResolver.resolve(request);
-        log.info("SEC-04: Tracking dossier via POST: code='{}', clientIp='{}'", req.dossierCode(), clientIp);
-        DossierTrackingResponse response = dossierService.trackDossier(req.dossierCode(), req.last4Cccd(), clientIp);
+        String officerBadgeId = resolveOfficerBadgeId(request);
+        log.info("SEC-04: Tracking dossier via POST: code='{}', clientIp='{}', officer='{}', hasSession={}",
+                req.dossierCode(), clientIp, officerBadgeId != null ? officerBadgeId : "-",
+                sessionId != null && !sessionId.isBlank());
+        boolean hasActorOverride = (officerBadgeId != null && !officerBadgeId.isBlank())
+                || (sessionId != null && !sessionId.isBlank());
+        DossierTrackingResponse response = hasActorOverride
+                ? dossierService.trackDossier(req.dossierCode(), req.last4Cccd(), clientIp, officerBadgeId, sessionId)
+                : dossierService.trackDossier(req.dossierCode(), req.last4Cccd(), clientIp);
         return ResponseEntity.ok(ApiResponse.ok("Tra cứu hồ sơ thành công.", response));
+    }
+
+    private String resolveOfficerBadgeId(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+        Object attr = request.getAttribute("officerPrincipal");
+        if (attr instanceof OfficerAuthService.OfficerPrincipal principal && principal.badgeId() != null && !principal.badgeId().isBlank()) {
+            return principal.badgeId();
+        }
+        if (officerAuthService != null) {
+            return officerAuthService.tryVerifyToken(request.getHeader("Authorization"))
+                    .map(OfficerAuthService.OfficerPrincipal::badgeId)
+                    .orElse(null);
+        }
+        return null;
     }
 
     @GetMapping("/officer/list")
