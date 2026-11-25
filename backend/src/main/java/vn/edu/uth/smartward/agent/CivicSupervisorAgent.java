@@ -13,6 +13,7 @@ import vn.edu.uth.smartward.agent.dto.AgentChatResponse.AgentStepDto;
 import vn.edu.uth.smartward.ai.AiModelClient;
 import vn.edu.uth.smartward.ai.DeterministicMockAiClient;
 import vn.edu.uth.smartward.rag.RagQueryService;
+import vn.edu.uth.smartward.rag.dto.ConversationTurnDto;
 import vn.edu.uth.smartward.rag.dto.LegalCitationDto;
 import vn.edu.uth.smartward.rag.dto.RagAskRequest;
 import vn.edu.uth.smartward.rag.dto.RagAskResponse;
@@ -57,6 +58,7 @@ public class CivicSupervisorAgent {
     private final ObjectMapper objectMapper;
     private final PromptInjectionGuard promptInjectionGuard;
     private final AgentTraceService agentTraceService;
+    private final AgentSessionMemoryService sessionMemoryService;
     private final ExecutorService toolExecutor;
 
     @Value("${smartward.agent.max-tool-calls:3}")
@@ -74,13 +76,15 @@ public class CivicSupervisorAgent {
                                 @Autowired(required = false) AiModelClient aiModelClient,
                                 @Autowired(required = false) ObjectMapper objectMapper,
                                 @Autowired(required = false) PromptInjectionGuard promptInjectionGuard,
-                                @Autowired(required = false) AgentTraceService agentTraceService) {
+                                @Autowired(required = false) AgentTraceService agentTraceService,
+                                @Autowired(required = false) AgentSessionMemoryService sessionMemoryService) {
         this.toolRegistry = toolRegistry;
         this.ragQueryService = ragQueryService;
         this.aiModelClient = aiModelClient;
         this.objectMapper = objectMapper != null ? objectMapper : new ObjectMapper();
         this.promptInjectionGuard = promptInjectionGuard != null ? promptInjectionGuard : new PromptInjectionGuard();
         this.agentTraceService = agentTraceService;
+        this.sessionMemoryService = sessionMemoryService;
         this.toolExecutor = Executors.newFixedThreadPool(4, runnable -> {
             Thread t = new Thread(runnable, "civic-agent-worker");
             t.setDaemon(true);
@@ -91,8 +95,17 @@ public class CivicSupervisorAgent {
     CivicSupervisorAgent(ToolRegistry toolRegistry,
                          RagQueryService ragQueryService,
                          AiModelClient aiModelClient,
+                         ObjectMapper objectMapper,
+                         PromptInjectionGuard promptInjectionGuard,
+                         AgentTraceService agentTraceService) {
+        this(toolRegistry, ragQueryService, aiModelClient, objectMapper, promptInjectionGuard, agentTraceService, null);
+    }
+
+    CivicSupervisorAgent(ToolRegistry toolRegistry,
+                         RagQueryService ragQueryService,
+                         AiModelClient aiModelClient,
                          ObjectMapper objectMapper) {
-        this(toolRegistry, ragQueryService, aiModelClient, objectMapper, new PromptInjectionGuard(), null);
+        this(toolRegistry, ragQueryService, aiModelClient, objectMapper, new PromptInjectionGuard(), null, null);
     }
 
     CivicSupervisorAgent(ToolRegistry toolRegistry,
@@ -101,7 +114,7 @@ public class CivicSupervisorAgent {
                          ObjectMapper objectMapper,
                          int maxToolCalls,
                          long totalTimeoutMs) {
-        this(toolRegistry, ragQueryService, aiModelClient, objectMapper, new PromptInjectionGuard(), null);
+        this(toolRegistry, ragQueryService, aiModelClient, objectMapper, new PromptInjectionGuard(), null, null);
         this.maxToolCalls = maxToolCalls;
         this.totalTimeoutMs = totalTimeoutMs;
     }
@@ -120,6 +133,12 @@ public class CivicSupervisorAgent {
         long deadlineMs = startMs + effectiveTimeoutMs;
 
         AgentRole role = baseContext.role() != null ? baseContext.role() : AgentRole.CITIZEN;
+        List<ConversationTurnDto> effectiveHistory = request.getHistory();
+        if ((effectiveHistory == null || effectiveHistory.isEmpty())
+                && baseContext.sessionId() != null && !baseContext.sessionId().isBlank()
+                && sessionMemoryService != null) {
+            effectiveHistory = sessionMemoryService.getHistory(baseContext.sessionId());
+        }
         AgentExecutionContext ctx = new AgentExecutionContext(
                 role,
                 baseContext.officerBadgeId(),
@@ -128,7 +147,7 @@ public class CivicSupervisorAgent {
                 baseContext.sessionId(),
                 request.getMessage(),
                 request.getFormType(),
-                request.getHistory(),
+                effectiveHistory,
                 deadlineMs
         );
 
@@ -304,6 +323,15 @@ public class CivicSupervisorAgent {
         boolean allAbstained = !results.isEmpty() && results.stream().allMatch(AgentToolResult::abstained);
         long totalLatency = System.currentTimeMillis() - startMs;
         String traceId = recordTraceSafe(role, ctx.wardCode(), message, synthesized, executedSteps, totalLatency, false, null);
+
+        if (sessionMemoryService != null && ctx.sessionId() != null && !ctx.sessionId().isBlank()) {
+            String primaryProcCode = uniqueCitations.values().stream()
+                    .map(LegalCitationDto::getProcedureCode)
+                    .filter(c -> c != null && !c.isBlank())
+                    .findFirst()
+                    .orElse(null);
+            sessionMemoryService.appendExchange(ctx.sessionId(), message, synthesized, primaryProcCode);
+        }
 
         return AgentChatResponse.builder()
                 .answer(synthesized)
