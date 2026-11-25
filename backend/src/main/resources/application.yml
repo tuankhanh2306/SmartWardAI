@@ -41,6 +41,7 @@ smartward:
     token-ttl-hours: ${OFFICER_TOKEN_TTL_HOURS:8}
     enforce-officer-auth: ${ENFORCE_OFFICER_AUTH:true}
     render-edge-trust-enabled: ${RENDER_EDGE_TRUST_ENABLED:false}
+    trusted-proxy-cidrs: ${TRUSTED_PROXY_CIDRS:127.0.0.1/32,::1/128,172.28.0.0/24,100.64.0.0/10}
   rag:
     default-threshold: ${RAG_DEFAULT_THRESHOLD:0.78}
     theta-lower: ${RAG_THETA_LOWER:0.42}

@@ -65,7 +65,6 @@ services:
   # =====================================================================
   minio:
     image: ${MINIO_IMAGE:-coollabsio/minio:RELEASE.2025-10-15T17-29-55Z}
-    pull_policy: if_not_present
     container_name: smartward-minio
     restart: unless-stopped
     mem_limit: 256m
