@@ -19,6 +19,8 @@ public interface ProcedureVersionRepository extends JpaRepository<ProcedureVersi
 
     List<ProcedureVersion> findByStateOrderBySubmittedAtDescCreatedAtDesc(String state);
 
+    List<ProcedureVersion> findByStateAndIndexStatusIn(String state, List<String> indexStatuses);
+
     @Query("SELECT COALESCE(MAX(pv.versionNo), 0) FROM ProcedureVersion pv WHERE pv.procedure.id = :procedureId")
     int findMaxVersionNoByProcedureId(@Param("procedureId") Long procedureId);
 }

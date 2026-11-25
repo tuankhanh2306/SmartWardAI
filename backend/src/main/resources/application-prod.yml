@@ -49,6 +49,8 @@ minio:
 smartward:
   vault:
     encryption-key: ${VAULT_ENCRYPTION_KEY}
+    active-key-id: ${VAULT_ACTIVE_KEY_ID:v1}
+    previous-keys: ${VAULT_PREVIOUS_KEYS:}
     fail-closed: ${VAULT_FAIL_CLOSED:true}
   security:
     jwt-secret: ${JWT_SECRET}

@@ -26,4 +26,8 @@ public class ProcedureVersionDto {
     private OffsetDateTime publishedAt;
     private String source;
     private String sourceRef;
+    private String indexStatus;
+    private Integer indexRetryCount;
+    private String indexError;
+    private OffsetDateTime indexedAt;
 }

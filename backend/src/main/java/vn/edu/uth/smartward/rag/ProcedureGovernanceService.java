@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import vn.edu.uth.smartward.ai.AiModelClient;
 import vn.edu.uth.smartward.audit.AuditService;
 import vn.edu.uth.smartward.common.BusinessException;
@@ -36,10 +38,16 @@ public class ProcedureGovernanceService {
     private final AuditService auditService;
     private final ObjectMapper objectMapper;
     private CitizenDossierService dossierService;
+    private ProcedureVectorIndexWorker vectorIndexWorker;
 
     @Autowired(required = false)
     public void setDossierService(CitizenDossierService dossierService) {
         this.dossierService = dossierService;
+    }
+
+    @Autowired(required = false)
+    public void setVectorIndexWorker(ProcedureVectorIndexWorker vectorIndexWorker) {
+        this.vectorIndexWorker = vectorIndexWorker;
     }
 
     @Autowired
@@ -320,10 +328,6 @@ public class ProcedureGovernanceService {
             beforeSnapshot = serializeContent(synthesizeContentFromProcedure(proc));
         }
 
-        // Synchronize RAG chunks selectively (only changed content_hash chunks are re-embedded)
-        // If embedding fails, abort/preserve old chunks and throw or rollback cleanly
-        syncRagChunksSelectively(proc, newContent);
-
         OffsetDateTime now = OffsetDateTime.now();
         proposal.setState("PUBLISHED");
         proposal.setReviewedBy(adminPrincipal.badgeId());
@@ -332,6 +336,20 @@ public class ProcedureGovernanceService {
         proposal.setReviewNote(reviewNote != null && !reviewNote.isBlank()
                 ? sanitizeString(reviewNote, 1000)
                 : "Đã phê duyệt và công bố phiên bản v" + proposal.getVersionNo());
+
+        boolean asyncMode = (vectorIndexWorker != null);
+        if (asyncMode) {
+            proposal.setIndexStatus(ProcedureVectorIndexWorker.STATUS_PENDING);
+            proposal.setIndexRetryCount(0);
+            proposal.setIndexError(null);
+            proposal.setIndexedAt(null);
+            proc.setIndexStatus(ProcedureVectorIndexWorker.STATUS_PENDING);
+        } else {
+            boolean syncOk = syncRagChunksSelectively(proc, newContent);
+            proposal.setIndexStatus(syncOk ? ProcedureVectorIndexWorker.STATUS_INDEXED : ProcedureVectorIndexWorker.STATUS_FAILED);
+            proposal.setIndexedAt(syncOk ? now : null);
+            proc.setIndexStatus(proposal.getIndexStatus());
+        }
 
         ProcedureVersion saved = versionRepository.saveAndFlush(proposal);
 
@@ -343,6 +361,10 @@ public class ProcedureGovernanceService {
 
         if (queryCacheService != null) {
             queryCacheService.clearAllRagCache();
+        }
+
+        if (asyncMode) {
+            triggerAsyncVectorIndexingAfterCommit(proc.getId(), saved.getId());
         }
 
         if (auditService != null) {
@@ -504,11 +526,22 @@ public class ProcedureGovernanceService {
                 .source("MANUAL")
                 .sourceRef(savedProc.getSourceUrl())
                 .build();
+        boolean asyncMode = (vectorIndexWorker != null);
+        if (asyncMode) {
+            v1.setIndexStatus(ProcedureVectorIndexWorker.STATUS_PENDING);
+            savedProc.setIndexStatus(ProcedureVectorIndexWorker.STATUS_PENDING);
+        }
         ProcedureVersion savedV1 = versionRepository.saveAndFlush(v1);
         savedProc.setCurrentVersionId(savedV1.getId());
         procedureRepository.save(savedProc);
 
-        syncRagChunksSelectively(savedProc, content);
+        if (asyncMode) {
+            triggerAsyncVectorIndexingAfterCommit(savedProc.getId(), savedV1.getId());
+        } else {
+            boolean syncOk = syncRagChunksSelectively(savedProc, content);
+            savedV1.setIndexStatus(syncOk ? ProcedureVectorIndexWorker.STATUS_INDEXED : ProcedureVectorIndexWorker.STATUS_FAILED);
+            savedProc.setIndexStatus(savedV1.getIndexStatus());
+        }
 
         if (auditService != null) {
             auditService.logProcedureAction(
@@ -600,6 +633,14 @@ public class ProcedureGovernanceService {
         target.setReviewedAt(OffsetDateTime.now());
         target.setPublishedAt(OffsetDateTime.now());
         target.setReviewNote("Rollback về phiên bản v" + targetVersionNo);
+        boolean asyncMode = (vectorIndexWorker != null);
+        if (asyncMode) {
+            target.setIndexStatus(ProcedureVectorIndexWorker.STATUS_PENDING);
+            target.setIndexRetryCount(0);
+            target.setIndexError(null);
+            target.setIndexedAt(null);
+            proc.setIndexStatus(ProcedureVectorIndexWorker.STATUS_PENDING);
+        }
         ProcedureVersion restored = versionRepository.saveAndFlush(target);
 
         ProcedureContentDto restoredContent = parseContent(restored.getContent());
@@ -608,7 +649,13 @@ public class ProcedureGovernanceService {
         updateProcedureTimeAndFeeMetadata(proc, restoredContent.getThoiHanLePhi());
         procedureRepository.save(proc);
 
-        syncRagChunksSelectively(proc, restoredContent);
+        if (asyncMode) {
+            triggerAsyncVectorIndexingAfterCommit(proc.getId(), restored.getId());
+        } else {
+            boolean syncOk = syncRagChunksSelectively(proc, restoredContent);
+            restored.setIndexStatus(syncOk ? ProcedureVectorIndexWorker.STATUS_INDEXED : ProcedureVectorIndexWorker.STATUS_FAILED);
+            proc.setIndexStatus(restored.getIndexStatus());
+        }
 
         if (auditService != null) {
             auditService.logProcedureAction(
@@ -675,13 +722,30 @@ public class ProcedureGovernanceService {
                 .build();
     }
 
+    private void triggerAsyncVectorIndexingAfterCommit(Long procedureId, Long versionId) {
+        if (vectorIndexWorker == null || procedureId == null || versionId == null) {
+            return;
+        }
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    vectorIndexWorker.indexProcedureVersionAsync(procedureId, versionId);
+                }
+            });
+        } else {
+            vectorIndexWorker.indexProcedureVersionAsync(procedureId, versionId);
+        }
+    }
+
     /**
      * Selective RAG chunk re-embedding upon publishing a new procedure version:
      * - Compares content_hash of each section against existing chunks in DB.
      * - Only chunks whose content_hash changed are re-embedded.
      * - If AI embedding fails, keeps existing chunks untouched so RAG service never degrades.
      */
-    private void syncRagChunksSelectively(AdminProcedure proc, ProcedureContentDto newContent) {
+    private boolean syncRagChunksSelectively(AdminProcedure proc, ProcedureContentDto newContent) {
+        boolean allSucceeded = true;
         List<LegalChunk> existingChunks = chunkRepository.findByProcedureId(proc.getId());
         if (existingChunks == null) {
             existingChunks = new ArrayList<>();
@@ -759,6 +823,7 @@ public class ProcedureGovernanceService {
                         existing.setEmbeddingModel(emb.modelId());
                         chunkRepository.save(existing);
                     } catch (Exception e) {
+                        allSucceeded = false;
                         log.warn("Embedding failed for updated chunk {} ({}): {}. Preserving existing chunk content & vector.",
                                 existing.getChunkCode(), chunkType, e.getMessage());
                     }
@@ -797,6 +862,7 @@ public class ProcedureGovernanceService {
                         created.setEmbeddingModel(emb.modelId());
                         chunkRepository.save(created);
                     } catch (Exception e) {
+                        allSucceeded = false;
                         log.warn("Embedding failed for new chunk {}: {}", chunkCode, e.getMessage());
                     }
                 } else {
@@ -804,6 +870,7 @@ public class ProcedureGovernanceService {
                 }
             }
         }
+        return allSucceeded;
     }
 
     private void updateProcedureTimeAndFeeMetadata(AdminProcedure proc, String thoiHanLePhi) {
@@ -901,6 +968,9 @@ public class ProcedureGovernanceService {
                 .fee(proc.getFee())
                 .processingTime(proc.getProcessingTime())
                 .agency(proc.getAgency())
+                .indexStatus(published != null && published.getIndexStatus() != null
+                        ? published.getIndexStatus()
+                        : (proc.getIndexStatus() != null ? proc.getIndexStatus() : ProcedureVectorIndexWorker.STATUS_INDEXED))
                 .build();
     }
 
@@ -923,6 +993,10 @@ public class ProcedureGovernanceService {
                 .publishedAt(v.getPublishedAt())
                 .source(v.getSource())
                 .sourceRef(v.getSourceRef())
+                .indexStatus(v.getIndexStatus() != null ? v.getIndexStatus() : ProcedureVectorIndexWorker.STATUS_INDEXED)
+                .indexRetryCount(v.getIndexRetryCount() != null ? v.getIndexRetryCount() : 0)
+                .indexError(v.getIndexError())
+                .indexedAt(v.getIndexedAt())
                 .build();
     }
 
@@ -947,6 +1021,8 @@ public class ProcedureGovernanceService {
                 .publishedAt(proc.getUpdatedAt())
                 .source("MANUAL")
                 .sourceRef(proc.getSourceUrl())
+                .indexStatus(proc.getIndexStatus() != null ? proc.getIndexStatus() : ProcedureVectorIndexWorker.STATUS_INDEXED)
+                .indexRetryCount(0)
                 .build();
     }
 

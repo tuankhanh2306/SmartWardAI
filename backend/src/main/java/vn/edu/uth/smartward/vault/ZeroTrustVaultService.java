@@ -31,6 +31,8 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -60,6 +62,12 @@ public class ZeroTrustVaultService {
     @Value("${smartward.vault.encryption-key:}")
     private String rawEncryptionKey;
 
+    @Value("${smartward.vault.active-key-id:v1}")
+    private String activeKeyId = "v1";
+
+    @Value("${smartward.vault.previous-keys:}")
+    private String previousKeysSpec = "";
+
     @Value("${smartward.vault.fail-closed:true}")
     private boolean failClosed = true;
 
@@ -69,6 +77,8 @@ public class ZeroTrustVaultService {
     private static final String ALGORITHM = "AES/GCM/NoPadding";
     private static final int GCM_TAG_LENGTH_BITS = 128;
     private static final int GCM_IV_LENGTH_BYTES = 12;
+    private static final byte[] ENVELOPE_MAGIC = new byte[]{'S', 'W', 'V', '1'};
+    private static final int MAX_KEY_ID_BYTES = 64;
     public static final long MAX_UPLOAD_SIZE_BYTES = 5L * 1024 * 1024; // 5 MB hard cap
 
     /**
@@ -306,11 +316,20 @@ public class ZeroTrustVaultService {
     }
 
     /**
-     * Encrypts plaintext bytes using AES/GCM/NoPadding (256-bit).
-     * Output format: [12-byte IV] + [Ciphertext + 16-byte GCM Tag].
+     * Encrypts plaintext bytes using AES/GCM/NoPadding (256-bit) with versioned key_id envelope header.
+     * Output format (SWV1):
+     *   [4-byte magic "SWV1"] + [1-byte key_id length] + [key_id UTF-8] + [12-byte IV] + [Ciphertext + 16-byte GCM Tag]
+     * The envelope header is authenticated as AES-GCM AAD so key_id tampering invalidates the GCM tag.
      */
     public byte[] encryptAesGcm(byte[] plaintext) {
         try {
+            String keyId = resolveActiveKeyId();
+            byte[] keyIdBytes = keyId.getBytes(StandardCharsets.UTF_8);
+            byte[] headerBytes = new byte[ENVELOPE_MAGIC.length + 1 + keyIdBytes.length];
+            System.arraycopy(ENVELOPE_MAGIC, 0, headerBytes, 0, ENVELOPE_MAGIC.length);
+            headerBytes[ENVELOPE_MAGIC.length] = (byte) keyIdBytes.length;
+            System.arraycopy(keyIdBytes, 0, headerBytes, ENVELOPE_MAGIC.length + 1, keyIdBytes.length);
+
             byte[] iv = new byte[GCM_IV_LENGTH_BYTES];
             new SecureRandom().nextBytes(iv);
 
@@ -318,14 +337,18 @@ public class ZeroTrustVaultService {
             Cipher cipher = Cipher.getInstance(ALGORITHM);
             GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv);
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, spec);
+            cipher.updateAAD(headerBytes);
 
             byte[] cipherBytes = cipher.doFinal(plaintext);
 
-            ByteBuffer byteBuffer = ByteBuffer.allocate(iv.length + cipherBytes.length);
+            ByteBuffer byteBuffer = ByteBuffer.allocate(headerBytes.length + iv.length + cipherBytes.length);
+            byteBuffer.put(headerBytes);
             byteBuffer.put(iv);
             byteBuffer.put(cipherBytes);
             return byteBuffer.array();
 
+        } catch (BusinessException be) {
+            throw be;
         } catch (Exception e) {
             log.error("AES-GCM encryption failed: {}", e.getMessage(), e);
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "Lỗi mã hóa tài liệu bảo mật: " + e.getMessage());
@@ -333,32 +356,104 @@ public class ZeroTrustVaultService {
     }
 
     /**
-     * Decrypts AES/GCM/NoPadding ciphertext.
+     * Extracts the key_id embedded in an SWV1 encrypted payload header, if present.
+     * Returns Optional.empty() for legacy headerless [IV][ciphertext] payloads.
      */
-    public byte[] decryptAesGcm(byte[] ciphertextWithIv) {
+    public Optional<String> extractKeyId(byte[] payload) {
+        if (!hasEnvelopeMagic(payload) || payload.length < ENVELOPE_MAGIC.length + 2) {
+            return Optional.empty();
+        }
+        int keyIdLen = payload[ENVELOPE_MAGIC.length] & 0xFF;
+        int headerLen = ENVELOPE_MAGIC.length + 1 + keyIdLen;
+        if (keyIdLen == 0 || keyIdLen > MAX_KEY_ID_BYTES || payload.length < headerLen + GCM_IV_LENGTH_BYTES + 16) {
+            return Optional.empty();
+        }
+        return Optional.of(new String(payload, ENVELOPE_MAGIC.length + 1, keyIdLen, StandardCharsets.UTF_8));
+    }
+
+    /**
+     * Decrypts AES/GCM/NoPadding ciphertext supporting:
+     * 1. Versioned SWV1 header payloads (routes decryption to exact key_id in active + rotated keyring)
+     * 2. Legacy headerless payloads (backward-compatible decryption across active + rotated keyring)
+     */
+    public byte[] decryptAesGcm(byte[] payload) {
         try {
-            if (ciphertextWithIv == null || ciphertextWithIv.length < GCM_IV_LENGTH_BYTES + 16) {
+            if (payload == null || payload.length < GCM_IV_LENGTH_BYTES + 16) {
                 throw new IllegalArgumentException("Invalid AES-GCM ciphertext payload.");
             }
 
-            ByteBuffer byteBuffer = ByteBuffer.wrap(ciphertextWithIv);
+            Map<String, SecretKey> keyring = resolveKeyring();
+
+            if (hasEnvelopeMagic(payload)) {
+                int keyIdLen = payload[ENVELOPE_MAGIC.length] & 0xFF;
+                int headerLen = ENVELOPE_MAGIC.length + 1 + keyIdLen;
+                if (keyIdLen == 0 || keyIdLen > MAX_KEY_ID_BYTES || payload.length < headerLen + GCM_IV_LENGTH_BYTES + 16) {
+                    throw new IllegalArgumentException("Malformed SWV1 encryption envelope header.");
+                }
+
+                byte[] headerBytes = new byte[headerLen];
+                System.arraycopy(payload, 0, headerBytes, 0, headerLen);
+                String keyId = new String(payload, ENVELOPE_MAGIC.length + 1, keyIdLen, StandardCharsets.UTF_8);
+
+                SecretKey secretKey = keyring.get(keyId);
+                if (secretKey == null) {
+                    throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
+                            "Không tìm thấy khóa giải mã tương ứng với key_id='" + keyId + "' trong cấu hình xoay khóa Vault.");
+                }
+
+                byte[] iv = new byte[GCM_IV_LENGTH_BYTES];
+                System.arraycopy(payload, headerLen, iv, 0, GCM_IV_LENGTH_BYTES);
+
+                int cipherOffset = headerLen + GCM_IV_LENGTH_BYTES;
+                byte[] cipherBytes = new byte[payload.length - cipherOffset];
+                System.arraycopy(payload, cipherOffset, cipherBytes, 0, cipherBytes.length);
+
+                Cipher cipher = Cipher.getInstance(ALGORITHM);
+                GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv);
+                cipher.init(Cipher.DECRYPT_MODE, secretKey, spec);
+                cipher.updateAAD(headerBytes);
+                return cipher.doFinal(cipherBytes);
+            }
+
+            // Legacy headerless format: [12-byte IV] + [Ciphertext + 16-byte GCM Tag]
+            ByteBuffer byteBuffer = ByteBuffer.wrap(payload);
             byte[] iv = new byte[GCM_IV_LENGTH_BYTES];
             byteBuffer.get(iv);
 
             byte[] cipherBytes = new byte[byteBuffer.remaining()];
             byteBuffer.get(cipherBytes);
 
-            SecretKey secretKey = getSecretKey();
-            Cipher cipher = Cipher.getInstance(ALGORITHM);
-            GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv);
-            cipher.init(Cipher.DECRYPT_MODE, secretKey, spec);
+            Exception lastError = null;
+            for (SecretKey candidateKey : keyring.values()) {
+                try {
+                    Cipher cipher = Cipher.getInstance(ALGORITHM);
+                    GCMParameterSpec spec = new GCMParameterSpec(GCM_TAG_LENGTH_BITS, iv);
+                    cipher.init(Cipher.DECRYPT_MODE, candidateKey, spec);
+                    return cipher.doFinal(cipherBytes);
+                } catch (Exception ex) {
+                    lastError = ex;
+                }
+            }
+            throw lastError != null ? lastError : new IllegalStateException("No Vault decryption keys configured");
 
-            return cipher.doFinal(cipherBytes);
-
+        } catch (BusinessException be) {
+            throw be;
         } catch (Exception e) {
             log.error("AES-GCM decryption failed: {}", e.getMessage(), e);
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR, "Lỗi giải mã hoặc dữ liệu bảo mật bị can thiệp trái phép.");
         }
+    }
+
+    private boolean hasEnvelopeMagic(byte[] payload) {
+        if (payload == null || payload.length < ENVELOPE_MAGIC.length) {
+            return false;
+        }
+        for (int i = 0; i < ENVELOPE_MAGIC.length; i++) {
+            if (payload[i] != ENVELOPE_MAGIC[i]) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private void uploadToMinio(String objectName, byte[] bytes) {
@@ -424,20 +519,63 @@ public class ZeroTrustVaultService {
     }
 
     private SecretKey getSecretKey() {
-        if (rawEncryptionKey == null || rawEncryptionKey.isBlank()) {
+        return validateAndBuildSecretKey(rawEncryptionKey, "VAULT_ENCRYPTION_KEY (smartward.vault.encryption-key)");
+    }
+
+    private String resolveActiveKeyId() {
+        String id = (activeKeyId == null || activeKeyId.isBlank()) ? "v1" : activeKeyId.trim();
+        byte[] bytes = id.getBytes(StandardCharsets.UTF_8);
+        if (bytes.length > MAX_KEY_ID_BYTES || !id.matches("^[A-Za-z0-9._-]+$")) {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
-                    "Chưa cấu hình khóa mã hóa VAULT_ENCRYPTION_KEY (smartward.vault.encryption-key). Bắt buộc cấu hình khóa 256-bit (32 bytes).");
+                    "smartward.vault.active-key-id không hợp lệ (chỉ cho phép tối đa 64 ký tự chữ, số, '.', '_', '-').");
         }
-        String effective = rawEncryptionKey.trim();
+        return id;
+    }
+
+    private Map<String, SecretKey> resolveKeyring() {
+        Map<String, SecretKey> keyring = new LinkedHashMap<>();
+        String currentId = resolveActiveKeyId();
+        keyring.put(currentId, getSecretKey());
+
+        if (previousKeysSpec != null && !previousKeysSpec.isBlank()) {
+            String[] entries = previousKeysSpec.split("[,;\\r?\\n]+");
+            for (String entry : entries) {
+                String trimmed = entry.trim();
+                if (trimmed.isEmpty()) {
+                    continue;
+                }
+                int sep = trimmed.indexOf(':');
+                if (sep <= 0 || sep >= trimmed.length() - 1) {
+                    throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
+                            "Định dạng VAULT_PREVIOUS_KEYS không hợp lệ (yêu cầu dạng keyId:secret, phân tách bằng dấu phẩy).");
+                }
+                String keyId = trimmed.substring(0, sep).trim();
+                String keyMaterial = trimmed.substring(sep + 1).trim();
+                if (!keyId.matches("^[A-Za-z0-9._-]+$") || keyId.length() > MAX_KEY_ID_BYTES) {
+                    throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
+                            "key_id trong VAULT_PREVIOUS_KEYS không hợp lệ: " + keyId);
+                }
+                keyring.putIfAbsent(keyId, validateAndBuildSecretKey(keyMaterial, "VAULT_PREVIOUS_KEYS[" + keyId + "]"));
+            }
+        }
+        return keyring;
+    }
+
+    private SecretKey validateAndBuildSecretKey(String rawKey, String keyLabel) {
+        if (rawKey == null || rawKey.isBlank()) {
+            throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
+                    "Chưa cấu hình khóa mã hóa " + keyLabel + ". Bắt buộc cấu hình khóa 256-bit (32 bytes).");
+        }
+        String effective = rawKey.trim();
         byte[] keyBytes = effective.getBytes(StandardCharsets.UTF_8);
         if (keyBytes.length < 32) {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
-                    "Khóa mã hóa VAULT_ENCRYPTION_KEY không đủ độ dài an toàn (yêu cầu tối thiểu 32 bytes cho AES-256-GCM).");
+                    "Khóa mã hóa " + keyLabel + " không đủ độ dài an toàn (yêu cầu tối thiểu 32 bytes cho AES-256-GCM).");
         }
         String lower = effective.toLowerCase();
         if (lower.contains("changeme") || lower.contains("devtest") || lower.contains("fallback")) {
             throw new BusinessException(ErrorCode.INTERNAL_SERVER_ERROR,
-                    "VAULT_ENCRYPTION_KEY không được chứa từ khóa placeholder mẫu (ChangeMe, DevTest, Fallback).");
+                    keyLabel + " không được chứa từ khóa placeholder mẫu (ChangeMe, DevTest, Fallback).");
         }
         byte[] finalKey = new byte[32]; // 256 bits
         System.arraycopy(keyBytes, 0, finalKey, 0, 32);
