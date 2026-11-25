@@ -34,6 +34,7 @@ export const AdminWardReadOnlyPage: React.FC = () => {
 
   const [overview, setOverview] = useState<AdminWardOverviewResponse | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [auditTimestamp, setAuditTimestamp] = useState<string>('');
   const [searchKeyword, setSearchKeyword] = useState<string>('');
 
@@ -47,56 +48,18 @@ export const AdminWardReadOnlyPage: React.FC = () => {
   const fetchReadOnlyWardData = useCallback(async (targetCode: string) => {
     if (!targetCode || targetCode.toUpperCase() === 'AG_PROVINCE') return;
     setLoading(true);
+    setLoadError(null);
     try {
       const data = await getAdminWardReadOnlyOverview(targetCode);
       setOverview(data);
       setAuditTimestamp(new Date().toLocaleTimeString('vi-VN'));
-    } catch {
-      // Fallback read-only view when backend server is offline in local preview
-      setOverview({
-        wardCode: targetCode,
-        readOnly: true,
-        audited: true,
-        totalDossiers: 3,
-        pendingDossiers: 1,
-        approvedDossiers: 2,
-        rejectedDossiers: 0,
-        dossiers: [
-          {
-            dossierCode: `HS-${targetCode.slice(-4)}-2026-001`,
-            procedureCode: 'TTHC-CR-01',
-            procedureName: 'Đăng ký thường trú (Mẫu CT01 - Bộ Công an)',
-            wardCode: targetCode,
-            citizenName: 'Nguyễn Văn Minh',
-            citizenCccd: '089091***412',
-            status: 'PENDING',
-            createdAt: new Date(Date.now() - 3600 * 1000 * 4).toISOString(),
-          },
-          {
-            dossierCode: `HS-${targetCode.slice(-4)}-2026-002`,
-            procedureCode: 'TTHC-HT-01',
-            procedureName: 'Đăng ký khai sinh (UBND cấp xã)',
-            wardCode: targetCode,
-            citizenName: 'Trần Thị Ngọc Lan',
-            citizenCccd: '089195***829',
-            status: 'APPROVED',
-            createdAt: new Date(Date.now() - 3600 * 1000 * 24).toISOString(),
-            officerFeedback: 'Hồ sơ hợp lệ, đã cấp giấy khai sinh bản chính.',
-          },
-          {
-            dossierCode: `HS-${targetCode.slice(-4)}-2026-003`,
-            procedureCode: 'TTHC-CT-01',
-            procedureName: 'Chứng thực bản sao từ bản chính (UBND cấp xã)',
-            wardCode: targetCode,
-            citizenName: 'Lê Hoàng Nam',
-            citizenCccd: '089088***105',
-            status: 'APPROVED',
-            createdAt: new Date(Date.now() - 3600 * 1000 * 30).toISOString(),
-            officerFeedback: 'Đã chứng thực sao y.',
-          },
-        ],
-      });
-      setAuditTimestamp(new Date().toLocaleTimeString('vi-VN'));
+    } catch (err: any) {
+      setOverview(null);
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        'Không thể kết nối Backend để tải dữ liệu giám sát liên xã.';
+      setLoadError(msg);
     } finally {
       setLoading(false);
     }
@@ -232,6 +195,17 @@ export const AdminWardReadOnlyPage: React.FC = () => {
           {loading ? (
             <div className="p-10 text-center text-xs text-slate-500">
               Đang tải dữ liệu giám sát chỉ đọc và ghi nhận audit_log...
+            </div>
+          ) : loadError ? (
+            <div className="p-10 text-center text-xs text-rose-700 bg-rose-50/70 flex flex-col items-center gap-3">
+              <p className="font-semibold">{loadError}</p>
+              <button
+                type="button"
+                onClick={() => fetchReadOnlyWardData(resolvedWard.code)}
+                className="px-3.5 py-1.5 rounded-lg bg-slate-900 text-white font-bold hover:bg-slate-800 cursor-pointer"
+              >
+                Thử lại
+              </button>
             </div>
           ) : filteredDossiers.length === 0 ? (
             <div className="p-10 text-center text-xs text-slate-500">

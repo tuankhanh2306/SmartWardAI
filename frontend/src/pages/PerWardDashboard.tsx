@@ -25,7 +25,6 @@ import {
 } from '../api/client';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { generateValidWardMockIncidents } from '../utils/mockIncidentGenerator';
 import {
   MapPin,
   AlertTriangle,
@@ -285,15 +284,19 @@ export const PerWardDashboard: React.FC = () => {
 
   useEffect(() => {
     let mounted = true;
-    getHitlQueue().then((items) => {
-      if (!mounted) return;
-      setHitlItems(items);
-      const initialDrafts: Record<string, string> = {};
-      items.forEach((it) => {
-        initialDrafts[it.id] = it.suggestedAnswer;
+    getHitlQueue()
+      .then((items) => {
+        if (!mounted) return;
+        setHitlItems(items);
+        const initialDrafts: Record<string, string> = {};
+        items.forEach((it) => {
+          initialDrafts[it.id] = it.suggestedAnswer;
+        });
+        setDraftAnswers(initialDrafts);
+      })
+      .catch(() => {
+        if (mounted) setHitlItems([]);
       });
-      setDraftAnswers(initialDrafts);
-    });
     return () => {
       mounted = false;
     };
@@ -318,6 +321,9 @@ export const PerWardDashboard: React.FC = () => {
       // Close detail modal after approval
       setSelectedHitlItem(null);
       setTimeout(() => setToastBanner(null), 5000);
+    } catch {
+      setToastBanner(`Không thể phê duyệt HITL ${item.id} do lỗi kết nối máy chủ.`);
+      setTimeout(() => setToastBanner(null), 5000);
     } finally {
       setResolvingId(null);
     }
@@ -329,17 +335,16 @@ export const PerWardDashboard: React.FC = () => {
       await rebuildSpatialIndex();
       setToastBanner(`Đã cập nhật dữ liệu vị trí sự cố trên bản đồ địa bàn ${ward.name}.`);
       setTimeout(() => setToastBanner(null), 5000);
+    } catch {
+      setToastBanner(`Không đồng bộ được chỉ mục Redis GEO (cần quyền Quản trị viên hoặc kiểm tra kết nối).`);
+      setTimeout(() => setToastBanner(null), 5000);
     } finally {
       setGeoSyncing(false);
     }
   };
 
-  // Build ward-scoped default incidents around the selected ward's coordinates
-  // BƯỚC 3: Geo-validated reproducible mock generator with R=25m clustering
-  const buildDefaultWardIncidents = (targetWard: WardItem): LocalIncident[] => generateValidWardMockIncidents(targetWard);
-
-  // Incidents Dataset with Rich Context for Progressive Disclosure (Unified single loader below)
-  const [incidents, setIncidents] = useState<LocalIncident[]>(() => buildDefaultWardIncidents(ward));
+  // Incidents Dataset fetched dynamically from Backend Clusters API + live citizen submissions (no static mock generator)
+  const [incidents, setIncidents] = useState<LocalIncident[]>([]);
 
   // Dossiers Dataset with Rich Context for In-Place Audit
   const [dossiers, setDossiers] = useState<QuickDossierItem[]>([
@@ -953,11 +958,11 @@ export const PerWardDashboard: React.FC = () => {
     };
   }, []);
 
-  // Sync incidents from ward defaults, localStorage, live citizen reports, and Backend Clusters API
+  // Sync incidents from live citizen reports and Backend Clusters API
   useEffect(() => {
     let mounted = true;
     const storageKey = `smartward_incidents_v2_${ward.code}`;
-    let baseIncidents = buildDefaultWardIncidents(ward);
+    let baseIncidents: LocalIncident[] = [];
 
     const saved = localStorage.getItem(storageKey);
     if (saved) {
@@ -1102,11 +1107,14 @@ export const PerWardDashboard: React.FC = () => {
       );
     }
 
-    // Call backend status update API asynchronously
-    updateClusterStatus(id, newStatus).catch(() => {});
-
-    setToastBanner(`Đã cập nhật sự cố ${id} sang trạng thái: ${newStatus === 'RESOLVED' ? 'Đã hoàn thành' : newStatus === 'IN_PROGRESS' ? 'Đang xử lý' : 'Chờ tiếp nhận'} (Đã đồng bộ về Cổng Công Dân)`);
+    setToastBanner(`Đã cập nhật sự cố ${id} sang trạng thái: ${newStatus === 'RESOLVED' ? 'Đã hoàn thành' : newStatus === 'IN_PROGRESS' ? 'Đang xử lý' : 'Chờ tiếp nhận'}`);
     setTimeout(() => setToastBanner(null), 4000);
+
+    // Call backend status update API and report explicitly if persistence fails
+    updateClusterStatus(id, newStatus).catch(() => {
+      setToastBanner(`Cảnh báo: Không đồng bộ được trạng thái sự cố ${id} lên máy chủ Backend.`);
+      setTimeout(() => setToastBanner(null), 5000);
+    });
   };
 
   // Calculate high-signal metrics

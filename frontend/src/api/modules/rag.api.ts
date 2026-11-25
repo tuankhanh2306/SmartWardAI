@@ -695,16 +695,9 @@ const DEFAULT_FALLBACK_HITL_QUEUE: HitlGrayZoneItem[] = [
 ];
 
 export const getHitlQueue = async (): Promise<HitlGrayZoneItem[]> => {
-  try {
-    const resp = await api.get<any>('/rag/hitl-queue');
-    const items = resp.data?.data ? resp.data.data : resp.data;
-    if (Array.isArray(items) && items.length > 0) {
-      return items as HitlGrayZoneItem[];
-    }
-    return DEFAULT_FALLBACK_HITL_QUEUE;
-  } catch {
-    return DEFAULT_FALLBACK_HITL_QUEUE;
-  }
+  const resp = await api.get<any>('/rag/hitl-queue');
+  const items = resp.data?.data ? resp.data.data : resp.data;
+  return Array.isArray(items) ? (items as HitlGrayZoneItem[]) : [];
 };
 
 export const resolveHitlItem = async (
@@ -712,46 +705,20 @@ export const resolveHitlItem = async (
   approvedAnswer: string,
   officerName: string
 ): Promise<HitlGrayZoneItem> => {
-  const fallbackItem: HitlGrayZoneItem = {
-    id,
-    query: 'Câu hỏi vùng xám cần phê duyệt',
-    wardName: 'UBND Cấp Xã',
-    similarityScore: 0.65,
-    candidateChunkCode: 'TTHC-RESOLVED',
-    candidateProcedureName: 'Thủ tục hành chính',
-    legalReference: 'Quy định pháp luật hiện hành',
-    suggestedAnswer: approvedAnswer,
-    status: 'APPROVED',
-    createdAt: new Date().toISOString(),
-    resolvedBy: officerName,
-  };
-
-  try {
-    const resp = await api.post<any>(`/rag/hitl-queue/${id}/resolve`, {
-      approvedAnswer,
-      officerName,
-    });
-    const resItem = (resp.data?.data ? resp.data.data : resp.data) as HitlGrayZoneItem;
-    return resItem || fallbackItem;
-  } catch {
-    return fallbackItem;
-  }
+  const resp = await api.post<any>(`/rag/hitl-queue/${encodeURIComponent(id)}/resolve`, {
+    approvedAnswer,
+    officerName,
+  });
+  return (resp.data?.data ? resp.data.data : resp.data) as HitlGrayZoneItem;
 };
 
 export const rebuildSpatialIndex = async (): Promise<{ syncedClustersCount: number; message: string }> => {
-  try {
-    const resp = await api.post<any>('/issues/clusters/rebuild-index');
-    const data = resp.data?.data ? resp.data.data : resp.data;
-    return {
-      syncedClustersCount: data?.syncedClustersCount ?? 8,
-      message:
-        data?.message ??
-        'Đã đồng bộ hóa chỉ mục không gian Redis GEO từ cơ sở dữ liệu PostgreSQL thành công.',
-    };
-  } catch {
-    return {
-      syncedClustersCount: 8,
-      message: 'Đã đồng bộ 8 cụm sự cố đang mở từ PostgreSQL vào Redis GEO (smartward:geo:clusters).',
-    };
-  }
+  const resp = await api.post<any>('/issues/clusters/rebuild-index');
+  const data = resp.data?.data ? resp.data.data : resp.data;
+  return {
+    syncedClustersCount: data?.syncedClustersCount ?? 0,
+    message:
+      data?.message ??
+      'Đã đồng bộ hóa chỉ mục không gian Redis GEO từ cơ sở dữ liệu PostgreSQL thành công.',
+  };
 };
