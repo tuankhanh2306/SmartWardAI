@@ -42,18 +42,10 @@ export const viewVaultDocument = async (token: string): Promise<Blob> => {
   return resp.data as Blob;
 };
 
-// 5. Evaluation Benchmark API
+// 5. Evaluation Benchmark API (calls live backend endpoint; disabled in prod per SEC-03)
 export const getBenchmarkReport = async () => {
-  try {
-    const resp = await api.get('/evaluation/report');
-    return resp.data;
-  } catch {
-    return {
-      rag: { recall3: 0.9538, mrr: 0.912, trueAbstentionRate: 1.0 },
-      triage: { precision: 1.0, recall: 1.0, f1: 1.0, optimalR: 75.0, optimalTau: 0.82 },
-      memoryMb: 880,
-    };
-  }
+  const resp = await api.get('/evaluation/report');
+  return resp.data?.data ?? resp.data;
 };
 
 
