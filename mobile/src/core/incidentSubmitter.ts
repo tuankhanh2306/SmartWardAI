@@ -8,7 +8,12 @@
 
 import { submitCivicIncidentReport, uploadIncidentPhoto } from '../api/client';
 import { BBOX_AN_GIANG, resolveWardFromLocationBox } from './angiangWards';
-import { enqueueOfflineIncident, persistOfflineIncidentPhotos } from '../storage/sqliteDb';
+import { classifyIncidentSyncError } from './incidentSyncHistory';
+import {
+  enqueueOfflineIncident,
+  persistOfflineIncidentPhotos,
+  upsertIncidentSyncHistory,
+} from '../storage/sqliteDb';
 import { DOMAIN_THRESHOLDS } from '../theme/tokens';
 import type {
   CivicReportRequest,
@@ -125,6 +130,7 @@ export interface IncidentSubmissionDeps {
   uploadPhotoApi?: typeof uploadIncidentPhoto;
   enqueueOffline?: typeof enqueueOfflineIncident;
   persistPhotos?: typeof persistOfflineIncidentPhotos;
+  upsertHistory?: typeof upsertIncidentSyncHistory;
 }
 
 /**
@@ -150,6 +156,7 @@ export async function executeIncidentSubmission(
   const uploadPhotoApi = deps.uploadPhotoApi ?? uploadIncidentPhoto;
   const enqueueOffline = deps.enqueueOffline ?? enqueueOfflineIncident;
   const persistPhotos = deps.persistPhotos ?? persistOfflineIncidentPhotos;
+  const upsertHistory = deps.upsertHistory ?? upsertIncidentSyncHistory;
 
   const routed = resolveWardFromLocationBox(
     input.addressText,
@@ -197,31 +204,115 @@ export async function executeIncidentSubmission(
     const clusterCode = resp.clusterCode || 'CLU-NEW';
     const count = resp.reportCountInCluster ?? resp.totalReportsInCluster ?? 1;
     const radius = resp.spatialRadiusMeters ?? resp.appliedRadiusMeters ?? DOMAIN_THRESHOLDS.gpsClusterRadiusMeters;
+    const now = Date.now();
+    const targetWardCode = resp.targetWardCode || routed.ward.code;
+    const targetWardName = resp.targetWardName || routed.ward.name;
+
+    await upsertHistory({
+      local_id: `ONLINE_INC_${now}_${Math.random().toString(36).slice(2, 7).toUpperCase()}`,
+      category: payload.category,
+      title: payload.title,
+      description: payload.description,
+      address_text: payload.addressText,
+      reporter_phone: payload.reporterPhone,
+      latitude: payload.latitude,
+      longitude: payload.longitude,
+      location_source: payload.locationSource || 'GPS',
+      target_ward_code: targetWardCode,
+      target_ward_name: targetWardName,
+      sync_status: 'ACCEPTED',
+      report_code: resp.reportCode || null,
+      cluster_code: clusterCode,
+      error_category: null,
+      last_error: null,
+      retry_count: 0,
+      created_at: now,
+      updated_at: now,
+    });
 
     return {
       success: true,
       mode: 'SUBMITTED_ONLINE',
-      targetWardCode: resp.targetWardCode || routed.ward.code,
-      targetWardName: resp.targetWardName || routed.ward.name,
+      targetWardCode,
+      targetWardName,
       matchedBy: routed.matchedBy,
       response: resp,
       message: merged
-        ? `Đã gộp vào cụm ${clusterCode} (${count} phản ánh trong bán kính ${radius}m) tại UBND ${resp.targetWardName || routed.ward.name}.`
-        : `Đã tạo cụm sự cố mới ${clusterCode} và chuyển tới UBND ${resp.targetWardName || routed.ward.name}.`,
+        ? `Đã gộp vào cụm ${clusterCode} (${count} phản ánh trong bán kính ${radius}m) tại UBND ${targetWardName}.`
+        : `Đã tạo cụm sự cố mới ${clusterCode} và chuyển tới UBND ${targetWardName}.`,
     };
-  } catch {
+  } catch (err) {
+    const classified = classifyIncidentSyncError(err);
+    const now = Date.now();
+
+    if (classified.category === 'LOCATION_OR_VALIDATION') {
+      await upsertHistory({
+        local_id: `EDIT_INC_${now}_${Math.random().toString(36).slice(2, 7).toUpperCase()}`,
+        category: payload.category,
+        title: payload.title,
+        description: payload.description,
+        address_text: payload.addressText,
+        reporter_phone: payload.reporterPhone,
+        latitude: payload.latitude,
+        longitude: payload.longitude,
+        location_source: payload.locationSource || 'GPS',
+        target_ward_code: routed.ward.code,
+        target_ward_name: routed.ward.name,
+        sync_status: 'EDIT_REQUIRED',
+        report_code: null,
+        cluster_code: null,
+        error_category: 'LOCATION_OR_VALIDATION',
+        last_error: classified.userMessage,
+        retry_count: 0,
+        created_at: now,
+        updated_at: now,
+      });
+
+      return {
+        success: false,
+        mode: 'VALIDATION_FAILED',
+        errors: [classified.userMessage],
+        targetWardCode: routed.ward.code,
+        targetWardName: routed.ward.name,
+        matchedBy: routed.matchedBy,
+        message: classified.userMessage,
+      };
+    }
+
     if (uploadedPhotoKeys.length > 0) {
       payload.photoKeys = uploadedPhotoKeys;
     }
     const persistedUris = await persistPhotos(remainingUris);
     const queued = await enqueueOffline(payload, persistedUris);
+    await upsertHistory({
+      local_id: queued.local_id,
+      category: payload.category,
+      title: payload.title,
+      description: payload.description,
+      address_text: payload.addressText,
+      reporter_phone: payload.reporterPhone,
+      latitude: payload.latitude,
+      longitude: payload.longitude,
+      location_source: payload.locationSource || 'GPS',
+      target_ward_code: routed.ward.code,
+      target_ward_name: routed.ward.name,
+      sync_status: 'WAITING_NETWORK',
+      report_code: null,
+      cluster_code: null,
+      error_category: 'NETWORK',
+      last_error: classified.userMessage,
+      retry_count: 0,
+      created_at: queued.created_at,
+      updated_at: now,
+    });
+
     return {
       success: true,
       mode: 'QUEUED_OFFLINE',
+      offlineLocalId: queued.local_id,
       targetWardCode: routed.ward.code,
       targetWardName: routed.ward.name,
       matchedBy: routed.matchedBy,
-      offlineLocalId: queued.local_id,
       message:
         persistedUris.length > 0
           ? `Đã lưu báo cáo kèm ${persistedUris.length} ảnh vào hàng đợi Offline (${routed.ward.name}) — Tự động gửi ngay khi có sóng 4G.`
