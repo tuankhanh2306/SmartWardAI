@@ -277,11 +277,11 @@ export const SpecializedFormFields: React.FC<SpecializedFormFieldsProps> = (prop
                           const val = e.target.value;
                           setHostRelation(val);
                           if (val === 'Chủ hộ') {
-                            setHostName(fullName || 'NGUYỄN VĂN AN');
-                            setHostCccd(cccd || '089092023490');
-                          } else if (val === 'Con đẻ') {
-                            if (!hostName || hostName === fullName) setHostName('NGUYỄN VĂN AN');
-                            if (!hostCccd || hostCccd === cccd) setHostCccd('089075001234');
+                            setHostName(fullName);
+                            setHostCccd(cccd);
+                          } else {
+                            if (hostName === fullName) setHostName('');
+                            if (hostCccd === cccd) setHostCccd('');
                           }
                         }}
                         className={`w-full h-9 px-3 rounded-xl border text-xs font-semibold text-[#0F172A] transition-all ${

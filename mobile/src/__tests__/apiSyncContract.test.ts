@@ -8,7 +8,7 @@ import {
   VAULT_410_GONE_MESSAGE,
 } from '../core/officerAuditService';
 import { executeDossierSubmissionPipeline } from '../core/dossierSubmitter';
-import { simulateVisionGatePreset } from '../core/visionQualityGate';
+import { evaluateDocumentVisionGate } from '../core/visionQualityGate';
 import {
   buildSmartWardPassPayload,
   getAllWalletQrPasses,
@@ -141,7 +141,14 @@ describe('apiSyncContract — Chặng M5 (Officer QR Counter, Zero-Trust Vault 4
       {
         wardCode: 'AG_P_LONGXUYEN',
         wardName: 'Phường Long Xuyên',
-        visionGate: simulateVisionGatePreset('GOOD', 'CT01'),
+        visionGate: evaluateDocumentVisionGate({
+          expectedFormType: 'CT01',
+          fileName: 'ct01_verified.jpg',
+          mimeType: 'image/jpeg',
+          rawText: 'Tờ khai thay đổi thông tin cư trú CT01',
+          sharpnessScore: 96,
+          brightnessScore: 198,
+        }),
         attachment: null,
         validationInput: {
           formType: 'CT01',

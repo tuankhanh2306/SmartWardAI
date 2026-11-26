@@ -4,28 +4,22 @@
  *   1. Độ nét (XX/100 — đạt >= 45, ánh sáng >= 55)
  *   2. Khớp mẫu (Đúng mẫu / Bị chặn sai mẫu)
  *   3. Chữ rõ (X/Y mục)
- * + 3 nút thử nhanh cho demo hội đồng (Chuẩn / Mờ / Sai mẫu).
  */
 
 import React from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { AlertTriangle, CheckCircle2, Eye } from 'lucide-react-native';
-import type {
-  VisionGateResult,
-  VisionSimulationPreset,
-} from '../core/visionQualityGate';
+import type { VisionGateResult } from '../core/visionQualityGate';
 import { COLORS, RADIUS, SPACING } from '../theme/tokens';
 
 export interface VisionGateCardProps {
   result: VisionGateResult | null;
   fileName?: string | null;
-  onSimulate: (preset: VisionSimulationPreset) => void;
 }
 
 export const VisionGateCard: React.FC<VisionGateCardProps> = ({
   result,
   fileName,
-  onSimulate,
 }) => {
   return (
     <View style={styles.card}>
@@ -124,31 +118,6 @@ export const VisionGateCard: React.FC<VisionGateCardProps> = ({
           Chụp ảnh tờ khai hoặc chọn tệp .DOCX/.PDF để AI kiểm tra độ nét và đúng mẫu.
         </Text>
       )}
-
-      {/* 3 Compact Demo Presets */}
-      <View style={styles.presetRow}>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => onSimulate('GOOD')}
-          style={({ pressed }) => [styles.presetChip, pressed && styles.pressed]}
-        >
-          <Text style={styles.presetOk}>✓ Ảnh chuẩn</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => onSimulate('BLURRY')}
-          style={({ pressed }) => [styles.presetChip, pressed && styles.pressed]}
-        >
-          <Text style={styles.presetBad}>✕ Thử ảnh mờ</Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => onSimulate('WRONG_TEMPLATE')}
-          style={({ pressed }) => [styles.presetChip, pressed && styles.pressed]}
-        >
-          <Text style={styles.presetWarn}>⚠ Thử sai mẫu</Text>
-        </Pressable>
-      </View>
     </View>
   );
 };
@@ -265,23 +234,4 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     fontSize: 12.5,
   },
-  presetRow: {
-    flexDirection: 'row',
-    gap: 6,
-  },
-  presetChip: {
-    flex: 1,
-    minHeight: 34,
-    borderRadius: RADIUS.sm,
-    backgroundColor: COLORS.canvas,
-    borderWidth: 1,
-    borderColor: COLORS.borderSubtle,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 4,
-  },
-  presetOk: { color: COLORS.successText, fontSize: 11.5, fontWeight: '700' },
-  presetBad: { color: COLORS.errorAccent, fontSize: 11.5, fontWeight: '700' },
-  presetWarn: { color: COLORS.warningText, fontSize: 11.5, fontWeight: '700' },
-  pressed: { opacity: 0.8 },
 });

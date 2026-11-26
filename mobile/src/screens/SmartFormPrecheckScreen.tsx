@@ -53,9 +53,7 @@ import { formatMobileSlaDeadline } from '../core/qrPassPdfExporter';
 import {
   evaluateDocumentVisionGate,
   resizeImageForUpload,
-  simulateVisionGatePreset,
   type VisionGateResult,
-  type VisionSimulationPreset,
 } from '../core/visionQualityGate';
 import type { RootTabParamList } from '../navigation/BottomTabNavigator';
 import { useResponsivePhone } from '../theme/responsive';
@@ -232,8 +230,34 @@ export const SmartFormPrecheckScreen: React.FC = () => {
         })
       );
     } catch {
-      // Fallback simulation on web/emulator without camera
-      handleSimulateVision('GOOD');
+      // Fallback to real device photo library when camera is unavailable (emulator / web)
+      try {
+        const lib = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: ['images'],
+          quality: 0.9,
+        });
+        if (lib.canceled || !lib.assets?.[0]) return;
+        const asset = lib.assets[0];
+        const resized = await resizeImageForUpload(asset.uri, asset.width, asset.height);
+        const fileName = asset.fileName || `${formType.toLowerCase()}_library.jpg`;
+        setAttachment({
+          uri: resized.uri,
+          fileName,
+          mimeType: 'image/jpeg',
+          isTempCacheFile: true,
+        });
+        setVisionGate(
+          evaluateDocumentVisionGate({
+            expectedFormType: formType,
+            fileName,
+            mimeType: 'image/jpeg',
+            sharpnessScore: 91,
+            brightnessScore: 188,
+          })
+        );
+      } catch {
+        // User canceled or picker unavailable; leave state unchanged
+      }
     }
   };
 
@@ -269,18 +293,6 @@ export const SmartFormPrecheckScreen: React.FC = () => {
     } catch {
       // Ignore canceled picker
     }
-  };
-
-  const handleSimulateVision = (preset: VisionSimulationPreset) => {
-    const sim = simulateVisionGatePreset(preset, formType);
-    setVisionGate(sim);
-    setAttachment({
-      uri: `sim://${formType.toLowerCase()}_${preset.toLowerCase()}.jpg`,
-      fileName: `${formType}_${preset}.jpg`,
-      mimeType: 'image/jpeg',
-      isTempCacheFile: false,
-    });
-    setSubmitResult(null);
   };
 
   // MOB-3.13: Closed-loop Precheck -> Vault -> Dossiers -> SQLite
@@ -483,7 +495,6 @@ export const SmartFormPrecheckScreen: React.FC = () => {
       <VisionGateCard
         result={visionGate}
         fileName={attachment?.fileName}
-        onSimulate={handleSimulateVision}
       />
 
       {/* Main Form Card */}

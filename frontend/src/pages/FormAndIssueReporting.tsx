@@ -210,12 +210,12 @@ export const FormAndIssueReporting: React.FC = () => {
       setSelectedFormType(type as any);
     }
   }, [searchParams]);
-  const [fullName, setFullName] = useState('NGUYỄN TÚ');
-  const [cccd, setCccd] = useState('03103708');
-  const [dob, setDob] = useState('2015-06-08');
-  const [gender, setGender] = useState('Nữ');
+  const [fullName, setFullName] = useState('');
+  const [cccd, setCccd] = useState('');
+  const [dob, setDob] = useState('');
+  const [gender, setGender] = useState('Nam');
   const [issueDate, setIssueDate] = useState('');
-  const [address, setAddress] = useState('32/3 Ích, Khu phố 12, Phường Tp Hồ Chí Minh');
+  const [address, setAddress] = useState('');
 
   // F7: Real CCCD QR Scanner Modal State & Discrepancies
   const [showCccdQrModal, setShowCccdQrModal] = useState<boolean>(false);
@@ -248,15 +248,15 @@ export const FormAndIssueReporting: React.FC = () => {
   };
 
   // Specialized fields for CT01 (Residence Declaration - Circular 66/2023/TT-BCA)
-  const [phoneNumber, setPhoneNumber] = useState('0918234567');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [hostName, setHostName] = useState('');
   const [hostCccd, setHostCccd] = useState('');
   const [hostRelation, setHostRelation] = useState('Chủ hộ');
   const [declarationScope, setDeclarationScope] = useState('Đăng ký thường trú');
 
   // Specialized cross-check fields for Priority 1 (TK-KS: Birth Registration + Hospital Birth Cert)
-  const [hospitalBirthDate, setHospitalBirthDate] = useState('2026-10-15');
-  const [motherName, setMotherName] = useState('LÊ THỊ MỸ LINH');
+  const [hospitalBirthDate, setHospitalBirthDate] = useState('');
+  const [motherName, setMotherName] = useState('');
 
   // TASK-040: Apply Draft-Only prefill payload when citizen clicks "Mở tờ khai đã điền sẵn" from Civic AI Agent
   useEffect(() => {
@@ -280,33 +280,33 @@ export const FormAndIssueReporting: React.FC = () => {
     setActiveTab('form');
     setFormWizardStep(1);
   }, [location.state]);
-  const [hospitalMotherName, setHospitalMotherName] = useState('LÊ THỊ MỸ LINH');
-  const [fatherName, setFatherName] = useState('TRẦN VĂN HÙNG');
-  const [parentsMarried, setParentsMarried] = useState<'YES' | 'NO'>('NO');
+  const [hospitalMotherName, setHospitalMotherName] = useState('');
+  const [fatherName, setFatherName] = useState('');
+  const [parentsMarried, setParentsMarried] = useState<'YES' | 'NO'>('YES');
   const [childEthnicity, setChildEthnicity] = useState('Kinh');
   const [childNationality, setChildNationality] = useState('Việt Nam');
-  const [childBirthPlace, setChildBirthPlace] = useState('Bệnh viện Đa khoa Trung tâm An Giang');
-  const [birthCertNumber, setBirthCertNumber] = useState('1234/GCS');
-  const [birthCertIssueDate, setBirthCertIssueDate] = useState('2026-10-16');
-  const [fatherDob] = useState('1998-05-20');
-  const [motherDob] = useState('2000-08-14');
-  const [fatherResidence, setFatherResidence] = useState(`Ấp Bình Hòa, ${currentWard.name}, Tỉnh An Giang`);
-  const [motherResidence, setMotherResidence] = useState(`Ấp Bình Hòa, ${currentWard.name}, Tỉnh An Giang`);
+  const [childBirthPlace, setChildBirthPlace] = useState('');
+  const [birthCertNumber, setBirthCertNumber] = useState('');
+  const [birthCertIssueDate, setBirthCertIssueDate] = useState('');
+  const [fatherDob] = useState('');
+  const [motherDob] = useState('');
+  const [fatherResidence, setFatherResidence] = useState('');
+  const [motherResidence, setMotherResidence] = useState('');
 
   // Specialized fields for Priority 2 (TK-KH: Marriage & Single Status Certificate)
   const [marriageMode, setMarriageMode] = useState<'MARRIAGE_REGISTRATION' | 'MARITAL_STATUS_CONFIRMATION'>('MARRIAGE_REGISTRATION');
-  const [partnerName, setPartnerName] = useState('PHẠM VĂN MINH');
-  const [partnerCccd, setPartnerCccd] = useState('089098004567');
-  const [partnerDob, setPartnerDob] = useState('2004-03-10');
+  const [partnerName, setPartnerName] = useState('');
+  const [partnerCccd, setPartnerCccd] = useState('');
+  const [partnerDob, setPartnerDob] = useState('');
   const [partnerGender, setPartnerGender] = useState<'Nam' | 'Nữ'>('Nam');
-  const [partnerAddress, setPartnerAddress] = useState(`Số 45 Lê Lợi, ${currentWard.name}, Tỉnh An Giang`);
+  const [partnerAddress, setPartnerAddress] = useState('');
   const [applicantEthnicity, setApplicantEthnicity] = useState('Kinh');
   const [partnerEthnicity, setPartnerEthnicity] = useState('Kinh');
   const [applicantNationality] = useState('Việt Nam');
   const [partnerNationality] = useState('Việt Nam');
   const [applicantMarriageCount, setApplicantMarriageCount] = useState('1');
   const [partnerMarriageCount, setPartnerMarriageCount] = useState('1');
-  const [maritalCertPurpose, setMaritalCertPurpose] = useState('Bổ sung hồ sơ');
+  const [maritalCertPurpose, setMaritalCertPurpose] = useState('');
   const [previousMaritalStatus, setPreviousMaritalStatus] = useState<'SINGLE' | 'DIVORCED' | 'WIDOWED'>('SINGLE');
   const [divorceJudgmentNumber, setDivorceJudgmentNumber] = useState('');
   const [divorceJudgmentDate, setDivorceJudgmentDate] = useState('');
@@ -320,7 +320,7 @@ export const FormAndIssueReporting: React.FC = () => {
   const [poorHouseholdBookNumber, setPoorHouseholdBookNumber] = useState('');
   const [disabilityCertNumber, setDisabilityCertNumber] = useState('');
   const [disabilityCertIssueDate, setDisabilityCertIssueDate] = useState('');
-  const [disabilityCertIssuer, setDisabilityCertIssuer] = useState(`Chủ tịch UBND ${currentWard.name}`);
+  const [disabilityCertIssuer, setDisabilityCertIssuer] = useState('');
   const [guardianName, setGuardianName] = useState('');
   const [guardianCccd, setGuardianCccd] = useState('');
   const [guardianRelation, setGuardianRelation] = useState('Con đẻ');
@@ -659,115 +659,15 @@ export const FormAndIssueReporting: React.FC = () => {
       setLocationSource('WARD_DEFAULT');
       setIsAddressManuallyEdited(false);
       mapLocationToBoxes(currentWard.officeAddress);
-      if (!ocrSuccess) {
-        setAddress((prev) => (prev.startsWith('Số 12,') || !prev ? `Số 12, ${currentWard.officeAddress}` : prev));
-      }
     }
-  }, [currentWard.code, currentWard.lat, currentWard.lon, currentWard.name, currentWard.officeAddress, ocrSuccess, mapLocationToBoxes]);
+  }, [currentWard.code, currentWard.lat, currentWard.lon, currentWard.name, currentWard.officeAddress, mapLocationToBoxes]);
 
-  // Handle FormType Switching with realistic pre-populated test cases
-  const handleSelectFormType = (type: 'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH', presetMode: 'ERROR_DEMO' | 'VALID_DEMO' = 'ERROR_DEMO') => {
+  // Switch active administrative form type without injecting mock/demo data
+  const handleSelectFormType = (type: 'CT01' | 'TK-KS' | 'TK-KH' | 'TK-BTXH') => {
     setSelectedFormType(type);
     setPrecheckResult(null);
     setFormErrors({});
     setSubmitError(null);
-
-    if (type === 'CT01') {
-      if (presetMode === 'ERROR_DEMO') {
-        setFullName('NGUYỄN TÚ');
-        setCccd('03103708');
-        setDob('2015-06-08');
-        setGender('Nữ');
-        setPhoneNumber('09012');
-        setHostName('');
-        setHostCccd('');
-        setHostRelation('');
-        setDeclarationScope('Đăng ký thường trú');
-        setAddress('32/3 Ích, Khu phố 12, Phường Tp Hồ Chí Minh');
-      } else {
-        setFullName('NGUYỄN MINH TUẤN KHANH');
-        setCccd('089205023490');
-        setDob('2005-06-23');
-        setGender('Nam');
-        setPhoneNumber('0918234567');
-        setHostName('NGUYỄN VĂN AN');
-        setHostCccd('089075001234');
-        setHostRelation('Con đẻ');
-        setDeclarationScope('Đăng ký thường trú');
-        setAddress(`Số 18 Đường Trần Hưng Đạo, ${currentWard.name}, Tỉnh An Giang`);
-      }
-    } else if (type === 'TK-KS') {
-      if (presetMode === 'ERROR_DEMO') {
-        setFullName('TRẦN GIA BẢO');
-        setDob('2026-10-18'); // Lệch ngày sinh so với Giấy chứng sinh (15/10/2026)
-        setHospitalBirthDate('2026-10-15');
-        setGender('Nam');
-        setMotherName('LÊ THỊ MỸ LINH');
-        setHospitalMotherName('LÊ THỊ MỸ LINH');
-        setCccd('089195001234');
-        setFatherName('TRẦN VĂN HÙNG');
-        setParentsMarried('NO'); // Chưa đăng ký kết hôn nhưng ghi tên cha vào tờ khai thường
-        setAddress(`${currentWard.name}, Tỉnh An Giang`);
-      } else {
-        setFullName('TRẦN GIA BẢO');
-        setDob('2026-10-15');
-        setHospitalBirthDate('2026-10-15');
-        setGender('Nam');
-        setMotherName('LÊ THỊ MỸ LINH');
-        setHospitalMotherName('LÊ THỊ MỸ LINH');
-        setCccd('089195001234');
-        setPhoneNumber('0918234567');
-        setFatherName('TRẦN VĂN HÙNG');
-        setParentsMarried('YES');
-        setAddress(`${currentWard.name}, Tỉnh An Giang`);
-      }
-    } else if (type === 'TK-KH') {
-      if (presetMode === 'ERROR_DEMO') {
-        setFullName('NGUYỄN THỊ NGỌC TRÂM');
-        setGender('Nữ');
-        setDob('2009-02-15'); // Mới 17 tuổi 8 tháng (< 18 tuổi)
-        setCccd('089309004567');
-        setPartnerName('PHẠM VĂN MINH');
-        setPartnerGender('Nam');
-        setPartnerDob('2004-03-10');
-        setMaritalCertPurpose('Bổ sung hồ sơ'); // Ghi chung chung
-        setPreviousMaritalStatus('SINGLE');
-        setAddress(`Ấp An Hòa, ${currentWard.name}, Tỉnh An Giang`);
-      } else {
-        setFullName('NGUYỄN THỊ NGỌC TRÂM');
-        setGender('Nữ');
-        setDob('2003-05-12'); // Đủ > 18 tuổi
-        setCccd('089303004567');
-        setPhoneNumber('0918234567');
-        setPartnerName('PHẠM VĂN MINH');
-        setPartnerGender('Nam');
-        setPartnerDob('2001-03-10'); // Đủ > 20 tuổi
-        setMaritalCertPurpose(`Để làm thủ tục đăng ký kết hôn với anh Phạm Văn Minh tại UBND ${currentWard.name}`);
-        setPreviousMaritalStatus('SINGLE');
-        setAddress(`Ấp An Hòa, ${currentWard.name}, Tỉnh An Giang`);
-      }
-    } else if (type === 'TK-BTXH') {
-      if (presetMode === 'ERROR_DEMO') {
-        setFullName('LÊ VĂN BẢY');
-        setGender('Nam');
-        setDob('1954-08-20'); // 72 tuổi (< 75 tuổi theo Luật BHXH 2024 & < 80 tuổi theo NĐ 20/2021)
-        setCccd('089049001122');
-        setHouseholdStatus('NORMAL');
-        setDisabilityLevel('NONE');
-        setBankAccount(''); // Thiếu tài khoản nhận trợ cấp Đề án 06
-        setAddress(`Khóm Bình Long, ${currentWard.name}, Tỉnh An Giang`);
-      } else {
-        setFullName('LÊ VĂN BẢY');
-        setGender('Nam');
-        setDob('1949-04-10'); // 77 tuổi (>= 75 tuổi theo Luật BHXH 2024)
-        setCccd('089043001122');
-        setPhoneNumber('0918234567');
-        setHouseholdStatus('NORMAL');
-        setDisabilityLevel('NONE');
-        setBankAccount('70110000889912 - VietinBank Chi nhánh An Giang');
-        setAddress(`Khóm Bình Long, ${currentWard.name}, Tỉnh An Giang`);
-      }
-    }
   };
 
   // Handle Form Precheck across all 4 form types & Submit to Officer Queue
@@ -1185,111 +1085,161 @@ export const FormAndIssueReporting: React.FC = () => {
         ? normalizeDateToYMD(qrData.issueDate)
         : (result.issueDate ? normalizeDateToYMD(result.issueDate) : '');
 
-      let mappedPhone = (result.phone || '').trim();
-      let mappedHostName = (result.hostName || '').trim().toUpperCase();
-      let mappedHostCccd = (result.hostCccd || '').trim().replace(/[^0-9]/g, '');
-      let mappedHostRelation = (result.hostRelation || '').trim();
-      let mappedDeclarationScope = sanitizeWardText((result.declarationScope || '').trim());
+      const mappedPhone = (result.phone || '').trim();
+      const mappedHostName = (result.hostName || '').trim().toUpperCase();
+      const mappedHostCccd = (result.hostCccd || '').trim().replace(/[^0-9]/g, '');
+      const mappedHostRelation = (result.hostRelation || '').trim();
+      const mappedDeclarationScope = sanitizeWardText((result.declarationScope || '').trim());
 
-      // Ensure every single form input is 100% fully populated (no empty boxes anywhere)
-      if (!mappedFullName) mappedFullName = 'NGUYỄN VĂN AN';
-      if (!mappedDob) mappedDob = '1992-10-10';
-      if (!mappedGender) mappedGender = 'Nam';
-
-      if (!mappedCccd || mappedCccd.length < 9) {
-        const birthYear = mappedDob ? parseInt(mappedDob.substring(0, 4), 10) : 1992;
-        const isMale = mappedGender !== 'Nữ';
-        let centuryGenderCode = '0';
-        if (birthYear >= 2000) {
-          centuryGenderCode = isMale ? '2' : '3';
-        } else {
-          centuryGenderCode = isMale ? '0' : '1';
-        }
-        const yrCode = String(birthYear % 100).padStart(2, '0');
-        mappedCccd = `089${centuryGenderCode}${yrCode}023490`;
+      let mappedCount = 0;
+      if (mappedFullName) {
+        setFullName(mappedFullName);
+        mappedCount++;
+      }
+      if (mappedCccd) {
+        setCccd(mappedCccd);
+        mappedCount++;
+      }
+      if (mappedDob) {
+        setDob(mappedDob);
+        mappedCount++;
+      }
+      if (mappedGender) {
+        setGender(mappedGender);
+        mappedCount++;
+      }
+      if (mappedAddress) {
+        setAddress(mappedAddress);
+        mappedCount++;
+      }
+      if (mappedPhone) {
+        setPhoneNumber(mappedPhone);
+        setReporterPhone(mappedPhone);
+        mappedCount++;
+      }
+      if (mappedHostRelation) {
+        setHostRelation(mappedHostRelation);
+        mappedCount++;
+      }
+      if (mappedHostName) {
+        setHostName(mappedHostName);
+        mappedCount++;
+      } else if (mappedHostRelation === 'Chủ hộ' && mappedFullName) {
+        setHostName(mappedFullName);
+      }
+      if (mappedHostCccd) {
+        setHostCccd(mappedHostCccd);
+        mappedCount++;
+      } else if (mappedHostRelation === 'Chủ hộ' && mappedCccd) {
+        setHostCccd(mappedCccd);
+      }
+      if (mappedDeclarationScope) {
+        setDeclarationScope(mappedDeclarationScope);
+        mappedCount++;
+      }
+      if (mappedIssueDate) {
+        setIssueDate(mappedIssueDate);
+        mappedCount++;
       }
 
-      if (!mappedPhone) mappedPhone = phoneNumber || '';
-      if (!mappedAddress) mappedAddress = `Số 18 Đường Trần Hưng Đạo, Khóm 3, ${currentWard.name}, Tỉnh An Giang`;
-      if (!mappedDeclarationScope) mappedDeclarationScope = 'Đăng ký thường trú';
-
-      // CT01 Host Logic: If head of household, host is applicant; otherwise map host details
-      if (!mappedHostRelation) {
-        mappedHostRelation = 'Chủ hộ';
-      }
-      if (!mappedHostName) {
-        if (mappedHostRelation === 'Chủ hộ') {
-          mappedHostName = mappedFullName;
-          mappedHostCccd = mappedCccd;
-        } else if (mappedHostRelation === 'Con đẻ') {
-          mappedHostName = 'NGUYỄN VĂN AN';
-          mappedHostCccd = '089075001234';
-        } else {
-          mappedHostName = mappedFullName;
-          mappedHostCccd = mappedCccd;
-        }
-      }
-      if (!mappedHostCccd) {
-        if (mappedHostRelation === 'Chủ hộ' || mappedHostName === mappedFullName) {
-          mappedHostCccd = mappedCccd;
-        } else {
-          mappedHostCccd = '089075001234';
-        }
-      }
-
-      setFullName(mappedFullName);
-      setCccd(mappedCccd);
-      setDob(mappedDob);
-      setGender(mappedGender);
-      setAddress(mappedAddress);
-      setPhoneNumber(mappedPhone);
-      setReporterPhone(mappedPhone);
-      setHostName(mappedHostName);
-      setHostCccd(mappedHostCccd);
-      setHostRelation(mappedHostRelation);
-      setDeclarationScope(mappedDeclarationScope);
-      setIssueDate(mappedIssueDate || '2021-07-10');
-
-      let mappedCount = 10;
-
-      // Map specialized fields across all administrative domains (TK-KS, TK-KH, TK-BTXH)
+      // Map specialized fields only when actually returned by OCR (no hardcoded mock fallbacks)
       if (selectedFormType === 'TK-KS') {
-        const child = result.childName || mappedFullName || 'TRẦN GIA BẢO';
-        setFullName(child);
-        setHospitalBirthDate(result.dob || mappedDob || '2026-10-15');
-        setChildEthnicity(result.childEthnicity || 'Kinh');
-        setChildNationality(result.childNationality || 'Việt Nam');
-        setChildBirthPlace(sanitizeWardText(result.birthPlace || 'Bệnh viện Đa khoa Tỉnh An Giang'));
-        setBirthCertNumber(result.birthCertNumber || 'GCS-092/2026');
-        setBirthCertIssueDate(result.birthCertIssueDate || '2026-10-15');
-        const mother = result.motherName || 'LÊ THỊ MỸ LINH';
-        setMotherName(mother);
-        setHospitalMotherName(mother);
-        setFatherName(result.fatherName || 'TRẦN VĂN HÙNG');
-        setFatherResidence(mappedAddress);
-        setMotherResidence(mappedAddress);
-        setParentsMarried('YES');
+        if (result.childName) {
+          setFullName(result.childName);
+          mappedCount++;
+        }
+        if (result.dob || mappedDob) {
+          setHospitalBirthDate(result.dob || mappedDob);
+        }
+        if (result.childEthnicity) setChildEthnicity(result.childEthnicity);
+        if (result.childNationality) setChildNationality(result.childNationality);
+        if (result.birthPlace) {
+          setChildBirthPlace(sanitizeWardText(result.birthPlace));
+          mappedCount++;
+        }
+        if (result.birthCertNumber) {
+          setBirthCertNumber(result.birthCertNumber);
+          mappedCount++;
+        }
+        if (result.birthCertIssueDate) {
+          setBirthCertIssueDate(result.birthCertIssueDate);
+          mappedCount++;
+        }
+        if (result.motherName) {
+          setMotherName(result.motherName);
+          setHospitalMotherName(result.motherName);
+          mappedCount++;
+        }
+        if (result.fatherName) {
+          setFatherName(result.fatherName);
+          mappedCount++;
+        }
+        if (mappedAddress) {
+          setFatherResidence(mappedAddress);
+          setMotherResidence(mappedAddress);
+        }
       } else if (selectedFormType === 'TK-KH') {
-        setPartnerName(result.partnerName || 'NGUYỄN THỊ THU HÀ');
-        setPartnerCccd(result.partnerCccd || '089198005678');
-        setPartnerDob(result.partnerDob || '1998-05-15');
-        setPartnerGender((result.partnerGender as 'Nam' | 'Nữ') || (mappedGender === 'Nam' ? 'Nữ' : 'Nam'));
-        setPartnerAddress(sanitizeWardText(result.partnerAddress || `Khóm 2, ${currentWard.name}, Tỉnh An Giang`));
-        setMaritalCertPurpose(result.maritalCertPurpose || 'Đăng ký kết hôn tại UBND Phường');
-        setApplicantEthnicity(result.applicantEthnicity || 'Kinh');
-        setPartnerEthnicity(result.partnerEthnicity || 'Kinh');
-        setPreviousMaritalStatus('SINGLE');
+        if (result.partnerName) {
+          setPartnerName(result.partnerName);
+          mappedCount++;
+        }
+        if (result.partnerCccd) {
+          setPartnerCccd(result.partnerCccd);
+          mappedCount++;
+        }
+        if (result.partnerDob) {
+          setPartnerDob(result.partnerDob);
+          mappedCount++;
+        }
+        if (result.partnerGender === 'Nam' || result.partnerGender === 'Nữ') {
+          setPartnerGender(result.partnerGender);
+        }
+        if (result.partnerAddress) {
+          setPartnerAddress(sanitizeWardText(result.partnerAddress));
+          mappedCount++;
+        }
+        if (result.maritalCertPurpose) {
+          setMaritalCertPurpose(result.maritalCertPurpose);
+          mappedCount++;
+        }
+        if (result.applicantEthnicity) setApplicantEthnicity(result.applicantEthnicity);
+        if (result.partnerEthnicity) setPartnerEthnicity(result.partnerEthnicity);
       } else if (selectedFormType === 'TK-BTXH') {
-        setDisabilityLevel((result.disabilityLevel as any) || 'EXTREMELY_SEVERE');
-        setHouseholdStatus((result.householdStatus as any) || 'POOR');
-        setPoorHouseholdBookNumber(result.poorHouseholdBookNumber || 'HN-2026-089');
-        setDisabilityCertNumber(result.disabilityCertNumber || 'GCNKT-045/UBND');
-        setDisabilityCertIssueDate(result.disabilityCertIssueDate || '2024-05-10');
-        setGuardianName(result.guardianName || 'NGUYỄN VĂN HÙNG');
-        setGuardianCccd(result.guardianCccd || '089065009876');
-        setGuardianRelation(result.guardianRelation || 'Con đẻ');
-        setGuardianPhone(result.guardianPhone || mappedPhone || '');
-        setBankAccount(result.bankAccount || '0123456789 - Agribank Chi nhánh An Giang');
+        if (result.disabilityLevel === 'NONE' || result.disabilityLevel === 'SEVERE' || result.disabilityLevel === 'EXTREMELY_SEVERE') {
+          setDisabilityLevel(result.disabilityLevel);
+        }
+        if (result.householdStatus === 'NORMAL' || result.householdStatus === 'POOR' || result.householdStatus === 'NEAR_POOR') {
+          setHouseholdStatus(result.householdStatus);
+        }
+        if (result.poorHouseholdBookNumber) {
+          setPoorHouseholdBookNumber(result.poorHouseholdBookNumber);
+          mappedCount++;
+        }
+        if (result.disabilityCertNumber) {
+          setDisabilityCertNumber(result.disabilityCertNumber);
+          mappedCount++;
+        }
+        if (result.disabilityCertIssueDate) {
+          setDisabilityCertIssueDate(result.disabilityCertIssueDate);
+          mappedCount++;
+        }
+        if (result.guardianName) {
+          setGuardianName(result.guardianName);
+          mappedCount++;
+        }
+        if (result.guardianCccd) {
+          setGuardianCccd(result.guardianCccd);
+          mappedCount++;
+        }
+        if (result.guardianRelation) setGuardianRelation(result.guardianRelation);
+        if (result.guardianPhone) {
+          setGuardianPhone(result.guardianPhone);
+          mappedCount++;
+        }
+        if (result.bankAccount) {
+          setBankAccount(result.bankAccount);
+          mappedCount++;
+        }
       }
 
       if (mappedCount > 0) {
@@ -1348,112 +1298,6 @@ export const FormAndIssueReporting: React.FC = () => {
     setIsDragging(false);
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       handleFileChange(e.dataTransfer.files[0]);
-    }
-  };
-
-  // Helper to load sample CT01 form for instant test on PC
-  const handleLoadSample = () => {
-    setFullName('NGUYỄN MINH TUẤN KHANH');
-    setCccd('089205023490');
-    setDob('2005-06-23');
-    setGender('Nam');
-    setIssueDate('');
-    setAddress(`Số 18 Đường Trần Hưng Đạo, ${currentWard.name}, Tỉnh An Giang`);
-    setPhoneNumber('0918234567');
-    setHostName('NGUYỄN VĂN AN');
-    setHostCccd('089075001234');
-    setHostRelation('Con đẻ');
-    setDeclarationScope('Đăng ký thường trú');
-    setOcrConfidence(98.5);
-    setOcrSuccess(true);
-    setOcrError(null);
-    setCanvasCheckedLocally(true);
-    setVisionGateResult({
-      sharpnessScore: 96,
-      brightnessScore: 205,
-      glareScore: 4,
-      isBlurry: false,
-      isTooDark: false,
-      isGlared: false,
-      qualityStatus: 'GOOD',
-      qualityMessage: 'Ảnh rõ nét (96/100), đủ điều kiện gửi hồ sơ.',
-      templateMatched: true,
-      detectedFormCode: selectedFormType,
-      detectedFormLabel: `Biểu mẫu ${selectedFormType} chuẩn quy định`,
-      templateMessage: `Khớp 100% với mục thủ tục đang chọn (${selectedFormType}).`,
-    });
-    setOcrDetails({
-      success: true,
-      fullName: 'NGUYỄN MINH TUẤN KHANH',
-      cccd: '089205023490',
-      dob: '2005-06-23',
-      gender: 'Nam',
-      issueDate: '',
-      address: `Số 18 Đường Trần Hưng Đạo, ${currentWard.name}, Tỉnh An Giang`,
-      confidence: 98.5,
-      detectedDocType: 'Tờ khai CT01 cư trú (Mẫu chuẩn Bộ Công an)',
-      message: 'Đã nạp bộ dữ liệu chuẩn theo Mẫu CT01 (Thông tư Bộ Công an)!',
-      extractedFieldsCount: 5,
-    });
-  };
-
-  // Helper to simulate blurred / glared / wrong-template image so user can test Client & AI Gate blocking
-  const handleSimulateBlurredOrWrongFile = (mode: 'BLURRY' | 'GLARED' | 'WRONG_TEMPLATE') => {
-    setOcrSuccess(false);
-    setOcrConfidence(null);
-    setCanvasCheckedLocally(true);
-    if (mode === 'BLURRY') {
-      const msg = 'Ảnh bị mờ nhòe (11/100). Vui lòng chụp lại rõ nét hơn.';
-      setOcrError(msg);
-      setVisionGateResult({
-        sharpnessScore: 11,
-        brightnessScore: 95,
-        glareScore: 3,
-        isBlurry: true,
-        isTooDark: false,
-        isGlared: false,
-        qualityStatus: 'BLURRY',
-        qualityMessage: msg,
-        templateMatched: true,
-        detectedFormCode: selectedFormType,
-        detectedFormLabel: `Biểu mẫu ${selectedFormType}`,
-        templateMessage: `Ảnh bị mờ, chưa thể gửi.`,
-      });
-    } else if (mode === 'GLARED') {
-      const msg = 'Ảnh bị lóa sáng (46%). Vui lòng tắt đèn flash và chụp lại.';
-      setOcrError(msg);
-      setVisionGateResult({
-        sharpnessScore: 16,
-        brightnessScore: 242,
-        glareScore: 46,
-        isBlurry: false,
-        isTooDark: false,
-        isGlared: true,
-        qualityStatus: 'GLARED',
-        qualityMessage: msg,
-        templateMatched: true,
-        detectedFormCode: selectedFormType,
-        detectedFormLabel: `Biểu mẫu ${selectedFormType}`,
-        templateMessage: `Ảnh bị chói sáng, chưa thể gửi.`,
-      });
-    } else {
-      const otherForm = selectedFormType === 'CT01' ? 'TK-KS (Tờ khai đăng ký khai sinh)' : 'CT01 (Tờ khai thay đổi cư trú)';
-      const msg = `Lệch biểu mẫu! Tệp tải lên là "${otherForm}", không khớp với mục đang chọn ("${selectedFormType}").`;
-      setOcrError(msg);
-      setVisionGateResult({
-        sharpnessScore: 94,
-        brightnessScore: 198,
-        glareScore: 5,
-        isBlurry: false,
-        isTooDark: false,
-        isGlared: false,
-        qualityStatus: 'GOOD',
-        qualityMessage: 'Ảnh rõ nét (94/100).',
-        templateMatched: false,
-        detectedFormCode: selectedFormType === 'CT01' ? 'TK-KS' : 'CT01',
-        detectedFormLabel: otherForm,
-        templateMessage: msg,
-      });
     }
   };
 
@@ -2019,7 +1863,7 @@ export const FormAndIssueReporting: React.FC = () => {
                     <button
                       key={item.id}
                       type="button"
-                      onClick={() => handleSelectFormType(item.id, 'ERROR_DEMO')}
+                      onClick={() => handleSelectFormType(item.id)}
                       className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between gap-2 gov-focus-ring ${
                         active
                           ? 'bg-[#B90E23] text-white border-[#8F0A1B] shadow-sm'
@@ -2299,42 +2143,6 @@ export const FormAndIssueReporting: React.FC = () => {
                             <Sparkles className="w-3.5 h-3.5 text-[#B90E23]" />
                             <span>Tự kiểm độ nét &amp; ánh sáng tại trình duyệt</span>
                           </span>
-
-                          <button
-                            type="button"
-                            onClick={() => handleLoadSample()}
-                            className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-[#E2E8F0] hover:bg-[#CBD5E1] text-xs font-bold text-[#750715] transition cursor-pointer gov-focus-ring"
-                          >
-                            <FileText className="w-3.5 h-3.5" />
-                            <span>Mẫu chuẩn</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleSimulateBlurredOrWrongFile('BLURRY')}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FEF2F2] hover:bg-[#FEE2E2] border border-[#FECACA] text-[11px] font-bold text-[#991B1B] transition cursor-pointer gov-focus-ring"
-                            title="Mô phỏng ảnh chụp bị mờ nhòe"
-                          >
-                            <span>Thử ảnh mờ</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleSimulateBlurredOrWrongFile('GLARED')}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FEF2F2] hover:bg-[#FEE2E2] border border-[#FECACA] text-[11px] font-bold text-[#991B1B] transition cursor-pointer gov-focus-ring"
-                            title="Mô phỏng ảnh chụp bị lóa đèn flash"
-                          >
-                            <span>Thử lóa sáng</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => handleSimulateBlurredOrWrongFile('WRONG_TEMPLATE')}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-[#FFFBEB] hover:bg-[#FEF3C7] border border-[#FDE68A] text-[11px] font-bold text-[#92400E] transition cursor-pointer gov-focus-ring"
-                            title="Mô phỏng nộp nhầm tờ khai khác mục đã chọn"
-                          >
-                            <span>Thử sai mẫu</span>
-                          </button>
                         </div>
                       </div>
                     ) : (
@@ -2353,10 +2161,10 @@ export const FormAndIssueReporting: React.FC = () => {
                             </div>
                             <div className="flex flex-col min-w-0">
                               <span className="text-xs font-bold text-[#0F172A] truncate">
-                                {selectedFile?.name || 'to_khai_ct01_an_giang.jpg'}
+                                {selectedFile?.name || 'Tệp đã tải lên'}
                               </span>
                               <span className="text-xs text-[#475569]">
-                                {selectedFile ? (selectedFile.size / (1024 * 1024)).toFixed(2) + ' MB' : '2.14 MB'} •{' '}
+                                {selectedFile ? (selectedFile.size / (1024 * 1024)).toFixed(2) + ' MB • ' : ''}
                                 {canvasCheckedLocally ? 'Đã kiểm tra độ nét' : 'Đang phân tích tệp'}
                               </span>
                             </div>
@@ -2576,19 +2384,31 @@ export const FormAndIssueReporting: React.FC = () => {
                 {/* METHOD 2: CAMERA VIEWFINDER */}
                 {inputMode === 'camera' && (
                   <div className="relative w-full h-52 rounded-2xl bg-[#131B2E] overflow-hidden flex items-center justify-center border-2 border-dashed border-[#57DFFE]/80 shadow-inner">
+                    <input
+                      id="p3-camera-capture-input"
+                      type="file"
+                      accept="image/png,image/jpeg,image/jpg,image/webp"
+                      capture="environment"
+                      onChange={(e) => {
+                        if (e.target.files && e.target.files[0]) {
+                          handleFileChange(e.target.files[0]);
+                          setInputMode('upload');
+                        }
+                      }}
+                      className="hidden"
+                    />
                     <div className="flex flex-col items-center gap-2 text-white z-10 p-4 text-center">
                       <Camera className="w-8 h-8 text-[#57DFFE]" />
                       <span className="text-xs font-semibold">Chụp Ảnh Tờ Khai Hoặc Thẻ CCCD</span>
                       <span className="text-[11px] text-slate-200 max-w-xs">
                         Hướng camera vuông góc với tờ khai hoặc CCCD để tự động kiểm độ nét và điền thông tin.
                       </span>
-                      <button
-                        type="button"
-                        onClick={handleLoadSample}
+                      <label
+                        htmlFor="p3-camera-capture-input"
                         className="mt-2 px-3 py-1.5 rounded-lg bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs font-semibold transition cursor-pointer"
                       >
-                        Chụp ảnh mẫu thử nghiệm
-                      </button>
+                        Mở camera / Chọn ảnh thật
+                      </label>
                     </div>
                   </div>
                 )}
@@ -2667,10 +2487,10 @@ export const FormAndIssueReporting: React.FC = () => {
                 </button>
               </div>
 
-              {/* Quick Test Preset Bar for Active Form Type + CCCD QR Scanner */}
+              {/* CCCD QR Scanner Bar */}
               <div className="p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] flex flex-wrap items-center justify-between gap-2 text-xs">
                 <span className="font-bold text-[#750715]">
-                  Điền nhanh:
+                  Điền nhanh từ thẻ CCCD:
                 </span>
                 <div className="flex flex-wrap items-center gap-2">
                   <button
@@ -2681,20 +2501,6 @@ export const FormAndIssueReporting: React.FC = () => {
                   >
                     <QrCode className="w-4 h-4" />
                     <span>Quét QR CCCD</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSelectFormType(selectedFormType, 'ERROR_DEMO')}
-                    className="px-3 py-1.5 rounded-lg bg-[#FFFBEB] hover:bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] font-bold text-xs transition cursor-pointer gov-focus-ring"
-                  >
-                    Mẫu lỗi
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleSelectFormType(selectedFormType, 'VALID_DEMO')}
-                    className="px-3 py-1.5 rounded-lg bg-[#ECFDF5] hover:bg-[#D1FAE5] text-[#065F46] border border-[#A7F3D0] font-bold text-xs transition cursor-pointer gov-focus-ring"
-                  >
-                    Mẫu chuẩn
                   </button>
                 </div>
               </div>

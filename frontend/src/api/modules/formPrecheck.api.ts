@@ -1,4 +1,5 @@
 import { api } from './http';
+import { citizenDossierFormSchema } from '../../schemas/formValidation';
 
 // 2. Form Precheck Types & API
 export interface FieldValidation {
@@ -57,11 +58,41 @@ export const precheckForm = async (data: {
     };
     return normalized;
   } catch {
-    // Client-side Deterministic Rule Engine Simulation across 4 Core Administrative Forms (7.2 Offline Draft)
+    // Offline local precheck: validate shared citizen identity with Zod schema + deterministic form rules
     const fieldValidations: FieldValidation[] = [];
     const warnings: string[] = [];
     const formType = (data.formType || 'CT01').toUpperCase();
     const extra = data.formData || {};
+
+    const zodResult = citizenDossierFormSchema.safeParse({
+      fullName: data.fullName || '',
+      cccd: data.citizenCccd || '',
+      dob: data.dateOfBirth || '',
+      address: data.address || '',
+      phoneNumber: (extra.phoneNumber || extra.phone || '').trim(),
+      citizenEmail: (extra.citizenEmail || extra.email || '').trim(),
+    });
+    if (!zodResult.success) {
+      const zodLabels: Record<string, string> = {
+        fullName: 'Họ và tên công dân (Zod)',
+        cccd: 'Số định danh cá nhân / CCCD 12 số (Zod)',
+        dob: 'Ngày tháng năm sinh (Zod)',
+        address: 'Địa chỉ cư trú (Zod)',
+        phoneNumber: 'Số điện thoại liên hệ (Zod)',
+        citizenEmail: 'Địa chỉ Email nhận thông báo (Zod)',
+      };
+      for (const issue of zodResult.error.issues) {
+        const key = String(issue.path[0] ?? '_form');
+        fieldValidations.push({
+          fieldName: zodLabels[key] || key,
+          providedValue: '',
+          valid: false,
+          errorCode: `ZOD_${key.toUpperCase()}`,
+          errorMessage: issue.message,
+          confidenceScore: 1,
+        });
+      }
+    }
 
     const computeAgeYearsAndMonths = (dobStr: string): { years: number; months: number } | null => {
       if (!dobStr) return null;
@@ -383,8 +414,8 @@ export const precheckForm = async (data: {
       overallValid,
       fieldValidations,
       warnings: [
-        '[CHẾ ĐỘ NGOẠI TUYẾN] Thiết bị hiện mất kết nối máy chủ. Báo cáo này chỉ là bản nháp nội bộ và CHƯA ĐƯỢC MÁY CHỦ XÁC THỰC.',
-        'Hệ thống không tự động nộp hồ sơ vào hàng đợi cán bộ khi chưa có xác thực từ máy chủ theo quy định.',
+        '[MẤT KẾT NỐI MÁY CHỦ] Không thể kết nối máy chủ UBND xã/phường. Hệ thống đã kiểm tra cục bộ bằng bộ quy tắc Zod; hồ sơ CHƯA ĐƯỢC MÁY CHỦ XÁC THỰC.',
+        'Vui lòng kiểm tra kết nối Internet và thử lại để máy chủ xác thực trước khi nộp chính thức.',
         ...warnings,
       ],
       processedAt: new Date().toISOString(),
