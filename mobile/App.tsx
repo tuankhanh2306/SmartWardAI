@@ -1,15 +1,16 @@
 /**
  * SmartWard AI Mobile — Root Application Entrypoint
- * Expo SDK 52 + TypeScript + Multi-Phone Responsive Preview Bar (Web) + Native SafeArea
+ * Expo SDK 58 + TypeScript + Multi-Phone Responsive Preview Bar (Web) + Native SafeArea
  */
 
 import React, { useEffect, useState } from 'react';
-import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Modal, NativeModules, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { StatusBar } from 'expo-status-bar';
 import { X } from 'lucide-react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
+import { configureRuntimeApiBaseUrl } from './src/api/client';
 import { PersistentCivicHeader } from './src/components/PersistentCivicHeader';
 import { WardSelectorModal } from './src/components/WardSelectorModal';
 import { AccessibilityProvider } from './src/context/AccessibilityContext';
@@ -20,6 +21,11 @@ import { OfficerMobileAuditScreen } from './src/screens/OfficerMobileAuditScreen
 import { OnboardingWardScreen } from './src/screens/OnboardingWardScreen';
 import { initLocalDatabase } from './src/storage/sqliteDb';
 import { COLORS, RADIUS, SPACING } from './src/theme/tokens';
+
+configureRuntimeApiBaseUrl({
+  platformOs: Platform.OS,
+  scriptUrl: (NativeModules as { SourceCode?: { scriptURL?: string } })?.SourceCode?.scriptURL,
+});
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -107,7 +113,7 @@ export default function App() {
         <AccessibilityProvider>
           <WardProvider>
             <OfficerAuthProvider>
-              <StatusBar style="light" backgroundColor={COLORS.citizenCrimson} />
+              <StatusBar style="light" />
               <AppShell />
             </OfficerAuthProvider>
           </WardProvider>

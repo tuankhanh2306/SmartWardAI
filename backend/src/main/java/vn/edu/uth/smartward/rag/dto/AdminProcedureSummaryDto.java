@@ -25,4 +25,5 @@ public class AdminProcedureSummaryDto {
     private String fee;
     private String processingTime;
     private String agency;
+    private String indexStatus;
 }

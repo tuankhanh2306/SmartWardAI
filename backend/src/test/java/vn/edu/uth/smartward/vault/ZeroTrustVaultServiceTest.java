@@ -265,4 +265,60 @@ class ZeroTrustVaultServiceTest {
         assertEquals(64, hash.length());
         assertEquals(hash, ZeroTrustVaultService.sha256Hex(token));
     }
+
+    @Test
+    void testKeyRotation_readsV1AndV2EncryptedFilesConcurrently_andAuthenticatesKeyIdHeader() throws Exception {
+        String keyV1 = "SmartWardAI_VaultKey_Version1_32B_A!";
+        String keyV2 = "SmartWardAI_VaultKey_Version2_32B_B!";
+
+        // 1. Encrypt document under v1
+        ReflectionTestUtils.setField(vaultService, "activeKeyId", "v1");
+        ReflectionTestUtils.setField(vaultService, "rawEncryptionKey", keyV1);
+        ReflectionTestUtils.setField(vaultService, "previousKeysSpec", "");
+
+        byte[] docV1Plain = "Hồ sơ công dân cũ mã hóa bằng khóa v1".getBytes(StandardCharsets.UTF_8);
+        byte[] docV1Enc = vaultService.encryptAesGcm(docV1Plain);
+        assertEquals(Optional.of("v1"), vaultService.extractKeyId(docV1Enc));
+
+        // 2. Also build a legacy headerless [12B IV][ciphertext+tag] file encrypted with keyV1
+        byte[] legacyPlain = "Hồ sơ cũ trước khi có header SWV1".getBytes(StandardCharsets.UTF_8);
+        byte[] legacyIv = new byte[12];
+        new java.security.SecureRandom().nextBytes(legacyIv);
+        javax.crypto.Cipher legacyCipher = javax.crypto.Cipher.getInstance("AES/GCM/NoPadding");
+        byte[] keyV1Bytes = new byte[32];
+        System.arraycopy(keyV1.getBytes(StandardCharsets.UTF_8), 0, keyV1Bytes, 0, 32);
+        legacyCipher.init(javax.crypto.Cipher.ENCRYPT_MODE,
+                new javax.crypto.spec.SecretKeySpec(keyV1Bytes, "AES"),
+                new javax.crypto.spec.GCMParameterSpec(128, legacyIv));
+        byte[] legacyCipherBytes = legacyCipher.doFinal(legacyPlain);
+        byte[] legacyEnc = new byte[legacyIv.length + legacyCipherBytes.length];
+        System.arraycopy(legacyIv, 0, legacyEnc, 0, legacyIv.length);
+        System.arraycopy(legacyCipherBytes, 0, legacyEnc, legacyIv.length, legacyCipherBytes.length);
+        assertEquals(Optional.empty(), vaultService.extractKeyId(legacyEnc));
+
+        // 3. Rotate active key to v2 while keeping v1 in previousKeysSpec
+        ReflectionTestUtils.setField(vaultService, "activeKeyId", "v2");
+        ReflectionTestUtils.setField(vaultService, "rawEncryptionKey", keyV2);
+        ReflectionTestUtils.setField(vaultService, "previousKeysSpec", "v1:" + keyV1);
+
+        byte[] docV2Plain = "Hồ sơ công dân mới mã hóa bằng khóa v2".getBytes(StandardCharsets.UTF_8);
+        byte[] docV2Enc = vaultService.encryptAesGcm(docV2Plain);
+        assertEquals(Optional.of("v2"), vaultService.extractKeyId(docV2Enc));
+
+        // 4. Vault must decrypt v1, v2, AND legacy headerless v1 files seamlessly in parallel
+        assertArrayEquals(docV1Plain, vaultService.decryptAesGcm(docV1Enc));
+        assertArrayEquals(docV2Plain, vaultService.decryptAesGcm(docV2Enc));
+        assertArrayEquals(legacyPlain, vaultService.decryptAesGcm(legacyEnc));
+
+        // 5. Tampering with key_id in header must fail GCM AAD authentication
+        byte[] tamperedHeader = docV2Enc.clone();
+        tamperedHeader[6] = '1'; // Flip "v2" -> "v1" in header
+        assertThrows(BusinessException.class, () -> vaultService.decryptAesGcm(tamperedHeader));
+
+        // 6. Removing v1 from previousKeysSpec must reject v1 ciphertext with clear error
+        ReflectionTestUtils.setField(vaultService, "previousKeysSpec", "");
+        BusinessException missingKeyEx = assertThrows(BusinessException.class, () -> vaultService.decryptAesGcm(docV1Enc));
+        assertEquals(ErrorCode.INTERNAL_SERVER_ERROR, missingKeyEx.getErrorCode());
+        assertTrue(missingKeyEx.getMessage().contains("v1"));
+    }
 }

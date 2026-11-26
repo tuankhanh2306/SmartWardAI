@@ -1,7 +1,7 @@
 import React from 'react';
 import {
-  AlertCircle, AlertTriangle, Check, CheckCircle2,
-  Layers, MapPin, Navigation, PhoneCall, Radio, RefreshCw, RotateCcw, Send, Shield
+  AlertCircle, AlertTriangle, Camera, Check, CheckCircle2,
+  Layers, MapPin, Navigation, PhoneCall, Radio, RefreshCw, RotateCcw, Send, Shield, X
 } from 'lucide-react';
 import { AN_GIANG_WARDS, type WardItem } from '../../data/anGiangWards';
 import type { IssueReportResponse, LiveCitizenIncident } from '../../api/client';
@@ -49,6 +49,11 @@ export interface CivicIncidentTabProps {
   isAddressManuallyEdited?: boolean;
   isGeocodingAddress?: boolean;
   onResetAddressFromPin?: () => void;
+  incidentErrors?: Record<string, string>;
+  onClearIncidentError?: (field: string) => void;
+  incidentPhotos?: Array<{ file: File; previewUrl: string }>;
+  onAddIncidentPhotos?: (files: FileList | null) => void;
+  onRemoveIncidentPhoto?: (index: number) => void;
 }
 
 export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
@@ -61,6 +66,8 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
     isValidPhone, handleReport, reportLoading, gpsScanBanner, gpsAccuracy,
     latitude, longitude, reportResult, myIncidents,
     userGpsLocation, onLocationChange, onRecenterToGps, isAddressManuallyEdited, isGeocodingAddress, onResetAddressFromPin,
+    incidentErrors, onClearIncidentError,
+    incidentPhotos = [], onAddIncidentPhotos, onRemoveIncidentPhoto,
   } = props;
 
   return (
@@ -73,26 +80,27 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="text-xs sm:text-sm font-extrabold text-[#881320] flex items-center gap-1.5">
                     <Navigation className="w-4 h-4 text-[#B90E23]" />
-                    <span>1. Địa Điểm Sự Cố Hiện Trường</span>
+                    <span>1. Vị trí sự cố</span>
                   </div>
                   <button
                     type="button"
                     onClick={() => {
                       setManualWardCode('');
+                      onClearIncidentError?.('locationSource');
                       handleGetLocation(false);
                     }}
                     disabled={gpsLoading}
                     className="px-3 py-1.5 rounded-xl bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs transition cursor-pointer disabled:opacity-60 gov-focus-ring"
                   >
                     <MapPin className="w-3.5 h-3.5" />
-                    <span>{gpsLoading ? 'Đang định vị...' : 'Lấy Lại Vị Trí GPS'}</span>
+                    <span>{gpsLoading ? 'Đang định vị...' : 'Định vị GPS'}</span>
                   </button>
                 </div>
 
                 {/* Quick Presets from SSOT AN_GIANG_WARDS */}
                 <div className="flex flex-wrap items-center gap-1.5">
                   <span className="text-[11px] font-bold text-[#475569] mr-1">
-                    Thử địa điểm mẫu:
+                    Thử nhanh:
                   </span>
                   {(['AG_P_CHAUDOC', 'AG_P_LONGXUYEN', 'AG_X_ANPHU'] as const).map((code) => {
                     const w = AN_GIANG_WARDS.find((item) => item.code === code);
@@ -101,7 +109,10 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                       <button
                         key={w.code}
                         type="button"
-                        onClick={() => handleSimulateCrossWardGps(w.code, w.officeAddress)}
+                        onClick={() => {
+                          onClearIncidentError?.('locationSource');
+                          handleSimulateCrossWardGps(w.code, w.officeAddress);
+                        }}
                         className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#FEF2F2] text-[#750715] border border-[#CBD5E1] hover:border-[#FECACA] text-[11px] font-bold transition cursor-pointer gov-focus-ring"
                       >
                         {w.name}
@@ -111,25 +122,26 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                   {unverifiedSampleWard && (
                     <button
                       type="button"
-                      onClick={() =>
+                      onClick={() => {
+                        onClearIncidentError?.('locationSource');
                         handleSimulateCrossWardGps(
                           unverifiedSampleWard.code,
                           `Khu vực ${unverifiedSampleWard.name}`
-                        )
-                      }
+                        );
+                      }}
                       className="px-2.5 py-1 rounded-lg bg-[#FFFBEB] hover:bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] text-[11px] font-bold transition cursor-pointer gov-focus-ring"
-                      title="Thử trường hợp địa bàn có dữ liệu tọa độ 'unverified' để kiểm tra chốt chặn chọn thủ công"
+                      title="Thử trường hợp địa bàn có dữ liệu tọa độ 'unverified'"
                     >
-                      Thử xã &apos;unverified&apos;
+                      Xã &apos;unverified&apos;
                     </button>
                   )}
                 </div>
 
                 {/* Editable Location Input Box */}
                 <div className="flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between text-[11px] text-[#334155]">
+                  <div className="flex flex-wrap items-center justify-between gap-1 text-[11px] text-[#334155]">
                     <label htmlFor="p4-address-text" className="font-bold">
-                      Địa chỉ sự cố (Tự động điền từ bản đồ — có thể sửa tay):
+                      Địa chỉ sự cố:
                     </label>
                     <div className="flex items-center gap-2">
                       {isGeocodingAddress && (
@@ -145,7 +157,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                           className="text-[11px] text-[#B90E23] hover:underline flex items-center gap-1 font-bold cursor-pointer"
                         >
                           <RotateCcw className="w-3 h-3" />
-                          <span>Lấy lại địa chỉ từ ghim</span>
+                          <span>Theo ghim</span>
                         </button>
                       )}
                       <span className={`font-semibold px-2 py-0.5 rounded text-[10px] ${
@@ -156,7 +168,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                           : 'bg-emerald-100 text-emerald-800'
                       }`}>
                         {locationSource === 'WARD_DEFAULT'
-                          ? 'Tọa độ mặc định (Chưa xác nhận)'
+                          ? 'Mặc định (Chưa chốt)'
                           : locationSource === 'PIN_DRAGGED' || locationSource === 'manual_pin'
                           ? 'Ghim kéo thả'
                           : 'Định vị GPS'}
@@ -168,12 +180,12 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                     type="text"
                     value={addressText}
                     onChange={(e) => setAddressText(e.target.value)}
-                    placeholder={isGeocodingAddress ? 'Đang tìm địa chỉ từ ghim bản đồ...' : 'Nhập địa chỉ cụ thể kèm tên Xã/Phường (hoặc để trống nếu gửi bằng tọa độ ghim)...'}
+                    placeholder={isGeocodingAddress ? 'Đang tìm địa chỉ...' : 'Số nhà, tên đường hoặc để trống dùng tọa độ...'}
                     className="w-full h-10 px-3.5 rounded-xl bg-white border border-[#CBD5E1] text-xs md:text-sm font-semibold text-[#0F172A] focus:outline-none focus:border-[#B90E23] shadow-2xs"
                   />
-                  <p className="text-[11px] text-slate-500 italic flex items-center gap-1 mt-0.5">
-                    <Shield className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <span>Vị trí chỉ được sử dụng để xử lý sự cố hiện trường và có thể được gửi tới dịch vụ bản đồ để xác định địa chỉ chính xác.</span>
+                  <p className="text-[11px] text-slate-600 flex items-center gap-1 mt-0.5">
+                    <Shield className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                    <span>Chỉ dùng để xác định vị trí xử lý sự cố.</span>
                   </p>
                 </div>
 
@@ -188,8 +200,8 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <label htmlFor="p4-manual-ward-select" className="text-xs font-bold">
                       {!resolvedJurisdiction.canAutoRoute
-                        ? 'Chưa xác định được xã, vui lòng chọn thủ công:'
-                        : 'Đơn vị tiếp nhận (tự động từ nguồn dữ liệu xã, có thể chọn lại):'}
+                        ? 'Chọn xã/phường tiếp nhận:'
+                        : 'Đơn vị tiếp nhận:'}
                     </label>
                     {manualWardCode && (
                       <button
@@ -197,7 +209,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                         onClick={() => setManualWardCode('')}
                         className="text-[11px] font-bold text-[#9F0C1E] underline cursor-pointer"
                       >
-                        Dùng định vị tự động lại
+                        Tự động lại
                       </button>
                     )}
                   </div>
@@ -219,12 +231,12 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                   >
                     <option value="">
                       {resolvedJurisdiction.canAutoRoute && resolvedJurisdiction.ward
-                        ? `-- Tự động theo vị trí đã xác minh: ${resolvedJurisdiction.ward.name} --`
-                        : '-- Chưa xác định được xã, vui lòng chọn thủ công --'}
+                        ? `Tự động: ${resolvedJurisdiction.ward.name}`
+                        : '-- Chọn xã/phường thủ công --'}
                     </option>
                     {AN_GIANG_WARDS.map((w) => (
                       <option key={w.code} value={w.code}>
-                        {w.name} ({w.coordSource === 'unverified' ? 'Chưa xác minh GPS' : `GIS: ${w.coordSource}`})
+                        {w.name}{w.coordSource === 'unverified' ? ' (chọn thủ công)' : ''}
                       </option>
                     ))}
                   </select>
@@ -235,7 +247,7 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
               <div className="flex flex-col gap-3">
                 <div className="flex flex-col gap-1.5">
                   <span id="p4-cat-label" className="text-xs font-bold text-[#334155]">
-                    2. Chọn lĩnh vực sự cố &amp; mức độ ưu tiên:
+                    2. Lĩnh vực &amp; Mức độ:
                   </span>
                   <div role="group" aria-labelledby="p4-cat-label" className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                     {[
@@ -293,33 +305,93 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                 {/* Description Content Box */}
                 <div className="flex flex-col gap-1.5">
                   <label htmlFor="p4-description" className="text-xs font-bold text-[#334155]">
-                    Mô tả chi tiết hiện trường (Tự động gắn vị trí — có thể chỉnh sửa):
+                    Mô tả sự cố:
                   </label>
                   <textarea
                     id="p4-description"
                     value={description}
-                    onChange={(e) => setDescription(e.target.value)}
+                    onChange={(e) => {
+                      setDescription(e.target.value);
+                      if (incidentErrors?.description) onClearIncidentError?.('description');
+                    }}
+                    aria-invalid={Boolean(incidentErrors?.description)}
                     rows={3}
-                    className="w-full p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] text-xs md:text-sm text-[#0F172A] focus:outline-none focus:border-[#B90E23] focus:bg-white resize-none transition-all"
-                    placeholder="Mô tả mức độ nguy hiểm, kích thước, ảnh hưởng đến người đi đường..."
+                    className={`w-full p-3 rounded-xl bg-[#F8FAFC] border text-xs md:text-sm text-[#0F172A] focus:outline-none focus:bg-white resize-none transition-all ${
+                      incidentErrors?.description
+                        ? 'border-red-500 ring-2 ring-red-200'
+                        : 'border-[#CBD5E1] focus:border-[#B90E23]'
+                    }`}
+                    placeholder="Mô tả ngắn gọn hiện trạng, mức độ ảnh hưởng..."
                   />
+                  {incidentErrors?.description && (
+                    <p role="alert" className="text-xs font-medium text-red-700">
+                      {incidentErrors.description}
+                    </p>
+                  )}
                 </div>
+
+                {/* TASK-031: Citizen Web Field Photos (max 3, JPEG/PNG/WebP <= 5MB) */}
+                {onAddIncidentPhotos && (
+                  <div className="flex flex-col gap-2 p-3 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1]">
+                    <div className="flex items-center justify-between gap-2">
+                      <label htmlFor="p4-incident-photos" className="text-xs font-bold text-[#334155] flex items-center gap-1.5">
+                        <Camera className="w-3.5 h-3.5 text-[#B90E23]" />
+                        <span>Ảnh hiện trường ({incidentPhotos.length}/3 ảnh, tùy chọn)</span>
+                      </label>
+                      {incidentPhotos.length < 3 && (
+                        <label
+                          htmlFor="p4-incident-photos"
+                          className="px-2.5 py-1 rounded-lg bg-white hover:bg-[#FEF2F2] text-[#750715] border border-[#CBD5E1] text-[11px] font-bold cursor-pointer"
+                        >
+                          + Chọn ảnh
+                        </label>
+                      )}
+                    </div>
+                    <input
+                      id="p4-incident-photos"
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      className="hidden"
+                      onChange={(e) => {
+                        onAddIncidentPhotos(e.target.files);
+                        e.currentTarget.value = '';
+                      }}
+                    />
+                    {incidentPhotos.length > 0 && (
+                      <div className="grid grid-cols-3 gap-2">
+                        {incidentPhotos.map((item, idx) => (
+                          <div key={item.previewUrl} className="relative aspect-square rounded-lg overflow-hidden border border-[#CBD5E1] bg-white">
+                            <img src={item.previewUrl} alt={`Ảnh sự cố ${idx + 1}`} className="w-full h-full object-cover" />
+                            {onRemoveIncidentPhoto && (
+                              <button
+                                type="button"
+                                onClick={() => onRemoveIncidentPhoto(idx)}
+                                aria-label={`Xóa ảnh ${idx + 1}`}
+                                className="absolute top-1 right-1 p-1 rounded-full bg-black/70 text-white hover:bg-red-600 cursor-pointer"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
-              {/* STEP 3: OPTIONAL CONTACT PHONE NUMBER WITH PURPOSE EXPLANATION */}
+              {/* STEP 3: OPTIONAL CONTACT PHONE NUMBER */}
               <div className="flex flex-col gap-2 p-4 rounded-2xl bg-[#F8FAFC] border border-[#CBD5E1]">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <label htmlFor="p4-reporter-phone" className="text-xs sm:text-sm font-extrabold text-[#0F172A] flex items-center gap-1.5">
                     <PhoneCall className="w-4 h-4 text-[#B90E23]" />
-                    <span>3. Số Điện Thoại Liên Hệ</span>
+                    <span>3. SĐT liên hệ</span>
                   </label>
                   <span className="px-2 py-0.5 rounded-full bg-[#F7EEDF] text-[#750715] border border-[#E5D4B3] text-[10px] font-bold">
-                    Tùy chọn • Không bắt buộc
+                    Không bắt buộc
                   </span>
                 </div>
-                <p className="text-[11px] text-[#475569] leading-relaxed">
-                  <strong>Mục đích sử dụng:</strong> Chỉ dùng để bộ phận trực ban UBND xã/phường gọi xác minh thêm nếu vị trí hiện trường khó tìm; bà con có thể để trống và vẫn gửi phản ánh bình thường.
-                </p>
 
                 <input
                   id="p4-reporter-phone"
@@ -329,10 +401,12 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                   onChange={(e) => {
                     setReporterPhone(e.target.value);
                     if (phoneError) setPhoneError(null);
+                    if (incidentErrors?.reporterPhone) onClearIncidentError?.('reporterPhone');
                   }}
-                  placeholder="Để trống nếu không muốn cung cấp, hoặc nhập SĐT (VD: 0918234567)"
+                  aria-invalid={Boolean(incidentErrors?.reporterPhone || phoneError)}
+                  placeholder="Không bắt buộc (VD: 0918234567)"
                   className={`w-full h-10 px-3.5 rounded-xl bg-white border text-xs md:text-sm font-mono font-semibold text-[#0F172A] focus:outline-none ${
-                    phoneError
+                    incidentErrors?.reporterPhone || phoneError
                       ? 'border-[#DC2626] ring-2 ring-[#FECACA]'
                       : reporterPhone.trim() && isValidPhone(reporterPhone)
                       ? 'border-[#16A34A]'
@@ -340,26 +414,24 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                   }`}
                 />
 
-                {phoneError ? (
-                  <p className="text-xs font-bold text-[#991B1B] flex items-center gap-1.5">
+                {(incidentErrors?.reporterPhone || phoneError) ? (
+                  <p role="alert" className="text-xs font-bold text-[#991B1B] flex items-center gap-1.5">
                     <AlertCircle className="w-4 h-4 shrink-0" />
-                    <span>{phoneError}</span>
+                    <span>{incidentErrors?.reporterPhone || phoneError}</span>
                   </p>
                 ) : reporterPhone.trim() && isValidPhone(reporterPhone) ? (
                   <p className="text-xs font-semibold text-[#065F46] flex items-center gap-1">
                     <Check className="w-3.5 h-3.5 text-[#065F46]" />
-                    <span>
-                      SĐT hợp lệ ({reporterPhone.trim()}) — Chỉ sử dụng để xác minh thêm về sự cố này.
-                    </span>
+                    <span>SĐT hợp lệ ({reporterPhone.trim()})</span>
                   </p>
                 ) : null}
               </div>
 
               {/* Block submission if location has not been confirmed by user */}
-              {locationSource === 'WARD_DEFAULT' && (
-                <div className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold flex items-center gap-2">
+              {(locationSource === 'WARD_DEFAULT' || incidentErrors?.locationSource) && (
+                <div role="alert" className="p-3 rounded-xl bg-amber-50 border border-amber-300 text-amber-900 text-xs font-semibold flex items-center gap-2">
                   <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
-                  <span>Vui lòng bấm vào bản đồ hoặc kéo ghim đỏ để xác nhận vị trí sự cố trước khi gửi.</span>
+                  <span>{incidentErrors?.locationSource || 'Chạm bản đồ hoặc kéo ghim đỏ để chốt vị trí.'}</span>
                 </div>
               )}
 
@@ -429,15 +501,15 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                       </span>
                       <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white text-[#0F172A] border border-[#CBD5E1]">
                         {resolvedJurisdiction.matchedBy === 'MANUAL_SELECT'
-                          ? 'Công dân chọn thủ công'
+                          ? 'Chọn thủ công'
                           : resolvedJurisdiction.matchedBy === 'TEXT_BOX'
-                          ? `Theo địa chỉ (${resolvedJurisdiction.ward.coordSource})`
-                          : `Theo GIS (${resolvedJurisdiction.ward.coordSource})`}
+                          ? 'Theo địa chỉ'
+                          : 'Theo GPS'}
                       </span>
                     </div>
                     <div className="text-[11px] leading-relaxed space-y-0.5">
                       <p>
-                        <strong>Số trực ban (Nguồn {resolvedJurisdiction.ward.name}):</strong>{' '}
+                        <strong>Trực ban:</strong>{' '}
                         <span className="font-mono font-bold">{resolvedJurisdiction.ward.phoneNumber}</span>
                       </p>
                       <p className="opacity-95">
@@ -552,9 +624,9 @@ export const CivicIncidentTab: React.FC<CivicIncidentTabProps> = (props) => {
                     <Layers className="w-5 h-5" />
                   </div>
                   <div className="text-xs text-[#334155] space-y-1 leading-relaxed">
-                    <h3 className="font-bold text-sm text-[#0F172A]">Quy Trình Chuyển Tuyến An Toàn</h3>
+                    <h3 className="font-bold text-sm text-[#0F172A]">Chuyển Tuyến An Toàn</h3>
                     <p>
-                      Hệ thống chỉ tự động chuyển tuyến khi xã/phường có nguồn dữ liệu GIS đã xác minh; với địa bàn chưa xác minh (&apos;unverified&apos;), bà con tự chọn đúng đơn vị để tránh gửi nhầm địa bàn.
+                      Tự động chuyển đúng UBND theo tọa độ GPS.
                     </p>
                   </div>
                 </div>

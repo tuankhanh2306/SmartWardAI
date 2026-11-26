@@ -15,9 +15,48 @@ export interface IssueCluster {
   locationSource?: string;
   locationAccuracyM?: number;
   wardCode?: string;
+  photoUrls?: string[];
+  photoCount?: number;
+  reports?: Array<{
+    reportCode: string;
+    description: string;
+    submittedAt?: string;
+    photoUrls?: string[];
+  }>;
   createdAt: string;
   lastReportAt: string;
 }
+
+export interface IncidentPhotoUploadResult {
+  photoKey: string;
+  viewUrl: string;
+  contentType: string;
+  sizeBytes: number;
+  exifStripped: boolean;
+}
+
+export const uploadIncidentPhoto = async (
+  file: File,
+  wardCode: string
+): Promise<IncidentPhotoUploadResult> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('wardCode', wardCode);
+  const resp = await api.post<any>('/issues/photos', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return resp.data?.data ?? resp.data;
+};
+
+export const fetchOfficerIncidentPhotoBlobUrl = async (photoUrlOrKey: string): Promise<string> => {
+  const path = photoUrlOrKey.startsWith('/api/v1/')
+    ? photoUrlOrKey.replace(/^\/api\/v1/, '')
+    : photoUrlOrKey.startsWith('/issues/')
+    ? photoUrlOrKey
+    : `/issues/officer/photos/${encodeURIComponent(photoUrlOrKey)}`;
+  const resp = await api.get<Blob>(path, { responseType: 'blob' });
+  return URL.createObjectURL(resp.data);
+};
 
 export interface IssueReportResponse {
   reportId: string;
@@ -143,6 +182,7 @@ export const reportIssue = async (data: {
   urgency?: 'HIGH' | 'MEDIUM' | 'LOW';
   locationAccuracyM?: number;
   locationSource?: 'GPS' | 'PIN_DRAGGED' | 'MANUAL' | 'WARD_DEFAULT' | 'gps' | 'manual_pin' | 'address_geocode' | string;
+  photoKeys?: string[];
 }): Promise<IssueReportResponse> => {
   const currentWardLabel = data.wardName || 'UBND cấp Xã/Phường';
   const targetWardCode = data.wardCode || 'AG_P_LONGXUYEN';
@@ -196,6 +236,7 @@ export const reportIssue = async (data: {
       wardName: currentWardLabel,
       locationAccuracyM: data.locationAccuracyM,
       locationSource: normalizedSource,
+      photoKeys: data.photoKeys && data.photoKeys.length > 0 ? data.photoKeys.slice(0, 3) : undefined,
     });
     const payload = resp.data?.data ?? resp.data;
     const result: IssueReportResponse = {
@@ -294,6 +335,9 @@ function mapRawClusters(rawList: any[]): IssueCluster[] {
     locationSource: item.locationSource ?? undefined,
     locationAccuracyM: typeof item.locationAccuracyM === 'number' ? item.locationAccuracyM : undefined,
     wardCode: item.wardCode ?? undefined,
+    photoUrls: Array.isArray(item.photoUrls) ? item.photoUrls : [],
+    photoCount: typeof item.photoCount === 'number' ? item.photoCount : (Array.isArray(item.photoUrls) ? item.photoUrls.length : 0),
+    reports: Array.isArray(item.reports) ? item.reports : [],
     createdAt: item.firstReportedAt || item.createdAt || new Date().toISOString(),
     lastReportAt: item.lastReportedAt || item.createdAt || new Date().toISOString(),
   }));
@@ -332,35 +376,19 @@ export const getIssueClusters = async (): Promise<IssueCluster[]> => {
 };
 
 export const updateClusterStatus = async (clusterCode: string, status: string): Promise<IssueCluster> => {
-  try {
-    const resp = await api.patch<any>(`/issues/clusters/${clusterCode}/status`, { status });
-    const item = resp.data?.data ?? resp.data;
-    return {
-      id: String(item.id ?? item.clusterCode),
-      clusterCode: item.clusterCode,
-      category: item.category,
-      centroidLatitude: Number(item.centerLatitude ?? item.centroidLatitude ?? 10.8035),
-      centroidLongitude: Number(item.centerLongitude ?? item.centroidLongitude ?? 106.7145),
-      title: item.title || 'Sự cố hiện trường',
-      descriptionSummary: item.descriptionSummary || item.title || '',
-      status: item.status || status,
-      reportCount: item.reportCount ?? 1,
-      createdAt: item.firstReportedAt || item.createdAt || new Date().toISOString(),
-      lastReportAt: item.lastReportedAt || item.createdAt || new Date().toISOString(),
-    };
-  } catch {
-    return {
-      id: clusterCode,
-      clusterCode,
-      category: 'GENERAL',
-      centroidLatitude: 10.8035,
-      centroidLongitude: 106.7145,
-      title: 'Sự cố hiện trường',
-      descriptionSummary: 'Cập nhật ngoại tuyến',
-      status,
-      reportCount: 1,
-      createdAt: new Date().toISOString(),
-      lastReportAt: new Date().toISOString(),
-    };
-  }
+  const resp = await api.patch<any>(`/issues/clusters/${encodeURIComponent(clusterCode)}/status`, { status });
+  const item = resp.data?.data ?? resp.data;
+  return {
+    id: String(item.id ?? item.clusterCode),
+    clusterCode: item.clusterCode,
+    category: item.category,
+    centroidLatitude: Number(item.centerLatitude ?? item.centroidLatitude ?? 10.3864),
+    centroidLongitude: Number(item.centerLongitude ?? item.centroidLongitude ?? 105.4352),
+    title: item.title || 'Sự cố hiện trường',
+    descriptionSummary: item.descriptionSummary || item.title || '',
+    status: item.status || status,
+    reportCount: item.reportCount ?? 1,
+    createdAt: item.firstReportedAt || item.createdAt || new Date().toISOString(),
+    lastReportAt: item.lastReportedAt || item.createdAt || new Date().toISOString(),
+  };
 };

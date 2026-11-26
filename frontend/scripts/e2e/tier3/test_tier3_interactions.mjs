@@ -57,16 +57,18 @@ export async function runTests(assertContext) {
       assertContext.assert(Array.isArray(procedures), 'API response data must be an array');
       assertContext.assertEqual(procedures.length, 40, 'REST API must return exactly 40 procedures from DB');
 
-      // Step 3: Check that commune authority is standardized on commune level
+      // Step 3: Check that statutory authority is present and commune-level procedures specify xã/phường
       const sampleProc = procedures.find((p) => p.procedureCode === 'TTHC-HT-01');
       assertContext.assert(Boolean(sampleProc), 'TTHC-HT-01 must be present in procedures list');
-      if (sampleProc?.agency) {
-        const agencyLower = sampleProc.agency.toLowerCase();
-        assertContext.assert(
-          agencyLower.includes('xã') || agencyLower.includes('phường'),
-          'Procedure agency must specify commune-level authority'
-        );
-      }
+      assertContext.assert(Boolean(sampleProc?.agency && sampleProc.agency.trim().length > 0), 'TTHC-HT-01 must have authoritative agency');
+      const communeProc = procedures.find((p) =>
+        ['TTHC-HT-13', 'TTHC-MT-01', 'TTHC-NCC-01', 'TTHC-BT-01'].includes(p.procedureCode)
+      );
+      const communeAgencyLower = (communeProc?.agency || sampleProc?.agency || '').toLowerCase();
+      assertContext.assert(
+        communeAgencyLower.includes('xã') || communeAgencyLower.includes('phường'),
+        'Procedure agency must specify commune-level authority'
+      );
     }
   );
 
@@ -237,9 +239,17 @@ export async function runTests(assertContext) {
         address: 'Phường Mỹ Xuyên, An Giang',
         formData: {
           childFullName: 'NGUYỄN MINH KHANG',
+          childGender: 'Nam',
+          childDob: '2026-11-01',
+          childBirthPlace: 'Bệnh viện Sản - Nhi An Giang',
+          childEthnicity: 'Kinh',
+          childNationality: 'Việt Nam',
+          birthCertNumber: 'GCS-2026-8942',
+          birthCertIssueDate: '2026-11-02',
           motherName: 'LÊ THỊ BÍCH NGỌC',
           hospitalMotherName: 'LÊ THỊ BÍCH NGỌC',
           hospitalBirthDate: '2026-11-01',
+          motherAddress: 'Phường Mỹ Xuyên, TP Long Xuyên, An Giang',
           parentsMarried: 'YES',
         },
       };

@@ -25,7 +25,6 @@ export const IncidentLocationMap: React.FC<IncidentLocationMapProps> = ({
   gpsLoading,
   onLocationChange,
   onRecenterToGps,
-  wardName,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [mapEngine, setMapEngine] = useState<'GOOGLE' | 'LEAFLET'>('LEAFLET');
@@ -72,7 +71,7 @@ export const IncidentLocationMap: React.FC<IncidentLocationMapProps> = ({
         })
         .catch((err) => {
           console.warn('Google Maps loader failed, switching to Leaflet/OSM fallback:', err);
-          setGoogleLoadError('Không thể tải Google Maps API. Đã chuyển sang chế độ dự phòng OpenStreetMap.');
+          setGoogleLoadError('Đang dùng bản đồ trực tuyến thay thế.');
           setMapEngine('LEAFLET');
         });
     } catch (err) {
@@ -348,7 +347,7 @@ export const IncidentLocationMap: React.FC<IncidentLocationMapProps> = ({
       <div className="absolute top-2.5 left-2.5 z-[1000] flex flex-col gap-1 pointer-events-none">
         <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold shadow-sm bg-white/95 backdrop-blur text-[#0F172A] border border-[#CBD5E1] flex items-center gap-1.5 pointer-events-auto">
           <MapPin className="w-3 h-3 text-[#B90E23]" />
-          <span>{mapEngine === 'GOOGLE' ? 'Google Maps JavaScript API' : 'Bản đồ OpenStreetMap (Dự phòng)'}</span>
+          <span>Bản đồ vị trí</span>
         </span>
         {googleLoadError && (
           <span className="px-2 py-0.5 rounded-md text-[9.5px] bg-[#FEF2F2] text-[#991B1B] border border-[#FECACA]">
@@ -374,9 +373,9 @@ export const IncidentLocationMap: React.FC<IncidentLocationMapProps> = ({
         <div className="absolute bottom-2 left-2 right-2 z-[1000] p-2.5 rounded-xl bg-[#FFFBEB] border border-[#F59E0B] shadow-md flex items-start gap-2 text-xs text-[#92400E]">
           <AlertCircle className="w-4 h-4 text-[#D97706] shrink-0 mt-0.5" />
           <div className="flex-1">
-            <p className="font-extrabold">Chưa xác nhận vị trí sự cố!</p>
+            <p className="font-extrabold">Chưa chốt vị trí sự cố</p>
             <p className="text-[11px] leading-tight opacity-95">
-              Tọa độ hiện tại đang đặt ở trụ sở UBND {wardName}. Vui lòng chạm vào bản đồ hoặc kéo ghim đỏ đến đúng vị trí sự cố trước khi gửi.
+              Chạm bản đồ hoặc kéo ghim đỏ đến đúng hiện trường.
             </p>
           </div>
         </div>

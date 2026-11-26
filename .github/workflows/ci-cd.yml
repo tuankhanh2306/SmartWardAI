@@ -79,7 +79,11 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
-      - name: Run Frontend Full Test Suite (11 Acceptance & Regression Suites)
+      - name: Install Playwright Chromium for Session Expiry E2E (QA-3.7)
+        working-directory: ./frontend
+        run: npx playwright install chromium
+
+      - name: Run Frontend Full Test Suite (12 Acceptance & Regression Suites)
         working-directory: ./frontend
         env:
           CI_FRONTEND_ONLY: 'true'
@@ -90,20 +94,20 @@ jobs:
         run: npm run build
 
   # ============================================================================
-  # 3. MOBILE CI: Node 20, Expo SDK 52 TypeScript & Vitest Test Suite
+  # 3. MOBILE CI: Node 22, Expo SDK 58 TypeScript & Vitest Test Suite
   # ============================================================================
   mobile-ci:
-    name: Mobile CI (React Native / Expo SDK 52)
+    name: Mobile CI (React Native / Expo SDK 58)
     needs: [docs-governance]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js 20
+      - name: Set up Node.js 22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
           cache-dependency-path: mobile/package-lock.json
 
@@ -141,10 +145,13 @@ jobs:
         run: |
           docker compose config
           grep -q 'proxy_set_header X-Forwarded-For \$remote_addr;' frontend/nginx.conf
+          ! grep -q 'minio/minio:latest' docker-compose.yml
+          ! grep -q 'pull_policy: if_not_present' docker-compose.yml
 
       - name: Docker Compose Boot & Live Health / Anti-Spoofing Verification
         run: |
           trap 'docker compose ps || true; docker compose logs --tail=80 minio ai-sidecar backend frontend || true; docker compose down -v' EXIT
+          docker compose pull postgres redis minio
           docker compose up -d --build postgres redis minio ai-sidecar backend frontend
           for i in $(seq 1 36); do
             if curl -fsS http://127.0.0.1:8080/api/v1/health | grep -q '"UP"'; then

@@ -19,6 +19,7 @@ import vn.edu.uth.smartward.common.BusinessException;
 import vn.edu.uth.smartward.common.ClientIpResolver;
 import vn.edu.uth.smartward.common.ErrorCode;
 import vn.edu.uth.smartward.common.RedisRateLimiter;
+import vn.edu.uth.smartward.security.OfficerAuthService;
 import vn.edu.uth.smartward.vault.dto.VaultUploadResponse;
 
 /**
@@ -33,18 +34,27 @@ public class VaultController {
     private final ZeroTrustVaultService vaultService;
     private final RedisRateLimiter rateLimiter;
     private final ClientIpResolver clientIpResolver;
+    private final OfficerAuthService officerAuthService;
 
     @Autowired
     public VaultController(ZeroTrustVaultService vaultService,
                            @Autowired(required = false) RedisRateLimiter rateLimiter,
-                           @Autowired(required = false) ClientIpResolver clientIpResolver) {
+                           @Autowired(required = false) ClientIpResolver clientIpResolver,
+                           @Autowired(required = false) OfficerAuthService officerAuthService) {
         this.vaultService = vaultService;
         this.rateLimiter = rateLimiter;
         this.clientIpResolver = clientIpResolver != null ? clientIpResolver : new ClientIpResolver();
+        this.officerAuthService = officerAuthService;
+    }
+
+    public VaultController(ZeroTrustVaultService vaultService,
+                           RedisRateLimiter rateLimiter,
+                           ClientIpResolver clientIpResolver) {
+        this(vaultService, rateLimiter, clientIpResolver, null);
     }
 
     public VaultController(ZeroTrustVaultService vaultService) {
-        this(vaultService, null, new ClientIpResolver());
+        this(vaultService, null, new ClientIpResolver(), null);
     }
 
     @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -82,7 +92,11 @@ public class VaultController {
 
         if (rateLimiter != null) {
             String clientIp = clientIpResolver.resolve(request);
-            if (!rateLimiter.allowVaultUpload(clientIp, uploadSessionId)) {
+            String officerBadgeId = resolveOfficerBadgeId(request);
+            boolean allowed = (officerBadgeId != null && !officerBadgeId.isBlank())
+                    ? rateLimiter.allowVaultUpload(clientIp, uploadSessionId, officerBadgeId)
+                    : rateLimiter.allowVaultUpload(clientIp, uploadSessionId);
+            if (!allowed) {
                 throw new BusinessException(ErrorCode.RATE_LIMIT_EXCEEDED,
                         "Bạn đã vượt quá giới hạn tải lên tài liệu (tối đa 20 lần / 10 phút hoặc 10 tệp / phiên). Vui lòng thử lại sau.");
             }
@@ -93,6 +107,22 @@ public class VaultController {
 
         VaultUploadResponse response = vaultService.storeDocument(file, documentType);
         return ResponseEntity.ok(ApiResponse.ok(response));
+    }
+
+    private String resolveOfficerBadgeId(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+        Object attr = request.getAttribute("officerPrincipal");
+        if (attr instanceof OfficerAuthService.OfficerPrincipal principal && principal.badgeId() != null && !principal.badgeId().isBlank()) {
+            return principal.badgeId();
+        }
+        if (officerAuthService != null) {
+            return officerAuthService.tryVerifyToken(request.getHeader("Authorization"))
+                    .map(OfficerAuthService.OfficerPrincipal::badgeId)
+                    .orElse(null);
+        }
+        return null;
     }
 
     @GetMapping("/view/{token}")

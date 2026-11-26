@@ -6,6 +6,7 @@ import { useRole } from '../context/RoleContext';
 import { AN_GIANG_WARDS, type WardItem } from '../data/anGiangWards';
 import { calculateHaversineMeters, toLeafletLatLng } from '../utils/geoUtils';
 import Pagination from '../components/Pagination';
+import { OfficerAgentPanel } from '../components/OfficerAgentPanel';
 import {
   getHitlQueue,
   resolveHitlItem,
@@ -25,7 +26,6 @@ import {
 } from '../api/client';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { generateValidWardMockIncidents } from '../utils/mockIncidentGenerator';
 import {
   MapPin,
   AlertTriangle,
@@ -62,6 +62,9 @@ interface LocalIncident {
   officerNote?: string;
   locationSource?: string;
   locationAccuracyM?: number;
+  photoUrls?: string[];
+  photoCount?: number;
+  reports?: Array<{ reportCode: string; description: string; submittedAt?: string; photoUrls?: string[] }>;
   is_mock?: boolean;
 }
 
@@ -150,6 +153,7 @@ export const PerWardDashboard: React.FC = () => {
   const [pageSize, setPageSize] = useState<number>(5);
 
   // Progressive Disclosure: Drawer / Modal States (Only open when needed!)
+  const [officerAgentOpen, setOfficerAgentOpen] = useState<boolean>(false);
   const [selectedIncident, setSelectedIncident] = useState<LocalIncident | null>(null);
   const [expandedClusterId, setExpandedClusterId] = useState<string | null>(null);
   const [selectedHitlItem, setSelectedHitlItem] = useState<HitlGrayZoneItem | null>(null);
@@ -285,15 +289,19 @@ export const PerWardDashboard: React.FC = () => {
 
   useEffect(() => {
     let mounted = true;
-    getHitlQueue().then((items) => {
-      if (!mounted) return;
-      setHitlItems(items);
-      const initialDrafts: Record<string, string> = {};
-      items.forEach((it) => {
-        initialDrafts[it.id] = it.suggestedAnswer;
+    getHitlQueue()
+      .then((items) => {
+        if (!mounted) return;
+        setHitlItems(items);
+        const initialDrafts: Record<string, string> = {};
+        items.forEach((it) => {
+          initialDrafts[it.id] = it.suggestedAnswer;
+        });
+        setDraftAnswers(initialDrafts);
+      })
+      .catch(() => {
+        if (mounted) setHitlItems([]);
       });
-      setDraftAnswers(initialDrafts);
-    });
     return () => {
       mounted = false;
     };
@@ -318,6 +326,9 @@ export const PerWardDashboard: React.FC = () => {
       // Close detail modal after approval
       setSelectedHitlItem(null);
       setTimeout(() => setToastBanner(null), 5000);
+    } catch {
+      setToastBanner(`Không thể phê duyệt HITL ${item.id} do lỗi kết nối máy chủ.`);
+      setTimeout(() => setToastBanner(null), 5000);
     } finally {
       setResolvingId(null);
     }
@@ -329,17 +340,16 @@ export const PerWardDashboard: React.FC = () => {
       await rebuildSpatialIndex();
       setToastBanner(`Đã cập nhật dữ liệu vị trí sự cố trên bản đồ địa bàn ${ward.name}.`);
       setTimeout(() => setToastBanner(null), 5000);
+    } catch {
+      setToastBanner(`Không đồng bộ được chỉ mục Redis GEO (cần quyền Quản trị viên hoặc kiểm tra kết nối).`);
+      setTimeout(() => setToastBanner(null), 5000);
     } finally {
       setGeoSyncing(false);
     }
   };
 
-  // Build ward-scoped default incidents around the selected ward's coordinates
-  // BƯỚC 3: Geo-validated reproducible mock generator with R=25m clustering
-  const buildDefaultWardIncidents = (targetWard: WardItem): LocalIncident[] => generateValidWardMockIncidents(targetWard);
-
-  // Incidents Dataset with Rich Context for Progressive Disclosure (Unified single loader below)
-  const [incidents, setIncidents] = useState<LocalIncident[]>(() => buildDefaultWardIncidents(ward));
+  // Incidents Dataset fetched dynamically from Backend Clusters API + live citizen submissions (no static mock generator)
+  const [incidents, setIncidents] = useState<LocalIncident[]>([]);
 
   // Dossiers Dataset with Rich Context for In-Place Audit
   const [dossiers, setDossiers] = useState<QuickDossierItem[]>([
@@ -849,6 +859,7 @@ export const PerWardDashboard: React.FC = () => {
               <div class="flex items-center gap-2 mt-1">
                 <span class="px-2 py-0.5 rounded text-[10px] font-bold text-white" style="background:${markerColor}">${inc.urgency}</span>
                 <span class="text-[10px] text-[#334155] font-semibold">${inc.duplicatesMerged} phản ánh</span>
+                ${(inc.photoCount ?? inc.photoUrls?.length ?? 0) > 0 ? `<span class="text-[10px] px-1.5 py-0.5 rounded bg-sky-100 text-sky-800 font-bold">📷 ${inc.photoCount ?? inc.photoUrls?.length} ảnh</span>` : ''}
               </div>
             </div>`
           );
@@ -953,11 +964,11 @@ export const PerWardDashboard: React.FC = () => {
     };
   }, []);
 
-  // Sync incidents from ward defaults, localStorage, live citizen reports, and Backend Clusters API
+  // Sync incidents from live citizen reports and Backend Clusters API
   useEffect(() => {
     let mounted = true;
     const storageKey = `smartward_incidents_v2_${ward.code}`;
-    let baseIncidents = buildDefaultWardIncidents(ward);
+    let baseIncidents: LocalIncident[] = [];
 
     const saved = localStorage.getItem(storageKey);
     if (saved) {
@@ -1053,6 +1064,9 @@ export const PerWardDashboard: React.FC = () => {
           reporterPhone: '0988.***.012',
           locationSource: c.locationSource,
           locationAccuracyM: c.locationAccuracyM,
+          photoUrls: c.photoUrls || [],
+          photoCount: c.photoCount ?? (c.photoUrls?.length ?? 0),
+          reports: c.reports || [],
           officerNote: `Đã tổng hợp các phản ánh trùng vị trí từ người dân.`,
         };
       });
@@ -1102,11 +1116,14 @@ export const PerWardDashboard: React.FC = () => {
       );
     }
 
-    // Call backend status update API asynchronously
-    updateClusterStatus(id, newStatus).catch(() => {});
-
-    setToastBanner(`Đã cập nhật sự cố ${id} sang trạng thái: ${newStatus === 'RESOLVED' ? 'Đã hoàn thành' : newStatus === 'IN_PROGRESS' ? 'Đang xử lý' : 'Chờ tiếp nhận'} (Đã đồng bộ về Cổng Công Dân)`);
+    setToastBanner(`Đã cập nhật sự cố ${id} sang trạng thái: ${newStatus === 'RESOLVED' ? 'Đã hoàn thành' : newStatus === 'IN_PROGRESS' ? 'Đang xử lý' : 'Chờ tiếp nhận'}`);
     setTimeout(() => setToastBanner(null), 4000);
+
+    // Call backend status update API and report explicitly if persistence fails
+    updateClusterStatus(id, newStatus).catch(() => {
+      setToastBanner(`Cảnh báo: Không đồng bộ được trạng thái sự cố ${id} lên máy chủ Backend.`);
+      setTimeout(() => setToastBanner(null), 5000);
+    });
   };
 
   // Calculate high-signal metrics
@@ -1162,6 +1179,15 @@ export const PerWardDashboard: React.FC = () => {
 
           {/* Quick Action Navigation Dock */}
           <div className="flex flex-wrap items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={() => setOfficerAgentOpen((prev) => !prev)}
+              className="px-3 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-bold border border-white/25 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-sm"
+              title="Hỏi Trợ lý AI thống kê SLA hồ sơ & cụm sự cố tại xã"
+            >
+              <BrainCircuit className="w-3.5 h-3.5 text-sky-100" />
+              <span>Trợ lý AI Xã</span>
+            </button>
             <button
               onClick={() => navigate('/officer/procedures')}
               className="px-3 py-2 bg-[#00796B] hover:bg-[#00695C] text-white rounded-xl text-xs font-bold border border-white/25 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-sm"
@@ -1226,6 +1252,13 @@ export const PerWardDashboard: React.FC = () => {
       {/* ========================================================================= */}
       {/* 2. HIGH-SIGNAL METRIC TILES (COMPACT & SYNCHRONIZED)                      */}
       {/* ========================================================================= */}
+      {officerAgentOpen && (
+        <OfficerAgentPanel
+          wardName={ward.name}
+          wardCode={ward.code}
+          onClose={() => setOfficerAgentOpen(false)}
+        />
+      )}
       <div className="max-w-7xl mx-auto px-4 md:px-8 mt-4 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 z-10">
         {/* KPI 1: Phản ánh cần xử lý */}
         <div
@@ -1518,6 +1551,11 @@ export const PerWardDashboard: React.FC = () => {
                             <span className="text-xs font-mono font-bold text-[#DC2626] flex items-center gap-1 mt-1">
                               <PhoneCall className="w-3 h-3 shrink-0" />
                               <span>SĐT liên hệ: {inc.reporterPhone}</span>
+                            </span>
+                          )}
+                          {(inc.photoCount ?? inc.photoUrls?.length ?? 0) > 0 && (
+                            <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md bg-sky-50 border border-sky-200 text-[11px] font-bold text-sky-800">
+                              <span>📷 {inc.photoCount ?? inc.photoUrls?.length} ảnh hiện trường</span>
                             </span>
                           )}
                         </td>

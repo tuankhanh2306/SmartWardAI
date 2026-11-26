@@ -29,6 +29,36 @@ export interface ConversationTurn {
   procedureCode?: string;
 }
 
+export interface AgentStep {
+  stepIndex: number;
+  toolName: string;
+  label: string;
+  success: boolean;
+  latencyMs: number;
+}
+
+export interface AgentActionCard {
+  type: 'OPEN_PREFILLED_FORM' | 'DOSSIER_STATUS' | 'WARD_ANALYTICS' | string;
+  title: string;
+  subtitle?: string;
+  payload: Record<string, any>;
+}
+
+export interface AgentChatResponse {
+  answer: string;
+  role: string;
+  steps: AgentStep[];
+  actionCards: AgentActionCard[];
+  citations: LegalCitation[];
+  abstained: boolean;
+  fallbackUsed: boolean;
+  budgetExhausted: boolean;
+  injectionBlocked?: boolean;
+  traceId?: string;
+  totalLatencyMs: number;
+  disclaimer?: string;
+}
+
 export interface RagResponse {
   answer: string;
   abstained: boolean;
@@ -40,6 +70,9 @@ export interface RagResponse {
   responseTimeMs: number;
   disclaimer: string;
   suggestions?: string[];
+  agentSteps?: AgentStep[];
+  agentActionCards?: AgentActionCard[];
+  traceId?: string;
 }
 
 function mapProcedureCodeToName(code?: string): string | null {
@@ -695,16 +728,9 @@ const DEFAULT_FALLBACK_HITL_QUEUE: HitlGrayZoneItem[] = [
 ];
 
 export const getHitlQueue = async (): Promise<HitlGrayZoneItem[]> => {
-  try {
-    const resp = await api.get<any>('/rag/hitl-queue');
-    const items = resp.data?.data ? resp.data.data : resp.data;
-    if (Array.isArray(items) && items.length > 0) {
-      return items as HitlGrayZoneItem[];
-    }
-    return DEFAULT_FALLBACK_HITL_QUEUE;
-  } catch {
-    return DEFAULT_FALLBACK_HITL_QUEUE;
-  }
+  const resp = await api.get<any>('/rag/hitl-queue');
+  const items = resp.data?.data ? resp.data.data : resp.data;
+  return Array.isArray(items) ? (items as HitlGrayZoneItem[]) : [];
 };
 
 export const resolveHitlItem = async (
@@ -712,46 +738,108 @@ export const resolveHitlItem = async (
   approvedAnswer: string,
   officerName: string
 ): Promise<HitlGrayZoneItem> => {
-  const fallbackItem: HitlGrayZoneItem = {
-    id,
-    query: 'Câu hỏi vùng xám cần phê duyệt',
-    wardName: 'UBND Cấp Xã',
-    similarityScore: 0.65,
-    candidateChunkCode: 'TTHC-RESOLVED',
-    candidateProcedureName: 'Thủ tục hành chính',
-    legalReference: 'Quy định pháp luật hiện hành',
-    suggestedAnswer: approvedAnswer,
-    status: 'APPROVED',
-    createdAt: new Date().toISOString(),
-    resolvedBy: officerName,
-  };
-
-  try {
-    const resp = await api.post<any>(`/rag/hitl-queue/${id}/resolve`, {
-      approvedAnswer,
-      officerName,
-    });
-    const resItem = (resp.data?.data ? resp.data.data : resp.data) as HitlGrayZoneItem;
-    return resItem || fallbackItem;
-  } catch {
-    return fallbackItem;
-  }
+  const resp = await api.post<any>(`/rag/hitl-queue/${encodeURIComponent(id)}/resolve`, {
+    approvedAnswer,
+    officerName,
+  });
+  return (resp.data?.data ? resp.data.data : resp.data) as HitlGrayZoneItem;
 };
 
 export const rebuildSpatialIndex = async (): Promise<{ syncedClustersCount: number; message: string }> => {
-  try {
-    const resp = await api.post<any>('/issues/clusters/rebuild-index');
-    const data = resp.data?.data ? resp.data.data : resp.data;
-    return {
-      syncedClustersCount: data?.syncedClustersCount ?? 8,
-      message:
-        data?.message ??
-        'Đã đồng bộ hóa chỉ mục không gian Redis GEO từ cơ sở dữ liệu PostgreSQL thành công.',
-    };
-  } catch {
-    return {
-      syncedClustersCount: 8,
-      message: 'Đã đồng bộ 8 cụm sự cố đang mở từ PostgreSQL vào Redis GEO (smartward:geo:clusters).',
-    };
+  const resp = await api.post<any>('/issues/clusters/rebuild-index');
+  const data = resp.data?.data ? resp.data.data : resp.data;
+  return {
+    syncedClustersCount: data?.syncedClustersCount ?? 0,
+    message:
+      data?.message ??
+      'Đã đồng bộ hóa chỉ mục không gian Redis GEO từ cơ sở dữ liệu PostgreSQL thành công.',
+  };
+};
+
+/**
+ * Multi-step Civic AI Agent chat (POST /api/v1/agent/chat) with automatic fallback to askLegalRag (/rag/ask + offline 40 TTHC).
+ */
+export const askCivicAgent = async (
+  query: string,
+  topK = 3,
+  wardContext: {
+    wardName: string;
+    officeAddress: string;
+    phoneNumber?: string;
+    workingHours?: string;
+  } = {
+    wardName: 'UBND Phường Long Xuyên, Tỉnh An Giang',
+    officeAddress: 'Số 01 Đường Nguyễn Huệ, Phường Long Xuyên, Tỉnh An Giang',
+  },
+  conversationHistory: ConversationTurn[] = [],
+  formType?: string
+): Promise<RagResponse> => {
+  const cleanQuery = query.trim();
+  const isGreeting = classifySmallTalk(cleanQuery);
+  if (isGreeting) {
+    return askLegalRag(cleanQuery, topK, wardContext, conversationHistory);
   }
+
+  try {
+    const historyPayload = conversationHistory.slice(-6).map((h) => ({
+      role: h.sender === 'citizen' || h.sender === 'user' ? 'citizen' : 'assistant',
+      content: h.text,
+      procedureCode: h.procedureCode,
+    }));
+
+    const resp = await api.post<any>(
+      '/agent/chat',
+      {
+        message: cleanQuery,
+        formType,
+        history: historyPayload,
+      },
+      { timeout: 6000 }
+    );
+    const agentData: AgentChatResponse | undefined = resp.data?.data ?? resp.data;
+    if (agentData && agentData.answer) {
+      const normalizedCitations: LegalCitation[] = Array.isArray(agentData.citations)
+        ? agentData.citations.map((c: any) => ({
+            chunkCode: c.chunkCode || '',
+            procedureCode: c.procedureCode || '',
+            procedureName: c.procedureName || '',
+            title: c.title || '',
+            legalReference: c.legalReference || '',
+            content: c.excerpt || c.content || '',
+            relevanceScore: c.similarityScore ?? c.relevanceScore ?? 0.85,
+          }))
+        : [];
+      return {
+        answer: agentData.answer,
+        abstained: Boolean(agentData.abstained),
+        maxSimilarity: normalizedCitations[0]?.relevanceScore ?? (agentData.abstained ? 0.4 : 0.9),
+        appliedThreshold: 0.78,
+        citations: normalizedCitations,
+        cached: false,
+        responseTimeMs: agentData.totalLatencyMs ?? 0,
+        disclaimer:
+          agentData.disclaimer ||
+          'Trợ lý SmartWard AI hỗ trợ tra cứu và điền nháp tờ khai theo quy định hành chính.',
+        agentSteps: Array.isArray(agentData.steps) ? agentData.steps : [],
+        agentActionCards: Array.isArray(agentData.actionCards) ? agentData.actionCards : [],
+        traceId: agentData.traceId,
+      };
+    }
+  } catch (agentErr) {
+    console.warn('POST /api/v1/agent/chat unavailable, falling back to /api/v1/rag/ask:', agentErr);
+  }
+
+  return askLegalRag(cleanQuery, topK, wardContext, conversationHistory);
+};
+
+/**
+ * Direct Officer / Admin operational AI assistant call (POST /api/v1/agent/chat with JWT Bearer).
+ */
+export const askOfficerAgent = async (message: string, sessionId?: string): Promise<AgentChatResponse> => {
+  const resp = await api.post<any>(
+    '/agent/chat',
+    { message: message.trim(), sessionId },
+    { timeout: 12000 }
+  );
+  return (resp.data?.data ?? resp.data) as AgentChatResponse;
 };

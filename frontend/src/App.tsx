@@ -40,20 +40,12 @@ const AppContent: React.FC = () => {
   const { role, isOfficer, isAdmin } = useRole();
 
   return (
-    <div className={`min-h-screen ${!isOfficer && !isAdmin && role ? 'bg-[#F5F6F8]' : 'bg-[#F8FAFC]'} font-sans text-[#0F172A] antialiased flex flex-col selection:bg-[#0F2942] selection:text-white`}>
-      {/* Global Administrative Header (Only rendered when user has active session) */}
+    <div className={`min-h-screen w-full overflow-x-clip ${!isOfficer && !isAdmin && role ? 'bg-[#F8FAFC]' : 'bg-[#F8FAFC]'} font-sans text-[#0F172A] antialiased flex flex-col selection:bg-[#0F2942] selection:text-white`}>
+      {/* Global Sticky Administrative Header (Rendered when user has active session) */}
       <Header />
 
-      {/* Content Viewport (2-tier 92px header on desktop for Citizen; single 56/64px bar on Officer, Admin & mobile) */}
-      <div
-        className={`${
-          role
-            ? isOfficer || isAdmin
-              ? 'pt-14 sm:pt-16 pb-16 lg:pb-0'
-              : 'pt-14 lg:pt-[92px] pb-16 lg:pb-0'
-            : ''
-        } flex-1 flex flex-col`}
-      >
+      {/* Content Viewport — Natural Document Flow beneath sticky header */}
+      <div className="flex-1 flex flex-col min-w-0 w-full">
         <Suspense fallback={<RouteLoadingSpinner />}>
           <Routes>
             {/* 1. Gateway Entry Point: Unauthenticated visits land here */}

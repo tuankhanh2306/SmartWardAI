@@ -285,4 +285,87 @@ describe('walletAndIncidentFlow — Chặng M4 (Ví Mã QR Offline, Xuất PDF &
       await removeOfflineIncident(queuedRow.local_id);
     }
   });
+
+  it('TASK-030 & TASK-032: lưu ảnh hiện trường vào hàng đợi Offline -> flush upload không nhân đôi khi retry và dọn file tạm', async () => {
+    const persistedUris = [
+      'file:///docs/offline_incident_photos/inc_1.jpg',
+      'file:///docs/offline_incident_photos/inc_2.jpg',
+    ];
+    const persistPhotos = vi.fn().mockResolvedValue(persistedUris);
+    const offlineUploadApi = vi.fn().mockRejectedValue(new Error('Network Offline'));
+    const offlineSubmitApi = vi.fn().mockRejectedValue(new Error('Network Offline'));
+
+    // 1. Offline capture & submit -> saves durable local photo URIs into SQLite queue
+    const outcome = await executeIncidentSubmission(
+      {
+        category: 'ROAD_DAMAGE',
+        description: 'Mặt đường nứt gãy và sụt lún sâu 25cm ngay trước cổng trường học.',
+        addressText: 'Đường Trần Hưng Đạo, Phường Long Xuyên, Tỉnh An Giang',
+        reporterPhone: '0918234567',
+        latitude: 10.383965,
+        longitude: 105.426716,
+        fallbackWardCode: 'AG_P_LONGXUYEN',
+        locationSource: 'GPS',
+        localPhotoUris: ['file:///cache/raw_1.jpg', 'file:///cache/raw_2.jpg'],
+      },
+      { submitApi: offlineSubmitApi, uploadPhotoApi: offlineUploadApi, persistPhotos }
+    );
+
+    expect(outcome.success).toBe(true);
+    expect(outcome.mode).toBe('QUEUED_OFFLINE');
+    expect(persistPhotos).toHaveBeenCalledTimes(1);
+    const localId = outcome.offlineLocalId!;
+
+    try {
+      const queued = (await getOfflineIncidentQueue()).find((r) => r.local_id === localId);
+      expect(queued).toBeDefined();
+      expect(JSON.parse(queued!.photo_uris_json || '[]')).toEqual(persistedUris);
+
+      // 2. First flush: photo 1 succeeds, photo 2 fails mid-way -> checkpoint keeps photo 1 key so retry NEVER duplicates photo 1!
+      const uploadPhotoApi = vi
+        .fn()
+        .mockResolvedValueOnce({
+          photoKey: 'AG_P_LONGXUYEN__20261125_11111111-1111-1111-1111-111111111111.jpg',
+          viewUrl: '/api/v1/issues/officer/photos/AG_P_LONGXUYEN__20261125_11111111-1111-1111-1111-111111111111.jpg',
+          contentType: 'image/jpeg',
+          sizeBytes: 120000,
+          exifStripped: true,
+        })
+        .mockRejectedValueOnce(new Error('4G dropped on photo 2'))
+        .mockResolvedValueOnce({
+          photoKey: 'AG_P_LONGXUYEN__20261125_22222222-2222-2222-2222-222222222222.jpg',
+          viewUrl: '/api/v1/issues/officer/photos/AG_P_LONGXUYEN__20261125_22222222-2222-2222-2222-222222222222.jpg',
+          contentType: 'image/jpeg',
+          sizeBytes: 110000,
+          exifStripped: true,
+        });
+      const submitApi = vi.fn().mockResolvedValue({
+        reportCode: 'RPT-PHOTO-SYNC-01',
+        clusterCode: 'CLUST-LX-88',
+        category: 'ROAD_DAMAGE',
+        clusterReportCount: 1,
+      });
+      const cleanupPhotos = vi.fn().mockResolvedValue(undefined);
+
+      const firstTry = await flushOfflineIncidentQueue({ uploadPhotoApi, submitApi, cleanupPhotos });
+      expect(firstTry.failedCount).toBe(1);
+      expect(submitApi).not.toHaveBeenCalled();
+
+      // 3. Second flush: only photo 2 is uploaded (total 3 calls, NOT 4!), report submits with both photoKeys, temp files cleaned up
+      const secondTry = await flushOfflineIncidentQueue({ uploadPhotoApi, submitApi, cleanupPhotos });
+      expect(secondTry.syncedCount).toBe(1);
+      expect(secondTry.failedCount).toBe(0);
+      expect(uploadPhotoApi).toHaveBeenCalledTimes(3);
+      expect(submitApi).toHaveBeenCalledTimes(1);
+      expect(submitApi.mock.calls[0][0].photoKeys).toEqual([
+        'AG_P_LONGXUYEN__20261125_11111111-1111-1111-1111-111111111111.jpg',
+        'AG_P_LONGXUYEN__20261125_22222222-2222-2222-2222-222222222222.jpg',
+      ]);
+      expect(submitApi.mock.calls[0][1]).toEqual({ idempotencyKey: localId });
+      expect(cleanupPhotos).toHaveBeenCalledTimes(2);
+      expect((await getOfflineIncidentQueue()).some((r) => r.local_id === localId)).toBe(false);
+    } finally {
+      await removeOfflineIncident(localId);
+    }
+  });
 });

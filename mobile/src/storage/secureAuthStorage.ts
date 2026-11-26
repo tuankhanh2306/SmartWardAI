@@ -9,6 +9,11 @@ export const OFFICER_TOKEN_KEY = 'smartward_officer_token';
 export const OFFICER_PROFILE_KEY = 'smartward_officer_profile';
 
 const memoryFallback = new Map<string, string>();
+let cachedToken: string | null | undefined = undefined;
+
+export function resetOfficerTokenMemoryCache(): void {
+  cachedToken = undefined;
+}
 
 async function setItemRaw(key: string, value: string): Promise<void> {
   try {
@@ -95,6 +100,7 @@ export async function saveOfficerSession(
   token: string,
   profile: OfficerPrincipal
 ): Promise<void> {
+  cachedToken = token;
   await Promise.all([
     setItemRaw(OFFICER_TOKEN_KEY, token),
     setItemRaw(OFFICER_PROFILE_KEY, JSON.stringify(profile)),
@@ -102,13 +108,15 @@ export async function saveOfficerSession(
 }
 
 export async function getOfficerToken(): Promise<string | null> {
-  const token = await getItemRaw(OFFICER_TOKEN_KEY);
-  if (!token) return null;
-  if (isJwtExpired(token)) {
+  if (cachedToken === undefined) {
+    cachedToken = await getItemRaw(OFFICER_TOKEN_KEY);
+  }
+  if (!cachedToken) return null;
+  if (isJwtExpired(cachedToken)) {
     await clearOfficerSession();
     return null;
   }
-  return token;
+  return cachedToken;
 }
 
 export async function getOfficerProfile(): Promise<OfficerPrincipal | null> {
@@ -122,6 +130,7 @@ export async function getOfficerProfile(): Promise<OfficerPrincipal | null> {
 }
 
 export async function clearOfficerSession(): Promise<void> {
+  cachedToken = null;
   await Promise.all([
     deleteItemRaw(OFFICER_TOKEN_KEY),
     deleteItemRaw(OFFICER_PROFILE_KEY),

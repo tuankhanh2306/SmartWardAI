@@ -181,9 +181,9 @@ export const Header: React.FC = () => {
   return (
     <>
       <header
-        className={`fixed top-0 left-0 right-0 z-50 ${
+        className={`sticky top-0 left-0 right-0 z-50 w-full max-w-full ${
           isStaff
-            ? 'bg-white/95 backdrop-blur-md border-b border-slate-200/80'
+            ? 'bg-white/95 backdrop-blur-md border-b border-slate-200/80 shadow-2xs'
             : 'shadow-xs'
         }`}
       >
@@ -191,29 +191,29 @@ export const Header: React.FC = () => {
         <div
           className={
             isStaff
-              ? 'h-14 sm:h-16 w-full max-w-[1920px] mx-auto px-3 sm:px-5 xl:px-6 flex items-center justify-between gap-3'
-              : 'bg-bca-masthead text-white h-14 lg:h-[52px] w-full'
+              ? 'min-h-14 sm:min-h-16 w-full max-w-[1920px] mx-auto px-2.5 sm:px-5 xl:px-6 py-1.5 flex items-center justify-between gap-2 sm:gap-3'
+              : 'bg-bca-masthead text-white min-h-13 lg:h-[52px] w-full'
           }
         >
           <div
             className={
               isStaff
-                ? 'w-full flex items-center justify-between gap-3'
-                : 'h-full w-full max-w-[1440px] 2xl:max-w-[1920px] mx-auto px-3 sm:px-5 xl:px-6 flex items-center justify-between gap-3'
+                ? 'w-full flex items-center justify-between gap-2 sm:gap-3'
+                : 'min-h-13 lg:h-full w-full max-w-[1440px] 2xl:max-w-[1920px] mx-auto px-2.5 sm:px-5 xl:px-6 py-1.5 flex items-center justify-between gap-2 sm:gap-3'
             }
           >
             {/* Cluster 1: Brand + Scope Pill (Officer locked to assigned ward; Citizen & Admin can switch wards) */}
-            <div className="min-w-0 flex items-center gap-2">
+            <div className="min-w-0 flex items-center gap-1.5 sm:gap-2">
               {isOfficer ? (
                 <div
-                  title="Phạm vi thẩm quyền Cán bộ được khóa cố định theo tài khoản công chức (SEC-09)"
-                  className="min-w-0 inline-flex items-center gap-2 pr-2.5 pl-1.5 py-1 rounded-xl border border-slate-200 bg-slate-50 text-slate-900"
+                  title="Đơn vị công tác cố định theo tài khoản cán bộ"
+                  className="min-w-0 inline-flex items-center gap-1.5 sm:gap-2 pr-2 pl-1.5 py-1 rounded-xl border border-slate-200 bg-slate-50 text-slate-900"
                 >
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 bg-[#0F2942]">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-white shrink-0 bg-[#0F2942]">
                     <ShieldCheck className="w-4 h-4 text-teal-200" />
                   </div>
-                  <div className="min-w-0 flex items-center gap-1.5">
-                    <span className="font-semibold text-xs sm:text-sm text-slate-900 tracking-tight truncate max-w-[160px] sm:max-w-[230px]">
+                  <div className="min-w-0 flex items-center gap-1">
+                    <span className="font-semibold text-xs sm:text-sm text-slate-900 tracking-tight truncate max-w-[120px] sm:max-w-[230px]">
                       UBND {currentWard.name}
                     </span>
                     <Lock className="w-3 h-3 text-slate-500 shrink-0" />
@@ -225,12 +225,12 @@ export const Header: React.FC = () => {
                   title={`Bấm để đổi đơn vị hành chính (${totalWardsCount} đơn vị)`}
                   className={
                     isAdmin
-                      ? `min-w-0 inline-flex items-center gap-2 pr-2.5 pl-1.5 py-1 rounded-xl border transition active:scale-[0.98] gov-focus-ring ${
+                      ? `min-w-0 inline-flex items-center gap-1.5 sm:gap-2 pr-2 pl-1.5 py-1 rounded-xl border transition active:scale-[0.98] gov-focus-ring ${
                           isOnboarding
                             ? 'bg-amber-50 border-amber-300 text-[#78350F]'
                             : 'bg-transparent border-transparent hover:bg-slate-100/80 hover:border-slate-200 text-slate-900'
                         }`
-                      : `min-w-0 inline-flex items-center gap-2.5 pr-2.5 pl-1 py-1 rounded-xl border transition active:scale-[0.98] gov-focus-ring ${
+                      : `min-w-0 inline-flex items-center gap-2 pr-2 pl-1 py-1 rounded-xl border transition active:scale-[0.98] gov-focus-ring ${
                           isOnboarding
                             ? 'bg-white/15 border-amber-300/60 text-white'
                             : 'bg-transparent border-transparent hover:bg-white/10 text-white'
@@ -240,8 +240,8 @@ export const Header: React.FC = () => {
                   <div
                     className={
                       isAdmin
-                        ? 'w-8 h-8 rounded-lg flex items-center justify-center text-white shrink-0 bg-[#78350F]'
-                        : 'w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-[#7F0918] border border-[#FCD34D]/65 text-[#FDE047] shadow-2xs'
+                        ? 'w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center text-white shrink-0 bg-[#78350F]'
+                        : 'w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center shrink-0 bg-[#7F0918] border border-[#FCD34D]/65 text-[#FDE047] shadow-2xs'
                     }
                   >
                     {isAdmin ? (
@@ -256,9 +256,9 @@ export const Header: React.FC = () => {
                         Cổng Một Cửa Số • An Giang
                       </span>
                     )}
-                    <div className="min-w-0 flex items-center gap-1.5">
+                    <div className="min-w-0 flex items-center gap-1">
                       <span
-                        className={`font-bold text-xs sm:text-sm tracking-tight truncate max-w-[155px] sm:max-w-[240px] ${
+                        className={`font-bold text-xs sm:text-sm tracking-tight truncate max-w-[120px] sm:max-w-[240px] ${
                           isAdmin ? 'text-slate-900 font-semibold' : 'text-white'
                         }`}
                       >
@@ -338,31 +338,23 @@ export const Header: React.FC = () => {
                 {isAdmin ? 'ADMIN CẤP TỈNH' : isOfficer ? 'CÁN BỘ XÃ' : 'CÔNG DÂN'}
               </span>
 
-              <div
-                className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-mono font-semibold ${
-                  sessionWarningActive
-                    ? 'bg-white text-[#991B1B] border border-red-200 animate-pulse'
-                    : isStaff
-                    ? 'text-slate-600'
-                    : 'bg-black/20 text-amber-50 border border-white/15'
-                }`}
-                title={
-                  isCitizen
-                    ? 'Thời gian phiên công dân 5 phút trượt còn lại'
-                    : 'Thời gian khóa không hoạt động 15 phút còn lại'
-                }
-              >
-                <Clock
-                  className={`w-3.5 h-3.5 ${
+              {isStaff && (
+                <div
+                  className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-mono font-semibold ${
                     sessionWarningActive
-                      ? 'text-[#B90E23]'
-                      : isStaff
-                      ? 'text-slate-500'
-                      : 'text-[#FDE68A]'
+                      ? 'bg-white text-[#991B1B] border border-red-200 animate-pulse'
+                      : 'text-slate-600'
                   }`}
-                />
-                <span>{formattedCountdown}</span>
-              </div>
+                  title="Thời gian khóa không hoạt động 15 phút còn lại"
+                >
+                  <Clock
+                    className={`w-3.5 h-3.5 ${
+                      sessionWarningActive ? 'text-[#B90E23]' : 'text-slate-500'
+                    }`}
+                  />
+                  <span>{formattedCountdown}</span>
+                </div>
+              )}
 
               <button
                 ref={menuButtonRef}
@@ -614,13 +606,13 @@ export const Header: React.FC = () => {
           </div>
         </div>
 
-        {/* TIER 2 (Desktop Citizen Only): Warm Ivory Editorial Sub-Navigation Bar */}
+        {/* TIER 2 (All Screens Citizen): Responsive Sticky Sub-Navigation Bar */}
         {isCitizen && (
           <nav
             aria-label="Điều hướng chính"
-            className="hidden lg:block bg-[#F7EEDF] border-b border-[#E5D4B3]"
+            className="block bg-[#F7EEDF]/95 backdrop-blur-md border-b border-[#E5D4B3] w-full"
           >
-            <div className="h-10 w-full max-w-[1440px] 2xl:max-w-[1920px] mx-auto px-5 xl:px-6 flex items-center gap-7">
+            <div className="min-h-9 lg:h-10 w-full max-w-[1440px] 2xl:max-w-[1920px] mx-auto px-2 sm:px-5 xl:px-6 py-1 lg:py-0 flex flex-wrap items-center justify-between sm:justify-start gap-x-2.5 sm:gap-x-6 gap-y-1">
               {citizenNavLinks.map((item) => {
                 const Icon = item.icon;
                 const isActive = item.match();
@@ -628,17 +620,48 @@ export const Header: React.FC = () => {
                   <Link
                     key={item.to}
                     to={item.to}
-                    className={`h-full inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide border-b-[2.5px] transition-colors whitespace-nowrap gov-focus-ring ${
+                    className={`py-1 lg:py-0 lg:h-full inline-flex items-center gap-1 sm:gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wide border-b-2 lg:border-b-[2.5px] transition-colors whitespace-nowrap gov-focus-ring ${
                       isActive
                         ? 'border-[#B90E23] text-[#9F0C1E]'
                         : 'border-transparent text-[#2B1B17] hover:text-[#9F0C1E]'
                     }`}
                   >
                     <Icon
-                      className={`w-3.5 h-3.5 ${
+                      className={`w-3.5 h-3.5 shrink-0 ${
                         isActive ? 'text-[#B90E23]' : 'text-[#5C4033]'
                       }`}
                     />
+                    <span>{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </nav>
+        )}
+
+        {/* TIER 2 (Mobile/Tablet Staff Only): Responsive Sub-Navigation Bar when < lg */}
+        {isStaff && (
+          <nav
+            aria-label="Điều hướng di động"
+            className="lg:hidden bg-slate-50/95 backdrop-blur-md border-t border-slate-200/80 w-full"
+          >
+            <div className="w-full max-w-[1920px] mx-auto px-2 sm:px-5 py-1.5 flex flex-wrap items-center justify-between sm:justify-start gap-1.5">
+              {activeNavLinks.map((item) => {
+                const Icon = item.icon;
+                const isActive = item.match();
+                return (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={`inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold px-2.5 py-1 rounded-lg transition-all whitespace-nowrap gov-focus-ring ${
+                      isActive
+                        ? isAdmin
+                          ? 'bg-white text-[#78350F] shadow-2xs border border-amber-200'
+                          : 'bg-white text-[#0F2942] shadow-2xs border border-slate-200'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+                    }`}
+                  >
+                    <Icon className="w-3.5 h-3.5 shrink-0" />
                     <span>{item.label}</span>
                   </Link>
                 );
@@ -664,7 +687,7 @@ export const Header: React.FC = () => {
                 onClick={extendSession}
                 className="px-3 py-1 rounded-lg bg-white text-amber-900 font-extrabold hover:bg-amber-50 transition cursor-pointer"
               >
-                Tiếp tục? ({isCitizen ? '+5 phút' : '+15 phút'})
+                Tiếp tục? ({isCitizen ? '+30 phút' : '+15 phút'})
               </button>
               <button
                 type="button"

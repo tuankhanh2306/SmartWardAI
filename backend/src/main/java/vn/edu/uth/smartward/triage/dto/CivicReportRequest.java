@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Citizen civic incident report payload with GPS location and text description.
@@ -40,6 +41,10 @@ public class CivicReportRequest {
 
     @Schema(description = "Đường dẫn hình ảnh chụp hiện trường (tùy chọn)", example = "https://minio.smartward.vn/photos/pothole.jpg")
     private String imageUrl;
+
+    @Size(max = 3, message = "Mỗi phản ánh hiện trường chỉ đính kèm tối đa 3 ảnh")
+    @Schema(description = "Danh sách tối đa 3 mã ảnh hiện trường đã tải lên POST /api/v1/issues/photos")
+    private List<String> photoKeys;
 
     @Schema(description = "Số điện thoại người dân báo tin khẩn để người giám sát liên hệ", example = "0918234567")
     private String reporterPhone;

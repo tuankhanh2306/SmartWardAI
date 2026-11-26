@@ -76,11 +76,17 @@ const suites = [
     args: process.platform === 'win32' ? ['/c', 'npm --prefix frontend run build'] : ['--prefix', 'frontend', 'run', 'build'],
     cwd: rootDir,
   },
+  {
+    name: '12. Live Browser 3-Guard Session Expiry & Countdown Suite (QA-3.7)',
+    cmd: process.execPath,
+    args: [path.join(currentDir, 'test_session_expiry_e2e.mjs')],
+    cwd: rootDir,
+  },
   ...(process.env.CI_FRONTEND_ONLY === 'true'
     ? []
     : [
         {
-          name: '12. Backend JUnit RAG Query Service Test (16 assertions)',
+          name: '13. Backend JUnit RAG Query Service Test (16 assertions)',
           cmd: process.platform === 'win32' ? 'cmd.exe' : './mvnw',
           args: process.platform === 'win32' ? ['/c', 'mvnw.cmd test -Dtest=RagQueryServiceTest'] : ['test', '-Dtest=RagQueryServiceTest'],
           cwd: path.join(rootDir, 'backend'),

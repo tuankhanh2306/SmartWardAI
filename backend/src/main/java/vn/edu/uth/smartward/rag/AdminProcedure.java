@@ -63,6 +63,10 @@ public class AdminProcedure {
     @Builder.Default
     private String formTemplateKey = "GENERAL";
 
+    @Column(name = "index_status", nullable = false, length = 32)
+    @Builder.Default
+    private String indexStatus = "INDEXED";
+
     @OneToMany(mappedBy = "procedure", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @Builder.Default
     private List<LegalChunk> chunks = new ArrayList<>();

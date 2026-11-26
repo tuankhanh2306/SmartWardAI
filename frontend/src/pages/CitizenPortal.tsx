@@ -1,10 +1,13 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { askLegalRag, submitRagFeedback, synthesizeSpeech, type RagResponse, type LegalCitation } from '../api/client';
+import { askCivicAgent, submitRagFeedback, synthesizeSpeech, type RagResponse, type LegalCitation } from '../api/client';
+import { AgentActionCards } from '../components/AgentActionCards';
 import { normalizeTextForTts } from '../utils/ttsTextNormalizer';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useWard } from '../context/WardContext';
 import { useAccessibility } from '../context/AccessibilityContext';
 import { useVoiceInput } from '../hooks/useVoiceInput';
+import { PROCEDURES_CATALOG } from '../data/proceduresCatalog';
+import { normalizeVi, highlightMatchedText } from '../utils/highlightMatch';
 import {
   Send,
   Bot,
@@ -24,7 +27,6 @@ import {
   MapPin,
   Volume2,
   VolumeX,
-  Layers,
   ExternalLink,
   PhoneCall,
   Phone,
@@ -37,13 +39,16 @@ import {
   Users,
   HeartHandshake,
   Stamp,
-  Maximize2,
-  Minimize2,
   ChevronDown,
   ChevronUp,
   ArrowLeft,
   Eye,
-  Info
+  Info,
+  Sparkles,
+  Plus,
+  FileCheck2,
+  FolderOpen,
+  MessageSquare,
 } from 'lucide-react';
 
 interface ChatMessage {
@@ -468,21 +473,22 @@ const StructuredBotMessage: React.FC<StructuredBotMessageProps> = ({
 
 export const CitizenPortal: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { currentWard, isOfficeOpen, officeStatusLabel } = useWard();
   const { isAudioAutoPlay, isSimpleMode, setIsSimpleMode } = useAccessibility();
   const chatBottomRef = useRef<HTMLDivElement>(null);
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const latestBotMsgRef = useRef<HTMLDivElement>(null);
   const citationModalRef = useRef<HTMLDivElement>(null);
   const citationCloseBtnRef = useRef<HTMLButtonElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const omniboxContainerRef = useRef<HTMLDivElement>(null);
+  const initialQueryHandledRef = useRef(false);
   const [query, setQuery] = useState('');
+  const [omniboxFocused, setOmniboxFocused] = useState(false);
   const [loading, setLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [speakingId, setSpeakingId] = useState<string | null>(null);
   const [activeCitation, setActiveCitation] = useState<LegalCitation | null>(null);
-  const [isChatExpanded, setIsChatExpanded] = useState<boolean>(false);
-  const [showScrollBottom, setShowScrollBottom] = useState<boolean>(false);
 
   // Focus Trap & Escape key handling for Citation Drawer / Dialog (WCAG 2.1 AA)
   useEffect(() => {
@@ -526,6 +532,27 @@ export const CitizenPortal: React.FC = () => {
     };
   }, [activeCitation]);
 
+  // Close omnibox search recommendation popover on outside click or Escape
+  useEffect(() => {
+    if (!omniboxFocused) return;
+    const handleMouseDown = (e: MouseEvent) => {
+      if (omniboxContainerRef.current && !omniboxContainerRef.current.contains(e.target as Node)) {
+        setOmniboxFocused(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setOmniboxFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleMouseDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [omniboxFocused]);
+
   // Speech-to-Text 2-Way Voice Input Hook (Web Speech API)
   const {
     isListening: isVoiceListening,
@@ -539,98 +566,47 @@ export const CitizenPortal: React.FC = () => {
     setQuery((prev) => (prev ? `${prev} ${finalText}` : finalText));
   });
 
-  // Scroll listener to detect when user has scrolled away from bottom
-  const handleScroll = useCallback(() => {
-    if (!scrollContainerRef.current) return;
-    const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-    // Show quick scroll-to-bottom button when user scrolls up > 120px
-    const isNearBottom = scrollHeight - scrollTop - clientHeight < 120;
-    setShowScrollBottom(!isNearBottom);
-  }, []);
+  // Start empty so landing on /citizen shows the Wai Centered AI Welcome Workspace
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
 
-  // Mobile tab switcher ('chat' vs 'catalog') for small screens
-  const [mobileTab, setMobileTab] = useState<'chat' | 'catalog'>('chat');
+  // Live grouped search recommendations from 40-TTHC catalog as user types
+  const searchRecommendations = useMemo(() => {
+    const cleanQ = normalizeVi(query).trim();
+    if (!omniboxFocused || cleanQ.length < 1) return [];
 
-  const initialTimeStr = useMemo(
-    () => new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
-    []
-  );
+    const matched = PROCEDURES_CATALOG.filter(
+      (p) =>
+        normalizeVi(p.name).includes(cleanQ) ||
+        normalizeVi(p.code).includes(cleanQ) ||
+        normalizeVi(p.category).includes(cleanQ)
+    ).slice(0, 6);
 
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'msg-0',
-      sender: 'citizen',
-      text: 'Tôi muốn làm thủ tục đăng ký khai sinh cho cháu mới sinh cần giấy tờ gì và mất bao lâu?',
-      timestamp: initialTimeStr,
-    },
-    {
-      id: 'msg-1',
-      sender: 'bot',
-      text: `1. TÓM TẮT THỦ TỤC:\nThủ tục Đăng ký khai sinh cho trẻ mới sinh được tiếp nhận và giải quyết tại UBND ${currentWard.name} nơi cư trú của cha hoặc mẹ.\n\n2. THÀNH PHẦN HỒ SƠ:\n• [TTHC-HT-01_CHUNK_003] Tờ khai đăng ký khai sinh theo mẫu quy định.\n• [TTHC-HT-01_CHUNK_003] Bản chính Giấy chứng sinh do cơ sở khám bệnh, chữa bệnh cấp (hoặc văn bản xác nhận của người làm chứng/giấy cam đoan).\n• Xuất trình CCCD/Hộ chiếu còn hiệu lực của cha mẹ và Giấy chứng nhận kết hôn (nếu có).\n\n3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n• Thời hạn: Giải quyết ngay trong 01 ngày làm việc (trường hợp cần xác minh thì không quá 05 ngày làm việc).\n• Lệ phí: Miễn phí hoàn toàn khi đăng ký đúng hạn trong vòng 60 ngày kể từ ngày sinh.\n\n4. NƠI TIẾP NHẬN & XỬ LÝ:\nBộ phận Tiếp nhận và Trả kết quả (Một cửa) thuộc UBND ${currentWard.name} (${currentWard.officeAddress}).\n\n5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n[TTHC-HT-01_CHUNK_004] Căn cứ Luật Hộ tịch 2014 & Nghị định 123/2015/NĐ-CP.\n\n*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*`,
-      timestamp: initialTimeStr,
-      suggestions: [
-        'Hồ sơ đăng ký khai sinh cần gì?',
-        'Lệ phí khai sinh bao nhiêu?',
-        'Nơi nộp hồ sơ khai sinh ở đâu?',
-        'Thời hạn giải quyết trong bao lâu?',
-      ],
-      ragData: {
-        answer: 'Thủ tục Đăng ký khai sinh được giải quyết trong 01 ngày làm việc...',
-        abstained: false,
-        maxSimilarity: 0.942,
-        appliedThreshold: 0.50,
-        responseTimeMs: 14.2,
-        cached: true,
-        disclaimer: 'Thông tin có giá trị tham khảo và trích xuất từ CSDL UBND cấp xã & Luật Hộ tịch 2014.',
-        citations: [
-          {
-            chunkCode: 'TTHC-HT-01_CHUNK_003',
-            procedureCode: 'TTHC-HT-01',
-            procedureName: 'Đăng ký khai sinh',
-            title: 'Thành phần hồ sơ Đăng ký khai sinh',
-            legalReference: 'Điều 15, 16 Luật Hộ tịch 2014 & Nghị định 123/2015/NĐ-CP',
-            content:
-              'Người yêu cầu đăng ký khai sinh nộp Tờ khai theo mẫu và Giấy chứng sinh cho cơ quan đăng ký hộ tịch. Trường hợp không có giấy chứng sinh thì nộp văn bản của người làm chứng xác nhận về việc sinh; nếu không có người làm chứng thì phải có giấy cam đoan về việc sinh.',
-            relevanceScore: 0.942,
-          },
-        ],
-      },
-    },
-  ]);
+    const groups = new Map<string, typeof matched>();
+    for (const item of matched) {
+      const arr = groups.get(item.category) || [];
+      arr.push(item);
+      groups.set(item.category, arr);
+    }
+    return Array.from(groups.entries()).slice(0, 3);
+  }, [omniboxFocused, query]);
 
   // Index of latest bot message for smart top-anchored scrolling
   const latestBotIdx = useMemo(() => {
     return messages.map((m) => m.sender).lastIndexOf('bot');
   }, [messages]);
 
-  // Keep seed welcome message synchronized when citizen switches Ward/Commune
+  // Natural document scroll on new message
   useEffect(() => {
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === 'msg-1'
-          ? {
-              ...m,
-              text: `1. TÓM TẮT THỦ TỤC:\nThủ tục Đăng ký khai sinh cho trẻ mới sinh được tiếp nhận và giải quyết tại UBND ${currentWard.name} nơi cư trú của cha hoặc mẹ.\n\n2. THÀNH PHẦN HỒ SƠ:\n• [TTHC-HT-01_CHUNK_003] Tờ khai đăng ký khai sinh theo mẫu quy định.\n• [TTHC-HT-01_CHUNK_003] Bản chính Giấy chứng sinh do cơ sở khám bệnh, chữa bệnh cấp (hoặc văn bản xác nhận của người làm chứng/giấy cam đoan).\n• Xuất trình CCCD/Hộ chiếu còn hiệu lực của cha mẹ và Giấy chứng nhận kết hôn (nếu có).\n\n3. THỜI HẠN GIẢI QUYẾT & LỆ PHÍ:\n• Thời hạn: Giải quyết ngay trong 01 ngày làm việc (trường hợp cần xác minh thì không quá 05 ngày làm việc).\n• Lệ phí: Miễn phí hoàn toàn khi đăng ký đúng hạn trong vòng 60 ngày kể từ ngày sinh.\n\n4. NƠI TIẾP NHẬN & XỬ LÝ:\nBộ phận Tiếp nhận và Trả kết quả (Một cửa) thuộc UBND ${currentWard.name} (${currentWard.officeAddress}).\n\n5. CĂN CỨ PHÁP LÝ & LƯU Ý:\n[TTHC-HT-01_CHUNK_004] Căn cứ Luật Hộ tịch 2014 & Nghị định 123/2015/NĐ-CP.\n\n*Lưu ý: Thông tin hướng dẫn trên chỉ mang tính chất tham khảo, không thay thế quyết định chính thức của công chức tiếp nhận hồ sơ tại Bộ phận Một cửa.*`,
-            }
-          : m
-      )
-    );
-  }, [currentWard.code, currentWard.name, currentWard.officeAddress]);
-
-  // Smart Auto Scroll (khóa phạm vi bên trong khung chat, không đẩy trang ngoài xuống dưới fixed Header)
-  useEffect(() => {
+    if (messages.length === 0) return;
     const timer = setTimeout(() => {
-      const container = scrollContainerRef.current;
-      if (!container) return;
       if (loading) {
-        container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+        chatBottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
       } else {
         const lastMsg = messages[messages.length - 1];
         if (lastMsg && lastMsg.sender === 'bot' && latestBotMsgRef.current) {
-          const topOffset = Math.max(0, latestBotMsgRef.current.offsetTop - 12);
-          container.scrollTo({ top: topOffset, behavior: 'smooth' });
+          latestBotMsgRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } else {
-          container.scrollTo({ top: container.scrollHeight, behavior: 'smooth' });
+          chatBottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }
       }
     }, 120);
@@ -771,10 +747,7 @@ export const CitizenPortal: React.FC = () => {
     const q = questionText || query;
     if (!q.trim() || loading) return;
 
-    // If on mobile and currently on catalog tab, switch to chat tab so user sees the answer
-    if (mobileTab !== 'chat') {
-      setMobileTab('chat');
-    }
+    setOmniboxFocused(false);
 
     const userMsg: ChatMessage = {
       id: `msg-${Date.now()}-user`,
@@ -797,7 +770,7 @@ export const CitizenPortal: React.FC = () => {
       }));
 
       const reqStart = performance.now();
-      const resp = await askLegalRag(
+      const resp = await askCivicAgent(
         q,
         3,
         {
@@ -844,6 +817,18 @@ export const CitizenPortal: React.FC = () => {
       setLoading(false);
     }
   };
+
+  // One-shot URL ?query= trigger (e.g., from 40 Procedures Catalog "Hỏi AI" button)
+  useEffect(() => {
+    if (initialQueryHandledRef.current) return;
+    const urlQuery = searchParams.get('query');
+    if (urlQuery && urlQuery.trim()) {
+      initialQueryHandledRef.current = true;
+      setSearchParams({}, { replace: true });
+      void handleAsk(urlQuery.trim());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const copyToClipboard = (text: string, id: string) => {
     navigator.clipboard.writeText(text);
@@ -916,114 +901,295 @@ export const CitizenPortal: React.FC = () => {
   const bentoCards = [
     {
       code: 'TTHC-HT-01',
-      title: 'Đăng Ký Khai Sinh',
-      category: 'Hộ tịch & Khai sinh',
-      time: '01 ngày làm việc',
-      fee: 'Miễn phí',
+      title: 'Đăng ký khai sinh',
+      desc: 'Giấy tờ khai sinh cho trẻ',
+      iconBoxClass: 'bg-[#FEF3C7] text-[#B45309] border-[#FDE68A]',
       IconComponent: FileText,
       prompt: `Thủ tục đăng ký khai sinh tại ${currentWard.name} gồm những giấy tờ gì và giải quyết trong bao lâu?`,
     },
     {
       code: 'TTHC-HT-02',
-      title: 'Đăng Ký Kết Hôn',
-      category: 'Hôn nhân & Gia đình',
-      time: 'Trong ngày',
-      fee: 'Miễn phí',
+      title: 'Đăng ký kết hôn',
+      desc: 'Hồ sơ kết hôn & độc thân',
+      iconBoxClass: 'bg-[#EFF6FF] text-[#1D4ED8] border-[#BFDBFE]',
       IconComponent: HeartHandshake,
       prompt: `Hai bên nam nữ cần chuẩn bị gì khi đến UBND ${currentWard.name} đăng ký kết hôn?`,
     },
     {
       code: 'TTHC-CT-01',
-      title: 'Chứng Thực Bản Sao',
-      category: 'Tư pháp & Chứng thực',
-      time: 'Trong ngày',
-      fee: '2.000đ/trang',
+      title: 'Chứng thực bản sao',
+      desc: 'Bản sao, chữ ký đúng quy định',
+      iconBoxClass: 'bg-[#FFF3E6] text-[#C2410C] border-[#FED7AA]',
       IconComponent: Stamp,
       prompt: `Thủ tục chứng thực bản sao từ bản chính các loại giấy tờ tại ${currentWard.name}?`,
     },
     {
       code: 'TTHC-BT-01',
-      title: 'Trợ Cấp Xã Hội',
-      category: 'Bảo trợ xã hội',
-      time: '10 ngày làm việc',
-      fee: 'Miễn phí',
+      title: 'Trợ cấp xã hội',
+      desc: 'Điều kiện & mức trợ cấp',
+      iconBoxClass: 'bg-[#ECFDF5] text-[#047857] border-[#A7F3D0]',
       IconComponent: Users,
       prompt: 'Hồ sơ và điều kiện hưởng trợ cấp xã hội hằng tháng cho người cao tuổi, khuyết tật gồm những gì?',
     },
   ];
 
+  const handleResetChat = () => {
+    stopSpeech();
+    setQuery('');
+    setOmniboxFocused(false);
+    setMessages([]);
+  };
+
+  const displayInputValue =
+    isVoiceListening && voiceInterimText
+      ? query
+        ? `${query} ${voiceInterimText}`
+        : voiceInterimText
+      : query;
+
   return (
-    <div className="flex flex-col w-full pb-2 lg:pb-4 bg-[#F5F6F8] min-h-0 lg:min-h-[calc(100dvh-6rem)]">
-      {/* MOBILE RESPONSIVE SEGMENTED SWITCHER (< lg screens; ẩn hoàn toàn trong Chế độ đơn giản) */}
-      {!isSimpleMode && (
-        <div className="lg:hidden max-w-[98vw] 2xl:max-w-[1920px] mx-auto w-full px-3 mt-2">
-          <div className="flex rounded-lg bg-[#E2E8F0]/80 p-1 border border-[#CBD5E1]">
-            <button
-              type="button"
-              onClick={() => setMobileTab('chat')}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-md flex items-center justify-center gap-1.5 transition-all cursor-pointer gov-focus-ring ${
-                mobileTab === 'chat'
-                  ? 'bg-white text-[#9F0C1E] shadow-xs'
-                  : 'text-slate-700 hover:text-slate-900'
-              }`}
-            >
-              <Bot className="w-4 h-4" />
-              <span>Hỏi Đáp AI</span>
-              {messages.length > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full bg-[#B90E23] text-white text-[10px] flex items-center justify-center font-bold">
-                  {messages.length}
-                </span>
-              )}
-            </button>
-            <button
-              type="button"
-              onClick={() => setMobileTab('catalog')}
-              className={`flex-1 py-1.5 text-xs font-bold rounded-md flex items-center justify-center gap-1.5 transition-all cursor-pointer gov-focus-ring ${
-                mobileTab === 'catalog'
-                  ? 'bg-white text-[#9F0C1E] shadow-xs'
-                  : 'text-slate-700 hover:text-slate-900'
-              }`}
-            >
-              <Layers className="w-4 h-4" />
-              <span>Thủ tục thường gặp</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* MAIN INTERACTIVE WORKSPACE */}
-      <div
-        className={`mx-auto px-2.5 sm:px-5 lg:px-6 transition-all duration-300 w-full ${
-          isChatExpanded
-            ? 'max-w-full 2xl:max-w-[2100px] mt-2'
-            : 'max-w-[1440px] 2xl:max-w-[1920px] mt-2 sm:mt-3'
-        } flex flex-col lg:flex-row gap-4 lg:gap-5 lg:items-stretch`}
-      >
-        {/* LEFT SIDEBAR: Minimal Claude/Gemini Style Procedure Quick List with BCA Heading Accent */}
-        <aside
-          aria-label="Danh sách thủ tục thường gặp"
-          className={`${
-            isChatExpanded || isSimpleMode
-              ? 'hidden'
-              : `w-full lg:w-[248px] xl:w-[264px] shrink-0 flex-col justify-between gap-2 h-[calc(100dvh-11.5rem)] min-h-[360px] lg:h-[calc(100vh-116px)] lg:min-h-[500px] lg:max-h-[90vh] ${
-                  mobileTab === 'catalog' ? 'flex' : 'hidden lg:flex'
-                }`
-          }`}
-        >
-          <div className="flex flex-col gap-2.5 flex-1 min-h-0">
-            <div className="px-2 pt-1 pb-0 border-b border-slate-200 shrink-0">
-              <h3 className="text-xs font-extrabold text-[#881320] uppercase tracking-wide pb-1.5">
-                Thủ tục thường gặp
-              </h3>
-              <span className="block w-10 h-[2.5px] bg-[#B90E23]" />
+    <div className="flex flex-col w-full bg-[#F8FAFC] min-h-[calc(100dvh-5.75rem)] flex-1">
+      {messages.length === 0 ? (
+        /* ===================================================================== */
+        /* WAI STYLE CENTERED AI WELCOME WORKSPACE (EMPTY CONVERSATION STATE)    */
+        /* ===================================================================== */
+        <main className="flex-1 w-full max-w-4xl mx-auto px-3 sm:px-6 py-8 sm:py-12 flex flex-col items-center justify-center">
+          {/* Simple Mode Quick Banner */}
+          {isSimpleMode && (
+            <div className="mb-4 px-3.5 py-2 rounded-xl bg-amber-100 border border-amber-300 text-amber-950 text-xs sm:text-sm font-semibold flex flex-wrap items-center gap-2">
+              <Eye className="w-4 h-4 shrink-0" />
+              <span>Chế độ giao diện đơn giản đang BẬT</span>
+              <button
+                type="button"
+                onClick={() => setIsSimpleMode(false)}
+                className="px-2 py-0.5 rounded-md bg-white border border-amber-300 text-xs font-bold hover:bg-amber-50 cursor-pointer"
+              >
+                Tắt
+              </button>
             </div>
+          )}
 
-            <div
-              tabIndex={0}
-              role="region"
-              aria-label="Thủ tục hỏi nhanh"
-              className="flex flex-col gap-1 overflow-y-auto pr-0.5 flex-1 gov-focus-ring rounded-xl"
+          {/* Brand Lockup */}
+          <div className="inline-flex items-center gap-2 mb-3">
+            <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900">
+              SmartWard
+            </span>
+            <Sparkles className="w-6 h-6 text-[#C2410C]" />
+          </div>
+
+          <h1 className="text-xl sm:text-3xl font-black text-slate-900 tracking-tight text-center">
+            Xin chào, tôi là SmartWard AI
+          </h1>
+          <p className="mt-2 text-xs sm:text-sm text-slate-600 text-center max-w-xl leading-relaxed">
+            Trợ lý AI hành chính công UBND {currentWard.name}. Hỏi nhanh về 40 thủ tục, hồ sơ &amp;
+            lệ phí.
+          </p>
+
+          {/* Centered Multi-Action Omnibox Card with Live Search Recommendations */}
+          <div
+            ref={omniboxContainerRef}
+            className="w-full max-w-3xl mt-6 relative z-40"
+          >
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleAsk();
+              }}
+              className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-[0_8px_30px_rgba(15,23,42,0.06)] p-3 sm:p-4 transition-shadow focus-within:border-[#C2410C] focus-within:shadow-[0_10px_36px_rgba(194,65,12,0.08)]"
             >
+              {/* Voice Status / Error Inline Alerts */}
+              {voiceError && (
+                <div className="mb-2.5 p-2 px-3 rounded-lg bg-amber-50 border border-amber-300 text-amber-950 text-xs flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
+                    <span>{voiceError}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={clearVoiceError}
+                    aria-label="Đóng thông báo lỗi giọng nói"
+                    className="text-amber-800 hover:text-amber-950 p-1 cursor-pointer rounded"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {isVoiceListening && (
+                <div className="mb-2.5 p-2 px-3 rounded-lg bg-red-50 border border-red-200 text-red-950 flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="inline-flex rounded-full h-2.5 w-2.5 bg-red-600 shrink-0" />
+                    <span className="text-xs font-semibold">
+                      Đang nghe giọng nói... vui lòng đặt câu hỏi
+                    </span>
+                    {voiceInterimText && (
+                      <span className="text-xs italic text-red-800 truncate">
+                        &ldquo;{voiceInterimText}&rdquo;
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={stopVoiceInput}
+                    className="px-2.5 py-1 rounded-md bg-red-700 hover:bg-red-800 text-white text-xs font-semibold cursor-pointer shrink-0"
+                  >
+                    Dừng nghe
+                  </button>
+                </div>
+              )}
+
+              {/* Omnibox Input Row */}
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  aria-label="Nhập câu hỏi thủ tục hành chính"
+                  value={displayInputValue}
+                  maxLength={1000}
+                  onFocus={() => setOmniboxFocused(true)}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setOmniboxFocused(true);
+                  }}
+                  placeholder="Hỏi SmartWard về thủ tục, hồ sơ, lệ phí..."
+                  className={`w-full py-2 pr-8 bg-transparent text-[#0F172A] placeholder-slate-500 focus:outline-none ${
+                    isSimpleMode ? 'text-base sm:text-lg font-medium' : 'text-sm sm:text-base'
+                  }`}
+                />
+                {query && (
+                  <button
+                    type="button"
+                    aria-label="Xóa nội dung câu hỏi"
+                    onClick={() => setQuery('')}
+                    className="absolute right-1 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 p-1 rounded cursor-pointer gov-focus-ring"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Bottom Action Toolbar inside Omnibox (Wai Layout) */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 mt-2 border-t border-slate-100">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={handleResetChat}
+                    aria-label="Cuộc trò chuyện mới"
+                    title="Làm mới câu hỏi"
+                    className="w-8 h-8 rounded-lg border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 flex items-center justify-center transition cursor-pointer gov-focus-ring"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate('/citizen/form#form')}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition cursor-pointer gov-focus-ring"
+                  >
+                    <FileCheck2 className="w-3.5 h-3.5 text-[#9F0C1E]" />
+                    <span>Kiểm tra tờ khai</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => navigate('/citizen/procedures')}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold transition cursor-pointer gov-focus-ring"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-[#C2410C]" />
+                    <span>Nguồn thông tin</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center gap-1.5 ml-auto">
+                  <span
+                    className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 border border-slate-200 text-[11px] font-semibold text-slate-700"
+                    title={officeStatusLabel}
+                  >
+                    <span
+                      className={`w-2 h-2 rounded-full ${
+                        isOfficeOpen ? 'bg-[#16A34A]' : 'bg-[#CA8A04]'
+                      }`}
+                    />
+                    <span className="truncate max-w-[140px]">UBND {currentWard.name}</span>
+                  </span>
+
+                  <button
+                    type="button"
+                    onClick={isVoiceListening ? stopVoiceInput : startVoiceInput}
+                    aria-label={isVoiceListening ? 'Dừng nghe' : 'Nói câu hỏi'}
+                    title="Nói câu hỏi tiếng Việt"
+                    className={`w-9 h-9 rounded-lg flex items-center justify-center transition cursor-pointer gov-focus-ring ${
+                      isVoiceListening
+                        ? 'bg-[#DC2626] text-white'
+                        : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {isVoiceListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                  </button>
+
+                  <button
+                    type="submit"
+                    disabled={loading || !query.trim()}
+                    aria-label="Gửi"
+                    className="h-9 px-3 rounded-lg bg-[#0F172A] hover:bg-[#B90E23] disabled:bg-slate-300 text-white flex items-center justify-center gap-1.5 text-xs font-semibold transition cursor-pointer disabled:cursor-not-allowed gov-focus-ring"
+                  >
+                    <span className="sr-only">Gửi</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            </form>
+
+            {/* Live Search Recommendation Popover Grouped by Category (Wai Search Reference) */}
+            {searchRecommendations.length > 0 && (
+              <div
+                role="region"
+                aria-label="Gợi ý thủ tục phù hợp"
+                className="absolute left-0 right-0 top-[calc(100%+8px)] z-50 bg-white rounded-2xl border border-slate-200 shadow-2xl p-3 max-h-80 overflow-y-auto space-y-3"
+              >
+                {searchRecommendations.map(([categoryName, items]) => (
+                  <div key={categoryName} className="space-y-1">
+                    <div className="flex items-center gap-2 px-2 py-1 text-xs font-bold text-slate-800">
+                      <span className="w-5 h-5 rounded-md bg-[#FFF3E6] text-[#C2410C] flex items-center justify-center shrink-0">
+                        <FolderOpen className="w-3.5 h-3.5" />
+                      </span>
+                      <span>{categoryName}</span>
+                    </div>
+                    {items.map((item) => (
+                      <button
+                        key={item.code}
+                        type="button"
+                        onClick={() => {
+                          setOmniboxFocused(false);
+                          void handleAsk(
+                            `Thủ tục ${item.name} (${item.code}) tại UBND ${currentWard.name} cần hồ sơ gì và lệ phí bao nhiêu?`
+                          );
+                        }}
+                        className="w-full text-left px-2.5 py-2 rounded-xl hover:bg-slate-50 transition flex items-start gap-2.5 cursor-pointer gov-focus-ring"
+                      >
+                        <MessageSquare className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs sm:text-sm font-medium text-slate-900 truncate">
+                            {highlightMatchedText(item.name, query)}
+                          </div>
+                          <div className="text-[11px] text-slate-600 truncate mt-0.5">
+                            {item.code} • Xem hồ sơ &amp; lệ phí
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 4 HORIZONTAL SUGGESTION CARDS (GỢI Ý CÂU HỎI) */}
+          <section aria-label="Gợi ý câu hỏi" className="w-full mt-8 relative z-10">
+            <h2 className="text-[11px] font-bold uppercase tracking-widest text-slate-600 text-center">
+              GỢI Ý CÂU HỎI
+            </h2>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 w-full mt-3.5 items-stretch">
               {bentoCards.map((card) => {
                 const CardIcon = card.IconComponent;
                 return (
@@ -1031,152 +1197,80 @@ export const CitizenPortal: React.FC = () => {
                     key={card.code}
                     type="button"
                     onClick={() => handleAsk(card.prompt)}
-                    className="group text-left px-2.5 py-2.5 rounded-xl bg-transparent hover:bg-white border border-transparent hover:border-[#FECACA] hover:shadow-2xs transition-all cursor-pointer flex items-center gap-2.5 shrink-0 gov-focus-ring"
+                    className="h-full text-left p-4 rounded-2xl bg-white border border-slate-200/90 hover:border-[#C2410C] hover:shadow-md transition-all cursor-pointer flex flex-col justify-start gap-2.5 gov-focus-ring"
                   >
-                    <div className="w-7 h-7 rounded-lg bg-white border border-slate-200/80 group-hover:bg-[#FEF2F2] group-hover:border-[#FECACA] text-[#9F0C1E] flex items-center justify-center transition-colors shrink-0">
-                      <CardIcon className="w-3.5 h-3.5" />
+                    <div
+                      className={`w-8 h-8 rounded-lg border flex items-center justify-center shrink-0 ${card.iconBoxClass}`}
+                    >
+                      <CardIcon className="w-4 h-4" />
                     </div>
-                    <div className="min-w-0 flex-1">
-                      <h4 className="text-xs sm:text-[13px] font-semibold text-slate-800 group-hover:text-[#9F0C1E] truncate leading-snug">
+                    <div>
+                      <div className="text-sm font-bold text-slate-900 leading-snug">
                         {card.title}
-                      </h4>
-                      <p className="text-[11px] text-slate-600 truncate mt-0.5">
-                        {card.time} · {card.fee}
+                      </div>
+                      <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                        {card.desc}
                       </p>
                     </div>
-                    <ArrowRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#B90E23] opacity-0 group-hover:opacity-100 transition-all shrink-0" />
                   </button>
                 );
               })}
-
-              {/* Compact Link Row to Full 40 Procedures Catalog */}
-              <div className="pt-2 mt-1 border-t border-slate-200/80">
-                <button
-                  type="button"
-                  onClick={() => navigate('/citizen/procedures')}
-                  className="w-full px-2.5 py-2 rounded-xl text-left text-xs font-semibold text-[#9F0C1E] hover:bg-[#FEF2F2] border border-transparent hover:border-[#FECACA] transition flex items-center justify-between gap-2 cursor-pointer gov-focus-ring"
-                >
-                  <span className="flex items-center gap-2 min-w-0">
-                    <BookOpen className="w-3.5 h-3.5 shrink-0" />
-                    <span className="truncate">Xem toàn bộ 40 thủ tục</span>
-                  </span>
-                  <ArrowRight className="w-3.5 h-3.5 shrink-0" />
-                </button>
-              </div>
             </div>
-          </div>
-        </aside>
+          </section>
 
-        {/* RIGHT COLUMN: Interactive Legal RAG Chat Workspace */}
-        <div
-          className={`lg:flex-1 min-w-0 w-full flex flex-col bg-white rounded-2xl border border-slate-200/90 shadow-[0_6px_28px_rgba(15,23,42,0.05)] overflow-hidden transition-all duration-300 relative ${
-            isChatExpanded
-              ? 'h-[calc(100dvh-10rem)] md:h-[calc(100dvh-10.5rem)] lg:h-[calc(100vh-108px)] min-h-[340px] lg:min-h-[560px] max-h-[95vh]'
-              : 'h-[calc(100dvh-11.75rem)] sm:h-[calc(100dvh-12rem)] lg:h-[calc(100vh-116px)] min-h-[340px] lg:min-h-[500px] max-h-[90vh]'
-          } ${!isSimpleMode && mobileTab === 'catalog' ? 'hidden lg:flex' : 'flex'}`}
-        >
-          {/* Minimal Gemini/Claude Chat Topbar with subtle BCA Accent */}
-          <div className="px-4 py-2 bg-white border-b border-slate-100 flex items-center justify-between shrink-0 gap-2">
-            <div className="flex items-center gap-2 min-w-0">
-              <span
-                className={`w-2 h-2 rounded-full shrink-0 ${
-                  isOfficeOpen ? 'bg-[#16A34A]' : 'bg-[#CA8A04]'
-                }`}
-                title={officeStatusLabel}
-              />
-              <span className="text-xs sm:text-sm font-semibold text-slate-900 truncate">
-                Trợ lý Một cửa
-              </span>
-              <span className="hidden sm:inline text-xs text-slate-500 truncate">
-                · UBND {currentWard.name}
-              </span>
-              {isChatExpanded && (
-                <span className="hidden md:inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-600">
-                  Mở rộng
-                </span>
-              )}
-            </div>
-
-            <div className="flex items-center gap-1 shrink-0">
-              {isSimpleMode && (
-                <button
-                  type="button"
-                  onClick={() => setIsSimpleMode(false)}
-                  title="Tắt chế độ giao diện đơn giản"
-                  className="px-2 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-semibold flex items-center gap-1 transition cursor-pointer gov-focus-ring"
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                  <span>Đơn giản: BẬT</span>
-                  <X className="w-3 h-3" />
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => setIsChatExpanded((prev) => !prev)}
-                title={isChatExpanded ? 'Thu nhỏ khung chat về mặc định' : 'Mở rộng khung chat toàn màn hình'}
-                className="px-2 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium flex items-center gap-1 transition cursor-pointer gov-focus-ring"
-              >
-                {isChatExpanded ? (
-                  <>
-                    <Minimize2 className="w-3.5 h-3.5" />
-                    <span className="sr-only sm:not-sr-only">Thu nhỏ</span>
-                  </>
-                ) : (
-                  <>
-                    <Maximize2 className="w-3.5 h-3.5" />
-                    <span className="sr-only sm:not-sr-only">Mở rộng</span>
-                  </>
-                )}
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirm('Bà con có chắc muốn xóa lịch sử cuộc trò chuyện này để bắt đầu lại?')) {
-                    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-                    setSpeakingId(null);
-                    setMessages([]);
-                  }
-                }}
-                title="Làm mới cuộc trò chuyện"
-                className="px-2 py-1 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 text-xs font-medium flex items-center gap-1 transition cursor-pointer gov-focus-ring"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span className="sr-only sm:not-sr-only">Làm mới</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Messages Scroll Viewport */}
-          <div
-            ref={scrollContainerRef}
-            tabIndex={0}
+          {/* Minimal Bottom Disclaimer */}
+          <p className="mt-8 text-center text-[11px] text-slate-600">
+            Trích xuất từ văn bản pháp luật hiện hành. Kiểm tra lại trước khi nộp hồ sơ.
+          </p>
+        </main>
+      ) : (
+        /* ===================================================================== */
+        /* ACTIVE CONVERSATION VIEW — NATURAL PAGE SCROLL + STICKY BOTTOM DOCK   */
+        /* ===================================================================== */
+        <div className="flex-1 flex flex-col w-full">
+          {/* Centered Conversation Stream */}
+          <main
             role="log"
             aria-label="Lịch sử hỏi đáp pháp lý"
-            onScroll={handleScroll}
-            className="flex-1 min-h-0 p-3.5 sm:p-5 overflow-y-auto space-y-4 bg-[#FAFBFD] relative scroll-smooth gov-focus-ring"
+            className="flex-1 w-full max-w-4xl mx-auto px-3 sm:px-6 pt-4 pb-6 flex flex-col gap-4"
           >
-            {messages.length === 0 && (
-              <div className="h-full flex flex-col items-center justify-center text-center p-8 text-[#64748B]">
-                <Bot className="w-12 h-12 text-[#FECACA] mb-3" />
-                <p className="text-base font-bold text-[#0F172A]">Kính chào bà con! Tôi có thể giúp gì cho bà con?</p>
-                <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-md leading-relaxed">
-                  Bấm vào gợi ý bên dưới hoặc gõ câu hỏi về khai sinh, kết hôn, chứng thực, cư trú...
-                </p>
-                <div className="mt-4 flex flex-wrap justify-center gap-2 max-w-md">
-                  {quickPrompts.slice(0, 3).map((p, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleAsk(p.q)}
-                      className="px-3 py-1.5 rounded-full bg-white text-[#9F0C1E] border border-[#FECACA] text-xs font-semibold hover:bg-[#FEF2F2] transition cursor-pointer shadow-2xs"
-                    >
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
+            {/* Compact Top Conversation Header */}
+            <div className="px-3.5 py-2 bg-white rounded-xl border border-slate-200/80 shadow-2xs flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2 min-w-0">
+                <span
+                  className={`w-2 h-2 rounded-full shrink-0 ${
+                    isOfficeOpen ? 'bg-[#16A34A]' : 'bg-[#CA8A04]'
+                  }`}
+                  title={officeStatusLabel}
+                />
+                <span className="text-xs sm:text-sm font-semibold text-slate-900 truncate">
+                  Trợ lý Một cửa · UBND {currentWard.name}
+                </span>
               </div>
-            )}
+
+              <div className="flex items-center gap-1.5 shrink-0">
+                {isSimpleMode && (
+                  <button
+                    type="button"
+                    onClick={() => setIsSimpleMode(false)}
+                    className="px-2 py-1 rounded-lg bg-amber-100 hover:bg-amber-200 text-amber-950 text-xs font-semibold flex items-center gap-1 cursor-pointer gov-focus-ring"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>Đơn giản: BẬT</span>
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleResetChat}
+                  className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 transition cursor-pointer gov-focus-ring"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span>Cuộc trò chuyện mới</span>
+                </button>
+              </div>
+            </div>
 
             {messages.map((msg, idx) => {
               const isLatestBot = idx === latestBotIdx;
@@ -1195,9 +1289,7 @@ export const CitizenPortal: React.FC = () => {
                   <div
                     className={`${
                       msg.sender === 'bot'
-                        ? 'w-full max-w-full sm:max-w-[97%]'
-                        : isChatExpanded
-                        ? 'max-w-[85%] sm:max-w-[70%] md:max-w-[60%]'
+                        ? 'w-full max-w-full sm:max-w-[95%]'
                         : 'max-w-[88%] sm:max-w-[75%] md:max-w-[65%]'
                     } flex flex-col gap-2 rounded-2xl transition-all ${
                       msg.sender === 'citizen'
@@ -1205,266 +1297,287 @@ export const CitizenPortal: React.FC = () => {
                         : 'p-4 sm:p-5 bg-white text-[#0F172A] border border-slate-200/80 shadow-2xs'
                     }`}
                   >
-                  {/* Message body text with 5-section badge highlights */}
-                  {msg.sender === 'bot' ? (
-                    <StructuredBotMessage
-                      msg={msg}
-                      isSimpleMode={isSimpleMode}
-                      onOpenCitation={setActiveCitation}
-                    />
-                  ) : (
-                    <p className="text-sm md:text-base leading-relaxed whitespace-pre-wrap">{msg.text}</p>
-                  )}
+                    {/* Message body text with 5-section badge highlights */}
+                    {msg.sender === 'bot' ? (
+                      <>
+                        <StructuredBotMessage
+                          msg={msg}
+                          isSimpleMode={isSimpleMode}
+                          onOpenCitation={setActiveCitation}
+                        />
+                        <AgentActionCards
+                          steps={msg.ragData?.agentSteps}
+                          cards={msg.ragData?.agentActionCards}
+                          onOpenPrefilledForm={(payload) => {
+                            const targetFormType = String(payload?.formType || payload?.draftPayload?.formType || 'CT01').toUpperCase();
+                            const draftPayload = payload?.draftPayload || payload || {};
+                            navigate(`/citizen/form?type=${encodeURIComponent(targetFormType)}`, {
+                              state: { agentDraft: { ...draftPayload, formType: targetFormType } },
+                            });
+                          }}
+                        />
+                      </>
+                    ) : (
+                      <p className="text-sm md:text-base leading-relaxed whitespace-pre-wrap">
+                        {msg.text}
+                      </p>
+                    )}
 
-                  {/* POLITE CIVIC CONTACT NOTE WHEN QUERY NEEDS DIRECT SUPPORT */}
-                  {msg.ragData?.abstained && (
-                    <div className="mt-2 p-3 rounded-xl bg-teal-50/50 border border-teal-200 text-[#334155] flex items-center justify-between gap-2 text-xs">
-                      <span>
-                        Câu hỏi đã được chuyển vào Hàng đợi Cán bộ Một cửa <strong>UBND {currentWard.name}</strong> để kiểm duyệt và phản hồi chính xác.
-                      </span>
-                      <a
-                        href={`tel:${currentWard.phoneNumber.replace(/\s+/g, '')}`}
-                        className="shrink-0 px-2.5 py-1.5 rounded-lg bg-[#00796B] text-white font-bold hover:bg-[#00695C] transition inline-flex items-center gap-1 shadow-xs"
-                      >
-                        <PhoneCall className="w-3.5 h-3.5 text-teal-200" />
-                        <span>{currentWard.phoneNumber}</span>
-                      </a>
-                    </div>
-                  )}
+                    {/* POLITE CIVIC CONTACT NOTE WHEN QUERY NEEDS DIRECT SUPPORT */}
+                    {msg.ragData?.abstained && (
+                      <div className="mt-2 p-3 rounded-xl bg-teal-50/50 border border-teal-200 text-[#334155] flex flex-wrap items-center justify-between gap-2 text-xs">
+                        <span>
+                          Câu hỏi đã được chuyển vào Hàng đợi Cán bộ Một cửa{' '}
+                          <strong>UBND {currentWard.name}</strong> để kiểm duyệt và phản hồi chính
+                          xác.
+                        </span>
+                        <a
+                          href={`tel:${currentWard.phoneNumber.replace(/\s+/g, '')}`}
+                          className="shrink-0 px-2.5 py-1.5 rounded-lg bg-[#00796B] text-white font-bold hover:bg-[#00695C] transition inline-flex items-center gap-1 shadow-xs"
+                        >
+                          <PhoneCall className="w-3.5 h-3.5 text-teal-200" />
+                          <span>{currentWard.phoneNumber}</span>
+                        </a>
+                      </div>
+                    )}
 
-                  {/* RESIDENCE / POLICE ROUTING BUTTON: When query touches residence/VNeID */}
-                  {(msg.text.includes('Công an cấp xã') || msg.text.includes('VNeID')) && (
-                    <div className="mt-2 pt-2 border-t border-[#E2E8F0] flex items-center justify-between">
-                      <span className="text-xs text-[#00796B] font-semibold flex items-center gap-1">
-                        <ShieldCheck className="w-4 h-4" />
-                        Cổng Dịch vụ công Cư trú
-                      </span>
-                      <a
-                        href="https://dichvucong.bocongan.gov.vn/"
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold transition shadow-xs"
-                      >
-                        <span>Mở Cổng Bộ Công An</span>
-                        <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </div>
-                  )}
+                    {/* RESIDENCE / POLICE ROUTING BUTTON */}
+                    {(msg.text.includes('Công an cấp xã') || msg.text.includes('VNeID')) && (
+                      <div className="mt-2 pt-2 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-xs text-[#00796B] font-semibold flex items-center gap-1">
+                          <ShieldCheck className="w-4 h-4" />
+                          Cổng Dịch vụ công Cư trú
+                        </span>
+                        <a
+                          href="https://dichvucong.bocongan.gov.vn/"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-[#00796B] hover:bg-[#00695C] text-white text-xs font-bold transition shadow-xs"
+                        >
+                          <span>Mở Cổng Bộ Công An</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
+                      </div>
+                    )}
 
-                  {/* INCIDENT ROUTING BUTTON: When citizen asks about road/infrastructure incidents */}
-                  {msg.sender === 'bot' && msg.text.includes('Báo Sự Cố Hiện Trường') && (
-                    <div className="mt-2 pt-2.5 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-xs text-[#B45309] font-bold flex items-center gap-1.5">
-                        <MapPin className="w-4 h-4 text-[#D97706]" />
-                        Tự động định vị & chuyển về đúng UBND Xã/Phường
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => navigate('/citizen/form#incident')}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#D97706] hover:bg-[#B45309] text-white text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
-                      >
-                        <AlertTriangle className="w-3.5 h-3.5" />
-                        <span>Mở Trang Báo Sự Cố Ngay</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  )}
+                    {/* INCIDENT ROUTING BUTTON */}
+                    {msg.sender === 'bot' && msg.text.includes('Báo Sự Cố Hiện Trường') && (
+                      <div className="mt-2 pt-2.5 border-t border-[#E2E8F0] flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-xs text-[#B45309] font-bold flex items-center gap-1.5">
+                          <MapPin className="w-4 h-4 text-[#D97706]" />
+                          Tự động định vị &amp; chuyển về đúng UBND Xã/Phường
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => navigate('/citizen/form#incident')}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-[#D97706] hover:bg-[#B45309] text-white text-xs font-bold transition shadow-xs cursor-pointer active:scale-95"
+                        >
+                          <AlertTriangle className="w-3.5 h-3.5" />
+                          <span>Mở Trang Báo Sự Cố Ngay</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
 
-                  {/* Clarifying suggestion buttons shown inline only when query was ambiguous/abstained (max 2-3) */}
-                  {msg.sender === 'bot' && msg.ragData?.abstained && msg.suggestions && msg.suggestions.length > 0 && (
-                    <div className="mt-2 pt-2 border-t border-slate-200 text-xs flex flex-wrap items-center gap-1.5 text-slate-700">
-                      <span className="font-semibold text-[#00695C] flex items-center gap-1">
-                        <HelpCircle className="w-3.5 h-3.5 text-[#00796B]" />
-                        <span>Chọn thủ tục cần hỏi:</span>
-                      </span>
-                      {msg.suggestions.slice(0, isSimpleMode ? 2 : 3).map((sug, sIdx) => {
-                        const clean = sug.replace(/^[👉👶💍🏠📋\s]+/, '').trim();
-                        return (
-                          <button
-                            key={sIdx}
-                            type="button"
-                            onClick={() => handleAsk(clean)}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-teal-50 hover:bg-teal-100 text-[#00695C] border border-teal-200 font-medium transition cursor-pointer gov-focus-ring"
-                          >
-                            <span>{clean}</span>
-                            <ArrowRight className="w-3 h-3 text-[#00695C]" />
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* Bot Interactive Action Dock & Real Measured Latency */}
-                  {msg.sender === 'bot' && (
-                    <>
-                      {/* Clear Safe Abstention State Banner */}
-                      {msg.ragData?.abstained && (
-                        <div className="mt-2.5 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                          <div className="flex items-center gap-2">
-                            <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
-                            <span>Hệ thống chưa đủ căn cứ pháp lý để trả lời. Bà con vui lòng liên hệ Bộ phận Một cửa:</span>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <a
-                              href={`tel:${currentWard.phoneNumber.replace(/\s+/g, '')}`}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-100 hover:bg-amber-200 font-semibold text-amber-950 transition gov-focus-ring"
-                            >
-                              <Phone className="w-3.5 h-3.5" />
-                              <span>{currentWard.phoneNumber}</span>
-                            </a>
-                            <a
-                              href={`https://maps.google.com/?q=${encodeURIComponent(currentWard.officeAddress)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white border border-amber-300 hover:bg-amber-100 font-semibold text-amber-950 transition gov-focus-ring"
-                            >
-                              <MapPin className="w-3.5 h-3.5" />
-                              <span>Chỉ đường</span>
-                            </a>
-                          </div>
+                    {/* Clarifying suggestion buttons */}
+                    {msg.sender === 'bot' &&
+                      msg.ragData?.abstained &&
+                      msg.suggestions &&
+                      msg.suggestions.length > 0 && (
+                        <div className="mt-2 pt-2 border-t border-slate-200 text-xs flex flex-wrap items-center gap-1.5 text-slate-700">
+                          <span className="font-semibold text-[#00695C] flex items-center gap-1">
+                            <HelpCircle className="w-3.5 h-3.5 text-[#00796B]" />
+                            <span>Chọn thủ tục cần hỏi:</span>
+                          </span>
+                          {msg.suggestions.slice(0, isSimpleMode ? 2 : 3).map((sug, sIdx) => {
+                            const clean = sug.replace(/^[👉👶💍🏠📋\s]+/, '').trim();
+                            return (
+                              <button
+                                key={sIdx}
+                                type="button"
+                                onClick={() => handleAsk(clean)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-teal-50 hover:bg-teal-100 text-[#00695C] border border-teal-200 font-medium transition cursor-pointer gov-focus-ring"
+                              >
+                                <span>{clean}</span>
+                                <ArrowRight className="w-3 h-3 text-[#00695C]" />
+                              </button>
+                            );
+                          })}
                         </div>
                       )}
 
-                      <div className="mt-2 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
-                        {/* Left: Citation Pill (Unified) + Timestamp & Real Measured Latency */}
-                        <div className="flex flex-wrap items-center gap-2 min-w-0">
-                          {msg.ragData?.citations && msg.ragData.citations.length > 0 && (
+                    {/* Bot Interactive Action Dock */}
+                    {msg.sender === 'bot' && (
+                      <>
+                        {msg.ragData?.abstained && (
+                          <div className="mt-2.5 p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-900 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                            <div className="flex items-center gap-2">
+                              <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
+                              <span>
+                                Hệ thống chưa đủ căn cứ pháp lý để trả lời. Bà con vui lòng liên hệ
+                                Bộ phận Một cửa:
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              <a
+                                href={`tel:${currentWard.phoneNumber.replace(/\s+/g, '')}`}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-amber-100 hover:bg-amber-200 font-semibold text-amber-950 transition gov-focus-ring"
+                              >
+                                <Phone className="w-3.5 h-3.5" />
+                                <span>{currentWard.phoneNumber}</span>
+                              </a>
+                              <a
+                                href={`https://maps.google.com/?q=${encodeURIComponent(
+                                  currentWard.officeAddress
+                                )}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white border border-amber-300 hover:bg-amber-100 font-semibold text-amber-950 transition gov-focus-ring"
+                              >
+                                <MapPin className="w-3.5 h-3.5" />
+                                <span>Chỉ đường</span>
+                              </a>
+                            </div>
+                          </div>
+                        )}
+
+                        <div className="mt-2 pt-2 border-t border-slate-100 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+                          <div className="flex flex-wrap items-center gap-2 min-w-0">
+                            {msg.ragData?.citations && msg.ragData.citations.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setActiveCitation(msg.ragData!.citations[0])}
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 hover:bg-[#FEF2F2] text-[#9F0C1E] text-xs font-medium transition cursor-pointer border border-slate-200 hover:border-[#FECACA] gov-focus-ring max-w-full"
+                                title="Bấm xem chi tiết căn cứ pháp lý"
+                              >
+                                <BookOpen className="w-3.5 h-3.5 shrink-0 text-[#B90E23]" />
+                                <span className="truncate max-w-[190px] sm:max-w-[280px]">
+                                  {msg.ragData.citations[0].legalReference ||
+                                    msg.ragData.citations[0].procedureCode}
+                                </span>
+                                {msg.ragData.citations.length > 1 && (
+                                  <span className="text-[10px] font-semibold text-slate-600 shrink-0">
+                                    +{msg.ragData.citations.length - 1}
+                                  </span>
+                                )}
+                              </button>
+                            )}
+
+                            <span className="inline-flex items-center gap-1 font-mono text-[11px] text-slate-600">
+                              <Clock className="w-3 h-3 text-slate-500" />
+                              {msg.timestamp}
+                            </span>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
                             <button
                               type="button"
-                              onClick={() => setActiveCitation(msg.ragData!.citations[0])}
-                              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-50 hover:bg-[#FEF2F2] text-[#9F0C1E] text-xs font-medium transition cursor-pointer border border-slate-200 hover:border-[#FECACA] gov-focus-ring max-w-full"
-                              title="Bấm xem chi tiết căn cứ pháp lý"
+                              onClick={() => toggleSpeech(msg.text, msg.id)}
+                              className={`inline-flex items-center gap-1 font-medium text-xs px-2 py-1 rounded-lg transition cursor-pointer select-none gov-focus-ring ${
+                                speakingId === msg.id
+                                  ? 'bg-red-50 text-[#991B1B] border border-red-200 font-semibold'
+                                  : 'text-slate-600 hover:text-[#9F0C1E] hover:bg-slate-100'
+                              }`}
+                              title={
+                                speakingId === msg.id
+                                  ? 'Đang đọc câu trả lời — Bấm để dừng'
+                                  : 'Nghe đọc to câu trả lời'
+                              }
+                              aria-pressed={speakingId === msg.id}
                             >
-                              <BookOpen className="w-3.5 h-3.5 shrink-0 text-[#B90E23]" />
-                              <span className="truncate max-w-[190px] sm:max-w-[280px]">
-                                {msg.ragData.citations[0].legalReference || msg.ragData.citations[0].procedureCode}
-                              </span>
-                              {msg.ragData.citations.length > 1 && (
-                                <span className="text-[10px] font-semibold text-slate-600 shrink-0">
-                                  +{msg.ragData.citations.length - 1}
-                                </span>
+                              {speakingId === msg.id ? (
+                                <>
+                                  <VolumeX className="w-3.5 h-3.5 text-[#DC2626]" />
+                                  <span>Dừng</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Volume2 className="w-3.5 h-3.5" />
+                                  <span>Nghe</span>
+                                </>
                               )}
                             </button>
-                          )}
 
-                          <span className="inline-flex items-center gap-1 font-mono text-[11px] text-slate-600">
-                            <Clock className="w-3 h-3 text-slate-500" />
-                            {msg.timestamp}
-                          </span>
-                          {typeof msg.measuredLatencyMs === 'number' && msg.measuredLatencyMs > 0 && (
-                            <span
-                              className="font-mono text-[10px] text-slate-600"
-                              title="Thời gian phản hồi thực tế đo được"
-                            >
-                              · {msg.measuredLatencyMs} ms
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Right: Minimal Ghost Actions (TTS, Copy, Feedback) */}
-                        <div className="flex items-center gap-1 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => toggleSpeech(msg.text, msg.id)}
-                            className={`inline-flex items-center gap-1 font-medium text-xs px-2 py-1 rounded-lg transition cursor-pointer select-none gov-focus-ring ${
-                              speakingId === msg.id
-                                ? 'bg-red-50 text-[#991B1B] border border-red-200 font-semibold'
-                                : 'text-slate-600 hover:text-[#9F0C1E] hover:bg-slate-100'
-                            }`}
-                            title={
-                              speakingId === msg.id
-                                ? 'Đang đọc câu trả lời — Bấm để dừng'
-                                : 'Nghe đọc to câu trả lời'
-                            }
-                            aria-pressed={speakingId === msg.id}
-                          >
-                            {speakingId === msg.id ? (
-                              <>
-                                <VolumeX className="w-3.5 h-3.5 text-[#DC2626]" />
-                                <span>Dừng</span>
-                              </>
-                            ) : (
-                              <>
-                                <Volume2 className="w-3.5 h-3.5" />
-                                <span>Nghe</span>
-                              </>
-                            )}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => copyToClipboard(msg.text, msg.id)}
-                            className="text-slate-600 hover:text-[#9F0C1E] flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-slate-100 transition font-medium cursor-pointer gov-focus-ring"
-                            title="Sao chép nội dung"
-                          >
-                            {copiedId === msg.id ? (
-                              <>
-                                <Check className="w-3.5 h-3.5 text-[#16A34A]" />
-                                <span className="text-[#166534] font-semibold">Đã chép</span>
-                              </>
-                            ) : (
-                              <>
-                                <Copy className="w-3.5 h-3.5" />
-                                <span className="hidden sm:inline">Sao chép</span>
-                              </>
-                            )}
-                          </button>
-
-                          <div className="flex items-center gap-0.5 pl-1 border-l border-slate-200">
                             <button
                               type="button"
-                              onClick={() => {
-                                submitRagFeedback(msg.text, true);
-                                setMessages((prev) =>
-                                  prev.map((m) => (m.id === msg.id ? { ...m, feedbackSent: 'useful' } : m))
-                                );
-                              }}
-                              className={`p-1.5 rounded-lg transition cursor-pointer gov-focus-ring ${
-                                msg.feedbackSent === 'useful'
-                                  ? 'bg-[#FEF2F2] text-[#9F0C1E]'
-                                  : 'hover:bg-slate-100 text-slate-600 hover:text-[#9F0C1E]'
-                              }`}
-                              title="Câu trả lời hữu ích"
-                              aria-label="Câu trả lời hữu ích"
+                              onClick={() => copyToClipboard(msg.text, msg.id)}
+                              className="text-slate-600 hover:text-[#9F0C1E] flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-slate-100 transition font-medium cursor-pointer gov-focus-ring"
+                              title="Sao chép nội dung"
                             >
-                              <ThumbsUp className="w-3.5 h-3.5" />
+                              {copiedId === msg.id ? (
+                                <>
+                                  <Check className="w-3.5 h-3.5 text-[#16A34A]" />
+                                  <span className="text-[#166534] font-semibold">Đã chép</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy className="w-3.5 h-3.5" />
+                                  <span className="hidden sm:inline">Sao chép</span>
+                                </>
+                              )}
                             </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                submitRagFeedback(msg.text, false);
-                                setMessages((prev) =>
-                                  prev.map((m) => (m.id === msg.id ? { ...m, feedbackSent: 'not-useful' } : m))
-                                );
-                              }}
-                              className={`p-1.5 rounded-lg transition cursor-pointer gov-focus-ring ${
-                                msg.feedbackSent === 'not-useful'
-                                  ? 'bg-rose-50 text-rose-700'
-                                  : 'hover:bg-slate-100 text-slate-600 hover:text-rose-700'
-                              }`}
-                              title="Câu trả lời chưa đúng ý"
-                              aria-label="Câu trả lời chưa đúng ý"
-                            >
-                              <ThumbsDown className="w-3.5 h-3.5" />
-                            </button>
-                            {msg.feedbackSent && (
-                              <span className="text-[10px] text-[#9F0C1E] font-medium ml-0.5">Cảm ơn!</span>
-                            )}
+
+                            <div className="flex items-center gap-0.5 pl-1 border-l border-slate-200">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  submitRagFeedback(msg.text, true);
+                                  setMessages((prev) =>
+                                    prev.map((m) =>
+                                      m.id === msg.id ? { ...m, feedbackSent: 'useful' } : m
+                                    )
+                                  );
+                                }}
+                                className={`p-1.5 rounded-lg transition cursor-pointer gov-focus-ring ${
+                                  msg.feedbackSent === 'useful'
+                                    ? 'bg-[#FEF2F2] text-[#9F0C1E]'
+                                    : 'hover:bg-slate-100 text-slate-600 hover:text-[#9F0C1E]'
+                                }`}
+                                title="Câu trả lời hữu ích"
+                                aria-label="Câu trả lời hữu ích"
+                              >
+                                <ThumbsUp className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  submitRagFeedback(msg.text, false);
+                                  setMessages((prev) =>
+                                    prev.map((m) =>
+                                      m.id === msg.id ? { ...m, feedbackSent: 'not-useful' } : m
+                                    )
+                                  );
+                                }}
+                                className={`p-1.5 rounded-lg transition cursor-pointer gov-focus-ring ${
+                                  msg.feedbackSent === 'not-useful'
+                                    ? 'bg-rose-50 text-rose-700'
+                                    : 'hover:bg-slate-100 text-slate-600 hover:text-rose-700'
+                                }`}
+                                title="Câu trả lời chưa đúng ý"
+                                aria-label="Câu trả lời chưa đúng ý"
+                              >
+                                <ThumbsDown className="w-3.5 h-3.5" />
+                              </button>
+                              {msg.feedbackSent && (
+                                <span className="text-[10px] text-[#9F0C1E] font-medium ml-0.5">
+                                  Cảm ơn!
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    </>
+                      </>
+                    )}
+                  </div>
+
+                  {msg.sender === 'citizen' && (
+                    <div className="w-8 h-8 rounded-lg bg-[#FEF2F2] text-[#9F0C1E] flex items-center justify-center shrink-0 mt-0.5 border border-[#FECACA]">
+                      <User className="w-4 h-4" />
+                    </div>
                   )}
                 </div>
-
-                {msg.sender === 'citizen' && (
-                  <div className="w-8 h-8 rounded-lg bg-[#FEF2F2] text-[#9F0C1E] flex items-center justify-center shrink-0 mt-0.5 border border-[#FECACA]">
-                    <User className="w-4 h-4" />
-                  </div>
-                )}
-              </div>
-            );
-          })}
+              );
+            })}
 
             {/* Staggered Typing Indicator */}
             {loading && (
@@ -1473,7 +1586,9 @@ export const CitizenPortal: React.FC = () => {
                   <Bot className="w-4 h-4 text-white animate-pulse" />
                 </div>
                 <div className="bg-white border border-slate-200 rounded-xl px-4 py-3 shadow-xs flex items-center gap-2">
-                  <span className="text-xs sm:text-sm text-slate-700 font-medium">Cán bộ AI đang tra cứu văn bản pháp lý...</span>
+                  <span className="text-xs sm:text-sm text-slate-700 font-medium">
+                    Cán bộ AI đang tra cứu văn bản pháp lý...
+                  </span>
                   <div className="flex items-center gap-1">
                     <div className="w-2 h-2 rounded-full bg-[#B90E23] animate-bounce [animation-delay:-0.3s]" />
                     <div className="w-2 h-2 rounded-full bg-[#DC2626] animate-bounce [animation-delay:-0.15s]" />
@@ -1484,185 +1599,96 @@ export const CitizenPortal: React.FC = () => {
             )}
 
             <div ref={chatBottomRef} className="h-2 shrink-0" />
-          </div>
+          </main>
 
-          {/* Quick Prompts Contextual Bar (2-3 gợi ý theo ngữ cảnh + nút Cuộn xuống gọn không đè text) */}
-          <div className="px-3 sm:px-4 py-2 bg-[#FBF9F5] border-t border-slate-200 flex items-center gap-2 overflow-x-auto shrink-0">
-            <span className="text-xs font-semibold text-slate-700 shrink-0">
-              {isSimpleMode ? 'Gợi ý:' : 'Hỏi nhanh:'}
-            </span>
-            {quickPrompts.map((p, idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => handleAsk(p.q)}
-                className={`shrink-0 rounded-md font-semibold border transition cursor-pointer gov-focus-ring ${
-                  isSimpleMode
-                    ? 'px-3.5 py-1.5 bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#750715] border-[#FCA5A5] text-sm'
-                    : 'px-2.5 py-1 bg-white hover:bg-[#FEF2F2] text-[#9F0C1E] border-slate-200 hover:border-[#FCA5A5] text-xs shadow-2xs'
-                }`}
-              >
-                {p.label}
-              </button>
-            ))}
-            {showScrollBottom && (
-              <button
-                type="button"
-                onClick={() => {
-                  const el = scrollContainerRef.current;
-                  if (el) el.scrollTo({ top: el.scrollHeight, behavior: 'smooth' });
+          {/* Sticky Bottom Dock (Natural scroll with Header pinned on top & Input pinned on bottom) */}
+          <div className="sticky bottom-0 z-30 bg-[#F8FAFC]/95 backdrop-blur-md border-t border-slate-200/80 py-2.5 px-3 sm:px-6">
+            <div className="max-w-4xl mx-auto w-full flex flex-col gap-2">
+              {/* Contextual Quick Prompts Strip */}
+              <div className="flex items-center gap-2 overflow-x-auto pb-0.5">
+                <span className="text-xs font-semibold text-slate-700 shrink-0">
+                  {isSimpleMode ? 'Gợi ý:' : 'Hỏi tiếp:'}
+                </span>
+                {quickPrompts.map((p, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleAsk(p.q)}
+                    className={`shrink-0 rounded-full font-semibold border transition cursor-pointer gov-focus-ring ${
+                      isSimpleMode
+                        ? 'px-3.5 py-1.5 bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#750715] border-[#FCA5A5] text-sm'
+                        : 'px-3 py-1 bg-white hover:bg-[#FEF2F2] text-[#9F0C1E] border-slate-200 hover:border-[#FCA5A5] text-xs shadow-2xs'
+                    }`}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+
+              {/* Compact Bottom Omnibox Input */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleAsk();
                 }}
-                className="ml-auto shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs font-semibold transition cursor-pointer gov-focus-ring"
-                title="Cuộn nhanh xuống cuối để xem câu trả lời mới nhất"
+                className="flex items-center gap-2 bg-white rounded-xl border border-slate-300 px-2.5 py-1.5 shadow-2xs focus-within:border-[#B90E23] focus-within:ring-2 focus-within:ring-[#B90E23]/15"
               >
-                <ChevronDown className="w-3.5 h-3.5" />
-                <span>Xuống cuối</span>
-              </button>
-            )}
-          </div>
-
-          {/* Interactive Chat Input Dock */}
-          <div className="p-2.5 sm:p-3.5 bg-white border-t border-slate-200 shrink-0">
-            {/* Simple Mode Guidance Banner */}
-            {isSimpleMode && (
-              <div className="mb-2 p-2 px-3 rounded-lg bg-[#F7EEDF] border border-[#E5D4B3] text-[#750715] text-xs sm:text-sm font-semibold flex items-center gap-2">
-                <Info className="w-4 h-4 text-[#B90E23] shrink-0" />
-                <span>Bấm vào biểu tượng micro để đọc câu hỏi bằng giọng nói thay vì gõ chữ.</span>
-              </div>
-            )}
-
-            {/* Inline Voice Error Alert Banner */}
-            {voiceError && (
-              <div className="mb-2 p-2 px-3 rounded-lg bg-amber-50 border border-amber-300 text-amber-950 text-xs sm:text-sm flex items-center justify-between gap-2 animate-fadeIn">
-                <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-4 h-4 text-amber-700 shrink-0" />
-                  <span>{voiceError}</span>
-                </div>
                 <button
                   type="button"
-                  onClick={clearVoiceError}
-                  aria-label="Đóng thông báo lỗi giọng nói"
-                  className="text-amber-800 hover:text-amber-950 p-1 cursor-pointer gov-focus-ring rounded"
-                  title="Đóng thông báo"
+                  onClick={isVoiceListening ? stopVoiceInput : startVoiceInput}
+                  aria-label={isVoiceListening ? 'Dừng nghe' : 'Nói câu hỏi'}
+                  className={`p-2 rounded-lg transition cursor-pointer shrink-0 gov-focus-ring ${
+                    isVoiceListening
+                      ? 'bg-[#DC2626] text-white'
+                      : 'bg-slate-100 hover:bg-[#FEF2F2] text-[#9F0C1E]'
+                  }`}
                 >
-                  <X className="w-4 h-4" />
+                  {isVoiceListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
                 </button>
-              </div>
-            )}
 
-            {/* Active Listening Indicator Bar */}
-            {isVoiceListening && (
-              <div className="mb-2 p-2 px-3 rounded-lg bg-red-50 border border-red-200 text-red-950 flex items-center justify-between gap-2">
-                <div className="flex items-center gap-2 min-w-0">
-                  <span className="relative flex h-2.5 w-2.5 shrink-0">
-                    <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-600" />
-                  </span>
-                  <span className={`font-semibold ${isSimpleMode ? 'text-sm sm:text-base text-red-950' : 'text-xs text-red-950'}`}>
-                    Đang ghi nhận giọng nói... vui lòng đặt câu hỏi
-                  </span>
-                  {voiceInterimText && (
-                    <span className="text-xs italic text-red-800 truncate max-w-[180px] sm:max-w-[360px]">
-                      "{voiceInterimText}"
-                    </span>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={stopVoiceInput}
-                  className="px-2.5 py-1 rounded-md bg-red-700 hover:bg-red-800 text-white text-xs font-semibold transition cursor-pointer shrink-0 gov-focus-ring"
-                >
-                  Dừng nghe
-                </button>
-              </div>
-            )}
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleAsk();
-              }}
-              className="flex items-center gap-2"
-            >
-              {/* Mic Button */}
-              <button
-                type="button"
-                onClick={isVoiceListening ? stopVoiceInput : startVoiceInput}
-                title={
-                  isVoiceListening
-                    ? 'Đang nghe... Bấm để dừng nhận diện giọng nói'
-                    : isSimpleMode
-                    ? 'Bấm vào đây để nói câu hỏi (Không cần gõ chữ)'
-                    : 'Bấm để nói câu hỏi (Nhận diện giọng nói tiếng Việt)'
-                }
-                aria-label={isVoiceListening ? 'Dừng nghe' : 'Nói câu hỏi'}
-                className={`transition-all active:scale-95 cursor-pointer flex items-center justify-center shrink-0 gov-focus-ring ${
-                  isSimpleMode
-                    ? isVoiceListening
-                      ? 'min-h-[48px] min-w-[48px] p-2.5 rounded-lg bg-[#DC2626] text-white border-2 border-[#DC2626]'
-                      : 'min-h-[48px] min-w-[48px] p-2.5 rounded-lg bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#9F0C1E] border-2 border-[#B90E23] font-bold'
-                    : isVoiceListening
-                    ? 'min-h-[44px] min-w-[44px] p-2.5 rounded-md bg-[#DC2626] text-white border border-[#DC2626]'
-                    : 'min-h-[44px] min-w-[44px] p-2.5 rounded-md bg-[#F8FAFC] hover:bg-[#FEF2F2] text-[#9F0C1E] border border-slate-300'
-                }`}
-              >
-                {isVoiceListening ? (
-                  <MicOff className={`${isSimpleMode ? 'w-5 h-5' : 'w-4 h-4'} text-white`} />
-                ) : (
-                  <Mic className={`${isSimpleMode ? 'w-5 h-5 text-[#9F0C1E]' : 'w-4 h-4'}`} />
-                )}
-              </button>
-
-              {/* Text Input Field */}
-              <div className="flex-1 relative min-w-0">
                 <input
                   type="text"
                   aria-label="Nhập câu hỏi thủ tục hành chính"
-                  value={
-                    isVoiceListening && voiceInterimText
-                      ? query
-                        ? `${query} ${voiceInterimText}`
-                        : voiceInterimText
-                      : query
-                  }
+                  value={displayInputValue}
                   maxLength={1000}
                   onChange={(e) => setQuery(e.target.value)}
-                  placeholder={
-                    isSimpleMode
-                      ? 'Nói vào micro hoặc gõ câu hỏi tại đây...'
-                      : 'Nhập câu hỏi thủ tục (ví dụ: làm khai sinh, kết hôn, CT01)...'
-                  }
-                  className={`w-full h-11 pl-3.5 pr-9 rounded-md bg-[#F8FAFC] border border-slate-300 focus:border-[#B90E23] focus:bg-white text-[#0F172A] placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#B90E23]/15 transition-all ${
-                    isSimpleMode ? 'text-base sm:text-lg font-medium' : 'text-sm'
+                  placeholder="Hỏi tiếp hoặc nhập thủ tục cần tra cứu..."
+                  className={`flex-1 min-w-0 py-1.5 bg-transparent text-[#0F172A] placeholder-slate-500 focus:outline-none ${
+                    isSimpleMode ? 'text-base font-medium' : 'text-sm'
                   }`}
                 />
+
                 {query && (
                   <button
                     type="button"
                     aria-label="Xóa nội dung câu hỏi"
                     onClick={() => setQuery('')}
-                    className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-600 hover:text-slate-900 cursor-pointer p-1 gov-focus-ring rounded"
-                    title="Xóa chữ"
+                    className="text-slate-600 hover:text-slate-900 p-1 rounded cursor-pointer"
                   >
                     <X className="w-4 h-4" />
                   </button>
                 )}
-              </div>
 
-              {/* Primary Send Button (accessible text across 375px-1280px) */}
-              <button
-                type="submit"
-                disabled={loading || !query.trim()}
-                className={`h-11 px-3.5 sm:px-5 rounded-md bg-[#B90E23] hover:bg-[#8F0A1B] text-white font-semibold text-sm shadow-xs disabled:opacity-50 disabled:hover:bg-[#B90E23] disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2 shrink-0 cursor-pointer gov-focus-ring ${
-                  isSimpleMode ? 'min-w-[68px]' : ''
-                }`}
-              >
-                <span className="sr-only sm:not-sr-only">Gửi</span>
-                <Send className="w-4 h-4" />
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  disabled={loading || !query.trim()}
+                  className="h-9 px-3.5 rounded-lg bg-[#B90E23] hover:bg-[#8F0A1B] disabled:bg-slate-300 text-white font-semibold text-xs flex items-center gap-1.5 shrink-0 transition cursor-pointer disabled:cursor-not-allowed gov-focus-ring"
+                >
+                  <span className="sr-only sm:not-sr-only">Gửi</span>
+                  <Send className="w-4 h-4" />
+                </button>
+              </form>
+
+              {isSimpleMode && (
+                <div className="p-2 px-3 rounded-lg bg-[#F7EEDF] border border-[#E5D4B3] text-[#750715] text-xs font-semibold flex items-center gap-2">
+                  <Info className="w-4 h-4 text-[#B90E23] shrink-0" />
+                  <span>Bấm biểu tượng micro để nói câu hỏi thay vì gõ chữ.</span>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* Accessible Citation Detail Modal / Drawer with Focus Trap & Escape Handler */}
       {activeCitation !== null && (

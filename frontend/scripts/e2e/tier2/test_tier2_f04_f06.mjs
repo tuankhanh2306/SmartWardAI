@@ -113,11 +113,16 @@ export async function runTests(assertContext) {
         formData: {
           marriageMode: 'MARRIAGE_REGISTRATION',
           maritalCertPurpose: 'Để đăng ký kết hôn với chị Trần Thị Nhung tại UBND Phường Mỹ Xuyên',
+          ethnicity: 'Kinh',
+          nationality: 'Việt Nam',
           previousMaritalStatus: 'NEVER_MARRIED',
           partnerName: 'TRẦN THỊ NHUNG',
           partnerCccd: '079308009876',
           partnerDob: formatDate(exact18YearsAgo), // Female exactly 18 years 0 days
           partnerGender: 'Nữ',
+          partnerEthnicity: 'Kinh',
+          partnerNationality: 'Việt Nam',
+          partnerAddress: 'Phường Mỹ Xuyên, TP Long Xuyên, Tỉnh An Giang',
         },
       };
 

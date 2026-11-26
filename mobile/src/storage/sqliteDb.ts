@@ -44,6 +44,7 @@ export interface WalletQrPassRow {
 export interface OfflineIncidentQueueRow {
   local_id: string;
   payload_json: string;
+  photo_uris_json?: string;
   retry_count: number;
   last_error: string | null;
   created_at: number;
@@ -81,6 +82,7 @@ export const SQLITE_SCHEMA_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS offline_incident_queue (
     local_id          TEXT PRIMARY KEY NOT NULL,
     payload_json      TEXT NOT NULL,
+    photo_uris_json   TEXT DEFAULT '[]',
     retry_count       INTEGER DEFAULT 0,
     last_error        TEXT,
     created_at        INTEGER NOT NULL
@@ -110,6 +112,11 @@ async function getDatabase(): Promise<MinimalSQLiteDatabase | null> {
       const db = await SQLite.openDatabaseAsync(SQLITE_DB_NAME);
       for (const stmt of SQLITE_SCHEMA_STATEMENTS) {
         await db.execAsync(stmt);
+      }
+      try {
+        await db.execAsync("ALTER TABLE offline_incident_queue ADD COLUMN photo_uris_json TEXT DEFAULT '[]';");
+      } catch {
+        // Column already exists on fresh or migrated DB
       }
       dbInstance = db as unknown as MinimalSQLiteDatabase;
       return dbInstance;
@@ -240,15 +247,69 @@ export async function deleteWalletQrPass(dossierCode: string): Promise<void> {
 }
 
 // ============================================================================
-// 3. offline_incident_queue CRUD
+// 3. offline_incident_queue CRUD & Durable Offline Photo Storage (TASK-030)
 // ============================================================================
 
+export const OFFLINE_INCIDENT_PHOTOS_DIR_NAME = 'offline_incident_photos/';
+
+export async function persistOfflineIncidentPhotos(localUris: string[]): Promise<string[]> {
+  if (!localUris || localUris.length === 0) return [];
+  try {
+    const FileSystem = (await import('expo-file-system')) as unknown as {
+      documentDirectory?: string | null;
+      makeDirectoryAsync?: (uri: string, opts?: { intermediates?: boolean }) => Promise<void>;
+      copyAsync?: (opts: { from: string; to: string }) => Promise<void>;
+    };
+    const baseDir = FileSystem.documentDirectory;
+    if (!baseDir || typeof FileSystem.copyAsync !== 'function') {
+      return localUris.slice(0, 3);
+    }
+    const targetDir = `${baseDir}${OFFLINE_INCIDENT_PHOTOS_DIR_NAME}`;
+    if (typeof FileSystem.makeDirectoryAsync === 'function') {
+      await FileSystem.makeDirectoryAsync(targetDir, { intermediates: true });
+    }
+    const persisted: string[] = [];
+    for (const uri of localUris.slice(0, 3)) {
+      if (uri.startsWith(targetDir)) {
+        persisted.push(uri);
+        continue;
+      }
+      const ext = uri.toLowerCase().endsWith('.png') ? 'png' : 'jpg';
+      const dest = `${targetDir}inc_${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`;
+      await FileSystem.copyAsync({ from: uri, to: dest });
+      persisted.push(dest);
+    }
+    return persisted;
+  } catch {
+    return localUris.slice(0, 3);
+  }
+}
+
+export async function cleanupOfflineIncidentPhotos(localUris: string[]): Promise<void> {
+  if (!localUris || localUris.length === 0) return;
+  try {
+    const FileSystem = (await import('expo-file-system')) as unknown as {
+      deleteAsync?: (uri: string, opts?: { idempotent?: boolean }) => Promise<void>;
+    };
+    if (typeof FileSystem.deleteAsync !== 'function') return;
+    for (const uri of localUris) {
+      if (uri.includes(OFFLINE_INCIDENT_PHOTOS_DIR_NAME)) {
+        await FileSystem.deleteAsync(uri, { idempotent: true });
+      }
+    }
+  } catch {
+    // Best-effort cleanup
+  }
+}
+
 export async function enqueueOfflineIncident(
-  payload: CivicReportRequest
+  payload: CivicReportRequest,
+  localPhotoUris: string[] = []
 ): Promise<OfflineIncidentQueueRow> {
   const row: OfflineIncidentQueueRow = {
     local_id: `OFFLINE_INC_${Date.now()}_${Math.random().toString(36).slice(2, 8).toUpperCase()}`,
     payload_json: JSON.stringify(payload),
+    photo_uris_json: JSON.stringify(localPhotoUris.slice(0, 3)),
     retry_count: 0,
     last_error: null,
     created_at: Date.now(),
@@ -257,10 +318,11 @@ export async function enqueueOfflineIncident(
   const db = await getDatabase();
   if (db) {
     await db.runAsync(
-      `INSERT INTO offline_incident_queue (local_id, payload_json, retry_count, last_error, created_at)
-       VALUES (?, ?, ?, ?, ?)`,
+      `INSERT INTO offline_incident_queue (local_id, payload_json, photo_uris_json, retry_count, last_error, created_at)
+       VALUES (?, ?, ?, ?, ?, ?)`,
       row.local_id,
       row.payload_json,
+      row.photo_uris_json ?? '[]',
       row.retry_count,
       row.last_error,
       row.created_at
@@ -269,6 +331,33 @@ export async function enqueueOfflineIncident(
     memoryIncidentQueue.set(row.local_id, row);
   }
   return row;
+}
+
+export async function updateOfflineIncidentState(
+  localId: string,
+  payload: CivicReportRequest,
+  remainingPhotoUris: string[]
+): Promise<void> {
+  const payloadJson = JSON.stringify(payload);
+  const photoUrisJson = JSON.stringify(remainingPhotoUris.slice(0, 3));
+  const db = await getDatabase();
+  if (db) {
+    await db.runAsync(
+      'UPDATE offline_incident_queue SET payload_json = ?, photo_uris_json = ? WHERE local_id = ?',
+      payloadJson,
+      photoUrisJson,
+      localId
+    );
+  } else {
+    const existing = memoryIncidentQueue.get(localId);
+    if (existing) {
+      memoryIncidentQueue.set(localId, {
+        ...existing,
+        payload_json: payloadJson,
+        photo_uris_json: photoUrisJson,
+      });
+    }
+  }
 }
 
 export async function getOfflineIncidentQueue(): Promise<OfflineIncidentQueueRow[]> {

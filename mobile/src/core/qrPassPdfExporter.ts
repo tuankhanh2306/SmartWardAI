@@ -190,7 +190,7 @@ export async function exportQrPassToPdf(
 
   try {
     const Print = await import('expo-print');
-    const FileSystem = await import('expo-file-system');
+    const FileSystem = await import('expo-file-system/legacy');
     const Sharing = await import('expo-sharing');
 
     // Strictly printToFileAsync (creates PDF file silently, never opens printer dialog)

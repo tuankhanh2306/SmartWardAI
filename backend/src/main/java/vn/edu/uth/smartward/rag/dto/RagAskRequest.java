@@ -57,4 +57,8 @@ public class RagAskRequest {
     @jakarta.validation.Valid
     @Schema(description = "Lịch sử hội thoại tối đa 5 lượt gần nhất phục vụ trả lời câu hỏi nối tiếp")
     private List<ConversationTurnDto> history;
+
+    @Size(max = 128, message = "Mã phiên không được vượt quá 128 ký tự")
+    @Schema(description = "Mã phiên người dùng (tùy chọn) giúp phân tách hạn mức gọi API trên cùng đường truyền Wi-Fi tại UBND", example = "sess-kiosk-01")
+    private String sessionId;
 }

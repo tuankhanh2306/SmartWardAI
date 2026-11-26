@@ -375,4 +375,75 @@ class OfficerAuthServiceTest {
         assertEquals(1, revokedSet.size(), "revokeToken must bound fallback revokedTokenIds set instead of growing unboundedly");
         assertThrows(BusinessException.class, () -> officerAuthService.verifyToken("Bearer " + login.token()));
     }
+
+    @Test
+    void testNimbusJwt_rejectsAlgNoneAndExpiredTokens() throws Exception {
+        // Unsigned alg:none JWT attack
+        String algNoneHeader = java.util.Base64.getUrlEncoder().withoutPadding()
+                .encodeToString("{\"alg\":\"none\",\"typ\":\"JWT\"}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        String forgedPayload = java.util.Base64.getUrlEncoder().withoutPadding()
+                .encodeToString("{\"sub\":\"ADM-AG-0001\",\"role\":\"ADMIN\",\"jti\":\"forged-1\",\"exp\":4102444800}".getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        String algNoneToken = algNoneHeader + "." + forgedPayload + ".";
+
+        BusinessException algNoneEx = assertThrows(BusinessException.class, () ->
+                officerAuthService.verifyToken("Bearer " + algNoneToken)
+        );
+        assertEquals(ErrorCode.UNAUTHORIZED, algNoneEx.getErrorCode());
+
+        // Properly signed HS256 JWT that is already expired
+        com.nimbusds.jose.JWSHeader hs256Header = new com.nimbusds.jose.JWSHeader.Builder(com.nimbusds.jose.JWSAlgorithm.HS256)
+                .type(com.nimbusds.jose.JOSEObjectType.JWT)
+                .build();
+        com.nimbusds.jwt.JWTClaimsSet expiredClaims = new com.nimbusds.jwt.JWTClaimsSet.Builder()
+                .subject("CC-AG-8942")
+                .jwtID("expired-jti-1")
+                .issueTime(java.util.Date.from(Instant.now().minusSeconds(7200)))
+                .expirationTime(java.util.Date.from(Instant.now().minusSeconds(60)))
+                .claim("name", "Trần Quốc Bảo")
+                .claim("wardCode", "AG_P_LONGXUYEN")
+                .claim("role", "OFFICER")
+                .build();
+        com.nimbusds.jwt.SignedJWT expiredJwt = new com.nimbusds.jwt.SignedJWT(hs256Header, expiredClaims);
+        expiredJwt.sign(new com.nimbusds.jose.crypto.MACSigner(TEST_JWT_SECRET.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
+
+        BusinessException expiredEx = assertThrows(BusinessException.class, () ->
+                officerAuthService.verifyToken("Bearer " + expiredJwt.serialize())
+        );
+        assertEquals(ErrorCode.UNAUTHORIZED, expiredEx.getErrorCode());
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void testRedisBlacklist_failsClosedWhenRedisIsUnavailable() {
+        StringRedisTemplate mockRedis = mock(StringRedisTemplate.class);
+        ValueOperations<String, String> mockOps = mock(ValueOperations.class);
+        when(mockRedis.opsForValue()).thenReturn(mockOps);
+
+        OfficerAuthService serviceWithRedis = new OfficerAuthService(new ObjectMapper(), mockRedis, officerRepository, null);
+        ReflectionTestUtils.setField(serviceWithRedis, "jwtSecret", TEST_JWT_SECRET);
+        ReflectionTestUtils.setField(serviceWithRedis, "tokenTtlHours", 8);
+
+        OfficerAuthService.LoginResponse login = serviceWithRedis.authenticate("CC-AG-8942", OFFICER_PIN, null);
+
+        // Simulate Redis outage during verifyToken -> MUST fail closed (503 STORAGE_UNAVAILABLE)
+        when(mockRedis.hasKey(startsWith("smartward:auth:revoked:")))
+                .thenThrow(new RuntimeException("Redis connection refused"));
+
+        BusinessException verifyEx = assertThrows(BusinessException.class, () ->
+                serviceWithRedis.verifyToken("Bearer " + login.token())
+        );
+        assertEquals(ErrorCode.STORAGE_UNAVAILABLE, verifyEx.getErrorCode());
+
+        // Simulate Redis outage during revokeToken write -> MUST fail closed (503 STORAGE_UNAVAILABLE)
+        reset(mockRedis);
+        when(mockRedis.opsForValue()).thenReturn(mockOps);
+        when(mockRedis.hasKey(startsWith("smartward:auth:revoked:"))).thenReturn(false);
+        doThrow(new RuntimeException("Redis OOM / read-only"))
+                .when(mockOps).set(startsWith("smartward:auth:revoked:"), eq("true"), any(Duration.class));
+
+        BusinessException revokeEx = assertThrows(BusinessException.class, () ->
+                serviceWithRedis.revokeToken("Bearer " + login.token())
+        );
+        assertEquals(ErrorCode.STORAGE_UNAVAILABLE, revokeEx.getErrorCode());
+    }
 }

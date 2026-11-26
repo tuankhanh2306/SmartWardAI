@@ -22,10 +22,19 @@ import { useResponsivePhone } from '../theme/responsive';
 import { COLORS, TOUCH_TARGETS } from '../theme/tokens';
 import type { CoreFormType } from '../types/api.types';
 
+export interface InitialFormDraft {
+  fullName?: string;
+  citizenCccd?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  address?: string;
+  phoneNumber?: string;
+}
+
 export type RootTabParamList = {
   LegalRagTab: undefined;
   IncidentTab: undefined;
-  SmartFormTab: { initialFormType?: CoreFormType } | undefined;
+  SmartFormTab: { initialFormType?: CoreFormType; initialDraft?: InitialFormDraft } | undefined;
 };
 
 const Tab = createBottomTabNavigator<RootTabParamList>();

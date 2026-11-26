@@ -34,7 +34,8 @@ import {
   Users,
   X,
 } from 'lucide-react-native';
-import { askLegalRag, fetchProcedures } from '../api/client';
+import { askCivicAgent, fetchProcedures, resetRagBackendCircuit } from '../api/client';
+import { AgentActionCardsMobile } from '../components/AgentActionCardsMobile';
 import { TemplateDownloadBar } from '../components/TemplateDownloadBar';
 import { VoiceReaderToggle } from '../components/VoiceReaderToggle';
 import { useAccessibility } from '../context/AccessibilityContext';
@@ -45,6 +46,7 @@ import {
   buildFivePartAnswer,
   evaluateOfflineLegalRag,
   evaluateRagGuardrailState,
+  isGreetingOrSmallTalk,
   matchesProcedureFilter,
   PROCEDURE_FILTER_CHIPS,
   resolveCoreFormTypeForProcedure,
@@ -64,14 +66,48 @@ import {
   RADIUS,
   SPACING,
 } from '../theme/tokens';
-import type { CoreFormType, ProcedureItem, RagAskResponse } from '../types/api.types';
+import type {
+  CoreFormType,
+  ProcedureItem,
+  RagAskRequest,
+  RagAskResponse,
+} from '../types/api.types';
+
+const RAG_ONLINE_CACHE_TTL_MS = 5 * 60 * 1000;
+const RAG_OFFLINE_CACHE_TTL_MS = 60 * 1000;
+const RAG_SESSION_CACHE_MAX_ENTRIES = 40;
 
 interface RagTurn {
   id: string;
   question: string;
+  pending?: boolean;
+  response?: RagAskResponse;
+  fiveParts?: FivePartLegalAnswer;
+  responseSource?: 'online' | 'offline' | 'cache';
+  latencyMs?: number;
+  createdAt: string;
+}
+
+interface RagSessionCacheEntry {
   response: RagAskResponse;
   fiveParts?: FivePartLegalAnswer;
-  createdAt: string;
+  source: 'online' | 'offline';
+  expiresAt: number;
+}
+
+function formatLatencyBadge(
+  source?: 'online' | 'offline' | 'cache',
+  latencyMs?: number
+): string {
+  const safeMs = Math.max(1, latencyMs ?? 1);
+  if (source === 'online') {
+    const timeLabel = safeMs >= 1000 ? `${(safeMs / 1000).toFixed(1)}s` : `${safeMs}ms`;
+    return `Trực tuyến • ${timeLabel}`;
+  }
+  if (source === 'cache') {
+    return `Bộ nhớ đệm • ${safeMs}ms`;
+  }
+  return `Trả lời nhanh ngoại tuyến • ${safeMs}ms`;
 }
 
 export const LegalRagChatScreen: React.FC = () => {
@@ -80,7 +116,8 @@ export const LegalRagChatScreen: React.FC = () => {
   const { typography, fontScaleMode, stopSpeaking } = useAccessibility();
   const responsive = useResponsivePhone(fontScaleMode);
 
-  const chatScrollRef = useRef<ScrollView>(null);
+  const chatScrollRef = useRef<React.ComponentRef<typeof ScrollView>>(null);
+  const ragCacheRef = useRef<Map<string, RagSessionCacheEntry>>(new Map());
 
   const [subTab, setSubTab] = useState<'chat' | 'catalog'>('chat');
   const [procedures, setProcedures] = useState<ProcedureItem[]>(AN_GIANG_40_PROCEDURES);
@@ -196,50 +233,42 @@ export const LegalRagChatScreen: React.FC = () => {
     });
   }, [procedures, activeFilter, catalogKeyword]);
 
+  const storeRagSessionCache = useCallback(
+    (key: string, entry: Omit<RagSessionCacheEntry, 'expiresAt'>, ttlMs: number) => {
+      const cache = ragCacheRef.current;
+      if (cache.size >= RAG_SESSION_CACHE_MAX_ENTRIES) {
+        const oldestKey = cache.keys().next().value;
+        if (oldestKey) {
+          cache.delete(oldestKey);
+        }
+      }
+      cache.set(key, {
+        ...entry,
+        expiresAt: Date.now() + ttlMs,
+      });
+    },
+    []
+  );
+
   const handleAskQuestion = useCallback(
-    async (rawQuestion: string) => {
+    async (rawQuestion: string, options?: { forceOnline?: boolean }) => {
       const cleanQ = rawQuestion.trim();
       if (!cleanQ || isAsking) return;
 
+      const startedAt = Date.now();
+      const turnId = `rag-${startedAt}-${Math.random().toString(36).slice(2, 6)}`;
+      const createdAt = new Date().toLocaleTimeString('vi-VN', {
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+      const cacheKey = `${currentWard.code}::${normalizeVietnameseText(cleanQ)}`;
+
       stopSpeaking();
       setSubTab('chat');
-      setIsAsking(true);
       setQuestionInput('');
 
-      const turnId = `rag-${Date.now()}`;
-      try {
-        const onlineResp = await askLegalRag({
-          question: cleanQ,
-          wardName: currentWard.name,
-          wardCode: currentWard.code,
-          threshold: DOMAIN_THRESHOLDS.ragDirectAnswerSimilarity,
-        });
-
-        const matchedCode = onlineResp.citations?.[0]?.procedureCode;
-        const matchedOfflineEntry = matchedCode
-          ? AN_GIANG_40_PROCEDURES.find((p) => p.procedureCode === matchedCode)
-          : undefined;
-
-        setTurns((prev) => [
-          ...prev,
-          {
-            id: turnId,
-            question: cleanQ,
-            response: onlineResp,
-            fiveParts: matchedOfflineEntry
-              ? buildFivePartAnswer(
-                  matchedOfflineEntry,
-                  currentWard.name,
-                  currentWard.officeAddress
-                )
-              : undefined,
-            createdAt: new Date().toLocaleTimeString('vi-VN', {
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
-          },
-        ]);
-      } catch {
+      // Fast Path A: Instant local response for greetings & small-talk
+      if (!options?.forceOnline && isGreetingOrSmallTalk(cleanQ)) {
         const offlineResp = evaluateOfflineLegalRag(
           cleanQ,
           currentWard.name,
@@ -250,22 +279,160 @@ export const LegalRagChatScreen: React.FC = () => {
           {
             id: turnId,
             question: cleanQ,
+            pending: false,
             response: offlineResp,
             fiveParts: offlineResp.fiveParts,
-            createdAt: new Date().toLocaleTimeString('vi-VN', {
-              hour: '2-digit',
-              minute: '2-digit',
-            }),
+            responseSource: 'offline',
+            latencyMs: Math.max(1, Date.now() - startedAt),
+            createdAt,
           },
         ]);
+        setTimeout(() => {
+          chatScrollRef.current?.scrollToEnd({ animated: true });
+        }, 40);
+        return;
+      }
+
+      // Fast Path B: Instant hit from in-session memory cache
+      if (!options?.forceOnline) {
+        const cached = ragCacheRef.current.get(cacheKey);
+        if (cached && Date.now() <= cached.expiresAt) {
+          setTurns((prev) => [
+            ...prev,
+            {
+              id: turnId,
+              question: cleanQ,
+              pending: false,
+              response: cached.response,
+              fiveParts: cached.fiveParts,
+              responseSource: 'cache',
+              latencyMs: Math.max(1, Date.now() - startedAt),
+              createdAt,
+            },
+          ]);
+          setTimeout(() => {
+            chatScrollRef.current?.scrollToEnd({ animated: true });
+          }, 40);
+          return;
+        }
+      }
+
+      // Optimistic UI: Show citizen message & loading bubble immediately
+      const history: NonNullable<RagAskRequest['history']> = [];
+      for (const prevTurn of turns.filter((t) => !t.pending && t.response).slice(-2)) {
+        history.push({ sender: 'citizen', text: prevTurn.question });
+        history.push({
+          sender: 'bot',
+          text: prevTurn.response!.answer,
+          procedureCode: prevTurn.response!.citations?.[0]?.procedureCode,
+        });
+      }
+
+      setIsAsking(true);
+      setTurns((prev) => [
+        ...prev,
+        {
+          id: turnId,
+          question: cleanQ,
+          pending: true,
+          createdAt,
+        },
+      ]);
+      setTimeout(() => {
+        chatScrollRef.current?.scrollToEnd({ animated: true });
+      }, 40);
+
+      try {
+        if (options?.forceOnline) {
+          resetRagBackendCircuit();
+        }
+        const onlineResp = await askCivicAgent(
+          {
+            question: cleanQ,
+            wardName: currentWard.name,
+            wardCode: currentWard.code,
+            threshold: DOMAIN_THRESHOLDS.ragDirectAnswerSimilarity,
+            history: history.length > 0 ? history : undefined,
+          },
+          { bypassCircuit: options?.forceOnline }
+        );
+
+        const matchedCode = onlineResp.citations?.[0]?.procedureCode;
+        const matchedOfflineEntry = matchedCode
+          ? AN_GIANG_40_PROCEDURES.find((p) => p.procedureCode === matchedCode)
+          : undefined;
+        const fiveParts = matchedOfflineEntry
+          ? buildFivePartAnswer(
+              matchedOfflineEntry,
+              currentWard.name,
+              currentWard.officeAddress
+            )
+          : undefined;
+
+        storeRagSessionCache(
+          cacheKey,
+          { response: onlineResp, fiveParts, source: 'online' },
+          RAG_ONLINE_CACHE_TTL_MS
+        );
+
+        const latencyMs = Math.max(1, Date.now() - startedAt);
+        setTurns((prev) =>
+          prev.map((t) =>
+            t.id === turnId
+              ? {
+                  ...t,
+                  pending: false,
+                  response: onlineResp,
+                  fiveParts,
+                  responseSource: 'online',
+                  latencyMs,
+                }
+              : t
+          )
+        );
+      } catch {
+        const offlineResp = evaluateOfflineLegalRag(
+          cleanQ,
+          currentWard.name,
+          currentWard.officeAddress
+        );
+        storeRagSessionCache(
+          cacheKey,
+          { response: offlineResp, fiveParts: offlineResp.fiveParts, source: 'offline' },
+          RAG_OFFLINE_CACHE_TTL_MS
+        );
+
+        const latencyMs = Math.max(1, Date.now() - startedAt);
+        setTurns((prev) =>
+          prev.map((t) =>
+            t.id === turnId
+              ? {
+                  ...t,
+                  pending: false,
+                  response: offlineResp,
+                  fiveParts: offlineResp.fiveParts,
+                  responseSource: 'offline',
+                  latencyMs,
+                }
+              : t
+          )
+        );
       } finally {
         setIsAsking(false);
         setTimeout(() => {
           chatScrollRef.current?.scrollToEnd({ animated: true });
-        }, 120);
+        }, 80);
       }
     },
-    [currentWard.code, currentWard.name, currentWard.officeAddress, isAsking, stopSpeaking]
+    [
+      currentWard.code,
+      currentWard.name,
+      currentWard.officeAddress,
+      isAsking,
+      stopSpeaking,
+      storeRagSessionCache,
+      turns,
+    ]
   );
 
   const handleResetChat = () => {
@@ -421,11 +588,36 @@ export const LegalRagChatScreen: React.FC = () => {
               </View>
             ) : (
               turns.map((turn) => {
-                const guardrail = evaluateRagGuardrailState(turn.response);
+                const response = turn.response;
+                if (turn.pending || !response) {
+                  return (
+                    <View key={turn.id} style={styles.turnBlock}>
+                      {/* Citizen Bubble rendered immediately (Optimistic UI) */}
+                      <View style={styles.citizenRow}>
+                        <View style={styles.citizenBubble}>
+                          <Text style={[styles.citizenBubbleText, typography.bodyMd]}>
+                            {turn.question}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View style={[styles.botCard, { padding: responsive.cardPadding }]}>
+                        <View style={styles.pendingWrap}>
+                          <ActivityIndicator size="small" color={COLORS.citizenCrimson} />
+                          <Text style={[styles.pendingText, typography.bodyMd]}>
+                            Đang tra cứu quy định pháp lý...
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  );
+                }
+
+                const guardrail = evaluateRagGuardrailState(response);
                 const isGreeting =
                   !guardrail.isAbstained &&
-                  (!turn.response.citations || turn.response.citations.length === 0);
-                const primaryCitation = turn.response.citations?.[0];
+                  (!response.citations || response.citations.length === 0);
+                const primaryCitation = response.citations?.[0];
                 const procedureCode =
                   primaryCitation?.procedureCode || turn.fiveParts?.procedureCode || 'TTHC-AG';
                 const procedureName =
@@ -472,11 +664,11 @@ export const LegalRagChatScreen: React.FC = () => {
                             </Text>
                           </View>
                           <Text style={[styles.partText, typography.bodyMd]}>
-                            {turn.response.answer}
+                            {response.answer}
                           </Text>
                           <VoiceReaderToggle
                             itemId={turn.id}
-                            textToRead={turn.response.answer}
+                            textToRead={response.answer}
                           />
                         </View>
                       ) : (
@@ -494,8 +686,8 @@ export const LegalRagChatScreen: React.FC = () => {
                               itemId={turn.id}
                               textToRead={
                                 isGreeting
-                                  ? turn.response.answer
-                                  : `${procedureName}. ${turn.response.answer}`
+                                  ? response.answer
+                                  : `${procedureName}. ${response.answer}`
                               }
                             />
                           </View>
@@ -539,18 +731,30 @@ export const LegalRagChatScreen: React.FC = () => {
                             </View>
                           ) : (
                             <Text style={[styles.partText, typography.bodyMd]}>
-                              {turn.response.answer}
+                              {response.answer}
                             </Text>
                           )}
 
+                          <AgentActionCardsMobile
+                            steps={response.agentSteps}
+                            cards={response.agentActionCards}
+                            onOpenPrefilledForm={(targetFormType, initialDraft) => {
+                              stopSpeaking();
+                              navigation.navigate('SmartFormTab', {
+                                initialFormType: targetFormType,
+                                initialDraft,
+                              });
+                            }}
+                          />
+
                           {isGreeting ? (
-                            turn.response.suggestions && turn.response.suggestions.length > 0 ? (
+                            response.suggestions && response.suggestions.length > 0 ? (
                               <View style={styles.greetingSuggestionsContainer}>
                                 <Text style={[styles.greetingSuggestionsTitle, typography.captionSm]}>
                                   Gợi ý câu hỏi phổ biến:
                                 </Text>
                                 <View style={styles.greetingSuggestionsRow}>
-                                  {turn.response.suggestions.map((suggestion, sIdx) => (
+                                  {response.suggestions.map((suggestion, sIdx) => (
                                     <Pressable
                                       key={`sug-${sIdx}`}
                                       accessibilityRole="button"
@@ -606,6 +810,29 @@ export const LegalRagChatScreen: React.FC = () => {
                           )}
                         </View>
                       )}
+
+                      <View style={styles.cardFooterMeta}>
+                        <Text style={[styles.latencyMetaText, typography.captionSm]}>
+                          {formatLatencyBadge(turn.responseSource, turn.latencyMs)}
+                        </Text>
+                        {turn.responseSource === 'offline' && !isGreeting ? (
+                          <Pressable
+                            accessibilityRole="button"
+                            accessibilityLabel="Thử máy chủ"
+                            disabled={isAsking}
+                            onPress={() => {
+                              void handleAskQuestion(turn.question, { forceOnline: true });
+                            }}
+                            style={({ pressed }) => [
+                              styles.retryServerBtn,
+                              pressed && styles.pressed,
+                            ]}
+                          >
+                            <RotateCcw size={12} color={COLORS.citizenCrimson} />
+                            <Text style={styles.retryServerText}>Thử máy chủ</Text>
+                          </Pressable>
+                        ) : null}
+                      </View>
                     </View>
                   </View>
                 );
@@ -880,6 +1107,45 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.xl,
     borderWidth: 1,
     borderColor: COLORS.borderSubtle,
+  },
+  pendingWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
+    paddingVertical: SPACING.xs,
+  },
+  pendingText: {
+    color: COLORS.textSecondary,
+  },
+  cardFooterMeta: {
+    marginTop: SPACING.sm,
+    paddingTop: SPACING.xs,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: COLORS.borderSubtle,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: SPACING.sm,
+  },
+  latencyMetaText: {
+    color: COLORS.textMuted,
+    flex: 1,
+  },
+  retryServerBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: SPACING.sm,
+    paddingVertical: 4,
+    borderRadius: RADIUS.full,
+    backgroundColor: COLORS.citizenCrimsonSoftBg,
+    borderWidth: 1,
+    borderColor: COLORS.citizenCrimsonSoftBorder,
+  },
+  retryServerText: {
+    color: COLORS.citizenCrimson,
+    fontSize: 11.5,
+    fontWeight: '700',
   },
   abstentionWrap: {
     gap: SPACING.sm,

@@ -40,7 +40,7 @@ const localStore = new MockStorage();
 const sessionStore = new MockStorage();
 const revokedJtis = new Set();
 
-const CITIZEN_SESSION_TIMEOUT_MS = 5 * 60 * 1000; // 5 minutes sliding
+const CITIZEN_SESSION_TIMEOUT_MS = 30 * 60 * 1000; // 30 minutes sliding
 const OFFICER_INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes inactivity lock
 const WARNING_THRESHOLD_SEC = 60; // 60s warning before expiry
 
@@ -403,32 +403,32 @@ it('Reusing a token after logout returns 401 (jti revoked)', () => {
 });
 
 // ============================================================================
-// 5. MANDATORY TEST: CITIZEN 5-MIN SLIDING & OFFICER 15-MIN INACTIVITY + 60S WARNING
+// 5. MANDATORY TEST: CITIZEN 30-MIN SLIDING & OFFICER 15-MIN INACTIVITY + 60S WARNING
 // ============================================================================
-console.log('\n--- 5. Phiên công dân 5 phút trượt & Khóa không hoạt động 15 phút (cảnh báo 60s) ---');
+console.log('\n--- 5. Phiên công dân 30 phút trượt & Khóa không hoạt động 15 phút (cảnh báo 60s) ---');
 
-it('Citizen 5-minute session activates warning at <= 60s, extends on "Tiếp tục?", and expires at 0s', () => {
+it('Citizen 30-minute session activates warning at <= 60s, extends on "Tiếp tục?", and expires at 0s', () => {
   localStore.clear();
   sessionStore.clear();
   const start = 5000000;
   localStore.setItem('smartward_user_role', 'citizen');
   localStore.setItem('smartward_session_expires_at', String(start + CITIZEN_SESSION_TIMEOUT_MS));
 
-  // At 4m 15s (45s left): Warning is active!
-  const tWarning = start + (4 * 60 + 15) * 1000;
+  // At 29m 15s (45s left): Warning is active!
+  const tWarning = start + (29 * 60 + 15) * 1000;
   const sWarning = hydrateOnF5(localStore, sessionStore, tWarning);
   assert.strictEqual(sWarning.role, 'citizen');
   assert.strictEqual(sWarning.sessionSecondsLeft, 45);
   assert.strictEqual(sWarning.sessionWarningActive, true);
 
-  // Citizen clicks "Tiếp tục?" -> extends by 5 minutes from tWarning
+  // Citizen clicks "Tiếp tục?" -> extends by 30 minutes from tWarning
   localStore.setItem('smartward_session_expires_at', String(tWarning + CITIZEN_SESSION_TIMEOUT_MS));
   const sExtended = hydrateOnF5(localStore, sessionStore, tWarning + 1000);
   assert.strictEqual(sExtended.role, 'citizen');
   assert.strictEqual(sExtended.sessionWarningActive, false);
-  assert.strictEqual(sExtended.sessionSecondsLeft, 299);
+  assert.strictEqual(sExtended.sessionSecondsLeft, 1799);
 
-  // After another 5m 01s without extension -> Expired!
+  // After another 30m 01s without extension -> Expired!
   const sExpired = hydrateOnF5(localStore, sessionStore, tWarning + CITIZEN_SESSION_TIMEOUT_MS + 1000);
   assert.strictEqual(sExpired.role, null);
   assert.strictEqual(sExpired.isExpired, true);

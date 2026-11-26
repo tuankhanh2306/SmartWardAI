@@ -1,7 +1,25 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { resolveDefaultApiBaseUrl } from '../api/client';
+import {
+  configureRuntimeApiBaseUrl,
+  extractLanHostFromExpoUri,
+  getApiBaseUrl,
+  isNetworkOrTimeoutError,
+  isUnreachableIosDefaultUrl,
+  markRagBackendNetworkFailure,
+  markRagBackendSuccess,
+  resetRagBackendCircuit,
+  resetRuntimeApiConfigForTests,
+  resolveDefaultApiBaseUrl,
+  shouldSkipRagOnlineCall,
+} from '../api/client';
+import {
+  clearOfficerSession,
+  getOfficerToken,
+  resetOfficerTokenMemoryCache,
+  saveOfficerSession,
+} from '../storage/secureAuthStorage';
 import {
   AN_GIANG_40_PROCEDURES,
   evaluateOfflineLegalRag,
@@ -224,5 +242,99 @@ describe('legalRagAndTts — Chặng M2 (40 TTHC, Guardrail θ=0.78, Template Ex
     // Mặc định Android emulator (không có window)
     const emuUrl = resolveDefaultApiBaseUrl(undefined);
     expect(emuUrl).toBe('http://10.0.2.2:8080/api/v1');
+  });
+
+  it('tách được LAN IP từ Metro hostUri/scriptURL và loại bỏ localhost / tunnel domains', () => {
+    expect(extractLanHostFromExpoUri('exp://192.168.1.25:8081')).toBe('192.168.1.25');
+    expect(
+      extractLanHostFromExpoUri('http://192.168.10.44:8081/index.bundle?platform=ios&dev=true')
+    ).toBe('192.168.10.44');
+    expect(extractLanHostFromExpoUri('172.20.10.3:8081')).toBe('172.20.10.3');
+
+    expect(extractLanHostFromExpoUri('http://localhost:8081')).toBeNull();
+    expect(extractLanHostFromExpoUri('http://127.0.0.1:8081')).toBeNull();
+    expect(extractLanHostFromExpoUri('http://10.0.2.2:8080')).toBeNull();
+    expect(extractLanHostFromExpoUri('https://abc-xyz.exp.direct:80/index.bundle')).toBeNull();
+    expect(extractLanHostFromExpoUri('https://demo.ngrok-free.app/bundle')).toBeNull();
+
+    expect(resolveDefaultApiBaseUrl(undefined, { hostUri: 'exp://192.168.1.25:8081' })).toBe(
+      'http://192.168.1.25:8080/api/v1'
+    );
+  });
+
+  it('ngăn treo 30s trên iOS qua tunnel/10.0.2.2 và tự chuyển sang LAN IP khi chạy qua Wi-Fi Metro', () => {
+    try {
+      resetRuntimeApiConfigForTests();
+
+      // iOS chạy qua tunnel (không có LAN host) -> giữ 10.0.2.2 nhưng fail-fast tức thì 0ms
+      configureRuntimeApiBaseUrl({
+        platformOs: 'ios',
+        scriptUrl: 'https://smartward.exp.direct:80/index.bundle?platform=ios',
+      });
+      expect(isUnreachableIosDefaultUrl()).toBe(true);
+      expect(shouldSkipRagOnlineCall()).toBe(true);
+
+      // iOS chạy qua LAN IP -> tự trỏ sang IP LAN :8080 và cho phép gọi online
+      resetRuntimeApiConfigForTests();
+      const resolved = configureRuntimeApiBaseUrl({
+        platformOs: 'ios',
+        scriptUrl: 'http://192.168.1.25:8081/index.bundle?platform=ios',
+      });
+      expect(resolved).toBe('http://192.168.1.25:8080/api/v1');
+      expect(getApiBaseUrl()).toBe('http://192.168.1.25:8080/api/v1');
+      expect(isUnreachableIosDefaultUrl()).toBe(false);
+      expect(shouldSkipRagOnlineCall()).toBe(false);
+    } finally {
+      resetRuntimeApiConfigForTests();
+    }
+  });
+
+  it('quản lý chính xác trạng thái circuit breaker và phân loại lỗi mạng/timeout', () => {
+    try {
+      resetRuntimeApiConfigForTests();
+      expect(shouldSkipRagOnlineCall(1000)).toBe(false);
+
+      markRagBackendNetworkFailure(1000);
+      expect(shouldSkipRagOnlineCall(2000)).toBe(true);
+      expect(shouldSkipRagOnlineCall(50000)).toBe(false);
+
+      markRagBackendNetworkFailure(1000);
+      expect(shouldSkipRagOnlineCall(5000)).toBe(true);
+      markRagBackendSuccess();
+      expect(shouldSkipRagOnlineCall(5000)).toBe(false);
+
+      markRagBackendNetworkFailure(1000);
+      resetRagBackendCircuit();
+      expect(shouldSkipRagOnlineCall(5000)).toBe(false);
+
+      expect(isNetworkOrTimeoutError({ code: 'ECONNABORTED' })).toBe(true);
+      expect(isNetworkOrTimeoutError({ message: 'Network Error' })).toBe(true);
+      expect(isNetworkOrTimeoutError({ response: { status: 429 } })).toBe(false);
+    } finally {
+      resetRuntimeApiConfigForTests();
+    }
+  });
+
+  it('bộ nhớ đệm JWT trong RAM hoạt động đồng bộ khi lưu/đọc/xóa phiên cán bộ', async () => {
+    try {
+      resetOfficerTokenMemoryCache();
+      expect(await getOfficerToken()).toBeNull();
+
+      await saveOfficerSession('header.eyJzdWIiOiJDQy0wMSJ9.sig', {
+        badgeId: 'CC-AG-8942',
+        fullName: 'Nguyễn Văn A',
+        wardCode: 'AG_P_LONGXUYEN',
+        wardName: 'Phường Long Xuyên',
+        role: 'OFFICER',
+        mustChangePin: false,
+      });
+      expect(await getOfficerToken()).toBe('header.eyJzdWIiOiJDQy0wMSJ9.sig');
+
+      await clearOfficerSession();
+      expect(await getOfficerToken()).toBeNull();
+    } finally {
+      await clearOfficerSession();
+      resetOfficerTokenMemoryCache();
+    }
   });
 });

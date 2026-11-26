@@ -6,9 +6,9 @@
  * - Khi mất mạng -> lưu ngay vào offline_incident_queue (expo-sqlite) để đồng bộ khi có sóng 4G
  */
 
-import { submitCivicIncidentReport } from '../api/client';
+import { submitCivicIncidentReport, uploadIncidentPhoto } from '../api/client';
 import { BBOX_AN_GIANG, resolveWardFromLocationBox } from './angiangWards';
-import { enqueueOfflineIncident } from '../storage/sqliteDb';
+import { enqueueOfflineIncident, persistOfflineIncidentPhotos } from '../storage/sqliteDb';
 import { DOMAIN_THRESHOLDS } from '../theme/tokens';
 import type {
   CivicReportRequest,
@@ -63,6 +63,7 @@ export interface IncidentDraftInput {
   fallbackWardCode: string;
   locationSource?: 'GPS' | 'PIN_DRAGGED' | 'WARD_DEFAULT';
   locationAccuracyM?: number;
+  localPhotoUris?: string[];
 }
 
 export interface IncidentValidationResult {
@@ -121,12 +122,15 @@ export interface IncidentSubmissionOutcome {
 
 export interface IncidentSubmissionDeps {
   submitApi?: typeof submitCivicIncidentReport;
+  uploadPhotoApi?: typeof uploadIncidentPhoto;
   enqueueOffline?: typeof enqueueOfflineIncident;
+  persistPhotos?: typeof persistOfflineIncidentPhotos;
 }
 
 /**
  * Validates, resolves target receiving UBND (Cross-Ward Jurisdiction Routing),
- * submits to POST /api/v1/issues/report, or queues into SQLite offline_incident_queue.
+ * uploads up to 3 incident photos, submits to POST /api/v1/issues/report,
+ * or persists photos & queues into SQLite offline_incident_queue when offline.
  */
 export async function executeIncidentSubmission(
   input: IncidentDraftInput,
@@ -143,7 +147,9 @@ export async function executeIncidentSubmission(
   }
 
   const submitApi = deps.submitApi ?? submitCivicIncidentReport;
+  const uploadPhotoApi = deps.uploadPhotoApi ?? uploadIncidentPhoto;
   const enqueueOffline = deps.enqueueOffline ?? enqueueOfflineIncident;
+  const persistPhotos = deps.persistPhotos ?? persistOfflineIncidentPhotos;
 
   const routed = resolveWardFromLocationBox(
     input.addressText,
@@ -155,6 +161,10 @@ export async function executeIncidentSubmission(
   const catOption =
     INCIDENT_CATEGORY_OPTIONS.find((c) => c.key === input.category) ||
     INCIDENT_CATEGORY_OPTIONS[0];
+
+  const pendingUris = (input.localPhotoUris ?? []).filter(Boolean).slice(0, 3);
+  const uploadedPhotoKeys: string[] = [];
+  let remainingUris = [...pendingUris];
 
   const payload: CivicReportRequest = {
     category: input.category,
@@ -171,6 +181,15 @@ export async function executeIncidentSubmission(
   };
 
   try {
+    for (let i = 0; i < pendingUris.length; i += 1) {
+      const uploaded = await uploadPhotoApi(pendingUris[i], routed.ward.code);
+      uploadedPhotoKeys.push(uploaded.photoKey);
+      remainingUris = pendingUris.slice(i + 1);
+    }
+    if (uploadedPhotoKeys.length > 0) {
+      payload.photoKeys = uploadedPhotoKeys;
+    }
+
     const resp = await submitApi(payload);
     const merged =
       resp.mergedIntoExistingCluster ||
@@ -191,7 +210,11 @@ export async function executeIncidentSubmission(
         : `Đã tạo cụm sự cố mới ${clusterCode} và chuyển tới UBND ${resp.targetWardName || routed.ward.name}.`,
     };
   } catch {
-    const queued = await enqueueOffline(payload);
+    if (uploadedPhotoKeys.length > 0) {
+      payload.photoKeys = uploadedPhotoKeys;
+    }
+    const persistedUris = await persistPhotos(remainingUris);
+    const queued = await enqueueOffline(payload, persistedUris);
     return {
       success: true,
       mode: 'QUEUED_OFFLINE',
@@ -199,7 +222,10 @@ export async function executeIncidentSubmission(
       targetWardName: routed.ward.name,
       matchedBy: routed.matchedBy,
       offlineLocalId: queued.local_id,
-      message: `Đã lưu vào hàng đợi Offline (${routed.ward.name}) — Tự động gửi ngay khi có sóng 4G.`,
+      message:
+        persistedUris.length > 0
+          ? `Đã lưu báo cáo kèm ${persistedUris.length} ảnh vào hàng đợi Offline (${routed.ward.name}) — Tự động gửi ngay khi có sóng 4G.`
+          : `Đã lưu vào hàng đợi Offline (${routed.ward.name}) — Tự động gửi ngay khi có sóng 4G.`,
     };
   }
 }

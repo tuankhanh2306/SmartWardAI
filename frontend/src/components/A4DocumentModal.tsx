@@ -2300,7 +2300,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                 title="Xem mẫu đã điền ví dụ đầy đủ thông tin chuẩn để tham khảo cách kê khai hoặc quét AI"
               >
                 <Eye className="w-3.5 h-3.5 text-teal-600" />
-                <span>Mẫu Điền Ví Dụ (Tham Khảo &amp; Quét AI)</span>
+                <span>Mẫu ví dụ</span>
               </button>
               <button
                 type="button"
@@ -2313,7 +2313,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                 title="Xem trước phôi mẫu trắng (các dòng chấm để tự điền)"
               >
                 <FileText className="w-3.5 h-3.5 text-slate-600" />
-                <span>Phôi Mẫu Trắng</span>
+                <span>Phôi trắng</span>
               </button>
             </div>
 
@@ -2338,7 +2338,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
               ) : (
                 <>
                   <FileDown className="w-3.5 h-3.5 text-emerald-200" />
-                  <span>Tải Mẫu Word (.docx)</span>
+                  <span>Tải Word (.docx)</span>
                 </>
               )}
             </button>
@@ -2364,7 +2364,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
               ) : (
                 <>
                   <FileText className="w-3.5 h-3.5 text-sky-200" />
-                  <span>Tải File PDF (.pdf)</span>
+                  <span>Tải PDF (.pdf)</span>
                 </>
               )}
             </button>
@@ -2372,10 +2372,11 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white transition cursor-pointer"
+              aria-label="Đóng cửa sổ xem trước mẫu A4"
+              className="p-2 rounded-xl bg-white hover:bg-rose-50 text-slate-900 hover:text-[#B90E23] border border-white/90 shadow-xs transition cursor-pointer gov-focus-ring"
               title="Đóng"
             >
-              <X className="w-5 h-5" />
+              <X className="w-5 h-5 stroke-[2.5]" />
             </button>
           </div>
         </div>
@@ -2387,15 +2388,9 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
               {viewMode === 'SAMPLE_FILLED' ? 'Mẫu ví dụ chuẩn' : 'Phôi mẫu trắng'}
             </span>
             <span className="leading-tight">
-              {viewMode === 'SAMPLE_FILLED' ? (
-                <>
-                  Màn hình đang hiển thị <strong>Mẫu Hướng Dẫn Điền Ví Dụ Chuẩn</strong> (có đầy đủ thông tin mẫu để bà con tham khảo cách kê khai hoặc chụp quét AI tự động). Khi bấm <strong>"Tải Mẫu Word (.docx)"</strong> hoặc <strong>"Tải File PDF (.pdf)"</strong>, hệ thống tự động xuất <strong>Phôi Mẫu Trắng hoàn toàn</strong> (đồng nhất 100% với tab Phôi Mẫu Trắng) để bà con tự điền.
-                </>
-              ) : (
-                <>
-                  Màn hình đang hiển thị <strong>Phôi Mẫu Trắng Tiêu Chuẩn</strong> (chỉ có các dòng chấm để tự điền, đồng nhất 100% với bản tải về Word .docx và PDF .pdf). Bà con có thể chuyển sang <strong>"Mẫu Điền Ví Dụ"</strong> để xem hướng dẫn cách ghi.
-                </>
-              )}
+              {viewMode === 'SAMPLE_FILLED'
+                ? 'Bản ví dụ tham khảo. Khi tải Word/PDF, hệ thống tự xuất Phôi trắng để điền.'
+                : 'Phôi mẫu trắng chuẩn, đồng nhất 100% với bản tải Word và PDF.'}
             </span>
           </div>
         </div>
@@ -2468,7 +2463,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
         {/* Bottom Actions */}
         <div className="no-print bg-[#F8FAFC] px-6 py-3 border-t border-[#CBD5E1] flex flex-wrap items-center justify-between gap-2">
           <span className="text-xs text-neutral-500 italic">
-            * Văn bản được chuẩn hóa định dạng theo Nghị định 30/2020/NĐ-CP và các Thông tư/Nghị định mới nhất hiện hành (TT 66/2023 &amp; 53/2025/TT-BCA, TT 04/2024/TT-BTP, NĐ 63/2024, NĐ 76/2024, NĐ 101/2024, NĐ 175/2024). Bản tải về đồng nhất 100% với Phôi Mẫu Trắng.
+            Chuẩn Nghị định 30/2020/NĐ-CP • File tải về là Phôi mẫu trắng.
           </span>
           <button
             type="button"

@@ -59,8 +59,8 @@ export const OFFICER_PROFILE_KEY = 'smartward_officer_profile';
 export const SESSION_EXPIRES_KEY = 'smartward_session_expires_at';
 export const INACTIVITY_EXPIRES_KEY = 'smartward_inactivity_expires_at';
 
-// Citizen: 5-Minute Sliding Session Limit (300s)
-export const SESSION_TIMEOUT_MS = 5 * 60 * 1000;
+// Citizen: 30-Minute Sliding Session Limit (1800s)
+export const SESSION_TIMEOUT_MS = 30 * 60 * 1000;
 // Officer & Admin: 15-Minute Inactivity Lockout (900s) + 8-Hour JWT TTL
 export const OFFICER_INACTIVITY_TIMEOUT_MS = 15 * 60 * 1000;
 export const WARNING_THRESHOLD_SEC = 60;
@@ -691,7 +691,7 @@ export const RoleProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (remainingSeconds <= 0) {
         clearInterval(checkInterval);
-        logout('Phiên làm việc 5 phút đã hết hạn để đảm bảo an toàn thông tin. Vui lòng chọn lại vai trò tại Cổng vào.');
+        logout('Phiên làm việc 30 phút đã hết hạn để đảm bảo an toàn thông tin. Vui lòng chọn lại vai trò tại Cổng vào.');
       }
     }, 1000);
 
