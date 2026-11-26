@@ -25,7 +25,7 @@ public class QueryCacheService {
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
 
-    private static final String CACHE_PREFIX = "smartward:cache:rag:";
+    private static final String CACHE_PREFIX = "smartward:cache:rag:v2:";
     private static final long DEFAULT_TTL_SECONDS = 3600; // 1 hour
 
     /**

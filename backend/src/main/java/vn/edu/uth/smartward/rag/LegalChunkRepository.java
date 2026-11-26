@@ -110,6 +110,7 @@ public interface LegalChunkRepository extends JpaRepository<LegalChunk, Long> {
         FROM legal_chunks c
         JOIN admin_procedures p ON c.procedure_id = p.id
         WHERE c.status = 'ACTIVE'
+          AND p.status = 'ACTIVE'
           AND c.effective_date <= CURRENT_DATE
           AND c.embedding IS NOT NULL
           AND (:embeddingModel IS NULL OR :embeddingModel = '' OR c.embedding_model = :embeddingModel)
@@ -127,7 +128,7 @@ public interface LegalChunkRepository extends JpaRepository<LegalChunk, Long> {
     );
 
     /**
-     * TASK-033: ACL-enforced PostgreSQL Full-Text Search (tsvector + GIN) for Hybrid RRF.
+     * TASK-033 & TASK-050: ACL-enforced PostgreSQL Full-Text Search (tsvector + GIN) for Hybrid RRF.
      */
     @Query(value = """
         SELECT c.id AS id,
@@ -142,6 +143,7 @@ public interface LegalChunkRepository extends JpaRepository<LegalChunk, Long> {
         FROM legal_chunks c
         JOIN admin_procedures p ON c.procedure_id = p.id
         WHERE c.status = 'ACTIVE'
+          AND p.status = 'ACTIVE'
           AND c.effective_date <= CURRENT_DATE
           AND c.search_vector @@ plainto_tsquery('simple', :queryText)
           AND (c.visibility_scope = 'PUBLIC' OR (:includeOfficerScope = TRUE AND c.visibility_scope = 'OFFICER_ONLY'))
@@ -154,5 +156,27 @@ public interface LegalChunkRepository extends JpaRepository<LegalChunk, Long> {
             @Param("includeOfficerScope") boolean includeOfficerScope,
             @Param("wardCode") String wardCode,
             @Param("topK") int topK
+    );
+
+    /**
+     * TASK-050: Scoped procedure chunk lookup enforcing identical ACTIVE, effective_date,
+     * visibility_scope, and ward_code filters as vector & FTS retrieval.
+     */
+    @Query(value = """
+        SELECT c.*
+        FROM legal_chunks c
+        JOIN admin_procedures p ON c.procedure_id = p.id
+        WHERE c.procedure_id = :procedureId
+          AND c.status = 'ACTIVE'
+          AND p.status = 'ACTIVE'
+          AND c.effective_date <= CURRENT_DATE
+          AND (c.visibility_scope = 'PUBLIC' OR (:includeOfficerScope = TRUE AND c.visibility_scope = 'OFFICER_ONLY'))
+          AND (c.ward_code IS NULL OR :wardCode IS NULL OR :wardCode = '' OR UPPER(c.ward_code) = UPPER(:wardCode))
+        ORDER BY c.id ASC
+        """, nativeQuery = true)
+    List<LegalChunk> findScopedActiveChunksByProcedureId(
+            @Param("procedureId") Long procedureId,
+            @Param("includeOfficerScope") boolean includeOfficerScope,
+            @Param("wardCode") String wardCode
     );
 }
