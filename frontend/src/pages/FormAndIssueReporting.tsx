@@ -670,6 +670,31 @@ export const FormAndIssueReporting: React.FC = () => {
     setSubmitError(null);
   };
 
+  // Guard navigation between wizard steps: prevent jumping ahead to Step 3 before completing Step 2
+  const handleWizardStepClick = (targetStep: 1 | 2 | 3) => {
+    if (targetStep === 1) {
+      setFormWizardStep(1);
+      return;
+    }
+    if (targetStep === 2) {
+      if (visionGateResult && (visionGateResult.isBlurry || visionGateResult.isTooDark || visionGateResult.isGlared || !visionGateResult.templateMatched)) {
+        alert('Ảnh tải lên ở Bước 1 chưa đạt chuẩn chất lượng. Vui lòng kiểm tra lại ảnh trước khi nhập tờ khai.');
+        return;
+      }
+      setFormWizardStep(2);
+      return;
+    }
+    if (targetStep === 3) {
+      // Must have valid precheckResult or pass full validation in Step 2 first
+      if (precheckResult) {
+        setFormWizardStep(3);
+        return;
+      }
+      // If citizen tries to jump to step 3 without prechecking, trigger precheck to validate form
+      handlePrecheck();
+    }
+  };
+
   // Handle Form Precheck across all 4 form types & Submit to Officer Queue
   const handlePrecheck = async () => {
     // 1. Check Client Canvas + Template Quality Gate first if a file/photo was uploaded or simulated
@@ -1758,19 +1783,23 @@ export const FormAndIssueReporting: React.FC = () => {
                 const isCurrent = formWizardStep === s.step;
                 const isDone = formWizardStep > s.step || (s.step === 3 && Boolean(precheckResult));
                 const StepIcon = isDone && !isCurrent ? Check : s.Icon;
+                const isStep3Disabled = s.step === 3 && !precheckResult;
                 return (
                   <React.Fragment key={s.step}>
                     <li className="flex-1 min-w-0">
                       <button
                         type="button"
-                        onClick={() => setFormWizardStep(s.step)}
+                        onClick={() => handleWizardStepClick(s.step)}
                         aria-current={isCurrent ? 'step' : undefined}
-                        className={`w-full h-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border text-left transition cursor-pointer gov-focus-ring ${
+                        title={isStep3Disabled ? 'Vui lòng hoàn tất nhập thông tin và bấm "Kiểm tra & tiếp tục" ở Bước 2' : undefined}
+                        className={`w-full h-full flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border text-left transition gov-focus-ring ${
                           isCurrent
-                            ? 'bg-[#B90E23] text-white border-[#8F0A1B] shadow-xs'
+                            ? 'bg-[#B90E23] text-white border-[#8F0A1B] shadow-xs cursor-default'
                             : isDone
-                            ? 'bg-[#F0FDF4] text-[#065F46] border-[#A7F3D0] hover:bg-[#DCFCE7]'
-                            : 'bg-[#F8FAFC] text-[#334155] border-[#CBD5E1] hover:bg-[#F1F5F9]'
+                            ? 'bg-[#F0FDF4] text-[#065F46] border-[#A7F3D0] hover:bg-[#DCFCE7] cursor-pointer'
+                            : isStep3Disabled
+                            ? 'bg-[#F8FAFC] text-slate-400 border-slate-200 cursor-not-allowed opacity-80'
+                            : 'bg-[#F8FAFC] text-[#334155] border-[#CBD5E1] hover:bg-[#F1F5F9] cursor-pointer'
                         }`}
                       >
                         <div className="flex items-center gap-2.5 min-w-0">
