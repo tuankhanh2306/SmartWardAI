@@ -177,7 +177,7 @@ export const WardOnboarding: React.FC = () => {
               Chọn Xã / Phường / Đặc Khu (Tỉnh An Giang)
             </h1>
             <p className="mt-0.5 text-xs text-[#475569]">
-              Kết nối 96 đơn vị hành chính cấp cơ sở (14 Phường • 79 Xã • 3 Đặc khu) với Trợ lý Một cửa và Bản đồ sự cố.
+              Kết nối 102 đơn vị hành chính cấp cơ sở (14 Phường • 85 Xã • 3 Đặc khu) với Trợ lý Một cửa và Bản đồ sự cố.
             </p>
           </div>
 
