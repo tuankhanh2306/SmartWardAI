@@ -75,4 +75,8 @@ console.log(`  Total: ${total}`);
 console.log(`  Passed: ${passed}`);
 console.log(`  Failed: ${total - passed}`);
 console.log('================================================================');
+if (passed < total) {
+  console.error(`❌ VOICE NORMALIZATION TEST FAILED (${total - passed} failures)`);
+  process.exit(1);
+}
 console.log('🎉 ALL VOICE TRANSCRIPT NORMALIZATION TESTS PASSED!\n');

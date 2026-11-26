@@ -133,10 +133,13 @@ public class RagQueryService {
 
         if ((candidateChunks.isEmpty() || maxSimilarity < threshold) && procedureRepository != null) {
             List<LegalChunkMatch> hybridMatches = RagHybridFallbackMatcher.tryHybridProcedureKeywordMatch(
-                    effectiveQuery, procedureRepository, chunkRepository);
+                    effectiveQuery, procedureRepository, chunkRepository, includeOfficerScope, resolvedWard.wardCode());
             if (!hybridMatches.isEmpty()) {
-                candidateChunks = hybridMatches;
-                maxSimilarity = Math.max(computeMaxSimilarity(candidateChunks), 0.92);
+                double hybridMax = computeMaxSimilarity(hybridMatches);
+                if (candidateChunks.isEmpty() || hybridMax > maxSimilarity) {
+                    candidateChunks = hybridMatches;
+                    maxSimilarity = hybridMax;
+                }
             }
         }
 
@@ -240,15 +243,16 @@ public class RagQueryService {
                 vectorCandidates = chunkRepository.findTopKSimilarChunksWithAcl(
                         pgVectorString, activeModelId, includeOfficerScope, wardCode, retrievalPoolSize);
             } catch (Exception aclEx) {
-                log.debug("ACL vector query fallback: {}", aclEx.getMessage());
+                log.debug("ACL vector query with model filter failed: {}", aclEx.getMessage());
             }
-            if (vectorCandidates == null || vectorCandidates.isEmpty()) {
-                vectorCandidates = (activeModelId != null && !activeModelId.isBlank())
-                        ? chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, activeModelId, k)
-                        : chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, k);
-                if (vectorCandidates == null || vectorCandidates.isEmpty()) {
-                    log.info("Zero chunks found for model '{}'. Falling back to all active chunks in database.", activeModelId);
-                    vectorCandidates = chunkRepository.findTopKSimilarChunksWithMetadata(pgVectorString, k);
+            if ((vectorCandidates == null || vectorCandidates.isEmpty())
+                    && activeModelId != null && !activeModelId.isBlank()) {
+                log.info("Zero ACL chunks found for model '{}'. Retrying ACL-scoped retrieval across active models.", activeModelId);
+                try {
+                    vectorCandidates = chunkRepository.findTopKSimilarChunksWithAcl(
+                            pgVectorString, null, includeOfficerScope, wardCode, retrievalPoolSize);
+                } catch (Exception crossModelEx) {
+                    log.debug("Cross-model ACL vector query fallback failed: {}", crossModelEx.getMessage());
                 }
             }
         }
