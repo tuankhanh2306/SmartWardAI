@@ -351,6 +351,51 @@ export interface OfficerPrincipal {
   mustChangePin?: boolean;
 }
 
+// ============================================================================
+// 7. Ward Registry API (TASK-024) & Push Notifications (TASK-023)
+// ============================================================================
+
+export interface WardApiDto {
+  code: string;
+  name: string;
+  type: 'Phường' | 'Xã' | 'Thị trấn' | 'Đặc khu';
+  area?: string;
+  province: string;
+  officeAddress: string;
+  phoneNumber?: string;
+  lat: number;
+  lon: number;
+  workingHours?: string;
+  onlineServices?: string[];
+  boundary?: [number, number][];
+  coordSource?: 'official_gis' | 'osm' | 'manual_verified' | 'unverified';
+  accuracyNote?: string;
+}
+
+export interface WardListApiResponse {
+  totalCount: number;
+  source: string;
+  updatedAt: string;
+  wards: WardApiDto[];
+}
+
+export interface RegisterPushDeviceRequest {
+  expoPushToken: string;
+  platform: 'ios' | 'android' | 'web';
+  wardCode?: string;
+  dossierCode?: string;
+  deviceLabel?: string;
+}
+
+export interface RegisterPushDeviceResponse {
+  registered: boolean;
+  deviceId: number;
+  platform: string;
+  wardCode?: string;
+  dossierCode?: string;
+  updatedAt: string;
+}
+
 export interface OfficerLoginResponse {
   accessToken: string;
   tokenType?: string;

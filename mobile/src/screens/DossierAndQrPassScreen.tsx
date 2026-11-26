@@ -19,6 +19,7 @@ import {
 } from 'react-native';
 import { Mail, QrCode, RefreshCw, Search } from 'lucide-react-native';
 import { trackCitizenDossier } from '../api/client';
+import { registerDossierPushSubscription } from '../services/pushNotifications';
 import { syncWalletQrPassesFromServer } from '../api/offlineSyncManager';
 import { ElectronicQrPassCard } from '../components/ElectronicQrPassCard';
 import { useAccessibility } from '../context/AccessibilityContext';
@@ -117,6 +118,10 @@ export const DossierAndQrPassScreen: React.FC = () => {
 
       await upsertWalletQrPass(row);
       await loadLocalPasses();
+      void registerDossierPushSubscription({
+        dossierCode: tracked.dossierCode,
+        wardCode: tracked.wardCode || currentWard.code,
+      }).catch(() => undefined);
       setDossierCodeInput('');
       setLast4Input('');
       setTrackNotice({
