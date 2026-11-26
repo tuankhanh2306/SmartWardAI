@@ -23,6 +23,7 @@ import { FormStep1UploadSection } from '../features/citizen-forms/FormStep1Uploa
 import { FormStep2FillSection } from '../features/citizen-forms/FormStep2FillSection';
 import { FormStep3PrecheckReport } from '../features/citizen-forms/FormStep3PrecheckReport';
 import { FormStep3QrPassAndInbox } from '../features/citizen-forms/FormStep3QrPassAndInbox';
+import { resolveSupportedFormTypeByProcedure } from '../features/citizen-forms/procedureFormMap';
 import type { CitizenFormType } from '../features/citizen-forms/useFormOcrUpload';
 
 const A4DocumentModal = React.lazy(() => import('../components/A4DocumentModal'));
@@ -32,7 +33,7 @@ const A4DocumentModal = React.lazy(() => import('../components/A4DocumentModal')
  * Modularized under TASK-019 into focused hooks and step components (<400 lines each).
  */
 export const FormAndIssueReporting: React.FC = () => {
-  const { currentWard } = useWard();
+  const { currentWard, allWards, setWard } = useWard();
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -57,16 +58,29 @@ export const FormAndIssueReporting: React.FC = () => {
   const tracking = useDossierTrackingHook(setMyDossiers);
   const incident = useIncidentReportingHook(currentWard, activeTab, setMyIncidents);
 
+  const urlProc = searchParams.get('procedure')?.trim().toUpperCase();
+  const mappedFromProc = resolveSupportedFormTypeByProcedure(urlProc);
   const urlType = searchParams.get('type')?.toUpperCase();
   const initialType: CitizenFormType =
-    urlType === 'TK-KS' || urlType === 'TK-KH' || urlType === 'TK-BTXH' || urlType === 'CT01'
+    mappedFromProc ||
+    (urlType === 'TK-KS' || urlType === 'TK-KH' || urlType === 'TK-BTXH' || urlType === 'CT01'
       ? urlType
-      : 'CT01';
+      : 'CT01');
+
+  // TASK-052: Validate ?ward= against commune catalog and persist across reloads
+  const urlWardParam = searchParams.get('ward')?.trim().toUpperCase();
+  useEffect(() => {
+    if (!urlWardParam || urlWardParam === 'AG_PROVINCE') return;
+    const validMatch = allWards.find((w) => w.code.toUpperCase() === urlWardParam);
+    if (validMatch && validMatch.code !== currentWard.code) {
+      setWard(validMatch);
+    }
+  }, [urlWardParam, allWards, currentWard.code, setWard]);
 
   const wizard = useFormPrecheckWizard({
     currentWard,
     initialType,
-    searchTypeParam: searchParams.get('type'),
+    searchTypeParam: mappedFromProc || searchParams.get('type'),
     agentDraftState: (location.state as any)?.agentDraft,
     setActiveTab,
     setReporterPhone: incident.setReporterPhone,

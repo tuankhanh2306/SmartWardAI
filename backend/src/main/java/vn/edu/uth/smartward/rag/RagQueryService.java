@@ -50,6 +50,9 @@ public class RagQueryService {
     @Autowired(required = false)
     private LegalChunkReranker reranker;
 
+    @Autowired(required = false)
+    private vn.edu.uth.smartward.ward.WardRegistryService wardRegistryService;
+
     private final RagHitlQueueManager hitlQueueManager = new RagHitlQueueManager();
 
     public record WardOfficeInfo(String wardCode, String wardName, String officeAddress) {}
@@ -155,6 +158,9 @@ public class RagQueryService {
         }
         generatedAnswer = sanitizeAnswerCitations(generatedAnswer, validCodes);
 
+        String resolvedProcCode = resolvePrimaryProcedureCode(candidateChunks, verifiedCitations);
+        String supportedFormType = mapProcedureToSupportedFormType(resolvedProcCode);
+
         RagAskResponse response = RagAskResponse.builder()
                 .answer(generatedAnswer)
                 .abstained(false)
@@ -164,6 +170,8 @@ public class RagQueryService {
                 .citations(verifiedCitations)
                 .cached(false)
                 .suggestions(generateProcedureSuggestions(candidateChunks))
+                .resolvedProcedureCode(resolvedProcCode)
+                .supportedFormType(supportedFormType)
                 .responseTimeMs(System.currentTimeMillis() - startTime)
                 .disclaimer(LEGAL_DISCLAIMER)
                 .build();
@@ -203,7 +211,24 @@ public class RagQueryService {
         String officeAddress = request.getOfficeAddress();
 
         if (wardCode != null && !wardCode.isBlank()) {
-            WardOfficeInfo info = REGISTERED_WARDS.get(wardCode.trim().toUpperCase());
+            String normalizedCode = wardCode.trim().toUpperCase();
+            if (wardRegistryService != null) {
+                try {
+                    vn.edu.uth.smartward.ward.WardDto dto = wardRegistryService.getWardByCode(normalizedCode);
+                    if (dto != null) {
+                        wardCode = dto.code();
+                        if (wardName == null || wardName.isBlank()) {
+                            wardName = "UBND " + dto.name() + ", " + dto.province();
+                        }
+                        if (officeAddress == null || officeAddress.isBlank()) {
+                            officeAddress = dto.officeAddress();
+                        }
+                    }
+                } catch (Exception ignored) {
+                    // Fallback to legacy REGISTERED_WARDS map if code is test fixture like WARD-AG-01
+                }
+            }
+            WardOfficeInfo info = REGISTERED_WARDS.get(normalizedCode);
             if (info != null) {
                 wardCode = info.wardCode();
                 wardName = info.wardName();
@@ -213,6 +238,35 @@ public class RagQueryService {
         if (wardName != null && wardName.length() > 120) wardName = wardName.substring(0, 120);
         if (officeAddress != null && officeAddress.length() > 300) officeAddress = officeAddress.substring(0, 300);
         return new WardOfficeInfo(wardCode, wardName, officeAddress);
+    }
+
+    static String resolvePrimaryProcedureCode(List<LegalChunkMatch> chunks, List<LegalCitationDto> citations) {
+        if (citations != null) {
+            for (LegalCitationDto c : citations) {
+                if (c != null && c.getProcedureCode() != null && !c.getProcedureCode().isBlank()) {
+                    return c.getProcedureCode().trim().toUpperCase();
+                }
+            }
+        }
+        if (chunks != null) {
+            for (LegalChunkMatch m : chunks) {
+                if (m != null && m.getProcedureCode() != null && !m.getProcedureCode().isBlank()) {
+                    return m.getProcedureCode().trim().toUpperCase();
+                }
+            }
+        }
+        return null;
+    }
+
+    public static String mapProcedureToSupportedFormType(String procedureCode) {
+        if (procedureCode == null || procedureCode.isBlank()) return null;
+        return switch (procedureCode.trim().toUpperCase()) {
+            case "TTHC-HT-01", "KS-01-DK" -> "TK-KS";
+            case "TTHC-HT-02", "TTHC-HT-11", "HT-02-DK" -> "TK-KH";
+            case "TTHC-BT-01" -> "TK-BTXH";
+            case "TTHC-CR-01", "CT-01" -> "CT01";
+            default -> null;
+        };
     }
 
     private String buildScopedCacheKey(String effectiveQuery, WardOfficeInfo ward, String category, boolean includeOfficerScope) {

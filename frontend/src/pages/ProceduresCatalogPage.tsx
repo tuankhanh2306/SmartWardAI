@@ -4,21 +4,18 @@ import {
   Search,
   FileText,
   Clock,
-  ArrowRight,
   ShieldCheck,
   ChevronRight,
-  ChevronDown,
-  ChevronUp,
   X,
   Bot,
   Loader2,
-  FileDown,
   FolderOpen,
 } from 'lucide-react';
 import { PROCEDURES_CATALOG, type ProcedureCatalogItem } from '../data/proceduresCatalog';
 import { getProcedures } from '../api/client';
 import { useWard } from '../context/WardContext';
 import DownwardDropdown from '../components/DownwardDropdown';
+import { ProcedureSummaryCard } from '../components/ProcedureSummaryCard';
 import { normalizeVi, highlightMatchedText } from '../utils/highlightMatch';
 const A4DocumentModal = React.lazy(() => import('../components/A4DocumentModal'));
 
@@ -70,10 +67,9 @@ export const ProceduresCatalogPage: React.FC = () => {
   const [selectedProcedureForModal, setSelectedProcedureForModal] = useState<ProcedureCatalogItem | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Search Recommendation Popover & Card Title Expand State
+  // Search Recommendation Popover State
   const [searchFocused, setSearchFocused] = useState(false);
   const searchBoxRef = useRef<HTMLDivElement>(null);
-  const [expandedProcCodes, setExpandedProcCodes] = useState<Set<string>>(() => new Set());
 
   const resultsHeadingRef = useRef<HTMLDivElement>(null);
 
@@ -96,15 +92,6 @@ export const ProceduresCatalogPage: React.FC = () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [searchFocused]);
-
-  const toggleExpandProc = (code: string) => {
-    setExpandedProcCodes((prev) => {
-      const next = new Set(prev);
-      if (next.has(code)) next.delete(code);
-      else next.add(code);
-      return next;
-    });
-  };
 
   // Categories list
   const categories = useMemo(() => {
@@ -193,12 +180,12 @@ export const ProceduresCatalogPage: React.FC = () => {
     return 'GENERAL';
   };
 
-  const getFormUrl = (code: string) => {
-    if (code === 'TTHC-CR-01') return '/citizen/form?type=CT01#form';
-    if (code === 'TTHC-HT-01') return '/citizen/form?type=TK-KS#form';
-    if (code === 'TTHC-HT-02') return '/citizen/form?type=TK-KH#form';
-    if (code === 'TTHC-BT-01') return '/citizen/form?type=TK-BTXH#form';
-    return '/citizen/form#form';
+  const getFormUrl = (code: string, wardCode: string = currentWard.code) => {
+    const cleanCode = code.trim().toUpperCase();
+    if (['TTHC-CR-01', 'TTHC-HT-01', 'TTHC-HT-02', 'TTHC-BT-01'].includes(cleanCode)) {
+      return `/citizen/form?procedure=${encodeURIComponent(cleanCode)}&ward=${encodeURIComponent(wardCode)}#form`;
+    }
+    return `/citizen/form?ward=${encodeURIComponent(wardCode)}#form`;
   };
 
   const quickProcedures = useMemo(
@@ -549,108 +536,30 @@ export const ProceduresCatalogPage: React.FC = () => {
                 </div>
               ) : (
                 filteredProcedures.map((proc) => {
-                  const isTop4 = hasDirectForm(proc.code);
-                  const isExpanded = expandedProcCodes.has(proc.code);
-                  const isLongTitle = proc.name.length > 68;
                   const freeFee = isFeeExempt(proc);
+                  const supportedFormType =
+                    proc.code === 'TTHC-CR-01'
+                      ? 'CT01'
+                      : proc.code === 'TTHC-HT-01'
+                      ? 'TK-KS'
+                      : proc.code === 'TTHC-HT-02'
+                      ? 'TK-KH'
+                      : proc.code === 'TTHC-BT-01'
+                      ? 'TK-BTXH'
+                      : null;
                   return (
-                    <article
+                    <ProcedureSummaryCard
                       key={proc.code}
-                      className="group h-full p-4 rounded-xl border border-slate-200/90 hover:border-[#FCA5A5] hover:shadow-sm transition-all bg-white flex flex-col justify-between gap-3"
-                    >
-                      <div className="flex flex-col gap-2 min-w-0">
-                        <div className="flex flex-wrap items-center justify-between gap-1.5">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-[#FEF2F2] text-[#9F0C1E] border border-[#FECACA] shrink-0">
-                              {proc.code}
-                            </span>
-                            {isTop4 && (
-                              <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-50 text-amber-900 border border-amber-200 shrink-0">
-                                Trực tuyến
-                              </span>
-                            )}
-                          </div>
-                          <span
-                            className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${
-                              freeFee
-                                ? 'text-[#065F46] bg-[#ECFDF5] border border-[#A7F3D0]'
-                                : 'text-slate-700 bg-slate-100 border border-slate-200'
-                            }`}
-                          >
-                            {freeFee ? 'Miễn phí' : 'Có thu phí'}
-                          </span>
-                        </div>
-
-                        <div className="flex flex-col gap-1">
-                          <h3 className="font-bold text-sm text-slate-900 group-hover:text-[#9F0C1E] transition-colors leading-snug">
-                            <button
-                              type="button"
-                              onClick={() => handleOpenA4(proc)}
-                              className={`text-left hover:underline cursor-pointer gov-focus-ring rounded w-full ${
-                                isExpanded ? '' : 'line-clamp-2 min-h-[2.5rem]'
-                              }`}
-                            >
-                              {proc.name}
-                            </button>
-                          </h3>
-                          {isLongTitle && (
-                            <button
-                              type="button"
-                              onClick={() => toggleExpandProc(proc.code)}
-                              aria-expanded={isExpanded}
-                              className="self-start inline-flex items-center gap-0.5 text-[11px] font-semibold text-[#9F0C1E] hover:underline cursor-pointer gov-focus-ring rounded"
-                            >
-                              <span>{isExpanded ? 'Thu gọn' : 'Xem thêm'}</span>
-                              {isExpanded ? (
-                                <ChevronUp className="w-3.5 h-3.5" />
-                              ) : (
-                                <ChevronDown className="w-3.5 h-3.5" />
-                              )}
-                            </button>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-medium text-slate-600 truncate min-w-0">
-                          {proc.category}
-                        </span>
-
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenA4(proc)}
-                            className="px-2.5 py-1.5 rounded-lg border border-slate-300 hover:border-[#B90E23] hover:bg-[#FEF2F2] text-slate-700 hover:text-[#9F0C1E] text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer gov-focus-ring"
-                            title="Xem trước và tải về bản Word (.docx) hoặc PDF chuẩn Nghị định 30/2020/NĐ-CP"
-                          >
-                            <FileDown className="w-3.5 h-3.5" />
-                            <span>Mẫu A4</span>
-                          </button>
-
-                          {isTop4 ? (
-                            <button
-                              type="button"
-                              onClick={() => navigate(getFormUrl(proc.code))}
-                              className="px-3 py-1.5 rounded-lg bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer shadow-2xs gov-focus-ring"
-                            >
-                              <span>Kê khai</span>
-                              <ArrowRight className="w-3.5 h-3.5" />
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={() =>
-                                navigate(`/citizen?query=${encodeURIComponent('Thủ tục ' + proc.name + ' cần chuẩn bị giấy tờ gì?')}`)
-                              }
-                              className="px-2.5 py-1.5 rounded-lg bg-[#FEF2F2] hover:bg-[#FEE2E2] text-[#9F0C1E] border border-[#FECACA] text-xs font-semibold inline-flex items-center gap-1 transition cursor-pointer gov-focus-ring"
-                            >
-                              <Bot className="w-3.5 h-3.5" />
-                              <span>Hỏi AI</span>
-                            </button>
-                          )}
-                        </div>
-                      </div>
-                    </article>
+                      procedureCode={proc.code}
+                      procedureName={proc.name}
+                      category={proc.category}
+                      isFeeExempt={freeFee}
+                      feeLabel={freeFee ? 'Miễn phí' : 'Có thu phí'}
+                      supportedFormType={supportedFormType}
+                      ward={currentWard}
+                      onStartForm={(code, _ft, wardCode) => navigate(getFormUrl(code, wardCode))}
+                      onViewDocsAndOffice={() => handleOpenA4(proc)}
+                    />
                   );
                 })
               )}
