@@ -89,13 +89,39 @@ export function isPointInPolygon(
   return inside;
 }
 
+const POI_PREFIX_BEFORE_WARD_RE =
+  /(?:benh vien|phong kham|tram y te|trung tam y te|truong|cho|duong|cau|cong vien|khach san|nha tho|chua|ngan hang|sieu thi|ben xe|cang|nha thuoc|cong ty)\s+$/i;
+
+function findWardContainingPoint(lat: number, lon: number): { ward: WardItem; distanceMeters: number } | null {
+  let bestWard: WardItem | null = null;
+  let minDistance = Number.POSITIVE_INFINITY;
+
+  for (const w of AN_GIANG_WARDS) {
+    if (w.boundary && w.boundary.length >= 3 && isPointInPolygon(lat, lon, w.boundary)) {
+      const dist = calculateHaversineMeters(lat, lon, w.lat, w.lon);
+      if (dist < minDistance) {
+        minDistance = dist;
+        bestWard = w;
+      }
+    }
+  }
+
+  return bestWard ? { ward: bestWard, distanceMeters: Math.round(minDistance) } : null;
+}
+
 /**
- * Finds the nearest administrative ward/commune/special zone in An Giang by GPS coordinates.
+ * Finds the administrative ward/commune/special zone in An Giang by GPS coordinates.
+ * TASK-049: Prioritizes strict Point-in-Polygon containment before falling back to centroid Haversine distance.
  */
 export function findNearestWardByGps(
   lat: number,
   lon: number
 ): { ward: WardItem; distanceMeters: number } {
+  const insidePolygon = findWardContainingPoint(lat, lon);
+  if (insidePolygon) {
+    return insidePolygon;
+  }
+
   let bestWard = DEFAULT_WARD;
   let minDistance = Number.POSITIVE_INFINITY;
 
@@ -118,8 +144,8 @@ export interface WardResolutionResult {
 
 /**
  * Resolves receiving Ward/Commune/Special Zone with strict priority:
- * Priority 1: Ward name detected in Citizen's Location Box (`TEXT_BOX`)
- * Priority 2: Nearest ward by GPS Haversine coordinates (`GPS_COORDS`)
+ * Priority 1: Explicit administrative unit name in Citizen's Location Box (`TEXT_BOX`)
+ * Priority 2: Point-in-Polygon / nearest ward by GPS coordinates (`GPS_COORDS`)
  * Priority 3: Fallback wardCode or DEFAULT_WARD (`FALLBACK`)
  */
 export function resolveWardFromLocationBox(
@@ -136,8 +162,10 @@ export function resolveWardFromLocationBox(
     Number.isFinite(lat) &&
     Number.isFinite(lon);
 
+  const polygonMatch = hasValidCoords ? findWardContainingPoint(lat!, lon!) : null;
+
   if (normAddr) {
-    // Pass 1: Match full ward name (e.g. "Phường Long Xuyên", "Đặc khu Phú Quốc")
+    // Pass 1: Match full explicit administrative name (e.g. "Phường Long Xuyên", "Đặc khu Phú Quốc")
     for (const w of sortedWards) {
       const fullNorm = normalizeVietnameseText(w.name);
       if (fullNorm && normAddr.includes(fullNorm)) {
@@ -147,6 +175,7 @@ export function resolveWardFromLocationBox(
     }
 
     // Pass 2: Match core ward name without prefix ("phuong ", "xa ", "thi tran ", "dac khu ")
+    // Guard against reverse-geocode POI false positives (e.g. "Bệnh viện Bình An" inside Phường Rạch Giá)
     for (const w of sortedWards) {
       const coreName = normalizeVietnameseText(w.name)
         .replace(/^(phuong|xa|thi tran|dac khu)\s+/i, '')
@@ -154,17 +183,26 @@ export function resolveWardFromLocationBox(
       if (coreName.length >= 4) {
         const escaped = coreName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
         const regex = new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, 'i');
-        if (regex.test(normAddr)) {
+        const match = regex.exec(normAddr);
+        if (match) {
+          const matchStart = match.index + (match[1] ? match[1].length : 0);
+          const beforeText = normAddr.slice(0, matchStart);
+          if (POI_PREFIX_BEFORE_WARD_RE.test(beforeText)) {
+            continue;
+          }
           const dist = hasValidCoords ? calculateHaversineMeters(lat!, lon!, w.lat, w.lon) : 0;
+          if (polygonMatch && polygonMatch.ward.code !== w.code && dist > 8000) {
+            continue;
+          }
           return { ward: w, matchedBy: 'TEXT_BOX', distanceMeters: Math.round(dist) };
         }
       }
     }
   }
 
-  // Priority 2: GPS coordinates nearest ward
+  // Priority 2: GPS coordinates (Point-in-Polygon first, then Haversine fallback)
   if (hasValidCoords) {
-    const nearest = findNearestWardByGps(lat!, lon!);
+    const nearest = polygonMatch || findNearestWardByGps(lat!, lon!);
     return {
       ward: nearest.ward,
       matchedBy: 'GPS_COORDS',
