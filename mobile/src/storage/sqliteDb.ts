@@ -8,6 +8,12 @@
  */
 
 import type { CivicReportRequest, ProcedureItem } from '../types/api.types';
+import {
+  buildSqlCipherPragmaKeyStatement,
+  decryptWalletField,
+  encryptWalletField,
+  getOrCreateSqliteMasterKeyHex,
+} from './sqliteEncryption';
 
 export const SQLITE_DB_NAME = 'smartward_mobile.db';
 
@@ -110,6 +116,12 @@ async function getDatabase(): Promise<MinimalSQLiteDatabase | null> {
     const SQLite = await import('expo-sqlite');
     if (typeof SQLite.openDatabaseAsync === 'function') {
       const db = await SQLite.openDatabaseAsync(SQLITE_DB_NAME);
+      try {
+        const masterKeyHex = await getOrCreateSqliteMasterKeyHex();
+        await db.execAsync(buildSqlCipherPragmaKeyStatement(masterKeyHex));
+      } catch {
+        // Native SQLCipher pragma unavailable in non-SQLCipher runtime; column-level AES-256-GCM still active
+      }
       for (const stmt of SQLITE_SCHEMA_STATEMENTS) {
         await db.execAsync(stmt);
       }
@@ -198,6 +210,32 @@ export function buildSmartWardPassPayload(
 }
 
 export async function upsertWalletQrPass(row: WalletQrPassRow): Promise<void> {
+  const [
+    encCitizenName,
+    encCccdMask,
+    encLast4,
+    encEmail,
+    encFeedback,
+    encQrPayload,
+  ] = await Promise.all([
+    encryptWalletField(row.citizen_name),
+    encryptWalletField(row.citizen_cccd_mask),
+    encryptWalletField(row.citizen_last4),
+    encryptWalletField(row.citizen_email),
+    encryptWalletField(row.officer_feedback),
+    encryptWalletField(row.qr_payload),
+  ]);
+
+  const encryptedRow: WalletQrPassRow = {
+    ...row,
+    citizen_name: encCitizenName ?? '',
+    citizen_cccd_mask: encCccdMask ?? '',
+    citizen_last4: encLast4 ?? '',
+    citizen_email: encEmail,
+    officer_feedback: encFeedback,
+    qr_payload: encQrPayload ?? '',
+  };
+
   const db = await getDatabase();
   if (db) {
     await db.runAsync(
@@ -206,35 +244,66 @@ export async function upsertWalletQrPass(row: WalletQrPassRow): Promise<void> {
          citizen_name, citizen_cccd_mask, citizen_last4, citizen_email, status, officer_feedback,
          sla_deadline, qr_payload, synced_at)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      row.dossier_code,
-      row.appointment_code,
-      row.procedure_code,
-      row.procedure_name,
-      row.ward_code,
-      row.ward_name,
-      row.citizen_name,
-      row.citizen_cccd_mask,
-      row.citizen_last4,
-      row.citizen_email,
-      row.status,
-      row.officer_feedback,
-      row.sla_deadline,
-      row.qr_payload,
-      row.synced_at
+      encryptedRow.dossier_code,
+      encryptedRow.appointment_code,
+      encryptedRow.procedure_code,
+      encryptedRow.procedure_name,
+      encryptedRow.ward_code,
+      encryptedRow.ward_name,
+      encryptedRow.citizen_name,
+      encryptedRow.citizen_cccd_mask,
+      encryptedRow.citizen_last4,
+      encryptedRow.citizen_email,
+      encryptedRow.status,
+      encryptedRow.officer_feedback,
+      encryptedRow.sla_deadline,
+      encryptedRow.qr_payload,
+      encryptedRow.synced_at
     );
   } else {
-    memoryWalletPasses.set(row.dossier_code, row);
+    memoryWalletPasses.set(encryptedRow.dossier_code, encryptedRow);
   }
+}
+
+async function decryptWalletQrPassRow(row: WalletQrPassRow): Promise<WalletQrPassRow> {
+  const [
+    citizenName,
+    cccdMask,
+    last4,
+    email,
+    feedback,
+    qrPayload,
+  ] = await Promise.all([
+    decryptWalletField(row.citizen_name),
+    decryptWalletField(row.citizen_cccd_mask),
+    decryptWalletField(row.citizen_last4),
+    decryptWalletField(row.citizen_email),
+    decryptWalletField(row.officer_feedback),
+    decryptWalletField(row.qr_payload),
+  ]);
+
+  return {
+    ...row,
+    citizen_name: citizenName ?? '',
+    citizen_cccd_mask: cccdMask ?? '',
+    citizen_last4: last4 ?? '',
+    citizen_email: email,
+    officer_feedback: feedback,
+    qr_payload: qrPayload ?? '',
+  };
 }
 
 export async function getAllWalletQrPasses(): Promise<WalletQrPassRow[]> {
   const db = await getDatabase();
-  if (db) {
-    return db.getAllAsync<WalletQrPassRow>(
-      'SELECT * FROM wallet_qr_passes ORDER BY synced_at DESC'
-    );
-  }
-  return Array.from(memoryWalletPasses.values()).sort((a, b) => b.synced_at - a.synced_at);
+  const rawRows = db
+    ? await db.getAllAsync<WalletQrPassRow>('SELECT * FROM wallet_qr_passes ORDER BY synced_at DESC')
+    : Array.from(memoryWalletPasses.values()).sort((a, b) => b.synced_at - a.synced_at);
+
+  return Promise.all(rawRows.map(decryptWalletQrPassRow));
+}
+
+export function getRawMemoryWalletPassForTests(dossierCode: string): WalletQrPassRow | undefined {
+  return memoryWalletPasses.get(dossierCode);
 }
 
 export async function deleteWalletQrPass(dossierCode: string): Promise<void> {

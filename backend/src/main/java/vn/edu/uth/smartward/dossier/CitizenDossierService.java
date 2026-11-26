@@ -37,6 +37,7 @@ public class CitizenDossierService {
     private final RedisRateLimiter rateLimiter;
     private final DossierEventRepository dossierEventRepository;
     private final vn.edu.uth.smartward.audit.AuditService auditService;
+    private final vn.edu.uth.smartward.notification.PushNotificationService pushNotificationService;
     private static final int MAX_IDEMPOTENCY_CACHE_SIZE = 1000;
     private final Map<String, DossierSubmissionResponse> idempotencyCache = new java.util.concurrent.ConcurrentHashMap<>();
 
@@ -48,13 +49,24 @@ public class CitizenDossierService {
                                  ObjectMapper objectMapper,
                                  @Autowired(required = false) RedisRateLimiter rateLimiter,
                                  @Autowired(required = false) DossierEventRepository dossierEventRepository,
-                                 @Autowired(required = false) vn.edu.uth.smartward.audit.AuditService auditService) {
+                                 @Autowired(required = false) vn.edu.uth.smartward.audit.AuditService auditService,
+                                 @Autowired(required = false) vn.edu.uth.smartward.notification.PushNotificationService pushNotificationService) {
         this.dossierRepository = dossierRepository;
         this.procedureRepository = procedureRepository;
         this.objectMapper = objectMapper;
         this.rateLimiter = rateLimiter;
         this.dossierEventRepository = dossierEventRepository;
         this.auditService = auditService;
+        this.pushNotificationService = pushNotificationService;
+    }
+
+    public CitizenDossierService(CitizenDossierRepository dossierRepository,
+                                 AdminProcedureRepository procedureRepository,
+                                 ObjectMapper objectMapper,
+                                 RedisRateLimiter rateLimiter,
+                                 DossierEventRepository dossierEventRepository,
+                                 vn.edu.uth.smartward.audit.AuditService auditService) {
+        this(dossierRepository, procedureRepository, objectMapper, rateLimiter, dossierEventRepository, auditService, null);
     }
 
     public CitizenDossierService(CitizenDossierRepository dossierRepository,
@@ -452,6 +464,11 @@ public class CitizenDossierService {
                     "127.0.0.1",
                     null
             );
+        }
+
+        // 5. Trigger Mobile Push Notification (TASK-023)
+        if (pushNotificationService != null) {
+            pushNotificationService.notifyDossierStatusChanged(saved, oldStatus, effectiveFeedback);
         }
 
         return saved;

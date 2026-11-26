@@ -29,10 +29,13 @@ import type {
   ProcedureItem,
   RagAskRequest,
   RagAskResponse,
+  RegisterPushDeviceRequest,
+  RegisterPushDeviceResponse,
   StructuredFormPrecheckRequest,
   StructuredFormPrecheckResponse,
   SubmitDossierRequest,
   VaultUploadResponse,
+  WardListApiResponse,
 } from '../types/api.types';
 
 export const DEFAULT_EMULATOR_API_BASE_URL = 'http://10.0.2.2:8080/api/v1';
@@ -536,4 +539,42 @@ export async function logoutOfficer(): Promise<void> {
   } finally {
     await clearOfficerSession();
   }
+}
+
+// ============================================================================
+// 6. Ward Registry Dynamic Sync (TASK-024) & Push Notifications (TASK-023)
+// ============================================================================
+
+export async function fetchWardsCatalog(params?: {
+  q?: string;
+  type?: string;
+  includeBoundary?: boolean;
+}): Promise<WardListApiResponse> {
+  const resp = await apiClient.get<ApiResponse<WardListApiResponse>>('/wards', {
+    params: {
+      q: params?.q,
+      type: params?.type,
+      includeBoundary: params?.includeBoundary ?? true,
+    },
+    timeout: PROCEDURES_SYNC_TIMEOUT_MS,
+  });
+  return unwrapData(resp.data);
+}
+
+export async function registerPushDevice(
+  request: RegisterPushDeviceRequest
+): Promise<RegisterPushDeviceResponse> {
+  const resp = await apiClient.post<ApiResponse<RegisterPushDeviceResponse>>(
+    '/notifications/register-device',
+    request
+  );
+  return unwrapData(resp.data);
+}
+
+export async function unregisterPushDevice(expoPushToken: string): Promise<{ unregistered: boolean }> {
+  const resp = await apiClient.post<ApiResponse<{ unregistered: boolean }>>(
+    '/notifications/unregister-device',
+    { expoPushToken }
+  );
+  return unwrapData(resp.data);
 }
