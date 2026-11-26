@@ -595,12 +595,57 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                     <div className="min-w-0">
                       <span className="text-[10px] text-[#64748B] block">SĐT định danh tra cứu:</span>
                       <span className="font-mono font-bold text-[#0F172A] truncate block">
-                        {selectedDossier.contactPhone || '0918234567'}
+                        {selectedDossier.contactPhone || 'Chưa cung cấp SĐT'}
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
+
+              {/* TK-KS Birth Registration Specialized Fields (TASK-051) */}
+              {selectedDossier.formType === 'Khai sinh' &&
+                ((selectedDossier.details as any)?.motherName ||
+                  (selectedDossier.details as any)?.birthCertNumber ||
+                  (selectedDossier.details as any)?.childBirthPlace) && (
+                  <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200 flex flex-col gap-2 text-xs">
+                    <span className="font-bold text-[#750715] uppercase tracking-wider">
+                      Thông Tin Hộ Tịch Khai Sinh (TTHC-HT-01 • Mẫu TK-KS)
+                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                      <div>
+                        <span className="text-[#64748B] block">Họ tên Mẹ:</span>
+                        <span className="font-bold text-[#0F172A] uppercase">
+                          {(selectedDossier.details as any)?.motherName || 'Chưa khai'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[#64748B] block">Họ tên Cha:</span>
+                        <span className="font-bold text-[#0F172A] uppercase">
+                          {(selectedDossier.details as any)?.fatherName || 'Không khai / Chưa nhận cha con'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[#64748B] block">Số Giấy chứng sinh:</span>
+                        <span className="font-mono font-bold text-[#0F2942]">
+                          {(selectedDossier.details as any)?.birthCertNumber || 'Chưa khai'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-[#64748B] block">Dân tộc / Tình trạng hôn nhân cha mẹ:</span>
+                        <span className="font-semibold text-[#0F172A]">
+                          {(selectedDossier.details as any)?.childEthnicity || 'Kinh'} •{' '}
+                          {(selectedDossier.details as any)?.parentsMarried === 'NO' ? 'Chưa ĐKKH' : 'Đã ĐKKH'}
+                        </span>
+                      </div>
+                      <div className="sm:col-span-2">
+                        <span className="text-[#64748B] block">Nơi sinh (Cơ sở y tế):</span>
+                        <span className="font-semibold text-[#0F172A]">
+                          {(selectedDossier.details as any)?.childBirthPlace || 'Chưa khai'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
               {/* AI Vision Gate Verification Summary */}
               <div className="p-3.5 rounded-2xl bg-[#F0FDFA] border border-[#99F6E4] flex items-center justify-between gap-3 text-xs text-[#0F766E]">

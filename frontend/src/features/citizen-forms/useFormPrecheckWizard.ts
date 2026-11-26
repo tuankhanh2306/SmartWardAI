@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   getCitizenEmailNotifications,
   getLiveSubmittedDossiers,
@@ -16,6 +16,15 @@ import type { DecodedCccdQr, QrFieldDiscrepancy } from '../../utils/cccdQrParser
 import type { WardItem } from '../../data/anGiangWards';
 import { citizenDossierFormSchema, extractZodFieldErrors } from '../../schemas/formValidation';
 import { useFormOcrUpload, type CitizenFormType } from './useFormOcrUpload';
+import {
+  buildCanonicalSubmissionFormData,
+  computeFormSnapshotFingerprint,
+  focusFirstInvalidPrecheckField,
+  generateSubmissionAttemptUuid,
+  resolveCanonicalProcedureCode,
+  resolveOfficerDisplayFormLabel,
+  type MarriageFormMode,
+} from './procedureFormMap';
 
 export function useFormPrecheckWizard(params: {
   currentWard: WardItem;
@@ -31,17 +40,9 @@ export function useFormPrecheckWizard(params: {
   setTrackingLast4Cccd: (last4: string) => void;
 }) {
   const {
-    currentWard,
-    initialType,
-    searchTypeParam,
-    agentDraftState,
-    setActiveTab,
-    setReporterPhone,
-    myDossiers,
-    setMyDossiers,
-    setEmailNotifications,
-    setTrackingDossierCode,
-    setTrackingLast4Cccd,
+    currentWard, initialType, searchTypeParam, agentDraftState, setActiveTab,
+    setReporterPhone, myDossiers, setMyDossiers, setEmailNotifications,
+    setTrackingDossierCode, setTrackingLast4Cccd,
   } = params;
 
   const [selectedFormType, setSelectedFormType] = useState<CitizenFormType>(initialType);
@@ -50,6 +51,7 @@ export function useFormPrecheckWizard(params: {
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [showCccdQrModal, setShowCccdQrModal] = useState(false);
   const [qrDiscrepancies, setQrDiscrepancies] = useState<QrFieldDiscrepancy[]>([]);
+
   const [fullName, setFullName] = useState(''); const [cccd, setCccd] = useState('');
   const [dob, setDob] = useState(''); const [gender, setGender] = useState('Nam');
   const [issueDate, setIssueDate] = useState(''); const [address, setAddress] = useState('');
@@ -63,7 +65,7 @@ export function useFormPrecheckWizard(params: {
   const [childBirthPlace, setChildBirthPlace] = useState(''); const [birthCertNumber, setBirthCertNumber] = useState('');
   const [birthCertIssueDate, setBirthCertIssueDate] = useState(''); const [fatherDob] = useState(''); const [motherDob] = useState('');
   const [fatherResidence, setFatherResidence] = useState(''); const [motherResidence, setMotherResidence] = useState('');
-  const [marriageMode, setMarriageMode] = useState<'MARRIAGE_REGISTRATION' | 'MARITAL_STATUS_CONFIRMATION'>('MARRIAGE_REGISTRATION');
+  const [marriageMode, setMarriageMode] = useState<MarriageFormMode>('MARRIAGE_REGISTRATION');
   const [partnerName, setPartnerName] = useState(''); const [partnerCccd, setPartnerCccd] = useState('');
   const [partnerDob, setPartnerDob] = useState(''); const [partnerGender, setPartnerGender] = useState<'Nam' | 'Nữ'>('Nam');
   const [partnerAddress, setPartnerAddress] = useState(''); const [applicantEthnicity, setApplicantEthnicity] = useState('Kinh');
@@ -84,7 +86,10 @@ export function useFormPrecheckWizard(params: {
   const [paymentMethod, setPaymentMethod] = useState<'BANK' | 'CASH' | 'EWALLET'>('BANK');
 
   const [formLoading, setFormLoading] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [precheckResult, setPrecheckResult] = useState<FormPrecheckResponse | null>(null);
+  const [verifiedSnapshotHash, setVerifiedSnapshotHash] = useState<string | null>(null);
+  const [submissionAttemptUuid, setSubmissionAttemptUuid] = useState<string>(() => generateSubmissionAttemptUuid());
   const [submittedDossier, setSubmittedDossier] = useState<DossierSubmissionResponse | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
@@ -115,6 +120,37 @@ export function useFormPrecheckWizard(params: {
     setDisabilityCertNumber, setDisabilityCertIssueDate, setGuardianName, setGuardianCccd,
     setGuardianRelation, setGuardianPhone, setBankAccount,
   });
+
+  const canonicalProcedureCode = resolveCanonicalProcedureCode(selectedFormType, marriageMode);
+  const currentFormDataPayload = useMemo(
+    () =>
+      buildCanonicalSubmissionFormData({
+        selectedFormType, fullName, dob, gender, issueDate, address, phoneNumber, citizenEmail,
+        sharpnessScore: ocr.visionGateResult?.sharpnessScore ?? null,
+        templateMatched: ocr.visionGateResult?.templateMatched ?? null,
+        hostName, hostCccd, hostRelation, declarationScope,
+        hospitalBirthDate, motherName, hospitalMotherName, motherResidence,
+        fatherName, fatherResidence, parentsMarried, childEthnicity, childNationality,
+        childBirthPlace, birthCertNumber, birthCertIssueDate,
+        marriageMode, partnerName, partnerCccd, partnerDob, partnerGender,
+        partnerAddress, maritalCertPurpose, previousMaritalStatus,
+        disabilityLevel, householdStatus, bankAccount, socialTargetGroup,
+      }),
+    [
+      selectedFormType, fullName, dob, gender, issueDate, address, phoneNumber, citizenEmail,
+      ocr.visionGateResult, hostName, hostCccd, hostRelation, declarationScope,
+      hospitalBirthDate, motherName, hospitalMotherName, motherResidence, fatherName, fatherResidence,
+      parentsMarried, childEthnicity, childNationality, childBirthPlace, birthCertNumber, birthCertIssueDate,
+      marriageMode, partnerName, partnerCccd, partnerDob, partnerGender, partnerAddress,
+      maritalCertPurpose, previousMaritalStatus, disabilityLevel, householdStatus, bankAccount, socialTargetGroup,
+    ]
+  );
+
+  const currentFingerprint = useMemo(
+    () => computeFormSnapshotFingerprint(canonicalProcedureCode, currentWard.code, cccd, currentFormDataPayload),
+    [canonicalProcedureCode, currentWard.code, cccd, currentFormDataPayload]
+  );
+  const isPrecheckDirty = Boolean(precheckResult && verifiedSnapshotHash && verifiedSnapshotHash !== currentFingerprint);
 
   useEffect(() => {
     const type = searchTypeParam?.toUpperCase();
@@ -151,36 +187,30 @@ export function useFormPrecheckWizard(params: {
   }, [selectedFormType, hostRelation, fullName, cccd, hostName, hostCccd]);
 
   const handleCccdQrSuccess = (decoded: DecodedCccdQr, discrepancies: QrFieldDiscrepancy[]) => {
-    setCccd(decoded.cccdNumber);
-    setFullName(decoded.fullName);
-    setDob(decoded.dateOfBirth);
-    setGender(decoded.gender);
-    setAddress(decoded.address);
+    setCccd(decoded.cccdNumber); setFullName(decoded.fullName); setDob(decoded.dateOfBirth);
+    setGender(decoded.gender); setAddress(decoded.address);
     if (decoded.issueDate) setIssueDate(decoded.issueDate);
-    ocr.setOcrSuccess(true);
-    ocr.setOcrConfidence(100);
-    setPrecheckResult(null);
-    setQrDiscrepancies(discrepancies);
+    ocr.setOcrSuccess(true); ocr.setOcrConfidence(100);
+    setPrecheckResult(null); setVerifiedSnapshotHash(null); setQrDiscrepancies(discrepancies);
   };
 
   const handleSelectFormType = (type: CitizenFormType) => {
     setSelectedFormType(type);
     setPrecheckResult(null);
+    setVerifiedSnapshotHash(null);
+    setSubmittedDossier(null);
+    setSubmissionAttemptUuid(generateSubmissionAttemptUuid());
     setFormErrors({});
     setSubmitError(null);
   };
 
+  // STEP 2 ACTION: Precheck ONLY (never submits dossier automatically!)
   const handlePrecheck = async () => {
     if (
       ocr.visionGateResult &&
-      (ocr.visionGateResult.isBlurry ||
-        ocr.visionGateResult.isTooDark ||
-        ocr.visionGateResult.isGlared ||
-        !ocr.visionGateResult.templateMatched)
+      (ocr.visionGateResult.isBlurry || ocr.visionGateResult.isTooDark || ocr.visionGateResult.isGlared || !ocr.visionGateResult.templateMatched)
     ) {
-      const reason = !ocr.visionGateResult.templateMatched
-        ? ocr.visionGateResult.templateMessage
-        : ocr.visionGateResult.qualityMessage;
+      const reason = !ocr.visionGateResult.templateMatched ? ocr.visionGateResult.templateMessage : ocr.visionGateResult.qualityMessage;
       setSubmitError(`CHỐT CHẶN CHẤT LƯỢNG ẢNH: ${reason}. Vui lòng chụp lại ảnh rõ nét hoặc chọn đúng biểu mẫu ở Bước 1.`);
       return;
     }
@@ -200,7 +230,7 @@ export function useFormPrecheckWizard(params: {
     }
 
     setFormErrors({});
-    const { fullName: cleanFullName, cccd: cleanCccd, phoneNumber: cleanPhone, citizenEmail: cleanEmail } = parsed.data;
+    const { fullName: cleanFullName, cccd: cleanCccd, phoneNumber: cleanPhone } = parsed.data;
     if (cleanFullName.length < 3 || !/^\d{12}$/.test(cleanCccd) || !/^0\d{9}$/.test(cleanPhone)) {
       setSubmitError('Dữ liệu định danh (Họ tên, CCCD 12 số, SĐT 10 số) chưa đạt chuẩn quy định.');
       return;
@@ -208,19 +238,9 @@ export function useFormPrecheckWizard(params: {
 
     setSubmitError(null);
     setFormLoading(true);
-    const procMap: Record<CitizenFormType, string> = {
-      CT01: 'TTHC-CR-01', 'TK-KS': 'TTHC-HT-01', 'TK-KH': 'TTHC-HT-02', 'TK-BTXH': 'TTHC-BT-01',
-    };
-    const procCodeMap: Record<CitizenFormType, string> = {
-      CT01: 'TTHC-CT-01', 'TK-KS': 'TTHC-CR-01', 'TK-KH': 'TTHC-CR-03', 'TK-BTXH': 'TTHC-BT-01',
-    };
-    const formLabels: Record<CitizenFormType, 'CT01' | 'Khai sinh' | 'Kết hôn' | 'Bảo trợ'> = {
-      CT01: 'CT01', 'TK-KS': 'Khai sinh', 'TK-KH': 'Kết hôn', 'TK-BTXH': 'Bảo trợ',
-    };
-
     try {
       const res = await precheckForm({
-        procedureCode: procMap[selectedFormType],
+        procedureCode: canonicalProcedureCode,
         formType: selectedFormType,
         citizenCccd: cleanCccd,
         fullName: cleanFullName,
@@ -228,47 +248,86 @@ export function useFormPrecheckWizard(params: {
         gender,
         cccdIssueDate: issueDate,
         address,
-        formData: {
-          permanentAddress: address, gender, phoneNumber: cleanPhone, phone: cleanPhone,
-          citizenEmail: cleanEmail, email: cleanEmail,
-          hostName, hostCccd, hostRelation, declarationScope, householdStatus,
-          hospitalBirthDate, motherName, hospitalMotherName, fatherName, parentsMarried,
-          partnerName, partnerDob, partnerGender, maritalCertPurpose, previousMaritalStatus,
-          disabilityLevel, bankAccount,
-        },
+        formData: currentFormDataPayload,
       });
       setPrecheckResult(res);
 
-      if (res.submissionId.startsWith('DRAFT_')) {
+      if (!res.overallValid) {
+        const firstInvalid = res.fieldValidations?.find((v) => !v.valid);
+        setVerifiedSnapshotHash(null);
         setSubmitError(
-          'Thiết bị đang ở chế độ ngoại tuyến. Bản sơ duyệt hiện tại chỉ là bản nháp nội bộ và chưa được máy chủ xác thực. ' +
-          'Vui lòng kết nối Internet để nộp chính thức lên Bộ phận Một cửa UBND xã/phường.'
+          firstInvalid?.errorMessage
+            ? `Phát hiện lỗi tiền kiểm: ${firstInvalid.errorMessage}`
+            : 'Tờ khai còn mục chưa hợp lệ. Hệ thống đã đưa con trỏ đến trường cần chỉnh sửa.'
+        );
+        focusFirstInvalidPrecheckField(res.fieldValidations);
+        setFormWizardStep(2);
+        return;
+      }
+
+      if (res.submissionId.startsWith('DRAFT_')) {
+        setVerifiedSnapshotHash(null);
+        setSubmitError(
+          'Thiết bị đang ở chế độ ngoại tuyến. Bản kiểm tra hiện tại chỉ là bản nháp nội bộ và chưa thể gửi chính thức lên UBND.'
         );
         return;
       }
 
+      setVerifiedSnapshotHash(currentFingerprint);
+      setSubmissionAttemptUuid(generateSubmissionAttemptUuid());
+      setSubmittedDossier(null);
+      setFormWizardStep(3);
+    } catch {
+      setSubmitError('Không thể kết nối hệ thống để kiểm tra tờ khai. Vui lòng thử lại.');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  // STEP 3 ACTION: Explicit Official Dossier Submission (reuses stable UUID on retry)
+  const handleSubmitDossier = async () => {
+    if (!precheckResult || !precheckResult.overallValid || precheckResult.submissionId.startsWith('DRAFT_')) {
+      setSubmitError('Vui lòng hoàn tất Kiểm tra tờ khai hợp lệ trước khi gửi hồ sơ.');
+      setFormWizardStep(2);
+      return;
+    }
+    if (verifiedSnapshotHash !== currentFingerprint) {
+      setSubmitError('Bạn vừa chỉnh sửa nội dung tờ khai sau lần kiểm tra trước. Vui lòng bấm "Kiểm tra tờ khai" lại trước khi gửi.');
+      setFormWizardStep(2);
+      return;
+    }
+
+    const cleanCccd = cccd.trim();
+    const cleanFullName = fullName.trim();
+    const cleanPhone = phoneNumber.trim();
+    const cleanEmail = citizenEmail.trim();
+    if (cleanFullName.length < 3 || !/^\d{12}$/.test(cleanCccd) || !/^0\d{9}$/.test(cleanPhone)) {
+      setSubmitError('Dữ liệu định danh (Họ tên, CCCD 12 số, SĐT 10 số) chưa đạt chuẩn quy định.');
+      return;
+    }
+
+    setSubmitError(null);
+    setSubmitLoading(true);
+    try {
       let submitRes: DossierSubmissionResponse;
       try {
         submitRes = await submitDossier({
-          procedureCode: procCodeMap[selectedFormType],
+          procedureCode: canonicalProcedureCode,
           wardCode: currentWard.code,
           citizenCccd: cleanCccd,
-          idempotencyKey: `IDEMP_${cleanCccd}_${procCodeMap[selectedFormType]}_${Date.now()}`,
-          formData: {
-            fullName: cleanFullName, dob: dob || '1990-01-01', gender: gender || 'Nam',
-            address: address || currentWard.name, phone: cleanPhone, email: cleanEmail, citizenEmail: cleanEmail,
-            sharpnessScore: ocr.visionGateResult?.sharpnessScore ?? 96,
-            templateMatched: ocr.visionGateResult?.templateMatched ?? true,
-            formType: selectedFormType,
-          },
-          precheckReport: res,
+          idempotencyKey: submissionAttemptUuid,
+          formData: currentFormDataPayload,
+          precheckReport: precheckResult,
           vaultDocIds: ocr.vaultDocInfo?.docId ? [ocr.vaultDocInfo.docId] : [],
         });
       } catch (submitErr: any) {
         console.error('[DossierSubmissionFailed]', submitErr?.message);
+        const serverMsg = submitErr?.response?.data?.message;
+        const isLostResponseOrNetwork = !submitErr?.response;
         setSubmitError(
-          'Không thể nộp hồ sơ lên hệ thống. Vui lòng kiểm tra kết nối mạng và thử lại. ' +
-          'Hồ sơ CHƯA được ghi nhận, không có mã hồ sơ nào được cấp.'
+          isLostResponseOrNetwork
+            ? 'Chưa xác nhận được kết quả gửi do gián đoạn kết nối. Bạn có thể bấm "Thử lại gửi hồ sơ" an toàn — hệ thống giữ cùng khóa chống trùng nên chỉ cấp duy nhất 01 mã hồ sơ.'
+            : serverMsg || 'Không thể nộp hồ sơ lên hệ thống. Hồ sơ CHƯA được ghi nhận.'
         );
         return; // Dừng hẳn: không tạo bản ghi giả trên localStorage, không sinh mã hẹn hay QR
       }
@@ -279,15 +338,15 @@ export function useFormPrecheckWizard(params: {
 
       const now = new Date();
       const nowStr = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')} ${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}`;
-      const issues = res.fieldValidations ? res.fieldValidations.filter((v) => !v.valid).map((v) => v.errorMessage || v.fieldName) : [];
+      const issues = precheckResult.fieldValidations ? precheckResult.fieldValidations.filter((v) => !v.valid).map((v) => v.errorMessage || v.fieldName) : [];
 
       saveLiveSubmittedDossier({
         id: submitRes.dossierCode,
         citizenName: cleanFullName.toUpperCase(),
-        procedure: procMap[selectedFormType],
-        formType: formLabels[selectedFormType],
+        procedure: canonicalProcedureCode,
+        formType: resolveOfficerDisplayFormLabel(canonicalProcedureCode, selectedFormType),
         submittedAt: `Vừa nộp (${nowStr})`,
-        status: res.overallValid ? 'VALID' : 'HAS_ERRORS',
+        status: 'VALID',
         cccd: cleanCccd,
         citizenEmail: cleanEmail,
         contactPhone: cleanPhone,
@@ -297,20 +356,21 @@ export function useFormPrecheckWizard(params: {
         vaultToken: ocr.vaultDocInfo?.oneTimeToken,
         vaultDocId: ocr.vaultDocInfo?.docId,
         details: {
-          dob: dob || 'Chưa cung cấp', gender: gender || 'Nam', address: address || currentWard.name,
-          confidence: 99.0, sharpnessScore: ocr.visionGateResult?.sharpnessScore ?? 96,
-          templateMatched: ocr.visionGateResult?.templateMatched ?? true, issues,
+          dob: dob || 'Chưa cung cấp',
+          gender: gender || 'Chưa xác định',
+          address: address || currentWard.name,
+          confidence: 99.0,
+          sharpnessScore: ocr.visionGateResult?.sharpnessScore ?? undefined,
+          templateMatched: ocr.visionGateResult?.templateMatched ?? undefined,
+          issues,
           vaultToken: ocr.vaultDocInfo?.oneTimeToken,
         },
       });
 
       setMyDossiers(getLiveSubmittedDossiers());
       setEmailNotifications(getCitizenEmailNotifications());
-      setFormWizardStep(3);
-    } catch {
-      alert('Không thể kết nối hệ thống để kiểm tra tờ khai.');
     } finally {
-      setFormLoading(false);
+      setSubmitLoading(false);
     }
   };
 
@@ -324,7 +384,10 @@ export function useFormPrecheckWizard(params: {
       setFormWizardStep(2);
       return;
     }
-    if (precheckResult) { setFormWizardStep(3); return; }
+    if (precheckResult && precheckResult.overallValid && !isPrecheckDirty) {
+      setFormWizardStep(3);
+      return;
+    }
     void handlePrecheck();
   };
 
@@ -342,9 +405,8 @@ export function useFormPrecheckWizard(params: {
   };
 
   return {
-    selectedFormType, formWizardStep, setFormWizardStep,
-    showReferenceTable, setShowReferenceTable,
-    showPrintModal, setShowPrintModal,
+    selectedFormType, canonicalProcedureCode, formWizardStep, setFormWizardStep,
+    showReferenceTable, setShowReferenceTable, showPrintModal, setShowPrintModal,
     showCccdQrModal, setShowCccdQrModal, qrDiscrepancies,
     fullName, setFullName, cccd, setCccd, dob, setDob, gender, setGender,
     issueDate, setIssueDate, address, setAddress, citizenEmail, setCitizenEmail, phoneNumber, setPhoneNumber,
@@ -365,11 +427,13 @@ export function useFormPrecheckWizard(params: {
     guardianName, setGuardianName, guardianCccd, setGuardianCccd, guardianRelation, setGuardianRelation,
     guardianPhone, setGuardianPhone, socialTargetGroup, setSocialTargetGroup, hasBhyt, setHasBhyt,
     bhytNumber, setBhytNumber, paymentMethod, setPaymentMethod,
-    formLoading, precheckResult, submittedDossier, submitError, formErrors, setFormErrors,
+    formLoading, submitLoading, isPrecheckDirty, submissionAttemptUuid,
+    precheckResult, submittedDossier, submitError, formErrors, setFormErrors,
     isExportingQrPass, qrPassRef,
     dossierFullNameInputRef, dossierCccdInputRef, dossierDobInputRef,
     dossierAddressInputRef, dossierEmailInputRef, dossierPhoneInputRef,
     ocr,
-    handleCccdQrSuccess, handleSelectFormType, handleWizardStepClick, handlePrecheck, handleDownloadQrPassPdf,
+    handleCccdQrSuccess, handleSelectFormType, handleWizardStepClick,
+    handlePrecheck, handleSubmitDossier, handleDownloadQrPassPdf,
   };
 }

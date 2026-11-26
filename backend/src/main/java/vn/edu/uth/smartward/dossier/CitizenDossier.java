@@ -60,6 +60,12 @@ public class CitizenDossier {
     @Column(name = "appointment_code", length = 64)
     private String appointmentCode;
 
+    @Column(name = "idempotency_key", unique = true, length = 128)
+    private String idempotencyKey;
+
+    @Column(name = "payload_hash", length = 64)
+    private String payloadHash;
+
     @Version
     @Column(name = "version")
     @Builder.Default

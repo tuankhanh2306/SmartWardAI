@@ -93,6 +93,13 @@ interface QuickDossierItem {
     templateMatched?: boolean;
     issues?: string[];
     vaultToken?: string;
+    motherName?: string;
+    fatherName?: string;
+    childBirthPlace?: string;
+    birthCertNumber?: string;
+    birthCertIssueDate?: string;
+    parentsMarried?: string;
+    childEthnicity?: string;
   };
 }
 
@@ -446,10 +453,19 @@ export const PerWardDashboard: React.FC = () => {
       .then((dbDossiers) => {
         if (!mounted || !dbDossiers || dbDossiers.length === 0) return;
         const mapped: QuickDossierItem[] = dbDossiers.map((s) => {
+          const rawFt = String((s.formData as any)?.formType || '').trim().toUpperCase();
           const formType: QuickDossierItem['formType'] =
-            s.procedureCode.includes('HT-01') || s.procedureCode.includes('CR-01')
+            rawFt === 'TK-KS'
               ? 'Khai sinh'
-              : s.procedureCode.includes('HT-02') || s.procedureCode.includes('CR-03')
+              : rawFt === 'TK-KH'
+              ? 'Kết hôn'
+              : rawFt === 'TK-BTXH'
+              ? 'Bảo trợ'
+              : rawFt === 'CT01'
+              ? 'CT01'
+              : s.procedureCode.includes('HT-01')
+              ? 'Khai sinh'
+              : s.procedureCode.includes('HT-02') || s.procedureCode.includes('HT-11')
               ? 'Kết hôn'
               : s.procedureCode.includes('BT')
               ? 'Bảo trợ'
@@ -457,10 +473,11 @@ export const PerWardDashboard: React.FC = () => {
 
           const vaultToken =
             Array.isArray(s.vaultDocIds) && s.vaultDocIds.length > 0 ? s.vaultDocIds[0] : undefined;
+          const fd = (s.formData as Record<string, any>) || {};
 
           return {
             id: s.dossierCode,
-            citizenName: s.citizenName || 'Công dân nộp hồ sơ',
+            citizenName: s.citizenName || fd.fullName || fd.childName || 'Công dân nộp hồ sơ',
             procedure: s.procedureName || s.procedureCode,
             formType,
             submittedAt: s.createdAt
@@ -475,22 +492,29 @@ export const PerWardDashboard: React.FC = () => {
                 ? 'HAS_ERRORS'
                 : 'PENDING',
             cccd: s.citizenCccd,
-            citizenEmail: (s.formData as any)?.email || (s.formData as any)?.citizenEmail || '',
-            contactPhone: (s.formData as any)?.phone || (s.formData as any)?.phoneNumber || '0918234567',
+            citizenEmail: fd.email || fd.citizenEmail || '',
+            contactPhone: fd.phone || fd.phoneNumber || '',
             appointmentCode: s.appointmentCode,
             officerFeedback: s.officerFeedback,
             errorCount: s.status === 'SUPPLEMENT_REQUIRED' ? 1 : 0,
             vaultToken,
             vaultDocId: vaultToken,
             details: {
-              dob: (s.formData as any)?.dob || (s.formData as any)?.ngaySinh || 'Chưa cung cấp',
-              gender: (s.formData as any)?.gender || (s.formData as any)?.gioiTinh || 'Nam',
-              address: (s.formData as any)?.address || (s.formData as any)?.diaChi || `${ward.name}, An Giang`,
+              dob: fd.dob || fd.ngaySinh || 'Chưa cung cấp',
+              gender: fd.gender || fd.gioiTinh || 'Chưa xác định',
+              address: fd.address || fd.diaChi || `${ward.name}, An Giang`,
               confidence: 99.0,
-              sharpnessScore: (s.formData as any)?.sharpnessScore ?? 96,
-              templateMatched: (s.formData as any)?.templateMatched ?? true,
+              sharpnessScore: typeof fd.sharpnessScore === 'number' ? fd.sharpnessScore : undefined,
+              templateMatched: typeof fd.templateMatched === 'boolean' ? fd.templateMatched : undefined,
               issues: s.officerFeedback ? [s.officerFeedback] : [],
               vaultToken,
+              motherName: fd.motherName || undefined,
+              fatherName: fd.fatherName || undefined,
+              childBirthPlace: fd.childBirthPlace || undefined,
+              birthCertNumber: fd.birthCertNumber || undefined,
+              birthCertIssueDate: fd.birthCertIssueDate || undefined,
+              parentsMarried: fd.parentsMarried || undefined,
+              childEthnicity: fd.childEthnicity || undefined,
             },
           };
         });
