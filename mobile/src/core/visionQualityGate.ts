@@ -16,7 +16,6 @@ export const VISION_BACKEND_HARD_LIMIT_PX = 4096;
 export const VISION_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
 export type VisionQualityStatus = 'GOOD' | 'BLURRY' | 'TOO_DARK';
-export type VisionSimulationPreset = 'GOOD' | 'BLURRY' | 'WRONG_TEMPLATE';
 
 export interface VisionGateEvaluationInput {
   expectedFormType: CoreFormType;
@@ -288,50 +287,4 @@ export function evaluateDocumentVisionGate(
     blockedReason,
     submitButtonLabel,
   };
-}
-
-/**
- * Quick simulation presets for council demos & QA testing (`GOOD` | `BLURRY` | `WRONG_TEMPLATE`).
- */
-export function simulateVisionGatePreset(
-  preset: VisionSimulationPreset,
-  expectedFormType: CoreFormType
-): VisionGateResult {
-  const mismatchedForm: CoreFormType = expectedFormType === 'CT01' ? 'TK-KS' : 'CT01';
-
-  switch (preset) {
-    case 'BLURRY':
-      return evaluateDocumentVisionGate({
-        expectedFormType,
-        fileName: `${expectedFormType.toLowerCase()}_blurry_capture.jpg`,
-        mimeType: 'image/jpeg',
-        rawText: FORM_TYPE_LABELS[expectedFormType],
-        sharpnessScore: 24,
-        brightnessScore: 150,
-        extractedFieldsCount: 1,
-      });
-
-    case 'WRONG_TEMPLATE':
-      return evaluateDocumentVisionGate({
-        expectedFormType,
-        fileName: `${mismatchedForm.toLowerCase()}_wrong_template.jpg`,
-        mimeType: 'image/jpeg',
-        rawText: FORM_TYPE_LABELS[mismatchedForm],
-        sharpnessScore: 94,
-        brightnessScore: 196,
-        extractedFieldsCount: FORM_EXPECTED_FIELDS_COUNT[expectedFormType],
-      });
-
-    case 'GOOD':
-    default:
-      return evaluateDocumentVisionGate({
-        expectedFormType,
-        fileName: `${expectedFormType.toLowerCase()}_sharp_verified.jpg`,
-        mimeType: 'image/jpeg',
-        rawText: FORM_TYPE_LABELS[expectedFormType],
-        sharpnessScore: 96,
-        brightnessScore: 198,
-        extractedFieldsCount: FORM_EXPECTED_FIELDS_COUNT[expectedFormType],
-      });
-  }
 }
