@@ -57,6 +57,8 @@ export interface AgentChatResponse {
   traceId?: string;
   totalLatencyMs: number;
   disclaimer?: string;
+  resolvedProcedureCode?: string;
+  supportedFormType?: string | null;
 }
 
 export interface RagResponse {
@@ -73,6 +75,18 @@ export interface RagResponse {
   agentSteps?: AgentStep[];
   agentActionCards?: AgentActionCard[];
   traceId?: string;
+  resolvedProcedureCode?: string;
+  supportedFormType?: string | null;
+}
+
+function resolveSupportedFormTypeLocal(code?: string | null): string | null {
+  if (!code) return null;
+  const clean = code.trim().toUpperCase();
+  if (clean === 'TTHC-HT-01' || clean === 'KS-01-DK') return 'TK-KS';
+  if (clean === 'TTHC-HT-02' || clean === 'TTHC-HT-11' || clean === 'HT-02-DK') return 'TK-KH';
+  if (clean === 'TTHC-BT-01') return 'TK-BTXH';
+  if (clean === 'TTHC-CR-01' || clean === 'CT-01') return 'CT01';
+  return null;
 }
 
 function mapProcedureCodeToName(code?: string): string | null {
@@ -465,6 +479,7 @@ export const askLegalRag = async (
         question: effectiveQuery,
         query: effectiveQuery,
         topK,
+        wardCode: (wardContext as any).wardCode,
         wardName: wardContext.wardName,
         officeAddress: wardContext.officeAddress,
         history: historyPayload
@@ -475,7 +490,15 @@ export const askLegalRag = async (
     );
     const result = resp.data?.data ? resp.data.data : resp.data;
     if (result && result.answer) {
-      return result as RagResponse;
+      const code = result.resolvedProcedureCode || result.citations?.[0]?.procedureCode;
+      return {
+        ...(result as RagResponse),
+        resolvedProcedureCode: code,
+        supportedFormType:
+          result.supportedFormType !== undefined
+            ? result.supportedFormType
+            : resolveSupportedFormTypeLocal(code),
+      };
     }
     console.info('Backend did not return answer, attempting in-app legal knowledge fallback for query:', effectiveQuery);
   } catch (backendError: any) {
@@ -532,6 +555,8 @@ export const askLegalRag = async (
         disclaimer: mandatoryDisclaimer,
         citations,
         suggestions,
+        resolvedProcedureCode: primaryItem.code,
+        supportedFormType: resolveSupportedFormTypeLocal(primaryItem.code),
       };
     }
 
@@ -809,6 +834,7 @@ export const askCivicAgent = async (
             relevanceScore: c.similarityScore ?? c.relevanceScore ?? 0.85,
           }))
         : [];
+      const resolvedCode = agentData.resolvedProcedureCode || normalizedCitations[0]?.procedureCode;
       return {
         answer: agentData.answer,
         abstained: Boolean(agentData.abstained),
@@ -823,6 +849,11 @@ export const askCivicAgent = async (
         agentSteps: Array.isArray(agentData.steps) ? agentData.steps : [],
         agentActionCards: Array.isArray(agentData.actionCards) ? agentData.actionCards : [],
         traceId: agentData.traceId,
+        resolvedProcedureCode: resolvedCode,
+        supportedFormType:
+          agentData.supportedFormType !== undefined
+            ? agentData.supportedFormType
+            : resolveSupportedFormTypeLocal(resolvedCode),
       };
     }
   } catch (agentErr) {

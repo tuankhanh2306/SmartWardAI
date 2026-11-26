@@ -378,6 +378,18 @@ export async function askGeminiWithRAG(
     relevanceScore: Math.min(0.97, Math.max(0.82, searchResult.maxScore)),
   }));
 
+  const resolvedCode = topItem.code;
+  const supportedFormType =
+    resolvedCode === 'TTHC-HT-01'
+      ? 'TK-KS'
+      : resolvedCode === 'TTHC-HT-02' || resolvedCode === 'TTHC-HT-11'
+      ? 'TK-KH'
+      : resolvedCode === 'TTHC-BT-01'
+      ? 'TK-BTXH'
+      : resolvedCode === 'TTHC-CR-01'
+      ? 'CT01'
+      : null;
+
   return {
     answer,
     abstained: false,
@@ -388,6 +400,8 @@ export async function askGeminiWithRAG(
     suggestions: getProcedureSuggestions(topItem.name),
     responseTimeMs: elapsed,
     disclaimer: mandatoryDisclaimer,
+    resolvedProcedureCode: resolvedCode,
+    supportedFormType,
   };
 }
 

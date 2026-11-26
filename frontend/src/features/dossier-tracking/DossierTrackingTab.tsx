@@ -3,6 +3,7 @@ import {
   AlertCircle, AlertTriangle, Calendar, Clock, FileCheck2, RefreshCw, Search
 } from 'lucide-react';
 import type { WardItem } from '../../data/anGiangWards';
+import { useWard } from '../../context/WardContext';
 import { formatSlaDeadlineVi, type DossierTrackingResponse, type LiveFormDossier } from '../../api/client';
 
 export interface DossierTrackingTabProps {
@@ -26,6 +27,11 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
     trackingLast4Cccd, setTrackingLast4Cccd, trackingError, trackingLoading,
     myDossiers, trackingResult, trackingFieldErrors, onClearTrackingError,
   } = props;
+  const { allWards } = useWard();
+  const handlingWard = trackingResult?.wardCode
+    ? allWards.find((w) => w.code.toUpperCase() === trackingResult.wardCode.trim().toUpperCase())
+    : undefined;
+  const DEFAULT_HOURS = 'Sáng: 07:00 – 11:00 | Chiều: 13:00 – 17:00 (Thứ 2 – Thứ 6)';
 
   return (
         <section className="flex flex-col gap-5 animate-fadeIn">
@@ -209,9 +215,30 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                         <span className="text-slate-600">Số định danh công dân:</span>
                         <code className="font-mono font-bold text-[#9F0C1E]">{trackingResult.citizenCccd}</code>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Đơn vị thụ lý:</span>
-                        <span className="font-semibold text-[#0F172A]">UBND {currentWard.name}</span>
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-[#64748B] shrink-0">Đơn vị thụ lý:</span>
+                        <div className="text-right">
+                          <span className="font-semibold text-[#0F172A] block">
+                            {handlingWard
+                              ? `UBND ${handlingWard.name}`
+                              : trackingResult.wardCode
+                              ? `Đơn vị mã ${trackingResult.wardCode}`
+                              : `UBND ${currentWard.name}`}
+                          </span>
+                          {handlingWard && (
+                            <>
+                              <span className="text-[11px] text-[#475569] block mt-0.5">
+                                {handlingWard.officeAddress}
+                              </span>
+                              <span className="text-[10px] text-[#64748B] block">
+                                {handlingWard.workingHours || DEFAULT_HOURS}
+                                {(!handlingWard.workingHours ||
+                                  handlingWard.workingHours.trim() === DEFAULT_HOURS) &&
+                                  ' (giờ mặc định)'}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
 

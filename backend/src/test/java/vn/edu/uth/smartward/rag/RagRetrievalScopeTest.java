@@ -95,6 +95,8 @@ class RagRetrievalScopeTest {
 
         assertFalse(resp.isAbstained());
         assertEquals("TTHC-HT-01", resp.getCitations().get(0).getProcedureCode());
+        assertEquals("TTHC-HT-01", resp.getResolvedProcedureCode());
+        assertEquals("TK-KS", resp.getSupportedFormType());
         verify(chunkRepository, never()).findTopKSimilarChunksWithMetadata(anyString(), anyInt());
         verify(chunkRepository, never()).findTopKSimilarChunksWithMetadata(anyString(), anyString(), anyInt());
     }

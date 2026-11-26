@@ -29,6 +29,8 @@ public class AgentChatResponse {
     private String traceId;
     private long totalLatencyMs;
     private String disclaimer;
+    private String resolvedProcedureCode;
+    private String supportedFormType;
 
     @Data
     @Builder
