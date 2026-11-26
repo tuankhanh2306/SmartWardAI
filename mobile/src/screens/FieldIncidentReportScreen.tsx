@@ -41,6 +41,7 @@ import {
   WifiOff,
 } from 'lucide-react-native';
 import { MobileIncidentMap } from '../components/MobileIncidentMap';
+import { IncidentSyncHistoryList } from '../components/IncidentSyncHistoryList';
 import { flushOfflineIncidentQueue } from '../api/offlineSyncManager';
 import { useAccessibility } from '../context/AccessibilityContext';
 import { useWard } from '../context/WardContext';
@@ -52,7 +53,11 @@ import {
 } from '../core/incidentSubmitter';
 import { resizeImageForUpload } from '../core/visionQualityGate';
 import {
+  deleteIncidentSyncHistory,
+  getIncidentSyncHistory,
   getOfflineIncidentQueue,
+  removeOfflineIncident,
+  type IncidentSyncHistoryRow,
   type OfflineIncidentQueueRow,
 } from '../storage/sqliteDb';
 import { useResponsivePhone } from '../theme/responsive';
@@ -109,11 +114,13 @@ export const FieldIncidentReportScreen: React.FC = () => {
   const [cameraPermissionDenied, setCameraPermissionDenied] = useState<boolean>(false);
   const [photoBusy, setPhotoBusy] = useState<boolean>(false);
 
-  // Submission & Offline Queue state (MOB-4.10)
+  // Submission & Offline Queue state (MOB-4.10 & TASK-055)
   const [submitting, setSubmitting] = useState<boolean>(false);
   const [flushing, setFlushing] = useState<boolean>(false);
+  const [busyHistoryLocalId, setBusyHistoryLocalId] = useState<string | null>(null);
   const [outcome, setOutcome] = useState<IncidentSubmissionOutcome | null>(null);
   const [offlineQueue, setOfflineQueue] = useState<OfflineIncidentQueueRow[]>([]);
+  const [syncHistory, setSyncHistory] = useState<IncidentSyncHistoryRow[]>([]);
   const [flushNotice, setFlushNotice] = useState<string | null>(null);
 
   const stopAllGpsWatchers = useCallback(() => {
@@ -136,8 +143,12 @@ export const FieldIncidentReportScreen: React.FC = () => {
   }, []);
 
   const loadOfflineQueue = useCallback(async () => {
-    const rows = await getOfflineIncidentQueue();
+    const [rows, historyRows] = await Promise.all([
+      getOfflineIncidentQueue(),
+      getIncidentSyncHistory(),
+    ]);
     setOfflineQueue(rows);
+    setSyncHistory(historyRows);
   }, []);
 
   useEffect(() => {
@@ -521,26 +532,44 @@ export const FieldIncidentReportScreen: React.FC = () => {
     });
 
     setOutcome(res);
+    await loadOfflineQueue();
     if (res.success) {
       setDescription('');
       setPhotos([]);
-      await loadOfflineQueue();
     }
     setSubmitting(false);
   };
 
-  const handleFlushQueue = async () => {
+  const handleFlushQueue = async (targetLocalId?: string) => {
     if (flushing) return;
     setFlushing(true);
+    setBusyHistoryLocalId(targetLocalId ?? null);
     setFlushNotice(null);
-    const res = await flushOfflineIncidentQueue();
+    const res = await flushOfflineIncidentQueue(targetLocalId ? { localId: targetLocalId } : {});
     await loadOfflineQueue();
     setFlushNotice(
       res.syncedCount > 0
         ? `Đã đồng bộ thành công ${res.syncedCount}/${res.totalQueued} báo cáo lên máy chủ.`
+        : res.editRequiredCount > 0
+        ? 'Có phản ánh cần chỉnh sửa lại vị trí hoặc thông tin trước khi gửi lại.'
         : 'Chưa kết nối được máy chủ. Các báo cáo vẫn được giữ an toàn trong hàng đợi.'
     );
+    setBusyHistoryLocalId(null);
     setFlushing(false);
+  };
+
+  const handleEditSyncHistoryItem = async (item: IncidentSyncHistoryRow) => {
+    setCategory(item.category);
+    setDescription(item.description);
+    setAddressText(item.address_text);
+    setReporterPhone(item.reporter_phone);
+    setLatitude(item.latitude);
+    setLongitude(item.longitude);
+    setLocationSource(item.location_source === 'PIN_DRAGGED' ? 'PIN_DRAGGED' : 'GPS');
+    setGpsBanner('Đã nạp lại thông tin phản ánh cần chỉnh sửa. Vui lòng kiểm tra lại vị trí/nội dung rồi bấm gửi.');
+    await removeOfflineIncident(item.local_id);
+    await deleteIncidentSyncHistory(item.local_id);
+    await loadOfflineQueue();
   };
 
   return (
@@ -964,12 +993,24 @@ export const FieldIncidentReportScreen: React.FC = () => {
             ) : (
               <CloudUpload size={14} color={COLORS.onPrimary} />
             )}
-            <Text style={styles.flushBtnText}>Gửi lại</Text>
+            <Text style={styles.flushBtnText}>Gửi lại tất cả</Text>
           </Pressable>
         </View>
       ) : null}
 
       {flushNotice ? <Text style={styles.flushNotice}>{flushNotice}</Text> : null}
+
+      {/* TASK-055: Durable Per-Incident Sync Status & Receipt History */}
+      <IncidentSyncHistoryList
+        items={syncHistory}
+        busyLocalId={busyHistoryLocalId}
+        onRetryItem={(localId) => {
+          void handleFlushQueue(localId);
+        }}
+        onEditItem={(item) => {
+          void handleEditSyncHistoryItem(item);
+        }}
+      />
     </ScrollView>
   );
 };

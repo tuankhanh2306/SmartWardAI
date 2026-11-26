@@ -7,7 +7,8 @@
  *   3. offline_incident_queue   — Hàng đợi Gửi Phản ánh Sự cố khi mất sóng
  */
 
-import type { CivicReportRequest, ProcedureItem } from '../types/api.types';
+import type { CivicReportRequest, IncidentCategory, ProcedureItem } from '../types/api.types';
+import type { IncidentErrorCategory, IncidentSyncStatus } from '../core/incidentSyncHistory';
 import {
   buildSqlCipherPragmaKeyStatement,
   decryptWalletField,
@@ -56,6 +57,28 @@ export interface OfflineIncidentQueueRow {
   created_at: number;
 }
 
+export interface IncidentSyncHistoryRow {
+  local_id: string;
+  category: IncidentCategory;
+  title: string;
+  description: string;
+  address_text: string;
+  reporter_phone: string;
+  latitude: number;
+  longitude: number;
+  location_source: string;
+  target_ward_code: string;
+  target_ward_name: string;
+  sync_status: IncidentSyncStatus;
+  report_code: string | null;
+  cluster_code: string | null;
+  error_category: IncidentErrorCategory | null;
+  last_error: string | null;
+  retry_count: number;
+  created_at: number;
+  updated_at: number;
+}
+
 export const SQLITE_SCHEMA_STATEMENTS = [
   `CREATE TABLE IF NOT EXISTS cached_procedures (
     procedure_code   TEXT PRIMARY KEY NOT NULL,
@@ -93,6 +116,27 @@ export const SQLITE_SCHEMA_STATEMENTS = [
     last_error        TEXT,
     created_at        INTEGER NOT NULL
   );`,
+  `CREATE TABLE IF NOT EXISTS incident_sync_history (
+    local_id          TEXT PRIMARY KEY NOT NULL,
+    category          TEXT NOT NULL,
+    title             TEXT NOT NULL,
+    description       TEXT NOT NULL,
+    address_text      TEXT NOT NULL,
+    reporter_phone    TEXT NOT NULL,
+    latitude          REAL NOT NULL,
+    longitude         REAL NOT NULL,
+    location_source   TEXT NOT NULL,
+    target_ward_code  TEXT NOT NULL,
+    target_ward_name  TEXT NOT NULL,
+    sync_status       TEXT NOT NULL,
+    report_code       TEXT,
+    cluster_code      TEXT,
+    error_category    TEXT,
+    last_error        TEXT,
+    retry_count       INTEGER DEFAULT 0,
+    created_at        INTEGER NOT NULL,
+    updated_at        INTEGER NOT NULL
+  );`,
 ] as const;
 
 interface MinimalSQLiteDatabase {
@@ -108,6 +152,7 @@ let initialized = false;
 const memoryProcedures = new Map<string, CachedProcedureRow>();
 const memoryWalletPasses = new Map<string, WalletQrPassRow>();
 const memoryIncidentQueue = new Map<string, OfflineIncidentQueueRow>();
+const memoryIncidentHistory = new Map<string, IncidentSyncHistoryRow>();
 
 async function getDatabase(): Promise<MinimalSQLiteDatabase | null> {
   if (initialized) return dbInstance;
@@ -465,5 +510,78 @@ export async function removeOfflineIncident(localId: string): Promise<void> {
     await db.runAsync('DELETE FROM offline_incident_queue WHERE local_id = ?', localId);
   } else {
     memoryIncidentQueue.delete(localId);
+  }
+}
+
+// ============================================================================
+// 4. incident_sync_history CRUD — Durable Receipt & Per-Incident Sync Log (TASK-055)
+// ============================================================================
+
+export async function upsertIncidentSyncHistory(row: IncidentSyncHistoryRow): Promise<void> {
+  const db = await getDatabase();
+  if (db) {
+    await db.runAsync(
+      `INSERT OR REPLACE INTO incident_sync_history
+        (local_id, category, title, description, address_text, reporter_phone, latitude, longitude,
+         location_source, target_ward_code, target_ward_name, sync_status, report_code, cluster_code,
+         error_category, last_error, retry_count, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      row.local_id,
+      row.category,
+      row.title,
+      row.description,
+      row.address_text,
+      row.reporter_phone,
+      row.latitude,
+      row.longitude,
+      row.location_source,
+      row.target_ward_code,
+      row.target_ward_name,
+      row.sync_status,
+      row.report_code,
+      row.cluster_code,
+      row.error_category,
+      row.last_error,
+      row.retry_count,
+      row.created_at,
+      row.updated_at
+    );
+  } else {
+    memoryIncidentHistory.set(row.local_id, row);
+  }
+}
+
+export async function getIncidentSyncHistory(): Promise<IncidentSyncHistoryRow[]> {
+  const db = await getDatabase();
+  if (db) {
+    return db.getAllAsync<IncidentSyncHistoryRow>(
+      'SELECT * FROM incident_sync_history ORDER BY updated_at DESC, created_at DESC'
+    );
+  }
+  return Array.from(memoryIncidentHistory.values()).sort(
+    (a, b) => b.updated_at - a.updated_at || b.created_at - a.created_at
+  );
+}
+
+export async function updateIncidentSyncHistoryStatus(
+  localId: string,
+  patch: Partial<IncidentSyncHistoryRow>
+): Promise<void> {
+  const existing = (await getIncidentSyncHistory()).find((item) => item.local_id === localId);
+  if (!existing) return;
+  await upsertIncidentSyncHistory({
+    ...existing,
+    ...patch,
+    local_id: existing.local_id,
+    updated_at: patch.updated_at ?? Date.now(),
+  });
+}
+
+export async function deleteIncidentSyncHistory(localId: string): Promise<void> {
+  const db = await getDatabase();
+  if (db) {
+    await db.runAsync('DELETE FROM incident_sync_history WHERE local_id = ?', localId);
+  } else {
+    memoryIncidentHistory.delete(localId);
   }
 }
