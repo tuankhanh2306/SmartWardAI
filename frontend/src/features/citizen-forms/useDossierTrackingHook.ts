@@ -97,6 +97,7 @@ export function useDossierTrackingHook(
     trackingFieldErrors,
     setTrackingFieldErrors,
     trackingResult,
+    setTrackingResult,
     handleTrackDossier,
   };
 }

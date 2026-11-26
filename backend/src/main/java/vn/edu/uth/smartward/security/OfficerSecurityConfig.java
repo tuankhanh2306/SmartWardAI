@@ -92,6 +92,7 @@ public class OfficerSecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/v1/forms/precheck").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/dossiers").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/dossiers/track").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/dossiers/*/supplement").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/vault/upload").permitAll()
 
                         // 3. API Documentation (dev/staging/test/eval)

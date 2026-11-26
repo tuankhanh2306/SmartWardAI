@@ -40,7 +40,7 @@ export interface DossierTrackingResponse {
   procedureName: string;
   wardCode: string;
   citizenCccd: string;
-  status: 'PENDING' | 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'REJECTED' | string;
+  status: 'PENDING' | 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'SUPPLEMENTED' | 'REJECTED' | string;
   slaDeadline?: string | null;
   officerFeedback?: string;
   appointmentCode?: string;
@@ -49,6 +49,17 @@ export interface DossierTrackingResponse {
   createdAt: string;
   updatedAt: string;
   timeline?: DossierTimelineEvent[];
+  requestedSupplementItems?: string[];
+  supplementedAt?: string | null;
+  supplementCount?: number;
+}
+
+export interface SubmitDossierSupplementPayload {
+  last4Cccd: string;
+  citizenNote?: string;
+  updatedFields?: Record<string, any>;
+  additionalVaultDocIds?: string[];
+  idempotencyKey?: string;
 }
 
 export interface OfficerReviewPayload {
@@ -57,6 +68,7 @@ export interface OfficerReviewPayload {
   reviewStatus?: string;
   feedbackReason?: string;
   appointmentCode?: string;
+  requestedItems?: string[];
 }
 
 export interface OfficerDossierItem {
@@ -67,7 +79,7 @@ export interface OfficerDossierItem {
   wardCode: string;
   citizenCccd: string;
   citizenName: string;
-  status: 'PENDING' | 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'REJECTED' | 'VALID' | 'HAS_ERRORS' | string;
+  status: 'PENDING' | 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'SUPPLEMENTED' | 'REJECTED' | 'VALID' | 'HAS_ERRORS' | string;
   slaDeadline?: string | null;
   officerFeedback?: string;
   appointmentCode?: string;
@@ -76,6 +88,9 @@ export interface OfficerDossierItem {
   vaultDocIds?: string[];
   createdAt: string;
   updatedAt: string;
+  requestedSupplementItems?: string[];
+  supplementedAt?: string | null;
+  supplementCount?: number;
 }
 
 export const UNVERIFIED_SLA_TEXT = 'Chưa xác định (chờ cán bộ Một cửa xác nhận)';
@@ -131,6 +146,21 @@ export const trackDossier = async (
     dossierCode: cleanCode,
     last4Cccd: cleanLast4,
   });
+  const data = resp.data?.data ? resp.data.data : resp.data;
+  return data as DossierTrackingResponse;
+};
+
+/**
+ * TASK-054: Citizen submits supplemental information/documents directly into a SUPPLEMENT_REQUIRED dossier.
+ */
+export const submitDossierSupplement = async (
+  dossierCode: string,
+  payload: SubmitDossierSupplementPayload
+): Promise<DossierTrackingResponse> => {
+  const resp = await api.post<any>(
+    `/dossiers/${encodeURIComponent(dossierCode.trim())}/supplement`,
+    payload
+  );
   const data = resp.data?.data ? resp.data.data : resp.data;
   return data as DossierTrackingResponse;
 };

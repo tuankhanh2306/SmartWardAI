@@ -66,6 +66,18 @@ public class CitizenDossier {
     @Column(name = "payload_hash", length = 64)
     private String payloadHash;
 
+    @Column(name = "requested_supplement_items", nullable = false, columnDefinition = "jsonb")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Builder.Default
+    private String requestedSupplementItems = "[]";
+
+    @Column(name = "supplemented_at")
+    private Instant supplementedAt;
+
+    @Column(name = "supplement_count", nullable = false)
+    @Builder.Default
+    private Integer supplementCount = 0;
+
     @Version
     @Column(name = "version")
     @Builder.Default

@@ -75,6 +75,11 @@ interface QuickDossierItem {
   formType: 'CT01' | 'Khai sinh' | 'Kết hôn' | 'Bảo trợ';
   submittedAt: string;
   status: 'PENDING' | 'VALID' | 'HAS_ERRORS';
+  rawStatus?: string;
+  slaDeadline?: string | null;
+  supplementedAt?: string | null;
+  supplementCount?: number;
+  requestedSupplementItems?: string[];
   cccd: string;
   citizenEmail?: string;
   contactPhone?: string;
@@ -284,7 +289,9 @@ export const PerWardDashboard: React.FC = () => {
   };
 
   // Dossier Tab Filter & Search
-  const [dossierFilter, setDossierFilter] = useState<'ALL' | 'VALID' | 'HAS_ERRORS' | 'PENDING'>('ALL');
+  const [dossierFilter, setDossierFilter] = useState<
+    'ALL' | 'SUPPLEMENTED' | 'NEAR_DEADLINE' | 'VALID' | 'HAS_ERRORS' | 'PENDING'
+  >('ALL');
   const [dossierSearch, setDossierSearch] = useState<string>('');
 
   // HITL Gray-Zone Queue State & Spatial Warm-up State
@@ -491,6 +498,11 @@ export const PerWardDashboard: React.FC = () => {
                 : s.status === 'SUPPLEMENT_REQUIRED' || s.status === 'REJECTED'
                 ? 'HAS_ERRORS'
                 : 'PENDING',
+            rawStatus: s.status,
+            slaDeadline: s.slaDeadline ?? null,
+            supplementedAt: s.supplementedAt ?? null,
+            supplementCount: s.supplementCount ?? 0,
+            requestedSupplementItems: Array.isArray(s.requestedSupplementItems) ? s.requestedSupplementItems : [],
             cccd: s.citizenCccd,
             citizenEmail: fd.email || fd.citizenEmail || '',
             contactPhone: fd.phone || fd.phoneNumber || '',
@@ -535,10 +547,26 @@ export const PerWardDashboard: React.FC = () => {
     };
   }, [ward.code, ward.name]);
 
-  // Filtered dossiers based on status & search
+  const isDossierNearDeadline = (d: QuickDossierItem): boolean => {
+    const raw = (d.rawStatus || '').toUpperCase();
+    if (raw === 'APPROVED' || raw === 'REJECTED' || d.status === 'VALID') return false;
+    if (!d.slaDeadline) return false;
+    const ms = new Date(d.slaDeadline).getTime();
+    if (Number.isNaN(ms)) return false;
+    return ms - Date.now() <= 24 * 60 * 60 * 1000;
+  };
+
+  // Filtered dossiers based on status & search (TASK-054: SUPPLEMENTED surfaced prominently + NEAR_DEADLINE)
   const filteredDossiers = useMemo(() => {
-    return dossiers.filter((d) => {
-      const matchStatus = dossierFilter === 'ALL' || d.status === dossierFilter;
+    const matched = dossiers.filter((d) => {
+      const matchStatus =
+        dossierFilter === 'ALL'
+          ? true
+          : dossierFilter === 'SUPPLEMENTED'
+          ? (d.rawStatus || '').toUpperCase() === 'SUPPLEMENTED'
+          : dossierFilter === 'NEAR_DEADLINE'
+          ? isDossierNearDeadline(d)
+          : d.status === dossierFilter;
       const matchSearch =
         !dossierSearch.trim() ||
         d.citizenName.toLowerCase().includes(dossierSearch.toLowerCase()) ||
@@ -546,6 +574,11 @@ export const PerWardDashboard: React.FC = () => {
         d.id.toLowerCase().includes(dossierSearch.toLowerCase()) ||
         d.procedure.toLowerCase().includes(dossierSearch.toLowerCase());
       return matchStatus && matchSearch;
+    });
+    return [...matched].sort((a, b) => {
+      const aSupp = (a.rawStatus || '').toUpperCase() === 'SUPPLEMENTED' ? 1 : 0;
+      const bSupp = (b.rawStatus || '').toUpperCase() === 'SUPPLEMENTED' ? 1 : 0;
+      return bSupp - aSupp;
     });
   }, [dossiers, dossierFilter, dossierSearch]);
 
@@ -584,7 +617,7 @@ export const PerWardDashboard: React.FC = () => {
     setDossiers((prev) =>
       prev.map((d) =>
         d.id === dossierId
-          ? { ...d, status: 'VALID', errorCount: 0, officerFeedback: feedback, appointmentCode }
+          ? { ...d, status: 'VALID', rawStatus: 'APPROVED', errorCount: 0, officerFeedback: feedback, appointmentCode }
           : d
       )
     );
@@ -598,18 +631,22 @@ export const PerWardDashboard: React.FC = () => {
     setSelectedDossier(null);
   };
 
-  const handleRequestSupplement = async (dossierId: string) => {
+  const handleRequestSupplement = async (dossierId: string, requestedItems?: string[]) => {
     const target = dossiers.find((d) => d.id === dossierId);
     const reviewer = `${officerProfile.name} (${officerProfile.badgeId} • UBND ${ward.name})`;
+    const cleanItems = Array.isArray(requestedItems) ? requestedItems.filter(Boolean) : [];
     const feedback =
       officerCustomNote.trim() ||
-      `Đề nghị công dân kiểm tra, chỉnh sửa lại thông tin sai lệch trên tờ khai giấy gốc và gửi lại ảnh chụp rõ nét để cán bộ Một cửa UBND ${ward.name} sơ duyệt lại.`;
+      (cleanItems.length > 0
+        ? `Đề nghị công dân bổ sung: ${cleanItems.join(', ')}.`
+        : `Đề nghị công dân kiểm tra, chỉnh sửa lại thông tin sai lệch trên tờ khai giấy gốc và gửi lại ảnh chụp rõ nét để cán bộ Một cửa UBND ${ward.name} sơ duyệt lại.`);
     const recipientEmail = target?.citizenEmail || '';
 
     try {
       await reviewOfficerDossier(dossierId, {
         status: 'SUPPLEMENT_REQUIRED',
         officerFeedback: feedback,
+        requestedItems: cleanItems.length > 0 ? cleanItems : undefined,
       });
     } catch (err) {
       console.warn('Review API update failed, keeping optimistic state:', err);
@@ -630,12 +667,23 @@ export const PerWardDashboard: React.FC = () => {
     setDossiers((prev) =>
       prev.map((d) =>
         d.id === dossierId
-          ? { ...d, status: 'HAS_ERRORS', errorCount: Math.max(1, d.errorCount), officerFeedback: feedback }
+          ? {
+              ...d,
+              status: 'HAS_ERRORS',
+              rawStatus: 'SUPPLEMENT_REQUIRED',
+              requestedSupplementItems: cleanItems,
+              errorCount: Math.max(1, d.errorCount),
+              officerFeedback: feedback,
+            }
           : d
       )
     );
     setOfficerCustomNote('');
-    setToastBanner(`Đã gửi Email hướng dẫn chỉnh sửa hồ sơ ${dossierId} tới ${recipientEmail}!`);
+    setToastBanner(
+      recipientEmail
+        ? `Đã gửi Email hướng dẫn chỉnh sửa hồ sơ ${dossierId} tới ${recipientEmail}!`
+        : `Đã cập nhật yêu cầu bổ sung cho hồ sơ ${dossierId}!`
+    );
     setTimeout(() => setToastBanner(null), 5000);
     setSelectedDossier(null);
   };
@@ -1750,7 +1798,7 @@ export const PerWardDashboard: React.FC = () => {
 
               {/* Status Filter Pills */}
               <div className="flex flex-wrap items-center gap-2">
-                {(['ALL', 'VALID', 'HAS_ERRORS', 'PENDING'] as const).map((st) => (
+                {(['ALL', 'SUPPLEMENTED', 'NEAR_DEADLINE', 'VALID', 'HAS_ERRORS', 'PENDING'] as const).map((st) => (
                   <button
                     key={st}
                     type="button"
@@ -1763,6 +1811,10 @@ export const PerWardDashboard: React.FC = () => {
                   >
                     {st === 'ALL'
                       ? `Tất cả (${dossiers.length})`
+                      : st === 'SUPPLEMENTED'
+                      ? `Vừa bổ sung (${dossiers.filter((d) => (d.rawStatus || '').toUpperCase() === 'SUPPLEMENTED').length})`
+                      : st === 'NEAR_DEADLINE'
+                      ? `Gần hạn (${dossiers.filter((d) => isDossierNearDeadline(d)).length})`
                       : st === 'VALID'
                       ? `Hợp lệ (${dossiers.filter((d) => d.status === 'VALID').length})`
                       : st === 'HAS_ERRORS'
@@ -1829,7 +1881,11 @@ export const PerWardDashboard: React.FC = () => {
                         {d.cccd}
                       </td>
                       <td className="p-4 sm:p-5 text-center">
-                        {d.status === 'VALID' ? (
+                        {(d.rawStatus || '').toUpperCase() === 'SUPPLEMENTED' ? (
+                          <span className="px-3 py-1.5 rounded-full text-xs sm:text-sm font-extrabold bg-blue-100 text-blue-800 border border-blue-300 inline-flex items-center gap-1.5">
+                            Vừa bổ sung
+                          </span>
+                        ) : d.status === 'VALID' ? (
                           <span className="px-3 py-1.5 rounded-full text-xs sm:text-sm font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1.5">
                             <Check className="w-4 h-4 text-emerald-700" /> Hợp lệ
                           </span>

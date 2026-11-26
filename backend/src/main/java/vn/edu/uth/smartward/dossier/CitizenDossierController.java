@@ -73,6 +73,21 @@ public class CitizenDossierController {
         return ResponseEntity.ok(ApiResponse.ok("Tra cứu hồ sơ thành công.", response));
     }
 
+    @PostMapping("/{dossierCode}/supplement")
+    @Operation(summary = "TASK-054: Công dân gửi bổ sung hồ sơ vào đúng hồ sơ đang ở trạng thái SUPPLEMENT_REQUIRED")
+    public ResponseEntity<ApiResponse<DossierTrackingResponse>> submitSupplement(
+            @PathVariable String dossierCode,
+            @RequestBody DossierSupplementRequest req,
+            @RequestHeader(value = "X-Session-Id", required = false) String sessionId,
+            HttpServletRequest request) {
+        String clientIp = clientIpResolver.resolve(request);
+        String officerBadgeId = resolveOfficerBadgeId(request);
+        log.info("TASK-054: Citizen submitting supplement for dossierCode='{}'", dossierCode);
+        DossierTrackingResponse response = dossierService.submitSupplement(
+                dossierCode, req, clientIp, officerBadgeId, sessionId);
+        return ResponseEntity.ok(ApiResponse.ok("DOSSIER_SUPPLEMENTED", response));
+    }
+
     private String resolveOfficerBadgeId(HttpServletRequest request) {
         if (request == null) {
             return null;

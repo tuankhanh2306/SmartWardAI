@@ -4,6 +4,7 @@
  */
 
 import { submitCivicIncidentReport, trackCitizenDossier, uploadIncidentPhoto } from './client';
+import { classifyIncidentSyncError } from '../core/incidentSyncHistory';
 import {
   buildSmartWardPassPayload,
   cleanupOfflineIncidentPhotos,
@@ -11,7 +12,9 @@ import {
   getOfflineIncidentQueue,
   markOfflineIncidentRetry,
   removeOfflineIncident,
+  updateIncidentSyncHistoryStatus,
   updateOfflineIncidentState,
+  upsertIncidentSyncHistory,
   upsertWalletQrPass,
 } from '../storage/sqliteDb';
 import type { CivicReportRequest } from '../types/api.types';
@@ -20,25 +23,41 @@ export interface OfflineIncidentFlushResult {
   totalQueued: number;
   syncedCount: number;
   failedCount: number;
+  editRequiredCount: number;
 }
 
 /**
- * Attempts to flush all queued offline civic incident reports:
- * uploads any remaining durable local photos -> submits POST /api/v1/issues/report with Idempotency-Key -> cleans up temp files.
+ * Attempts to flush all queued offline civic incident reports (or one targeted localId):
+ * uploads any remaining durable local photos -> submits POST /api/v1/issues/report with Idempotency-Key
+ * -> records durable ACCEPTED receipt BEFORE cleaning up temp photos & removing queue entry.
  */
 export async function flushOfflineIncidentQueue(
   deps: {
+    localId?: string;
     submitApi?: typeof submitCivicIncidentReport;
     uploadPhotoApi?: typeof uploadIncidentPhoto;
     cleanupPhotos?: typeof cleanupOfflineIncidentPhotos;
+    getQueue?: typeof getOfflineIncidentQueue;
+    markRetry?: typeof markOfflineIncidentRetry;
+    removeQueued?: typeof removeOfflineIncident;
+    upsertHistory?: typeof upsertIncidentSyncHistory;
+    updateHistoryStatus?: typeof updateIncidentSyncHistoryStatus;
   } = {}
 ): Promise<OfflineIncidentFlushResult> {
   const submitApi = deps.submitApi ?? submitCivicIncidentReport;
   const uploadPhotoApi = deps.uploadPhotoApi ?? uploadIncidentPhoto;
   const cleanupPhotos = deps.cleanupPhotos ?? cleanupOfflineIncidentPhotos;
-  const queue = await getOfflineIncidentQueue();
+  const getQueue = deps.getQueue ?? getOfflineIncidentQueue;
+  const markRetry = deps.markRetry ?? markOfflineIncidentRetry;
+  const removeQueued = deps.removeQueued ?? removeOfflineIncident;
+  const upsertHistory = deps.upsertHistory ?? upsertIncidentSyncHistory;
+  const updateHistoryStatus = deps.updateHistoryStatus ?? updateIncidentSyncHistoryStatus;
+
+  const allQueued = await getQueue();
+  const queue = deps.localId ? allQueued.filter((q) => q.local_id === deps.localId) : allQueued;
   let syncedCount = 0;
   let failedCount = 0;
+  let editRequiredCount = 0;
 
   for (const item of queue) {
     const payload = JSON.parse(item.payload_json) as CivicReportRequest;
@@ -55,6 +74,8 @@ export async function flushOfflineIncidentQueue(
     const uploadedUrisThisRun: string[] = [];
     const photoKeys = Array.isArray(payload.photoKeys) ? [...payload.photoKeys] : [];
 
+    await updateHistoryStatus(item.local_id, { sync_status: 'SENDING', updated_at: Date.now() });
+
     try {
       while (remainingUris.length > 0) {
         const nextUri = remainingUris[0];
@@ -70,17 +91,52 @@ export async function flushOfflineIncidentQueue(
       if (photoKeys.length > 0) {
         payload.photoKeys = photoKeys.slice(0, 3);
       }
-      await submitApi(payload, { idempotencyKey: item.local_id });
+      const resp = await submitApi(payload, { idempotencyKey: item.local_id });
+      const now = Date.now();
+
+      // TASK-055: Strictly persist receipt (reportCode, clusterCode, ward) BEFORE cleaning up temp photos
+      await upsertHistory({
+        local_id: item.local_id,
+        category: payload.category,
+        title: payload.title,
+        description: payload.description,
+        address_text: payload.addressText,
+        reporter_phone: payload.reporterPhone,
+        latitude: payload.latitude,
+        longitude: payload.longitude,
+        location_source: payload.locationSource || 'GPS',
+        target_ward_code: resp.targetWardCode || payload.wardCode || '',
+        target_ward_name: resp.targetWardName || payload.wardName || '',
+        sync_status: 'ACCEPTED',
+        report_code: resp.reportCode || null,
+        cluster_code: resp.clusterCode || null,
+        error_category: null,
+        last_error: null,
+        retry_count: item.retry_count,
+        created_at: item.created_at,
+        updated_at: now,
+      });
+
       await cleanupPhotos(uploadedUrisThisRun);
-      await removeOfflineIncident(item.local_id);
+      await removeQueued(item.local_id);
       syncedCount += 1;
     } catch (err) {
       if (uploadedUrisThisRun.length > 0) {
         await cleanupPhotos(uploadedUrisThisRun);
       }
       failedCount += 1;
-      const message = err instanceof Error ? err.message : 'Lỗi kết nối máy chủ';
-      await markOfflineIncidentRetry(item.local_id, message);
+      const classified = classifyIncidentSyncError(err);
+      if (classified.syncStatus === 'EDIT_REQUIRED') {
+        editRequiredCount += 1;
+      }
+      await markRetry(item.local_id, classified.userMessage);
+      await updateHistoryStatus(item.local_id, {
+        sync_status: classified.syncStatus,
+        error_category: classified.category,
+        last_error: classified.userMessage,
+        retry_count: item.retry_count + 1,
+        updated_at: Date.now(),
+      });
     }
   }
 
@@ -88,6 +144,7 @@ export async function flushOfflineIncidentQueue(
     totalQueued: queue.length,
     syncedCount,
     failedCount,
+    editRequiredCount,
   };
 }
 

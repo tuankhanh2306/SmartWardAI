@@ -385,6 +385,7 @@ export const FormAndIssueReporting: React.FC = () => {
             trackingLoading={tracking.trackingLoading}
             myDossiers={myDossiers}
             trackingResult={tracking.trackingResult}
+            onSupplementSubmitted={(updated) => tracking.setTrackingResult(updated)}
             trackingFieldErrors={tracking.trackingFieldErrors}
             onClearTrackingError={(field) => tracking.setTrackingFieldErrors((prev) => ({ ...prev, [field]: '' }))}
           />
