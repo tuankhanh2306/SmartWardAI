@@ -38,6 +38,9 @@ import vn.edu.uth.smartward.triage.CivicReportRepository;
 import vn.edu.uth.smartward.triage.IssueClusterRepository;
 import vn.edu.uth.smartward.triage.TwoStageTriageService;
 import vn.edu.uth.smartward.vault.VaultDocumentRepository;
+import vn.edu.uth.smartward.ward.WardRegistryRepository;
+import vn.edu.uth.smartward.notification.NotificationDeliveryLogRepository;
+import vn.edu.uth.smartward.notification.NotificationDeviceTokenRepository;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -97,6 +100,9 @@ class FullSpringContextSmokeTest {
     @MockBean private CivicReportRepository civicReportRepository;
     @MockBean private IssueClusterRepository issueClusterRepository;
     @MockBean private VaultDocumentRepository vaultDocumentRepository;
+    @MockBean private WardRegistryRepository wardRegistryRepository;
+    @MockBean private NotificationDeviceTokenRepository notificationDeviceTokenRepository;
+    @MockBean private NotificationDeliveryLogRepository notificationDeliveryLogRepository;
     @MockBean private StringRedisTemplate stringRedisTemplate;
     @MockBean private RedisConnectionFactory redisConnectionFactory;
 
