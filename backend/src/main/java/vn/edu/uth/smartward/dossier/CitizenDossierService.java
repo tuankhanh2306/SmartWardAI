@@ -38,8 +38,9 @@ public class CitizenDossierService {
     private final DossierEventRepository dossierEventRepository;
     private final vn.edu.uth.smartward.audit.AuditService auditService;
     private final vn.edu.uth.smartward.notification.PushNotificationService pushNotificationService;
+    private record CachedIdempotencyEntry(String payloadHash, DossierSubmissionResponse response) {}
     private static final int MAX_IDEMPOTENCY_CACHE_SIZE = 1000;
-    private final Map<String, DossierSubmissionResponse> idempotencyCache = new java.util.concurrent.ConcurrentHashMap<>();
+    private final Map<String, CachedIdempotencyEntry> idempotencyCache = new java.util.concurrent.ConcurrentHashMap<>();
 
     public static final java.time.ZoneId VN_ZONE = java.time.ZoneId.of("Asia/Ho_Chi_Minh");
 
@@ -116,6 +117,16 @@ public class CitizenDossierService {
             if (existingOpt.isPresent()) {
                 return verifyAndBuildIdempotentResponse(existingOpt.get(), payloadHash, cleanIdempKey);
             }
+            CachedIdempotencyEntry cachedEntry = idempotencyCache.get(cleanIdempKey);
+            if (cachedEntry != null) {
+                if (cachedEntry.payloadHash() != null && !cachedEntry.payloadHash().equals(payloadHash)) {
+                    throw new BusinessException(
+                            ErrorCode.CONFLICT,
+                            "Khóa chống gửi trùng (idempotencyKey) đã được sử dụng cho một nội dung hồ sơ khác. Vui lòng tạo lượt gửi mới."
+                    );
+                }
+                return cachedEntry.response();
+            }
         }
 
         // Check duplicate if client passed a custom dossierCode
@@ -177,7 +188,7 @@ public class CitizenDossierService {
             if (idempotencyCache.size() >= MAX_IDEMPOTENCY_CACHE_SIZE) {
                 idempotencyCache.clear();
             }
-            idempotencyCache.put(cleanIdempKey, response);
+            idempotencyCache.put(cleanIdempKey, new CachedIdempotencyEntry(payloadHash, response));
         }
 
         return response;
