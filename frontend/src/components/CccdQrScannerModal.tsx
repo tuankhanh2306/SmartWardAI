@@ -55,28 +55,62 @@ export const CccdQrScannerModal: React.FC<CccdQrScannerModalProps> = ({
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
-  const scanIntervalRef = useRef<number | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const isDecodingRef = useRef<boolean>(false);
+  const lastScanTimeRef = useRef<number>(0);
+  const offscreenCanvasRef = useRef<HTMLCanvasElement | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Stop camera tracks cleanly
+  // Stop camera tracks cleanly and release hardware immediately
   const stopCameraStream = useCallback(() => {
-    if (scanIntervalRef.current) {
-      clearInterval(scanIntervalRef.current);
-      scanIntervalRef.current = null;
+    if (animationFrameRef.current) {
+      cancelAnimationFrame(animationFrameRef.current);
+      animationFrameRef.current = null;
     }
+    isDecodingRef.current = false;
+
+    // Hard release from streamRef
     if (streamRef.current) {
-      streamRef.current.getTracks().forEach((track) => {
-        try {
-          track.stop();
-        } catch (e) {
-          console.warn('Error stopping video track:', e);
-        }
-      });
+      try {
+        streamRef.current.getTracks().forEach((track) => {
+          try {
+            track.stop();
+            track.enabled = false;
+          } catch (e) {
+            console.warn('Error stopping video track:', e);
+          }
+        });
+      } catch (err) {
+        console.warn('Error releasing stream tracks:', err);
+      }
       streamRef.current = null;
     }
+
+    // Hard release from video element
     if (videoRef.current) {
+      const videoStream = videoRef.current.srcObject as MediaStream | null;
+      if (videoStream) {
+        try {
+          videoStream.getTracks().forEach((track) => {
+            try {
+              track.stop();
+              track.enabled = false;
+            } catch (e) {
+              console.warn('Error stopping element track:', e);
+            }
+          });
+        } catch {
+          // ignore
+        }
+      }
+      try {
+        videoRef.current.pause();
+      } catch {
+        // ignore
+      }
       videoRef.current.srcObject = null;
     }
+
     setCameraActive(false);
   }, []);
 
@@ -140,45 +174,66 @@ export const CccdQrScannerModal: React.FC<CccdQrScannerModalProps> = ({
     return binarizedCode?.data || null;
   };
 
-  // Decode frame from video or canvas
+  // Decode frame from video or canvas with throttle & non-blocking execution
   const decodeCurrentVideoFrame = useCallback(async (): Promise<void> => {
-    if (!videoRef.current || videoRef.current.readyState < 2) return;
+    if (!videoRef.current || videoRef.current.readyState < 2 || isDecodingRef.current) return;
+
+    const now = performance.now();
+    // Scan at smooth 250ms cadence to prevent UI thread stuttering/lag
+    if (now - lastScanTimeRef.current < 250) return;
+    lastScanTimeRef.current = now;
 
     const video = videoRef.current;
     const width = video.videoWidth;
     const height = video.videoHeight;
     if (width === 0 || height === 0) return;
 
-    // 1. Try BarcodeDetector if supported
+    isDecodingRef.current = true;
+
+    // 1. Try Native BarcodeDetector (GPU accelerated, ultra fast)
     if ('BarcodeDetector' in window) {
       try {
         const detector = new (window as any).BarcodeDetector({ formats: ['qr_code'] });
         const barcodes = await detector.detect(video);
         if (barcodes && barcodes.length > 0 && barcodes[0].rawValue) {
           processRawQrPayload(barcodes[0].rawValue);
+          isDecodingRef.current = false;
           return;
         }
-      } catch (err) {
+      } catch {
         // Fallback to jsQR
       }
     }
 
-    // 2. Fallback using Canvas + jsQR
+    // 2. Fallback using Offscreen/Reused Canvas + jsQR
     try {
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d', { willReadFrequently: true });
-      if (!ctx) return;
+      if (!offscreenCanvasRef.current) {
+        offscreenCanvasRef.current = document.createElement('canvas');
+      }
+      const canvas = offscreenCanvasRef.current;
+      // Downscale to max 640px dimension for instant QR detection without freezing CPU
+      const maxDim = 640;
+      const scale = Math.min(1, maxDim / Math.max(width, height));
+      const targetW = Math.round(width * scale);
+      const targetH = Math.round(height * scale);
 
-      ctx.drawImage(video, 0, 0, width, height);
-      const imgData = ctx.getImageData(0, 0, width, height);
-      const rawText = decodeImageDataWithJsQr(imgData);
-      if (rawText) {
-        processRawQrPayload(rawText);
+      canvas.width = targetW;
+      canvas.height = targetH;
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, targetW, targetH);
+        const imgData = ctx.getImageData(0, 0, targetW, targetH);
+        const rawText = decodeImageDataWithJsQr(imgData);
+        if (rawText) {
+          processRawQrPayload(rawText);
+          isDecodingRef.current = false;
+          return;
+        }
       }
     } catch (err) {
       console.warn('Canvas frame decode error:', err);
+    } finally {
+      isDecodingRef.current = false;
     }
   }, [processRawQrPayload]);
 
@@ -212,10 +267,12 @@ export const CccdQrScannerModal: React.FC<CccdQrScannerModalProps> = ({
         await videoRef.current.play();
         setCameraActive(true);
 
-        // Run scanner loop every 180ms
-        scanIntervalRef.current = window.setInterval(() => {
+        // Smooth requestAnimationFrame scanning loop (Zero stutter, stops immediately on cancel)
+        const scanLoop = () => {
           decodeCurrentVideoFrame();
-        }, 180);
+          animationFrameRef.current = requestAnimationFrame(scanLoop);
+        };
+        animationFrameRef.current = requestAnimationFrame(scanLoop);
       }
     } catch (err: any) {
       console.error('Camera access error:', err);
