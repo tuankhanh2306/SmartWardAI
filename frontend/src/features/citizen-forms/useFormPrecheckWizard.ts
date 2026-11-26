@@ -204,6 +204,47 @@ export function useFormPrecheckWizard(params: {
     setSubmitError(null);
   };
 
+  const clearAllFormInputs = () => {
+    setFullName(''); setCccd(''); setDob(''); setGender('Nam'); setIssueDate('');
+    setAddress(''); setCitizenEmail(''); setPhoneNumber('');
+    setHostName(''); setHostCccd(''); setHostRelation('Chủ hộ');
+    setHospitalBirthDate(''); setMotherName(''); setHospitalMotherName('');
+    setMotherResidence(''); setFatherName(''); setFatherResidence('');
+    setChildBirthPlace(''); setBirthCertNumber(''); setBirthCertIssueDate('');
+    setPartnerName(''); setPartnerCccd(''); setPartnerDob(''); setPartnerAddress('');
+    setPrecheckResult(null); setVerifiedSnapshotHash(null); setSubmittedDossier(null);
+    setFormErrors({}); setSubmitError(null); setFormWizardStep(1);
+  };
+
+  const restoreDraftState = (
+    meta: { formType: CitizenFormType; wizardStep: 1 | 2 | 3; parentsMarried?: 'YES' | 'NO'; marriageMode?: MarriageFormMode },
+    pii: Record<string, string> | null
+  ) => {
+    setSelectedFormType(meta.formType);
+    setFormWizardStep(meta.wizardStep === 3 ? 2 : meta.wizardStep);
+    if (meta.parentsMarried) setParentsMarried(meta.parentsMarried);
+    if (meta.marriageMode) setMarriageMode(meta.marriageMode);
+    if (pii) {
+      if (pii.fullName) setFullName(pii.fullName);
+      if (pii.cccd) setCccd(pii.cccd);
+      if (pii.dob) setDob(pii.dob);
+      if (pii.gender) setGender(pii.gender);
+      if (pii.issueDate) setIssueDate(pii.issueDate);
+      if (pii.address) setAddress(pii.address);
+      if (pii.phoneNumber) setPhoneNumber(pii.phoneNumber);
+      if (pii.citizenEmail) setCitizenEmail(pii.citizenEmail);
+      if (pii.hospitalBirthDate) setHospitalBirthDate(pii.hospitalBirthDate);
+      if (pii.motherName) setMotherName(pii.motherName);
+      if (pii.hospitalMotherName) setHospitalMotherName(pii.hospitalMotherName);
+      if (pii.motherResidence) setMotherResidence(pii.motherResidence);
+      if (pii.fatherName) setFatherName(pii.fatherName);
+      if (pii.fatherResidence) setFatherResidence(pii.fatherResidence);
+      if (pii.childBirthPlace) setChildBirthPlace(pii.childBirthPlace);
+      if (pii.birthCertNumber) setBirthCertNumber(pii.birthCertNumber);
+      if (pii.birthCertIssueDate) setBirthCertIssueDate(pii.birthCertIssueDate);
+    }
+  };
+
   // STEP 2 ACTION: Precheck ONLY (never submits dossier automatically!)
   const handlePrecheck = async () => {
     if (
@@ -435,5 +476,6 @@ export function useFormPrecheckWizard(params: {
     ocr,
     handleCccdQrSuccess, handleSelectFormType, handleWizardStepClick,
     handlePrecheck, handleSubmitDossier, handleDownloadQrPassPdf,
+    clearAllFormInputs, restoreDraftState,
   };
 }

@@ -342,6 +342,33 @@ assert(
   'Must reuse stable UUID idempotencyKey on lost-response retry and display clear unconfirmed notice'
 );
 
+// =================================================================
+// 7. TASK-052 & TASK-053: PILOT BIRTH REGISTRATION UX INTEGRITY AUDIT
+// =================================================================
+console.log('\n--- 7. TASK-052 & TASK-053: PROCEDURE ROUTING, PRIVACY DRAFT & NEXT-ACTION CARD ---');
+
+assert(
+  sourceCode.includes("searchParams.get('procedure')") &&
+  sourceCode.includes("searchParams.get('ward')"),
+  'FormAndIssueReporting must support ?procedure=TTHC-HT-01 and validated ?ward= URL parameters'
+);
+
+assert(
+  sourceCode.includes('smartward_form_draft_meta_v1') &&
+  sourceCode.includes('smartward_form_session_pii_v1') &&
+  sourceCode.includes('Lưu để làm sau') &&
+  sourceCode.includes('Tiếp tục hồ sơ đang làm') &&
+  sourceCode.includes('Xóa bản nháp'),
+  'Draft storage must separate non-PII localStorage progress from active-tab sessionStorage PII with Save/Resume/Clear controls'
+);
+
+assert(
+  trackingTabSrc.includes('<DossierNextActionCard') &&
+  trackingTabSrc.indexOf('<DossierNextActionCard') < trackingTabSrc.indexOf('Lịch sử xử lý hồ sơ') &&
+  trackingTabSrc.includes('trackingResult.wardCode'),
+  'DossierTrackingTab must place DossierNextActionCard ABOVE timeline history and resolve handling ward from trackingResult.wardCode'
+);
+
 console.log('\n================================================================');
 console.log(`SUMMARY: All ${totalPassed}/${totalTests} dossier integrity tests PASSED! 100% GREEN!`);
 console.log('================================================================');

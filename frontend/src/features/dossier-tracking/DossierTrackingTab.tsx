@@ -5,6 +5,7 @@ import {
 import type { WardItem } from '../../data/anGiangWards';
 import { useWard } from '../../context/WardContext';
 import { formatSlaDeadlineVi, type DossierTrackingResponse, type LiveFormDossier } from '../../api/client';
+import { DossierNextActionCard } from './DossierNextActionCard';
 
 export interface DossierTrackingTabProps {
   currentWard: WardItem;
@@ -200,6 +201,9 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                   </div>
 
                   <div className="flex flex-col gap-3 text-xs">
+                    {/* TASK-053: Top-priority Next-Action Card placed ABOVE metadata & history */}
+                    <DossierNextActionCard trackingResult={trackingResult} handlingWard={handlingWard} />
+
                     <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col gap-2">
                       <div className="flex items-center justify-between">
                         <span className="text-[#64748B]">Mã hồ sơ:</span>
@@ -242,21 +246,26 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                       </div>
                     </div>
 
-                    {/* SLA Deadline Box */}
-                    <div className="p-3.5 rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-between text-xs text-[#1E40AF]">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-[#2563EB] shrink-0" />
-                        <div>
-                          <span className="font-bold block">Hạn trả kết quả dự kiến:</span>
-                          <span className="text-[11px] text-[#3B82F6]">
-                            Theo quy định chuẩn dịch vụ Một cửa cấp xã
-                          </span>
+                    {/* SLA Deadline Box — ONLY rendered when Backend has verified slaDeadline (TASK-053) */}
+                    {Boolean(
+                      trackingResult.slaDeadline &&
+                        !Number.isNaN(new Date(trackingResult.slaDeadline).getTime())
+                    ) && (
+                      <div className="p-3.5 rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-between text-xs text-[#1E40AF]">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-[#2563EB] shrink-0" />
+                          <div>
+                            <span className="font-bold block">Hạn trả kết quả xác định:</span>
+                            <span className="text-[11px] text-[#3B82F6]">
+                              Theo quy định chuẩn dịch vụ Một cửa cấp xã
+                            </span>
+                          </div>
                         </div>
+                        <span className="font-mono font-extrabold text-sm text-[#1D4ED8]">
+                          {formatSlaDeadlineVi(trackingResult.slaDeadline, false)}
+                        </span>
                       </div>
-                      <span className="font-mono font-extrabold text-sm text-[#1D4ED8]">
-                        {formatSlaDeadlineVi(trackingResult.slaDeadline, false)}
-                      </span>
-                    </div>
+                    )}
 
                     {/* Officer Feedback */}
                     {trackingResult.officerFeedback && (

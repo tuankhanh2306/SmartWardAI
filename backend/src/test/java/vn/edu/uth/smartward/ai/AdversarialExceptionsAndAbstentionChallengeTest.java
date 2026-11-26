@@ -193,7 +193,12 @@ class AdversarialExceptionsAndAbstentionChallengeTest {
 
         // Out-of-scope queries return chunks with low similarity S_max = 0.58 < 0.78
         LegalChunkMatch lowSimChunk = createMockChunkMatch("KHAC-01", "Thủ tục khác", "Tiêu đề", "Nội dung", "Luật", 0.58);
-        Mockito.when(chunkRepo.findTopKSimilarChunksWithMetadata(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt()))
+        Mockito.when(chunkRepo.findTopKSimilarChunksWithAcl(
+                        ArgumentMatchers.anyString(),
+                        ArgumentMatchers.any(),
+                        ArgumentMatchers.anyBoolean(),
+                        ArgumentMatchers.any(),
+                        ArgumentMatchers.anyInt()))
                 .thenReturn(List.of(lowSimChunk));
 
         RagQueryService ragService = new RagQueryService(chunkRepo, mockAiClient, cacheService, rateLimiter);
@@ -251,7 +256,12 @@ class AdversarialExceptionsAndAbstentionChallengeTest {
 
         // Subcase A: S_max = 0.779 (< 0.78) -> MUST abstain
         LegalChunkMatch chunkBelow = createMockChunkMatch("HT-01", "Hộ tịch", "T", "C", "L", 0.779);
-        Mockito.when(chunkRepo.findTopKSimilarChunksWithMetadata(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt()))
+        Mockito.when(chunkRepo.findTopKSimilarChunksWithAcl(
+                        ArgumentMatchers.anyString(),
+                        ArgumentMatchers.any(),
+                        ArgumentMatchers.anyBoolean(),
+                        ArgumentMatchers.any(),
+                        ArgumentMatchers.anyInt()))
                 .thenReturn(List.of(chunkBelow));
 
         RagAskRequest reqBelow = RagAskRequest.builder().question("Câu hỏi gần ngưỡng").similarityThreshold(0.78).build();
@@ -262,7 +272,12 @@ class AdversarialExceptionsAndAbstentionChallengeTest {
 
         // Subcase B: S_max = 0.780 (>= 0.78) -> MUST NOT abstain
         LegalChunkMatch chunkAt = createMockChunkMatch("HT-01", "Hộ tịch", "T", "C", "L", 0.780);
-        Mockito.when(chunkRepo.findTopKSimilarChunksWithMetadata(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt()))
+        Mockito.when(chunkRepo.findTopKSimilarChunksWithAcl(
+                        ArgumentMatchers.anyString(),
+                        ArgumentMatchers.any(),
+                        ArgumentMatchers.anyBoolean(),
+                        ArgumentMatchers.any(),
+                        ArgumentMatchers.anyInt()))
                 .thenReturn(List.of(chunkAt));
         Mockito.when(mockAiClient.generateChatResponse(ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
                 .thenReturn("[HT-01] Hướng dẫn thủ tục đạt ngưỡng.");
@@ -500,7 +515,7 @@ class AdversarialExceptionsAndAbstentionChallengeTest {
         Mockito.when(mockAiClient.getEmbeddingModelId()).thenReturn("gemini-embedding-001");
 
         LegalChunkMatch match = createMockChunkMatch("TTHC-HT-01", "Đăng ký khai sinh", "Điều kiện", "Nội dung", "Luật Hộ tịch", 0.89);
-        Mockito.when(chunkRepo.findTopKSimilarChunksWithMetadata("[0.1, 0.2]", "gemini-embedding-001", 3))
+        Mockito.when(chunkRepo.findTopKSimilarChunksWithAcl("[0.1, 0.2]", "gemini-embedding-001", false, null, 6))
                 .thenReturn(List.of(match));
         Mockito.when(mockAiClient.generateChatResponse(ArgumentMatchers.anyString(), ArgumentMatchers.anyString()))
                 .thenReturn("1. TÓM TẮT THỦ TỤC:\nHướng dẫn khai sinh [TTHC-HT-01].");
@@ -514,9 +529,11 @@ class AdversarialExceptionsAndAbstentionChallengeTest {
 
         assertFalse(resp.isAbstained());
         Mockito.verify(chunkRepo, Mockito.times(1))
-                .findTopKSimilarChunksWithMetadata("[0.1, 0.2]", "gemini-embedding-001", 3);
+                .findTopKSimilarChunksWithAcl("[0.1, 0.2]", "gemini-embedding-001", false, null, 6);
         Mockito.verify(chunkRepo, Mockito.never())
                 .findTopKSimilarChunksWithMetadata(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt());
+        Mockito.verify(chunkRepo, Mockito.never())
+                .findTopKSimilarChunksWithMetadata(ArgumentMatchers.anyString(), ArgumentMatchers.anyString(), ArgumentMatchers.anyInt());
     }
 
     private LegalChunkMatch createMockChunkMatch(String code, String procName, String title, String content, String legalRef, double score) {
