@@ -15,7 +15,7 @@ import { maskCccdNumber, parseSmartWardPassQr } from './cccdQrParser';
 import type { OfficerDossierDto, OfficerReviewRequest } from '../types/api.types';
 
 export const VAULT_410_GONE_MESSAGE =
-  'HTTP 410 GONE — Liên kết xem 1 lần đã tự hủy trên Redis theo Nghị định 13/2023/NĐ-CP.';
+  'HTTP 410 GONE — Liên kết xem 1 lần đã tự hủy trên Redis theo Luật Bảo vệ DLCN 91/2025/QH15 & NĐ 356/2025/NĐ-CP.';
 
 /**
  * Generates standard Vietnamese One-Stop Appointment Code: LH-YYYYMMDD-XXXX.
