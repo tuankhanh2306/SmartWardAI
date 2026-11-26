@@ -14,7 +14,8 @@
       },
       "infoPlist": {
         "NSCameraUsageDescription": "SmartWard AI cần quyền truy cập Camera để quét mã QR trên thẻ CCCD gắn chip và chụp ảnh tờ khai hành chính.",
-        "NSLocationWhenInUseUsageDescription": "SmartWard AI cần quyền định vị GPS độ chính xác cao (bán kính 25m) để tự động chọn UBND xã/phường gần nhất và định vị điểm sự cố đô thị."
+        "NSLocationWhenInUseUsageDescription": "SmartWard AI cần quyền định vị GPS độ chính xác cao (bán kính 25m) để tự động chọn UBND xã/phường gần nhất và định vị điểm sự cố đô thị.",
+        "NSFaceIDUsageDescription": "SmartWard AI sử dụng FaceID để cán bộ Một cửa mở khóa nhanh phiên làm việc tại hiện trường."
       }
     },
     "android": {
@@ -48,7 +49,19 @@
           "locationWhenInUsePermission": "SmartWard AI cần quyền định vị GPS độ chính xác cao (bán kính 25m) để tự động chọn UBND xã/phường gần nhất và định vị điểm sự cố đô thị."
         }
       ],
-      "expo-sqlite",
+      [
+        "expo-sqlite",
+        {
+          "useSQLCipher": true
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "SmartWard AI sử dụng FaceID để cán bộ mở khóa nhanh phiên làm việc Một cửa."
+        }
+      ],
+      "expo-notifications",
       "expo-secure-store"
     ],
     "extra": {
