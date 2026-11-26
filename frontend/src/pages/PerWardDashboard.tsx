@@ -253,7 +253,7 @@ export const PerWardDashboard: React.FC = () => {
           URL.revokeObjectURL(vaultImageBlobUrl);
           setVaultImageBlobUrl(null);
         }
-        setVaultError('Tài liệu bảo mật đã tự hủy theo Nghị định 13/2023/NĐ-CP.');
+        setVaultError('Tài liệu bảo mật đã tự hủy sau 1 lần xem theo Luật Bảo vệ DLCN 91/2025/QH15 & NĐ 356/2025/NĐ-CP.');
       } else {
         setVaultStatus('ERROR');
         setVaultError(err?.message || 'Không thể truy xuất tài liệu từ kho Zero-Trust.');

@@ -577,8 +577,12 @@ export const RoleGateway: React.FC = () => {
               </div>
             </div>
 
-            <p className="mt-4 text-center text-[11px] text-slate-600">
-              Tiếp tục là đồng ý với Quy chế Một cửa số &amp; bảo vệ dữ liệu cá nhân.
+            <p className="mt-4 text-center text-[11px] leading-relaxed text-slate-600">
+              Dữ liệu cá nhân được xử lý minh bạch, có sự đồng ý rõ ràng và chỉ cho mục đích giải quyết TTHC theo{' '}
+              <span className="font-semibold text-slate-700">
+                Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15 &amp; NĐ 356/2025/NĐ-CP
+              </span>
+              .
             </p>
           </div>
         </div>
