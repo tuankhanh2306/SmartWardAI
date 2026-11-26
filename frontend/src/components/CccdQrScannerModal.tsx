@@ -179,8 +179,8 @@ export const CccdQrScannerModal: React.FC<CccdQrScannerModalProps> = ({
     if (!videoRef.current || videoRef.current.readyState < 2 || isDecodingRef.current) return;
 
     const now = performance.now();
-    // Scan at smooth 250ms cadence to prevent UI thread stuttering/lag
-    if (now - lastScanTimeRef.current < 250) return;
+    // Scan at gentle 400ms cadence (2.5 scans/sec) so camera viewfinder remains silky smooth 60fps
+    if (now - lastScanTimeRef.current < 400) return;
     lastScanTimeRef.current = now;
 
     const video = videoRef.current;
@@ -190,7 +190,7 @@ export const CccdQrScannerModal: React.FC<CccdQrScannerModalProps> = ({
 
     isDecodingRef.current = true;
 
-    // 1. Try Native BarcodeDetector (GPU accelerated, ultra fast)
+    // 1. Try Native BarcodeDetector (Runs on GPU, zero CPU overhead)
     if ('BarcodeDetector' in window) {
       try {
         const detector = new (window as any).BarcodeDetector({ formats: ['qr_code'] });
@@ -211,14 +211,16 @@ export const CccdQrScannerModal: React.FC<CccdQrScannerModalProps> = ({
         offscreenCanvasRef.current = document.createElement('canvas');
       }
       const canvas = offscreenCanvasRef.current;
-      // Downscale to max 640px dimension for instant QR detection without freezing CPU
-      const maxDim = 640;
+      // Downscale to 480px dimension: instantly decodes high-contrast QR without stalling UI thread
+      const maxDim = 480;
       const scale = Math.min(1, maxDim / Math.max(width, height));
       const targetW = Math.round(width * scale);
       const targetH = Math.round(height * scale);
 
-      canvas.width = targetW;
-      canvas.height = targetH;
+      if (canvas.width !== targetW || canvas.height !== targetH) {
+        canvas.width = targetW;
+        canvas.height = targetH;
+      }
       const ctx = canvas.getContext('2d', { willReadFrequently: true });
       if (ctx) {
         ctx.drawImage(video, 0, 0, targetW, targetH);
@@ -252,8 +254,9 @@ export const CccdQrScannerModal: React.FC<CccdQrScannerModalProps> = ({
       const constraints: MediaStreamConstraints = {
         video: {
           facingMode: { ideal: facingMode },
-          width: { ideal: 1280 },
-          height: { ideal: 720 },
+          width: { ideal: 1280, max: 1920 },
+          height: { ideal: 720, max: 1080 },
+          frameRate: { ideal: 30, min: 15 },
         },
         audio: false,
       };
@@ -535,23 +538,25 @@ export const CccdQrScannerModal: React.FC<CccdQrScannerModalProps> = ({
               {/* CAMERA MODE */}
               {activeTab === 'camera' && (
                 <div className="space-y-3">
-                  <div className="relative w-full h-72 rounded-2xl bg-slate-900 overflow-hidden flex items-center justify-center border-2 border-dashed border-[#00796B]/50 shadow-inner">
+                  <div className="relative w-full h-72 rounded-2xl bg-slate-950 overflow-hidden flex items-center justify-center border-2 border-emerald-600/50 shadow-inner">
                     <video
                       ref={videoRef}
-                      className="absolute inset-0 w-full h-full object-cover"
+                      className="absolute inset-0 w-full h-full object-cover transform-gpu"
+                      style={{ willChange: 'transform' }}
                       playsInline
                       muted
+                      autoPlay
                     />
 
-                    {/* Laser overlay animation */}
+                    {/* Laser overlay animation - Hardware accelerated transform */}
                     {cameraActive && (
                       <div className="absolute inset-x-8 top-12 bottom-12 border-2 border-emerald-400/80 rounded-2xl pointer-events-none flex flex-col justify-between p-3">
-                        <div className="flex justify-between text-[11px] font-mono text-emerald-400 bg-black/40 px-2 py-0.5 rounded">
+                        <div className="flex justify-between text-[11px] font-mono text-emerald-400 bg-black/60 px-2.5 py-1 rounded backdrop-blur-xs">
                           <span>CCCD QR VIEWFINDER</span>
                           <span>BCA 7-FIELD</span>
                         </div>
-                        <div className="h-0.5 bg-emerald-400 shadow-[0_0_12px_#34d399] animate-laser" />
-                        <div className="text-center text-[10px] text-white/80 bg-black/40 py-0.5 rounded">
+                        <div className="h-0.5 bg-emerald-400 shadow-[0_0_12px_#34d399] animate-laser transform-gpu" />
+                        <div className="text-center text-[10px] text-white font-medium bg-black/60 py-1 rounded backdrop-blur-xs">
                           Đặt mã QR góc phải phía trên thẻ CCCD vào khung
                         </div>
                       </div>
