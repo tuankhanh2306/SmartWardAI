@@ -122,6 +122,12 @@
 | 94 | AG_X_KIENLUONG | Xã Kiên Lương | CB-AG_X_KIENLUONG | 8942 | OFFICER |
 | 95 | AG_X_GIANGTHANH | Xã Giang Thành | CB-AG_X_GIANGTHANH | 8942 | OFFICER |
 | 96 | AG_X_VINHDIEU | Xã Vĩnh Điều | CB-AG_X_VINHDIEU | 8942 | OFFICER |
+| 97 | AG_X_MYHOAHUNG | Xã Mỹ Hòa Hưng | CB-AG_X_MYHOAHUNG | SmartWardDev2026! | OFFICER |
+| 98 | AG_X_BINHGIANG | Xã Bình Giang | CB-AG_X_BINHGIANG | SmartWardDev2026! | OFFICER |
+| 99 | AG_X_BINHSON | Xã Bình Sơn | CB-AG_X_BINHSON | SmartWardDev2026! | OFFICER |
+| 100 | AG_X_HONNGHE | Xã Hòn Nghệ | CB-AG_X_HONNGHE | SmartWardDev2026! | OFFICER |
+| 101 | AG_X_SONHAI | Xã Sơn Hải | CB-AG_X_SONHAI | SmartWardDev2026! | OFFICER |
+| 102 | AG_X_TIENHAI | Xã Tiên Hải | CB-AG_X_TIENHAI | SmartWardDev2026! | OFFICER |
 
 ---
 

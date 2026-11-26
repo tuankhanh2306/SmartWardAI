@@ -2,12 +2,13 @@ package vn.edu.uth.smartward.ward;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,12 +19,12 @@ import java.util.List;
 
 /**
  * Seeds or updates ward_registry table from single source of truth geo/wards.geo.json.
- * Automatically reflects any future expansion (e.g., 96 -> 102 units in TASK-009).
+ * Automatically reflects any future expansion (e.g., 96 -> 102 units in TASK-009) and
+ * evicts the Redis ward catalog cache so live API responses refresh immediately.
  */
 @Slf4j
 @Component
 @Order(20)
-@RequiredArgsConstructor
 public class WardRegistrySeeder implements ApplicationRunner {
 
     private static final String DEFAULT_WORKING_HOURS =
@@ -38,6 +39,16 @@ public class WardRegistrySeeder implements ApplicationRunner {
 
     private final WardRegistryRepository wardRegistryRepository;
     private final ObjectMapper objectMapper;
+    private final StringRedisTemplate redisTemplate;
+
+    @Autowired
+    public WardRegistrySeeder(WardRegistryRepository wardRegistryRepository,
+                              ObjectMapper objectMapper,
+                              @Autowired(required = false) StringRedisTemplate redisTemplate) {
+        this.wardRegistryRepository = wardRegistryRepository;
+        this.objectMapper = objectMapper;
+        this.redisTemplate = redisTemplate;
+    }
 
     @Override
     @Transactional
@@ -115,6 +126,13 @@ public class WardRegistrySeeder implements ApplicationRunner {
             }
 
             wardRegistryRepository.saveAll(batch);
+            if (redisTemplate != null) {
+                try {
+                    redisTemplate.delete(WardRegistryService.REDIS_WARDS_CACHE_KEY);
+                } catch (Exception ex) {
+                    log.debug("WardRegistrySeeder: Redis cache eviction skipped ({})", ex.getMessage());
+                }
+            }
             log.info("WardRegistrySeeder: synchronized {} administrative units into ward_registry.", batch.size());
             return batch.size();
         } catch (Exception e) {

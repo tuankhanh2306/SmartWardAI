@@ -9,16 +9,16 @@ import {
 } from '../core/angiangWards';
 import { isJwtExpired } from '../storage/secureAuthStorage';
 
-describe('crossWardRouting — Danh mục 96 Xã/Phường An Giang & Định tuyến Liên xã', () => {
-  it('chứa đầy đủ đúng 96 đơn vị hành chính tỉnh An Giang (14 Phường, 79 Xã, 3 Đặc khu)', () => {
-    expect(AN_GIANG_WARDS).toHaveLength(96);
+describe('crossWardRouting — Danh mục 102 Xã/Phường An Giang & Định tuyến Liên xã', () => {
+  it('chứa đầy đủ đúng 102 đơn vị hành chính tỉnh An Giang (14 Phường, 85 Xã, 3 Đặc khu — NQ 1654/NQ-UBTVQH15)', () => {
+    expect(AN_GIANG_WARDS).toHaveLength(102);
 
     const phuongs = AN_GIANG_WARDS.filter((w) => w.type === 'Phường');
     const xas = AN_GIANG_WARDS.filter((w) => w.type === 'Xã');
     const dacKhus = AN_GIANG_WARDS.filter((w) => w.type === 'Đặc khu');
 
     expect(phuongs).toHaveLength(14);
-    expect(xas).toHaveLength(79);
+    expect(xas).toHaveLength(85);
     expect(dacKhus).toHaveLength(3);
     expect(dacKhus.map((d) => d.code).sort()).toEqual([
       'AG_DK_KIENHAI',
@@ -103,7 +103,23 @@ describe('crossWardRouting — Danh mục 96 Xã/Phường An Giang & Định tu
     expect(binhAn.ward.code).toBe('AG_X_BINHAN');
   });
 
-  it('TASK-048: không có cặp xã/phường nào trùng tọa độ tâm (0m) trong toàn bộ 96 đơn vị An Giang', () => {
+  it('TASK-009: định tuyến GPS Point-in-Polygon chính xác cho đủ 6 xã không sắp xếp theo NQ 1654/NQ-UBTVQH15', () => {
+    const sixChecks: Array<[string, number, number]> = [
+      ['AG_X_MYHOAHUNG', 10.407788, 105.437261],
+      ['AG_X_BINHGIANG', 10.282295, 104.778678],
+      ['AG_X_BINHSON',   10.260387, 104.814149],
+      ['AG_X_HONNGHE',   10.026898, 104.553031],
+      ['AG_X_SONHAI',    10.177499, 104.531379],
+      ['AG_X_TIENHAI',   10.317412, 104.329768],
+    ];
+    for (const [expectedCode, lat, lon] of sixChecks) {
+      const gps = findNearestWardByGps(lat, lon);
+      expect(gps.ward.code, `GPS (${lat}, ${lon}) phải định tuyến về ${expectedCode}`).toBe(expectedCode);
+      expect(gps.distanceMeters).toBeLessThan(100);
+    }
+  });
+
+  it('TASK-048: không có cặp xã/phường nào trùng tọa độ tâm (0m) trong toàn bộ 102 đơn vị An Giang', () => {
     for (let i = 0; i < AN_GIANG_WARDS.length; i++) {
       for (let j = i + 1; j < AN_GIANG_WARDS.length; j++) {
         const a = AN_GIANG_WARDS[i];
