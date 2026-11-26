@@ -30,8 +30,16 @@ export interface OfficerDashboardDrawersProps {
   officerCustomNote: string;
   setOfficerCustomNote: (v: string) => void;
   handleApproveDossier: (id: string) => void;
-  handleRequestSupplement: (id: string) => void;
+  handleRequestSupplement: (id: string, requestedItems?: string[]) => void;
 }
+
+const SUPPLEMENT_PRESET_CHIPS = [
+  'Giấy chứng sinh bản chính / bản chụp rõ nét',
+  'Ảnh chụp CCCD rõ nét 2 mặt',
+  'Giấy chứng nhận kết hôn',
+  'Chỉnh sửa thông tin tờ khai',
+  'Giấy tờ chứng minh nơi cư trú',
+];
 
 export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (props) => {
   const {
@@ -48,6 +56,11 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
   const [incidentPhotoBlobs, setIncidentPhotoBlobs] = useState<string[]>([]);
   const [incidentPhotosLoading, setIncidentPhotosLoading] = useState(false);
   const [lightboxPhotoUrl, setLightboxPhotoUrl] = useState<string | null>(null);
+  const [selectedSupplementItems, setSelectedSupplementItems] = useState<string[]>([]);
+
+  useEffect(() => {
+    setSelectedSupplementItems([]);
+  }, [selectedDossier?.id]);
 
   const selectedPhotoUrlsKey = Array.isArray(selectedIncident?.photoUrls)
     ? (selectedIncident.photoUrls as string[]).join('|')
@@ -540,6 +553,21 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                 </h3>
               </div>
 
+              {(selectedDossier.rawStatus || '').toUpperCase() === 'SUPPLEMENTED' && (
+                <div className="p-3.5 rounded-2xl bg-[#EFF6FF] border border-[#93C5FD] text-xs text-[#1E3A8A] flex flex-col gap-1">
+                  <span className="font-extrabold uppercase tracking-wide text-[#1D4ED8]">
+                    Công dân vừa gửi bổ sung hồ sơ (Lần {selectedDossier.supplementCount || 1})
+                  </span>
+                  <span className="text-[11px]">
+                    Cập nhật lúc:{' '}
+                    {selectedDossier.supplementedAt
+                      ? new Date(selectedDossier.supplementedAt).toLocaleString('vi-VN')
+                      : selectedDossier.submittedAt}
+                    . Vui lòng rà soát lại nội dung/tài liệu bổ sung để phê duyệt cấp phiếu hẹn.
+                  </span>
+                </div>
+              )}
+
               {/* Citizen Identity Card */}
               <div className="p-4 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col gap-2.5">
                 <span className="text-xs font-bold text-[#0F2942] uppercase tracking-wider flex items-center gap-1.5">
@@ -825,6 +853,36 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                 />
               </div>
 
+              <div className="flex flex-col gap-1.5">
+                <span className="text-[11px] font-bold text-[#334155]">
+                  Chọn nhanh giấy tờ / trường yêu cầu bổ sung (nếu thiếu):
+                </span>
+                <div className="flex flex-wrap gap-1.5">
+                  {SUPPLEMENT_PRESET_CHIPS.map((chip) => {
+                    const active = selectedSupplementItems.includes(chip);
+                    return (
+                      <button
+                        key={chip}
+                        type="button"
+                        onClick={() =>
+                          setSelectedSupplementItems((prev) =>
+                            prev.includes(chip) ? prev.filter((x) => x !== chip) : [...prev, chip]
+                          )
+                        }
+                        className={`px-2 py-1 rounded-lg text-[10px] font-bold border transition cursor-pointer ${
+                          active
+                            ? 'bg-[#FEF2F2] border-[#DC2626] text-[#991B1B]'
+                            : 'bg-white border-[#CBD5E1] text-[#475569] hover:bg-slate-50'
+                        }`}
+                      >
+                        {active ? '✓ ' : '+ '}
+                        {chip}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="flex items-center gap-2">
                 <button
                   type="button"
@@ -837,7 +895,7 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
 
                 <button
                   type="button"
-                  onClick={() => handleRequestSupplement(selectedDossier.id)}
+                  onClick={() => handleRequestSupplement(selectedDossier.id, selectedSupplementItems)}
                   className="flex-1 py-2.5 rounded-xl bg-[#DC2626] hover:bg-[#B91C1C] text-white text-xs font-bold transition active:scale-95 cursor-pointer flex items-center justify-center gap-1.5 shadow-sm"
                 >
                   <AlertTriangle className="w-4 h-4" />

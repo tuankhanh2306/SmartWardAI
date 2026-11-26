@@ -3,6 +3,8 @@ package vn.edu.uth.smartward.dossier.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.Builder;
 
+import java.util.List;
+
 @Builder
 @JsonIgnoreProperties(ignoreUnknown = true)
 public record OfficerReviewRequest(
@@ -10,8 +12,17 @@ public record OfficerReviewRequest(
         String reviewStatus,
         String officerFeedback,
         String feedbackReason,
-        String appointmentCode
+        String appointmentCode,
+        List<String> requestedItems
 ) {
+    public OfficerReviewRequest(
+            String status,
+            String reviewStatus,
+            String officerFeedback,
+            String feedbackReason,
+            String appointmentCode) {
+        this(status, reviewStatus, officerFeedback, feedbackReason, appointmentCode, null);
+    }
     public String getEffectiveStatus() {
         if (status != null && !status.isBlank()) {
             return status.trim().toUpperCase();

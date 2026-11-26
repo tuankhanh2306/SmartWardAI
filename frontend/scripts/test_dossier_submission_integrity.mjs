@@ -369,6 +369,31 @@ assert(
   'DossierTrackingTab must place DossierNextActionCard ABOVE timeline history and resolve handling ward from trackingResult.wardCode'
 );
 
+// =================================================================
+// 8. TASK-054: DOSSIER SUPPLEMENT WORKFLOW & OFFICER QUEUE FILTERS AUDIT
+// =================================================================
+console.log('\n--- 8. TASK-054: CITIZEN SUPPLEMENT WORKFLOW & OFFICER QUEUE FILTERS ---');
+const nextActionCardSrc = fs.readFileSync(path.resolve(__dirname, '../src/features/dossier-tracking/DossierNextActionCard.tsx'), 'utf-8');
+const officerDashboardSrc = fs.readFileSync(path.resolve(__dirname, '../src/pages/PerWardDashboard.tsx'), 'utf-8');
+const officerDrawersSrc = fs.readFileSync(path.resolve(__dirname, '../src/features/officer-dashboard/OfficerDashboardDrawers.tsx'), 'utf-8');
+
+assert(
+  dossierApiSrc.includes('submitDossierSupplement') &&
+  dossierApiSrc.includes('requestedSupplementItems') &&
+  nextActionCardSrc.includes('data-testid="dossier-supplement-form"') &&
+  nextActionCardSrc.includes("status === 'SUPPLEMENTED'"),
+  'Dossier API & NextActionCard must support structured requestedSupplementItems, inline supplement submission, and SUPPLEMENTED confirmation'
+);
+
+assert(
+  officerDashboardSrc.includes("'SUPPLEMENTED'") &&
+  officerDashboardSrc.includes("'NEAR_DEADLINE'") &&
+  officerDashboardSrc.includes('Vừa bổ sung') &&
+  officerDashboardSrc.includes('Gần hạn') &&
+  officerDrawersSrc.includes('SUPPLEMENT_PRESET_CHIPS'),
+  'Officer Dashboard & Drawers must expose SUPPLEMENTED/NEAR_DEADLINE queue filters and structured supplement request chips'
+);
+
 console.log('\n================================================================');
 console.log(`SUMMARY: All ${totalPassed}/${totalTests} dossier integrity tests PASSED! 100% GREEN!`);
 console.log('================================================================');
