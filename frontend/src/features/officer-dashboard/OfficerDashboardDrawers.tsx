@@ -101,30 +101,30 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
           {/* Drawer Body */}
           <div className="w-full sm:w-[500px] md:w-[540px] bg-white h-full shadow-2xl flex flex-col justify-between border-l border-[#CBD5E1] animate-slideLeft z-10">
             {/* Drawer Header */}
-            <div className="p-5 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC]">
-              <div className="flex items-center gap-2.5">
-                <span className="p-2 rounded-xl bg-[#0F2942] text-white">
-                  <AlertTriangle className="w-5 h-5 text-[#38BDF8]" />
+            <div className="p-5 border-b-2 border-slate-200 flex items-center justify-between bg-bca-masthead text-white">
+              <div className="flex items-center gap-3">
+                <span className="p-2.5 rounded-xl bg-white/20 text-[#FDE047]">
+                  <AlertTriangle className="w-6 h-6" />
                 </span>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-sm text-[#0F2942]">
+                    <span className="font-mono font-extrabold text-base sm:text-lg text-white">
                       {selectedIncident.id}
                     </span>
                     <span
-                      className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                      className={`px-2.5 py-0.5 rounded-md text-xs font-extrabold ${
                         selectedIncident.urgency === 'HIGH'
-                          ? 'bg-[#FEE2E2] text-[#DC2626]'
+                          ? 'bg-red-500 text-white'
                           : selectedIncident.urgency === 'MEDIUM'
-                          ? 'bg-[#FEF3C7] text-[#D97706]'
-                          : 'bg-[#F0FDFA] text-[#00687A]'
+                          ? 'bg-amber-400 text-amber-950'
+                          : 'bg-emerald-400 text-emerald-950'
                       }`}
                     >
                       {selectedIncident.urgency}
                     </span>
                   </div>
-                  <span className="text-xs text-[#64748B] block mt-0.5">
-                    Thời gian tiếp nhận: {selectedIncident.reportedTime}
+                  <span className="text-xs text-white/80 block mt-0.5 font-medium">
+                    Tiếp nhận lúc: {selectedIncident.reportedTime}
                   </span>
                 </div>
               </div>
@@ -132,9 +132,9 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
               <button
                 type="button"
                 onClick={() => setSelectedIncident(null)}
-                className="p-2 rounded-xl text-[#64748B] hover:text-[#0F172A] hover:bg-[#E2E8F0] cursor-pointer"
+                className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/20 cursor-pointer"
               >
-                <X className="w-5 h-5" />
+                <X className="w-6 h-6" />
               </button>
             </div>
 
@@ -487,23 +487,23 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
           {/* Drawer Body */}
           <div className="w-full sm:w-[500px] md:w-[560px] bg-white h-full shadow-2xl flex flex-col justify-between border-l border-[#CBD5E1] animate-slideLeft z-10">
             {/* Drawer Header */}
-            <div className="p-5 border-b border-[#E2E8F0] flex items-center justify-between bg-[#F8FAFC]">
-              <div className="flex items-center gap-2.5">
-                <span className="p-2 rounded-xl bg-[#0F2942] text-white">
-                  <FileCheck2 className="w-5 h-5 text-[#38BDF8]" />
+            <div className="p-5 border-b-2 border-slate-200 flex items-center justify-between bg-bca-masthead text-white">
+              <div className="flex items-center gap-3">
+                <span className="p-2.5 rounded-xl bg-white/20 text-[#FDE047]">
+                  <FileCheck2 className="w-6 h-6" />
                 </span>
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono font-bold text-sm text-[#0F2942]">
+                    <span className="font-mono font-extrabold text-base sm:text-lg text-white">
                       {selectedDossier.id}
                     </span>
                     <span
-                      className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                      className={`px-2.5 py-0.5 rounded-md text-xs font-extrabold ${
                         selectedDossier.status === 'VALID'
-                          ? 'bg-[#ECFDF5] text-[#166534] border border-[#86EFAC]'
+                          ? 'bg-emerald-400 text-emerald-950'
                           : selectedDossier.status === 'HAS_ERRORS'
-                          ? 'bg-[#FEF2F2] text-[#DC2626] border border-[#FCA5A5]'
-                          : 'bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A]'
+                          ? 'bg-red-400 text-red-950'
+                          : 'bg-amber-400 text-amber-950'
                       }`}
                     >
                       {selectedDossier.status === 'VALID'
@@ -513,7 +513,7 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                         : 'Chờ sơ duyệt'}
                     </span>
                   </div>
-                  <span className="text-xs text-[#64748B] block mt-0.5">
+                  <span className="text-xs text-white/80 block mt-0.5 font-medium">
                     Thời gian tiếp nhận: {selectedDossier.submittedAt}
                   </span>
                 </div>
@@ -522,7 +522,7 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
               <button
                 type="button"
                 onClick={() => setSelectedDossier(null)}
-                className="p-2 rounded-xl text-[#64748B] hover:text-[#0F172A] hover:bg-[#E2E8F0] cursor-pointer"
+                className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/20 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>

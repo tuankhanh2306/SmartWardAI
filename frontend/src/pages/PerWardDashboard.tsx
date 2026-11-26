@@ -1132,76 +1132,66 @@ export const PerWardDashboard: React.FC = () => {
   const pendingHitlCount = hitlItems.filter((i) => i.status === 'PENDING').length;
 
   return (
-    <div className="flex flex-col w-full pb-20 bg-[#F8FAFC]">
+    <div className="flex flex-col w-full pb-20 bg-[#F5F6F8]">
       {/* ========================================================================= */}
-      {/* 1. COMPACT OFFICER JURISDICTION STRIP (NO DUPLICATE HEADER)               */}
+      {/* 1. CITIZEN-ALIGNED CRIMSON MASTHEAD (ĐỒNG BỘ MÀU ĐỎ ĐÔ - CHỮ TO RÕ)      */}
       {/* ========================================================================= */}
-      <section className="bg-[#0F2942] text-white px-4 md:px-8 py-4 border-b border-[#1E3A5F] shadow-xs">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-3">
+      <section className="bg-bca-masthead text-white px-4 md:px-8 py-5 border-b-2 border-[#D4A017]/40 shadow-sm">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="flex flex-col">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-white/10 text-[#38BDF8] uppercase tracking-wider">
-                  Trực Ban Một Cửa • {officerProfile.badgeId} ({officerProfile.agencyType === 'CONG_AN' ? 'Công an Cấp Xã' : 'UBND Cấp Xã'})
+              <div className="flex flex-wrap items-center gap-2.5">
+                <span className="px-2.5 py-1 rounded-md text-xs font-bold bg-[#D4A017] text-[#750715] uppercase tracking-wider shadow-2xs">
+                  BÀN TRỰC MỘT CỬA • {officerProfile.badgeId}
                 </span>
-                <span className="text-sm sm:text-base font-extrabold tracking-tight">
-                  Đơn vị phụ trách:
-                </span>
-                <span
-                  className="bg-white/10 text-white text-xs font-bold px-3 py-1.5 rounded-xl border border-white/20 inline-flex flex-wrap items-center gap-1.5 max-w-full"
-                  title="Phạm vi thẩm quyền được khóa cố định theo tài khoản công chức (SEC-09)"
-                >
-                  <span>UBND {ward.name} ({ward.code})</span>
-                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-teal-500/30 text-teal-200 font-semibold">
-                    SEC-09 Locked
+                <span className="bg-white/15 text-white text-sm sm:text-base font-extrabold px-3.5 py-1 rounded-xl border border-white/25 inline-flex items-center gap-2">
+                  <span>UBND {ward.name}</span>
+                  <span className="text-[11px] px-2 py-0.5 rounded bg-emerald-500/30 text-emerald-200 font-bold border border-emerald-400/30">
+                    ĐANG TRỰC
                   </span>
                 </span>
               </div>
 
-              <p className="text-xs text-white/75 mt-1 flex flex-wrap items-center gap-2">
-                <span className="flex items-center gap-1">
-                  <UserCheck className="w-3.5 h-3.5 text-[#38BDF8]" />
-                  Cán bộ trực: <strong>{officerProfile.name}</strong> ({officerProfile.title})
+              <div className="text-sm text-white/90 mt-2 flex flex-wrap items-center gap-3">
+                <span className="flex items-center gap-1.5 font-bold">
+                  <UserCheck className="w-4 h-4 text-[#FDE047]" />
+                  <span>{officerProfile.name}</span>
+                  <span className="text-white/75 font-normal">({officerProfile.title})</span>
                 </span>
-                <span className="hidden sm:inline">•</span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-[#38BDF8]" />
-                  {ward.officeAddress}
+                <span className="hidden sm:inline text-white/40">•</span>
+                <span className="flex items-center gap-1.5">
+                  <PhoneCall className="w-4 h-4 text-[#FDE047]" />
+                  <span className="font-bold">{ward.phoneNumber}</span>
                 </span>
-                <span className="hidden sm:inline">•</span>
-                <span className="flex items-center gap-1">
-                  <PhoneCall className="w-3.5 h-3.5 text-[#38BDF8]" />
-                  Đường dây nóng: <strong>{ward.phoneNumber}</strong>
-                </span>
-              </p>
+              </div>
             </div>
           </div>
 
           {/* Quick Action Navigation Dock */}
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0">
             <button
               type="button"
               onClick={() => setOfficerAgentOpen((prev) => !prev)}
-              className="px-3 py-2 bg-[#0284C7] hover:bg-[#0369A1] text-white rounded-xl text-xs font-bold border border-white/25 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-sm"
-              title="Hỏi Trợ lý AI thống kê SLA hồ sơ & cụm sự cố tại xã"
+              className="px-4 py-2.5 bg-white text-[#8F0A1B] hover:bg-[#F7EEDF] rounded-xl text-xs sm:text-sm font-extrabold border border-white/30 transition active:scale-95 cursor-pointer flex items-center gap-2 shadow-sm"
+              title="Mở Trợ lý AI hỗ trợ xử lý việc tại xã"
             >
-              <BrainCircuit className="w-3.5 h-3.5 text-sky-100" />
-              <span>Trợ lý AI Xã</span>
+              <BrainCircuit className="w-4 h-4 text-[#B90E23]" />
+              <span>Trợ lý AI</span>
             </button>
             <button
               onClick={() => navigate('/officer/procedures')}
-              className="px-3 py-2 bg-[#00796B] hover:bg-[#00695C] text-white rounded-xl text-xs font-bold border border-white/25 transition active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-sm"
-              title="Tra cứu & gửi đề xuất cập nhật nội dung 40 Thủ tục hành chính"
+              className="px-4 py-2.5 bg-[#750715] hover:bg-[#5E0510] text-white rounded-xl text-xs sm:text-sm font-bold border border-[#D4A017]/40 transition active:scale-95 cursor-pointer flex items-center gap-2 shadow-sm"
+              title="Tra cứu 40 thủ tục hành chính"
             >
-              <BookOpen className="w-3.5 h-3.5 text-[#5EEAD4]" />
-              <span>Đề xuất 40 TTHC</span>
+              <BookOpen className="w-4 h-4 text-[#FDE047]" />
+              <span>40 TTHC</span>
             </button>
             <button
               onClick={() => setConfirmCitizenSwitchOpen(true)}
-              className="px-3 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold border border-white/15 transition active:scale-95 cursor-pointer flex items-center gap-1.5"
-              title="Chuyển sang Cổng Công Dân (Yêu cầu xác nhận đăng xuất)"
+              className="px-4 py-2.5 bg-black/25 hover:bg-black/40 text-white rounded-xl text-xs sm:text-sm font-bold border border-white/20 transition active:scale-95 cursor-pointer flex items-center gap-2"
+              title="Chuyển sang Cổng Dân Sinh"
             >
-              <ExternalLink className="w-3.5 h-3.5 text-[#38BDF8]" />
+              <ExternalLink className="w-4 h-4 text-white/80" />
               <span>Cổng Dân Sinh</span>
             </button>
           </div>
@@ -1250,7 +1240,7 @@ export const PerWardDashboard: React.FC = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* 2. HIGH-SIGNAL METRIC TILES (COMPACT & SYNCHRONIZED)                      */}
+      {/* 2. HIGH-SIGNAL METRIC TILES (CHỮ TO RÕ - BỐ CỤC THOÁNG GỌN)              */}
       {/* ========================================================================= */}
       {officerAgentOpen && (
         <OfficerAgentPanel
@@ -1259,79 +1249,96 @@ export const PerWardDashboard: React.FC = () => {
           onClose={() => setOfficerAgentOpen(false)}
         />
       )}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-4 w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 z-10">
-        {/* KPI 1: Phản ánh cần xử lý */}
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-6 w-full grid grid-cols-2 lg:grid-cols-4 gap-4 z-10">
+        {/* KPI 1: Phản ánh sự cố */}
         <div
           onClick={() => handleTabChange('INCIDENTS')}
-          className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-between gap-3 cursor-pointer hover:border-[#0F2942] transition-all min-w-0"
+          className={`p-5 rounded-2xl bg-white border-2 transition-all cursor-pointer shadow-sm hover:shadow-md flex flex-col justify-between ${
+            activeTab === 'INCIDENTS' ? 'border-[#B90E23] ring-2 ring-[#B90E23]/20' : 'border-slate-200 hover:border-slate-300'
+          }`}
         >
-          <div className="min-w-0">
-            <span className="text-xs font-bold text-[#475569] uppercase">Phản ánh cần xử lý</span>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-extrabold text-[#0F2942]">{pendingIncidentsCount + inProgressCount}</span>
-              <span className="text-xs text-[#475569]">/ {incidents.length} ca</span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-wide">Phản ánh sự cố</span>
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
+              <AlertTriangle className="w-5 h-5" />
             </div>
-            <span className="text-xs text-[#B45309] font-semibold block">
-              {pendingIncidentsCount} ca mới chưa tiếp nhận
-            </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-[#FEF3C7] text-[#B45309] flex items-center justify-center shrink-0">
-            <AlertTriangle className="w-5 h-5" />
+          <div className="mt-3">
+            <div className="text-3xl sm:text-4xl font-extrabold text-[#750715]">
+              {pendingIncidentsCount + inProgressCount}
+            </div>
+            <div className="text-xs sm:text-sm font-bold text-amber-700 mt-1 flex items-center gap-1">
+              <span>{pendingIncidentsCount} ca mới cần xử lý</span>
+            </div>
           </div>
         </div>
 
-        {/* KPI 2: Câu hỏi cần giải đáp */}
+        {/* KPI 2: Duyệt câu hỏi */}
         <div
           onClick={() => handleTabChange('HITL')}
-          className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-between gap-3 cursor-pointer hover:border-[#0F2942] transition-all min-w-0"
+          className={`p-5 rounded-2xl bg-white border-2 transition-all cursor-pointer shadow-sm hover:shadow-md flex flex-col justify-between ${
+            activeTab === 'HITL' ? 'border-[#B90E23] ring-2 ring-[#B90E23]/20' : 'border-slate-200 hover:border-slate-300'
+          }`}
         >
-          <div className="min-w-0">
-            <span className="text-xs font-bold text-[#475569] uppercase">Câu hỏi cần giải đáp</span>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-extrabold text-[#0F2942]">{pendingHitlCount}</span>
-              <span className="text-xs text-[#475569]">câu hỏi</span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-wide">Giải đáp câu hỏi</span>
+            <div className="w-10 h-10 rounded-xl bg-rose-50 text-[#B90E23] flex items-center justify-center shrink-0 border border-rose-200">
+              <BrainCircuit className="w-5 h-5" />
             </div>
-            <span className="text-xs text-[#0F766E] font-semibold block">
-              {hitlItems.length - pendingHitlCount} câu đã phản hồi
-            </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] flex items-center justify-center shrink-0">
-            <BrainCircuit className="w-5 h-5" />
+          <div className="mt-3">
+            <div className="text-3xl sm:text-4xl font-extrabold text-[#750715]">
+              {pendingHitlCount}
+            </div>
+            <div className="text-xs sm:text-sm font-bold text-slate-500 mt-1 flex items-center gap-1">
+              <span>{hitlItems.length - pendingHitlCount} câu đã trả lời</span>
+            </div>
           </div>
         </div>
 
-        {/* KPI 3: Hồ sơ chờ sơ duyệt */}
+        {/* KPI 3: Hồ sơ chờ duyệt */}
         <div
           onClick={() => handleTabChange('FORMS')}
-          className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-between gap-3 cursor-pointer hover:border-[#0F2942] transition-all min-w-0"
+          className={`p-5 rounded-2xl bg-white border-2 transition-all cursor-pointer shadow-sm hover:shadow-md flex flex-col justify-between ${
+            activeTab === 'FORMS' ? 'border-[#B90E23] ring-2 ring-[#B90E23]/20' : 'border-slate-200 hover:border-slate-300'
+          }`}
         >
-          <div className="min-w-0">
-            <span className="text-xs font-bold text-[#475569] uppercase">Hồ sơ chờ duyệt</span>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-extrabold text-[#0F766E]">{dossiers.length}</span>
-              <span className="text-xs text-[#475569]">tờ khai</span>
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-wide">Sơ duyệt hồ sơ</span>
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200">
+              <FileCheck2 className="w-5 h-5" />
             </div>
-            <span className="text-xs text-[#15803D] font-semibold block">
-              CT01, Khai sinh, Kết hôn, BTXH
-            </span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-[#F0FDFA] text-[#0F766E] border border-[#99F6E4] flex items-center justify-center shrink-0">
-            <FileCheck2 className="w-5 h-5" />
+          <div className="mt-3">
+            <div className="text-3xl sm:text-4xl font-extrabold text-emerald-800">
+              {dossiers.length}
+            </div>
+            <div className="text-xs sm:text-sm font-bold text-emerald-700 mt-1 flex items-center gap-1">
+              <span>Khai sinh, Kết hôn, CT01</span>
+            </div>
           </div>
         </div>
 
         {/* KPI 4: Tỷ lệ đúng hạn */}
-        <div className="p-4 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex items-center justify-between gap-3 min-w-0">
-          <div className="min-w-0">
-            <span className="text-xs font-bold text-[#475569] uppercase">Tiến độ giải quyết</span>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-extrabold text-[#15803D]">{ward.solvedRate}%</span>
-              <span className="text-xs text-[#475569]">đúng hạn</span>
+        <div
+          onClick={() => handleTabChange('MAP')}
+          className={`p-5 rounded-2xl bg-white border-2 transition-all cursor-pointer shadow-sm hover:shadow-md flex flex-col justify-between ${
+            activeTab === 'MAP' ? 'border-[#B90E23] ring-2 ring-[#B90E23]/20' : 'border-slate-200 hover:border-slate-300'
+          }`}
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-wide">Đúng hạn Một cửa</span>
+            <div className="w-10 h-10 rounded-xl bg-sky-50 text-[#0284C7] flex items-center justify-center shrink-0 border border-sky-200">
+              <TrendingUp className="w-5 h-5" />
             </div>
-            <span className="text-xs text-[#475569]">Chuẩn ISO Một Cửa</span>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-[#ECFDF5] text-[#15803D] border border-[#A7F3D0] flex items-center justify-center shrink-0">
-            <TrendingUp className="w-5 h-5" />
+          <div className="mt-3">
+            <div className="text-3xl sm:text-4xl font-extrabold text-[#0284C7]">
+              {ward.solvedRate}%
+            </div>
+            <div className="text-xs sm:text-sm font-bold text-slate-500 mt-1 flex items-center gap-1">
+              <span>Đạt tiêu chuẩn xã/phường</span>
+            </div>
           </div>
         </div>
       </div>
@@ -1359,27 +1366,27 @@ export const PerWardDashboard: React.FC = () => {
       {/* ========================================================================= */}
       {/* 4. WORKSPACE CONTROLS: UNIFIED 4 MODULE TABS                              */}
       {/* ========================================================================= */}
-      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-6 w-full flex flex-col gap-5">
-        <div className="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-[#CBD5E1]">
-          {/* Segmented Tab Navigator — 100% Unified Slate-Navy Color System */}
-          <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[#F1F5F9] rounded-2xl border border-[#CBD5E1] shadow-xs">
+      <div className="max-w-7xl mx-auto px-4 md:px-8 mt-7 w-full flex flex-col gap-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b-2 border-slate-200">
+          {/* Segmented Tab Navigator — Citizen Crimson Synchronized System */}
+          <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-200/80 rounded-2xl border border-slate-300 shadow-inner">
             {/* Tab 1 */}
             <button
               type="button"
               onClick={() => handleTabChange('INCIDENTS')}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-4 sm:px-5 py-2.5 rounded-xl text-sm sm:text-base font-extrabold transition-all cursor-pointer flex items-center gap-2.5 ${
                 activeTab === 'INCIDENTS'
-                  ? 'bg-[#0F2942] text-white shadow-xs'
-                  : 'text-[#475569] hover:text-[#0F2942] hover:bg-white'
+                  ? 'bg-[#B90E23] text-white shadow-md'
+                  : 'text-slate-700 hover:text-[#B90E23] hover:bg-white/80'
               }`}
             >
-              <AlertTriangle className={`w-4 h-4 ${activeTab === 'INCIDENTS' ? 'text-[#38BDF8]' : 'text-[#64748B]'}`} />
-              <span>Sự Cố Hiện Trường</span>
+              <AlertTriangle className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === 'INCIDENTS' ? 'text-[#FDE047]' : 'text-slate-500'}`} />
+              <span>Sự Cố Địa Bàn</span>
               <span
-                className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
+                className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
                   activeTab === 'INCIDENTS'
-                    ? 'bg-white/20 text-white'
-                    : 'bg-[#E2E8F0] text-[#0F2942]'
+                    ? 'bg-white/25 text-white'
+                    : 'bg-white text-slate-700'
                 }`}
               >
                 {incidents.length}
@@ -1390,16 +1397,16 @@ export const PerWardDashboard: React.FC = () => {
             <button
               type="button"
               onClick={() => handleTabChange('HITL')}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-4 sm:px-5 py-2.5 rounded-xl text-sm sm:text-base font-extrabold transition-all cursor-pointer flex items-center gap-2.5 ${
                 activeTab === 'HITL'
-                  ? 'bg-[#0F2942] text-white shadow-xs'
-                  : 'text-[#475569] hover:text-[#0F2942] hover:bg-white'
+                  ? 'bg-[#B90E23] text-white shadow-md'
+                  : 'text-slate-700 hover:text-[#B90E23] hover:bg-white/80'
               }`}
             >
-              <BrainCircuit className={`w-4 h-4 ${activeTab === 'HITL' ? 'text-[#38BDF8]' : 'text-[#64748B]'}`} />
-              <span>Duyệt Câu Hỏi Vùng Xám</span>
+              <BrainCircuit className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === 'HITL' ? 'text-[#FDE047]' : 'text-slate-500'}`} />
+              <span>Duyệt Câu Hỏi</span>
               {pendingHitlCount > 0 && (
-                <span className="px-2 py-0.5 rounded-full text-xs font-mono font-bold bg-[#F59E0B] text-white">
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-[#D4A017] text-[#750715]">
                   {pendingHitlCount}
                 </span>
               )}
@@ -1409,19 +1416,19 @@ export const PerWardDashboard: React.FC = () => {
             <button
               type="button"
               onClick={() => handleTabChange('FORMS')}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-4 sm:px-5 py-2.5 rounded-xl text-sm sm:text-base font-extrabold transition-all cursor-pointer flex items-center gap-2.5 ${
                 activeTab === 'FORMS'
-                  ? 'bg-[#0F2942] text-white shadow-xs'
-                  : 'text-[#475569] hover:text-[#0F2942] hover:bg-white'
+                  ? 'bg-[#B90E23] text-white shadow-md'
+                  : 'text-slate-700 hover:text-[#B90E23] hover:bg-white/80'
               }`}
             >
-              <FileCheck2 className={`w-4 h-4 ${activeTab === 'FORMS' ? 'text-[#38BDF8]' : 'text-[#64748B]'}`} />
+              <FileCheck2 className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === 'FORMS' ? 'text-[#FDE047]' : 'text-slate-500'}`} />
               <span>Sơ Duyệt Tờ Khai</span>
               <span
-                className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold ${
+                className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
                   activeTab === 'FORMS'
-                    ? 'bg-white/20 text-white'
-                    : 'bg-[#E2E8F0] text-[#0F766E]'
+                    ? 'bg-white/25 text-white'
+                    : 'bg-white text-emerald-800'
                 }`}
               >
                 {dossiers.length}
@@ -1432,50 +1439,50 @@ export const PerWardDashboard: React.FC = () => {
             <button
               type="button"
               onClick={() => handleTabChange('MAP')}
-              className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
+              className={`px-4 sm:px-5 py-2.5 rounded-xl text-sm sm:text-base font-extrabold transition-all cursor-pointer flex items-center gap-2.5 ${
                 activeTab === 'MAP'
-                  ? 'bg-[#0F2942] text-white shadow-xs'
-                  : 'text-[#475569] hover:text-[#0F2942] hover:bg-white'
+                  ? 'bg-[#B90E23] text-white shadow-md'
+                  : 'text-slate-700 hover:text-[#B90E23] hover:bg-white/80'
               }`}
             >
-              <Radio className="w-4 h-4 text-[#DC2626] animate-pulse" />
-              <span>Bản Đồ Điểm Nóng GIS</span>
+              <Radio className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 animate-pulse" />
+              <span>Bản Đồ Điểm Nóng</span>
             </button>
           </div>
 
-          <span className="text-xs text-[#64748B] font-medium hidden md:inline">
-            Bấm vào từng dòng để mở ngăn thẩm định chi tiết
+          <span className="text-xs sm:text-sm text-slate-500 font-bold hidden md:inline">
+            💡 Nhấp vào dòng để xem hồ sơ và xử lý
           </span>
         </div>
 
         {/* ========================================================================= */}
-        {/* MODULE 1: INCIDENTS MANAGEMENT (COMPACT + PROGRESSIVE DISCLOSURE)        */}
+        {/* MODULE 1: INCIDENTS MANAGEMENT (CHỮ TO RÕ - BẢNG THOÁNG GỌN)             */}
         {/* ========================================================================= */}
         {activeTab === 'INCIDENTS' && (
-          <div className="bg-white rounded-2xl border border-[#CBD5E1] shadow-xs overflow-hidden flex flex-col">
+          <div className="bg-white rounded-2xl border-2 border-slate-200 shadow-sm overflow-hidden flex flex-col">
             {/* Filter and Search Bar */}
-            <div className="p-4 sm:p-5 border-b border-[#E2E8F0] flex flex-col md:flex-row md:items-center justify-between gap-3 bg-[#F8FAFC]">
-              <div className="flex items-center gap-2 flex-1 max-w-md relative">
-                <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2" />
+            <div className="p-4 sm:p-5 border-b border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50/80">
+              <div className="flex items-center gap-2 flex-1 max-w-lg relative">
+                <Search className="w-5 h-5 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   value={searchKeyword}
                   onChange={(e) => setSearchKeyword(e.target.value)}
-                  placeholder="Tìm theo mã sự cố, nội dung hoặc địa chỉ..."
-                  className="w-full h-9 pl-9 pr-3 text-xs sm:text-sm rounded-xl bg-white border border-[#CBD5E1] focus:outline-none focus:border-[#0F2942] text-[#0F172A]"
+                  placeholder="Tìm mã số, tên sự cố hoặc tuyến đường..."
+                  className="w-full h-11 pl-11 pr-4 text-sm sm:text-base rounded-xl bg-white border border-slate-300 focus:outline-none focus:border-[#B90E23] focus:ring-2 focus:ring-[#B90E23]/20 text-slate-800 font-medium"
                 />
                 {searchKeyword && (
                   <button
                     onClick={() => setSearchKeyword('')}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#94A3B8] hover:text-[#0F172A]"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
                   >
-                    <X className="w-3.5 h-3.5" />
+                    <X className="w-4 h-4" />
                   </button>
                 )}
               </div>
 
               {/* Status Filter Buttons */}
-              <div className="flex flex-wrap items-center gap-1.5 p-1 bg-[#F1F5F9] rounded-xl border border-[#CBD5E1] text-xs">
+              <div className="flex flex-wrap items-center gap-1.5 p-1 bg-slate-200/70 rounded-xl border border-slate-300 text-xs sm:text-sm">
                 {(
                   [
                     { key: 'ALL', label: 'Tất cả', count: incidents.length },
@@ -1488,14 +1495,14 @@ export const PerWardDashboard: React.FC = () => {
                     key={tab.key}
                     type="button"
                     onClick={() => setStatusFilter(tab.key)}
-                    className={`px-3 py-1 rounded-lg font-bold text-xs transition cursor-pointer flex items-center gap-1 ${
+                    className={`px-3 sm:px-4 py-2 rounded-lg font-extrabold text-xs sm:text-sm transition cursor-pointer flex items-center gap-1.5 ${
                       statusFilter === tab.key
-                        ? 'bg-[#0F2942] text-white shadow-2xs'
-                        : 'text-[#475569] hover:text-[#0F2942]'
+                        ? 'bg-[#B90E23] text-white shadow-xs'
+                        : 'text-slate-700 hover:text-[#B90E23] hover:bg-white/80'
                     }`}
                   >
                     <span>{tab.label}</span>
-                    <span className="text-[11px] opacity-80 font-mono">({tab.count})</span>
+                    <span className="opacity-80 font-mono text-xs">({tab.count})</span>
                   </button>
                 ))}
               </div>
@@ -1503,22 +1510,22 @@ export const PerWardDashboard: React.FC = () => {
 
             {/* High-Signal Compact Table */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs sm:text-sm text-[#0F172A]">
-                <thead className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-xs font-bold text-[#64748B] uppercase tracking-wider">
+              <table className="w-full text-left text-sm text-slate-800">
+                <thead className="bg-slate-100/80 border-b border-slate-200 text-xs sm:text-sm font-extrabold text-slate-700 uppercase tracking-wider">
                   <tr>
-                    <th className="p-4">Mã & Giờ Báo</th>
-                    <th className="p-4">Lĩnh Vực</th>
-                    <th className="p-4">Tiêu Đề & Địa Điểm</th>
-                    <th className="p-4 text-center">Mức Độ</th>
-                    <th className="p-4 text-center">Trạng Thái</th>
-                    <th className="p-4 text-right">Chi Tiết & Thao Tác</th>
+                    <th className="p-4 sm:p-5">Mã & Giờ Báo</th>
+                    <th className="p-4 sm:p-5">Lĩnh Vực</th>
+                    <th className="p-4 sm:p-5">Tiêu Đề & Địa Điểm</th>
+                    <th className="p-4 sm:p-5 text-center">Mức Độ</th>
+                    <th className="p-4 sm:p-5 text-center">Trạng Thái</th>
+                    <th className="p-4 sm:p-5 text-right">Thao Tác</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E2E8F0]">
+                <tbody className="divide-y divide-slate-200">
                   {paginatedIncidents.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-[#64748B]">
-                        Không tìm thấy sự cố nào phù hợp.
+                      <td colSpan={6} className="p-10 text-center text-slate-500 font-medium text-base">
+                        Không có sự cố nào trong danh sách.
                       </td>
                     </tr>
                   ) : (
@@ -1526,80 +1533,74 @@ export const PerWardDashboard: React.FC = () => {
                       <tr
                         key={inc.id}
                         onClick={() => setSelectedIncident(inc)}
-                        className={`hover:bg-[#F8FAFC] transition-colors cursor-pointer ${
-                          selectedIncident?.id === inc.id ? 'bg-[#EFF6FF]' : ''
+                        className={`hover:bg-amber-50/40 transition-colors cursor-pointer ${
+                          selectedIncident?.id === inc.id ? 'bg-rose-50/60' : ''
                         }`}
                       >
-                        <td className="p-4 font-mono font-bold text-[#0F2942]">
+                        <td className="p-4 sm:p-5 font-mono font-extrabold text-[#750715] text-sm sm:text-base">
                           {inc.id}
-                          <span className="block text-xs font-sans text-[#64748B] font-normal mt-0.5">
+                          <span className="block text-xs font-sans text-slate-500 font-semibold mt-0.5">
                             {inc.reportedTime}
                           </span>
                         </td>
-                        <td className="p-4 font-semibold text-[#0F766E]">
-                          {inc.category}
+                        <td className="p-4 sm:p-5 font-extrabold text-slate-700">
+                          <span className="px-2.5 py-1 rounded-lg bg-slate-100 border border-slate-200">
+                            {inc.category}
+                          </span>
                         </td>
-                        <td className="p-4 max-w-sm">
-                          <span className="font-bold block text-[#0F172A] line-clamp-1">
+                        <td className="p-4 sm:p-5 max-w-md">
+                          <span className="font-extrabold text-base text-slate-900 block line-clamp-1">
                             {inc.title}
                           </span>
-                          <span className="text-xs text-[#64748B] flex items-center gap-1 mt-0.5 truncate">
-                            <MapPin className="w-3.5 h-3.5 text-[#0F766E] shrink-0" />
-                            <span>{inc.address}</span>
+                          <span className="text-sm text-slate-600 flex items-center gap-1.5 mt-1 font-medium">
+                            <MapPin className="w-4 h-4 text-[#B90E23] shrink-0" />
+                            <span className="truncate">{inc.address}</span>
                           </span>
-                          {inc.reporterPhone && (
-                            <span className="text-xs font-mono font-bold text-[#DC2626] flex items-center gap-1 mt-1">
-                              <PhoneCall className="w-3 h-3 shrink-0" />
-                              <span>SĐT liên hệ: {inc.reporterPhone}</span>
-                            </span>
-                          )}
                           {(inc.photoCount ?? inc.photoUrls?.length ?? 0) > 0 && (
-                            <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 rounded-md bg-sky-50 border border-sky-200 text-[11px] font-bold text-sky-800">
+                            <span className="inline-flex items-center gap-1 mt-1.5 px-2.5 py-0.5 rounded-md bg-amber-50 border border-amber-200 text-xs font-bold text-amber-800">
                               <span>📷 {inc.photoCount ?? inc.photoUrls?.length} ảnh hiện trường</span>
                             </span>
                           )}
                         </td>
-                        <td className="p-4 text-center">
+                        <td className="p-4 sm:p-5 text-center">
                           <span
-                            className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
+                            className={`px-3 py-1 rounded-full text-xs sm:text-sm font-extrabold inline-block ${
                               inc.urgency === 'HIGH'
-                                ? 'bg-[#FEE2E2] text-[#B91C1C] border border-[#FCA5A5]'
+                                ? 'bg-red-100 text-red-800 border border-red-300'
                                 : inc.urgency === 'MEDIUM'
-                                ? 'bg-[#FEF3C7] text-[#B45309] border border-[#FDE68A]'
-                                : 'bg-[#F0FDFA] text-[#0F766E] border border-[#99F6E4]'
+                                ? 'bg-amber-100 text-amber-800 border border-amber-300'
+                                : 'bg-slate-100 text-slate-700 border border-slate-200'
                             }`}
                           >
                             {inc.urgency === 'HIGH' ? 'Khẩn cấp' : inc.urgency === 'MEDIUM' ? 'Trung bình' : 'Bình thường'}
                           </span>
                         </td>
-                        <td className="p-4 text-center">
+                        <td className="p-4 sm:p-5 text-center">
                           <span
-                            className={`inline-block px-2.5 py-1 rounded-full text-xs font-bold ${
+                            className={`inline-block px-3 py-1.5 rounded-full text-xs sm:text-sm font-extrabold ${
                               inc.status === 'RESOLVED'
-                                ? 'bg-[#ECFDF5] text-[#166534] border border-[#86EFAC]'
+                                ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
                                 : inc.status === 'IN_PROGRESS'
-                                ? 'bg-[#EFF6FF] text-[#1D4ED8] border border-[#BFDBFE]'
-                                : 'bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A]'
+                                ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                                : 'bg-amber-100 text-amber-900 border border-amber-300'
                             }`}
                           >
                             {inc.status === 'RESOLVED'
-                              ? 'Đã hoàn tất'
+                              ? 'Đã xong'
                               : inc.status === 'IN_PROGRESS'
                               ? 'Đang xử lý'
-                              : 'Chờ tiếp nhận'}
+                              : 'Chờ nhận'}
                           </span>
                         </td>
-                        <td className="p-4 text-right" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-end gap-2">
-                            <button
-                              type="button"
-                              onClick={() => setSelectedIncident(inc)}
-                              className="px-3 py-1.5 rounded-xl bg-[#0F2942] hover:bg-[#1E3A5F] text-white text-xs font-bold shadow-xs transition active:scale-95 cursor-pointer flex items-center gap-1"
-                            >
-                              <span>Mở xử lý</span>
-                              <ChevronRight className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
+                        <td className="p-4 sm:p-5 text-right" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            type="button"
+                            onClick={() => setSelectedIncident(inc)}
+                            className="px-4 py-2 rounded-xl bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs sm:text-sm font-extrabold shadow-sm transition active:scale-95 cursor-pointer inline-flex items-center gap-1.5"
+                          >
+                            <span>Xem & Xử lý</span>
+                            <ChevronRight className="w-4 h-4" />
+                          </button>
                         </td>
                       </tr>
                     ))
@@ -1627,58 +1628,59 @@ export const PerWardDashboard: React.FC = () => {
         {/* MODULE 2: CITIZEN QUESTION REVIEW & APPROVAL                              */}
         {/* ========================================================================= */}
         {activeTab === 'HITL' && (
-          <div className="bg-white rounded-3xl border border-[#CBD5E1] shadow-xs p-5 sm:p-6 flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#E2E8F0]">
+          <div className="bg-white rounded-2xl border-2 border-slate-200 shadow-sm p-5 sm:p-7 flex flex-col gap-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
               <div>
-                <h2 className="text-base sm:text-lg font-extrabold text-[#0F2942]">
-                  Danh Sách Câu Hỏi Cần Cán Bộ Giải Đáp
+                <h2 className="text-lg sm:text-xl font-extrabold text-[#750715] flex items-center gap-2">
+                  <BrainCircuit className="w-6 h-6 text-[#B90E23]" />
+                  <span>Duyệt Câu Hỏi Cần Cán Bộ Giải Đáp</span>
                 </h2>
-                <p className="text-xs text-[#64748B] mt-0.5">
-                  Các tình huống hồ sơ riêng biệt của người dân cần cán bộ Một cửa kiểm tra và xác nhận nội dung hướng dẫn.
+                <p className="text-xs sm:text-sm text-slate-600 mt-1 font-medium">
+                  Trường hợp công dân hỏi chi tiết riêng biệt cần cán bộ Một cửa xác nhận nội dung tư vấn.
                 </p>
               </div>
-              <span className="px-3 py-1 rounded-full text-xs font-bold bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] self-start sm:self-auto">
+              <span className="px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-extrabold bg-amber-100 text-amber-900 border border-amber-300 self-start sm:self-auto">
                 {pendingHitlCount} câu chờ duyệt
               </span>
             </div>
 
-            {/* Compact List of Items */}
-            <div className="grid grid-cols-1 gap-3">
+            {/* List of Items */}
+            <div className="grid grid-cols-1 gap-3.5">
               {hitlItems.map((item) => {
                 const isApproved = item.status === 'APPROVED';
                 return (
                   <div
                     key={item.id}
-                    className={`p-4 rounded-2xl border transition-all cursor-pointer hover:border-[#0F2942] flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-                      isApproved ? 'bg-[#F8FAFC] border-[#CBD5E1]' : 'bg-white border-[#CBD5E1] shadow-2xs'
+                    className={`p-5 rounded-2xl border-2 transition-all cursor-pointer hover:border-[#B90E23] flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
+                      isApproved ? 'bg-slate-50 border-slate-200' : 'bg-white border-slate-200 shadow-xs'
                     }`}
                     onClick={() => setSelectedHitlItem(item)}
                   >
-                    <div className="flex flex-col gap-1.5 flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <span className="font-mono font-bold text-[#0F2942] bg-[#F1F5F9] px-2 py-0.5 rounded">
+                    <div className="flex flex-col gap-2 flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2.5 text-xs sm:text-sm">
+                        <span className="font-mono font-extrabold text-[#750715] bg-rose-50 px-2.5 py-1 rounded-md border border-rose-200">
                           {item.id}
                         </span>
-                        <span className="text-[#0F766E] font-semibold flex items-center gap-1 truncate">
-                          <BookOpen className="w-3.5 h-3.5 shrink-0" />
+                        <span className="text-slate-700 font-extrabold flex items-center gap-1.5 truncate">
+                          <BookOpen className="w-4 h-4 text-[#B90E23] shrink-0" />
                           {item.candidateProcedureName}
                         </span>
                       </div>
 
-                      <p className="text-xs sm:text-sm font-bold text-[#0F172A] line-clamp-1">
+                      <p className="text-base sm:text-lg font-bold text-slate-900 line-clamp-2">
                         "{item.query}"
                       </p>
-                      <span className="text-[11px] text-[#64748B]">
-                        Thời gian: {item.createdAt} • Người gửi tại: {item.wardName}
+                      <span className="text-xs text-slate-500 font-medium">
+                        Gửi lúc: {item.createdAt} • Địa bàn: {item.wardName}
                       </span>
                     </div>
 
                     <div className="flex items-center gap-3 shrink-0" onClick={(e) => e.stopPropagation()}>
                       <span
-                        className={`px-3 py-1 rounded-full text-xs font-bold ${
+                        className={`px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-extrabold ${
                           isApproved
-                            ? 'bg-[#ECFDF5] text-[#166534] border border-[#86EFAC]'
-                            : 'bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A]'
+                            ? 'bg-emerald-100 text-emerald-800 border border-emerald-300'
+                            : 'bg-amber-100 text-amber-900 border border-amber-300'
                         }`}
                       >
                         {isApproved ? 'Đã duyệt' : 'Chờ duyệt'}
@@ -1687,10 +1689,10 @@ export const PerWardDashboard: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setSelectedHitlItem(item)}
-                        className="px-3.5 py-1.5 rounded-xl bg-[#0F2942] hover:bg-[#1E3A5F] text-white text-xs font-bold transition active:scale-95 cursor-pointer flex items-center gap-1 shadow-xs"
+                        className="px-4 py-2.5 rounded-xl bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs sm:text-sm font-extrabold transition active:scale-95 cursor-pointer flex items-center gap-1.5 shadow-xs"
                       >
-                        <span>{isApproved ? 'Xem lại' : 'Duyệt phản hồi'}</span>
-                        <ChevronRight className="w-3.5 h-3.5" />
+                        <span>{isApproved ? 'Xem lại' : 'Duyệt trả lời'}</span>
+                        <ChevronRight className="w-4 h-4" />
                       </button>
                     </div>
                   </div>
@@ -1698,7 +1700,7 @@ export const PerWardDashboard: React.FC = () => {
               })}
 
               {hitlItems.length === 0 && (
-                <div className="p-8 text-center text-[#64748B] text-xs">
+                <div className="p-10 text-center text-slate-500 text-base font-medium">
                   Hiện không có câu hỏi nào đang chờ cán bộ giải đáp.
                 </div>
               )}
@@ -1710,29 +1712,29 @@ export const PerWardDashboard: React.FC = () => {
         {/* MODULE 3: UNIFIED DOSSIER AUDIT WORKSPACE (SƠ DUYỆT TẬP TRUNG TẠI CHỖ)    */}
         {/* ========================================================================= */}
         {activeTab === 'FORMS' && (
-          <div className="bg-white rounded-2xl border border-[#CBD5E1] shadow-xs p-5 sm:p-6 flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#E2E8F0]">
+          <div className="bg-white rounded-2xl border-2 border-slate-200 shadow-sm p-5 sm:p-7 flex flex-col gap-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
               <div>
-                <h2 className="text-base sm:text-lg font-extrabold text-[#0F2942] flex items-center gap-2">
-                  <FileCheck2 className="w-5 h-5 text-[#0F766E]" />
+                <h2 className="text-lg sm:text-xl font-extrabold text-[#750715] flex items-center gap-2">
+                  <FileCheck2 className="w-6 h-6 text-[#B90E23]" />
                   <span>Sơ Duyệt Hồ Sơ Một Cửa • {ward.name}</span>
                 </h2>
-                <p className="text-xs text-[#64748B] mt-0.5">
-                  Thẩm định trực tiếp các tờ khai CT01, Khai sinh, Kết hôn, Bảo trợ xã hội đã tiền kiểm tra.
+                <p className="text-xs sm:text-sm text-slate-600 mt-1 font-medium">
+                  Kiểm tra tờ khai CT01, Khai sinh, Kết hôn, Bảo trợ xã hội của người dân gửi đến.
                 </p>
               </div>
 
               {/* Status Filter Pills */}
-              <div className="flex flex-wrap items-center gap-1.5">
+              <div className="flex flex-wrap items-center gap-2">
                 {(['ALL', 'VALID', 'HAS_ERRORS', 'PENDING'] as const).map((st) => (
                   <button
                     key={st}
                     type="button"
                     onClick={() => setDossierFilter(st)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+                    className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-extrabold transition cursor-pointer ${
                       dossierFilter === st
-                        ? 'bg-[#0F2942] text-white shadow-xs'
-                        : 'bg-[#F1F5F9] text-[#475569] hover:bg-[#E2E8F0]'
+                        ? 'bg-[#B90E23] text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                     }`}
                   >
                     {st === 'ALL'
@@ -1748,20 +1750,20 @@ export const PerWardDashboard: React.FC = () => {
             </div>
 
             {/* Search Bar */}
-            <div className="flex items-center gap-2 bg-[#F8FAFC] border border-[#CBD5E1] rounded-2xl px-3.5 py-2">
-              <Search className="w-4 h-4 text-[#64748B] shrink-0" />
+            <div className="flex items-center gap-3 bg-slate-50 border border-slate-300 rounded-xl px-4 py-2.5">
+              <Search className="w-5 h-5 text-slate-400 shrink-0" />
               <input
                 type="text"
                 value={dossierSearch}
                 onChange={(e) => setDossierSearch(e.target.value)}
-                placeholder="Tìm nhanh theo Họ tên công dân, số CCCD, Mã hồ sơ hoặc loại thủ tục..."
-                className="w-full bg-transparent text-xs sm:text-sm text-[#0F172A] focus:outline-none"
+                placeholder="Tìm họ tên, số CCCD, mã hồ sơ hoặc loại thủ tục..."
+                className="w-full bg-transparent text-sm sm:text-base text-slate-800 font-medium focus:outline-none"
               />
               {dossierSearch && (
                 <button
                   type="button"
                   onClick={() => setDossierSearch('')}
-                  className="text-xs text-[#64748B] hover:text-[#0F172A] cursor-pointer"
+                  className="text-xs sm:text-sm text-slate-500 hover:text-slate-800 font-bold cursor-pointer"
                 >
                   Xóa
                 </button>
@@ -1770,64 +1772,64 @@ export const PerWardDashboard: React.FC = () => {
 
             {/* Dossiers Table */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs sm:text-sm text-[#0F172A]">
-                <thead className="bg-[#F8FAFC] border-b border-[#E2E8F0] text-xs font-bold text-[#475569] uppercase tracking-wider">
+              <table className="w-full text-left text-sm text-slate-800">
+                <thead className="bg-slate-100/80 border-b border-slate-200 text-xs sm:text-sm font-extrabold text-slate-700 uppercase tracking-wider">
                   <tr>
-                    <th className="p-3.5">Mã Hồ Sơ</th>
-                    <th className="p-3.5">Công Dân</th>
-                    <th className="p-3.5">Loại Thủ Tục</th>
-                    <th className="p-3.5">Số Định Danh (CCCD)</th>
-                    <th className="p-3.5 text-center">Tiền Kiểm Tra AI</th>
-                    <th className="p-3.5 text-right">Thao Tác</th>
+                    <th className="p-4 sm:p-5">Mã Hồ Sơ</th>
+                    <th className="p-4 sm:p-5">Người Nộp</th>
+                    <th className="p-4 sm:p-5">Thủ Tục</th>
+                    <th className="p-4 sm:p-5">Số CCCD</th>
+                    <th className="p-4 sm:p-5 text-center">Kiểm Tra AI</th>
+                    <th className="p-4 sm:p-5 text-right">Thao Tác</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-[#E2E8F0]">
+                <tbody className="divide-y divide-slate-200">
                   {filteredDossiers.map((d) => (
                     <tr
                       key={d.id}
                       onClick={() => setSelectedDossier(d)}
-                      className="hover:bg-[#F8FAFC] transition cursor-pointer"
+                      className="hover:bg-amber-50/40 transition cursor-pointer"
                     >
-                      <td className="p-3.5 font-mono font-bold text-[#0F2942]">
+                      <td className="p-4 sm:p-5 font-mono font-extrabold text-[#750715] text-sm sm:text-base">
                         {d.id}
-                        <span className="block text-xs font-sans text-[#475569] font-normal">{d.submittedAt}</span>
+                        <span className="block text-xs font-sans text-slate-500 font-semibold">{d.submittedAt}</span>
                       </td>
-                      <td className="p-3.5 font-bold text-[#0F172A]">
+                      <td className="p-4 sm:p-5 font-extrabold text-base text-slate-900">
                         {d.citizenName}
                       </td>
-                      <td className="p-3.5">
-                        <span className="font-semibold text-[#0F766E] block">{d.procedure}</span>
-                        <span className="text-xs text-[#475569]">Mẫu: {d.formType}</span>
+                      <td className="p-4 sm:p-5">
+                        <span className="font-extrabold text-slate-800 block text-sm sm:text-base">{d.procedure}</span>
+                        <span className="text-xs text-slate-500 font-semibold">Mẫu: {d.formType}</span>
                       </td>
-                      <td className="p-3.5 font-mono text-xs font-bold text-[#334155]">
+                      <td className="p-4 sm:p-5 font-mono text-sm font-bold text-slate-700">
                         {d.cccd}
                       </td>
-                      <td className="p-3.5 text-center">
+                      <td className="p-4 sm:p-5 text-center">
                         {d.status === 'VALID' ? (
-                          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#ECFDF5] text-[#166534] border border-[#86EFAC] inline-flex items-center gap-1">
-                            <Check className="w-3.5 h-3.5 text-[#15803D]" /> Hợp lệ
+                          <span className="px-3 py-1.5 rounded-full text-xs sm:text-sm font-extrabold bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1.5">
+                            <Check className="w-4 h-4 text-emerald-700" /> Hợp lệ
                           </span>
                         ) : d.status === 'HAS_ERRORS' ? (
-                          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#FEF2F2] text-[#B91C1C] border border-[#FCA5A5] inline-flex items-center gap-1">
-                            <AlertTriangle className="w-3.5 h-3.5 text-[#B91C1C]" /> {d.errorCount} lỗi cần sửa
+                          <span className="px-3 py-1.5 rounded-full text-xs sm:text-sm font-extrabold bg-red-100 text-red-800 border border-red-300 inline-flex items-center gap-1.5">
+                            <AlertTriangle className="w-4 h-4 text-red-700" /> {d.errorCount} lỗi
                           </span>
                         ) : (
-                          <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-[#FFFBEB] text-[#B45309] border border-[#FDE68A] inline-flex items-center gap-1">
+                          <span className="px-3 py-1.5 rounded-full text-xs sm:text-sm font-extrabold bg-amber-100 text-amber-900 border border-amber-300 inline-flex items-center gap-1.5">
                             Chờ rà soát
                           </span>
                         )}
                       </td>
-                      <td className="p-3.5 text-right">
+                      <td className="p-4 sm:p-5 text-right">
                         <button
                           type="button"
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedDossier(d);
                           }}
-                          className="px-3.5 py-1.5 rounded-xl bg-[#0F2942] hover:bg-[#1E3A5F] text-white text-xs font-bold transition active:scale-95 cursor-pointer flex items-center gap-1 ml-auto shadow-xs"
+                          className="px-4 py-2 rounded-xl bg-[#B90E23] hover:bg-[#8F0A1B] text-white text-xs sm:text-sm font-extrabold transition active:scale-95 cursor-pointer inline-flex items-center gap-1.5 ml-auto shadow-sm"
                         >
                           <span>Sơ duyệt</span>
-                          <ChevronRight className="w-3.5 h-3.5" />
+                          <ChevronRight className="w-4 h-4" />
                         </button>
                       </td>
                     </tr>
@@ -1835,8 +1837,8 @@ export const PerWardDashboard: React.FC = () => {
 
                   {filteredDossiers.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="p-8 text-center text-[#64748B] text-xs">
-                        Không tìm thấy hồ sơ nào khớp với bộ lọc hiện tại.
+                      <td colSpan={6} className="p-10 text-center text-slate-500 text-base font-medium">
+                        Không tìm thấy hồ sơ nào phù hợp.
                       </td>
                     </tr>
                   )}
@@ -1850,21 +1852,21 @@ export const PerWardDashboard: React.FC = () => {
         {/* MODULE 4: INCIDENT MAP                                                    */}
         {/* ========================================================================= */}
         {activeTab === 'MAP' && (
-          <div className="bg-white rounded-3xl border border-[#CBD5E1] shadow-xs p-5 flex flex-col gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-[#E2E8F0]">
-              <span className="text-xs sm:text-sm font-bold text-[#0F2942] flex items-center gap-2">
-                <Radio className="w-4 h-4 text-[#DC2626] animate-pulse shrink-0" />
-                Bản Đồ Điểm Nóng Sự Cố Tại {ward.name}
+          <div className="bg-white rounded-2xl border-2 border-slate-200 shadow-sm p-5 sm:p-7 flex flex-col gap-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200">
+              <span className="text-base sm:text-lg font-extrabold text-[#750715] flex items-center gap-2">
+                <Radio className="w-5 h-5 text-red-500 animate-pulse shrink-0" />
+                <span>Bản Đồ Điểm Nóng Sự Cố Tại {ward.name}</span>
               </span>
-              <div className="flex flex-wrap items-center gap-3 text-xs text-[#64748B]">
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#DC2626]" /> Khẩn cấp
+              <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm font-bold text-slate-700">
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-red-50 border border-red-200 text-red-700">
+                  <span className="w-2.5 h-2.5 rounded-full bg-red-600" /> Khẩn cấp
                 </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#D97706]" /> Trung bình
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-50 border border-amber-200 text-amber-800">
+                  <span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Trung bình
                 </span>
-                <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-[#0F766E]" /> Đã xử lý
+                <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-600" /> Đã xử lý
                 </span>
                 <button
                   type="button"
@@ -1874,25 +1876,25 @@ export const PerWardDashboard: React.FC = () => {
                       mapInstanceRef.current.flyTo([ward.lat, ward.lon], 15, { duration: 0.8 });
                     }
                   }}
-                  className="px-3 py-1.5 rounded-lg border border-[#CBD5E1] bg-[#F8FAFC] hover:bg-[#F1F5F9] text-xs font-bold text-[#0F2942] flex items-center gap-1 transition cursor-pointer"
-                  title="Định tâm lại bản đồ về trụ sở UBND và các điểm nóng trong địa bàn"
+                  className="px-3.5 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs sm:text-sm font-extrabold text-slate-800 flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
+                  title="Định tâm lại bản đồ về trụ sở UBND"
                 >
-                  <MapPin className="w-3.5 h-3.5 text-[#0F766E]" />
+                  <MapPin className="w-4 h-4 text-[#B90E23]" />
                   <span>Về Trung Tâm Xã</span>
                 </button>
                 <button
                   type="button"
                   onClick={handleRebuildGeoIndex}
                   disabled={geoSyncing}
-                  className="px-3 py-1.5 rounded-lg border border-[#CBD5E1] bg-white hover:bg-[#F1F5F9] text-xs font-semibold text-[#0F2942] flex items-center gap-1 transition cursor-pointer"
+                  className="px-3.5 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-xs sm:text-sm font-extrabold text-slate-800 flex items-center gap-1.5 transition cursor-pointer shadow-2xs"
                   title="Làm mới dữ liệu vị trí sự cố trên bản đồ"
                 >
-                  <RefreshCw className={`w-3.5 h-3.5 ${geoSyncing ? 'animate-spin' : ''}`} />
-                  <span>{geoSyncing ? 'Đang cập nhật...' : 'Làm Mới Bản Đồ'}</span>
+                  <RefreshCw className={`w-4 h-4 text-slate-600 ${geoSyncing ? 'animate-spin' : ''}`} />
+                  <span>{geoSyncing ? 'Đang tải...' : 'Làm Mới'}</span>
                 </button>
               </div>
             </div>
-            <div className="w-full h-[520px] rounded-2xl overflow-hidden border border-[#CBD5E1] relative z-1 shadow-inner bg-[#E2E8F0]">
+            <div className="w-full h-[520px] rounded-2xl overflow-hidden border-2 border-slate-200 relative z-1 shadow-inner bg-slate-100">
               <div ref={mapContainerRef} className="w-full h-full" />
             </div>
           </div>
