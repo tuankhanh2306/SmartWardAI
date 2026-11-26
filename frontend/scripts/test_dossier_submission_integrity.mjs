@@ -304,6 +304,44 @@ assert(
   'Verified slaDeadline must render localized date instead of unverified fallback'
 );
 
+// =================================================================
+// 6. TASK-051: CANONICAL MAPPING, PRECHECK/SUBMIT SPLIT & UUID IDEMPOTENCY AUDIT
+// =================================================================
+console.log('\n--- 6. TASK-051: CANONICAL MAPPING, PRECHECK SPLIT & UUID IDEMPOTENCY ---');
+
+assert(
+  !sourceCode.includes("'TK-KS': 'TTHC-CR-01'") &&
+  !sourceCode.includes("'TK-KH': 'TTHC-CR-03'") &&
+  !sourceCode.includes("'CT01': 'TTHC-CT-01'"),
+  'Must eliminate legacy mismatched procCodeMap (TK-KS->CR-01, TK-KH->CR-03, CT01->CT-01)'
+);
+
+assert(
+  sourceCode.includes('resolveCanonicalProcedureCode') &&
+  sourceCode.includes("case 'TK-KS':") &&
+  sourceCode.includes("return 'TTHC-HT-01';"),
+  'Must enforce single canonical procedure mapping (TK-KS -> TTHC-HT-01)'
+);
+
+assert(
+  !sourceCode.includes("dob: dob || '1990-01-01'") &&
+  !sourceCode.includes('sharpnessScore: ocr.visionGateResult?.sharpnessScore ?? 96'),
+  'Must NOT inject fake default DOB (1990-01-01) or fake OCR sharpnessScore (96) into submission payload'
+);
+
+assert(
+  sourceCode.includes('const handlePrecheck = async () =>') &&
+  sourceCode.includes('const handleSubmitDossier = async () =>') &&
+  sourceCode.includes('verifiedSnapshotHash !== currentFingerprint'),
+  'Must separate handlePrecheck from handleSubmitDossier and block submission if edited after precheck'
+);
+
+assert(
+  sourceCode.includes('idempotencyKey: submissionAttemptUuid') &&
+  sourceCode.includes('Chưa xác nhận được kết quả gửi'),
+  'Must reuse stable UUID idempotencyKey on lost-response retry and display clear unconfirmed notice'
+);
+
 console.log('\n================================================================');
 console.log(`SUMMARY: All ${totalPassed}/${totalTests} dossier integrity tests PASSED! 100% GREEN!`);
 console.log('================================================================');

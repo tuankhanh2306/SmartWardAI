@@ -219,11 +219,16 @@ export const FormAndIssueReporting: React.FC = () => {
                 <div className="flex flex-col gap-4">
                   <FormStep3PrecheckReport
                     currentWard={currentWard}
+                    canonicalProcedureCode={wizard.canonicalProcedureCode}
                     precheckResult={wizard.precheckResult}
                     submittedDossier={wizard.submittedDossier}
+                    isPrecheckDirty={wizard.isPrecheckDirty}
+                    submitLoading={wizard.submitLoading}
+                    submitError={wizard.submitError}
                     speakingId={speakingId}
                     toggleSpeech={toggleSpeech}
                     onEditStep2={() => wizard.setFormWizardStep(2)}
+                    onSubmitDossier={() => void wizard.handleSubmitDossier()}
                     onOpenPrintModal={() => wizard.setShowPrintModal(true)}
                     onOpenTrackingTab={() => switchTab('tracking')}
                   />

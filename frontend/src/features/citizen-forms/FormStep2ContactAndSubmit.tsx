@@ -106,7 +106,7 @@ export const FormStep2ContactAndSubmit: React.FC<FormStep2ContactAndSubmitProps>
         <div className="flex items-start gap-2.5">
           <AlertCircle className="w-5 h-5 text-[#DC2626] shrink-0 mt-0.5" />
           <div className="flex flex-col gap-0.5">
-            <span className="font-extrabold text-sm text-[#7F1D1D]">Lỗi Nộp Hồ Sơ Lên Hệ Thống</span>
+            <span className="font-extrabold text-sm text-[#7F1D1D]">Cần Kiểm Tra Lại Tờ Khai Trước Khi Gửi</span>
             <p className="leading-relaxed text-[#991B1B]">{submitError}</p>
           </div>
         </div>
@@ -117,7 +117,7 @@ export const FormStep2ContactAndSubmit: React.FC<FormStep2ContactAndSubmitProps>
           className="self-end sm:self-center px-3.5 py-1.5 rounded-xl bg-[#DC2626] hover:bg-[#B91C1C] text-white font-bold text-xs shrink-0 transition flex items-center gap-1.5 cursor-pointer shadow-xs disabled:opacity-50 gov-focus-ring"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${formLoading ? 'animate-spin' : ''}`} />
-          <span>Thử lại</span>
+          <span>Kiểm tra lại</span>
         </button>
       </div>
     )}
@@ -161,7 +161,7 @@ export const FormStep2ContactAndSubmit: React.FC<FormStep2ContactAndSubmitProps>
           ) : (
             <>
               <Sparkles className="w-4 h-4 text-amber-100" />
-              <span>Kiểm tra &amp; tiếp tục</span>
+              <span>Kiểm tra tờ khai</span>
             </>
           )}
         </button>

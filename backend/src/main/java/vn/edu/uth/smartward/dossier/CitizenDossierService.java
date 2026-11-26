@@ -84,15 +84,6 @@ public class CitizenDossierService {
 
     @Transactional
     public DossierSubmissionResponse submitDossier(SubmitDossierRequest req) {
-        if (req.idempotencyKey() != null && !req.idempotencyKey().isBlank()) {
-            String cleanKey = req.idempotencyKey().trim();
-            DossierSubmissionResponse cached = idempotencyCache.get(cleanKey);
-            if (cached != null) {
-                log.info("Returning idempotent response for key={}", cleanKey);
-                return cached;
-            }
-        }
-
         if (req.procedureCode() == null || req.procedureCode().isBlank()) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã thủ tục hành chính không được để trống.");
         }
@@ -103,7 +94,29 @@ public class CitizenDossierService {
             throw new BusinessException(ErrorCode.INVALID_REQUEST, "Số CCCD công dân không được để trống.");
         }
 
+        String procedureCode = req.procedureCode().trim().toUpperCase();
+        String wardCode = req.wardCode().trim();
         String normalizedCccd = req.citizenCccd().trim();
+        if (!normalizedCccd.matches("^\\d{12}$")) {
+            throw new BusinessException(ErrorCode.VALIDATION_FAILED, "Số CCCD công dân phải gồm đúng 12 chữ số.");
+        }
+
+        validateProcedureAndFormData(procedureCode, req.formData());
+
+        String formDataJson = serializeToJson(req.formData(), "{}");
+        String precheckReportJson = serializeToJson(req.precheckReport(), null);
+        String vaultDocIdsJson = serializeToJson(req.vaultDocIds(), "[]");
+        String cleanIdempKey = (req.idempotencyKey() != null && !req.idempotencyKey().isBlank())
+                ? req.idempotencyKey().trim()
+                : null;
+        String payloadHash = computeSubmissionPayloadHash(procedureCode, wardCode, normalizedCccd, req.formData());
+
+        if (cleanIdempKey != null) {
+            Optional<CitizenDossier> existingOpt = dossierRepository.findByIdempotencyKey(cleanIdempKey);
+            if (existingOpt.isPresent()) {
+                return verifyAndBuildIdempotentResponse(existingOpt.get(), payloadHash, cleanIdempKey);
+            }
+        }
 
         // Check duplicate if client passed a custom dossierCode
         if (req.dossierCode() != null && !req.dossierCode().isBlank() && dossierRepository.existsByDossierCode(req.dossierCode().trim())) {
@@ -111,31 +124,43 @@ public class CitizenDossierService {
         }
 
         // SEC-04: Server strictly generates dossier code with unpredictable suffix; client cannot dictate code
-        String dossierCode = generateDossierCode(req.wardCode());
+        String dossierCode = generateDossierCode(wardCode);
 
-        String procedureCode = req.procedureCode().trim();
         Integer workingDays = resolveStatutoryWorkingDays(procedureCode);
         Instant slaDeadline = (workingDays != null && workingDays > 0)
                 ? calculateWorkingDayDeadline(Instant.now(), workingDays, VN_ZONE)
                 : null;
 
-        String formDataJson = serializeToJson(req.formData(), "{}");
-        String precheckReportJson = serializeToJson(req.precheckReport(), null);
-        String vaultDocIdsJson = serializeToJson(req.vaultDocIds(), "[]");
-
         CitizenDossier entity = CitizenDossier.builder()
                 .dossierCode(dossierCode)
                 .procedureCode(procedureCode)
-                .wardCode(req.wardCode().trim())
+                .wardCode(wardCode)
                 .citizenCccd(normalizedCccd)
                 .formData(formDataJson)
                 .precheckReport(precheckReportJson)
                 .vaultDocIds(vaultDocIdsJson)
                 .status("PENDING")
                 .slaDeadline(slaDeadline)
+                .idempotencyKey(cleanIdempKey)
+                .payloadHash(payloadHash)
                 .build();
 
-        CitizenDossier saved = dossierRepository.save(entity);
+        CitizenDossier saved;
+        try {
+            saved = dossierRepository.saveAndFlush(entity);
+            if (saved == null) {
+                saved = dossierRepository.save(entity);
+            }
+        } catch (org.springframework.dao.DataIntegrityViolationException dupEx) {
+            if (cleanIdempKey != null) {
+                Optional<CitizenDossier> raced = dossierRepository.findByIdempotencyKey(cleanIdempKey);
+                if (raced.isPresent()) {
+                    return verifyAndBuildIdempotentResponse(raced.get(), payloadHash, cleanIdempKey);
+                }
+            }
+            throw dupEx;
+        }
+
         log.info("Citizen dossier submitted successfully: dossierCode={}, procedure={}, ward={}",
                 saved.getDossierCode(), saved.getProcedureCode(), saved.getWardCode());
 
@@ -148,14 +173,125 @@ public class CitizenDossierService {
                 .createdAt(saved.getCreatedAt() != null ? saved.getCreatedAt() : Instant.now())
                 .build();
 
-        if (req.idempotencyKey() != null && !req.idempotencyKey().isBlank()) {
+        if (cleanIdempKey != null) {
             if (idempotencyCache.size() >= MAX_IDEMPOTENCY_CACHE_SIZE) {
                 idempotencyCache.clear();
             }
-            idempotencyCache.put(req.idempotencyKey().trim(), response);
+            idempotencyCache.put(cleanIdempKey, response);
         }
 
         return response;
+    }
+
+    private DossierSubmissionResponse verifyAndBuildIdempotentResponse(
+            CitizenDossier existing, String incomingPayloadHash, String idempotencyKey) {
+        if (existing.getPayloadHash() != null && !existing.getPayloadHash().equals(incomingPayloadHash)) {
+            throw new BusinessException(
+                    ErrorCode.CONFLICT,
+                    "Khóa chống gửi trùng (idempotencyKey) đã được sử dụng cho một nội dung hồ sơ khác. Vui lòng tạo lượt gửi mới."
+            );
+        }
+        log.info("Returning persisted idempotent dossier '{}' for key={}", existing.getDossierCode(), idempotencyKey);
+        return DossierSubmissionResponse.builder()
+                .dossierCode(existing.getDossierCode())
+                .procedureCode(existing.getProcedureCode())
+                .wardCode(existing.getWardCode())
+                .status(existing.getStatus())
+                .slaDeadline(existing.getSlaDeadline())
+                .createdAt(existing.getCreatedAt() != null ? existing.getCreatedAt() : Instant.now())
+                .build();
+    }
+
+    private void validateProcedureAndFormData(String procedureCode, Object rawFormData) {
+        if (!procedureCode.matches("^TTHC-[A-Z]{2,4}-\\d{2}$")) {
+            throw new BusinessException(ErrorCode.VALIDATION_FAILED,
+                    "Mã thủ tục hành chính '" + procedureCode + "' không đúng định dạng chuẩn (TTHC-XX-NN).");
+        }
+        if (rawFormData == null) return;
+        JsonNode node = objectMapper.valueToTree(rawFormData);
+        if (node == null || !node.isObject()) return;
+
+        String formType = node.path("formType").asText("").trim().toUpperCase();
+        if (!formType.isEmpty()) {
+            boolean mappingOk = switch (formType) {
+                case "TK-KS" -> "TTHC-HT-01".equals(procedureCode);
+                case "CT01" -> "TTHC-CR-01".equals(procedureCode);
+                case "TK-KH" -> "TTHC-HT-02".equals(procedureCode) || "TTHC-HT-11".equals(procedureCode);
+                case "TK-BTXH" -> "TTHC-BT-01".equals(procedureCode);
+                default -> false;
+            };
+            if (!mappingOk) {
+                throw new BusinessException(ErrorCode.VALIDATION_FAILED,
+                        "Loại tờ khai '" + formType + "' không khớp với mã thủ tục '" + procedureCode + "'.");
+            }
+        }
+
+        if ("TK-KS".equals(formType)) {
+            requireJsonField(node, List.of("fullName", "childName"), "Họ và tên trẻ");
+            requireJsonField(node, List.of("dob", "dateOfBirth"), "Ngày sinh của trẻ");
+            requireJsonField(node, List.of("motherName"), "Họ và tên người mẹ");
+            requireJsonField(node, List.of("childBirthPlace"), "Nơi sinh của trẻ");
+            requireJsonField(node, List.of("birthCertNumber"), "Số Giấy chứng sinh");
+        }
+    }
+
+    private void requireJsonField(JsonNode node, List<String> keys, String label) {
+        for (String k : keys) {
+            String v = node.path(k).asText("").trim();
+            if (!v.isEmpty()) return;
+        }
+        throw new BusinessException(ErrorCode.VALIDATION_FAILED,
+                "Thiếu thông tin bắt buộc trên tờ khai Khai sinh: " + label + ".");
+    }
+
+    private String computeSubmissionPayloadHash(String procedureCode, String wardCode, String cccd, Object formData) {
+        try {
+            ObjectMapper sortedMapper = objectMapper.copy()
+                    .configure(com.fasterxml.jackson.databind.SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+            JsonNode tree = formData != null ? sortedMapper.valueToTree(formData) : sortedMapper.createObjectNode();
+            String canonicalForm = sortedMapper.writeValueAsString(tree);
+            String canonical = procedureCode + "|" + wardCode.toUpperCase() + "|" + cccd + "|" + canonicalForm;
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] digest = md.digest(canonical.getBytes(StandardCharsets.UTF_8));
+            StringBuilder hex = new StringBuilder(digest.length * 2);
+            for (byte b : digest) {
+                hex.append(String.format("%02x", b));
+            }
+            return hex.toString();
+        } catch (Exception e) {
+            return Integer.toHexString((procedureCode + "|" + wardCode + "|" + cccd).hashCode());
+        }
+    }
+
+    /**
+     * TASK-051: Read-only audit of legacy dossiers whose stored formData.formType
+     * disagrees with procedureCode (never mutates historical records).
+     */
+    @Transactional(readOnly = true)
+    public List<String> auditLegacyMismatchedDossiers() {
+        List<CitizenDossier> all = dossierRepository.findAllByOrderByCreatedAtDesc();
+        List<String> mismatches = new java.util.ArrayList<>();
+        for (CitizenDossier d : all) {
+            if (d.getFormData() == null || d.getFormData().isBlank()) continue;
+            try {
+                JsonNode node = objectMapper.readTree(d.getFormData());
+                String formType = node.path("formType").asText("").trim().toUpperCase();
+                if (formType.isEmpty()) continue;
+                String proc = d.getProcedureCode() != null ? d.getProcedureCode().trim().toUpperCase() : "";
+                boolean ok = switch (formType) {
+                    case "TK-KS" -> "TTHC-HT-01".equals(proc);
+                    case "CT01" -> "TTHC-CR-01".equals(proc);
+                    case "TK-KH" -> "TTHC-HT-02".equals(proc) || "TTHC-HT-11".equals(proc);
+                    case "TK-BTXH" -> "TTHC-BT-01".equals(proc);
+                    default -> true;
+                };
+                if (!ok) {
+                    mismatches.add(d.getDossierCode() + ":" + formType + "!=" + proc);
+                }
+            } catch (Exception ignored) {
+            }
+        }
+        return mismatches;
     }
 
     @Transactional(readOnly = true)
