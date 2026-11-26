@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { AN_GIANG_WARDS, DEFAULT_WARD, searchAnGiangWards, type WardItem } from '../data/anGiangWards';
+import { AN_GIANG_WARDS, DEFAULT_WARD, type WardItem } from '../data/anGiangWards';
+import { fetchWardsFromBackend, loadCachedWards } from '../api/modules/ward.api';
 
 // Requirement 7: 'AG_PROVINCE' of admin is never treated as a commune/ward
 export const VALID_COMMUNE_WARDS: WardItem[] = AN_GIANG_WARDS.filter(
@@ -28,14 +29,29 @@ const WARD_STORAGE_KEY = 'smartward_selected_ward_code';
 const WardContext = createContext<WardContextType | undefined>(undefined);
 
 export const WardProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [allWards, setAllWards] = useState<WardItem[]>(() => loadCachedWards() || VALID_COMMUNE_WARDS);
   const [currentWard, setCurrentWardState] = useState<WardItem>(() => {
+    const initialList = loadCachedWards() || VALID_COMMUNE_WARDS;
     const savedCode = localStorage.getItem(WARD_STORAGE_KEY);
     if (savedCode && savedCode !== 'AG_PROVINCE') {
-      const found = VALID_COMMUNE_WARDS.find((w) => w.code === savedCode);
+      const found = initialList.find((w) => w.code === savedCode);
       if (found) return found;
     }
-    return DEFAULT_WARD;
+    return initialList.find((w) => w.code === DEFAULT_WARD.code) || DEFAULT_WARD;
   });
+
+  // TASK-024: Background sync wards catalog from Backend GET /api/v1/wards with offline fallback
+  useEffect(() => {
+    let active = true;
+    void fetchWardsFromBackend().then((remoteWards) => {
+      if (!active || !remoteWards || remoteWards.length === 0) return;
+      setAllWards(remoteWards);
+      setCurrentWardState((prev) => remoteWards.find((w) => w.code === prev.code) || prev);
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const [isOfficeOpen, setIsOfficeOpen] = useState(false);
   const [officeStatusLabel, setOfficeStatusLabel] = useState('Đang kiểm tra giờ hành chính...');
@@ -94,10 +110,22 @@ export const WardProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         currentWard,
         setWard,
-        allWards: VALID_COMMUNE_WARDS,
-        totalWardsCount: VALID_COMMUNE_WARDS.length,
-        searchWards: (kw, filterType) =>
-          searchAnGiangWards(kw, filterType).filter((w) => w.code !== 'AG_PROVINCE'),
+        allWards,
+        totalWardsCount: allWards.length,
+        searchWards: (kw, filterType = 'ALL') => {
+          const clean = kw.trim().toLowerCase();
+          return allWards.filter((w) => {
+            if (w.code === 'AG_PROVINCE') return false;
+            if (filterType !== 'ALL' && w.type !== filterType) return false;
+            if (!clean) return true;
+            return (
+              w.name.toLowerCase().includes(clean) ||
+              w.code.toLowerCase().includes(clean) ||
+              (w.area || '').toLowerCase().includes(clean) ||
+              (w.officeAddress || '').toLowerCase().includes(clean)
+            );
+          });
+        },
         isOfficeOpen,
         officeStatusLabel,
       }}
