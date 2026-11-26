@@ -459,7 +459,12 @@ class GeminiAiClientAdversarialTest {
         Mockito.when(match.getContent()).thenReturn("Cha mẹ có trách nhiệm đăng ký khai sinh cho con trong 60 ngày.");
         Mockito.when(match.getSimilarityScore()).thenReturn(0.92);
 
-        Mockito.when(chunkRepo.findTopKSimilarChunksWithMetadata(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt()))
+        Mockito.when(chunkRepo.findTopKSimilarChunksWithAcl(
+                        ArgumentMatchers.anyString(),
+                        ArgumentMatchers.any(),
+                        ArgumentMatchers.anyBoolean(),
+                        ArgumentMatchers.any(),
+                        ArgumentMatchers.anyInt()))
                 .thenReturn(List.of(match));
 
         // LLM returns TRUNCATION_FALLBACK_NOTICE
@@ -504,7 +509,12 @@ class GeminiAiClientAdversarialTest {
         Mockito.when(match.getContent()).thenReturn("Cha mẹ có trách nhiệm đăng ký khai sinh cho con trong 60 ngày.");
         Mockito.when(match.getSimilarityScore()).thenReturn(0.92);
 
-        Mockito.when(chunkRepo.findTopKSimilarChunksWithMetadata(ArgumentMatchers.anyString(), ArgumentMatchers.anyInt()))
+        Mockito.when(chunkRepo.findTopKSimilarChunksWithAcl(
+                        ArgumentMatchers.anyString(),
+                        ArgumentMatchers.any(),
+                        ArgumentMatchers.anyBoolean(),
+                        ArgumentMatchers.any(),
+                        ArgumentMatchers.anyInt()))
                 .thenReturn(List.of(match));
 
         String completeAnswer = "1. TÓM TẮT THỦ TỤC:\nĐăng ký khai sinh trong 01 ngày.\n2. THÀNH PHẦN HỒ SƠ:\n- Giấy chứng sinh [KS-01-DK].";

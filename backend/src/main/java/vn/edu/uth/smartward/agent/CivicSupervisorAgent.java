@@ -324,12 +324,13 @@ public class CivicSupervisorAgent {
         long totalLatency = System.currentTimeMillis() - startMs;
         String traceId = recordTraceSafe(role, ctx.wardCode(), message, synthesized, executedSteps, totalLatency, false, null);
 
+        String primaryProcCode = uniqueCitations.values().stream()
+                .map(LegalCitationDto::getProcedureCode)
+                .filter(c -> c != null && !c.isBlank())
+                .findFirst()
+                .orElse(null);
+
         if (sessionMemoryService != null && ctx.sessionId() != null && !ctx.sessionId().isBlank()) {
-            String primaryProcCode = uniqueCitations.values().stream()
-                    .map(LegalCitationDto::getProcedureCode)
-                    .filter(c -> c != null && !c.isBlank())
-                    .findFirst()
-                    .orElse(null);
             sessionMemoryService.appendExchange(ctx.sessionId(), message, synthesized, primaryProcCode);
         }
 
@@ -346,6 +347,8 @@ public class CivicSupervisorAgent {
                 .traceId(traceId)
                 .totalLatencyMs(totalLatency)
                 .disclaimer(AGENT_DISCLAIMER)
+                .resolvedProcedureCode(primaryProcCode)
+                .supportedFormType(RagQueryService.mapProcedureToSupportedFormType(primaryProcCode))
                 .build();
     }
 

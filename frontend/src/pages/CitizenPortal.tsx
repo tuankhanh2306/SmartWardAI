@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { askCivicAgent, submitRagFeedback, synthesizeSpeech, type RagResponse, type LegalCitation } from '../api/client';
 import { AgentActionCards } from '../components/AgentActionCards';
+import { ProcedureSummaryCard } from '../components/ProcedureSummaryCard';
 import { normalizeTextForTts } from '../utils/ttsTextNormalizer';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useWard } from '../context/WardContext';
@@ -1311,11 +1312,56 @@ export const CitizenPortal: React.FC = () => {
                           onOpenPrefilledForm={(payload) => {
                             const targetFormType = String(payload?.formType || payload?.draftPayload?.formType || 'CT01').toUpperCase();
                             const draftPayload = payload?.draftPayload || payload || {};
-                            navigate(`/citizen/form?type=${encodeURIComponent(targetFormType)}`, {
-                              state: { agentDraft: { ...draftPayload, formType: targetFormType } },
-                            });
+                            navigate(
+                              `/citizen/form?type=${encodeURIComponent(targetFormType)}&ward=${encodeURIComponent(currentWard.code)}#form`,
+                              {
+                                state: { agentDraft: { ...draftPayload, formType: targetFormType } },
+                              }
+                            );
                           }}
                         />
+                        {!msg.ragData?.abstained &&
+                          (() => {
+                            const procCode =
+                              msg.ragData?.resolvedProcedureCode ||
+                              msg.ragData?.citations?.[0]?.procedureCode;
+                            if (!procCode || !procCode.toUpperCase().startsWith('TTHC-')) return null;
+                            const cleanCode = procCode.trim().toUpperCase();
+                            const catEntry = PROCEDURES_CATALOG.find(
+                              (p) => p.code.toUpperCase() === cleanCode
+                            );
+                            const procName =
+                              catEntry?.name ||
+                              msg.ragData?.citations?.[0]?.procedureName ||
+                              cleanCode;
+                            const isExempt =
+                              cleanCode.startsWith('TTHC-HT-') ||
+                              cleanCode.startsWith('TTHC-BT-');
+                            return (
+                              <ProcedureSummaryCard
+                                compact
+                                procedureCode={cleanCode}
+                                procedureName={procName}
+                                category={catEntry?.category}
+                                isFeeExempt={isExempt}
+                                supportedFormType={msg.ragData?.supportedFormType}
+                                legalBasis={msg.ragData?.citations?.[0]?.legalReference}
+                                ward={currentWard}
+                                onStartForm={(code, _ft, wardCode) =>
+                                  navigate(
+                                    `/citizen/form?procedure=${encodeURIComponent(code)}&ward=${encodeURIComponent(wardCode)}#form`
+                                  )
+                                }
+                                onViewDocsAndOffice={() => {
+                                  if (msg.ragData?.citations && msg.ragData.citations.length > 0) {
+                                    setActiveCitation(msg.ragData.citations[0]);
+                                  } else {
+                                    navigate(`/procedures`);
+                                  }
+                                }}
+                              />
+                            );
+                          })()}
                       </>
                     ) : (
                       <p className="text-sm md:text-base leading-relaxed whitespace-pre-wrap">

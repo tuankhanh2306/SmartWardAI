@@ -86,7 +86,7 @@ class RagQueryServiceTest {
         assertNotNull(response);
         assertTrue(response.isCached());
         assertEquals("Đáp án đã được lưu trong bộ nhớ đệm", response.getAnswer());
-        verify(chunkRepository, never()).findTopKSimilarChunksWithMetadata(anyString(), anyInt());
+        verify(chunkRepository, never()).findTopKSimilarChunksWithAcl(anyString(), any(), anyBoolean(), any(), anyInt());
     }
 
     @Test
@@ -99,7 +99,7 @@ class RagQueryServiceTest {
         when(aiModelClient.toPgVectorString(any())).thenReturn("[0.1, 0.2]");
 
         LegalChunkMatch lowMatch = createMockChunkMatch("CT-01", "Cư trú", "Tiêu đề", "Nội dung", "Luật cư trú", 0.65);
-        when(chunkRepository.findTopKSimilarChunksWithMetadata(anyString(), eq(3)))
+        when(chunkRepository.findTopKSimilarChunksWithAcl(anyString(), any(), anyBoolean(), any(), anyInt()))
                 .thenReturn(List.of(lowMatch));
 
         RagAskRequest request = RagAskRequest.builder()
@@ -128,7 +128,7 @@ class RagQueryServiceTest {
         when(aiModelClient.toPgVectorString(any())).thenReturn("[0.1, 0.2]");
 
         LegalChunkMatch match = createMockChunkMatch("KS-01-DK", "Đăng ký khai sinh", "Điều kiện", "Giấy tờ gồm giấy chứng sinh...", "Điều 15 Luật Hộ tịch", 0.88);
-        when(chunkRepository.findTopKSimilarChunksWithMetadata(anyString(), eq(3)))
+        when(chunkRepository.findTopKSimilarChunksWithAcl(anyString(), any(), anyBoolean(), any(), anyInt()))
                 .thenReturn(List.of(match));
 
         when(aiModelClient.generateChatResponse(anyString(), anyString()))
@@ -169,7 +169,7 @@ class RagQueryServiceTest {
         assertTrue(response.getAnswer().contains("Xin chào! Tôi là Trợ lý Pháp lý Một Cửa tại Xã An Phú, Tỉnh An Giang"));
         assertTrue(response.getAnswer().contains("Đăng ký khai sinh, kết hôn, khai tử"));
         verifyNoInteractions(aiModelClient);
-        verify(chunkRepository, never()).findTopKSimilarChunksWithMetadata(anyString(), anyInt());
+        verify(chunkRepository, never()).findTopKSimilarChunksWithAcl(anyString(), any(), anyBoolean(), any(), anyInt());
     }
 
     @Test
@@ -258,7 +258,7 @@ class RagQueryServiceTest {
         when(aiModelClient.toPgVectorString(any())).thenReturn("[0.1, 0.2]");
 
         LegalChunkMatch match = createMockChunkMatch("HT-02-DK", "Đăng ký kết hôn", "Điều kiện", "Nam từ đủ 20 tuổi...", "Luật Hôn nhân", 0.46);
-        when(chunkRepository.findTopKSimilarChunksWithMetadata(anyString(), eq(3)))
+        when(chunkRepository.findTopKSimilarChunksWithAcl(anyString(), any(), anyBoolean(), any(), anyInt()))
                 .thenReturn(List.of(match));
 
         ReflectionTestUtils.setField(ragQueryService, "defaultThreshold", 0.50);
@@ -288,7 +288,7 @@ class RagQueryServiceTest {
         when(aiModelClient.toPgVectorString(any())).thenReturn("[0.1, 0.2]");
 
         // Below theta_lower, pure out-of-scope abstention
-        when(chunkRepository.findTopKSimilarChunksWithMetadata(anyString(), eq(3)))
+        when(chunkRepository.findTopKSimilarChunksWithAcl(anyString(), any(), anyBoolean(), any(), anyInt()))
                 .thenReturn(Collections.emptyList());
 
         RagAskRequest request = RagAskRequest.builder()
@@ -313,7 +313,7 @@ class RagQueryServiceTest {
         when(aiModelClient.toPgVectorString(any())).thenReturn("[0.1, 0.2]");
 
         LegalChunkMatch match = createMockChunkMatch("KS-01-DK", "Đăng ký khai sinh", "Hồ sơ khai sinh", "Bao gồm giấy chứng sinh và CCCD cha mẹ.", "Luật Hộ tịch", 0.90);
-        when(chunkRepository.findTopKSimilarChunksWithMetadata(anyString(), eq(3)))
+        when(chunkRepository.findTopKSimilarChunksWithAcl(anyString(), any(), anyBoolean(), any(), anyInt()))
                 .thenReturn(List.of(match));
 
         // Simulate AI service failure (e.g. Gemini 429 quota exhausted or network error)
@@ -394,7 +394,7 @@ class RagQueryServiceTest {
         when(aiModelClient.toPgVectorString(any())).thenReturn("[0.1, 0.2]");
 
         LegalChunkMatch feeChunk = createMockChunkMatch("HT-02-FEE", "Đăng ký kết hôn", "Lệ phí", "Miễn phí cho công dân Việt Nam cư trú trong nước.", "Luật Hôn nhân", 0.89);
-        when(chunkRepository.findTopKSimilarChunksWithMetadata(anyString(), eq(3)))
+        when(chunkRepository.findTopKSimilarChunksWithAcl(anyString(), any(), anyBoolean(), any(), anyInt()))
                 .thenReturn(List.of(feeChunk));
 
         when(aiModelClient.generateChatResponse(anyString(), anyString()))
@@ -440,7 +440,7 @@ class RagQueryServiceTest {
         when(aiModelClient.generateEmbedding(anyString())).thenReturn(mockVector);
         when(aiModelClient.toPgVectorString(any())).thenReturn("[0.1, 0.2]");
 
-        when(chunkRepository.findTopKSimilarChunksWithMetadata(anyString(), eq(3)))
+        when(chunkRepository.findTopKSimilarChunksWithAcl(anyString(), any(), anyBoolean(), any(), anyInt()))
                 .thenReturn(Collections.emptyList());
 
         RagAskRequest request = RagAskRequest.builder()
@@ -490,7 +490,7 @@ class RagQueryServiceTest {
         when(aiModelClient.generateEmbedding(anyString())).thenReturn(new float[768]);
         when(aiModelClient.toPgVectorString(any())).thenReturn("[0.1, 0.2]");
         LegalChunkMatch grayMatch = createMockChunkMatch("HT-09-DK", "Cấp lại trích lục", "Điều kiện", "Nội dung...", "Luật Hộ tịch", 0.55);
-        when(chunkRepository.findTopKSimilarChunksWithMetadata(anyString(), eq(3))).thenReturn(List.of(grayMatch));
+        when(chunkRepository.findTopKSimilarChunksWithAcl(anyString(), any(), anyBoolean(), any(), anyInt())).thenReturn(List.of(grayMatch));
 
         serviceBeforeRestart.askQuestion(RagAskRequest.builder().question("Mất bản chính khai sinh năm 1995 xin ở đâu?").build(), "127.0.0.1");
         assertEquals(1, persistedStore.size());

@@ -45,4 +45,10 @@ public class RagAskResponse {
 
     @Schema(description = "Danh sách nút gợi ý nhanh liên quan (quick suggestion chips)")
     private List<String> suggestions;
+
+    @Schema(description = "Mã thủ tục hành chính xác định được từ dữ liệu (VD: TTHC-HT-01)")
+    private String resolvedProcedureCode;
+
+    @Schema(description = "Mã biểu mẫu trực tuyến được hỗ trợ (CT01 | TK-KS | TK-KH | TK-BTXH, hoặc null nếu chưa có mẫu điện tử)")
+    private String supportedFormType;
 }

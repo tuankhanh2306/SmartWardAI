@@ -3,7 +3,9 @@ import {
   AlertCircle, AlertTriangle, Calendar, Clock, FileCheck2, RefreshCw, Search
 } from 'lucide-react';
 import type { WardItem } from '../../data/anGiangWards';
+import { useWard } from '../../context/WardContext';
 import { formatSlaDeadlineVi, type DossierTrackingResponse, type LiveFormDossier } from '../../api/client';
+import { DossierNextActionCard } from './DossierNextActionCard';
 
 export interface DossierTrackingTabProps {
   currentWard: WardItem;
@@ -26,6 +28,11 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
     trackingLast4Cccd, setTrackingLast4Cccd, trackingError, trackingLoading,
     myDossiers, trackingResult, trackingFieldErrors, onClearTrackingError,
   } = props;
+  const { allWards } = useWard();
+  const handlingWard = trackingResult?.wardCode
+    ? allWards.find((w) => w.code.toUpperCase() === trackingResult.wardCode.trim().toUpperCase())
+    : undefined;
+  const DEFAULT_HOURS = 'Sáng: 07:00 – 11:00 | Chiều: 13:00 – 17:00 (Thứ 2 – Thứ 6)';
 
   return (
         <section className="flex flex-col gap-5 animate-fadeIn">
@@ -194,6 +201,9 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                   </div>
 
                   <div className="flex flex-col gap-3 text-xs">
+                    {/* TASK-053: Top-priority Next-Action Card placed ABOVE metadata & history */}
+                    <DossierNextActionCard trackingResult={trackingResult} handlingWard={handlingWard} />
+
                     <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col gap-2">
                       <div className="flex items-center justify-between">
                         <span className="text-[#64748B]">Mã hồ sơ:</span>
@@ -209,27 +219,53 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                         <span className="text-slate-600">Số định danh công dân:</span>
                         <code className="font-mono font-bold text-[#9F0C1E]">{trackingResult.citizenCccd}</code>
                       </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Đơn vị thụ lý:</span>
-                        <span className="font-semibold text-[#0F172A]">UBND {currentWard.name}</span>
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-[#64748B] shrink-0">Đơn vị thụ lý:</span>
+                        <div className="text-right">
+                          <span className="font-semibold text-[#0F172A] block">
+                            {handlingWard
+                              ? `UBND ${handlingWard.name}`
+                              : trackingResult.wardCode
+                              ? `Đơn vị mã ${trackingResult.wardCode}`
+                              : `UBND ${currentWard.name}`}
+                          </span>
+                          {handlingWard && (
+                            <>
+                              <span className="text-[11px] text-[#475569] block mt-0.5">
+                                {handlingWard.officeAddress}
+                              </span>
+                              <span className="text-[10px] text-[#64748B] block">
+                                {handlingWard.workingHours || DEFAULT_HOURS}
+                                {(!handlingWard.workingHours ||
+                                  handlingWard.workingHours.trim() === DEFAULT_HOURS) &&
+                                  ' (giờ mặc định)'}
+                              </span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
 
-                    {/* SLA Deadline Box */}
-                    <div className="p-3.5 rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-between text-xs text-[#1E40AF]">
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-[#2563EB] shrink-0" />
-                        <div>
-                          <span className="font-bold block">Hạn trả kết quả dự kiến:</span>
-                          <span className="text-[11px] text-[#3B82F6]">
-                            Theo quy định chuẩn dịch vụ Một cửa cấp xã
-                          </span>
+                    {/* SLA Deadline Box — ONLY rendered when Backend has verified slaDeadline (TASK-053) */}
+                    {Boolean(
+                      trackingResult.slaDeadline &&
+                        !Number.isNaN(new Date(trackingResult.slaDeadline).getTime())
+                    ) && (
+                      <div className="p-3.5 rounded-2xl bg-[#EFF6FF] border border-[#BFDBFE] flex items-center justify-between text-xs text-[#1E40AF]">
+                        <div className="flex items-center gap-2">
+                          <Calendar className="w-4 h-4 text-[#2563EB] shrink-0" />
+                          <div>
+                            <span className="font-bold block">Hạn trả kết quả xác định:</span>
+                            <span className="text-[11px] text-[#3B82F6]">
+                              Theo quy định chuẩn dịch vụ Một cửa cấp xã
+                            </span>
+                          </div>
                         </div>
+                        <span className="font-mono font-extrabold text-sm text-[#1D4ED8]">
+                          {formatSlaDeadlineVi(trackingResult.slaDeadline, false)}
+                        </span>
                       </div>
-                      <span className="font-mono font-extrabold text-sm text-[#1D4ED8]">
-                        {formatSlaDeadlineVi(trackingResult.slaDeadline, false)}
-                      </span>
-                    </div>
+                    )}
 
                     {/* Officer Feedback */}
                     {trackingResult.officerFeedback && (
