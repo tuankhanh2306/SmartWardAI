@@ -90,12 +90,21 @@ class GeoValidatorServiceTest {
     }
 
     @Test
-    @DisplayName("6. SEED DATA AUDIT: All 96 wards loaded from wards.geo.json must be 100% valid")
-    void testAll96WardsSeedIntegrity() {
-        assertEquals(96, geoValidatorService.getAllWards().size(), "Must contain exactly 96 wards");
+    @DisplayName("6. SEED DATA AUDIT: All 102 wards (NQ 1654/NQ-UBTVQH15) loaded from wards.geo.json must be 100% valid")
+    void testAll102WardsSeedIntegrity() {
+        assertEquals(102, geoValidatorService.getAllWards().size(), "Must contain exactly 102 wards (85 Xã, 14 Phường, 3 Đặc khu)");
         for (GeoValidatorService.WardGeoDefinition def : geoValidatorService.getAllWards()) {
             GeoValidationResult result = geoValidatorService.validateWardPoint(def.getLat(), def.getLng(), def.getWardCode());
             assertTrue(result.valid(), "Ward " + def.getWardCode() + " (" + def.getName() + ") must pass seed validation: " + result.message());
+        }
+        // Explicitly verify the 6 unchanged communes added in TASK-009
+        for (String code : java.util.List.of(
+                "AG_X_MYHOAHUNG", "AG_X_BINHGIANG", "AG_X_BINHSON",
+                "AG_X_HONNGHE", "AG_X_SONHAI", "AG_X_TIENHAI")) {
+            GeoValidatorService.WardGeoDefinition w = geoValidatorService.getWardGeo(code);
+            assertNotNull(w, "Missing unchanged commune: " + code);
+            assertTrue(geoValidatorService.validateWardPoint(w.getLat(), w.getLng(), code).valid(),
+                    "Unchanged commune " + code + " centroid must be valid inside its polygon");
         }
     }
 
