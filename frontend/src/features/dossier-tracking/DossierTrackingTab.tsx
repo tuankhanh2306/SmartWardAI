@@ -18,6 +18,7 @@ export interface DossierTrackingTabProps {
   trackingLoading: boolean;
   myDossiers: LiveFormDossier[];
   trackingResult: DossierTrackingResponse | null;
+  onSupplementSubmitted?: (updated: DossierTrackingResponse) => void;
   trackingFieldErrors?: Record<string, string>;
   onClearTrackingError?: (field: string) => void;
 }
@@ -26,7 +27,7 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
   const {
     currentWard, handleTrackDossier, trackingDossierCode, setTrackingDossierCode,
     trackingLast4Cccd, setTrackingLast4Cccd, trackingError, trackingLoading,
-    myDossiers, trackingResult, trackingFieldErrors, onClearTrackingError,
+    myDossiers, trackingResult, onSupplementSubmitted, trackingFieldErrors, onClearTrackingError,
   } = props;
   const { allWards } = useWard();
   const handlingWard = trackingResult?.wardCode
@@ -183,6 +184,8 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                       className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wide border ${
                         trackingResult.status === 'APPROVED'
                           ? 'bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]'
+                          : trackingResult.status === 'SUPPLEMENTED'
+                          ? 'bg-[#EFF6FF] text-[#1D4ED8] border-[#93C5FD]'
                           : trackingResult.status === 'SUPPLEMENT_REQUIRED'
                           ? 'bg-[#FEF2F2] text-[#991B1B] border-[#FECACA]'
                           : trackingResult.status === 'REJECTED'
@@ -192,6 +195,8 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                     >
                       {trackingResult.status === 'APPROVED'
                         ? 'ĐÃ TIẾP NHẬN / PHÊ DUYỆT'
+                        : trackingResult.status === 'SUPPLEMENTED'
+                        ? 'ĐÃ BỔ SUNG — CHỜ THẨM ĐỊNH'
                         : trackingResult.status === 'SUPPLEMENT_REQUIRED'
                         ? 'YÊU CẦU BỔ SUNG'
                         : trackingResult.status === 'REJECTED'
@@ -201,8 +206,13 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                   </div>
 
                   <div className="flex flex-col gap-3 text-xs">
-                    {/* TASK-053: Top-priority Next-Action Card placed ABOVE metadata & history */}
-                    <DossierNextActionCard trackingResult={trackingResult} handlingWard={handlingWard} />
+                    {/* TASK-053 & TASK-054: Top-priority Next-Action & Inline Supplement Card placed ABOVE metadata & history */}
+                    <DossierNextActionCard
+                      trackingResult={trackingResult}
+                      handlingWard={handlingWard}
+                      trackingLast4Cccd={trackingLast4Cccd}
+                      onSupplementSubmitted={onSupplementSubmitted}
+                    />
 
                     <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col gap-2">
                       <div className="flex items-center justify-between">

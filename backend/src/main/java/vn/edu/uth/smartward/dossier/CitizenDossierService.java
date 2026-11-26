@@ -384,31 +384,207 @@ public class CitizenDossierService {
             throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, GENERIC_NOT_FOUND_MSG);
         }
 
-        String procedureName = resolveProcedureName(dossier.getProcedureCode());
-        String maskedCccd = maskCccd(entityCccd);
+        List<DossierEvent> timeline = (dossierEventRepository != null)
+                ? dossierEventRepository.findByDossierCodeOrderByCreatedAtAsc(cleanCode)
+                : java.util.Collections.emptyList();
 
-        Object precheckObj = deserializeFromJson(dossier.getPrecheckReport());
-        Object vaultObj = deserializeFromJson(dossier.getVaultDocIds());
+        return buildTrackingResponse(dossier, timeline);
+    }
+
+    /**
+     * TASK-054: Citizen submits supplemental information/documents into a dossier currently in SUPPLEMENT_REQUIRED.
+     * Verifies 4-digit CCCD with rate limiting + constant-time check, non-destructively preserves history,
+     * appends a new DossierEvent, and transitions status to SUPPLEMENTED.
+     */
+    @Transactional
+    public DossierTrackingResponse submitSupplement(
+            String dossierCode,
+            DossierSupplementRequest req,
+            String clientIp,
+            String officerBadgeId,
+            String sessionId) {
+        if (dossierCode == null || dossierCode.isBlank()) {
+            throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã hồ sơ không được để trống.");
+        }
+        String last4 = (req != null && req.last4Cccd() != null) ? req.last4Cccd().trim() : "";
+        if (!last4.matches("^\\d{4}$")) {
+            throw new BusinessException(ErrorCode.VALIDATION_FAILED, "Vui lòng cung cấp đúng 4 số cuối CCCD để xác thực bổ sung hồ sơ.");
+        }
+
+        String cleanCode = dossierCode.trim();
+        String resolvedIp = (clientIp != null && !clientIp.isBlank()) ? clientIp.trim() : "127.0.0.1";
+
+        if (rateLimiter != null) {
+            boolean hasActorOverride = (officerBadgeId != null && !officerBadgeId.isBlank())
+                    || (sessionId != null && !sessionId.isBlank());
+            boolean allowed = hasActorOverride
+                    ? rateLimiter.allowDossierTracking(resolvedIp, cleanCode, officerBadgeId, sessionId)
+                    : rateLimiter.allowDossierTracking(resolvedIp, cleanCode);
+            if (!allowed) {
+                throw new BusinessException(ErrorCode.RATE_LIMIT_EXCEEDED,
+                        "Bạn đã thao tác sai quá 5 lần trong 15 phút. Vui lòng thử lại sau 15 phút.");
+            }
+        }
+
+        final String genericNotFoundMsg = "Không tìm thấy hồ sơ hoặc 4 số cuối CCCD không trùng khớp với hồ sơ lưu trữ.";
+        CitizenDossier dossier = dossierRepository.findByDossierCodeIgnoreCase(cleanCode)
+                .orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, genericNotFoundMsg));
+
+        String entityCccd = dossier.getCitizenCccd() != null ? dossier.getCitizenCccd().trim() : "";
+        if (entityCccd.length() < 4) {
+            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, genericNotFoundMsg);
+        }
+        String entityLast4 = entityCccd.substring(entityCccd.length() - 4);
+        boolean match = MessageDigest.isEqual(
+                entityLast4.getBytes(StandardCharsets.UTF_8),
+                last4.getBytes(StandardCharsets.UTF_8)
+        );
+        if (!match) {
+            log.warn("Dossier supplement verification failed: 4-digit CCCD mismatch for dossierCode={}", cleanCode);
+            throw new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, genericNotFoundMsg);
+        }
+
+        String currentStatus = dossier.getStatus() != null ? dossier.getStatus().trim().toUpperCase() : "PENDING";
+        if (!"SUPPLEMENT_REQUIRED".equals(currentStatus)) {
+            throw new BusinessException(ErrorCode.CONFLICT,
+                    "Hồ sơ hiện đang ở trạng thái " + currentStatus + ", không ở trạng thái yêu cầu bổ sung (SUPPLEMENT_REQUIRED).");
+        }
+
+        String note = req.citizenNote() != null ? req.citizenNote().trim() : "";
+        Map<String, Object> safeUpdatedFields = new java.util.LinkedHashMap<>();
+        if (req.updatedFields() != null) {
+            for (Map.Entry<String, Object> entry : req.updatedFields().entrySet()) {
+                if (entry.getKey() == null || entry.getKey().isBlank()) continue;
+                String k = entry.getKey().trim();
+                if ("formType".equalsIgnoreCase(k) || "procedureCode".equalsIgnoreCase(k)) continue;
+                Object val = entry.getValue();
+                if (val != null && !String.valueOf(val).trim().isEmpty()) {
+                    safeUpdatedFields.put(k, val);
+                }
+            }
+        }
+
+        List<String> cleanNewDocs = new java.util.ArrayList<>();
+        if (req.additionalVaultDocIds() != null) {
+            for (String docId : req.additionalVaultDocIds()) {
+                if (docId != null && !docId.isBlank()) {
+                    cleanNewDocs.add(docId.trim());
+                }
+            }
+        }
+
+        if (note.length() < 5 && safeUpdatedFields.isEmpty() && cleanNewDocs.isEmpty()) {
+            throw new BusinessException(ErrorCode.VALIDATION_FAILED,
+                    "Vui lòng nhập nội dung giải trình/bổ sung tối thiểu 5 ký tự hoặc đính kèm tài liệu bổ sung.");
+        }
+
+        int nextRound = (dossier.getSupplementCount() != null ? dossier.getSupplementCount() : 0) + 1;
+        Instant now = Instant.now();
+
+        // Non-destructive update to formData JSON: preserve existing fields & append supplementHistory entry
+        com.fasterxml.jackson.databind.node.ObjectNode formObj;
+        try {
+            JsonNode parsed = (dossier.getFormData() != null && !dossier.getFormData().isBlank())
+                    ? objectMapper.readTree(dossier.getFormData())
+                    : objectMapper.createObjectNode();
+            formObj = (parsed != null && parsed.isObject())
+                    ? (com.fasterxml.jackson.databind.node.ObjectNode) parsed
+                    : objectMapper.createObjectNode();
+        } catch (Exception e) {
+            formObj = objectMapper.createObjectNode();
+        }
+        for (Map.Entry<String, Object> entry : safeUpdatedFields.entrySet()) {
+            formObj.set(entry.getKey(), objectMapper.valueToTree(entry.getValue()));
+        }
+        com.fasterxml.jackson.databind.node.ArrayNode historyArr = formObj.has("supplementHistory") && formObj.get("supplementHistory").isArray()
+                ? (com.fasterxml.jackson.databind.node.ArrayNode) formObj.get("supplementHistory")
+                : objectMapper.createArrayNode();
+        com.fasterxml.jackson.databind.node.ObjectNode roundNode = objectMapper.createObjectNode();
+        roundNode.put("round", nextRound);
+        roundNode.put("submittedAt", now.toString());
+        if (!note.isEmpty()) {
+            roundNode.put("citizenNote", note);
+        }
+        if (!safeUpdatedFields.isEmpty()) {
+            roundNode.set("updatedKeys", objectMapper.valueToTree(safeUpdatedFields.keySet()));
+        }
+        roundNode.put("additionalDocCount", cleanNewDocs.size());
+        historyArr.add(roundNode);
+        formObj.set("supplementHistory", historyArr);
+        dossier.setFormData(serializeToJson(formObj, "{}"));
+
+        // Non-destructive append of additionalVaultDocIds (deduplicated)
+        if (!cleanNewDocs.isEmpty()) {
+            java.util.LinkedHashSet<String> mergedDocs = new java.util.LinkedHashSet<>(deserializeStringList(dossier.getVaultDocIds()));
+            mergedDocs.addAll(cleanNewDocs);
+            dossier.setVaultDocIds(serializeToJson(new java.util.ArrayList<>(mergedDocs), "[]"));
+        }
+
+        dossier.setStatus("SUPPLEMENTED");
+        dossier.setSupplementedAt(now);
+        dossier.setSupplementCount(nextRound);
+
+        CitizenDossier saved = dossierRepository.save(dossier);
+
+        StringBuilder eventReason = new StringBuilder();
+        eventReason.append("Công dân đã gửi bổ sung lần ").append(nextRound);
+        if (!note.isEmpty()) {
+            eventReason.append(": ").append(note);
+        }
+        if (!cleanNewDocs.isEmpty()) {
+            eventReason.append(" (+").append(cleanNewDocs.size()).append(" tài liệu đính kèm)");
+        }
+
+        if (dossierEventRepository != null) {
+            DossierEvent event = DossierEvent.builder()
+                    .dossierCode(saved.getDossierCode())
+                    .who("CITIZEN")
+                    .fromStatus("SUPPLEMENT_REQUIRED")
+                    .toStatus("SUPPLEMENTED")
+                    .reason(eventReason.toString())
+                    .build();
+            dossierEventRepository.save(event);
+        }
+
+        if (auditService != null) {
+            auditService.logAction(
+                    "CITIZEN",
+                    saved.getWardCode(),
+                    "DOSSIER_CITIZEN_SUPPLEMENT",
+                    "DOSSIER",
+                    saved.getDossierCode(),
+                    resolvedIp,
+                    null
+            );
+        }
 
         List<DossierEvent> timeline = (dossierEventRepository != null)
                 ? dossierEventRepository.findByDossierCodeOrderByCreatedAtAsc(cleanCode)
                 : java.util.Collections.emptyList();
 
+        return buildTrackingResponse(saved, timeline);
+    }
+
+    private DossierTrackingResponse buildTrackingResponse(CitizenDossier dossier, List<DossierEvent> timeline) {
+        String entityCccd = dossier.getCitizenCccd() != null ? dossier.getCitizenCccd().trim() : "";
         return DossierTrackingResponse.builder()
                 .dossierCode(dossier.getDossierCode())
                 .procedureCode(dossier.getProcedureCode())
-                .procedureName(procedureName)
+                .procedureName(resolveProcedureName(dossier.getProcedureCode()))
                 .wardCode(dossier.getWardCode())
-                .citizenCccd(maskedCccd)
+                .citizenCccd(maskCccd(entityCccd))
                 .status(dossier.getStatus())
                 .slaDeadline(dossier.getSlaDeadline())
                 .officerFeedback(dossier.getOfficerFeedback())
                 .appointmentCode(dossier.getAppointmentCode())
-                .precheckReport(precheckObj)
-                .vaultDocIds(vaultObj)
+                .precheckReport(deserializeFromJson(dossier.getPrecheckReport()))
+                .vaultDocIds(deserializeFromJson(dossier.getVaultDocIds()))
                 .createdAt(dossier.getCreatedAt())
                 .updatedAt(dossier.getUpdatedAt())
                 .timeline(timeline)
+                .requestedSupplementItems(deserializeStringList(dossier.getRequestedSupplementItems()))
+                .supplementedAt(dossier.getSupplementedAt())
+                .supplementCount(dossier.getSupplementCount() != null ? dossier.getSupplementCount() : 0)
                 .build();
     }
 
@@ -421,9 +597,22 @@ public class CitizenDossierService {
     public List<OfficerDossierDto> getOfficerDossiers(String wardCode, String status) {
         boolean hasWard = (wardCode != null && !wardCode.isBlank() && !"ALL".equalsIgnoreCase(wardCode.trim()));
         boolean hasStatus = (status != null && !status.isBlank() && !"ALL".equalsIgnoreCase(status.trim()));
+        boolean filterNearDeadline = hasStatus && "NEAR_DEADLINE".equalsIgnoreCase(status.trim());
 
         List<CitizenDossier> list;
-        if (hasWard && hasStatus) {
+        if (filterNearDeadline) {
+            List<CitizenDossier> base = hasWard
+                    ? dossierRepository.findByWardCodeIgnoreCaseOrderByCreatedAtDesc(wardCode.trim())
+                    : dossierRepository.findAllByOrderByCreatedAtDesc();
+            Instant threshold = Instant.now().plus(java.time.Duration.ofHours(24));
+            list = base.stream()
+                    .filter(d -> {
+                        String st = d.getStatus() != null ? d.getStatus().trim().toUpperCase() : "PENDING";
+                        boolean terminal = "APPROVED".equals(st) || "REJECTED".equals(st);
+                        return !terminal && d.getSlaDeadline() != null && !d.getSlaDeadline().isAfter(threshold);
+                    })
+                    .toList();
+        } else if (hasWard && hasStatus) {
             list = dossierRepository.findByWardCodeIgnoreCaseAndStatusIgnoreCaseOrderByCreatedAtDesc(wardCode.trim(), status.trim());
         } else if (hasWard) {
             list = dossierRepository.findByWardCodeIgnoreCaseOrderByCreatedAtDesc(wardCode.trim());
@@ -580,6 +769,18 @@ public class CitizenDossierService {
 
         dossier.setStatus(effectiveStatus);
         dossier.setOfficerFeedback(effectiveFeedback);
+        if ("SUPPLEMENT_REQUIRED".equals(effectiveStatus)) {
+            List<String> cleanedItems = new java.util.ArrayList<>();
+            if (req.requestedItems() != null) {
+                for (String item : req.requestedItems()) {
+                    if (item != null && !item.isBlank()) {
+                        cleanedItems.add(item.trim());
+                        if (cleanedItems.size() >= 10) break;
+                    }
+                }
+            }
+            dossier.setRequestedSupplementItems(serializeToJson(cleanedItems, "[]"));
+        }
         if (req.appointmentCode() != null && !req.appointmentCode().isBlank()) {
             dossier.setAppointmentCode(req.appointmentCode().trim());
         }
@@ -646,6 +847,9 @@ public class CitizenDossierService {
                 .vaultDocIds(vaultObj)
                 .createdAt(dossier.getCreatedAt())
                 .updatedAt(dossier.getUpdatedAt())
+                .requestedSupplementItems(deserializeStringList(dossier.getRequestedSupplementItems()))
+                .supplementedAt(dossier.getSupplementedAt())
+                .supplementCount(dossier.getSupplementCount() != null ? dossier.getSupplementCount() : 0)
                 .build();
     }
 
@@ -825,6 +1029,16 @@ public class CitizenDossierService {
             return objectMapper.readValue(json, new TypeReference<Object>() {});
         } catch (Exception e) {
             return json;
+        }
+    }
+
+    private List<String> deserializeStringList(String json) {
+        if (json == null || json.isBlank()) return java.util.Collections.emptyList();
+        try {
+            List<String> parsed = objectMapper.readValue(json, new TypeReference<List<String>>() {});
+            return parsed != null ? parsed : java.util.Collections.emptyList();
+        } catch (Exception e) {
+            return java.util.Collections.emptyList();
         }
     }
 }

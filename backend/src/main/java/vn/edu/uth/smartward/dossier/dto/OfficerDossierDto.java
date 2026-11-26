@@ -3,6 +3,7 @@ package vn.edu.uth.smartward.dossier.dto;
 import lombok.Builder;
 
 import java.time.Instant;
+import java.util.List;
 
 @Builder
 public record OfficerDossierDto(
@@ -21,5 +22,8 @@ public record OfficerDossierDto(
         Object precheckReport,
         Object vaultDocIds,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        List<String> requestedSupplementItems,
+        Instant supplementedAt,
+        Integer supplementCount
 ) {}

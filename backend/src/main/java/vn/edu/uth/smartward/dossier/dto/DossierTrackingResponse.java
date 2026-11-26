@@ -21,5 +21,8 @@ public record DossierTrackingResponse(
         Object vaultDocIds,
         Instant createdAt,
         Instant updatedAt,
-        List<DossierEvent> timeline
+        List<DossierEvent> timeline,
+        List<String> requestedSupplementItems,
+        Instant supplementedAt,
+        Integer supplementCount
 ) {}
