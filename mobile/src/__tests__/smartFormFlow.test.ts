@@ -9,7 +9,44 @@ import {
   formatMobileSlaDeadline,
   UNVERIFIED_SLA_TEXT,
 } from '../core/qrPassPdfExporter';
-import { simulateVisionGatePreset } from '../core/visionQualityGate';
+import { evaluateDocumentVisionGate } from '../core/visionQualityGate';
+import type { CoreFormType } from '../types/api.types';
+
+const makeTestVisionGate = (
+  mode: 'GOOD' | 'BLURRY' | 'WRONG_TEMPLATE',
+  expectedFormType: CoreFormType
+) => {
+  if (mode === 'BLURRY') {
+    return evaluateDocumentVisionGate({
+      expectedFormType,
+      fileName: `${expectedFormType.toLowerCase()}_blur.jpg`,
+      mimeType: 'image/jpeg',
+      rawText: expectedFormType,
+      sharpnessScore: 24,
+      brightnessScore: 150,
+      extractedFieldsCount: 1,
+    });
+  }
+  if (mode === 'WRONG_TEMPLATE') {
+    const other: CoreFormType = expectedFormType === 'CT01' ? 'TK-KS' : 'CT01';
+    return evaluateDocumentVisionGate({
+      expectedFormType,
+      fileName: `${other.toLowerCase()}_wrong.jpg`,
+      mimeType: 'image/jpeg',
+      rawText: other === 'TK-KS' ? 'Tờ khai đăng ký khai sinh TK-KS' : 'Tờ khai cư trú CT01',
+      sharpnessScore: 94,
+      brightnessScore: 196,
+    });
+  }
+  return evaluateDocumentVisionGate({
+    expectedFormType,
+    fileName: `${expectedFormType.toLowerCase()}_verified.jpg`,
+    mimeType: 'image/jpeg',
+    rawText: expectedFormType,
+    sharpnessScore: 96,
+    brightnessScore: 198,
+  });
+};
 import { getAllWalletQrPasses } from '../storage/sqliteDb';
 
 const REF_DATE = new Date('2026-11-18T00:00:00Z');
@@ -24,7 +61,7 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
       {
         wardCode: 'AG_P_LONGXUYEN',
         wardName: 'Phường Long Xuyên',
-        visionGate: simulateVisionGatePreset('BLURRY', 'CT01'),
+        visionGate: makeTestVisionGate('BLURRY', 'CT01'),
         attachment: {
           uri: 'file:///cache/blur.jpg',
           fileName: 'blur.jpg',
@@ -59,7 +96,7 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
       {
         wardCode: 'AG_P_LONGXUYEN',
         wardName: 'Phường Long Xuyên',
-        visionGate: simulateVisionGatePreset('WRONG_TEMPLATE', 'CT01'),
+        visionGate: makeTestVisionGate('WRONG_TEMPLATE', 'CT01'),
         attachment: null,
         validationInput: {
           formType: 'CT01',
@@ -85,7 +122,7 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
       {
         wardCode: 'AG_P_LONGXUYEN',
         wardName: 'Phường Long Xuyên',
-        visionGate: simulateVisionGatePreset('GOOD', 'CT01'),
+        visionGate: makeTestVisionGate('GOOD', 'CT01'),
         attachment: null,
         validationInput: {
           formType: 'CT01',
@@ -141,7 +178,7 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
       {
         wardCode: 'AG_P_LONGXUYEN',
         wardName: 'Phường Long Xuyên',
-        visionGate: simulateVisionGatePreset('GOOD', 'CT01'),
+        visionGate: makeTestVisionGate('GOOD', 'CT01'),
         attachment: {
           uri: 'file:///cache/ct01_resized.jpg',
           fileName: 'ct01_resized.jpg',
@@ -196,7 +233,7 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
       {
         wardCode: 'AG_DK_PHUQUOC',
         wardName: 'Đặc khu Phú Quốc',
-        visionGate: simulateVisionGatePreset('GOOD', 'TK-BTXH'),
+        visionGate: makeTestVisionGate('GOOD', 'TK-BTXH'),
         attachment: null,
         validationInput: {
           formType: 'TK-BTXH',
@@ -268,7 +305,7 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
       {
         wardCode: 'AG_P_LONGXUYEN',
         wardName: 'Phường Long Xuyên',
-        visionGate: simulateVisionGatePreset('GOOD', 'CT01'),
+        visionGate: makeTestVisionGate('GOOD', 'CT01'),
         attachment: null,
         validationInput: {
           formType: 'CT01',

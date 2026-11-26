@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   evaluateDocumentVisionGate,
-  simulateVisionGatePreset,
   verifyTemplateMatch,
 } from '../core/visionQualityGate';
 import {
@@ -121,10 +120,34 @@ describe('visionQualityGate — Chốt chặn AI Thị Giác 3 tiêu chí & Desi
     expect(gate.templateMatched).toBe(true);
   });
 
-  it('hỗ trợ 3 chế độ mô phỏng hội đồng GOOD / BLURRY / WRONG_TEMPLATE', () => {
-    const good = simulateVisionGatePreset('GOOD', 'CT01');
-    const blurry = simulateVisionGatePreset('BLURRY', 'CT01');
-    const wrong = simulateVisionGatePreset('WRONG_TEMPLATE', 'CT01');
+  it('phân biệt rõ 3 kịch bản ảnh đạt chuẩn, ảnh mờ và sai biểu mẫu qua evaluateDocumentVisionGate', () => {
+    const good = evaluateDocumentVisionGate({
+      expectedFormType: 'CT01',
+      fileName: 'ct01_sharp_verified.jpg',
+      mimeType: 'image/jpeg',
+      rawText: 'Tờ khai thay đổi thông tin cư trú CT01',
+      sharpnessScore: 96,
+      brightnessScore: 198,
+      extractedFieldsCount: 5,
+    });
+    const blurry = evaluateDocumentVisionGate({
+      expectedFormType: 'CT01',
+      fileName: 'ct01_blurry_capture.jpg',
+      mimeType: 'image/jpeg',
+      rawText: 'Tờ khai thay đổi thông tin cư trú CT01',
+      sharpnessScore: 24,
+      brightnessScore: 150,
+      extractedFieldsCount: 1,
+    });
+    const wrong = evaluateDocumentVisionGate({
+      expectedFormType: 'CT01',
+      fileName: 'tk-ks_wrong_template.jpg',
+      mimeType: 'image/jpeg',
+      rawText: 'Tờ khai đăng ký khai sinh TK-KS',
+      sharpnessScore: 94,
+      brightnessScore: 196,
+      extractedFieldsCount: 5,
+    });
 
     expect(good.canSubmit).toBe(true);
     expect(blurry.canSubmit).toBe(false);

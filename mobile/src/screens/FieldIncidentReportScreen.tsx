@@ -599,38 +599,6 @@ export const FieldIncidentReportScreen: React.FC = () => {
         </View>
       )}
 
-      {/* Tọa độ mô phỏng An Giang (Dành cho việc test nhanh trên Safari iOS / thiết bị ngồi trong nhà) */}
-      <View style={styles.presetSection}>
-        <Text style={styles.presetTitle}>📍 Điểm thử nghiệm An Giang (Bấm để test định tuyến GPS tức thì):</Text>
-        <View style={styles.presetWrap}>
-          {[
-            { label: 'Xã An Phú', lat: 10.7061, lon: 105.1206, addr: 'Đường tỉnh 957, Xã An Phú, Tỉnh An Giang' },
-            { label: 'TP. Long Xuyên', lat: 10.3700, lon: 105.4300, addr: 'Số 18 Trần Hưng Đạo, Phường Long Xuyên, Tỉnh An Giang' },
-            { label: 'TX. Tân Châu', lat: 10.8000, lon: 105.2400, addr: 'Đường Nguyễn Huệ, Phường Long Hưng, TX Tân Châu' },
-            { label: 'H. Chợ Mới', lat: 10.4500, lon: 105.4200, addr: 'Đường DT942, Xã Long Điền A, Huyện Chợ Mới' },
-          ].map((preset, idx) => (
-            <Pressable
-              key={idx}
-              onPress={() => {
-                stopAllGpsWatchers();
-                setLocating(false);
-                setPermissionDenied(false);
-                setLatitude(preset.lat);
-                setLongitude(preset.lon);
-                setGpsAccuracy(4);
-                setLocationSource('PIN_DRAGGED');
-                setIsAddressManuallyEdited(false);
-                setAddressText(preset.addr);
-                setGpsBanner(`Đã ghim GPS tại ${preset.label} (${preset.lat}, ${preset.lon}). Vòng gom cụm R = 25m đã kích hoạt.`);
-              }}
-              style={({ pressed }) => [styles.presetChip, pressed && styles.pressed]}
-            >
-              <Text style={styles.presetChipText}>{preset.label}</Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
-
       {/* MOB-4.8: Live Cross-Ward Routing Card */}
       <View style={styles.routingCard}>
         <Building2 size={16} color={COLORS.primary} />
@@ -1097,37 +1065,6 @@ const styles = StyleSheet.create({
     color: '#92400E',
     lineHeight: 16,
     fontWeight: '600',
-  },
-  presetSection: {
-    backgroundColor: COLORS.card,
-    borderRadius: RADIUS.lg,
-    borderWidth: 1,
-    borderColor: COLORS.borderSubtle,
-    padding: SPACING.sm,
-    gap: 6,
-  },
-  presetTitle: {
-    fontSize: 11.5,
-    fontWeight: '700',
-    color: COLORS.textMuted,
-  },
-  presetWrap: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 6,
-  },
-  presetChip: {
-    backgroundColor: '#F1F5F9',
-    borderColor: '#CBD5E1',
-    borderWidth: 1,
-    borderRadius: RADIUS.full,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  presetChipText: {
-    fontSize: 11.5,
-    fontWeight: '700',
-    color: '#334155',
   },
   routingCard: {
     flexDirection: 'row',
