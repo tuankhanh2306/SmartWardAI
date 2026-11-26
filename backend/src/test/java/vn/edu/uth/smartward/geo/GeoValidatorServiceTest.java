@@ -98,4 +98,33 @@ class GeoValidatorServiceTest {
             assertTrue(result.valid(), "Ward " + def.getWardCode() + " (" + def.getName() + ") must pass seed validation: " + result.message());
         }
     }
+
+    @Test
+    @DisplayName("7. BUG-019 & TASK-048: Binh An Hospital (Rach Gia) belongs to AG_P_RACHGIA, not AG_X_BINHAN, and 0 duplicate centroids")
+    void testRachGiaAndBinhAnSeparationAndNoDuplicateCentroids() {
+        // 10.003544, 105.086358 = Bệnh viện Bình An (Phường Rạch Giá)
+        assertTrue(geoValidatorService.validateWardPoint(10.003544, 105.086358, "AG_P_RACHGIA").valid(),
+                "Bệnh viện Bình An (Rạch Giá) must be valid inside AG_P_RACHGIA");
+        assertFalse(geoValidatorService.validateWardPoint(10.003544, 105.086358, "AG_X_BINHAN").valid(),
+                "Bệnh viện Bình An (Rạch Giá) must NOT fall inside AG_X_BINHAN");
+
+        // Real Xã Bình An (Châu Thành) at 9.8746, 105.1328
+        assertTrue(geoValidatorService.validateWardPoint(9.8746, 105.1328, "AG_X_BINHAN").valid(),
+                "UBND Xã Bình An must be valid inside AG_X_BINHAN");
+        assertFalse(geoValidatorService.validateWardPoint(9.8746, 105.1328, "AG_P_RACHGIA").valid(),
+                "UBND Xã Bình An must NOT fall inside AG_P_RACHGIA");
+
+        // Zero duplicate centroids across all 96 wards
+        var all = new java.util.ArrayList<>(geoValidatorService.getAllWards());
+        for (int i = 0; i < all.size(); i++) {
+            for (int j = i + 1; j < all.size(); j++) {
+                double dist = GeoValidatorService.calculateHaversineMeters(
+                        all.get(i).getLat(), all.get(i).getLng(),
+                        all.get(j).getLat(), all.get(j).getLng()
+                );
+                assertTrue(dist > 200.0,
+                        "Duplicate/overlapping centroids detected: " + all.get(i).getWardCode() + " vs " + all.get(j).getWardCode() + " (" + Math.round(dist) + "m)");
+            }
+        }
+    }
 }

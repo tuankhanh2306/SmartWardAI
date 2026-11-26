@@ -84,6 +84,36 @@ describe('crossWardRouting — Danh mục 96 Xã/Phường An Giang & Định tu
     expect(byLongXuyen.some((w) => w.code === 'AG_P_LONGXUYEN')).toBe(true);
   });
 
+  it('BUG-019 & TASK-049: đứng tại 10.003544, 105.086358 (Bệnh viện Bình An, Rạch Giá) phải định tuyến đúng về AG_P_RACHGIA', () => {
+    const gps = findNearestWardByGps(10.003544, 105.086358);
+    expect(gps.ward.code).toBe('AG_P_RACHGIA');
+
+    // Reverse geocode thiếu chữ "Phường Rạch Giá" và có tên "Bệnh viện Bình An" không được nhảy nhầm sang Xã Bình An
+    const rev = resolveWardFromLocationBox(
+      'Bệnh viện Bình An, Đường Phan Đình Phùng, Kiên Giang',
+      10.003544,
+      105.086358,
+      'AG_P_LONGXUYEN'
+    );
+    expect(rev.ward.code).toBe('AG_P_RACHGIA');
+    expect(rev.matchedBy).toBe('GPS_COORDS');
+
+    // Đứng tại vị trí thực tế UBND Xã Bình An (Châu Thành / Tắc Cậu) phải định tuyến đúng về AG_X_BINHAN
+    const binhAn = findNearestWardByGps(9.8746, 105.1328);
+    expect(binhAn.ward.code).toBe('AG_X_BINHAN');
+  });
+
+  it('TASK-048: không có cặp xã/phường nào trùng tọa độ tâm (0m) trong toàn bộ 96 đơn vị An Giang', () => {
+    for (let i = 0; i < AN_GIANG_WARDS.length; i++) {
+      for (let j = i + 1; j < AN_GIANG_WARDS.length; j++) {
+        const a = AN_GIANG_WARDS[i];
+        const b = AN_GIANG_WARDS[j];
+        const dist = calculateHaversineMeters(a.lat, a.lon, b.lat, b.lon);
+        expect(dist, `${a.code} và ${b.code} quá gần/trùng tâm (${Math.round(dist)}m)`).toBeGreaterThan(200);
+      }
+    }
+  });
+
   it('kiểm tra hết hạn JWT chính xác trong secureAuthStorage', () => {
     const futureExp = Math.floor(Date.now() / 1000) + 3600;
     const pastExp = Math.floor(Date.now() / 1000) - 3600;
