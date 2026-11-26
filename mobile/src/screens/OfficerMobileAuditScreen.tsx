@@ -24,6 +24,7 @@ import {
   AlertTriangle,
   CheckCircle2,
   Eye,
+  Fingerprint,
   Landmark,
   LogOut,
   QrCode,
@@ -52,8 +53,15 @@ export const OfficerMobileAuditScreen: React.FC = () => {
     isAuthenticated,
     isRestoring,
     authError,
+    biometricAvailable,
+    biometricLabel,
+    biometricEnabled,
+    isBiometricLocked,
     login,
     logout,
+    setBiometricEnabled,
+    unlockWithBiometrics,
+    unlockFallbackToPin,
     clearAuthError,
   } = useOfficerAuth();
   const { typography, fontScaleMode } = useAccessibility();
@@ -228,6 +236,67 @@ export const OfficerMobileAuditScreen: React.FC = () => {
     );
   }
 
+  // TASK-043: Biometric Unlock Gate when returning to an active Officer session
+  if (isBiometricLocked) {
+    return (
+      <ScrollView
+        style={styles.screen}
+        contentContainerStyle={[
+          styles.content,
+          { paddingHorizontal: responsive.horizontalPadding },
+        ]}
+      >
+        <View style={[styles.loginCard, { padding: responsive.cardPadding }]}>
+          <View style={styles.loginTitleRow}>
+            <View style={styles.navyIconBox}>
+              <Fingerprint size={22} color={COLORS.officerAccentSky} />
+            </View>
+            <View style={styles.flex1}>
+              <Text style={[styles.loginTitle, typography.headingMd]}>
+                Mở khóa phiên Cán bộ
+              </Text>
+              <Text style={[styles.loginSub, typography.captionSm]}>
+                Dùng {biometricLabel} để tiếp tục làm việc nhanh tại hiện trường
+              </Text>
+            </View>
+          </View>
+
+          {authError ? (
+            <View style={styles.errorBox}>
+              <AlertTriangle size={15} color={COLORS.errorAccent} />
+              <Text style={styles.errorText}>{authError}</Text>
+            </View>
+          ) : null}
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              void unlockWithBiometrics();
+            }}
+            style={({ pressed }) => [styles.loginBtn, pressed && styles.pressed]}
+          >
+            <Fingerprint size={17} color={COLORS.onPrimary} />
+            <Text style={[styles.loginBtnText, typography.bodyBold]}>
+              Mở khóa bằng {biometricLabel}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              void unlockFallbackToPin();
+            }}
+            style={[styles.logoutBtn, { alignSelf: 'center', marginTop: SPACING.sm }]}
+          >
+            <Text style={[styles.logoutText, { color: COLORS.officerNavy }]}>
+              Chuyển sang nhập mã PIN
+            </Text>
+          </Pressable>
+        </View>
+      </ScrollView>
+    );
+  }
+
   // MOB-5.1: Officer Login Screen
   if (!isAuthenticated || !officer) {
     return (
@@ -349,6 +418,35 @@ export const OfficerMobileAuditScreen: React.FC = () => {
             UBND {officer.wardName} • {officer.wardCode}
           </Text>
         </View>
+        {biometricAvailable ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Bật hoặc tắt mở khóa bằng ${biometricLabel}`}
+            onPress={() => {
+              void setBiometricEnabled(!biometricEnabled);
+            }}
+            style={[
+              styles.logoutBtn,
+              {
+                marginRight: SPACING.xs,
+                borderColor: biometricEnabled ? COLORS.primary : COLORS.borderSubtle,
+              },
+            ]}
+          >
+            <Fingerprint
+              size={15}
+              color={biometricEnabled ? COLORS.primary : COLORS.textMuted}
+            />
+            <Text
+              style={[
+                styles.logoutText,
+                { color: biometricEnabled ? COLORS.primary : COLORS.textSecondary },
+              ]}
+            >
+              {biometricEnabled ? `${biometricLabel}: Bật` : biometricLabel}
+            </Text>
+          </Pressable>
+        ) : null}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Đăng xuất cán bộ"
