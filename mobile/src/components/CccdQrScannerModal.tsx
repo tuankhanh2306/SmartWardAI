@@ -12,11 +12,12 @@ import {
   Modal,
   Platform,
   Pressable,
+  StatusBar,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { QrCode, Sparkles, X } from 'lucide-react-native';
 import { parseCccdQrString, type DecodedCccdQr } from '../core/cccdQrParser';
@@ -91,6 +92,15 @@ export const CccdQrScannerModal: React.FC<CccdQrScannerModalProps> = ({
     outputRange: [8, 196],
   });
 
+  const insets = useSafeAreaInsets();
+  const topInset = Math.max(
+    insets.top,
+    Platform.OS === 'ios' ? 54 : Platform.OS === 'android' ? StatusBar.currentHeight ?? 24 : 0,
+  );
+  const bottomInset = Math.max(
+    insets.bottom,
+    Platform.OS === 'ios' ? 24 : Platform.OS === 'android' ? 12 : 0,
+  );
   const canUseLiveCamera = Platform.OS !== 'web' && permission?.granted;
 
   return (
@@ -98,9 +108,11 @@ export const CccdQrScannerModal: React.FC<CccdQrScannerModalProps> = ({
       visible={visible}
       animationType="slide"
       presentationStyle="fullScreen"
+      statusBarTranslucent
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.safeArea}>
+      <View style={[styles.safeArea, { paddingTop: topInset, paddingBottom: bottomInset }]}>
+        <StatusBar barStyle="light-content" />
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <QrCode size={18} color={COLORS.scannerLaser} />
@@ -178,7 +190,7 @@ export const CccdQrScannerModal: React.FC<CccdQrScannerModalProps> = ({
             <Text style={styles.demoBtnText}>Dùng dữ liệu QR CCCD mẫu (Demo)</Text>
           </Pressable>
         </View>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 };

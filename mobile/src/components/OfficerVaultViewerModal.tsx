@@ -9,12 +9,14 @@ import {
   ActivityIndicator,
   Image,
   Modal,
+  Platform,
   Pressable,
+  StatusBar,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AlertTriangle, Lock, ShieldAlert, X } from 'lucide-react-native';
 import {
   loadVaultImageInMemoryOnly,
@@ -78,14 +80,26 @@ export const OfficerVaultViewerModal: React.FC<OfficerVaultViewerModalProps> = (
     };
   }, [alreadyConsumed, onTokenConsumed, token, visible]);
 
+  const insets = useSafeAreaInsets();
+  const topInset = Math.max(
+    insets.top,
+    Platform.OS === 'ios' ? 54 : Platform.OS === 'android' ? StatusBar.currentHeight ?? 24 : 0,
+  );
+  const bottomInset = Math.max(
+    insets.bottom,
+    Platform.OS === 'ios' ? 24 : Platform.OS === 'android' ? 12 : 0,
+  );
+
   return (
     <Modal
       visible={visible}
       animationType="fade"
       presentationStyle="fullScreen"
+      statusBarTranslucent
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.safeArea}>
+      <View style={[styles.safeArea, { paddingTop: topInset, paddingBottom: bottomInset }]}>
+        <StatusBar barStyle="light-content" />
         <View style={styles.header}>
           <View style={styles.headerLeft}>
             <Lock size={16} color={COLORS.officerAccentSky} />
@@ -144,7 +158,7 @@ export const OfficerVaultViewerModal: React.FC<OfficerVaultViewerModalProps> = (
             </View>
           ) : null}
         </View>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 };
