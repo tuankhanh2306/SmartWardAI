@@ -17,6 +17,7 @@ import type {
   DossierSubmissionResponse,
   DossierTrackingRequest,
   DossierTrackingResponse,
+  HitlGrayZoneItemDto,
   IncidentPhotoUploadResponse,
   IssueClusterDto,
   OfficerChangePinRequest,
@@ -499,6 +500,79 @@ export async function fetchIssueClusters(params?: {
   return Array.isArray(list) ? list : [];
 }
 
+function mapRawIssueClusters(rawList: unknown[]): IssueClusterDto[] {
+  return rawList.map((raw) => {
+    const item = raw as Record<string, unknown>;
+    return {
+      id: String(item.id ?? item.clusterCode ?? ''),
+      clusterCode: String(item.clusterCode ?? ''),
+      category: String(item.category ?? 'ROAD_DAMAGE'),
+      centroidLatitude: Number(item.centerLatitude ?? item.centroidLatitude ?? 10.3864),
+      centroidLongitude: Number(item.centerLongitude ?? item.centroidLongitude ?? 105.4352),
+      title: String(item.title ?? 'Sự cố hiện trường'),
+      descriptionSummary: String(item.descriptionSummary ?? item.title ?? ''),
+      status: String(item.status ?? 'OPEN'),
+      reportCount: Number(item.reportCount ?? 1),
+      addressText: typeof item.addressText === 'string' ? item.addressText : undefined,
+      locationSource: typeof item.locationSource === 'string' ? item.locationSource : undefined,
+      locationAccuracyM: typeof item.locationAccuracyM === 'number' ? item.locationAccuracyM : undefined,
+      wardCode: typeof item.wardCode === 'string' ? item.wardCode : undefined,
+      wardName: typeof item.wardName === 'string' ? item.wardName : undefined,
+      photoUrls: Array.isArray(item.photoUrls) ? (item.photoUrls as string[]) : [],
+      photoCount:
+        typeof item.photoCount === 'number'
+          ? item.photoCount
+          : Array.isArray(item.photoUrls)
+          ? item.photoUrls.length
+          : 0,
+      createdAt: String(item.firstReportedAt ?? item.createdAt ?? new Date().toISOString()),
+      lastReportAt: String(item.lastReportedAt ?? item.createdAt ?? new Date().toISOString()),
+    };
+  });
+}
+
+export async function fetchOfficerIssueClusters(params?: {
+  wardCode?: string;
+  status?: string;
+}): Promise<IssueClusterDto[]> {
+  try {
+    const resp = await apiClient.get<ApiResponse<unknown[]>>('/issues/officer/clusters', { params });
+    const list = unwrapData(resp.data);
+    if (Array.isArray(list)) {
+      return mapRawIssueClusters(list);
+    }
+  } catch (err: unknown) {
+    const status = (err as { response?: { status?: number } })?.response?.status;
+    if (status === 401 || status === 403) {
+      throw err;
+    }
+  }
+  const fallbackResp = await apiClient.get<ApiResponse<unknown[]>>('/issues/clusters', { params });
+  const fallbackList = unwrapData(fallbackResp.data);
+  return Array.isArray(fallbackList) ? mapRawIssueClusters(fallbackList) : [];
+}
+
+export async function fetchOfficerHitlQueue(): Promise<HitlGrayZoneItemDto[]> {
+  const resp = await apiClient.get<ApiResponse<HitlGrayZoneItemDto[]>>('/rag/hitl-queue');
+  const list = unwrapData(resp.data);
+  return Array.isArray(list) ? list : [];
+}
+
+export async function resolveOfficerHitlItem(
+  id: string,
+  approvedAnswer: string,
+  officerName?: string
+): Promise<HitlGrayZoneItemDto> {
+  const resp = await apiClient.post<ApiResponse<HitlGrayZoneItemDto>>(
+    `/rag/hitl-queue/${encodeURIComponent(id.trim())}/resolve`,
+    {
+      approvedAnswer: approvedAnswer.trim(),
+      officerName: officerName?.trim() || undefined,
+    }
+  );
+  return unwrapData(resp.data);
+}
+
 export async function updateIssueClusterStatus(
   clusterCode: string,
   status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED',
@@ -516,10 +590,11 @@ export async function updateIssueClusterStatus(
 // ============================================================================
 
 export async function loginOfficer(request: OfficerLoginRequest): Promise<OfficerLoginResponse> {
-  const resp = await apiClient.post<ApiResponse<OfficerLoginResponse>>(
-    '/auth/officer/login',
-    request
-  );
+  const resp = await apiClient.post<ApiResponse<OfficerLoginResponse>>('/auth/officer/login', {
+    badgeId: request.badgeId.trim().toUpperCase(),
+    pin: request.pin.trim(),
+    wardCode: request.wardCode?.trim() || undefined,
+  });
   return unwrapData(resp.data);
 }
 

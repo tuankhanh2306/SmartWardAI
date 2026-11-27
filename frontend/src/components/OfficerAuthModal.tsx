@@ -120,7 +120,7 @@ export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onCl
               type="text"
               value={badgeId}
               onChange={(e) => setBadgeId(e.target.value)}
-              placeholder="Ví dụ: CC-AG-8942"
+              placeholder="Ví dụ: CB-AG_P_LONGXUYEN"
               className="w-full h-10 px-3.5 rounded-xl border border-[#CBD5E1] bg-[#F8FAFC] font-mono font-bold text-xs text-[#0F2942] focus:outline-none focus:border-[#0F2942] focus:bg-white"
             />
           </div>
@@ -134,8 +134,8 @@ export const OfficerAuthModal: React.FC<OfficerAuthModalProps> = ({ isOpen, onCl
               type="password"
               value={pin}
               onChange={(e) => setPin(e.target.value)}
-              placeholder="••••"
-              maxLength={6}
+              placeholder="••••••"
+              maxLength={32}
               className="w-full h-10 px-3.5 rounded-xl border border-[#CBD5E1] bg-[#F8FAFC] font-mono font-bold text-xs text-[#0F2942] focus:outline-none focus:border-[#0F2942] focus:bg-white tracking-widest"
             />
           </div>
