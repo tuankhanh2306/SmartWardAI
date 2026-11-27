@@ -5,6 +5,7 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as ExpoNotifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { registerPushDevice, unregisterPushDevice } from '../api/client';
 
@@ -19,11 +20,7 @@ export interface PushRegistrationOutcome {
 }
 
 async function loadExpoNotificationsModule(): Promise<typeof import('expo-notifications') | null> {
-  try {
-    return await import('expo-notifications');
-  } catch {
-    return null;
-  }
+  return ExpoNotifications ?? null;
 }
 
 export async function configureForegroundNotificationHandler(): Promise<void> {

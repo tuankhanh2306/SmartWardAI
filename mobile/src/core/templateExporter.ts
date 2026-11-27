@@ -608,8 +608,8 @@ export async function exportTemplateDocument(
   }
 
   try {
-    const FileSystem = await import('expo-file-system/legacy');
-    const Sharing = await import('expo-sharing');
+    const FileSystem = require('expo-file-system/legacy') as typeof import('expo-file-system/legacy');
+    const Sharing = require('expo-sharing') as typeof import('expo-sharing');
     const baseDir = FileSystem.documentDirectory || FileSystem.cacheDirectory || '';
 
     let targetUri = `${baseDir}${fileName}`;
@@ -620,7 +620,7 @@ export async function exportTemplateDocument(
       });
     } else {
       // Strictly use printToFileAsync (exports .pdf file silently without opening print dialog)
-      const Print = await import('expo-print');
+      const Print = require('expo-print') as typeof import('expo-print');
       const pdfResult = await Print.printToFileAsync({ html });
       if (baseDir) {
         await FileSystem.copyAsync({ from: pdfResult.uri, to: targetUri });

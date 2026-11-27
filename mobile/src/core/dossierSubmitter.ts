@@ -130,7 +130,7 @@ async function defaultDeleteTempFile(uri: string): Promise<boolean> {
     return false;
   }
   try {
-    const FileSystem = await import('expo-file-system/legacy');
+    const FileSystem = require('expo-file-system/legacy') as typeof import('expo-file-system/legacy');
     const info = await FileSystem.getInfoAsync(uri);
     if (info.exists) {
       await FileSystem.deleteAsync(uri, { idempotent: true });

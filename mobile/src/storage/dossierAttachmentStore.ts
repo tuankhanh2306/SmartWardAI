@@ -28,7 +28,8 @@ const memoryStore = new Map<string, string>();
 
 async function readStorageRaw(key: string): Promise<string | null> {
   try {
-    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    const mod = require('@react-native-async-storage/async-storage');
+    const AsyncStorage = mod?.default ?? mod;
     if (AsyncStorage && typeof AsyncStorage.getItem === 'function') {
       const val = await AsyncStorage.getItem(key);
       if (val !== null) return val;
@@ -42,7 +43,8 @@ async function readStorageRaw(key: string): Promise<string | null> {
 async function writeStorageRaw(key: string, value: string): Promise<void> {
   memoryStore.set(key, value);
   try {
-    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    const mod = require('@react-native-async-storage/async-storage');
+    const AsyncStorage = mod?.default ?? mod;
     if (AsyncStorage && typeof AsyncStorage.setItem === 'function') {
       await AsyncStorage.setItem(key, value);
     }
@@ -54,7 +56,8 @@ async function writeStorageRaw(key: string, value: string): Promise<void> {
 async function removeStorageRaw(key: string): Promise<void> {
   memoryStore.delete(key);
   try {
-    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    const mod = require('@react-native-async-storage/async-storage');
+    const AsyncStorage = mod?.default ?? mod;
     if (AsyncStorage && typeof AsyncStorage.removeItem === 'function') {
       await AsyncStorage.removeItem(key);
     }
@@ -69,7 +72,7 @@ async function removeStorageRaw(key: string): Promise<void> {
 export async function persistDossierPhotoToDurableDir(localUri: string): Promise<string> {
   if (!localUri) return localUri;
   try {
-    const FileSystem = (await import('expo-file-system/legacy')) as unknown as {
+    const FileSystem = require('expo-file-system/legacy') as unknown as {
       documentDirectory?: string | null;
       makeDirectoryAsync?: (uri: string, opts?: { intermediates?: boolean }) => Promise<void>;
       copyAsync?: (opts: { from: string; to: string }) => Promise<void>;
@@ -97,7 +100,7 @@ export async function persistDossierPhotoToDurableDir(localUri: string): Promise
 export async function deleteDurableDossierPhoto(uri: string): Promise<boolean> {
   if (!uri) return false;
   try {
-    const FileSystem = (await import('expo-file-system/legacy')) as unknown as {
+    const FileSystem = require('expo-file-system/legacy') as unknown as {
       deleteAsync?: (target: string, opts?: { idempotent?: boolean }) => Promise<void>;
     };
     if (typeof FileSystem.deleteAsync === 'function') {

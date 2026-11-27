@@ -17,7 +17,7 @@ export function resetOfficerTokenMemoryCache(): void {
 
 async function setItemRaw(key: string, value: string): Promise<void> {
   try {
-    const SecureStore = await import('expo-secure-store');
+    const SecureStore = require('expo-secure-store') as typeof import('expo-secure-store');
     if (typeof SecureStore.isAvailableAsync === 'function' && (await SecureStore.isAvailableAsync())) {
       await SecureStore.setItemAsync(key, value);
       return;
@@ -27,7 +27,8 @@ async function setItemRaw(key: string, value: string): Promise<void> {
   }
 
   try {
-    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    const mod = require('@react-native-async-storage/async-storage');
+    const AsyncStorage = mod?.default ?? mod;
     await AsyncStorage.setItem(key, value);
     return;
   } catch {
@@ -37,7 +38,7 @@ async function setItemRaw(key: string, value: string): Promise<void> {
 
 async function getItemRaw(key: string): Promise<string | null> {
   try {
-    const SecureStore = await import('expo-secure-store');
+    const SecureStore = require('expo-secure-store') as typeof import('expo-secure-store');
     if (typeof SecureStore.isAvailableAsync === 'function' && (await SecureStore.isAvailableAsync())) {
       return await SecureStore.getItemAsync(key);
     }
@@ -46,7 +47,8 @@ async function getItemRaw(key: string): Promise<string | null> {
   }
 
   try {
-    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    const mod = require('@react-native-async-storage/async-storage');
+    const AsyncStorage = mod?.default ?? mod;
     return await AsyncStorage.getItem(key);
   } catch {
     return memoryFallback.get(key) ?? null;
@@ -55,7 +57,7 @@ async function getItemRaw(key: string): Promise<string | null> {
 
 async function deleteItemRaw(key: string): Promise<void> {
   try {
-    const SecureStore = await import('expo-secure-store');
+    const SecureStore = require('expo-secure-store') as typeof import('expo-secure-store');
     if (typeof SecureStore.isAvailableAsync === 'function' && (await SecureStore.isAvailableAsync())) {
       await SecureStore.deleteItemAsync(key);
       return;
@@ -65,7 +67,8 @@ async function deleteItemRaw(key: string): Promise<void> {
   }
 
   try {
-    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
+    const mod = require('@react-native-async-storage/async-storage');
+    const AsyncStorage = mod?.default ?? mod;
     await AsyncStorage.removeItem(key);
     return;
   } catch {

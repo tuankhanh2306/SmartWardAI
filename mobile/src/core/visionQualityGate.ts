@@ -253,7 +253,11 @@ export async function resizeImageForUpload(
   height?: number
 ): Promise<{ uri: string; width?: number; height?: number }> {
   try {
-    const ImageManipulator = await import('expo-image-manipulator');
+    // Synchronous require prevents Metro async split-chunk crash (ExpoAsset runtime not ready on iOS)
+    const ImageManipulator = require('expo-image-manipulator') as typeof import('expo-image-manipulator');
+    if (!ImageManipulator || typeof ImageManipulator.manipulateAsync !== 'function') {
+      return { uri, width, height };
+    }
     const actions: Array<{ resize: { width?: number; height?: number } }> = [];
 
     if (width && height) {
