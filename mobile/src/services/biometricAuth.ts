@@ -4,6 +4,9 @@
  * with secure preference persistence in expo-secure-store and safe PIN fallback.
  */
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as LocalAuth from 'expo-local-authentication';
+import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 
 export const BIOMETRIC_ENABLED_KEY = 'smartward_officer_biometric_enabled_v1';
@@ -21,7 +24,6 @@ export interface BiometricAuthResult {
 
 async function setPref(key: string, value: string): Promise<void> {
   try {
-    const SecureStore = await import('expo-secure-store');
     if (typeof SecureStore.isAvailableAsync === 'function' && (await SecureStore.isAvailableAsync())) {
       await SecureStore.setItemAsync(key, value);
       return;
@@ -30,7 +32,6 @@ async function setPref(key: string, value: string): Promise<void> {
     // Fallback below
   }
   try {
-    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
     await AsyncStorage.setItem(key, value);
   } catch {
     // Ignore restricted environment
@@ -39,7 +40,6 @@ async function setPref(key: string, value: string): Promise<void> {
 
 async function getPref(key: string): Promise<string | null> {
   try {
-    const SecureStore = await import('expo-secure-store');
     if (typeof SecureStore.isAvailableAsync === 'function' && (await SecureStore.isAvailableAsync())) {
       return await SecureStore.getItemAsync(key);
     }
@@ -47,7 +47,6 @@ async function getPref(key: string): Promise<string | null> {
     // Fallback below
   }
   try {
-    const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default;
     return await AsyncStorage.getItem(key);
   } catch {
     return null;
@@ -59,7 +58,6 @@ export async function checkBiometricCapability(): Promise<BiometricCapability> {
     return { available: false, label: 'Sinh trắc học' };
   }
   try {
-    const LocalAuth = await import('expo-local-authentication');
     const hasHardware = await LocalAuth.hasHardwareAsync();
     if (!hasHardware) {
       return { available: false, label: 'Sinh trắc học' };
@@ -97,7 +95,6 @@ export async function authenticateOfficerWithBiometrics(
     };
   }
   try {
-    const LocalAuth = await import('expo-local-authentication');
     const capability = await checkBiometricCapability();
     if (!capability.available) {
       return {

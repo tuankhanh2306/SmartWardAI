@@ -8,6 +8,8 @@
  *      so raw .db inspection cannot reveal citizen PII without Keychain/Keystore access.
  */
 
+import * as SecureStore from 'expo-secure-store';
+
 export const SQLITE_MASTER_KEY_STORAGE_ID = 'smartward_sqlite_master_key_v1';
 const ENC_PREFIX = 'enc:v1:';
 
@@ -66,7 +68,6 @@ function getRandomBytes(length: number): Uint8Array {
 
 async function readKeyFromSecureStore(): Promise<string | null> {
   try {
-    const SecureStore = await import('expo-secure-store');
     if (typeof SecureStore.isAvailableAsync === 'function' && (await SecureStore.isAvailableAsync())) {
       return await SecureStore.getItemAsync(SQLITE_MASTER_KEY_STORAGE_ID);
     }
@@ -78,7 +79,6 @@ async function readKeyFromSecureStore(): Promise<string | null> {
 
 async function writeKeyToSecureStore(keyHex: string): Promise<void> {
   try {
-    const SecureStore = await import('expo-secure-store');
     if (typeof SecureStore.isAvailableAsync === 'function' && (await SecureStore.isAvailableAsync())) {
       await SecureStore.setItemAsync(SQLITE_MASTER_KEY_STORAGE_ID, keyHex);
       return;
