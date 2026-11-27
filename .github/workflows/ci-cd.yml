@@ -115,11 +115,15 @@ jobs:
         working-directory: ./mobile
         run: npm ci
 
+      - name: Expo SDK & Dependency Health Check (expo-doctor)
+        working-directory: ./mobile
+        run: npx --yes expo-doctor
+
       - name: Mobile TypeScript Verification
         working-directory: ./mobile
         run: npm run typecheck
 
-      - name: Run Mobile Vitest Suite (73 Unit & Adversarial Tests)
+      - name: Run Mobile Vitest Suite (Unit & Adversarial Tests)
         working-directory: ./mobile
         run: npm test
 

@@ -6,9 +6,13 @@
   "private": true,
   "scripts": {
     "start": "expo start",
+    "start:fresh": "expo start -c",
+    "start:check": "expo install --check && expo start -c",
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "doctor": "npx --yes expo-doctor",
+    "sync:deps": "expo install --fix",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
