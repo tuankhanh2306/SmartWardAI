@@ -994,13 +994,13 @@ public class CitizenDossierService {
         if (formDataObj == null) return "CÔNG DÂN KÊ KHAI";
         try {
             if (formDataObj instanceof Map<?, ?> map) {
-                for (String key : List.of("fullName", "citizenName", "hoTen", "childName", "husbandName", "wifeName")) {
+                for (String key : List.of("declarerName", "fullName", "citizenName", "hoTen", "childName", "husbandName", "wifeName")) {
                     Object val = map.get(key);
                     if (val instanceof String s && !s.isBlank()) return s.trim().toUpperCase();
                 }
             }
             JsonNode node = objectMapper.valueToTree(formDataObj);
-            for (String key : List.of("fullName", "citizenName", "hoTen", "childName", "husbandName", "wifeName")) {
+            for (String key : List.of("declarerName", "fullName", "citizenName", "hoTen", "childName", "husbandName", "wifeName")) {
                 if (node.hasNonNull(key) && !node.get(key).asText().isBlank()) {
                     return node.get(key).asText().trim().toUpperCase();
                 }

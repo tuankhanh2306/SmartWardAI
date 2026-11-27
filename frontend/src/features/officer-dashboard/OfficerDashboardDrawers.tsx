@@ -1,3 +1,4 @@
+import { paperDetails } from '../citizen-forms/paperForm';
 import React, { useEffect, useState } from 'react';
 import {
   AlertCircle, AlertTriangle, BookOpen, BrainCircuit, Camera, Check,
@@ -553,6 +554,7 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                 </h3>
               </div>
 
+              {paperDetails(selectedDossier.details || {}).map(([label,value]) => <p key={label} className="text-sm"><strong>{label}</strong> · {value}</p>)}
               {(selectedDossier.rawStatus || '').toUpperCase() === 'SUPPLEMENTED' && (
                 <div className="p-3.5 rounded-2xl bg-[#EFF6FF] border border-[#93C5FD] text-xs text-[#1E3A8A] flex flex-col gap-1">
                   <span className="font-extrabold uppercase tracking-wide text-[#1D4ED8]">
@@ -661,8 +663,8 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                       <div>
                         <span className="text-[#64748B] block">Dân tộc / Tình trạng hôn nhân cha mẹ:</span>
                         <span className="font-semibold text-[#0F172A]">
-                          {(selectedDossier.details as any)?.childEthnicity || 'Kinh'} •{' '}
-                          {(selectedDossier.details as any)?.parentsMarried === 'NO' ? 'Chưa ĐKKH' : 'Đã ĐKKH'}
+                          {(selectedDossier.details as any)?.childEthnicity || 'Chưa khai'} •{' '}
+                          {(selectedDossier.details as any)?.parentsMarried === 'YES' ? 'Đã ĐKKH' : (selectedDossier.details as any)?.parentsMarried === 'NO' ? 'Chưa ĐKKH' : 'Chưa khai'}
                         </span>
                       </div>
                       <div className="sm:col-span-2">

@@ -23,6 +23,7 @@ export interface LocalFormValidationInput {
   qrVerified?: boolean;
   /** Reference date for deterministic age calculation in tests (defaults to now) */
   referenceDate?: Date;
+  paper?: Record<string,string>;
   extra?: {
     // CT01 fields
     hostFullName?: string;
@@ -39,6 +40,7 @@ export interface LocalFormValidationInput {
     parentsMarried?: 'YES' | 'NO';
 
     // TK-KH fields
+    marriageMode?: 'MARRIAGE_REGISTRATION' | 'MARITAL_STATUS_CONFIRMATION';
     partnerFullName?: string;
     partnerCccd?: string;
     partnerDob?: string;
@@ -466,7 +468,7 @@ function validateTkKh(
   });
 
   // 2. Tuổi kết hôn bên thứ hai (nếu khai kết hôn)
-  if (extra.partnerDob) {
+  if (extra.marriageMode !== 'MARITAL_STATUS_CONFIRMATION' && extra.partnerDob) {
     const partnerIsMale = (extra.partnerGender || 'Nữ').trim().toLowerCase() !== 'nữ';
     const partnerReqAge = partnerIsMale ? 20 : 18;
     const pAge = computeExactAge(extra.partnerDob, refDate);
@@ -499,7 +501,7 @@ function validateTkKh(
     confidenceScore: cccdValid ? 0.99 : 0.4,
   });
 
-  if (extra.partnerCccd && extra.partnerCccd.trim()) {
+  if (extra.marriageMode !== 'MARITAL_STATUS_CONFIRMATION' && extra.partnerCccd && extra.partnerCccd.trim()) {
     const cccd2 = extra.partnerCccd.trim();
     const partnerCccdValid = isValidCccd12(cccd2) && cccd2 !== cccd1;
     fieldValidations.push({
@@ -532,7 +534,7 @@ function validateTkKh(
     'xác nhận độc thân',
   ]);
   const isVague = purpose.length < 15 || vaguePhrases.has(lowerPurpose);
-  fieldValidations.push({
+  if (extra.marriageMode !== 'MARRIAGE_REGISTRATION') fieldValidations.push({
     fieldName: 'Mục đích sử dụng Giấy xác nhận tình trạng hôn nhân',
     providedValue: purpose || '(Để trống)',
     valid: !isVague,

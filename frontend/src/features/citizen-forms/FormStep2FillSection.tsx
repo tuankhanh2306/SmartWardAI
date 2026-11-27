@@ -1,3 +1,4 @@
+import { PaperFields } from './PaperFields';
 import React from 'react';
 import {
   AlertTriangle,
@@ -63,7 +64,7 @@ export const FormStep2FillSection: React.FC<FormStep2FillSectionProps> = ({ wiza
           title="Mở camera hoặc tải ảnh để quét mã QR trên thẻ CCCD thật"
         >
           <QrCode className="w-4 h-4" />
-          <span>Quét QR CCCD</span>
+          <span>{selectedFormType === 'TK-KS' ? 'Quét CCCD người đi khai' : 'Quét QR CCCD'}</span>
         </button>
       </div>
 
@@ -120,7 +121,7 @@ export const FormStep2FillSection: React.FC<FormStep2FillSectionProps> = ({ wiza
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between">
             <label htmlFor="p3-cccd" className="text-xs font-bold text-[#334155]">
-              {selectedFormType === 'TK-KS' ? '2. Số CCCD Mẹ/Cha (12 số):' : '2. Số CCCD (12 số):'}
+              {selectedFormType === 'TK-KS' ? '2. Số CCCD người đi khai (12 số):' : '2. Số CCCD (12 số):'}
             </label>
             {ocr.ocrSuccess && cccd ? (
               <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
@@ -300,7 +301,7 @@ export const FormStep2FillSection: React.FC<FormStep2FillSectionProps> = ({ wiza
         <div className="flex flex-col gap-1.5 sm:col-span-2">
           <div className="flex items-center justify-between">
             <label htmlFor="p3-address" className="text-xs font-bold text-[#334155]">
-              {selectedFormType === 'TK-KS' ? '5. Quê quán & nơi cư trú:' : selectedFormType === 'TK-KH' ? '5. Địa chỉ cư trú:' : selectedFormType === 'TK-BTXH' ? '5. Địa chỉ thường trú:' : '5. Địa chỉ đăng ký cư trú:'}
+              {selectedFormType === 'TK-KS' ? '5. Nơi cư trú của người đi khai:' : selectedFormType === 'TK-KH' ? '5. Địa chỉ cư trú:' : selectedFormType === 'TK-BTXH' ? '5. Địa chỉ thường trú:' : '5. Địa chỉ đăng ký cư trú:'}
             </label>
             {ocr.ocrSuccess && address ? (
               <span className="text-[10px] text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded-full font-bold border border-[#A7F3D0] inline-flex items-center gap-1">
@@ -323,6 +324,9 @@ export const FormStep2FillSection: React.FC<FormStep2FillSectionProps> = ({ wiza
               formErrors.address ? 'border-red-500 bg-red-50/40 ring-2 ring-red-200' : ocr.ocrSuccess && address ? 'border-[#10B981]/60 bg-[#F0FDF4]/30 font-semibold focus:border-[#B90E23]' : 'bg-[#F8FAFC] border-[#CBD5E1] focus:border-[#B90E23]'
             }`}
           />
+          {(selectedFormType !== 'TK-KH' || wizard.marriageMode === 'MARRIAGE_REGISTRATION') && <PaperFields address={address} fullName={fullName} form={selectedFormType} draft={wizard.paper} onChange={wizard.setPaper} married={wizard.parentsMarried} existing={
+            ["hostRelation","declarationScope","motherResidence","fatherResidence","childEthnicity","childNationality","childBirthPlace","birthCertNumber","birthCertIssueDate","applicantEthnicity","partnerEthnicity","applicantMarriageCount","partnerMarriageCount","partnerAddress"]
+          } />}
           {formErrors.address && <p role="alert" className="text-xs font-medium text-red-700 mt-0.5">{formErrors.address}</p>}
         </div>
 

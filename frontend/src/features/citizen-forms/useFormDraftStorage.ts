@@ -17,6 +17,7 @@ export interface DurableFormDraftMeta {
 }
 
 export interface SessionFormPiiSnapshot {
+  paper?: import('./paperForm').PaperDraft;
   formType: CitizenFormType;
   fullName: string;
   cccd: string;
@@ -134,6 +135,7 @@ export function useFormDraftStorage(params: {
   useEffect(() => {
     if (typeof window === 'undefined' || submittedDossierCode) return;
     const hasAnyInput = Boolean(
+      Object.values(sessionSnapshot.paper?.fields ?? {}).some(Boolean) || sessionSnapshot.paper?.members.length ||
       sessionSnapshot.fullName ||
         sessionSnapshot.cccd ||
         sessionSnapshot.dob ||

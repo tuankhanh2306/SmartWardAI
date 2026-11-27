@@ -28,6 +28,7 @@ export interface FormExtraState {
   parentsMarried: 'YES' | 'NO';
 
   // TK-KH
+  marriageMode: 'MARRIAGE_REGISTRATION' | 'MARITAL_STATUS_CONFIRMATION';
   partnerFullName: string;
   partnerCccd: string;
   partnerDob: string;
@@ -44,8 +45,8 @@ export interface FormExtraState {
 export const INITIAL_FORM_EXTRA: FormExtraState = {
   hostFullName: '',
   hostCccdNumber: '',
-  hostDateOfBirth: '10-03-1975',
-  vneidHostConfirmed: true,
+  hostDateOfBirth: '',
+  vneidHostConfirmed: false,
 
   motherName: '',
   fatherName: '',
@@ -53,6 +54,7 @@ export const INITIAL_FORM_EXTRA: FormExtraState = {
   hospitalMotherName: '',
   parentsMarried: 'YES',
 
+  marriageMode: 'MARRIAGE_REGISTRATION',
   partnerFullName: '',
   partnerCccd: '',
   partnerDob: '',
@@ -222,6 +224,13 @@ export const FormSpecificFields: React.FC<FormSpecificFieldsProps> = ({
           Bên kết hôn thứ 2 &amp; Mục đích xác nhận (TK-KH)
         </Text>
 
+        <View style={styles.chipGroupRow}>
+          {(['MARRIAGE_REGISTRATION','MARITAL_STATUS_CONFIRMATION'] as const).map(mode =>
+            <Pressable key={mode} onPress={() => onChange('marriageMode',mode)} style={[styles.chipBtn,extra.marriageMode === mode && styles.chipBtnActive]}>
+              <Text>{mode === 'MARRIAGE_REGISTRATION' ? 'Đăng ký kết hôn' : 'Xác nhận tình trạng hôn nhân'}</Text>
+            </Pressable>)}
+        </View>
+        {extra.marriageMode === 'MARRIAGE_REGISTRATION' && <>
         <View style={styles.field}>
           <Text style={[styles.label, typography.captionSm]}>Họ tên bên kết hôn thứ 2</Text>
           <TextInput
@@ -280,7 +289,8 @@ export const FormSpecificFields: React.FC<FormSpecificFieldsProps> = ({
           />
         </View>
 
-        <View style={styles.field}>
+        </>}
+        {extra.marriageMode === 'MARITAL_STATUS_CONFIRMATION' && <View style={styles.field}>
           <Text style={[styles.label, typography.captionSm]}>
             Mục đích cấp Giấy xác nhận tình trạng hôn nhân *
           </Text>
@@ -292,7 +302,7 @@ export const FormSpecificFields: React.FC<FormSpecificFieldsProps> = ({
             multiline
             style={[styles.input, styles.multilineInput, typography.bodyMd]}
           />
-        </View>
+        </View>}
       </View>
     );
   }

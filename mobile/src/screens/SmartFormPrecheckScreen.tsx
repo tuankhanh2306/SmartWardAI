@@ -1,3 +1,5 @@
+import { PaperFields } from '../components/PaperFields';
+import { emptyPaper, paperValues, type PaperDraft, type PaperForm } from '../core/paperForm';
 /**
  * SmartWard AI Mobile — Tab 3: Kiểm Tra Tờ Khai & Sơ Duyệt (Chặng M3: MOB-3.1 -> MOB-3.13)
  * - Segmented 4 biểu mẫu: CT01 | Khai sinh | Kết hôn | Bảo trợ
@@ -79,16 +81,26 @@ export const SmartFormPrecheckScreen: React.FC = () => {
   const [scannerVisible, setScannerVisible] = useState(false);
 
   // Common citizen fields
-  const [fullName, setFullName] = useState('');
+  const adultFullName = useState('');
+  const childFullName = useState('');
+  const [fullName, setFullName] = formType === 'TK-KS' ? childFullName : adultFullName;
   const [citizenCccd, setCitizenCccd] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [gender, setGender] = useState<'Nam' | 'Nữ'>('Nam');
+  const adultDateOfBirth = useState('');
+  const childDateOfBirth = useState('');
+  const [dateOfBirth, setDateOfBirth] = formType === 'TK-KS' ? childDateOfBirth : adultDateOfBirth;
+  const adultGender = useState<'Nam' | 'Nữ'>('Nam');
+  const childGender = useState<'Nam' | 'Nữ'>('Nam');
+  const [gender, setGender] = formType === 'TK-KS' ? childGender : adultGender;
   const [address, setAddress] = useState('');
   const [citizenEmail, setCitizenEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
 
   // Form-specific fields (MOB-3.8 -> 3.11)
   const [extra, setExtra] = useState<FormExtraState>(INITIAL_FORM_EXTRA);
+  const [paperByType, setPaperByType] = useState<Partial<Record<PaperForm, PaperDraft>>>({});
+  const paper = paperByType[formType] ?? emptyPaper;
+  const setPaper = (next: PaperDraft) => setPaperByType(prev => ({...prev, [formType]:next}));
+
 
   // QR CCCD & Discrepancy state (MOB-3.2 -> 3.4)
   const [decodedQr, setDecodedQr] = useState<DecodedCccdQr | null>(null);
@@ -121,17 +133,17 @@ export const SmartFormPrecheckScreen: React.FC = () => {
     }
     if (draft) {
       setSectionMode('form');
-      if (draft.fullName) setFullName(draft.fullName);
+      if ((incoming ?? formType) !== 'TK-KS' && (draft.fullName)) adultFullName[1](draft.fullName);
       if (draft.citizenCccd) setCitizenCccd(draft.citizenCccd);
-      if (draft.dateOfBirth) setDateOfBirth(formatDateToDmy(draft.dateOfBirth));
-      if (draft.gender === 'Nam' || draft.gender === 'Nữ') setGender(draft.gender);
+      if ((incoming ?? formType) !== 'TK-KS' && (draft.dateOfBirth)) adultDateOfBirth[1](formatDateToDmy(draft.dateOfBirth));
+      if ((incoming ?? formType) !== 'TK-KS' && (draft.gender === 'Nam' || draft.gender === 'Nữ')) adultGender[1](draft.gender);
       if (draft.address) setAddress(draft.address);
       if (draft.phoneNumber) setPhoneNumber(draft.phoneNumber);
     }
   }, [route.params?.initialFormType, route.params?.initialDraft]);
 
   const discrepancies = useMemo(() => {
-    if (!decodedQr) return [];
+    if (!decodedQr || formType === 'TK-KS') return [];
     return detectDiscrepancies(decodedQr, {
       fullName,
       cccd: citizenCccd,
@@ -139,7 +151,7 @@ export const SmartFormPrecheckScreen: React.FC = () => {
       gender,
       address,
     });
-  }, [decodedQr, fullName, citizenCccd, dateOfBirth, gender, address]);
+  }, [decodedQr, formType, fullName, citizenCccd, dateOfBirth, gender, address]);
 
   const handleSelectFormTab = (nextForm: CoreFormType) => {
     setFormType(nextForm);
@@ -167,10 +179,14 @@ export const SmartFormPrecheckScreen: React.FC = () => {
   // MOB-3.3: Auto-fill < 0.5s on CCCD QR decode
   const handleQrDecoded = (qr: DecodedCccdQr) => {
     setDecodedQr(qr);
-    setFullName(qr.fullName);
+    if (formType === 'TK-KS') {
+      setPaper({...paper, fields:{...paper.fields, declarerName:qr.fullName}});
+    } else {
+      setFullName(qr.fullName);
+      setDateOfBirth(formatDateToDmy(qr.dateOfBirth));
+      setGender(qr.gender);
+    }
     setCitizenCccd(qr.cccdNumber);
-    setDateOfBirth(formatDateToDmy(qr.dateOfBirth));
-    setGender(qr.gender);
     setAddress(qr.address);
     setSubmitResult(null);
   };
@@ -317,6 +333,7 @@ export const SmartFormPrecheckScreen: React.FC = () => {
         citizenEmail,
         phoneNumber,
         qrVerified: Boolean(decodedQr),
+        paper: formType === 'TK-KH' && extra.marriageMode === 'MARITAL_STATUS_CONFIRMATION' ? {} : paperValues(formType, paper, extra.parentsMarried),
         extra,
       },
     });
@@ -428,7 +445,7 @@ export const SmartFormPrecheckScreen: React.FC = () => {
         >
           <QrCode size={16} color={COLORS.onPrimary} />
           <Text style={styles.qrBtnText} numberOfLines={1}>
-            Quét QR CCCD
+            {formType === 'TK-KS' ? 'Quét CCCD người đi khai' : 'Quét QR CCCD'}
           </Text>
         </Pressable>
 
@@ -519,7 +536,7 @@ export const SmartFormPrecheckScreen: React.FC = () => {
 
         <View style={styles.field}>
           <Text style={[styles.label, typography.captionSm]}>
-            {formType === 'TK-KS' ? 'Số CCCD Cha/Mẹ (12 số) *' : 'Số CCCD (12 chữ số) *'}
+            {formType === 'TK-KS' ? 'Số CCCD người đi khai (12 số) *' : 'Số CCCD (12 chữ số) *'}
           </Text>
           <TextInput
             value={citizenCccd}
@@ -571,10 +588,10 @@ export const SmartFormPrecheckScreen: React.FC = () => {
           </View>
         </View>
 
-        {formType === 'CT01' ? (
+        {(
           <View style={styles.field}>
             <Text style={[styles.label, typography.captionSm]}>
-              Địa chỉ cư trú đề nghị *
+              {formType === 'TK-KS' ? 'Địa chỉ người đi khai' : 'Nơi thường trú'}
             </Text>
             <TextInput
               value={address}
@@ -584,11 +601,12 @@ export const SmartFormPrecheckScreen: React.FC = () => {
               style={[styles.input, typography.bodyMd]}
             />
           </View>
-        ) : null}
+        )}
 
         <View style={styles.hairline} />
 
         {/* MOB-3.8 -> MOB-3.11: Specialized Fields */}
+        {(formType !== 'TK-KH' || extra.marriageMode !== 'MARITAL_STATUS_CONFIRMATION') && <PaperFields address={address} fullName={fullName} form={formType} draft={paper} onChange={setPaper} married={extra.parentsMarried} existing={formType === 'TK-BTXH' ? ['bankName'] : []} />}
         <FormSpecificFields
           formType={formType}
           extra={extra}

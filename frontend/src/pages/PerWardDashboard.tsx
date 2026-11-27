@@ -512,6 +512,7 @@ export const PerWardDashboard: React.FC = () => {
             vaultToken,
             vaultDocId: vaultToken,
             details: {
+              ...fd,
               dob: fd.dob || fd.ngaySinh || 'Chưa cung cấp',
               gender: fd.gender || fd.gioiTinh || 'Chưa xác định',
               address: fd.address || fd.diaChi || `${ward.name}, An Giang`,

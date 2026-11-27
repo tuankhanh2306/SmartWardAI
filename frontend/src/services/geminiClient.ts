@@ -550,27 +550,10 @@ export async function extractFormWithVision(file: File | Blob): Promise<Extracte
         const mergedGender = localResult.gender || (fields.gender || '').trim();
         const mergedAddress = localResult.address || (fields.permanentAddress || '').trim();
         const mergedPhone = localResult.phone || (fields.phoneNumber || fields.phone || '').trim();
-        const mergedHostRelation = localResult.hostRelation || (fields.hostRelation || '').trim() || 'Chủ hộ';
+        const mergedHostRelation = localResult.hostRelation || (fields.hostRelation || '').trim();
         let mergedHostName = (localResult.hostName || fields.hostName || '').trim().toUpperCase();
         let mergedHostCccd = localResult.hostCccd || (fields.hostCccd || fields.hostCccdNumber || '').trim().replace(/[^0-9]/g, '');
-        const mergedDeclarationScope = localResult.declarationScope || (fields.declarationScope || '').trim() || 'Đăng ký thường trú';
-
-        // Ensure non-empty 12-digit CCCD
-        if (!mergedCccd || mergedCccd.length < 9) {
-          const birthYear = mergedDob ? parseInt(mergedDob.substring(0, 4), 10) : 1992;
-          const isMale = mergedGender !== 'Nữ';
-          const centuryGenderCode = birthYear >= 2000 ? (isMale ? '2' : '3') : (isMale ? '0' : '1');
-          const yrCode = String(birthYear % 100).padStart(2, '0');
-          mergedCccd = `089${centuryGenderCode}${yrCode}023490`;
-        }
-
-        // Host logic for CT01
-        if (!mergedHostName) {
-          mergedHostName = mergedHostRelation === 'Chủ hộ' ? mergedFullName : 'NGUYỄN VĂN AN';
-        }
-        if (!mergedHostCccd) {
-          mergedHostCccd = mergedHostRelation === 'Chủ hộ' ? mergedCccd : '089075001234';
-        }
+        const mergedDeclarationScope = localResult.declarationScope || (fields.declarationScope || '').trim();
 
         let count = 0;
         if (mergedFullName) count++;
@@ -592,21 +575,21 @@ export async function extractFormWithVision(file: File | Blob): Promise<Extracte
         return {
           ...localResult,
           success: count > 0,
-          fullName: mergedFullName || 'NGUYỄN VĂN AN',
+          fullName: mergedFullName,
           cccd: mergedCccd,
-          dob: mergedDob || '1992-10-10',
-          gender: mergedGender || 'Nam',
-          issueDate: mergedIssueDate || '2021-07-10',
-          address: mergedAddress || 'Số 18 Đường Trần Hưng Đạo, Khóm 3, Phường Rạch Giá, Tỉnh An Giang',
-          phone: mergedPhone || '0918234567',
+          dob: mergedDob,
+          gender: mergedGender,
+          issueDate: mergedIssueDate,
+          address: mergedAddress,
+          phone: mergedPhone,
           hostName: mergedHostName,
           hostCccd: mergedHostCccd,
           hostRelation: mergedHostRelation,
           declarationScope: mergedDeclarationScope,
-          confidence: Math.max(localResult.confidence || 0, typeof report.overallConfidence === 'number' ? Math.round(report.overallConfidence * 100) : 95),
-          detectedDocType: localResult.detectedDocType || report.formType || 'Tờ khai CT01 cư trú',
+          confidence: Math.max(localResult.confidence || 0, typeof report.overallConfidence === 'number' ? Math.round(report.overallConfidence * 100) : 0),
+          detectedDocType: localResult.detectedDocType || report.formType || '',
           message: localResult.message || report.summaryMessage || 'Đã trích xuất thông tin thành công!',
-          extractedFieldsCount: Math.max(count, 8),
+          extractedFieldsCount: count,
         };
       }
     }
@@ -614,31 +597,5 @@ export async function extractFormWithVision(file: File | Blob): Promise<Extracte
     console.info('Backend Vision OCR unavailable, using local OCR result:', backendError);
   }
 
-  // Fallback guaranteeing all administrative fields are non-empty
-  const enrichedResult: ExtractedFormFieldsResult = { ...localResult };
-  if (!enrichedResult.fullName) enrichedResult.fullName = 'NGUYỄN VĂN AN';
-  if (!enrichedResult.dob) enrichedResult.dob = '1992-10-10';
-  if (!enrichedResult.gender) enrichedResult.gender = 'Nam';
-  if (!enrichedResult.cccd || enrichedResult.cccd.length < 9) {
-    const birthYear = enrichedResult.dob ? parseInt(enrichedResult.dob.substring(0, 4), 10) : 1992;
-    const isMale = enrichedResult.gender !== 'Nữ';
-    const centuryGenderCode = birthYear >= 2000 ? (isMale ? '2' : '3') : (isMale ? '0' : '1');
-    const yrCode = String(birthYear % 100).padStart(2, '0');
-    enrichedResult.cccd = `089${centuryGenderCode}${yrCode}023490`;
-  }
-  if (!enrichedResult.phone) enrichedResult.phone = '0918234567';
-  if (!enrichedResult.address) enrichedResult.address = 'Số 18 Đường Trần Hưng Đạo, Khóm 3, Phường Rạch Giá, Tỉnh An Giang';
-  if (!enrichedResult.declarationScope) enrichedResult.declarationScope = 'Đăng ký thường trú';
-  if (!enrichedResult.hostRelation) enrichedResult.hostRelation = 'Chủ hộ';
-  if (!enrichedResult.hostName) {
-    enrichedResult.hostName = enrichedResult.hostRelation === 'Chủ hộ' ? enrichedResult.fullName : 'NGUYỄN VĂN AN';
-  }
-  if (!enrichedResult.hostCccd) {
-    enrichedResult.hostCccd = enrichedResult.hostRelation === 'Chủ hộ' ? enrichedResult.cccd : '089075001234';
-  }
-  if (!enrichedResult.confidence || enrichedResult.confidence < 70) enrichedResult.confidence = 96;
-  enrichedResult.success = true;
-  enrichedResult.extractedFieldsCount = Math.max(enrichedResult.extractedFieldsCount || 0, 8);
-
-  return enrichedResult;
+  return localResult;
 }

@@ -313,6 +313,7 @@ function main() {
   const proceduresTs = generateProceduresCatalogTs(seeds);
 
   const results = [
+    syncOrCheckTarget(path.join(ROOT, "frontend/src/features/citizen-forms/paperForm.ts"), fs.readFileSync(path.join(ROOT, "mobile/src/core/paperForm.ts"), "utf8")),
     syncOrCheckTarget(PATHS.wardsDataMirror, rawGeoJson),
     syncOrCheckTarget(PATHS.frontendWardsCatalog, wardsTs),
     syncOrCheckTarget(PATHS.mobileWardsCatalog, wardsTs),

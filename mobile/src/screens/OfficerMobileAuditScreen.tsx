@@ -1,3 +1,4 @@
+import { paperDetails } from '../core/paperForm';
 /**
  * SmartWard AI Mobile — Đăng Nhập & Bàn Cán Bộ Một Cửa Di Động (Đồng bộ 100% với Web RoleGateway & PerWardDashboard)
  * - Đăng nhập Công chức (Chọn 102 đơn vị, badgeId CB-<wardCode>, PIN 6–32 ký tự + Đổi PIN) -> JWT lưu SecureStore
@@ -1105,6 +1106,8 @@ export const OfficerMobileAuditScreen: React.FC = () => {
               {/* Key Declared Data Summary (matching Web Drawer) */}
               {Object.keys(selectedFormData).length > 0 ? (
                 <View style={styles.formDataBox}>
+                  {paperDetails(selectedFormData).map(([label,value]) =>
+                    <Text key={label} style={styles.formDataLine}>{label} · {value}</Text>)}
                   {Boolean(selectedFormData.birthDate || selectedFormData.dob) ? (
                     <Text style={styles.formDataLine}>
                       Ngày sinh: {String(selectedFormData.birthDate || selectedFormData.dob)}
