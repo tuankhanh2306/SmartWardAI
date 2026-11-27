@@ -508,9 +508,10 @@ export async function submitCivicIncidentReport(
 ): Promise<CivicReportResponse> {
   const idempotencyKey = (options?.idempotencyKey || '').trim();
   const config = idempotencyKey ? { headers: { 'Idempotency-Key': idempotencyKey } } : undefined;
+  const { title: _localOnlyTitle, ...apiPayload } = request;
   const resp = await apiClient.post<ApiResponse<CivicReportResponse>>(
     '/issues/report',
-    request,
+    apiPayload,
     config
   );
   return unwrapData(resp.data);

@@ -1,5 +1,6 @@
 package vn.edu.uth.smartward.triage.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -15,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 @Schema(description = "Yêu cầu gửi phản ánh hiện trường cấp phường/xã")
 public class CivicReportRequest {
 

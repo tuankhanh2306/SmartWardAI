@@ -1153,7 +1153,7 @@ export const CitizenPortal: React.FC = () => {
                       <span className="w-5 h-5 rounded-md bg-[#FFF3E6] text-[#C2410C] flex items-center justify-center shrink-0">
                         <FolderOpen className="w-3.5 h-3.5" />
                       </span>
-                      <span>{categoryName}</span>
+                      <span>{highlightMatchedText(categoryName, query)}</span>
                     </div>
                     {items.map((item) => (
                       <button
@@ -1169,11 +1169,11 @@ export const CitizenPortal: React.FC = () => {
                       >
                         <MessageSquare className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
                         <div className="min-w-0 flex-1">
-                          <div className="text-xs sm:text-sm font-medium text-slate-900 truncate">
+                          <div className="text-sm font-medium text-slate-900 line-clamp-2">
                             {highlightMatchedText(item.name, query)}
                           </div>
                           <div className="text-[11px] text-slate-600 truncate mt-0.5">
-                            {item.code} • Xem hồ sơ &amp; lệ phí
+                            {highlightMatchedText(item.code, query)} • Xem hồ sơ &amp; lệ phí
                           </div>
                         </div>
                       </button>
