@@ -182,6 +182,7 @@ public class CitizenDossierService {
                 .status(saved.getStatus())
                 .slaDeadline(saved.getSlaDeadline())
                 .createdAt(saved.getCreatedAt() != null ? saved.getCreatedAt() : Instant.now())
+                .vaultDocIds(deserializeStringList(saved.getVaultDocIds()))
                 .build();
 
         if (cleanIdempKey != null) {
@@ -210,6 +211,7 @@ public class CitizenDossierService {
                 .status(existing.getStatus())
                 .slaDeadline(existing.getSlaDeadline())
                 .createdAt(existing.getCreatedAt() != null ? existing.getCreatedAt() : Instant.now())
+                .vaultDocIds(deserializeStringList(existing.getVaultDocIds()))
                 .build();
     }
 
@@ -994,13 +996,13 @@ public class CitizenDossierService {
         if (formDataObj == null) return "CÔNG DÂN KÊ KHAI";
         try {
             if (formDataObj instanceof Map<?, ?> map) {
-                for (String key : List.of("fullName", "citizenName", "hoTen", "childName", "husbandName", "wifeName")) {
+                for (String key : List.of("declarerName", "fullName", "citizenName", "hoTen", "childName", "husbandName", "wifeName")) {
                     Object val = map.get(key);
                     if (val instanceof String s && !s.isBlank()) return s.trim().toUpperCase();
                 }
             }
             JsonNode node = objectMapper.valueToTree(formDataObj);
-            for (String key : List.of("fullName", "citizenName", "hoTen", "childName", "husbandName", "wifeName")) {
+            for (String key : List.of("declarerName", "fullName", "citizenName", "hoTen", "childName", "husbandName", "wifeName")) {
                 if (node.hasNonNull(key) && !node.get(key).asText().isBlank()) {
                     return node.get(key).asText().trim().toUpperCase();
                 }

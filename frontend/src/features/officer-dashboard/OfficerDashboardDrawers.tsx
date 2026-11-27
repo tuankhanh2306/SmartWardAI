@@ -1,3 +1,4 @@
+import { paperDetails } from '../citizen-forms/paperForm';
 import React, { useEffect, useState } from 'react';
 import {
   AlertCircle, AlertTriangle, BookOpen, BrainCircuit, Camera, Check,
@@ -24,7 +25,8 @@ export interface OfficerDashboardDrawersProps {
   showVaultScan: boolean;
   vaultLoading: boolean;
   handleCloseVaultDocument: () => void;
-  handleOpenVaultDocument: () => void;
+  handleOpenVaultDocument: (tokenOverride?: string) => void;
+  consumedVaultTokens?: Record<string, boolean>;
   vaultImageBlobUrl: string | null;
   vaultError: string | null;
   officerCustomNote: string;
@@ -47,7 +49,7 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
     selectedHitlItem, setSelectedHitlItem, draftAnswers, setDraftAnswers,
     resolvingId, handleApproveHitl, selectedDossier, setSelectedDossier,
     vaultStatus, vaultTokenConsumed, showVaultScan, vaultLoading,
-    handleCloseVaultDocument, handleOpenVaultDocument, vaultImageBlobUrl,
+    handleCloseVaultDocument, handleOpenVaultDocument, consumedVaultTokens = {}, vaultImageBlobUrl,
     vaultError, officerCustomNote, setOfficerCustomNote,
     handleApproveDossier, handleRequestSupplement,
   } = props;
@@ -553,6 +555,7 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                 </h3>
               </div>
 
+              {paperDetails(selectedDossier.details || {}).map(([label,value]) => <p key={label} className="text-sm"><strong>{label}</strong> · {value}</p>)}
               {(selectedDossier.rawStatus || '').toUpperCase() === 'SUPPLEMENTED' && (
                 <div className="p-3.5 rounded-2xl bg-[#EFF6FF] border border-[#93C5FD] text-xs text-[#1E3A8A] flex flex-col gap-1">
                   <span className="font-extrabold uppercase tracking-wide text-[#1D4ED8]">
@@ -661,8 +664,8 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                       <div>
                         <span className="text-[#64748B] block">Dân tộc / Tình trạng hôn nhân cha mẹ:</span>
                         <span className="font-semibold text-[#0F172A]">
-                          {(selectedDossier.details as any)?.childEthnicity || 'Kinh'} •{' '}
-                          {(selectedDossier.details as any)?.parentsMarried === 'NO' ? 'Chưa ĐKKH' : 'Đã ĐKKH'}
+                          {(selectedDossier.details as any)?.childEthnicity || 'Chưa khai'} •{' '}
+                          {(selectedDossier.details as any)?.parentsMarried === 'YES' ? 'Đã ĐKKH' : (selectedDossier.details as any)?.parentsMarried === 'NO' ? 'Chưa ĐKKH' : 'Chưa khai'}
                         </span>
                       </div>
                       <div className="sm:col-span-2">
@@ -682,7 +685,13 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                   <div>
                     <span className="font-bold block">Chốt Chặn AI Thị Giác: Đã Xác Thực Trước Khi Nộp</span>
                     <span className="text-[11px] text-[#0F766E]/90">
-                      Độ sắc nét: <strong>{selectedDossier.details?.sharpnessScore ?? 96}/100</strong> • Khớp đúng biểu mẫu <strong>{selectedDossier.formType}</strong>
+                      Độ sắc nét:{' '}
+                      <strong>
+                        {typeof selectedDossier.details?.sharpnessScore === 'number'
+                          ? `${selectedDossier.details.sharpnessScore}/100`
+                          : 'Chưa đánh giá'}
+                      </strong>{' '}
+                      • Biểu mẫu <strong>{selectedDossier.formType}</strong>
                     </span>
                   </div>
                 </div>
@@ -776,6 +785,44 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                     )}
                   </button>
                 </div>
+
+                {/* TASK-058: Labeled multi-attachment list separating durable documentCode from 1-time view token */}
+                {Array.isArray(selectedDossier.attachments) && selectedDossier.attachments.length > 0 && (
+                  <div className="flex flex-col gap-1.5">
+                    {selectedDossier.attachments.map((att: any, idx: number) => {
+                      const token = att.oneTimeToken || '';
+                      const isUsed = Boolean(token && consumedVaultTokens[token]);
+                      return (
+                        <div
+                          key={`${att.documentCode || idx}_${idx}`}
+                          className="p-2.5 rounded-xl bg-white border border-[#CBD5E1] flex items-center justify-between gap-2 text-xs"
+                        >
+                          <div className="min-w-0">
+                            <span className="font-bold text-[#0F2942] block truncate">
+                              {att.docLabel || `Ảnh giấy tờ #${idx + 1}`} · Trang {att.pageIndex || idx + 1}
+                              {att.verified === false ? ' (Tham khảo)' : ''}
+                            </span>
+                            <span className="text-[11px] text-[#64748B] font-mono block truncate">
+                              Mã liên kết bền: {att.documentCode || `LEGACY_${idx + 1}`}
+                            </span>
+                          </div>
+                          <button
+                            type="button"
+                            disabled={vaultLoading || isUsed || !token}
+                            onClick={() => handleOpenVaultDocument(token)}
+                            className={`px-2.5 py-1.5 rounded-lg text-[11px] font-bold shrink-0 transition ${
+                              isUsed || !token
+                                ? 'bg-[#E2E8F0] text-[#64748B] cursor-not-allowed'
+                                : 'bg-[#0F2942] hover:bg-[#1E3A5F] text-white cursor-pointer'
+                            }`}
+                          >
+                            {isUsed ? 'Đã xem (410 Gone)' : 'Mở trang (1 lần)'}
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 {/* BANNER ĐỎ CẢNH BÁO TỰ HỦY TÀI LIỆU MỘT LẦN (HTTP 410 GONE) */}
                 {(vaultStatus === 'CONSUMED_410' || (vaultTokenConsumed && !showVaultScan)) && (

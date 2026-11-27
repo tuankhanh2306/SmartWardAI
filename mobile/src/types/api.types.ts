@@ -237,6 +237,7 @@ export interface DossierSubmissionResponse {
   status: DossierStatus | string;
   slaDeadline?: string | null;
   createdAt: string;
+  vaultDocIds?: string[];
 }
 
 export interface DossierTrackingRequest {

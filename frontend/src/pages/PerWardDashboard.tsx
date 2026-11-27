@@ -89,6 +89,14 @@ interface QuickDossierItem {
   vaultToken?: string;
   vaultDocId?: string;
   vaultViewUsed?: boolean;
+  attachments?: Array<{
+    documentCode: string;
+    oneTimeToken: string;
+    docRole?: string;
+    docLabel: string;
+    pageIndex: number;
+    verified?: boolean;
+  }>;
   details?: {
     dob?: string;
     gender?: string;
@@ -176,6 +184,7 @@ export const PerWardDashboard: React.FC = () => {
   const [vaultLoading, setVaultLoading] = useState<boolean>(false);
   const [vaultError, setVaultError] = useState<string | null>(null);
   const [vaultStatus, setVaultStatus] = useState<'IDLE' | 'LOADING' | 'VIEWING' | 'CONSUMED_410' | 'ERROR'>('IDLE');
+  const [consumedVaultTokens, setConsumedVaultTokens] = useState<Record<string, boolean>>({});
 
   // Reset Vault One-Time Token (OTT) state and cleanup blob URL whenever Officer switches selectedDossier
   useEffect(() => {
@@ -201,13 +210,13 @@ export const PerWardDashboard: React.FC = () => {
     }
   }, [selectedDossier?.id]);
 
-  const handleOpenVaultDocument = async () => {
+  const handleOpenVaultDocument = async (tokenOverride?: string) => {
     if (!selectedDossier) return;
 
-    let token = selectedDossier.vaultToken || selectedDossier.details?.vaultToken;
+    let token = tokenOverride || selectedDossier.vaultToken || selectedDossier.details?.vaultToken;
 
-    // Fallback for legacy demo dossiers: dynamically generate real OTT via uploadVaultDocument
-    if (!token) {
+    // Fallback for legacy demo dossiers without any vault token
+    if (!token && !tokenOverride) {
       try {
         setVaultLoading(true);
         const canvas = document.createElement('canvas');
@@ -241,6 +250,12 @@ export const PerWardDashboard: React.FC = () => {
       }
     }
 
+    if (!token) {
+      setVaultStatus('ERROR');
+      setVaultError('Trang đính kèm này không có mã xem 1 lần hợp lệ.');
+      return;
+    }
+
     setVaultLoading(true);
     setVaultError(null);
 
@@ -248,18 +263,28 @@ export const PerWardDashboard: React.FC = () => {
       // Call GET /api/v1/vault/view/{token}
       const imageBlob = await viewVaultDocument(token);
 
+      if (vaultImageBlobUrl) {
+        URL.revokeObjectURL(vaultImageBlobUrl);
+      }
+
       // Create object URL displaying decrypted image with Java2D watermark
       const objectUrl = URL.createObjectURL(imageBlob);
       setVaultImageBlobUrl(objectUrl);
       setShowVaultScan(true);
       setVaultStatus('VIEWING');
-      setVaultTokenConsumed(true);
-      selectedDossier.vaultViewUsed = true;
+      setConsumedVaultTokens((prev) => ({ ...prev, [token as string]: true }));
+      if (!tokenOverride || tokenOverride === selectedDossier.vaultToken) {
+        setVaultTokenConsumed(true);
+        selectedDossier.vaultViewUsed = true;
+      }
     } catch (err: any) {
       // Catch HTTP 410 GONE (Atomic Self-Destruction via Redis GETDEL)
       if (err?.response?.status === 410 || err?.status === 410) {
+        setConsumedVaultTokens((prev) => ({ ...prev, [token as string]: true }));
         setVaultStatus('CONSUMED_410');
-        setVaultTokenConsumed(true);
+        if (!tokenOverride || tokenOverride === selectedDossier.vaultToken) {
+          setVaultTokenConsumed(true);
+        }
         setShowVaultScan(false);
         if (vaultImageBlobUrl) {
           URL.revokeObjectURL(vaultImageBlobUrl);
@@ -281,10 +306,17 @@ export const PerWardDashboard: React.FC = () => {
       setVaultImageBlobUrl(null);
     }
     setShowVaultScan(false);
-    setVaultStatus('CONSUMED_410');
-    setVaultTokenConsumed(true);
-    if (selectedDossier) {
-      selectedDossier.vaultViewUsed = true;
+    const hasRemainingUnread =
+      Array.isArray(selectedDossier?.attachments) &&
+      selectedDossier.attachments.some((att) => att.oneTimeToken && !consumedVaultTokens[att.oneTimeToken]);
+    if (hasRemainingUnread) {
+      setVaultStatus('IDLE');
+    } else {
+      setVaultStatus('CONSUMED_410');
+      setVaultTokenConsumed(true);
+      if (selectedDossier) {
+        selectedDossier.vaultViewUsed = true;
+      }
     }
   };
 
@@ -478,9 +510,26 @@ export const PerWardDashboard: React.FC = () => {
               ? 'Bảo trợ'
               : 'CT01';
 
-          const vaultToken =
-            Array.isArray(s.vaultDocIds) && s.vaultDocIds.length > 0 ? s.vaultDocIds[0] : undefined;
+          const vaultDocIdsList = Array.isArray(s.vaultDocIds) ? s.vaultDocIds : [];
+          const vaultToken = vaultDocIdsList.length > 0 ? vaultDocIdsList[0] : undefined;
           const fd = (s.formData as Record<string, any>) || {};
+          const rawAttachments = Array.isArray(fd.attachedDocuments) ? fd.attachedDocuments : [];
+          const attachments: QuickDossierItem['attachments'] =
+            rawAttachments.length > 0
+              ? rawAttachments.map((item: any, idx: number) => ({
+                  documentCode: String(item.documentCode || `LEGACY_${idx + 1}`),
+                  oneTimeToken: String(item.oneTimeToken || vaultDocIdsList[idx] || ''),
+                  docRole: item.docRole ? String(item.docRole) : undefined,
+                  docLabel: String(item.docLabel || `Ảnh giấy tờ #${idx + 1}`),
+                  pageIndex: Number(item.pageIndex || idx + 1),
+                  verified: typeof item.verified === 'boolean' ? item.verified : undefined,
+                }))
+              : vaultDocIdsList.map((tok: string, idx: number) => ({
+                  documentCode: `LEGACY_DOC_${idx + 1}`,
+                  oneTimeToken: tok,
+                  docLabel: `Ảnh giấy tờ đính kèm (Hồ sơ cũ #${idx + 1})`,
+                  pageIndex: idx + 1,
+                }));
 
           return {
             id: s.dossierCode,
@@ -511,7 +560,9 @@ export const PerWardDashboard: React.FC = () => {
             errorCount: s.status === 'SUPPLEMENT_REQUIRED' ? 1 : 0,
             vaultToken,
             vaultDocId: vaultToken,
+            attachments,
             details: {
+              ...fd,
               dob: fd.dob || fd.ngaySinh || 'Chưa cung cấp',
               gender: fd.gender || fd.gioiTinh || 'Chưa xác định',
               address: fd.address || fd.diaChi || `${ward.name}, An Giang`,
@@ -2001,6 +2052,7 @@ export const PerWardDashboard: React.FC = () => {
         vaultLoading={vaultLoading}
         handleCloseVaultDocument={handleCloseVaultDocument}
         handleOpenVaultDocument={handleOpenVaultDocument}
+        consumedVaultTokens={consumedVaultTokens}
         vaultImageBlobUrl={vaultImageBlobUrl}
         vaultError={vaultError}
         officerCustomNote={officerCustomNote}

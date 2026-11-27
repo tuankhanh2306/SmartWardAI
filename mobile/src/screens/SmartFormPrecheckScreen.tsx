@@ -68,6 +68,11 @@ import {
   type ExpectedDocumentType,
   type VisionGateResult,
 } from '../core/visionQualityGate';
+import {
+  loadPersistedDossierAttachments,
+  persistDossierPhotoToDurableDir,
+  savePersistedDossierAttachments,
+} from '../storage/dossierAttachmentStore';
 import type { RootTabParamList } from '../navigation/BottomTabNavigator';
 import { useResponsivePhone } from '../theme/responsive';
 import { COLORS, MIN_TOUCH_TARGET, RADIUS, SPACING } from '../theme/tokens';
@@ -206,6 +211,30 @@ export const SmartFormPrecheckScreen: React.FC = () => {
     setSubmitResult(null);
   };
 
+  // TASK-058: Hydrate durable pending attachments for the active formType across app restarts
+  useEffect(() => {
+    let active = true;
+    void loadPersistedDossierAttachments(formType).then((saved) => {
+      if (!active) return;
+      setCapturedPages(saved?.pages ?? []);
+      setVisionGate(saved?.pages?.[saved.pages.length - 1]?.gate ?? null);
+    });
+    return () => {
+      active = false;
+    };
+  }, [formType]);
+
+  // Persist durable attachment state whenever pages change
+  const updateCapturedPagesDurable = (
+    updater: (prev: CapturedDocumentPage[]) => CapturedDocumentPage[]
+  ) => {
+    setCapturedPages((prev) => {
+      const next = updater(prev);
+      void savePersistedDossierAttachments(formType, next);
+      return next;
+    });
+  };
+
   // TASK-057: Unified OCR inspection for both camera & library photos (never fabricates scores or overwrites user fields)
   const inspectCapturedPageWithOcr = async (
     pageId: string,
@@ -214,13 +243,13 @@ export const SmartFormPrecheckScreen: React.FC = () => {
     fileName: string,
     expectedSlot: ExpectedDocumentType
   ) => {
-    setCapturedPages((prev) =>
+    updateCapturedPagesDurable((prev) =>
       prev.map((p) => (p.id === pageId ? { ...p, checking: true } : p))
     );
     try {
       const resp = await precheckFormDocumentImage(uri, mimeType, expectedSlot, fileName);
       const nextGate = evaluateServerOcrIntoVisionGate(resp, expectedSlot, fileName, mimeType);
-      setCapturedPages((prev) =>
+      updateCapturedPagesDurable((prev) =>
         prev.map((p) =>
           p.id === pageId
             ? {
@@ -242,7 +271,7 @@ export const SmartFormPrecheckScreen: React.FC = () => {
         mimeType,
         ocrStatus: offline ? 'NETWORK_ERROR' : 'UNAVAILABLE',
       });
-      setCapturedPages((prev) =>
+      updateCapturedPagesDurable((prev) =>
         prev.map((p) =>
           p.id === pageId ? { ...p, gate: failGate, checking: false } : p
         )
@@ -254,6 +283,7 @@ export const SmartFormPrecheckScreen: React.FC = () => {
   const handleCameraPhotoSelected = async (asset: CapturedMediaAsset) => {
     const target = cameraModalTarget ?? { slotRole: formType as ExpectedDocumentType };
     const resized = await resizeImageForUpload(asset.uri, asset.width, asset.height);
+    const durableUri = await persistDossierPhotoToDurableDir(resized.uri);
     const mimeType = asset.mimeType || 'image/jpeg';
     const fileName = asset.fileName || `doc_capture_${Date.now()}.jpg`;
     const initialGate = evaluateDocumentVisionGate({
@@ -265,20 +295,20 @@ export const SmartFormPrecheckScreen: React.FC = () => {
 
     const pageId = target.replacePageId || `pg_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     setAttachment({
-      uri: resized.uri,
+      uri: durableUri,
       fileName,
       mimeType,
       isTempCacheFile: true,
     });
     setVisionGate(initialGate);
 
-    setCapturedPages((prev) => {
+    updateCapturedPagesDurable((prev) => {
       if (target.replacePageId) {
         return prev.map((p) =>
           p.id === target.replacePageId
             ? {
                 ...p,
-                uri: resized.uri,
+                uri: durableUri,
                 fileName,
                 mimeType,
                 gate: initialGate,
@@ -301,7 +331,7 @@ export const SmartFormPrecheckScreen: React.FC = () => {
           slotRole: target.slotRole,
           docLabel: getSlotDocLabel(target.slotRole),
           pageIndex: nextPageIndex,
-          uri: resized.uri,
+          uri: durableUri,
           fileName,
           mimeType,
           gate: initialGate,
@@ -313,7 +343,7 @@ export const SmartFormPrecheckScreen: React.FC = () => {
       ];
     });
 
-    await inspectCapturedPageWithOcr(pageId, resized.uri, mimeType, fileName, target.slotRole);
+    await inspectCapturedPageWithOcr(pageId, durableUri, mimeType, fileName, target.slotRole);
   };
 
   const handleCapturePhoto = async () => {
@@ -415,17 +445,23 @@ export const SmartFormPrecheckScreen: React.FC = () => {
     }
   };
 
-  // MOB-3.13: Closed-loop Precheck -> Vault -> Dossiers -> SQLite
+  // MOB-3.13 / TASK-058: Closed-loop Precheck -> Idempotent Multi-Attachment Vault -> Dossiers -> Receipt Verification -> SQLite
   const handleSubmitDossier = async () => {
     if (isSubmitting) return;
     setIsSubmitting(true);
     setSubmitResult(null);
 
+    const hasPages = capturedPages.length > 0;
+    const blockingPage = capturedPages.find(
+      (p) => !p.attachedAsReference && !p.gate.isVerifiedForSubmission
+    );
+
     const res = await executeDossierSubmissionPipeline({
       wardCode: currentWard.code,
       wardName: currentWard.name,
-      visionGate,
-      attachment,
+      visionGate: hasPages ? (blockingPage?.gate ?? null) : visionGate,
+      attachment: hasPages ? null : attachment,
+      attachments: hasPages ? capturedPages : undefined,
       validationInput: {
         formType,
         fullName,
@@ -436,19 +472,37 @@ export const SmartFormPrecheckScreen: React.FC = () => {
         citizenEmail,
         phoneNumber,
         qrVerified: Boolean(decodedQr),
-        paper: formType === 'TK-KH' && extra.marriageMode === 'MARITAL_STATUS_CONFIRMATION' ? {} : paperValues(formType, paper, extra.parentsMarried),
+        paper:
+          formType === 'TK-KH' && extra.marriageMode === 'MARITAL_STATUS_CONFIRMATION'
+            ? {}
+            : paperValues(formType, paper, extra.parentsMarried),
         extra,
       },
     });
 
+    if (res.updatedAttachments !== undefined) {
+      setCapturedPages(res.updatedAttachments);
+      if (res.updatedAttachments.length === 0) {
+        setVisionGate(null);
+        setAttachment(null);
+      }
+    }
     setSubmitResult(res);
     setIsSubmitting(false);
   };
 
-  const isVisionLocked = Boolean(visionGate && !visionGate.canSubmit);
-  const submitLabel = isVisionLocked
-    ? visionGate!.submitButtonLabel
-    : 'Kiểm tra & Gửi sơ duyệt';
+  const hasBlockingPage = capturedPages.some(
+    (p) => !p.attachedAsReference && !p.gate.isVerifiedForSubmission
+  );
+  const isVisionLocked =
+    capturedPages.length > 0
+      ? hasBlockingPage
+      : Boolean(visionGate && !visionGate.canSubmit);
+  const submitLabel = hasBlockingPage
+    ? 'Kiểm tra / Chụp lại ảnh chưa đạt'
+    : isVisionLocked && visionGate
+    ? visionGate.submitButtonLabel
+    : 'Bước 3: Kiểm tra & Gửi sơ duyệt';
 
   return (
     <View style={styles.screen}>
