@@ -20,10 +20,17 @@ import {
 } from './formValidators';
 import type { VisionGateResult } from './visionQualityGate';
 import {
+  clearPersistedDossierAttachments,
+  computeSubmissionPayloadSignature,
+  resolveOrCreateSubmissionIdempotencyKey,
+  savePersistedDossierAttachments,
+} from '../storage/dossierAttachmentStore';
+import {
   buildSmartWardPassPayload,
   upsertWalletQrPass,
   type WalletQrPassRow,
 } from '../storage/sqliteDb';
+import type { CapturedDocumentPage } from './birthDocumentWorkflow';
 import type {
   CoreFormType,
   FieldValidation,
@@ -63,22 +70,45 @@ export interface SelectedAttachment {
   isTempCacheFile?: boolean;
 }
 
+export interface AttachedDocumentMetadata {
+  documentCode: string;
+  oneTimeToken: string;
+  docRole: string;
+  docLabel: string;
+  pageIndex: number;
+  verified: boolean;
+}
+
 export interface DossierPipelineInput {
   wardCode: string;
   wardName: string;
   validationInput: LocalFormValidationInput;
   visionGate: VisionGateResult | null;
   attachment: SelectedAttachment | null;
+  /** TASK-058: Multi-attachment durable pages (takes precedence over legacy single attachment when non-empty) */
+  attachments?: CapturedDocumentPage[];
+  /** Optional explicit Idempotency-Key override (otherwise auto-reused from durable store for identical content) */
+  idempotencyKey?: string;
 }
 
 export interface DossierPipelineResult {
   success: boolean;
-  stage: 'VISION_BLOCKED' | 'VALIDATION_FAILED' | 'SUBMITTED_ONLINE' | 'SAVED_LOCAL_DRAFT';
+  stage:
+    | 'VISION_BLOCKED'
+    | 'VALIDATION_FAILED'
+    | 'UPLOAD_FAILED'
+    | 'RECEIPT_MISMATCH'
+    | 'SUBMITTED_ONLINE'
+    | 'SAVED_LOCAL_DRAFT';
   fieldValidations: FieldValidation[];
   warnings: string[];
   dossierCode?: string;
   slaDeadline?: string | null;
   vaultToken?: string;
+  confirmedVaultDocIds?: string[];
+  attachedDocuments?: AttachedDocumentMetadata[];
+  updatedAttachments?: CapturedDocumentPage[];
+  idempotencyKey?: string;
   walletRow?: WalletQrPassRow;
   tempFileCleaned?: boolean;
   message: string;
@@ -90,6 +120,9 @@ export interface DossierPipelineDeps {
   submitDossierApi?: typeof submitCitizenDossier;
   saveWalletPass?: typeof upsertWalletQrPass;
   deleteTempFile?: (uri: string) => Promise<boolean>;
+  persistAttachments?: typeof savePersistedDossierAttachments;
+  clearPersistedAttachments?: typeof clearPersistedDossierAttachments;
+  resolveIdempotencyKey?: typeof resolveOrCreateSubmissionIdempotencyKey;
 }
 
 async function defaultDeleteTempFile(uri: string): Promise<boolean> {
@@ -169,6 +202,11 @@ export async function executeDossierSubmissionPipeline(
   const submitDossierApi = deps.submitDossierApi ?? submitCitizenDossier;
   const saveWalletPass = deps.saveWalletPass ?? upsertWalletQrPass;
   const deleteTempFile = deps.deleteTempFile ?? defaultDeleteTempFile;
+  const persistAttachments = deps.persistAttachments ?? savePersistedDossierAttachments;
+  const clearPersistedAttachments =
+    deps.clearPersistedAttachments ?? clearPersistedDossierAttachments;
+  const resolveIdempotencyKey =
+    deps.resolveIdempotencyKey ?? resolveOrCreateSubmissionIdempotencyKey;
 
   // 0. Hard lock if AI Vision Gate failed
   if (input.visionGate && !input.visionGate.canSubmit) {
@@ -236,10 +274,102 @@ export async function executeDossierSubmissionPipeline(
     onlineReachable = false;
   }
 
-  // 2. Zero-Trust Vault Upload (if attachment present) + Decree 13 temp cache cleanup
+  // 2. TASK-058: Zero-Trust Multi-Attachment Vault Upload (never delete temp files before server receipt confirmation!)
+  const hasMultiAttachments = Array.isArray(input.attachments) && input.attachments.length > 0;
+  const workingPages: CapturedDocumentPage[] = hasMultiAttachments
+    ? input.attachments!.map((p) => ({ ...p }))
+    : [];
   const vaultDocIds: string[] = [];
+  const attachedDocuments: AttachedDocumentMetadata[] = [];
+  const tempUrisToCleanAfterReceipt: string[] = [];
   let tempFileCleaned = false;
-  if (input.attachment) {
+
+  if (hasMultiAttachments) {
+    for (let i = 0; i < workingPages.length; i += 1) {
+      const page = workingPages[i];
+      if (page.uploadStatus === 'UPLOADED' && page.oneTimeToken) {
+        const durableCode = page.documentCode || `DOC_LINK_${page.id}`;
+        vaultDocIds.push(page.oneTimeToken);
+        attachedDocuments.push({
+          documentCode: durableCode,
+          oneTimeToken: page.oneTimeToken,
+          docRole: page.slotRole,
+          docLabel: page.docLabel,
+          pageIndex: page.pageIndex,
+          verified: !page.attachedAsReference && Boolean(page.gate?.isVerifiedForSubmission),
+        });
+        tempUrisToCleanAfterReceipt.push(page.uri);
+        continue;
+      }
+
+      try {
+        const formData = new FormData();
+        formData.append('file', {
+          uri: page.uri,
+          name: page.fileName,
+          type: page.mimeType || 'image/jpeg',
+        } as unknown as Blob);
+        formData.append(
+          'documentType',
+          page.slotRole === 'BIRTH_CERT' ? 'BIRTH_CERT' : procMeta.vaultDocType
+        );
+
+        const vaultRes = await vaultUploadApi(formData);
+        const token = (vaultRes.oneTimeToken || '').trim();
+        if (!token) {
+          throw new Error('Máy chủ lưu trữ không trả về mã xác nhận ảnh.');
+        }
+        const durableCode = (
+          vaultRes.documentCode ||
+          vaultRes.documentId ||
+          vaultRes.docId ||
+          `DOC_${Date.now()}_${i + 1}`
+        ).trim();
+
+        workingPages[i] = {
+          ...page,
+          uploadStatus: 'UPLOADED',
+          documentCode: durableCode,
+          oneTimeToken: token,
+          lastError: null,
+        };
+        await persistAttachments(input.validationInput.formType, workingPages);
+
+        vaultDocIds.push(token);
+        attachedDocuments.push({
+          documentCode: durableCode,
+          oneTimeToken: token,
+          docRole: page.slotRole,
+          docLabel: page.docLabel,
+          pageIndex: page.pageIndex,
+          verified: !page.attachedAsReference && Boolean(page.gate?.isVerifiedForSubmission),
+        });
+        tempUrisToCleanAfterReceipt.push(page.uri);
+      } catch (uploadErr) {
+        const errText =
+          uploadErr instanceof Error && uploadErr.message
+            ? uploadErr.message
+            : 'Mất kết nối khi tải ảnh lên máy chủ.';
+        workingPages[i] = {
+          ...page,
+          uploadStatus: 'FAILED',
+          lastError: errText,
+        };
+        await persistAttachments(input.validationInput.formType, workingPages);
+
+        // TASK-058 invariant: NEVER delete any local photo and STOP submission immediately on upload error!
+        return {
+          success: false,
+          stage: 'UPLOAD_FAILED',
+          fieldValidations: mergedValidations,
+          warnings: mergedWarnings,
+          updatedAttachments: workingPages,
+          tempFileCleaned: false,
+          message: `Ảnh "${page.docLabel} (Trang ${page.pageIndex})" chưa gửi được (${errText}). Ảnh vẫn được giữ an toàn — bấm Thử lại để gửi tiếp.`,
+        };
+      }
+    }
+  } else if (input.attachment) {
     if (onlineReachable) {
       try {
         const formData = new FormData();
@@ -253,32 +383,68 @@ export async function executeDossierSubmissionPipeline(
         const vaultRes = await vaultUploadApi(formData);
         if (vaultRes.oneTimeToken) {
           vaultDocIds.push(vaultRes.oneTimeToken);
+          attachedDocuments.push({
+            documentCode: (
+              vaultRes.documentCode ||
+              vaultRes.documentId ||
+              vaultRes.docId ||
+              'DOC_LEGACY'
+            ).trim(),
+            oneTimeToken: vaultRes.oneTimeToken,
+            docRole: input.validationInput.formType,
+            docLabel: procMeta.procedureName,
+            pageIndex: 1,
+            verified: Boolean(input.visionGate?.isVerifiedForSubmission),
+          });
+          if (input.attachment.isTempCacheFile) {
+            tempUrisToCleanAfterReceipt.push(input.attachment.uri);
+          }
         }
       } catch {
-        onlineReachable = false;
+        return {
+          success: false,
+          stage: 'UPLOAD_FAILED',
+          fieldValidations: mergedValidations,
+          warnings: mergedWarnings,
+          tempFileCleaned: false,
+          message:
+            'Ảnh giấy tờ chưa gửi được lên máy chủ. Ảnh vẫn được giữ lại — vui lòng bấm Thử lại.',
+        };
       }
-    }
-
-    // Remove temporary cached image file immediately after upload under personal data minimization
-    if (input.attachment.isTempCacheFile) {
-      tempFileCleaned = await deleteTempFile(input.attachment.uri);
     }
   }
 
-  // 3. Submit Dossier to PostgreSQL (POST /api/v1/dossiers)
+  // 3. Submit Dossier to PostgreSQL (POST /api/v1/dossiers) with durable Idempotency-Key reuse
   const cleanCccd = input.validationInput.citizenCccd.trim();
-  const idempotencyKey = `MOB-${Date.now()}-${cleanCccd.slice(-4)}`;
+  const payloadFormData: Record<string, unknown> = {
+    ...flatFormData,
+    ...(flatFormData.householdMembers
+      ? { householdMembers: JSON.parse(flatFormData.householdMembers) }
+      : {}),
+    vneidHostConfirmed: Boolean(input.validationInput.extra?.vneidHostConfirmed),
+    ...(attachedDocuments.length > 0 ? { attachedDocuments } : {}),
+  };
+
+  const payloadSignature = computeSubmissionPayloadSignature({
+    procedureCode: procMeta.procedureCode,
+    wardCode: input.wardCode,
+    citizenCccd: cleanCccd,
+    formData: payloadFormData,
+  });
+  const idempotencyKey =
+    input.idempotencyKey ||
+    (await resolveIdempotencyKey(
+      input.validationInput.formType,
+      payloadSignature,
+      cleanCccd.slice(-4)
+    ));
 
   try {
     const submitted = await submitDossierApi({
       procedureCode: procMeta.procedureCode,
       wardCode: input.wardCode,
       citizenCccd: cleanCccd,
-      formData: {
-        ...flatFormData,
-        ...(flatFormData.householdMembers ? { householdMembers: JSON.parse(flatFormData.householdMembers) } : {}),
-        vneidHostConfirmed: Boolean(input.validationInput.extra?.vneidHostConfirmed),
-      },
+      formData: payloadFormData,
       precheckReport: {
         sharpnessScore: input.visionGate?.sharpnessScore ?? null,
         brightnessScore: input.visionGate?.brightnessScore ?? null,
@@ -292,6 +458,39 @@ export async function executeDossierSubmissionPipeline(
       vaultDocIds,
       idempotencyKey,
     });
+
+    // TASK-058: Reconcile EVERY submitted token with server receipt BEFORE deleting any temp photo
+    if (vaultDocIds.length > 0 && Array.isArray(submitted.vaultDocIds)) {
+      const confirmedSet = new Set(submitted.vaultDocIds);
+      const missingTokens = vaultDocIds.filter((t) => !confirmedSet.has(t));
+      if (missingTokens.length > 0) {
+        return {
+          success: false,
+          stage: 'RECEIPT_MISMATCH',
+          fieldValidations: mergedValidations,
+          warnings: mergedWarnings,
+          dossierCode: submitted.dossierCode,
+          confirmedVaultDocIds: submitted.vaultDocIds,
+          updatedAttachments: hasMultiAttachments ? workingPages : undefined,
+          idempotencyKey,
+          tempFileCleaned: false,
+          message: `Biên nhận máy chủ chưa xác nhận đủ ${vaultDocIds.length} ảnh đính kèm (thiếu ${missingTokens.length}). Ảnh tạm vẫn được giữ lại để đối chiếu.`,
+        };
+      }
+    }
+
+    // Only AFTER server confirmed dossierCode & every attached token -> clean temp copies & clear store
+    if (tempUrisToCleanAfterReceipt.length > 0) {
+      let cleanedAny = false;
+      for (const uri of tempUrisToCleanAfterReceipt) {
+        const deleted = await deleteTempFile(uri);
+        if (deleted) cleanedAny = true;
+      }
+      tempFileCleaned = cleanedAny;
+    }
+    if (hasMultiAttachments) {
+      await clearPersistedAttachments(input.validationInput.formType);
+    }
 
     // 4. Persist to Offline SQLite wallet_qr_passes
     const walletRow: WalletQrPassRow = {
@@ -314,6 +513,7 @@ export async function executeDossierSubmissionPipeline(
 
     await saveWalletPass(walletRow);
 
+    const confirmedCount = vaultDocIds.length;
     return {
       success: true,
       stage: 'SUBMITTED_ONLINE',
@@ -322,11 +522,33 @@ export async function executeDossierSubmissionPipeline(
       dossierCode: submitted.dossierCode,
       slaDeadline: submitted.slaDeadline,
       vaultToken: vaultDocIds[0],
+      confirmedVaultDocIds: submitted.vaultDocIds ?? vaultDocIds,
+      attachedDocuments,
+      updatedAttachments: hasMultiAttachments ? [] : undefined,
+      idempotencyKey,
       walletRow,
       tempFileCleaned,
-      message: `Đã gửi hồ sơ ${submitted.dossierCode} tới Bộ phận Một cửa ${input.wardName}.`,
+      message:
+        confirmedCount > 0
+          ? `Đã gửi hồ sơ ${submitted.dossierCode} kèm ${confirmedCount} ảnh giấy tờ đã xác nhận tới Bộ phận Một cửa ${input.wardName}.`
+          : `Đã gửi hồ sơ ${submitted.dossierCode} tới Bộ phận Một cửa ${input.wardName}.`,
     };
   } catch {
+    if (hasMultiAttachments) {
+      await persistAttachments(input.validationInput.formType, workingPages);
+      return {
+        success: false,
+        stage: 'UPLOAD_FAILED',
+        fieldValidations: mergedValidations,
+        warnings: mergedWarnings,
+        updatedAttachments: workingPages,
+        idempotencyKey,
+        tempFileCleaned: false,
+        message:
+          'Mất kết nối khi xác nhận biên nhận hồ sơ. Ảnh đã tải và khóa chống trùng vẫn được giữ nguyên — bấm Thử gửi lại để hoàn tất.',
+      };
+    }
+
     // Offline fallback: save verified local draft to wallet_qr_passes without falsely claiming online receipt
     const draftCode = `HS-LOCAL-${Date.now().toString().slice(-6)}`;
     const walletRow: WalletQrPassRow = {
@@ -358,8 +580,9 @@ export async function executeDossierSubmissionPipeline(
         ...mergedWarnings,
       ],
       dossierCode: draftCode,
+      idempotencyKey,
       walletRow,
-      tempFileCleaned,
+      tempFileCleaned: false,
       message: `Đã kiểm định đạt chuẩn và lưu bản nháp ${draftCode} trên máy.`,
     };
   }

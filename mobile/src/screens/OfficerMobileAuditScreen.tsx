@@ -1,3 +1,4 @@
+import { paperDetails } from '../core/paperForm';
 /**
  * SmartWard AI Mobile — Đăng Nhập & Bàn Cán Bộ Một Cửa Di Động (Đồng bộ 100% với Web RoleGateway & PerWardDashboard)
  * - Đăng nhập Công chức (Chọn 102 đơn vị, badgeId CB-<wardCode>, PIN 6–32 ký tự + Đổi PIN) -> JWT lưu SecureStore
@@ -1105,6 +1106,8 @@ export const OfficerMobileAuditScreen: React.FC = () => {
               {/* Key Declared Data Summary (matching Web Drawer) */}
               {Object.keys(selectedFormData).length > 0 ? (
                 <View style={styles.formDataBox}>
+                  {paperDetails(selectedFormData).map(([label,value]) =>
+                    <Text key={label} style={styles.formDataLine}>{label} · {value}</Text>)}
                   {Boolean(selectedFormData.birthDate || selectedFormData.dob) ? (
                     <Text style={styles.formDataLine}>
                       Ngày sinh: {String(selectedFormData.birthDate || selectedFormData.dob)}
@@ -1132,35 +1135,75 @@ export const OfficerMobileAuditScreen: React.FC = () => {
                 </View>
               ) : null}
 
-              {/* Zero-Trust Vault One-Time Token buttons */}
-              {(selectedDossier.vaultDocIds || []).length > 0 ? (
-                <View style={styles.vaultList}>
-                  {(selectedDossier.vaultDocIds || []).map((token, idx) => {
-                    const used = Boolean(consumedTokens[token]);
-                    return (
-                      <Pressable
-                        key={token}
-                        accessibilityRole="button"
-                        onPress={() => setActiveVaultToken(token)}
-                        style={[styles.vaultBtn, used && styles.vaultBtnUsed]}
-                      >
-                        <Eye
-                          size={15}
-                          color={used ? COLORS.errorAccent : COLORS.citizenCrimson}
-                        />
-                        <Text
-                          style={[styles.vaultBtnText, used && styles.textErr]}
-                          numberOfLines={1}
+              {/* TASK-058: Labeled Multi-Attachment Zero-Trust Vault View (separates durable documentCode from 1-time token; backward-compatible with legacy dossiers) */}
+              {(() => {
+                const rawMeta = Array.isArray(selectedFormData.attachedDocuments)
+                  ? (selectedFormData.attachedDocuments as Array<{
+                      documentCode?: string;
+                      oneTimeToken?: string;
+                      docRole?: string;
+                      docLabel?: string;
+                      pageIndex?: number;
+                      verified?: boolean;
+                    }>)
+                  : [];
+                const tokens = selectedDossier.vaultDocIds || [];
+                const items =
+                  rawMeta.length > 0
+                    ? rawMeta.map((m, idx) => ({
+                        token: m.oneTimeToken || tokens[idx] || '',
+                        documentCode: m.documentCode || `LEGACY_${idx + 1}`,
+                        label: m.docLabel || `Ảnh giấy tờ #${idx + 1}`,
+                        pageIndex: m.pageIndex || idx + 1,
+                        verified: m.verified,
+                      }))
+                    : tokens.map((token, idx) => ({
+                        token,
+                        documentCode: `LEGACY_${idx + 1}`,
+                        label: `Ảnh giấy tờ #${idx + 1} (hồ sơ cũ)`,
+                        pageIndex: idx + 1,
+                        verified: undefined,
+                      }));
+
+                if (items.length === 0) return null;
+                return (
+                  <View style={styles.vaultList}>
+                    {items.map((att, idx) => {
+                      const used = Boolean(att.token && consumedTokens[att.token]);
+                      return (
+                        <Pressable
+                          key={`${att.documentCode}_${idx}`}
+                          accessibilityRole="button"
+                          disabled={!att.token}
+                          onPress={() => {
+                            if (att.token) setActiveVaultToken(att.token);
+                          }}
+                          style={[styles.vaultBtn, used && styles.vaultBtnUsed]}
                         >
-                          {used
-                            ? `Ảnh #${idx + 1} đã tự hủy (410 Gone)`
-                            : `👁️ Xem ảnh giấy tờ #${idx + 1} có Watermark (1 lần)`}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              ) : null}
+                          <Eye
+                            size={15}
+                            color={used ? COLORS.errorAccent : COLORS.citizenCrimson}
+                          />
+                          <View style={styles.flex1}>
+                            <Text
+                              style={[styles.vaultBtnText, used && styles.textErr]}
+                              numberOfLines={1}
+                            >
+                              {att.label} · Trang {att.pageIndex}
+                              {att.verified === false ? ' (Tham khảo)' : ''}
+                            </Text>
+                            <Text style={styles.dossierRowProc} numberOfLines={1}>
+                              {used
+                                ? `Mã lưu: ${att.documentCode} • Quyền xem 1 lần đã tự hủy (410 Gone)`
+                                : `Mã lưu: ${att.documentCode} • Bấm mở ảnh Watermark (1 lần)`}
+                            </Text>
+                          </View>
+                        </Pressable>
+                      );
+                    })}
+                  </View>
+                );
+              })()}
 
               <View style={styles.field}>
                 <Text style={styles.label}>Lời dặn Cán bộ gửi công dân</Text>
