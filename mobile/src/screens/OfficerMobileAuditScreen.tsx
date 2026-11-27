@@ -174,9 +174,12 @@ export const OfficerMobileAuditScreen: React.FC = () => {
 
   // Tab 3: AI Gray-Zone HITL Queue
   const [hitlItems, setHitlItems] = useState<HitlGrayZoneItemDto[]>([]);
+  const [hitlFilter, setHitlFilter] = useState<'ALL' | 'PENDING' | 'APPROVED'>('ALL');
+  const [expandedHitlIds, setExpandedHitlIds] = useState<Record<string, boolean>>({});
   const [hitlDrafts, setHitlDrafts] = useState<Record<string, string>>({});
   const [resolvingHitlId, setResolvingHitlId] = useState<string | null>(null);
   const [hitlNotice, setHitlNotice] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
+  const [workspaceError, setWorkspaceError] = useState<string | null>(null);
 
   // Zero-Trust Vault One-Time Viewer
   const [activeVaultToken, setActiveVaultToken] = useState<string | null>(null);
@@ -213,6 +216,7 @@ export const OfficerMobileAuditScreen: React.FC = () => {
   const fetchOfficerWorkspace = useCallback(async () => {
     if (!officer) return;
     setLoadingWorkspace(true);
+    setWorkspaceError(null);
     try {
       const [dossierRes, clusterRes, hitlRes] = await Promise.allSettled([
         listOfficerDossiers(officer.wardCode),
@@ -220,11 +224,16 @@ export const OfficerMobileAuditScreen: React.FC = () => {
         fetchOfficerHitlQueue(),
       ]);
 
+      const failedParts: string[] = [];
       if (dossierRes.status === 'fulfilled') {
         setDossiers(dossierRes.value.map(sanitizeOfficerDossierForDisplay));
+      } else {
+        failedParts.push('Hồ sơ');
       }
       if (clusterRes.status === 'fulfilled') {
         setClusters(clusterRes.value);
+      } else {
+        failedParts.push('Sự cố');
       }
       if (hitlRes.status === 'fulfilled') {
         setHitlItems(hitlRes.value);
@@ -237,6 +246,14 @@ export const OfficerMobileAuditScreen: React.FC = () => {
           }
           return next;
         });
+      } else {
+        failedParts.push('Vùng xám AI');
+      }
+
+      if (failedParts.length > 0) {
+        setWorkspaceError(
+          `Không tải được mục: ${failedParts.join(', ')}. Kéo xuống hoặc bấm Thử lại.`
+        );
       }
     } finally {
       setLoadingWorkspace(false);
@@ -803,7 +820,7 @@ export const OfficerMobileAuditScreen: React.FC = () => {
           UBND {resolvedOfficerWardName}
         </Text>
         <Text style={styles.mastheadOfficerName} numberOfLines={1}>
-          {officer.fullName} • {officer.wardCode}
+          {officer.fullName.replace(` — ${resolvedOfficerWardName}`, '')} • Mã đơn vị: {officer.wardCode}
         </Text>
 
         <View style={styles.mastheadActions}>
@@ -873,6 +890,21 @@ export const OfficerMobileAuditScreen: React.FC = () => {
         </View>
       ) : null}
 
+      {workspaceError ? (
+        <View style={styles.errorBox}>
+          <AlertTriangle size={15} color={COLORS.errorAccent} />
+          <Text style={styles.errorText}>{workspaceError}</Text>
+          <Pressable
+            onPress={() => {
+              void fetchOfficerWorkspace();
+            }}
+            style={styles.retryInlineBtn}
+          >
+            <Text style={styles.retryInlineBtnText}>Thử lại</Text>
+          </Pressable>
+        </View>
+      ) : null}
+
       {/* 2. KPI Summary Strip (4 interactive cards) */}
       <View style={styles.kpiRow}>
         <Pressable
@@ -880,7 +912,10 @@ export const OfficerMobileAuditScreen: React.FC = () => {
             setActiveTab('FORMS');
             setDossierFilter('PENDING');
           }}
-          style={styles.kpiCard}
+          style={[
+            styles.kpiCard,
+            activeTab === 'FORMS' && dossierFilter === 'PENDING' && styles.kpiCardActive,
+          ]}
         >
           <Text style={[styles.kpiValue, { color: COLORS.citizenCrimson }]}>
             {kpiPendingDossiers}
@@ -893,7 +928,10 @@ export const OfficerMobileAuditScreen: React.FC = () => {
             setActiveTab('FORMS');
             setDossierFilter('SUPPLEMENTED');
           }}
-          style={styles.kpiCard}
+          style={[
+            styles.kpiCard,
+            activeTab === 'FORMS' && dossierFilter === 'SUPPLEMENTED' && styles.kpiCardActive,
+          ]}
         >
           <Text style={[styles.kpiValue, { color: '#6D28D9' }]}>{kpiSupplementedDossiers}</Text>
           <Text style={styles.kpiLabel}>Vừa bổ sung</Text>
@@ -904,13 +942,19 @@ export const OfficerMobileAuditScreen: React.FC = () => {
             setActiveTab('INCIDENTS');
             setIncidentFilter('OPEN');
           }}
-          style={styles.kpiCard}
+          style={[styles.kpiCard, activeTab === 'INCIDENTS' && styles.kpiCardActive]}
         >
           <Text style={[styles.kpiValue, { color: '#B45309' }]}>{kpiPendingIncidents}</Text>
           <Text style={styles.kpiLabel}>Sự cố chờ</Text>
         </Pressable>
 
-        <Pressable onPress={() => setActiveTab('HITL')} style={styles.kpiCard}>
+        <Pressable
+          onPress={() => {
+            setActiveTab('HITL');
+            setHitlFilter(kpiPendingHitl > 0 ? 'PENDING' : 'ALL');
+          }}
+          style={[styles.kpiCard, activeTab === 'HITL' && styles.kpiCardActive]}
+        >
           <Text style={[styles.kpiValue, { color: COLORS.primary }]}>{kpiPendingHitl}</Text>
           <Text style={styles.kpiLabel}>Vùng xám AI</Text>
         </Pressable>
@@ -1304,9 +1348,14 @@ export const OfficerMobileAuditScreen: React.FC = () => {
             </ScrollView>
 
             {filteredDossiers.length === 0 ? (
-              <Text style={styles.emptyListText}>
-                Chưa có hồ sơ phù hợp hoặc máy chủ đang ngoại tuyến. Kéo xuống để tải lại.
-              </Text>
+              <View style={styles.emptyStateBox}>
+                <Text style={styles.emptyStateTitle}>
+                  Chưa có hồ sơ nào tại UBND {resolvedOfficerWardName}
+                </Text>
+                <Text style={styles.emptyListText}>
+                  Hệ thống tự động cách ly dữ liệu theo đúng địa bàn ({officer.wardCode}). Hồ sơ mới công dân nộp về {resolvedOfficerWardName} sẽ hiện tại đây ngay lập tức.
+                </Text>
+              </View>
             ) : (
               filteredDossiers.map((item) => {
                 const meta = getOfficerDossierStatusMeta(item.status);
@@ -1409,24 +1458,38 @@ export const OfficerMobileAuditScreen: React.FC = () => {
           ) : null}
 
           {filteredClusters.length === 0 ? (
-            <Text style={styles.emptyListText}>
-              Hiện chưa có cụm sự cố nào trong mục này tại UBND {resolvedOfficerWardName}.
-            </Text>
+            <View style={styles.emptyStateBox}>
+              <Text style={styles.emptyStateTitle}>
+                Chưa có sự cố nào tại UBND {resolvedOfficerWardName}
+              </Text>
+              <Text style={styles.emptyListText}>
+                Các phản ánh hiện trường công dân gửi thuộc địa bàn {resolvedOfficerWardName} ({officer.wardCode}) sẽ tự động gom cụm và hiển thị tại đây.
+              </Text>
+            </View>
           ) : (
             filteredClusters.map((cluster) => {
               const st = (cluster.status || 'OPEN').toUpperCase();
               const isBusy = updatingClusterCode === cluster.clusterCode;
+              const statusColors =
+                st === 'RESOLVED'
+                  ? { bg: '#ECFDF5', border: '#A7F3D0', text: '#047857', label: 'Đã hoàn thành' }
+                  : st === 'IN_PROGRESS'
+                  ? { bg: '#EFF6FF', border: '#BFDBFE', text: '#1D4ED8', label: 'Đang xử lý' }
+                  : { bg: '#FFFBEB', border: '#FDE68A', text: '#B45309', label: 'Chờ tiếp nhận' };
               return (
                 <View key={cluster.clusterCode} style={styles.clusterCard}>
                   <View style={styles.rowBetween}>
                     <Text style={styles.clusterCode}>{cluster.clusterCode}</Text>
-                    <Text style={styles.clusterStatusBadge}>
-                      {st === 'RESOLVED'
-                        ? 'Đã hoàn thành'
-                        : st === 'IN_PROGRESS'
-                        ? 'Đang xử lý'
-                        : 'Chờ tiếp nhận'}
-                    </Text>
+                    <View
+                      style={[
+                        styles.statusChip,
+                        { backgroundColor: statusColors.bg, borderColor: statusColors.border },
+                      ]}
+                    >
+                      <Text style={[styles.statusChipText, { color: statusColors.text }]}>
+                        {statusColors.label}
+                      </Text>
+                    </View>
                   </View>
 
                   <Text style={styles.clusterTitle}>{cluster.title}</Text>
@@ -1474,99 +1537,217 @@ export const OfficerMobileAuditScreen: React.FC = () => {
       )}
 
       {/* ==================== TAB 3: VÙNG XÁM AI (HITL) ==================== */}
-      {activeTab === 'HITL' && (
-        <View style={[styles.card, { padding: responsive.cardPadding }]}>
-          <View style={styles.rowBetween}>
-            <Text style={[styles.cardTitle, typography.bodyBold]}>
-              Hàng đợi Vùng xám AI ({hitlItems.length})
-            </Text>
-            <Pressable
-              onPress={() => {
-                void fetchOfficerWorkspace();
-              }}
-              style={styles.refreshIconBtn}
-            >
-              <RefreshCw size={15} color={COLORS.citizenCrimson} />
-            </Pressable>
-          </View>
+      {activeTab === 'HITL' && (() => {
+        const pendingHitlCount = hitlItems.filter(
+          (h) => (h.status || '').toUpperCase() !== 'APPROVED'
+        ).length;
+        const approvedHitlCount = hitlItems.length - pendingHitlCount;
+        const visibleHitlItems = hitlItems.filter((h) => {
+          const isApp = (h.status || '').toUpperCase() === 'APPROVED';
+          if (hitlFilter === 'PENDING') return !isApp;
+          if (hitlFilter === 'APPROVED') return isApp;
+          return true;
+        });
 
-          {hitlNotice ? (
-            <View
-              style={[
-                styles.noticeBanner,
-                hitlNotice.type === 'ok' ? styles.noticeOk : styles.noticeErr,
-              ]}
-            >
-              <Text
+        return (
+          <View style={[styles.card, { padding: responsive.cardPadding }]}>
+            <View style={styles.rowBetween}>
+              <View style={styles.flex1}>
+                <Text style={[styles.cardTitle, typography.bodyBold]}>
+                  Hàng đợi Vùng xám AI ({visibleHitlItems.length}/{hitlItems.length})
+                </Text>
+                <Text style={styles.hitlSubtitle}>
+                  Câu hỏi độ tin cậy trung bình (42% – 78%) cần cán bộ thẩm định
+                </Text>
+              </View>
+              <Pressable
+                onPress={() => {
+                  void fetchOfficerWorkspace();
+                }}
+                style={styles.refreshIconBtn}
+              >
+                <RefreshCw size={15} color={COLORS.citizenCrimson} />
+              </Pressable>
+            </View>
+
+            <View style={styles.hitlFilterRow}>
+              {(
+                [
+                  { key: 'ALL', label: `Tất cả (${hitlItems.length})` },
+                  { key: 'PENDING', label: `Chờ duyệt (${pendingHitlCount})` },
+                  { key: 'APPROVED', label: `Đã duyệt (${approvedHitlCount})` },
+                ] as const
+              ).map((chip) => {
+                const active = hitlFilter === chip.key;
+                return (
+                  <Pressable
+                    key={chip.key}
+                    onPress={() => setHitlFilter(chip.key)}
+                    style={[styles.filterChip, active && styles.filterChipActive]}
+                  >
+                    <Text
+                      style={[styles.filterChipText, active && styles.filterChipTextActive]}
+                    >
+                      {chip.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+
+            {hitlNotice ? (
+              <View
                 style={[
-                  styles.noticeText,
-                  hitlNotice.type === 'ok' ? styles.textOk : styles.textErr,
+                  styles.noticeBanner,
+                  hitlNotice.type === 'ok' ? styles.noticeOk : styles.noticeErr,
                 ]}
               >
-                {hitlNotice.text}
-              </Text>
-            </View>
-          ) : null}
+                <Text
+                  style={[
+                    styles.noticeText,
+                    hitlNotice.type === 'ok' ? styles.textOk : styles.textErr,
+                  ]}
+                >
+                  {hitlNotice.text}
+                </Text>
+              </View>
+            ) : null}
 
-          {hitlItems.length === 0 ? (
-            <Text style={styles.emptyListText}>
-              Không có câu hỏi vùng xám (0.42 ≤ S_max &lt; 0.78) chờ cán bộ duyệt.
-            </Text>
-          ) : (
-            hitlItems.map((item) => {
-              const approved = (item.status || '').toUpperCase() === 'APPROVED';
-              const busy = resolvingHitlId === item.id;
-              return (
-                <View key={item.id} style={styles.hitlCard}>
-                  <View style={styles.rowBetween}>
-                    <Text style={styles.hitlScore}>
-                      Độ khớp: {(Number(item.maxSimilarity ?? 0) * 100).toFixed(1)}%
+            {visibleHitlItems.length === 0 ? (
+              <View style={styles.emptyStateBox}>
+                <Text style={styles.emptyStateTitle}>
+                  {hitlFilter === 'PENDING'
+                    ? 'Không còn câu hỏi vùng xám chờ duyệt'
+                    : 'Chưa có câu hỏi vùng xám AI'}
+                </Text>
+                <Text style={styles.emptyListText}>
+                  Mọi câu hỏi trong ngưỡng 42% – 78% đã được xử lý hoặc chưa phát sinh.
+                </Text>
+              </View>
+            ) : (
+              visibleHitlItems.map((item) => {
+                const approved = (item.status || '').toUpperCase() === 'APPROVED';
+                const busy = resolvingHitlId === item.id;
+                const similarityPct = (
+                  Number(item.similarityScore ?? item.maxSimilarity ?? 0) * 100
+                ).toFixed(1);
+                const questionText = (item.question || item.query || '').trim();
+                const answerText = (
+                  hitlDrafts[item.id] ??
+                  item.approvedAnswer ??
+                  item.suggestedAnswer ??
+                  ''
+                ).trim();
+                const expanded = Boolean(expandedHitlIds[item.id]);
+
+                return (
+                  <View
+                    key={item.id}
+                    style={[styles.hitlCard, approved && styles.hitlCardApproved]}
+                  >
+                    <View style={styles.rowBetween}>
+                      <View style={styles.hitlScoreBadge}>
+                        <Text style={styles.hitlScore}>Độ khớp: {similarityPct}%</Text>
+                      </View>
+                      <View
+                        style={[
+                          styles.statusChip,
+                          approved
+                            ? { backgroundColor: '#ECFDF5', borderColor: '#A7F3D0' }
+                            : { backgroundColor: '#FFFBEB', borderColor: '#FDE68A' },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            styles.statusChipText,
+                            { color: approved ? '#047857' : '#B45309' },
+                          ]}
+                        >
+                          {approved ? 'Đã duyệt' : 'Chờ duyệt'}
+                        </Text>
+                      </View>
+                    </View>
+
+                    <Text style={styles.hitlQuestion}>
+                      {questionText ? `“${questionText}”` : 'Câu hỏi pháp lý cần thẩm định'}
                     </Text>
-                    <Text
-                      style={[
-                        styles.hitlStatus,
-                        { color: approved ? '#047857' : '#B45309' },
-                      ]}
-                    >
-                      {approved ? 'Đã duyệt' : 'Chờ duyệt'}
-                    </Text>
+
+                    {item.wardName || item.legalReference ? (
+                      <Text style={styles.hitlMetaLine} numberOfLines={2}>
+                        {[item.wardName, item.legalReference].filter(Boolean).join(' • ')}
+                      </Text>
+                    ) : null}
+
+                    {approved ? (
+                      <View style={styles.hitlApprovedAnswerBox}>
+                        <Text
+                          style={styles.hitlApprovedAnswerText}
+                          numberOfLines={expanded ? undefined : 4}
+                        >
+                          {answerText || 'Đã phê duyệt nội dung trả lời chuẩn.'}
+                        </Text>
+                        {answerText.length > 180 ? (
+                          <Pressable
+                            onPress={() =>
+                              setExpandedHitlIds((prev) => ({
+                                ...prev,
+                                [item.id]: !prev[item.id],
+                              }))
+                            }
+                            style={styles.hitlExpandBtn}
+                          >
+                            <Text style={styles.hitlExpandBtnText}>
+                              {expanded ? 'Thu gọn' : 'Xem toàn bộ hướng dẫn'}
+                            </Text>
+                          </Pressable>
+                        ) : null}
+                        {item.resolvedBy ? (
+                          <Text style={styles.hitlResolvedBy}>
+                            Duyệt bởi: {item.resolvedBy}
+                            {item.createdAt ? ` • ${item.createdAt}` : ''}
+                          </Text>
+                        ) : null}
+                      </View>
+                    ) : (
+                      <>
+                        <TextInput
+                          value={
+                            hitlDrafts[item.id] ??
+                            item.approvedAnswer ??
+                            item.suggestedAnswer ??
+                            ''
+                          }
+                          onChangeText={(txt) =>
+                            setHitlDrafts((prev) => ({ ...prev, [item.id]: txt }))
+                          }
+                          multiline
+                          placeholder="Nội dung trả lời chính thức..."
+                          placeholderTextColor={COLORS.textMuted}
+                          style={[styles.input, styles.multiline, typography.bodyMd]}
+                        />
+                        <Pressable
+                          disabled={busy}
+                          onPress={() => {
+                            void handleResolveHitl(item);
+                          }}
+                          style={styles.approveBtn}
+                        >
+                          {busy ? (
+                            <ActivityIndicator size="small" color="#FFFFFF" />
+                          ) : (
+                            <CheckCircle2 size={15} color="#FFFFFF" />
+                          )}
+                          <Text style={styles.approveBtnText}>Duyệt &amp; Lưu vào AI</Text>
+                        </Pressable>
+                      </>
+                    )}
                   </View>
-
-                  <Text style={styles.hitlQuestion}>“{item.question}”</Text>
-                  <TextInput
-                    value={hitlDrafts[item.id] ?? item.approvedAnswer ?? item.suggestedAnswer ?? ''}
-                    onChangeText={(txt) =>
-                      setHitlDrafts((prev) => ({ ...prev, [item.id]: txt }))
-                    }
-                    editable={!approved}
-                    multiline
-                    placeholder="Nội dung trả lời chính thức..."
-                    placeholderTextColor={COLORS.textMuted}
-                    style={[styles.input, styles.multiline, typography.bodyMd]}
-                  />
-
-                  {!approved ? (
-                    <Pressable
-                      disabled={busy}
-                      onPress={() => {
-                        void handleResolveHitl(item);
-                      }}
-                      style={styles.approveBtn}
-                    >
-                      {busy ? (
-                        <ActivityIndicator size="small" color="#FFFFFF" />
-                      ) : (
-                        <CheckCircle2 size={15} color="#FFFFFF" />
-                      )}
-                      <Text style={styles.approveBtnText}>Duyệt &amp; Lưu vào AI</Text>
-                    </Pressable>
-                  ) : null}
-                </View>
-              );
-            })
-          )}
-        </View>
-      )}
+                );
+              })
+            )}
+          </View>
+        );
+      })()}
 
       {/* Confirm Logout Modal (Parity with Web PerWardDashboard) */}
       <Modal
@@ -1887,9 +2068,38 @@ const styles = StyleSheet.create({
     borderRadius: RADIUS.lg,
     borderWidth: 1,
     borderColor: COLORS.borderSubtle,
-    paddingVertical: 10,
+    paddingVertical: 11,
     paddingHorizontal: 6,
     alignItems: 'center',
+  },
+  kpiCardActive: {
+    borderColor: '#8F0A1B',
+    borderWidth: 1.5,
+    backgroundColor: '#FFF8F8',
+  },
+  retryInlineBtn: {
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: RADIUS.sm,
+    backgroundColor: COLORS.citizenCrimson,
+  },
+  retryInlineBtnText: {
+    color: '#FFFFFF',
+    fontSize: 11.5,
+    fontWeight: '800',
+  },
+  emptyStateBox: {
+    padding: SPACING.md,
+    borderRadius: RADIUS.lg,
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: COLORS.borderSubtle,
+    gap: 4,
+  },
+  emptyStateTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   kpiValue: {
     fontSize: 18,
@@ -2169,16 +2379,76 @@ const styles = StyleSheet.create({
   },
   clusterResolveText: { fontSize: 12, fontWeight: '800', color: '#FFFFFF' },
   hitlCard: {
-    padding: SPACING.sm,
-    borderRadius: RADIUS.md,
+    padding: SPACING.md,
+    borderRadius: RADIUS.lg,
     borderWidth: 1,
     borderColor: COLORS.borderSubtle,
-    backgroundColor: COLORS.canvas,
+    backgroundColor: '#FFFFFF',
     gap: 8,
   },
-  hitlScore: { fontSize: 11.5, fontWeight: '800', color: '#6D28D9' },
+  hitlCardApproved: {
+    backgroundColor: '#FAFCFF',
+    borderColor: '#E2E8F0',
+  },
+  hitlSubtitle: {
+    fontSize: 11.5,
+    color: COLORS.textMuted,
+    marginTop: 2,
+  },
+  hitlFilterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+  },
+  hitlScoreBadge: {
+    backgroundColor: '#F3E8FF',
+    borderWidth: 1,
+    borderColor: '#DDD6FE',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: RADIUS.full,
+  },
+  hitlScore: { fontSize: 11, fontWeight: '800', color: '#6D28D9' },
   hitlStatus: { fontSize: 11.5, fontWeight: '800' },
-  hitlQuestion: { fontSize: 13, fontWeight: '800', color: COLORS.textPrimary },
+  hitlQuestion: {
+    fontSize: 13.5,
+    fontWeight: '800',
+    color: '#0F172A',
+    lineHeight: 19,
+  },
+  hitlMetaLine: {
+    fontSize: 11.5,
+    color: COLORS.textSecondary,
+    lineHeight: 16,
+  },
+  hitlApprovedAnswerBox: {
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    borderRadius: RADIUS.md,
+    padding: SPACING.sm,
+    gap: 6,
+  },
+  hitlApprovedAnswerText: {
+    fontSize: 12.5,
+    color: '#1E293B',
+    lineHeight: 19,
+  },
+  hitlExpandBtn: {
+    alignSelf: 'flex-start',
+    paddingVertical: 2,
+  },
+  hitlExpandBtnText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#8F0A1B',
+  },
+  hitlResolvedBy: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.textMuted,
+    marginTop: 2,
+  },
   modalBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(15, 23, 42, 0.55)',

@@ -3,6 +3,8 @@ package vn.edu.uth.smartward.audit;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -15,10 +17,12 @@ public class AuditService {
         this.auditLogRepository = auditLogRepository;
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logAction(String who, String ward, String action, String entity, String entityId, String ip, String userAgent) {
         logProcedureAction(who, ward, action, entity, entityId, null, null, null, ip, userAgent);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void logProcedureAction(String who,
                                    String ward,
                                    String action,

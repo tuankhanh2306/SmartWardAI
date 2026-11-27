@@ -379,9 +379,14 @@ export interface IssueClusterDto {
 export interface HitlGrayZoneItemDto {
   id: string;
   question: string;
+  query?: string;
   maxSimilarity: number;
+  similarityScore?: number;
   suggestedAnswer: string;
   status: 'PENDING' | 'APPROVED' | string;
+  wardName?: string;
+  legalReference?: string;
+  candidateProcedureName?: string;
   createdAt?: string;
   resolvedAt?: string;
   resolvedBy?: string;
