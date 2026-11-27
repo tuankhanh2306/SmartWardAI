@@ -359,8 +359,9 @@ export interface IssueClusterDto {
   id: string;
   clusterCode: string;
   category: string;
-  centroidLatitude: number;
-  centroidLongitude: number;
+  centroidLatitude: number | null;
+  centroidLongitude: number | null;
+  reports?: Array<{ reportCode: string; description: string; photoUrls: string[] }>;
   title: string;
   descriptionSummary: string;
   status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | string;

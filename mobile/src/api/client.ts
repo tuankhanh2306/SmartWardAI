@@ -526,6 +526,23 @@ export async function fetchIssueClusters(params?: {
   return Array.isArray(list) ? list : [];
 }
 
+function coordinate(value: unknown, limit: number): number | null {
+  if (typeof value !== 'number' && !(typeof value === 'string' && value.trim())) return null;
+  const n = Number(value);
+  return Number.isFinite(n) && Math.abs(n) <= limit ? n : null;
+}
+
+export async function fetchOfficerIncidentPhoto(url: string, signal: AbortSignal) {
+  const match = /^\/api\/v1\/issues\/officer\/photos\/([A-Za-z0-9_.-]+)$/.exec(url);
+  if (!match) throw new Error('Đường dẫn ảnh sự cố không hợp lệ');
+  const response = await apiClient.get<ArrayBuffer>(`/issues/officer/photos/${match[1]}`, {
+    responseType: 'arraybuffer', signal,
+  });
+  const mime = String(response.headers['content-type'] || '').split(';')[0];
+  if (!/^image\/(jpeg|png|webp)$/i.test(mime)) throw new Error('Dữ liệu ảnh không hợp lệ');
+  return { bytes: response.data, mime };
+}
+
 function mapRawIssueClusters(rawList: unknown[]): IssueClusterDto[] {
   return rawList.map((raw) => {
     const item = raw as Record<string, unknown>;
@@ -533,8 +550,8 @@ function mapRawIssueClusters(rawList: unknown[]): IssueClusterDto[] {
       id: String(item.id ?? item.clusterCode ?? ''),
       clusterCode: String(item.clusterCode ?? ''),
       category: String(item.category ?? 'ROAD_DAMAGE'),
-      centroidLatitude: Number(item.centerLatitude ?? item.centroidLatitude ?? 10.3864),
-      centroidLongitude: Number(item.centerLongitude ?? item.centroidLongitude ?? 105.4352),
+      centroidLatitude: coordinate(item.centerLatitude ?? item.centroidLatitude, 90),
+      centroidLongitude: coordinate(item.centerLongitude ?? item.centroidLongitude, 180),
       title: String(item.title ?? 'Sự cố hiện trường'),
       descriptionSummary: String(item.descriptionSummary ?? item.title ?? ''),
       status: String(item.status ?? 'OPEN'),
@@ -544,6 +561,10 @@ function mapRawIssueClusters(rawList: unknown[]): IssueClusterDto[] {
       locationAccuracyM: typeof item.locationAccuracyM === 'number' ? item.locationAccuracyM : undefined,
       wardCode: typeof item.wardCode === 'string' ? item.wardCode : undefined,
       wardName: typeof item.wardName === 'string' ? item.wardName : undefined,
+      reports: Array.isArray(item.reports) ? item.reports.filter(r => r && typeof r.reportCode === 'string').map(r => ({
+        reportCode: r.reportCode, description: typeof r.description === 'string' ? r.description : '',
+        photoUrls: Array.isArray(r.photoUrls) ? r.photoUrls.filter((u: unknown) => typeof u === 'string') : [],
+      })) : [],
       photoUrls: Array.isArray(item.photoUrls) ? (item.photoUrls as string[]) : [],
       photoCount:
         typeof item.photoCount === 'number'
@@ -561,21 +582,9 @@ export async function fetchOfficerIssueClusters(params?: {
   wardCode?: string;
   status?: string;
 }): Promise<IssueClusterDto[]> {
-  try {
-    const resp = await apiClient.get<ApiResponse<unknown[]>>('/issues/officer/clusters', { params });
-    const list = unwrapData(resp.data);
-    if (Array.isArray(list)) {
-      return mapRawIssueClusters(list);
-    }
-  } catch (err: unknown) {
-    const status = (err as { response?: { status?: number } })?.response?.status;
-    if (status === 401 || status === 403) {
-      throw err;
-    }
-  }
-  const fallbackResp = await apiClient.get<ApiResponse<unknown[]>>('/issues/clusters', { params });
-  const fallbackList = unwrapData(fallbackResp.data);
-  return Array.isArray(fallbackList) ? mapRawIssueClusters(fallbackList) : [];
+  const resp = await apiClient.get<ApiResponse<unknown[]>>('/issues/officer/clusters', { params });
+  const list = unwrapData(resp.data);
+  return Array.isArray(list) ? mapRawIssueClusters(list) : [];
 }
 
 export async function fetchOfficerHitlQueue(): Promise<HitlGrayZoneItemDto[]> {
