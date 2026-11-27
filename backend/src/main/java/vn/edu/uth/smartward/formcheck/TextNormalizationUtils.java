@@ -82,6 +82,12 @@ public final class TextNormalizationUtils {
                 return d.format(DateTimeFormatter.ISO_LOCAL_DATE);
             } catch (DateTimeParseException ignored) {}
         }
+        if (clean.matches("^\\d{1,2}-\\d{1,2}-\\d{4}$")) {
+            try {
+                LocalDate d = LocalDate.parse(clean, DateTimeFormatter.ofPattern("d-M-yyyy"));
+                return d.format(DateTimeFormatter.ISO_LOCAL_DATE);
+            } catch (DateTimeParseException ignored) {}
+        }
 
         String lower = clean.toLowerCase(Locale.ROOT);
         int day = 0;

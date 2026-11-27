@@ -111,4 +111,26 @@ describe('cccdQrParser — Bộ giải mã QR CCCD 7 trường BCA & Phiếu h�
     expect(parseSmartWardPassQr('LH-20261118-8899').appointmentCode).toBe('LH-20261118-8899');
     expect(parseSmartWardPassQr('INVALID').valid).toBe(false);
   });
+
+  it('so khớp ngày sinh dd-mm-yyyy với mã QR CCCD không báo lệch giả và gắn CONFLICT khi sai ngày', () => {
+    const parsed = parseCccdQrString(VALID_QR);
+    expect(parsed.data).toBeDefined();
+
+    const matched = detectDiscrepancies(parsed.data!, {
+      fullName: 'NGUYỄN MINH TUẤN KHANH',
+      cccd: '089205023490',
+      dob: '23-06-2005',
+      gender: 'Nam',
+      address: 'Số 18 Trần Hưng Đạo, Phường Long Xuyên, Tỉnh An Giang',
+    });
+    expect(matched).toHaveLength(0);
+
+    const mismatched = detectDiscrepancies(parsed.data!, {
+      dob: '24-06-2005',
+    });
+    expect(mismatched).toHaveLength(1);
+    expect(mismatched[0].fieldKey).toBe('dateOfBirth');
+    expect(mismatched[0].level).toBe('CONFLICT');
+    expect(mismatched[0].qrValue).toBe('23-06-2005');
+  });
 });

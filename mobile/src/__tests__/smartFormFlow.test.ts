@@ -336,4 +336,57 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
       'Chưa xác định (chờ cán bộ Một cửa xác nhận)'
     );
   });
+
+  it('nhận ngày sinh dd-mm-yyyy trong app Mobile và chuẩn hóa về yyyy-MM-dd khi gọi precheckApi & submitDossierApi', async () => {
+    const precheckApi = vi.fn().mockResolvedValue({
+      submissionCode: 'PC-DMY-01',
+      formType: 'CT01',
+      valid: true,
+      overallConfidence: 0.99,
+      fieldValidations: [],
+      warnings: [],
+      processedAt: '2026-11-27T01:00:00Z',
+      processingTimeMs: 9,
+    });
+    const submitDossierApi = vi.fn().mockResolvedValue({
+      dossierCode: 'HS-20261127-AG_P_LONGXUYEN-0001',
+      procedureCode: 'TTHC-CR-01',
+      wardCode: 'AG_P_LONGXUYEN',
+      status: 'PENDING',
+      slaDeadline: '2026-12-02T17:00:00+07:00',
+      createdAt: '2026-11-27T01:00:00Z',
+    });
+
+    const res = await executeDossierSubmissionPipeline(
+      {
+        wardCode: 'AG_P_LONGXUYEN',
+        wardName: 'Phường Long Xuyên',
+        visionGate: makeTestVisionGate('GOOD', 'CT01'),
+        attachment: null,
+        validationInput: {
+          formType: 'CT01',
+          fullName: 'NGUYỄN MINH TUẤN KHANH',
+          citizenCccd: '089205023490',
+          dateOfBirth: '23-06-2005',
+          gender: 'Nam',
+          address: 'Số 18 Trần Hưng Đạo, Phường Long Xuyên, An Giang',
+          citizenEmail: 'khanh@example.invalid',
+          phoneNumber: '0918234567',
+          qrVerified: true,
+          referenceDate: REF_DATE,
+          extra: {
+            hostCccdNumber: '089075001122',
+            hostDateOfBirth: '10-03-1975',
+            vneidHostConfirmed: true,
+          },
+        },
+      },
+      { precheckApi, submitDossierApi }
+    );
+
+    expect(res.success).toBe(true);
+    expect(precheckApi.mock.calls[0][0].dateOfBirth).toBe('2005-06-23');
+    expect(submitDossierApi.mock.calls[0][0].formData.dateOfBirth).toBe('2005-06-23');
+    expect(submitDossierApi.mock.calls[0][0].formData.hostDateOfBirth).toBe('1975-03-10');
+  });
 });

@@ -66,11 +66,24 @@ const CCCD_12_REGEX = /^\d{12}$/;
 const VN_PHONE_REGEX = /^(0|\+84)(3|5|7|8|9|2)\d{8,9}$/;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-export function parseIsoDate(isoDate: string): Date | null {
-  if (!isoDate || !/^\d{4}-\d{2}-\d{2}$/.test(isoDate.trim())) {
+export function parseIsoDate(dateStr: string): Date | null {
+  if (!dateStr || typeof dateStr !== 'string') {
     return null;
   }
-  const [y, m, d] = isoDate.trim().split('-').map(Number);
+  const clean = dateStr.trim();
+  let y: number;
+  let m: number;
+  let d: number;
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(clean)) {
+    [y, m, d] = clean.split('-').map(Number);
+  } else if (/^\d{2}-\d{2}-\d{4}$/.test(clean) || /^\d{2}\/\d{2}\/\d{4}$/.test(clean)) {
+    const sep = clean.includes('/') ? '/' : '-';
+    [d, m, y] = clean.split(sep).map(Number);
+  } else {
+    return null;
+  }
+
   const dt = new Date(Date.UTC(y, m - 1, d));
   if (
     Number.isNaN(dt.getTime()) ||
@@ -81,6 +94,33 @@ export function parseIsoDate(isoDate: string): Date | null {
     return null;
   }
   return dt;
+}
+
+export function normalizeDateToIso(dateStr: string): string {
+  const clean = (dateStr || '').trim();
+  const parsed = parseIsoDate(clean);
+  if (!parsed) return clean;
+  const y = parsed.getUTCFullYear();
+  const m = String(parsed.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(parsed.getUTCDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+export function formatDateToDmy(dateStr: string): string {
+  const clean = (dateStr || '').trim();
+  const parsed = parseIsoDate(clean);
+  if (!parsed) return clean;
+  const d = String(parsed.getUTCDate()).padStart(2, '0');
+  const m = String(parsed.getUTCMonth() + 1).padStart(2, '0');
+  const y = parsed.getUTCFullYear();
+  return `${d}-${m}-${y}`;
+}
+
+export function formatDmyDateInput(raw: string): string {
+  const digits = (raw || '').replace(/\D/g, '').slice(0, 8);
+  if (digits.length <= 2) return digits;
+  if (digits.length <= 4) return `${digits.slice(0, 2)}-${digits.slice(2)}`;
+  return `${digits.slice(0, 2)}-${digits.slice(2, 4)}-${digits.slice(4)}`;
 }
 
 /**
@@ -323,7 +363,10 @@ function validateTkKs(
   // 3. Đối chiếu chéo Ngày sinh trẻ vs Giấy chứng sinh
   const hospitalDob = (extra.hospitalBirthDate || '').trim();
   const dobCrossValid =
-    childDobValid && (!hospitalDob || input.dateOfBirth.trim() === hospitalDob);
+    childDobValid &&
+    (!hospitalDob ||
+      (parseIsoDate(hospitalDob) !== null &&
+        normalizeDateToIso(input.dateOfBirth) === normalizeDateToIso(hospitalDob)));
   fieldValidations.push({
     fieldName: 'Đối chiếu chéo Ngày sinh trẻ vs Giấy chứng sinh',
     providedValue: `${input.dateOfBirth}${hospitalDob ? ` | GCS: ${hospitalDob}` : ''}`,

@@ -3,6 +3,8 @@
  * Kế thừa 100% logic thuần TypeScript từ frontend/src/utils/cccdQrParser.ts
  */
 
+import { formatDateToDmy, normalizeDateToIso } from './formValidators';
+
 export interface DecodedCccdQr {
   cccdNumber: string;
   oldIdNumber: string;
@@ -190,15 +192,19 @@ export function detectDiscrepancies(
 
   if (formData.dob && formData.dob.trim()) {
     const typed = formData.dob.trim();
-    const qr = qrData.dateOfBirth;
-    if (typed !== qr) {
+    const typedIso = normalizeDateToIso(typed);
+    const qrIso = normalizeDateToIso(qrData.dateOfBirth);
+    if (typedIso !== qrIso) {
+      const qrDisplay = typed.includes('-') && /^\d{2}-\d{2}-\d{4}$/.test(typed)
+        ? formatDateToDmy(qrData.dateOfBirth)
+        : qrData.dateOfBirth;
       discrepancies.push({
         fieldKey: 'dateOfBirth',
         fieldLabel: 'Ngày sinh',
         typedValue: typed,
-        qrValue: qr,
+        qrValue: qrDisplay,
         level: 'CONFLICT',
-        message: `Ngày sinh tự nhập (${typed}) không khớp với ngày sinh trên CCCD (${qr}).`,
+        message: `Ngày sinh tự nhập (${typed}) không khớp với ngày sinh trên CCCD (${qrDisplay}).`,
       });
     }
   }
