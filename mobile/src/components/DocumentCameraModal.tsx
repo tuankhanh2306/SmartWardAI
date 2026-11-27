@@ -10,11 +10,12 @@ import {
   Modal,
   Platform,
   Pressable,
+  StatusBar,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, Image as ImageIcon, X, Zap, ZapOff } from 'lucide-react-native';
@@ -110,11 +111,27 @@ export const DocumentCameraModal: React.FC<DocumentCameraModalProps> = ({
     }
   };
 
+  const insets = useSafeAreaInsets();
+  const topInset = Math.max(
+    insets.top,
+    Platform.OS === 'ios' ? 54 : Platform.OS === 'android' ? StatusBar.currentHeight ?? 24 : 0,
+  );
+  const bottomInset = Math.max(
+    insets.bottom,
+    Platform.OS === 'ios' ? 24 : Platform.OS === 'android' ? 12 : 0,
+  );
   const canShowLiveCamera = Platform.OS !== 'web' && Boolean(permission?.granted);
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
-      <SafeAreaView style={styles.root} edges={['top', 'bottom', 'left', 'right']}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="fullScreen"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <View style={[styles.root, { paddingTop: topInset, paddingBottom: bottomInset }]}>
+        <StatusBar barStyle="light-content" />
         {/* Top Bar */}
         <View style={styles.topBar}>
           <Pressable
@@ -239,7 +256,7 @@ export const DocumentCameraModal: React.FC<DocumentCameraModalProps> = ({
 
           <View style={styles.rightSpacer} />
         </View>
-      </SafeAreaView>
+      </View>
     </Modal>
   );
 };
