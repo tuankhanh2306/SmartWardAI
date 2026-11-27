@@ -1,3 +1,5 @@
+import {paperValues, paperDetails, type PaperForm} from '../core/paperForm';
+import type {LocalFormValidationInput} from '../core/formValidators';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
@@ -389,4 +391,39 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
     expect(submitDossierApi.mock.calls[0][0].formData.dateOfBirth).toBe('2005-06-23');
     expect(submitDossierApi.mock.calls[0][0].formData.hostDateOfBirth).toBe('1975-03-10');
   });
+  const members = [{fullName:'Người thứ nhất',hostRelation:'Con'}, {fullName:'Người thứ hai',hostRelation:'Em'}];
+  const scenarios: {form:PaperForm; fields:Record<string,string>; extra:LocalFormValidationInput['extra']; expected:Record<string,unknown>}[] = [
+    {form:'CT01', fields:{hostRelation:'Con',declarationScope:'Thay đổi cùng hộ'},
+      extra:{hostFullName:'Chủ hộ',hostCccdNumber:'089075001122',hostDateOfBirth:'1975-03-10',vneidHostConfirmed:true},
+      expected:{hostName:'Chủ hộ',householdMembers:members,hostRelation:'Con'}},
+    {form:'TK-KS', fields:{declarerName:'Người đi khai',childBirthPlace:'Nơi sinh A',birthCertNumber:'GCS-1'},
+      extra:{motherName:'Người mẹ',hospitalMotherName:'Người mẹ',hospitalBirthDate:'2026-10-25',parentsMarried:'YES'},
+      expected:{childName:'Tên trẻ',declarerName:'Người đi khai',childBirthPlace:'Nơi sinh A',motherName:'Người mẹ'}},
+    {form:'TK-KH', fields:{applicantNationality:'Quốc tịch A',partnerNationality:'Quốc tịch B',partnerMarriageCount:'2'},
+      extra:{marriageMode:'MARRIAGE_REGISTRATION',partnerFullName:'Người thứ hai',partnerDob:'1995-05-01',partnerCccd:'089095001122'},
+      expected:{applicantNationality:'Quốc tịch A',partnerNationality:'Quốc tịch B',partnerMarriageCount:'2',partnerName:'Người thứ hai'}},
+    {form:'TK-BTXH', fields:{currentAddress:'Địa chỉ hiện tại',accountHolderName:'Người nhận thay'},
+      extra:{bankAccount:'123456789',bankName:'Ngân hàng A'},
+      expected:{address:'Nơi thường trú',currentAddress:'Địa chỉ hiện tại',accountHolderName:'Người nhận thay',bankAccount:'123456789'}},
+  ];
+  it.each(scenarios)('$form giữ đúng người và từng trường đến hồ sơ cán bộ',async ({form,fields,extra,expected})=>{
+    const precheckApi = vi.fn().mockResolvedValue({overallValid:true});
+    const submitDossierApi = vi.fn().mockResolvedValue({dossierCode:'HS-TEST', status:'PENDING'});
+    const result = await executeDossierSubmissionPipeline({
+      wardCode:'AG_P_LONGXUYEN',wardName:'Long Xuyên',attachment:null,visionGate:null,
+      validationInput:{formType:form, fullName:form === 'TK-KS' ? 'Tên trẻ' : 'Người khai',citizenCccd:'089075000001',
+        dateOfBirth:form === 'TK-KS' ? '2026-10-25' : '1948-03-02', referenceDate:REF_DATE,address:'Nơi thường trú',extra,
+        paper:paperValues(form,{fields,members})}
+    },{precheckApi,submitDossierApi,saveWalletPass:vi.fn()});
+    expect(result.success).toBe(true);
+    const sent = submitDossierApi.mock.calls[0][0].formData;
+    expect(sent).toMatchObject(expected);
+    for(const [key,value] of Object.entries(fields)){
+      expect(precheckApi.mock.calls[0][0].formData[key]).toBe(value);
+      expect(paperDetails(sent).some(([,v])=>v===value)).toBe(true);
+    }
+    if(form === 'CT01') expect(JSON.parse(precheckApi.mock.calls[0][0].formData.householdMembers)).toEqual(members);
+    else expect(sent.householdMembers).toBeUndefined();
+  });
+
 });

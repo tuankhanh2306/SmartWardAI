@@ -129,12 +129,32 @@ function buildFlatFormData(input: LocalFormValidationInput): Record<string, stri
 
   const extra = input.extra || {};
   const DATE_EXTRA_KEYS = new Set(['hostDateOfBirth', 'hospitalBirthDate', 'partnerDob']);
+  const keysByForm = {
+    CT01: ['hostFullName','hostCccdNumber','hostDateOfBirth','vneidHostConfirmed','requiresHostConsent'],
+    'TK-KS': ['motherName','fatherName','hospitalBirthDate','hospitalMotherName','parentsMarried'],
+    'TK-KH': ['marriageMode','partnerFullName','partnerCccd','partnerDob','partnerGender','maritalCertPurpose','previousMaritalStatus'],
+    'TK-BTXH': ['householdStatus','disabilityLevel','bankAccount','bankName'],
+  };
   for (const [k, v] of Object.entries(extra)) {
+    if (!keysByForm[input.formType].includes(k)) continue;
+    if (extra.marriageMode === 'MARITAL_STATUS_CONFIRMATION' && k.startsWith('partner')) continue;
+    if (extra.marriageMode === 'MARRIAGE_REGISTRATION' && k === 'maritalCertPurpose') continue;
     if (v !== undefined && v !== null) {
       flat[k] = DATE_EXTRA_KEYS.has(k) ? normalizeDateToIso(String(v)) : String(v);
     }
   }
-  return flat;
+  if (input.formType === 'TK-KS') {
+    flat.childName = input.fullName;
+    flat.childBirthDate = flat.dateOfBirth;
+    flat.childGender = flat.gender;
+    flat.declarerCccd = input.citizenCccd;
+  }
+  if (input.formType === 'CT01') {
+    flat.hostName = extra.hostFullName || '';
+    flat.hostCccd = extra.hostCccdNumber || '';
+  }
+  if (input.formType === 'TK-KH' && extra.marriageMode !== 'MARITAL_STATUS_CONFIRMATION') flat.partnerName = extra.partnerFullName || '';
+  return {...flat, ...input.paper};
 }
 
 /**
@@ -173,7 +193,12 @@ export async function executeDossierSubmissionPipeline(
     };
   }
 
-  const procMeta = FORM_TYPE_TO_PROCEDURE[input.validationInput.formType];
+  const baseProcedure = FORM_TYPE_TO_PROCEDURE[input.validationInput.formType];
+  const statusConfirmation = input.validationInput.formType === 'TK-KH'
+    && input.validationInput.extra?.marriageMode === 'MARITAL_STATUS_CONFIRMATION';
+  const procMeta = statusConfirmation
+    ? {...baseProcedure, procedureCode:'TTHC-HT-11', procedureName:'Xác nhận tình trạng hôn nhân'}
+    : baseProcedure;
   const flatFormData = buildFlatFormData(input.validationInput);
   let mergedValidations = [...localCheck.fieldValidations];
   let mergedWarnings = [...localCheck.warnings];
@@ -251,12 +276,17 @@ export async function executeDossierSubmissionPipeline(
       citizenCccd: cleanCccd,
       formData: {
         ...flatFormData,
+        ...(flatFormData.householdMembers ? { householdMembers: JSON.parse(flatFormData.householdMembers) } : {}),
         vneidHostConfirmed: Boolean(input.validationInput.extra?.vneidHostConfirmed),
       },
       precheckReport: {
-        sharpnessScore: input.visionGate?.sharpnessScore ?? 100,
-        brightnessScore: input.visionGate?.brightnessScore ?? 200,
-        templateMatched: input.visionGate?.templateMatched ?? true,
+        sharpnessScore: input.visionGate?.sharpnessScore ?? null,
+        brightnessScore: input.visionGate?.brightnessScore ?? null,
+        qualityStatus: input.visionGate?.qualityStatus ?? 'NOT_EVALUATED',
+        ocrStatus: input.visionGate?.ocrStatus ?? 'NOT_RUN',
+        templateMatchStatus: input.visionGate?.templateMatchStatus ?? 'NOT_CHECKED',
+        templateMatched: input.visionGate?.templateMatched ?? false,
+        extractedFieldsCount: input.visionGate?.extractedFieldsCount ?? null,
         valid: true,
       },
       vaultDocIds,
