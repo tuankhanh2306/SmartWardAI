@@ -342,27 +342,86 @@ public class GeminiAiClient implements AiModelClient {
 
     @Override
     public String performVisionOcr(byte[] imageBytes, String mimeType) {
+        return performVisionOcr(imageBytes, mimeType, null);
+    }
+
+    @Override
+    public String performVisionOcr(byte[] imageBytes, String mimeType, String expectedFormType) {
         if (!hasApiKey()) {
-            return fallbackMock.performVisionOcr(imageBytes, mimeType);
+            log.warn("Gemini Vision OCR unavailable: GEMINI_API_KEY is not configured.");
+            return """
+                {
+                  "ocrStatus": "UNAVAILABLE",
+                  "readabilityStatus": "NOT_EVALUATED",
+                  "readabilityReason": "Dịch vụ nhận diện ảnh (OCR) chưa được cấu hình khóa API trên máy chủ.",
+                  "detectedDocumentType": "UNKNOWN",
+                  "isBlankTemplate": false,
+                  "overallConfidence": 0.0
+                }
+                """;
         }
         try {
             String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+            String expectedHint = (expectedFormType != null && !expectedFormType.isBlank())
+                    ? expectedFormType.trim().toUpperCase()
+                    : "UNKNOWN";
 
             String ocrInstruction = """
-                Bạn là hệ thống trích xuất OCR biểu mẫu hành chính Việt Nam.
-                Hãy đọc bức ảnh tờ khai và xuất ra duy nhất một đối tượng JSON với cấu trúc:
+                Bạn là hệ thống kiểm định và trích xuất OCR biểu mẫu hành chính Việt Nam (SmartWard AI).
+                Loại giấy tờ người dân đang chọn (chỉ dùng để tham chiếu trường cần đọc, TUYỆT ĐỐI KHÔNG tự nhận vơ đúng loại nếu ảnh không khớp): %s.
+
+                Quy tắc nghiêm ngặt:
+                1. Đánh giá độ đọc được thực tế của ảnh vào "readabilityStatus":
+                   - CLEAR: chữ rõ, đủ sáng, không cắt mất nội dung chính.
+                   - BLURRY: chữ mờ, rung tay, chữ nhạt không đọc chắc chắn.
+                   - TOO_DARK: quá tối.
+                   - GLARE: lóa đèn/chói che chữ.
+                   - CROPPED: bị cắt mất góc/mép chứa tiêu đề hoặc trường chính.
+                   - UNREADABLE: không đọc được nội dung.
+                2. Phân loại ĐÚNG loại giấy tờ nhìn thấy trong ảnh vào "detectedDocumentType":
+                   - TK_KS: Tờ khai đăng ký khai sinh.
+                   - BIRTH_CERT: Giấy chứng sinh do cơ sở y tế/bệnh viện cấp.
+                   - CT01: Tờ khai thay đổi thông tin cư trú (Mẫu CT01).
+                   - TK_KH: Tờ khai đăng ký kết hôn / xác nhận tình trạng hôn nhân.
+                   - TK_BTXH: Tờ khai trợ giúp xã hội.
+                   - CCCD: Thẻ Căn cước công dân.
+                   - OTHER_TEXT: Trang sách, bài viết, hóa đơn hoặc văn bản bất kỳ KHÔNG phải giấy tờ hành chính trên.
+                   - NON_DOCUMENT: Mặt bàn, phong cảnh, ảnh vật thể không có giấy tờ.
+                3. Quy tắc "isBlankTemplate":
+                   - CHỈ đặt true khi ảnh rõ nét (CLEAR), có tiêu đề/khung mẫu hành chính hợp lệ (TK_KS, BIRTH_CERT, CT01, TK_KH, TK_BTXH) NHƯNG các dòng điền thông tin công dân đều bỏ trống.
+                   - TUYỆT ĐỐI đặt false nếu là trang sách (OTHER_TEXT), vật thể (NON_DOCUMENT), hoặc ảnh mờ/chữ nhạt không đọc được (không coi việc đọc 0 trường là mẫu trống).
+                4. Chỉ điền giá trị thực sự đọc thấy trong ảnh; trường nào không thấy để null. Chuẩn hóa mọi ngày tháng sang dd-mm-yyyy.
+                5. Xuất DUY NHẤT một đối tượng JSON (không markdown, không giải thích ngoài JSON):
                 {
-                  "fullName": "...",
-                  "birthDate": "DD/MM/YYYY",
-                  "gender": "Nam/Nữ",
-                  "cccdNumber": "12 chữ số",
-                  "issueDate": "DD/MM/YYYY",
-                  "issuePlace": "...",
-                  "permanentAddress": "...",
-                  "overallConfidence": 0.95
+                  "ocrStatus": "COMPLETED",
+                  "readabilityStatus": "CLEAR",
+                  "readabilityReason": "Mô tả ngắn bằng tiếng Việt lý do đánh giá ảnh",
+                  "detectedDocumentType": "TK_KS|BIRTH_CERT|CT01|TK_KH|TK_BTXH|CCCD|OTHER_TEXT|NON_DOCUMENT",
+                  "isBlankTemplate": false,
+                  "rawTextExcerpt": "Tối đa 200 ký tự tiêu đề/nội dung đọc thấy trong ảnh",
+                  "fullName": null,
+                  "birthDate": null,
+                  "gender": null,
+                  "cccdNumber": null,
+                  "issueDate": null,
+                  "issuePlace": null,
+                  "permanentAddress": null,
+                  "phoneNumber": null,
+                  "childFullName": null,
+                  "childDob": null,
+                  "childGender": null,
+                  "childEthnicity": null,
+                  "childBirthPlace": null,
+                  "motherFullName": null,
+                  "fatherFullName": null,
+                  "birthCertNumber": null,
+                  "birthCertIssueDate": null,
+                  "hospitalName": null,
+                  "hasRedSeal": null,
+                  "overallConfidence": 0.0,
+                  "fieldConfidences": {}
                 }
-                Không thêm markdown hay văn bản nào khác ngoài JSON.
-                """;
+                """.formatted(expectedHint);
 
             Map<String, Object> body = Map.of(
                     "contents", List.of(
@@ -395,14 +454,34 @@ public class GeminiAiClient implements AiModelClient {
                     }
                 }
                 String rawJson = sb.toString().replaceAll("```json\\s*", "").replaceAll("```\\s*", "").trim();
-                return rawJson;
+                if (!rawJson.isEmpty()) {
+                    return rawJson;
+                }
             }
 
-            return "{}";
+            return """
+                {
+                  "ocrStatus": "UNAVAILABLE",
+                  "readabilityStatus": "NOT_EVALUATED",
+                  "readabilityReason": "Máy chủ OCR không trả về kết quả hợp lệ.",
+                  "detectedDocumentType": "UNKNOWN",
+                  "isBlankTemplate": false,
+                  "overallConfidence": 0.0
+                }
+                """;
 
         } catch (Exception e) {
             log.error("Gemini Vision OCR extraction failed: {}", sanitizeMessage(e.getMessage()));
-            return "{}";
+            return """
+                {
+                  "ocrStatus": "UNAVAILABLE",
+                  "readabilityStatus": "NOT_EVALUATED",
+                  "readabilityReason": "Không thể kết nối dịch vụ OCR lúc này. Vui lòng thử lại sau.",
+                  "detectedDocumentType": "UNKNOWN",
+                  "isBlankTemplate": false,
+                  "overallConfidence": 0.0
+                }
+                """;
         }
     }
 

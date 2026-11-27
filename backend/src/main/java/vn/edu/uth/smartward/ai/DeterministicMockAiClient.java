@@ -156,6 +156,12 @@ public class DeterministicMockAiClient implements AiModelClient {
         // Return structured OCR JSON simulation matching Form Rule Engine schema
         return """
             {
+              "ocrStatus": "COMPLETED",
+              "readabilityStatus": "CLEAR",
+              "readabilityReason": "Ảnh rõ chữ và đủ ánh sáng.",
+              "detectedDocumentType": "CT01",
+              "isBlankTemplate": false,
+              "rawTextExcerpt": "TỜ KHAI THAY ĐỔI THÔNG TIN CƯ TRÚ (MẪU CT01)",
               "fullName": "NGUYỄN VĂN AN",
               "birthDate": "15/08/1995",
               "gender": "Nam",

@@ -32,16 +32,25 @@ import {
   QrCode,
   ShieldCheck,
 } from 'lucide-react-native';
+import { BirthDocumentCaptureCard } from '../components/BirthDocumentCaptureCard';
 import { CccdQrScannerModal } from '../components/CccdQrScannerModal';
+import { DocumentCameraModal, type CapturedMediaAsset } from '../components/DocumentCameraModal';
 import {
   FormSpecificFields,
   INITIAL_FORM_EXTRA,
   type FormExtraState,
 } from '../components/FormSpecificFields';
-import { VisionGateCard } from '../components/VisionGateCard';
 import { DossierAndQrPassScreen } from './DossierAndQrPassScreen';
+import { isNetworkOrTimeoutError, precheckFormDocumentImage } from '../api/client';
 import { useAccessibility } from '../context/AccessibilityContext';
 import { useWard } from '../context/WardContext';
+import {
+  computePrefillPlan,
+  evaluateServerOcrIntoVisionGate,
+  getSlotDocLabel,
+  reassignCapturedPageSlot,
+  type CapturedDocumentPage,
+} from '../core/birthDocumentWorkflow';
 import {
   detectDiscrepancies,
   type DecodedCccdQr,
@@ -56,6 +65,7 @@ import { formatMobileSlaDeadline } from '../core/qrPassPdfExporter';
 import {
   evaluateDocumentVisionGate,
   resizeImageForUpload,
+  type ExpectedDocumentType,
   type VisionGateResult,
 } from '../core/visionQualityGate';
 import type { RootTabParamList } from '../navigation/BottomTabNavigator';
@@ -105,9 +115,14 @@ export const SmartFormPrecheckScreen: React.FC = () => {
   // QR CCCD & Discrepancy state (MOB-3.2 -> 3.4)
   const [decodedQr, setDecodedQr] = useState<DecodedCccdQr | null>(null);
 
-  // AI Vision Gate & Attachment state (MOB-3.5 -> 3.7)
+  // AI Vision Gate & Multi-Slot Captured Pages (TASK-056, TASK-057, TASK-058)
   const [attachment, setAttachment] = useState<SelectedAttachment | null>(null);
   const [visionGate, setVisionGate] = useState<VisionGateResult | null>(null);
+  const [capturedPages, setCapturedPages] = useState<CapturedDocumentPage[]>([]);
+  const [cameraModalTarget, setCameraModalTarget] = useState<{
+    slotRole: ExpectedDocumentType;
+    replacePageId?: string;
+  } | null>(null);
 
   // Submission state (MOB-3.13)
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -191,67 +206,169 @@ export const SmartFormPrecheckScreen: React.FC = () => {
     setSubmitResult(null);
   };
 
-  // MOB-3.5 / TASK-056: Capture or pick photo with neutral filename & honest NOT_EVALUATED / NOT_RUN state
-  const applyPickedImageAsset = async (asset: {
-    uri: string;
-    width?: number;
-    height?: number;
-    fileName?: string | null;
-    mimeType?: string | null;
-  }) => {
+  // TASK-057: Unified OCR inspection for both camera & library photos (never fabricates scores or overwrites user fields)
+  const inspectCapturedPageWithOcr = async (
+    pageId: string,
+    uri: string,
+    mimeType: string,
+    fileName: string,
+    expectedSlot: ExpectedDocumentType
+  ) => {
+    setCapturedPages((prev) =>
+      prev.map((p) => (p.id === pageId ? { ...p, checking: true } : p))
+    );
+    try {
+      const resp = await precheckFormDocumentImage(uri, mimeType, expectedSlot, fileName);
+      const nextGate = evaluateServerOcrIntoVisionGate(resp, expectedSlot, fileName, mimeType);
+      setCapturedPages((prev) =>
+        prev.map((p) =>
+          p.id === pageId
+            ? {
+                ...p,
+                gate: nextGate,
+                ocrFields: resp.extractedFields || null,
+                checking: false,
+                attachedAsReference: false,
+              }
+            : p
+        )
+      );
+      setVisionGate(nextGate);
+    } catch (err) {
+      const offline = isNetworkOrTimeoutError(err);
+      const failGate = evaluateDocumentVisionGate({
+        expectedFormType: expectedSlot,
+        fileName,
+        mimeType,
+        ocrStatus: offline ? 'NETWORK_ERROR' : 'UNAVAILABLE',
+      });
+      setCapturedPages((prev) =>
+        prev.map((p) =>
+          p.id === pageId ? { ...p, gate: failGate, checking: false } : p
+        )
+      );
+      setVisionGate(failGate);
+    }
+  };
+
+  const handleCameraPhotoSelected = async (asset: CapturedMediaAsset) => {
+    const target = cameraModalTarget ?? { slotRole: formType as ExpectedDocumentType };
     const resized = await resizeImageForUpload(asset.uri, asset.width, asset.height);
     const mimeType = asset.mimeType || 'image/jpeg';
     const fileName = asset.fileName || `doc_capture_${Date.now()}.jpg`;
+    const initialGate = evaluateDocumentVisionGate({
+      expectedFormType: target.slotRole,
+      fileName,
+      mimeType,
+      ocrStatus: 'NOT_RUN',
+    });
+
+    const pageId = target.replacePageId || `pg_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`;
     setAttachment({
       uri: resized.uri,
       fileName,
       mimeType,
       isTempCacheFile: true,
     });
-    setVisionGate(
-      evaluateDocumentVisionGate({
-        expectedFormType: formType,
-        fileName,
-        mimeType,
-        ocrStatus: 'NOT_RUN',
-      })
-    );
+    setVisionGate(initialGate);
+
+    setCapturedPages((prev) => {
+      if (target.replacePageId) {
+        return prev.map((p) =>
+          p.id === target.replacePageId
+            ? {
+                ...p,
+                uri: resized.uri,
+                fileName,
+                mimeType,
+                gate: initialGate,
+                ocrFields: null,
+                attachedAsReference: false,
+                checking: true,
+                uploadStatus: 'PENDING',
+                documentCode: undefined,
+                oneTimeToken: undefined,
+                lastError: null,
+              }
+            : p
+        );
+      }
+      const nextPageIndex = prev.filter((p) => p.slotRole === target.slotRole).length + 1;
+      return [
+        ...prev,
+        {
+          id: pageId,
+          slotRole: target.slotRole,
+          docLabel: getSlotDocLabel(target.slotRole),
+          pageIndex: nextPageIndex,
+          uri: resized.uri,
+          fileName,
+          mimeType,
+          gate: initialGate,
+          ocrFields: null,
+          attachedAsReference: false,
+          checking: true,
+          uploadStatus: 'PENDING',
+        },
+      ];
+    });
+
+    await inspectCapturedPageWithOcr(pageId, resized.uri, mimeType, fileName, target.slotRole);
   };
 
   const handleCapturePhoto = async () => {
-    try {
-      const perm = await ImagePicker.requestCameraPermissionsAsync();
-      if (!perm.granted) {
-        const lib = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images'],
-          quality: 0.9,
-        });
-        if (lib.canceled || !lib.assets?.[0]) return;
-        await applyPickedImageAsset(lib.assets[0]);
-        return;
-      }
+    setCameraModalTarget({ slotRole: formType });
+  };
 
-      const photo = await ImagePicker.launchCameraAsync({
-        mediaTypes: ['images'],
-        quality: 0.9,
-      });
-      if (photo.canceled || !photo.assets?.[0]) return;
-      await applyPickedImageAsset(photo.assets[0]);
-    } catch {
-      try {
-        const lib = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ['images'],
-          quality: 0.9,
-        });
-        if (lib.canceled || !lib.assets?.[0]) return;
-        await applyPickedImageAsset(lib.assets[0]);
-      } catch {
-        // User canceled or picker unavailable; preserve user form data unchanged
+  const handleApplyOcrPrefill = (pageId: string, allowOverwrite: boolean) => {
+    const page = capturedPages.find((p) => p.id === pageId);
+    if (!page || !page.ocrFields) return;
+    const plan = computePrefillPlan(
+      formType,
+      page.slotRole,
+      {
+        fullName,
+        citizenCccd,
+        dateOfBirth,
+        gender,
+        address,
+        phoneNumber,
+        motherName: extra.motherName,
+        fatherName: extra.fatherName,
+        hospitalBirthDate: extra.hospitalBirthDate,
+        hospitalMotherName: extra.hospitalMotherName,
+        birthCertNumber: paper.fields.birthCertNumber || '',
+        childBirthPlace: paper.fields.childBirthPlace || '',
+      },
+      page.ocrFields
+    );
+
+    const nextPaperFields = { ...paper.fields };
+    let paperDirty = false;
+    for (const item of plan.items) {
+      if (item.willOverwrite && !allowOverwrite) continue;
+      if (item.key === 'fullName') setFullName(item.extractedValue);
+      else if (item.key === 'citizenCccd') setCitizenCccd(item.extractedValue.replace(/[^0-9]/g, '').slice(0, 12));
+      else if (item.key === 'dateOfBirth') setDateOfBirth(item.extractedValue);
+      else if (item.key === 'gender' && (item.extractedValue === 'Nam' || item.extractedValue === 'Nữ')) {
+        setGender(item.extractedValue);
+      } else if (item.key === 'address') setAddress(item.extractedValue);
+      else if (item.key === 'phoneNumber') setPhoneNumber(item.extractedValue.replace(/[^0-9]/g, '').slice(0, 10));
+      else if (item.key === 'motherName') handleExtraChange('motherName', item.extractedValue);
+      else if (item.key === 'fatherName') handleExtraChange('fatherName', item.extractedValue);
+      else if (item.key === 'hospitalBirthDate') handleExtraChange('hospitalBirthDate', item.extractedValue);
+      else if (item.key === 'hospitalMotherName') handleExtraChange('hospitalMotherName', item.extractedValue);
+      else if (item.key === 'birthCertNumber' || item.key === 'childBirthPlace') {
+        nextPaperFields[item.key] = item.extractedValue;
+        paperDirty = true;
       }
+    }
+    if (paperDirty) {
+      setPaper({ ...paper, fields: nextPaperFields });
     }
   };
 
-  // MOB-3.5 / TASK-056: Pick .DOCX / .PDF / image without fabricating filename template or quality score
+  // MOB-3.5 / TASK-056: Pick .DOCX / .PDF / image through unified pipeline
   const handlePickDocument = async () => {
     try {
       const picked = await DocumentPicker.getDocumentAsync({
@@ -266,6 +383,18 @@ export const SmartFormPrecheckScreen: React.FC = () => {
       const file = picked.assets[0];
       const mime = file.mimeType || 'application/octet-stream';
       const fileName = file.name || `document_${Date.now()}`;
+
+      if (mime.startsWith('image/')) {
+        setCameraModalTarget({ slotRole: formType });
+        await handleCameraPhotoSelected({
+          uri: file.uri,
+          fileName,
+          mimeType: mime,
+          source: 'LIBRARY',
+        });
+        setCameraModalTarget(null);
+        return;
+      }
 
       setAttachment({
         uri: file.uri,
@@ -483,16 +612,48 @@ export const SmartFormPrecheckScreen: React.FC = () => {
         </View>
       ) : null}
 
-      {/* MOB-3.6 / TASK-056: Honest Vision Gate Card */}
-      {visionGate ? (
-        <VisionGateCard
-          gate={visionGate}
-          fileName={attachment?.fileName}
-          onRetake={() => {
-            void handleCapturePhoto();
-          }}
-        />
-      ) : null}
+      {/* TASK-057: Multi-Slot Framed Camera Capture, OCR Verification & Confirmable Draft Prefill */}
+      <BirthDocumentCaptureCard
+        formType={formType}
+        pages={capturedPages}
+        currentDraft={{
+          fullName,
+          citizenCccd,
+          dateOfBirth,
+          gender,
+          address,
+          phoneNumber,
+          motherName: extra.motherName,
+          fatherName: extra.fatherName,
+          hospitalBirthDate: extra.hospitalBirthDate,
+          hospitalMotherName: extra.hospitalMotherName,
+          birthCertNumber: paper.fields.birthCertNumber || '',
+          childBirthPlace: paper.fields.childBirthPlace || '',
+        }}
+        onOpenCameraForSlot={(slotRole, replacePageId) => {
+          setCameraModalTarget({ slotRole, replacePageId });
+        }}
+        onRetryCheckPage={(pageId) => {
+          const pg = capturedPages.find((p) => p.id === pageId);
+          if (pg && pg.slotRole !== 'OTHER') {
+            void inspectCapturedPageWithOcr(pg.id, pg.uri, pg.mimeType, pg.fileName, pg.slotRole);
+          }
+        }}
+        onReassignPageSlot={(pageId, targetSlot) => {
+          setCapturedPages((prev) => reassignCapturedPageSlot(prev, pageId, targetSlot));
+        }}
+        onToggleReferenceOnly={(pageId) => {
+          setCapturedPages((prev) =>
+            prev.map((p) =>
+              p.id === pageId ? { ...p, attachedAsReference: !p.attachedAsReference } : p
+            )
+          );
+        }}
+        onRemovePage={(pageId) => {
+          setCapturedPages((prev) => prev.filter((p) => p.id !== pageId));
+        }}
+        onApplyPrefill={handleApplyOcrPrefill}
+      />
 
       {/* Main Form Card */}
       <View style={[styles.formCard, { padding: responsive.cardPadding }]}>
@@ -718,6 +879,20 @@ export const SmartFormPrecheckScreen: React.FC = () => {
         visible={scannerVisible}
         onClose={() => setScannerVisible(false)}
         onDecoded={handleQrDecoded}
+      />
+
+      <DocumentCameraModal
+        visible={cameraModalTarget !== null}
+        frameMode={cameraModalTarget?.slotRole === 'CCCD' ? 'CCCD' : 'A4'}
+        title={
+          cameraModalTarget?.slotRole
+            ? `Chụp ${getSlotDocLabel(cameraModalTarget.slotRole)}`
+            : 'Chụp giấy tờ hành chính'
+        }
+        onClose={() => setCameraModalTarget(null)}
+        onPhotoSelected={(asset) => {
+          void handleCameraPhotoSelected(asset);
+        }}
       />
         </ScrollView>
       )}

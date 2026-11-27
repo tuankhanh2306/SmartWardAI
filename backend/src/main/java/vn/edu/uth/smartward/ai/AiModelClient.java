@@ -115,4 +115,11 @@ public interface AiModelClient {
      * @return structured JSON string of extracted fields
      */
     String performVisionOcr(byte[] imageBytes, String mimeType);
+
+    /**
+     * Performs multimodal vision OCR & document classification with expected document hint (TASK-057).
+     */
+    default String performVisionOcr(byte[] imageBytes, String mimeType, String expectedFormType) {
+        return performVisionOcr(imageBytes, mimeType);
+    }
 }

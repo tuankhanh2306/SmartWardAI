@@ -57,4 +57,24 @@ public class ExtractedFormFields {
 
     @Schema(description = "Điểm tin cậy OCR chi tiết cho từng trường")
     private Map<String, Double> fieldConfidences;
+
+    // TASK-057: Honest OCR & Document Classification metadata + Birth Registration fields
+    private String ocrStatus;
+    private String readabilityStatus;
+    private String readabilityReason;
+    private String detectedDocumentType;
+    private Boolean isBlankTemplate;
+    private String rawTextExcerpt;
+
+    private String childFullName;
+    private String childDob;
+    private String childGender;
+    private String childEthnicity;
+    private String childBirthPlace;
+    private String motherFullName;
+    private String fatherFullName;
+    private String birthCertNumber;
+    private String birthCertIssueDate;
+    private String hospitalName;
+    private Boolean hasRedSeal;
 }
