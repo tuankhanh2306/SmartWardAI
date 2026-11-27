@@ -518,26 +518,39 @@ export const FieldIncidentReportScreen: React.FC = () => {
     setOutcome(null);
     setFlushNotice(null);
 
-    const res = await executeIncidentSubmission({
-      category,
-      description,
-      addressText,
-      reporterPhone,
-      latitude,
-      longitude,
-      fallbackWardCode: currentWard.code,
-      locationSource,
-      locationAccuracyM: gpsAccuracy ?? undefined,
-      localPhotoUris: photos.map((p) => p.uri),
-    });
+    try {
+      const res = await executeIncidentSubmission({
+        category,
+        description,
+        addressText,
+        reporterPhone,
+        latitude,
+        longitude,
+        fallbackWardCode: currentWard.code,
+        locationSource,
+        locationAccuracyM: gpsAccuracy ?? undefined,
+        localPhotoUris: photos.map((p) => p.uri),
+      });
 
-    setOutcome(res);
-    await loadOfflineQueue();
-    if (res.success) {
-      setDescription('');
-      setPhotos([]);
+      setOutcome(res);
+      await loadOfflineQueue();
+      if (res.success) {
+        setDescription('');
+        setPhotos([]);
+      }
+    } catch (err) {
+      setOutcome({
+        success: false,
+        mode: 'VALIDATION_FAILED',
+        errors: ['Không thể gửi phản ánh lúc này. Vui lòng thử lại.'],
+        message:
+          err instanceof Error && err.message
+            ? err.message
+            : 'Không thể gửi phản ánh lúc này. Vui lòng thử lại.',
+      });
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false);
   };
 
   const handleFlushQueue = async (targetLocalId?: string) => {
@@ -545,17 +558,22 @@ export const FieldIncidentReportScreen: React.FC = () => {
     setFlushing(true);
     setBusyHistoryLocalId(targetLocalId ?? null);
     setFlushNotice(null);
-    const res = await flushOfflineIncidentQueue(targetLocalId ? { localId: targetLocalId } : {});
-    await loadOfflineQueue();
-    setFlushNotice(
-      res.syncedCount > 0
-        ? `Đã đồng bộ thành công ${res.syncedCount}/${res.totalQueued} báo cáo lên máy chủ.`
-        : res.editRequiredCount > 0
-        ? 'Có phản ánh cần chỉnh sửa lại vị trí hoặc thông tin trước khi gửi lại.'
-        : 'Chưa kết nối được máy chủ. Các báo cáo vẫn được giữ an toàn trong hàng đợi.'
-    );
-    setBusyHistoryLocalId(null);
-    setFlushing(false);
+    try {
+      const res = await flushOfflineIncidentQueue(targetLocalId ? { localId: targetLocalId } : {});
+      await loadOfflineQueue();
+      setFlushNotice(
+        res.syncedCount > 0
+          ? `Đã đồng bộ thành công ${res.syncedCount}/${res.totalQueued} báo cáo lên máy chủ.`
+          : res.editRequiredCount > 0
+          ? 'Có phản ánh cần chỉnh sửa lại vị trí hoặc thông tin trước khi gửi lại.'
+          : 'Chưa kết nối được máy chủ. Các báo cáo vẫn được giữ an toàn trong hàng đợi.'
+      );
+    } catch {
+      setFlushNotice('Có lỗi khi đồng bộ hàng đợi phản ánh. Vui lòng thử lại.');
+    } finally {
+      setBusyHistoryLocalId(null);
+      setFlushing(false);
+    }
   };
 
   const handleEditSyncHistoryItem = async (item: IncidentSyncHistoryRow) => {
