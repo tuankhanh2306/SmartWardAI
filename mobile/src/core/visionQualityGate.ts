@@ -1,160 +1,245 @@
 /**
- * SmartWard AI Mobile — Chốt chặn AI Thị Giác 3 Tiêu chí (AI Vision Quality Gate)
- *
- * 3 Tiêu chí bắt buộc trước khi nộp hồ sơ:
- * 1. Độ sắc nét & Độ sáng (sharpnessScore >= 45/100, brightnessScore >= 55/255)
- *    + Chống tràn RAM Pixel-Flood OOM (resize <= 1920px, JPEG compress 0.82 qua expo-image-manipulator)
- * 2. Khớp đúng biểu mẫu đang chọn (CT01 | TK-KS | TK-KH | TK-BTXH)
- * 3. Số trường thông tin nhận diện rõ (extractedFieldsCount / totalExpectedFields)
+ * SmartWard AI Mobile — Chốt Chặn Kiểm Định Ảnh Giấy Tờ (TASK-056 / TASK-057)
+ * Nguyên tắc trung thực tuyệt đối:
+ *  - Không bao giờ tự gán điểm nét/sáng giả (92/100, 190/255) khi chưa đo.
+ *  - Không suy luận loại giấy tờ từ tên tệp (fileName).
+ *  - Không mặc định UNKNOWN là đúng mẫu.
+ *  - Không tự bịa số trường đọc được (5/5) khi chưa chạy OCR hoặc OCR không trích xuất được trường nào.
+ *  - Tách bạch 4 trạng thái: chất lượng chưa đo (NOT_EVALUATED), OCR chưa chạy (NOT_RUN),
+ *    OCR lỗi mạng/không khả dụng (NETWORK_ERROR / UNAVAILABLE), và đã đọc nhưng chưa xác định loại (UNIDENTIFIED).
  */
 
 import { DOMAIN_THRESHOLDS } from '../theme/tokens';
 import type { CoreFormType } from '../types/api.types';
 
+export const VISION_MIN_SHARPNESS_SCORE = DOMAIN_THRESHOLDS.visionMinSharpnessScore; // 45
+export const VISION_MIN_BRIGHTNESS_SCORE = DOMAIN_THRESHOLDS.visionMinBrightnessScore; // 55
 export const VISION_MAX_IMAGE_EDGE_PX = 1920;
-export const VISION_BACKEND_HARD_LIMIT_PX = 4096;
-export const VISION_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 
-export type VisionQualityStatus = 'GOOD' | 'BLURRY' | 'TOO_DARK';
+export type ExpectedDocumentType = CoreFormType | 'BIRTH_CERT' | 'CCCD';
+export type DetectedDocumentType =
+  | CoreFormType
+  | 'BIRTH_CERT'
+  | 'CCCD'
+  | 'OTHER_TEXT'
+  | 'NON_DOCUMENT'
+  | 'UNKNOWN';
+
+export type VisionQualityStatus =
+  | 'PASS'
+  | 'BLURRY'
+  | 'TOO_DARK'
+  | 'GLARE'
+  | 'CROPPED'
+  | 'UNREADABLE'
+  | 'NOT_EVALUATED';
+
+export type VisionOcrStatus = 'NOT_RUN' | 'NETWORK_ERROR' | 'UNAVAILABLE' | 'COMPLETED';
+
+export type TemplateMatchStatus =
+  | 'MATCHED_FILLED'
+  | 'MATCHED_BLANK'
+  | 'WRONG_DOCUMENT'
+  | 'UNIDENTIFIED'
+  | 'NOT_CHECKED';
 
 export interface VisionGateEvaluationInput {
-  expectedFormType: CoreFormType;
-  fileName: string;
+  expectedFormType: ExpectedDocumentType;
+  fileName?: string;
   mimeType?: string;
+  /** OCR text returned from server / verified document parser (NEVER inferred from filename) */
   rawText?: string;
-  /** Measured Laplacian sharpness score (0..100). Digital DOCX/PDF defaults to 100. */
-  sharpnessScore?: number;
-  /** Measured luminance brightness score (0..255). Digital DOCX/PDF defaults to 220. */
-  brightnessScore?: number;
-  /** Number of required fields extracted from OCR/DOCX */
-  extractedFieldsCount?: number;
-  /** Total expected mandatory fields for the chosen form */
+  /** Real measured sharpness (0-100); omit/null if not measured */
+  sharpnessScore?: number | null;
+  /** Real measured brightness (0-255); omit/null if not measured */
+  brightnessScore?: number | null;
+  /** Server-reported image readability status */
+  readabilityStatus?: VisionQualityStatus | 'CLEAR' | null;
+  /** Server-reported Vietnamese reason for readability / OCR decision */
+  readabilityReason?: string | null;
+  /** Explicit OCR execution status */
+  ocrStatus?: VisionOcrStatus;
+  /** Server-reported document type classification */
+  detectedDocumentType?: DetectedDocumentType | string | null;
+  /** Server-confirmed blank official template (ONLY valid when official header matched) */
+  isBlankTemplate?: boolean;
+  /** Real count of matched extracted fields; null/undefined when OCR hasn't extracted fields */
+  extractedFieldsCount?: number | null;
   totalExpectedFields?: number;
-  /** Optional raw image dimensions before resize */
-  widthPx?: number;
-  heightPx?: number;
-  fileSizeBytes?: number;
-}
-
-export interface TemplateMatchResult {
-  templateMatched: boolean;
-  detectedFormCode: CoreFormType | 'UNKNOWN';
-  detectedFormLabel: string;
-  expectedFormLabel: string;
-  templateMessage: string;
 }
 
 export interface VisionGateResult {
-  // Criterion 1: Sharpness & Brightness
-  sharpnessScore: number; // 0..100
-  brightnessScore: number; // 0..255
+  canSubmit: boolean;
+  isVerifiedForSubmission: boolean;
+  qualityStatus: VisionQualityStatus;
+  ocrStatus: VisionOcrStatus;
+  templateMatchStatus: TemplateMatchStatus;
   isBlurry: boolean;
   isTooDark: boolean;
-  qualityStatus: VisionQualityStatus;
-  qualityMessage: string;
-
-  // Criterion 2: Template Match
+  sharpnessScore: number | null;
+  brightnessScore: number | null;
   templateMatched: boolean;
-  detectedFormCode: CoreFormType | 'UNKNOWN';
-  detectedFormLabel: string;
-  templateMessage: string;
-
-  // Criterion 3: Extracted Fields Count
-  extractedFieldsCount: number;
+  detectedFormCode: DetectedDocumentType;
+  expectedFormCode: ExpectedDocumentType;
+  extractedFieldsCount: number | null;
   totalExpectedFields: number;
+  qualityMessage: string;
+  templateMessage: string;
   fieldsMessage: string;
-
-  // Final Gate Decision
-  canSubmit: boolean;
+  reasonMessage: string;
   blockedReason?: string;
+  suggestedTargetSlot?: ExpectedDocumentType;
   submitButtonLabel: string;
 }
 
-export const FORM_TYPE_LABELS: Record<CoreFormType, string> = {
-  CT01: 'Mẫu CT01 (Thay đổi thông tin cư trú)',
-  'TK-KS': 'Tờ khai Đăng ký khai sinh (TT 04/2020/TT-BTP)',
-  'TK-KH': 'Tờ khai Kết hôn / Xác nhận độc thân (Luật HN&GĐ 2014)',
-  'TK-BTXH': 'Tờ khai Trợ cấp bảo trợ xã hội (NĐ 20/2021 & NĐ 335/2026)',
-};
+export function getDocumentTypeDisplayName(code: DetectedDocumentType | ExpectedDocumentType): string {
+  switch (code) {
+    case 'CT01':
+      return 'Tờ khai thay đổi cư trú (CT01)';
+    case 'TK-KS':
+      return 'Tờ khai đăng ký khai sinh (TK-KS)';
+    case 'BIRTH_CERT':
+      return 'Giấy chứng sinh';
+    case 'TK-KH':
+      return 'Tờ khai đăng ký kết hôn / TTHN (TK-KH)';
+    case 'TK-BTXH':
+      return 'Tờ khai trợ giúp xã hội (TK-BTXH)';
+    case 'CCCD':
+      return 'Thẻ Căn cước công dân (CCCD)';
+    case 'OTHER_TEXT':
+      return 'Văn bản không phải biểu mẫu TTHC';
+    case 'NON_DOCUMENT':
+      return 'Ảnh không chứa giấy tờ hành chính';
+    default:
+      return 'Chưa xác định loại giấy tờ';
+  }
+}
 
-export const FORM_EXPECTED_FIELDS_COUNT: Record<CoreFormType, number> = {
-  CT01: 5,
-  'TK-KS': 5,
-  'TK-KH': 5,
-  'TK-BTXH': 4,
-};
+export function normalizeDetectedDocumentType(raw?: string | null): DetectedDocumentType {
+  const clean = (raw || '').trim().toUpperCase().replace(/\s+/g, '_');
+  if (!clean) return 'UNKNOWN';
+  if (clean === 'TK_KS' || clean === 'TK-KS' || clean === 'BIRTH_DECLARATION') return 'TK-KS';
+  if (clean === 'BIRTH_CERT' || clean === 'BIRTH_CERTIFICATE' || clean === 'GIAY_CHUNG_SINH') {
+    return 'BIRTH_CERT';
+  }
+  if (clean === 'CT01' || clean === 'CT_01' || clean === 'CT01_RESIDENCE_DECLARATION') return 'CT01';
+  if (clean === 'TK_KH' || clean === 'TK-KH' || clean === 'MARRIAGE_DECLARATION') return 'TK-KH';
+  if (clean === 'TK_BTXH' || clean === 'TK-BTXH' || clean === 'SOCIAL_PROTECTION') return 'TK-BTXH';
+  if (clean === 'CCCD' || clean === 'ID_CARD') return 'CCCD';
+  if (clean === 'OTHER_TEXT') return 'OTHER_TEXT';
+  if (clean === 'NON_DOCUMENT') return 'NON_DOCUMENT';
+  return 'UNKNOWN';
+}
+
+function normalizeReadabilityStatus(
+  raw?: VisionQualityStatus | 'CLEAR' | null
+): VisionQualityStatus | null {
+  if (!raw) return null;
+  const upper = String(raw).trim().toUpperCase();
+  if (upper === 'CLEAR' || upper === 'PASS') return 'PASS';
+  if (upper === 'BLURRY') return 'BLURRY';
+  if (upper === 'TOO_DARK') return 'TOO_DARK';
+  if (upper === 'GLARE') return 'GLARE';
+  if (upper === 'CROPPED') return 'CROPPED';
+  if (upper === 'UNREADABLE') return 'UNREADABLE';
+  if (upper === 'NOT_EVALUATED') return 'NOT_EVALUATED';
+  return null;
+}
 
 /**
- * Checks if uploaded photo/DOCX/PDF text matches the selected form tab.
+ * Classifies document type STRICTLY from real OCR text content (NEVER from fileName).
+ * Distinguishes Tờ khai đăng ký khai sinh (TK-KS) from Giấy chứng sinh (BIRTH_CERT).
  */
 export function verifyTemplateMatch(
-  rawText: string,
-  fileName: string,
-  expectedFormType: CoreFormType
-): TemplateMatchResult {
-  const combined = `${rawText || ''} ${fileName || ''}`.toUpperCase();
-  let detected: CoreFormType | 'UNKNOWN' = 'UNKNOWN';
+  rawText: string | undefined,
+  _ignoredFileName: string | undefined,
+  expectedFormType: ExpectedDocumentType
+): {
+  templateMatched: boolean;
+  detectedFormCode: DetectedDocumentType;
+  templateMessage: string;
+} {
+  const text = (rawText || '').trim().toUpperCase();
+  if (!text) {
+    return {
+      templateMatched: false,
+      detectedFormCode: 'UNKNOWN',
+      templateMessage: 'Chưa có nội dung OCR để xác định loại giấy tờ.',
+    };
+  }
 
+  let detected: DetectedDocumentType = 'UNKNOWN';
+
+  // Distinguish Giấy chứng sinh (BIRTH_CERT) BEFORE Tờ khai đăng ký khai sinh (TK-KS)
   if (
-    combined.includes('CT01') ||
-    combined.includes('THÔNG TIN CƯ TRÚ') ||
-    combined.includes('THONG TIN CU TRU') ||
-    combined.includes('116/2026/TT-BCA') ||
-    combined.includes('66/2023/TT-BCA') ||
-    combined.includes('CR-01')
+    text.includes('GIẤY CHỨNG SINH') ||
+    text.includes('GIAY CHUNG SINH') ||
+    text.includes('BIRTH_CERT') ||
+    (text.includes('CHỨNG SINH') && !text.includes('TỜ KHAI ĐĂNG KÝ KHAI SINH'))
+  ) {
+    detected = 'BIRTH_CERT';
+  } else if (
+    text.includes('CT01') ||
+    text.includes('THAY ĐỔI THÔNG TIN CƯ TRÚ') ||
+    text.includes('THAY DOI THONG TIN CU TRU') ||
+    text.includes('TT 116/2026')
   ) {
     detected = 'CT01';
   } else if (
-    combined.includes('KHAI SINH') ||
-    combined.includes('CHỨNG SINH') ||
-    combined.includes('CHUNG SINH') ||
-    combined.includes('TK-KS') ||
-    combined.includes('HT-01')
+    text.includes('TK-KS') ||
+    text.includes('ĐĂNG KÝ KHAI SINH') ||
+    text.includes('DANG KY KHAI SINH') ||
+    text.includes('TỜ KHAI KHAI SINH') ||
+    text.includes('TT 04/2020')
   ) {
     detected = 'TK-KS';
   } else if (
-    combined.includes('KẾT HÔN') ||
-    combined.includes('KET HON') ||
-    combined.includes('TÌNH TRẠNG HÔN NHÂN') ||
-    combined.includes('TINH TRANG HON NHAN') ||
-    combined.includes('ĐỘC THÂN') ||
-    combined.includes('DOC THAN') ||
-    combined.includes('TK-KH') ||
-    combined.includes('HT-02')
+    text.includes('TK-KH') ||
+    text.includes('ĐĂNG KÝ KẾT HÔN') ||
+    text.includes('DANG KY KET HON') ||
+    text.includes('TÌNH TRẠNG HÔN NHÂN') ||
+    text.includes('TINH TRANG HON NHAN')
   ) {
     detected = 'TK-KH';
   } else if (
-    combined.includes('TRỢ CẤP') ||
-    combined.includes('TRO CAP') ||
-    combined.includes('TRỢ GIÚP XÃ HỘI') ||
-    combined.includes('BẢO TRỢ') ||
-    combined.includes('BAO TRO') ||
-    combined.includes('20/2021/NĐ-CP') ||
-    combined.includes('335/2026/NĐ-CP') ||
-    combined.includes('TK-BTXH') ||
-    combined.includes('BT-01')
+    text.includes('TK-BTXH') ||
+    text.includes('TRỢ GIÚP XÃ HỘI') ||
+    text.includes('TRO GIUP XA HOI') ||
+    text.includes('BẢO TRỢ XÃ HỘI') ||
+    text.includes('BAO TRO XA HOI') ||
+    text.includes('20/2021')
   ) {
     detected = 'TK-BTXH';
+  } else if (
+    text.includes('CĂN CƯỚC CÔNG DÂN') ||
+    text.includes('CAN CUOC CONG DAN') ||
+    text.includes('CITIZEN IDENTITY CARD')
+  ) {
+    detected = 'CCCD';
+  } else {
+    detected = 'OTHER_TEXT';
   }
 
-  const expectedLabel = FORM_TYPE_LABELS[expectedFormType];
-
-  if (detected !== 'UNKNOWN' && detected !== expectedFormType) {
+  if (detected === 'OTHER_TEXT') {
     return {
       templateMatched: false,
       detectedFormCode: detected,
-      detectedFormLabel: FORM_TYPE_LABELS[detected],
-      expectedFormLabel: expectedLabel,
-      templateMessage: `BỊ CHẶN — SAI MẪU: Ảnh/tệp tải lên là "${FORM_TYPE_LABELS[detected]}", không khớp với mục đang chọn là "${expectedLabel}".`,
+      templateMessage: 'Chưa xác định được loại giấy tờ hành chính từ nội dung ảnh.',
+    };
+  }
+
+  if (detected !== expectedFormType) {
+    return {
+      templateMatched: false,
+      detectedFormCode: detected,
+      templateMessage: `Ảnh nhận diện là ${getDocumentTypeDisplayName(detected)}, không khớp mục đang chọn (${getDocumentTypeDisplayName(expectedFormType)}).`,
     };
   }
 
   return {
     templateMatched: true,
-    detectedFormCode: detected === 'UNKNOWN' ? expectedFormType : detected,
-    detectedFormLabel: expectedLabel,
-    expectedFormLabel: expectedLabel,
-    templateMessage: `Đúng ${expectedFormType} — ${expectedLabel}.`,
+    detectedFormCode: detected,
+    templateMessage: `Đúng ${getDocumentTypeDisplayName(expectedFormType)}`,
   };
 }
 
@@ -168,7 +253,6 @@ export async function resizeImageForUpload(
   height?: number
 ): Promise<{ uri: string; width?: number; height?: number }> {
   try {
-    // Dynamic import so pure-Node Vitest unit tests work cleanly without native Expo runtime
     const ImageManipulator = await import('expo-image-manipulator');
     const actions: Array<{ resize: { width?: number; height?: number } }> = [];
 
@@ -195,16 +279,14 @@ export async function resizeImageForUpload(
       height: result.height,
     };
   } catch {
-    // Fallback in non-native/unit-test environments
     return { uri, width, height };
   }
 }
 
 /**
- * Evaluates all 3 criteria of the AI Vision Quality Gate using invariant thresholds:
- * - sharpnessScore >= 45 / 100
- * - brightnessScore >= 55 / 255
- * - templateMatched === true
+ * Honest Vision Quality Gate evaluation (TASK-056 & TASK-057).
+ * Never fabricates sharpness/brightness scores, never matches by filename,
+ * never defaults UNKNOWN to pass, and never fabricates extractedFieldsCount.
  */
 export function evaluateDocumentVisionGate(
   input: VisionGateEvaluationInput
@@ -214,77 +296,245 @@ export function evaluateDocumentVisionGate(
   const isDigitalDocument =
     lowerName.endsWith('.docx') ||
     lowerName.endsWith('.pdf') ||
-    mime.includes('pdf') ||
-    mime.includes('wordprocessingml');
+    mime.includes('wordprocessingml') ||
+    mime.includes('pdf');
 
-  const sharpnessScore = Math.max(
-    0,
-    Math.min(100, Math.round(input.sharpnessScore ?? (isDigitalDocument ? 100 : 92)))
-  );
-  const brightnessScore = Math.max(
-    0,
-    Math.min(255, Math.round(input.brightnessScore ?? (isDigitalDocument ? 220 : 185)))
-  );
+  const totalExpectedFields = input.totalExpectedFields ?? 5;
 
-  const isBlurry = sharpnessScore < DOMAIN_THRESHOLDS.visionMinSharpnessScore; // < 45
-  const isTooDark = brightnessScore < DOMAIN_THRESHOLDS.visionMinBrightnessScore; // < 55
+  // 1. Quality / Readability assessment (NO fake 92/185 defaults!)
+  const sharpnessScore =
+    typeof input.sharpnessScore === 'number' && Number.isFinite(input.sharpnessScore)
+      ? Math.max(0, Math.min(100, Math.round(input.sharpnessScore)))
+      : isDigitalDocument
+      ? 100
+      : null;
 
-  let qualityStatus: VisionQualityStatus = 'GOOD';
-  let qualityMessage = `Ảnh rõ nét (${sharpnessScore}/100 điểm), ánh sáng tốt (${brightnessScore}/255).`;
+  const brightnessScore =
+    typeof input.brightnessScore === 'number' && Number.isFinite(input.brightnessScore)
+      ? Math.max(0, Math.min(255, Math.round(input.brightnessScore)))
+      : isDigitalDocument
+      ? 220
+      : null;
 
-  if (isTooDark) {
-    qualityStatus = 'TOO_DARK';
-    qualityMessage = `BỊ CHẶN — THIẾU SÁNG (${brightnessScore}/255 < ${DOMAIN_THRESHOLDS.visionMinBrightnessScore}). Vui lòng bật đèn và chụp lại tờ khai.`;
-  } else if (isBlurry) {
-    qualityStatus = 'BLURRY';
-    qualityMessage = `BỊ CHẶN — ẢNH MỜ (${sharpnessScore}/100 < ${DOMAIN_THRESHOLDS.visionMinSharpnessScore}). Vui lòng giữ chắc tay và chụp vuông góc.`;
+  const serverReadability = normalizeReadabilityStatus(input.readabilityStatus);
+  let qualityStatus: VisionQualityStatus = 'NOT_EVALUATED';
+
+  if (serverReadability && serverReadability !== 'NOT_EVALUATED') {
+    qualityStatus = serverReadability;
   } else if (isDigitalDocument) {
-    qualityMessage = 'Tệp văn bản kỹ thuật số (.DOCX/.PDF) đạt độ sắc nét tuyệt đối 100/100.';
+    qualityStatus = 'PASS';
+  } else if (sharpnessScore !== null || brightnessScore !== null) {
+    if (sharpnessScore !== null && sharpnessScore < VISION_MIN_SHARPNESS_SCORE) {
+      qualityStatus = 'BLURRY';
+    } else if (brightnessScore !== null && brightnessScore < VISION_MIN_BRIGHTNESS_SCORE) {
+      qualityStatus = 'TOO_DARK';
+    } else if (sharpnessScore !== null && brightnessScore !== null) {
+      qualityStatus = 'PASS';
+    } else {
+      qualityStatus = 'NOT_EVALUATED';
+    }
   }
 
-  const templateCheck = verifyTemplateMatch(
-    input.rawText || '',
-    input.fileName,
-    input.expectedFormType
+  const isBlurry = qualityStatus === 'BLURRY' || qualityStatus === 'UNREADABLE';
+  const isTooDark = qualityStatus === 'TOO_DARK';
+  const isReadabilityFailed =
+    qualityStatus === 'BLURRY' ||
+    qualityStatus === 'TOO_DARK' ||
+    qualityStatus === 'GLARE' ||
+    qualityStatus === 'CROPPED' ||
+    qualityStatus === 'UNREADABLE';
+
+  const qualityMessage = (() => {
+    if (isDigitalDocument) return 'Tệp văn bản số (.DOCX/.PDF) rõ chữ';
+    switch (qualityStatus) {
+      case 'PASS':
+        return 'Ảnh đủ rõ và đủ sáng để đọc nội dung';
+      case 'BLURRY':
+        return 'Ảnh bị mờ/nhòe — hãy giữ chắc tay và chụp lại';
+      case 'TOO_DARK':
+        return 'Ảnh thiếu sáng — hãy đưa ra nơi đủ ánh sáng rồi chụp lại';
+      case 'GLARE':
+        return 'Ảnh bị lóa sáng che mất chữ — nghiêng nhẹ góc máy và chụp lại';
+      case 'CROPPED':
+        return 'Ảnh bị cắt mất góc giấy — đưa đủ 4 góc tờ giấy vào khung';
+      case 'UNREADABLE':
+        return 'Không đọc được chữ trên ảnh — vui lòng chụp lại rõ nét hơn';
+      default:
+        return 'Chưa đánh giá chất lượng ảnh';
+    }
+  })();
+
+  // 2. OCR execution status (explicitly separated from UNIDENTIFIED!)
+  const hasOcrEvidence = Boolean(
+    (input.rawText && input.rawText.trim().length > 0) ||
+      (input.detectedDocumentType && String(input.detectedDocumentType).trim().length > 0) ||
+      typeof input.extractedFieldsCount === 'number'
   );
+  const ocrStatus: VisionOcrStatus = input.ocrStatus ?? (hasOcrEvidence ? 'COMPLETED' : 'NOT_RUN');
 
-  const totalExpectedFields =
-    input.totalExpectedFields ?? FORM_EXPECTED_FIELDS_COUNT[input.expectedFormType];
-  const extractedFieldsCount = Math.max(
-    0,
-    Math.min(totalExpectedFields, input.extractedFieldsCount ?? (isBlurry || isTooDark ? 1 : totalExpectedFields))
-  );
-  const fieldsMessage = `${extractedFieldsCount}/${totalExpectedFields} mục rõ chữ`;
+  // 3. Document classification (strictly from server classification or real OCR text — NEVER fileName)
+  let detectedFormCode: DetectedDocumentType = 'UNKNOWN';
+  let templateMatchStatus: TemplateMatchStatus = 'NOT_CHECKED';
+  let templateMatched = false;
+  let templateMessage = 'Chưa kiểm tra nội dung ảnh để xác định loại giấy tờ.';
+  let suggestedTargetSlot: ExpectedDocumentType | undefined;
 
-  const canSubmit = !isBlurry && !isTooDark && templateCheck.templateMatched;
+  if (ocrStatus === 'NOT_RUN') {
+    templateMatchStatus = 'NOT_CHECKED';
+    detectedFormCode = 'UNKNOWN';
+    templateMessage = 'Chưa chạy kiểm tra nội dung (OCR) cho ảnh này.';
+  } else if (ocrStatus === 'NETWORK_ERROR') {
+    templateMatchStatus = 'NOT_CHECKED';
+    detectedFormCode = 'UNKNOWN';
+    templateMessage = 'Không kết nối được máy chủ OCR để nhận diện loại giấy tờ.';
+  } else if (ocrStatus === 'UNAVAILABLE') {
+    templateMatchStatus = 'NOT_CHECKED';
+    detectedFormCode = 'UNKNOWN';
+    templateMessage = 'Dịch vụ nhận diện ảnh (OCR) tạm thời chưa sẵn sàng.';
+  } else {
+    // ocrStatus === 'COMPLETED'
+    const serverDetected = normalizeDetectedDocumentType(input.detectedDocumentType);
+    const textCheck = verifyTemplateMatch(input.rawText, undefined, input.expectedFormType);
+    detectedFormCode = serverDetected !== 'UNKNOWN' ? serverDetected : textCheck.detectedFormCode;
 
-  let blockedReason: string | undefined;
-  let submitButtonLabel = '✨ Kiểm Tra & Gửi Sơ Duyệt Cán Bộ';
+    if (
+      detectedFormCode === 'UNKNOWN' ||
+      detectedFormCode === 'OTHER_TEXT' ||
+      detectedFormCode === 'NON_DOCUMENT'
+    ) {
+      templateMatchStatus = 'UNIDENTIFIED';
+      templateMatched = false;
+      templateMessage = 'Chưa xác định loại giấy tờ — ảnh không khớp mẫu hành chính nào.';
+    } else if (detectedFormCode !== input.expectedFormType) {
+      templateMatchStatus = 'WRONG_DOCUMENT';
+      templateMatched = false;
+      templateMessage = `Nhận diện nhầm loại: đây là ${getDocumentTypeDisplayName(detectedFormCode)}, không phải ${getDocumentTypeDisplayName(input.expectedFormType)}.`;
+      if (
+        detectedFormCode === 'BIRTH_CERT' ||
+        detectedFormCode === 'TK-KS' ||
+        detectedFormCode === 'CT01' ||
+        detectedFormCode === 'TK-KH' ||
+        detectedFormCode === 'TK-BTXH' ||
+        detectedFormCode === 'CCCD'
+      ) {
+        suggestedTargetSlot = detectedFormCode;
+      }
+    } else {
+      // Exact document type matched! Distinguish MATCHED_BLANK vs MATCHED_FILLED.
+      // CRITICAL (TASK-057): ONLY mark MATCHED_BLANK when server explicitly confirmed blank official template
+      // AND readability is PASS (never treat 0 extracted fields on unreadable/faint photo as blank template!).
+      if (input.isBlankTemplate === true && !isReadabilityFailed) {
+        templateMatchStatus = 'MATCHED_BLANK';
+        templateMatched = true;
+        templateMessage = `Đúng mẫu ${getDocumentTypeDisplayName(input.expectedFormType)} nhưng tờ khai còn trống thông tin.`;
+      } else {
+        templateMatchStatus = 'MATCHED_FILLED';
+        templateMatched = true;
+        templateMessage = `Đúng ${getDocumentTypeDisplayName(input.expectedFormType)}`;
+      }
+    }
+  }
 
-  if (isBlurry || isTooDark) {
-    blockedReason = qualityMessage;
-    submitButtonLabel = '🚫 AI Thị Giác Chặn Gửi (Chụp Lại Ảnh)';
-  } else if (!templateCheck.templateMatched) {
-    blockedReason = templateCheck.templateMessage;
-    submitButtonLabel = '🚫 AI Thị Giác Chặn Gửi (Chọn Đúng Mẫu)';
+  // 4. Real extracted field count (NEVER fabricated!)
+  let extractedFieldsCount: number | null = null;
+  let fieldsMessage = 'Chưa biết số trường (chưa kiểm tra OCR)';
+
+  if (ocrStatus === 'NOT_RUN') {
+    extractedFieldsCount = null;
+    fieldsMessage = 'Chưa đọc nội dung ảnh (bấm Kiểm tra ảnh)';
+  } else if (ocrStatus === 'NETWORK_ERROR') {
+    extractedFieldsCount = null;
+    fieldsMessage = 'Chưa đọc được do mất kết nối mạng';
+  } else if (ocrStatus === 'UNAVAILABLE') {
+    extractedFieldsCount = null;
+    fieldsMessage = 'Chưa đọc được (dịch vụ OCR chưa sẵn sàng)';
+  } else if (typeof input.extractedFieldsCount === 'number' && Number.isFinite(input.extractedFieldsCount)) {
+    extractedFieldsCount = Math.max(0, Math.round(input.extractedFieldsCount));
+    fieldsMessage =
+      extractedFieldsCount > 0
+        ? `Đọc được ${extractedFieldsCount}/${totalExpectedFields} mục có dữ liệu`
+        : '0 trường phù hợp đọc được từ ảnh';
+  } else if (templateMatchStatus === 'UNIDENTIFIED' || templateMatchStatus === 'WRONG_DOCUMENT') {
+    extractedFieldsCount = 0;
+    fieldsMessage = '0 trường phù hợp với mẫu đang chọn';
+  } else if (templateMatchStatus === 'MATCHED_BLANK') {
+    extractedFieldsCount = 0;
+    fieldsMessage = '0 trường đã điền (mẫu trống)';
+  } else if (isDigitalDocument && templateMatched) {
+    extractedFieldsCount = null;
+    fieldsMessage = 'Tệp văn bản đúng mẫu — kiểm tra các trường bên dưới';
+  } else {
+    extractedFieldsCount = null;
+    fieldsMessage = 'Chưa trích xuất được giá trị cụ thể từ ảnh';
+  }
+
+  // 5. Final verdict & honest button label
+  const isVerifiedForSubmission =
+    qualityStatus === 'PASS' &&
+    ocrStatus === 'COMPLETED' &&
+    templateMatchStatus === 'MATCHED_FILLED';
+
+  const canSubmit = isVerifiedForSubmission;
+
+  let reasonMessage = input.readabilityReason?.trim() || '';
+  if (!reasonMessage) {
+    if (isReadabilityFailed) {
+      reasonMessage = qualityMessage;
+    } else if (ocrStatus === 'NETWORK_ERROR') {
+      reasonMessage = 'Mất kết nối mạng khi kiểm tra ảnh. Ảnh vẫn được giữ lại — bấm Thử kiểm tra lại.';
+    } else if (ocrStatus === 'UNAVAILABLE') {
+      reasonMessage = 'Dịch vụ OCR trên máy chủ chưa sẵn sàng. Bạn có thể tự nhập thông tin vào tờ khai bên dưới.';
+    } else if (ocrStatus === 'NOT_RUN') {
+      reasonMessage = 'Ảnh mới chọn chưa qua bước kiểm tra nội dung OCR.';
+    } else if (templateMatchStatus === 'UNIDENTIFIED') {
+      reasonMessage = 'Chưa xác định loại giấy tờ. Không tự điền dữ liệu để tránh sai lệch hồ sơ.';
+    } else if (templateMatchStatus === 'WRONG_DOCUMENT') {
+      reasonMessage = templateMessage;
+    } else if (templateMatchStatus === 'MATCHED_BLANK') {
+      reasonMessage = 'Ảnh là mẫu giấy tờ còn trống, chưa có thông tin công dân để điền nháp.';
+    } else if (qualityStatus === 'NOT_EVALUATED') {
+      reasonMessage = 'Chất lượng ảnh chưa được đánh giá — vui lòng kiểm tra lại ảnh.';
+    } else {
+      reasonMessage = 'Ảnh đạt độ đọc được và khớp đúng loại giấy tờ yêu cầu.';
+    }
+  }
+
+  let submitButtonLabel = 'Kiểm Tra & Gửi Sơ Duyệt';
+  if (isReadabilityFailed) {
+    submitButtonLabel = 'Chụp Lại Ảnh Rõ Nét Hơn';
+  } else if (ocrStatus === 'NETWORK_ERROR' || ocrStatus === 'UNAVAILABLE') {
+    submitButtonLabel = 'Thử Kiểm Tra Ảnh Lại';
+  } else if (ocrStatus === 'NOT_RUN' || qualityStatus === 'NOT_EVALUATED') {
+    submitButtonLabel = 'Kiểm Tra Ảnh Trước Khi Gửi';
+  } else if (templateMatchStatus === 'WRONG_DOCUMENT') {
+    submitButtonLabel = `Chọn Đúng Mẫu ${input.expectedFormType}`;
+  } else if (templateMatchStatus === 'UNIDENTIFIED') {
+    submitButtonLabel = 'Chưa Xác Định Giấy Tờ — Chụp Lại';
+  } else if (templateMatchStatus === 'MATCHED_BLANK') {
+    submitButtonLabel = 'Mẫu Trống — Điền Rồi Chụp Lại';
   }
 
   return {
-    sharpnessScore,
-    brightnessScore,
+    canSubmit,
+    isVerifiedForSubmission,
+    qualityStatus,
+    ocrStatus,
+    templateMatchStatus,
     isBlurry,
     isTooDark,
-    qualityStatus,
-    qualityMessage,
-    templateMatched: templateCheck.templateMatched,
-    detectedFormCode: templateCheck.detectedFormCode,
-    detectedFormLabel: templateCheck.detectedFormLabel,
-    templateMessage: templateCheck.templateMessage,
+    sharpnessScore,
+    brightnessScore,
+    templateMatched,
+    detectedFormCode,
+    expectedFormCode: input.expectedFormType,
     extractedFieldsCount,
     totalExpectedFields,
+    qualityMessage,
+    templateMessage,
     fieldsMessage,
-    canSubmit,
-    blockedReason,
+    reasonMessage,
+    blockedReason: canSubmit ? undefined : reasonMessage,
+    suggestedTargetSlot,
     submitButtonLabel,
   };
 }
