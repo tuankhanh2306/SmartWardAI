@@ -13,7 +13,7 @@ export function normalizeVi(str: string): string {
 
 /**
  * Highlights all accent-insensitive occurrences of `query` inside `text`
- * with a soft coral <mark> matching the Wai search recommendation UI.
+ * with a yellow <mark> matching the Wai search recommendation UI.
  */
 export function highlightMatchedText(text: string, query: string): React.ReactNode {
   const cleanQuery = normalizeVi(query).trim();
@@ -64,7 +64,7 @@ export function highlightMatchedText(text: string, query: string): React.ReactNo
     nodes.push(
       <mark
         key={`m-${idx}`}
-        className="bg-[#FDE6D8] text-[#7C2D12] font-bold px-0.5 rounded"
+        className="bg-[#FFEB99] text-black font-bold rounded-sm"
       >
         {text.slice(start, end)}
       </mark>

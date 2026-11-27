@@ -40,6 +40,7 @@ import { TemplateDownloadBar } from '../components/TemplateDownloadBar';
 import { VoiceReaderToggle } from '../components/VoiceReaderToggle';
 import { useAccessibility } from '../context/AccessibilityContext';
 import { useWard } from '../context/WardContext';
+import { splitSearchMatch } from '../core/searchMatch';
 import { normalizeVietnameseText } from '../core/angiangWards';
 import {
   AN_GIANG_40_PROCEDURES,
@@ -108,6 +109,12 @@ function formatLatencyBadge(
     return `Bộ nhớ đệm • ${safeMs}ms`;
   }
   return `Trả lời nhanh ngoại tuyến • ${safeMs}ms`;
+}
+
+function highlightedLabel(label: string, query: string) {
+  return splitSearchMatch(label, query).map((part, index) =>
+    part.matched ? <Text key={index} style={styles.searchMatch}>{part.text}</Text> : part.text
+  );
 }
 
 export const LegalRagChatScreen: React.FC = () => {
@@ -948,9 +955,16 @@ export const LegalRagChatScreen: React.FC = () => {
               >
                 <View style={styles.procTextCol}>
                   <Text style={[styles.procName, typography.bodyBold]} numberOfLines={2}>
-                    {proc.procedureName}
+                    {highlightedLabel(proc.procedureName, catalogKeyword)}
                   </Text>
                   <Text style={[styles.procMeta, typography.captionSm]} numberOfLines={1}>
+                    {[proc.procedureCode, proc.category].filter(value =>
+                      catalogKeyword.trim() && normalizeVietnameseText(value).includes(normalizeVietnameseText(catalogKeyword))
+                    ).map(value => (
+                      <Text key={value}>
+                        {highlightedLabel(value, catalogKeyword)} •{' '}
+                      </Text>
+                    ))}
                     {proc.processingTime} • {proc.fee}
                   </Text>
                 </View>
@@ -969,6 +983,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.citizenSurface,
   },
+  searchMatch: { backgroundColor: '#FFEB99', color: '#000000', fontWeight: 'bold' },
   segmentedWrap: {
     paddingVertical: SPACING.sm,
     backgroundColor: COLORS.citizenSurface,

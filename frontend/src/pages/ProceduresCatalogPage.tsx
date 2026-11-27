@@ -390,7 +390,7 @@ export const ProceduresCatalogPage: React.FC = () => {
                             <span className="w-5 h-5 rounded-md bg-[#FFF3E6] text-[#C2410C] flex items-center justify-center shrink-0">
                               <FolderOpen className="w-3.5 h-3.5" />
                             </span>
-                            <span>{catName}</span>
+                            <span>{highlightMatchedText(catName, searchTerm)}</span>
                           </div>
                           {items.map((proc) => (
                             <button
@@ -409,11 +409,14 @@ export const ProceduresCatalogPage: React.FC = () => {
                             >
                               <FileText className="w-4 h-4 text-slate-500 shrink-0 mt-0.5" />
                               <div className="min-w-0 flex-1">
-                                <div className="text-xs sm:text-sm font-medium text-slate-900 truncate">
+                                <div className="text-sm font-medium text-slate-900 line-clamp-2">
                                   {highlightMatchedText(proc.name, searchTerm)}
                                 </div>
                                 <div className="text-[11px] text-slate-600 truncate mt-0.5">
-                                  &ldquo;Mã {highlightMatchedText(proc.code, searchTerm)} •{' '}
+                                  &ldquo;Mã {highlightMatchedText(proc.code, searchTerm)}
+                                  {proc.portalCode !== proc.code && normalizeVi(searchTerm).trim() &&
+                                    normalizeVi(proc.portalCode).includes(normalizeVi(searchTerm).trim()) &&
+                                    <> ({highlightMatchedText(proc.portalCode, searchTerm)})</>} •{' '}
                                   {isFeeExempt(proc) ? 'Miễn 100% lệ phí' : 'Thu phí HĐND'}&rdquo;
                                 </div>
                               </div>
