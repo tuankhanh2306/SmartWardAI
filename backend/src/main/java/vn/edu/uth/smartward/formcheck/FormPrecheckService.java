@@ -129,33 +129,49 @@ public class FormPrecheckService {
         String effectiveFormType = (formType != null && !formType.isBlank()) ? formType : "CT01_RESIDENCE_DECLARATION";
         String submissionCode = generateSubmissionCode();
 
-        // 1. OCR Extraction
-        ExtractedFormFields fields = ocrExtractionClient.extractFields(imageBytes, mimeType);
+        // 1. OCR Extraction (pass expected formType hint for structured Birth / CT01 extraction)
+        ExtractedFormFields fields = ocrExtractionClient.extractFields(imageBytes, mimeType, effectiveFormType);
+        String ocrStatus = fields.getOcrStatus() != null ? fields.getOcrStatus() : "COMPLETED";
+        String readabilityStatus = fields.getReadabilityStatus() != null ? fields.getReadabilityStatus() : "NOT_EVALUATED";
+        String detectedDocType = fields.getDetectedDocumentType() != null ? fields.getDetectedDocumentType() : "UNKNOWN";
+        boolean isBlankTemplate = Boolean.TRUE.equals(fields.getIsBlankTemplate());
+        int matchedFieldCount = countExtractedFields(fields);
 
         // 2. Run Deterministic Rule Engine
         List<FormValidationIssue> issues = new ArrayList<>();
 
-        // 2.1. Mandatory Fields Check
-        issues.addAll(mandatoryFieldValidator.validate(fields));
+        if ("UNAVAILABLE".equalsIgnoreCase(ocrStatus)) {
+            issues.add(FormValidationIssue.builder()
+                    .field("ocr")
+                    .errorType("OCR_UNAVAILABLE")
+                    .message(fields.getReadabilityReason() != null
+                            ? fields.getReadabilityReason()
+                            : "Dịch vụ nhận diện ảnh (OCR) tạm thời chưa sẵn sàng.")
+                    .severity("ERROR")
+                    .build());
+        } else {
+            // 2.1. Mandatory Fields Check
+            issues.addAll(mandatoryFieldValidator.validate(fields));
 
-        // 2.2. CCCD 12-digit Rules Check
-        issues.addAll(cccdValidator.validate(fields.getCccdNumber(), fields.getBirthDate(), fields.getGender()));
+            // 2.2. CCCD 12-digit Rules Check
+            issues.addAll(cccdValidator.validate(fields.getCccdNumber(), fields.getBirthDate(), fields.getGender()));
 
-        // 2.3. Temporal & Age Logic Check
-        issues.addAll(dateLogicValidator.validate(fields.getBirthDate(), fields.getIssueDate()));
+            // 2.3. Temporal & Age Logic Check
+            issues.addAll(dateLogicValidator.validate(fields.getBirthDate(), fields.getIssueDate()));
 
-        // 2.4. Low Confidence Warning Check (< 0.70)
-        if (fields.getFieldConfidences() != null) {
-            for (Map.Entry<String, Double> entry : fields.getFieldConfidences().entrySet()) {
-                if (entry.getValue() != null && entry.getValue() < CONFIDENCE_THRESHOLD) {
-                    issues.add(FormValidationIssue.builder()
-                            .field(entry.getKey())
-                            .errorType("MANUAL_REVIEW_REQUIRED")
-                            .message(String.format(Locale.US,
-                                    "Độ tin cậy nhận diện trường '%s' thấp (%.2f < %.2f). Cần đối chiếu kiểm tra thủ công.",
-                                    entry.getKey(), entry.getValue(), CONFIDENCE_THRESHOLD))
-                            .severity("WARNING")
-                            .build());
+            // 2.4. Low Confidence Warning Check (< 0.70)
+            if (fields.getFieldConfidences() != null) {
+                for (Map.Entry<String, Double> entry : fields.getFieldConfidences().entrySet()) {
+                    if (entry.getValue() != null && entry.getValue() < CONFIDENCE_THRESHOLD) {
+                        issues.add(FormValidationIssue.builder()
+                                .field(entry.getKey())
+                                .errorType("MANUAL_REVIEW_REQUIRED")
+                                .message(String.format(Locale.US,
+                                        "Độ tin cậy nhận diện trường '%s' thấp (%.2f < %.2f). Cần đối chiếu kiểm tra thủ công.",
+                                        entry.getKey(), entry.getValue(), CONFIDENCE_THRESHOLD))
+                                .severity("WARNING")
+                                .build());
+                    }
                 }
             }
         }
@@ -164,9 +180,11 @@ public class FormPrecheckService {
         long errorCount = issues.stream().filter(i -> "ERROR".equalsIgnoreCase(i.getSeverity())).count();
         boolean isValid = (errorCount == 0);
 
-        double overallConfidence = fields.getOverallConfidence() != null ? fields.getOverallConfidence() : 0.95;
+        double overallConfidence = fields.getOverallConfidence() != null ? fields.getOverallConfidence() : 0.0;
 
-        String summary = isValid
+        String summary = "UNAVAILABLE".equalsIgnoreCase(ocrStatus)
+                ? (fields.getReadabilityReason() != null ? fields.getReadabilityReason() : "Dịch vụ OCR tạm chưa sẵn sàng.")
+                : isValid
                 ? "Biểu mẫu hợp lệ. Các thông tin định danh, ngày cấp và nơi thường trú khớp đúng quy chuẩn hành chính."
                 : String.format("Phát hiện %d lỗi sai định dạng hoặc không nhất quán thông tin. Vui lòng sửa lại trên biểu mẫu giấy trước khi nộp tại UBND.", errorCount);
 
@@ -179,6 +197,12 @@ public class FormPrecheckService {
                 .issues(issues)
                 .summaryMessage(summary)
                 .disclaimer(LEGAL_DISCLAIMER)
+                .ocrStatus(ocrStatus)
+                .readabilityStatus(readabilityStatus)
+                .readabilityReason(fields.getReadabilityReason())
+                .detectedDocumentType(detectedDocType)
+                .isBlankTemplate(isBlankTemplate)
+                .matchedFieldCount(matchedFieldCount)
                 .build();
 
         // 4. Persist Audit Record into FormSubmission entity
@@ -328,6 +352,23 @@ public class FormPrecheckService {
                         .validationReport(s.getValidationReport())
                         .build())
                 .toList();
+    }
+
+    private int countExtractedFields(ExtractedFormFields f) {
+        if (f == null) return 0;
+        int count = 0;
+        for (String v : Arrays.asList(
+                f.getFullName(), f.getBirthDate(), f.getGender(), f.getCccdNumber(),
+                f.getIssueDate(), f.getPermanentAddress(), f.getPhoneNumber(),
+                f.getChildFullName(), f.getChildDob(), f.getChildGender(),
+                f.getChildBirthPlace(), f.getMotherFullName(), f.getFatherFullName(),
+                f.getBirthCertNumber(), f.getHospitalName()
+        )) {
+            if (v != null && !v.isBlank()) {
+                count++;
+            }
+        }
+        return count;
     }
 
     private String generateSubmissionCode() {

@@ -17,6 +17,7 @@ import type {
   DossierSubmissionResponse,
   DossierTrackingRequest,
   DossierTrackingResponse,
+  FormImagePrecheckResponse,
   HitlGrayZoneItemDto,
   IncidentPhotoUploadResponse,
   IssueClusterDto,
@@ -378,6 +379,30 @@ export async function precheckStructuredForm(
   const resp = await apiClient.post<ApiResponse<StructuredFormPrecheckResponse>>(
     '/forms/precheck',
     request
+  );
+  return unwrapData(resp.data);
+}
+
+export async function precheckFormDocumentImage(
+  fileUri: string,
+  mimeType: string,
+  expectedDocType: string,
+  fileName = `doc_${Date.now()}.jpg`
+): Promise<FormImagePrecheckResponse> {
+  const formData = new FormData();
+  formData.append('file', {
+    uri: fileUri,
+    name: fileName,
+    type: mimeType || 'image/jpeg',
+  } as unknown as Blob);
+  formData.append('formType', expectedDocType);
+  const resp = await apiClient.post<ApiResponse<FormImagePrecheckResponse>>(
+    '/forms/precheck',
+    formData,
+    {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      timeout: 25000,
+    }
   );
   return unwrapData(resp.data);
 }

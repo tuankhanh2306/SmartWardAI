@@ -60,7 +60,7 @@ class FormPrecheckServiceTest {
                 ))
                 .build();
 
-        when(ocrExtractionClient.extractFields(any(), any())).thenReturn(mockFields);
+        when(ocrExtractionClient.extractFields(any(), any(), any())).thenReturn(mockFields);
 
         byte[] fakeBytes = new byte[]{1, 2, 3};
         FormPrecheckReport report = formPrecheckService.precheckFormBytes(fakeBytes, "image/png", "FORM_P001.png", "CT01");
@@ -85,7 +85,7 @@ class FormPrecheckServiceTest {
                 .overallConfidence(0.92)
                 .build();
 
-        when(ocrExtractionClient.extractFields(any(), any())).thenReturn(mockFields);
+        when(ocrExtractionClient.extractFields(any(), any(), any())).thenReturn(mockFields);
 
         byte[] fakeBytes = new byte[]{1, 2, 3};
         FormPrecheckReport report = formPrecheckService.precheckFormBytes(fakeBytes, "image/png", "FORM_P010.png", "CT01");
@@ -113,7 +113,7 @@ class FormPrecheckServiceTest {
                 ))
                 .build();
 
-        when(ocrExtractionClient.extractFields(any(), any())).thenReturn(mockFields);
+        when(ocrExtractionClient.extractFields(any(), any(), any())).thenReturn(mockFields);
 
         byte[] fakeBytes = new byte[]{1, 2, 3};
         FormPrecheckReport report = formPrecheckService.precheckFormBytes(fakeBytes, "image/png", "test.png", "CT01");

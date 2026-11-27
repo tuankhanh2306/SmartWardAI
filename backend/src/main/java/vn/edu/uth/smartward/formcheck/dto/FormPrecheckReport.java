@@ -39,4 +39,23 @@ public class FormPrecheckReport {
 
     @Schema(description = "Tuyên bố trách nhiệm và quy tắc bảo vệ dữ liệu cá nhân theo quy định pháp luật hiện hành")
     private String disclaimer;
+
+    // TASK-057: Explicit OCR status, readability & document classification fields
+    @Schema(description = "Trạng thái dịch vụ OCR (COMPLETED, UNAVAILABLE)")
+    private String ocrStatus;
+
+    @Schema(description = "Độ đọc được của ảnh (CLEAR, BLURRY, TOO_DARK, GLARE, CROPPED, UNREADABLE, NOT_EVALUATED)")
+    private String readabilityStatus;
+
+    @Schema(description = "Lý do đánh giá chất lượng/nhận diện ảnh")
+    private String readabilityReason;
+
+    @Schema(description = "Loại giấy tờ nhận diện thực tế (TK_KS, BIRTH_CERT, CT01, TK_KH, TK_BTXH, CCCD, OTHER_TEXT, NON_DOCUMENT, UNKNOWN)")
+    private String detectedDocumentType;
+
+    @Schema(description = "Xác nhận ảnh là mẫu giấy tờ chính thức còn trống (chỉ true khi nhận diện rõ mẫu nhưng chưa điền)")
+    private Boolean isBlankTemplate;
+
+    @Schema(description = "Số trường thông tin thực sự đọc được từ ảnh")
+    private Integer matchedFieldCount;
 }

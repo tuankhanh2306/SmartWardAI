@@ -148,6 +148,51 @@ export interface StructuredFormPrecheckResponse {
   processingTimeMs: number;
 }
 
+export interface ExtractedFormOcrFields {
+  fullName?: string | null;
+  birthDate?: string | null;
+  gender?: string | null;
+  cccdNumber?: string | null;
+  issueDate?: string | null;
+  issuePlace?: string | null;
+  permanentAddress?: string | null;
+  phoneNumber?: string | null;
+  childFullName?: string | null;
+  childDob?: string | null;
+  childGender?: string | null;
+  childEthnicity?: string | null;
+  childBirthPlace?: string | null;
+  motherFullName?: string | null;
+  fatherFullName?: string | null;
+  birthCertNumber?: string | null;
+  birthCertIssueDate?: string | null;
+  hospitalName?: string | null;
+  hasRedSeal?: boolean | null;
+  ocrStatus?: string | null;
+  readabilityStatus?: string | null;
+  readabilityReason?: string | null;
+  detectedDocumentType?: string | null;
+  isBlankTemplate?: boolean | null;
+  rawTextExcerpt?: string | null;
+  overallConfidence?: number | null;
+  fieldConfidences?: Record<string, number>;
+}
+
+export interface FormImagePrecheckResponse {
+  submissionCode?: string;
+  formType?: string;
+  valid: boolean;
+  overallConfidence?: number;
+  extractedFields?: ExtractedFormOcrFields;
+  summaryMessage?: string;
+  ocrStatus?: 'COMPLETED' | 'UNAVAILABLE' | string;
+  readabilityStatus?: 'CLEAR' | 'BLURRY' | 'TOO_DARK' | 'GLARE' | 'CROPPED' | 'UNREADABLE' | 'NOT_EVALUATED' | string;
+  readabilityReason?: string | null;
+  detectedDocumentType?: string | null;
+  isBlankTemplate?: boolean | null;
+  matchedFieldCount?: number | null;
+}
+
 // ============================================================================
 // 3. Zero-Trust Document Vault (Module 4 — Decree 13/2023/ND-CP)
 // ============================================================================
