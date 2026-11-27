@@ -49,6 +49,7 @@ import {
   type DossierPipelineResult,
   type SelectedAttachment,
 } from '../core/dossierSubmitter';
+import { formatDateToDmy, formatDmyDateInput } from '../core/formValidators';
 import { formatMobileSlaDeadline } from '../core/qrPassPdfExporter';
 import {
   evaluateDocumentVisionGate,
@@ -122,7 +123,7 @@ export const SmartFormPrecheckScreen: React.FC = () => {
       setSectionMode('form');
       if (draft.fullName) setFullName(draft.fullName);
       if (draft.citizenCccd) setCitizenCccd(draft.citizenCccd);
-      if (draft.dateOfBirth) setDateOfBirth(draft.dateOfBirth);
+      if (draft.dateOfBirth) setDateOfBirth(formatDateToDmy(draft.dateOfBirth));
       if (draft.gender === 'Nam' || draft.gender === 'Nữ') setGender(draft.gender);
       if (draft.address) setAddress(draft.address);
       if (draft.phoneNumber) setPhoneNumber(draft.phoneNumber);
@@ -168,7 +169,7 @@ export const SmartFormPrecheckScreen: React.FC = () => {
     setDecodedQr(qr);
     setFullName(qr.fullName);
     setCitizenCccd(qr.cccdNumber);
-    setDateOfBirth(qr.dateOfBirth);
+    setDateOfBirth(formatDateToDmy(qr.dateOfBirth));
     setGender(qr.gender);
     setAddress(qr.address);
     setSubmitResult(null);
@@ -534,12 +535,14 @@ export const SmartFormPrecheckScreen: React.FC = () => {
         <View style={styles.twoColRow}>
           <View style={[styles.field, styles.flex1]}>
             <Text style={[styles.label, typography.captionSm]}>
-              Ngày sinh (YYYY-MM-DD) *
+              Ngày sinh (DD-MM-YYYY) *
             </Text>
             <TextInput
               value={dateOfBirth}
-              onChangeText={setDateOfBirth}
-              placeholder="2005-06-23"
+              onChangeText={(v) => setDateOfBirth(formatDmyDateInput(v))}
+              keyboardType="number-pad"
+              maxLength={10}
+              placeholder="23-06-2005"
               placeholderTextColor={COLORS.textMuted}
               style={[styles.input, typography.bodyMd]}
             />

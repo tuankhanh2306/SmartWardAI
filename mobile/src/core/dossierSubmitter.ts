@@ -14,6 +14,7 @@ import {
 } from '../api/client';
 import { maskCccdNumber } from './cccdQrParser';
 import {
+  normalizeDateToIso,
   validateAdministrativeForm,
   type LocalFormValidationInput,
 } from './formValidators';
@@ -114,7 +115,7 @@ function buildFlatFormData(input: LocalFormValidationInput): Record<string, stri
     fullName: input.fullName,
     hoTen: input.fullName,
     cccdNumber: input.citizenCccd,
-    dateOfBirth: input.dateOfBirth,
+    dateOfBirth: normalizeDateToIso(input.dateOfBirth),
     gender: input.gender || 'Nam',
     address: input.address || '',
     citizenEmail: input.citizenEmail || '',
@@ -127,9 +128,10 @@ function buildFlatFormData(input: LocalFormValidationInput): Record<string, stri
   }
 
   const extra = input.extra || {};
+  const DATE_EXTRA_KEYS = new Set(['hostDateOfBirth', 'hospitalBirthDate', 'partnerDob']);
   for (const [k, v] of Object.entries(extra)) {
     if (v !== undefined && v !== null) {
-      flat[k] = String(v);
+      flat[k] = DATE_EXTRA_KEYS.has(k) ? normalizeDateToIso(String(v)) : String(v);
     }
   }
   return flat;
@@ -184,7 +186,7 @@ export async function executeDossierSubmissionPipeline(
       formType: input.validationInput.formType,
       citizenCccd: input.validationInput.citizenCccd.trim(),
       fullName: input.validationInput.fullName.trim(),
-      dateOfBirth: input.validationInput.dateOfBirth.trim(),
+      dateOfBirth: normalizeDateToIso(input.validationInput.dateOfBirth),
       gender: input.validationInput.gender,
       address: input.validationInput.address || '',
       qrVerified: Boolean(input.validationInput.qrVerified),

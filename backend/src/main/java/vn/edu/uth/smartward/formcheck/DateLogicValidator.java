@@ -23,6 +23,7 @@ import java.util.List;
 public class DateLogicValidator {
 
     private static final DateTimeFormatter FORMAT_DMY = DateTimeFormatter.ofPattern("dd/MM/uuuu").withResolverStyle(ResolverStyle.STRICT);
+    private static final DateTimeFormatter FORMAT_DMY_DASH = DateTimeFormatter.ofPattern("dd-MM-uuuu").withResolverStyle(ResolverStyle.STRICT);
     private static final DateTimeFormatter FORMAT_YMD = DateTimeFormatter.ofPattern("uuuu-MM-dd").withResolverStyle(ResolverStyle.STRICT);
 
     /**
@@ -111,6 +112,8 @@ public class DateLogicValidator {
         try {
             if (clean.contains("/")) {
                 return LocalDate.parse(clean, FORMAT_DMY);
+            } else if (clean.matches("^\\d{2}-\\d{2}-\\d{4}$")) {
+                return LocalDate.parse(clean, FORMAT_DMY_DASH);
             } else if (clean.contains("-")) {
                 return LocalDate.parse(clean, FORMAT_YMD);
             }

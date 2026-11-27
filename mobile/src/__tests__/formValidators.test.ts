@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { validateAdministrativeForm } from '../core/formValidators';
+import {
+  formatDateToDmy,
+  formatDmyDateInput,
+  normalizeDateToIso,
+  parseIsoDate,
+  validateAdministrativeForm,
+} from '../core/formValidators';
 
 const REF_DATE = new Date('2026-11-18T00:00:00Z');
 
@@ -265,5 +271,63 @@ describe('formValidators — Động cơ kiểm định tất định 4 nhóm t�
     });
     expect(res.valid).toBe(true);
     expect(res.warnings.some((w) => w.includes('Bản án/Quyết định ly hôn'))).toBe(true);
+  });
+
+  // ==========================================================================
+  // 5. DD-MM-YYYY Format & Conversion Helpers
+  // ==========================================================================
+  it('hỗ trợ chuẩn định dạng dd-mm-yyyy trong app Mobile & chặn ngày không tồn tại như 31-02-2005', () => {
+    expect(formatDmyDateInput('23062005')).toBe('23-06-2005');
+    expect(formatDmyDateInput('23-06-2005')).toBe('23-06-2005');
+    expect(formatDateToDmy('2005-06-23')).toBe('23-06-2005');
+    expect(normalizeDateToIso('23-06-2005')).toBe('2005-06-23');
+    expect(parseIsoDate('31-02-2005')).toBeNull();
+    expect(parseIsoDate('15-13-2005')).toBeNull();
+
+    const ct01Dmy = validateAdministrativeForm({
+      formType: 'CT01',
+      fullName: 'NGUYỄN MINH TUẤN KHANH',
+      citizenCccd: '089205023490',
+      dateOfBirth: '23-06-2005',
+      address: 'Số 18 Trần Hưng Đạo, Phường Long Xuyên, Tỉnh An Giang',
+      referenceDate: REF_DATE,
+      extra: {
+        hostCccdNumber: '089075001122',
+        hostDateOfBirth: '10-03-1975',
+        vneidHostConfirmed: true,
+      },
+    });
+    expect(ct01Dmy.valid).toBe(true);
+
+    const tksDmy = validateAdministrativeForm({
+      formType: 'TK-KS',
+      fullName: 'NGUYỄN GIA BẢO',
+      citizenCccd: '089195001122',
+      dateOfBirth: '25-10-2026',
+      referenceDate: REF_DATE,
+      extra: {
+        motherName: 'TRẦN THỊ MAI',
+        hospitalMotherName: 'TRẦN THỊ MAI',
+        hospitalBirthDate: '25-10-2026',
+        parentsMarried: 'YES',
+      },
+    });
+    expect(tksDmy.valid).toBe(true);
+
+    const tkkhDmy = validateAdministrativeForm({
+      formType: 'TK-KH',
+      fullName: 'NGUYỄN VĂN NAM',
+      citizenCccd: '089200001111',
+      dateOfBirth: '18-11-2006',
+      gender: 'Nam',
+      referenceDate: REF_DATE,
+      extra: {
+        partnerDob: '18-11-2008',
+        partnerGender: 'Nữ',
+        partnerCccd: '089308002222',
+        maritalCertPurpose: 'Để đăng ký kết hôn với chị Lê Thị Hoa tại UBND Phường Long Xuyên',
+      },
+    });
+    expect(tkkhDmy.valid).toBe(true);
   });
 });

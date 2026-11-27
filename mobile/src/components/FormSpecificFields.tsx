@@ -10,6 +10,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import { useAccessibility } from '../context/AccessibilityContext';
 import { COLORS, MIN_TOUCH_TARGET, RADIUS, SPACING } from '../theme/tokens';
+import { formatDmyDateInput } from '../core/formValidators';
 import type { CoreFormType } from '../types/api.types';
 
 export interface FormExtraState {
@@ -43,7 +44,7 @@ export interface FormExtraState {
 export const INITIAL_FORM_EXTRA: FormExtraState = {
   hostFullName: '',
   hostCccdNumber: '',
-  hostDateOfBirth: '1975-03-10',
+  hostDateOfBirth: '10-03-1975',
   vneidHostConfirmed: true,
 
   motherName: '',
@@ -112,12 +113,14 @@ export const FormSpecificFields: React.FC<FormSpecificFieldsProps> = ({
 
         <View style={styles.field}>
           <Text style={[styles.label, typography.captionSm]}>
-            Ngày sinh Chủ hộ (YYYY-MM-DD, ≥ 18 tuổi)
+            Ngày sinh Chủ hộ (DD-MM-YYYY, ≥ 18 tuổi)
           </Text>
           <TextInput
             value={extra.hostDateOfBirth}
-            onChangeText={(v) => onChange('hostDateOfBirth', v)}
-            placeholder="1975-03-10"
+            onChangeText={(v) => onChange('hostDateOfBirth', formatDmyDateInput(v))}
+            keyboardType="number-pad"
+            maxLength={10}
+            placeholder="10-03-1975"
             placeholderTextColor={COLORS.textMuted}
             style={[styles.input, typography.bodyMd]}
           />
@@ -171,12 +174,14 @@ export const FormSpecificFields: React.FC<FormSpecificFieldsProps> = ({
 
         <View style={styles.field}>
           <Text style={[styles.label, typography.captionSm]}>
-            Ngày sinh trên Giấy chứng sinh (YYYY-MM-DD)
+            Ngày sinh trên Giấy chứng sinh (DD-MM-YYYY)
           </Text>
           <TextInput
             value={extra.hospitalBirthDate}
-            onChangeText={(v) => onChange('hospitalBirthDate', v)}
-            placeholder="2026-10-25"
+            onChangeText={(v) => onChange('hospitalBirthDate', formatDmyDateInput(v))}
+            keyboardType="number-pad"
+            maxLength={10}
+            placeholder="25-10-2026"
             placeholderTextColor={COLORS.textMuted}
             style={[styles.input, typography.bodyMd]}
           />
@@ -230,12 +235,14 @@ export const FormSpecificFields: React.FC<FormSpecificFieldsProps> = ({
 
         <View style={styles.field}>
           <Text style={[styles.label, typography.captionSm]}>
-            Ngày sinh bên thứ 2 (Nam ≥ 20, Nữ ≥ 18)
+            Ngày sinh bên thứ 2 (DD-MM-YYYY • Nam ≥ 20, Nữ ≥ 18)
           </Text>
           <TextInput
             value={extra.partnerDob}
-            onChangeText={(v) => onChange('partnerDob', v)}
-            placeholder="2004-05-12"
+            onChangeText={(v) => onChange('partnerDob', formatDmyDateInput(v))}
+            keyboardType="number-pad"
+            maxLength={10}
+            placeholder="12-05-2004"
             placeholderTextColor={COLORS.textMuted}
             style={[styles.input, typography.bodyMd]}
           />
