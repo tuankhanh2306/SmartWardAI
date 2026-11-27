@@ -369,7 +369,7 @@ export const OFFLINE_INCIDENT_PHOTOS_DIR_NAME = 'offline_incident_photos/';
 export async function persistOfflineIncidentPhotos(localUris: string[]): Promise<string[]> {
   if (!localUris || localUris.length === 0) return [];
   try {
-    const FileSystem = (await import('expo-file-system')) as unknown as {
+    const FileSystem = (await import('expo-file-system/legacy')) as unknown as {
       documentDirectory?: string | null;
       makeDirectoryAsync?: (uri: string, opts?: { intermediates?: boolean }) => Promise<void>;
       copyAsync?: (opts: { from: string; to: string }) => Promise<void>;
@@ -402,7 +402,7 @@ export async function persistOfflineIncidentPhotos(localUris: string[]): Promise
 export async function cleanupOfflineIncidentPhotos(localUris: string[]): Promise<void> {
   if (!localUris || localUris.length === 0) return;
   try {
-    const FileSystem = (await import('expo-file-system')) as unknown as {
+    const FileSystem = (await import('expo-file-system/legacy')) as unknown as {
       deleteAsync?: (uri: string, opts?: { idempotent?: boolean }) => Promise<void>;
     };
     if (typeof FileSystem.deleteAsync !== 'function') return;
