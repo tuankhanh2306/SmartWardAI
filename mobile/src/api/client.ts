@@ -579,9 +579,34 @@ export async function fetchOfficerIssueClusters(params?: {
 }
 
 export async function fetchOfficerHitlQueue(): Promise<HitlGrayZoneItemDto[]> {
-  const resp = await apiClient.get<ApiResponse<HitlGrayZoneItemDto[]>>('/rag/hitl-queue');
+  const resp = await apiClient.get<ApiResponse<Array<Record<string, unknown>>>>('/rag/hitl-queue');
   const list = unwrapData(resp.data);
-  return Array.isArray(list) ? list : [];
+  if (!Array.isArray(list)) return [];
+  return list.map((raw) => {
+    const questionText = String(raw.query ?? raw.question ?? '').trim();
+    const sim = Number(raw.similarityScore ?? raw.maxSimilarity ?? 0);
+    return {
+      id: String(raw.id ?? ''),
+      question: questionText,
+      query: questionText,
+      maxSimilarity: Number.isFinite(sim) ? sim : 0,
+      similarityScore: Number.isFinite(sim) ? sim : 0,
+      suggestedAnswer: String(raw.suggestedAnswer ?? ''),
+      approvedAnswer:
+        typeof raw.approvedAnswer === 'string' ? raw.approvedAnswer : undefined,
+      status: String(raw.status ?? 'PENDING'),
+      wardName: typeof raw.wardName === 'string' ? raw.wardName : undefined,
+      legalReference:
+        typeof raw.legalReference === 'string' ? raw.legalReference : undefined,
+      candidateProcedureName:
+        typeof raw.candidateProcedureName === 'string'
+          ? raw.candidateProcedureName
+          : undefined,
+      createdAt: typeof raw.createdAt === 'string' ? raw.createdAt : undefined,
+      resolvedAt: typeof raw.resolvedAt === 'string' ? raw.resolvedAt : undefined,
+      resolvedBy: typeof raw.resolvedBy === 'string' ? raw.resolvedBy : undefined,
+    };
+  });
 }
 
 export async function resolveOfficerHitlItem(
