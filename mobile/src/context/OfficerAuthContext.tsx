@@ -23,6 +23,11 @@ import {
   isBiometricUnlockEnabled,
   setBiometricUnlockEnabled,
 } from '../services/biometricAuth';
+import {
+  buildDefaultOfficerBadgeForWard,
+  extractOfficerSessionToken,
+  resolveWardNameByCode,
+} from '../core/officerAuditService';
 import type {
   OfficerChangePinRequest,
   OfficerLoginRequest,
@@ -106,22 +111,38 @@ export const OfficerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const login = useCallback(async (request: OfficerLoginRequest): Promise<OfficerPrincipal> => {
     setAuthError(null);
     try {
+      const normalizedBadge = request.badgeId.trim().toUpperCase();
       const resp = await apiLoginOfficer({
-        badgeId: request.badgeId.trim(),
+        badgeId: normalizedBadge,
         pin: request.pin.trim(),
-        wardCode: request.wardCode?.trim(),
+        wardCode: request.wardCode?.trim() || undefined,
       });
 
-      const principal: OfficerPrincipal = resp.officer ?? {
-        badgeId: resp.badgeId || request.badgeId.trim(),
-        fullName: resp.fullName || 'Cán bộ Một cửa',
-        role: resp.role || 'OFFICER',
-        wardCode: resp.wardCode || request.wardCode || 'AG_P_LONGXUYEN',
-        wardName: resp.wardName || 'Phường Long Xuyên',
-        mustChangePin: resp.mustChangePin,
-      };
+      const sessionToken = extractOfficerSessionToken(resp);
+      if (!sessionToken) {
+        throw new Error('Máy chủ xác thực không trả về mã phiên hợp lệ (JWT).');
+      }
 
-      await saveOfficerSession(resp.accessToken, principal);
+      const resolvedWardCode =
+        resp.officer?.wardCode || resp.wardCode || request.wardCode?.trim() || 'AG_P_LONGXUYEN';
+      const resolvedWardName =
+        resp.officer?.wardName || resp.wardName || resolveWardNameByCode(resolvedWardCode);
+
+      const principal: OfficerPrincipal = resp.officer
+        ? {
+            ...resp.officer,
+            wardName: resp.officer.wardName || resolvedWardName,
+          }
+        : {
+            badgeId: resp.badgeId || normalizedBadge || buildDefaultOfficerBadgeForWard(resolvedWardCode),
+            fullName: resp.fullName || 'Cán bộ Một cửa',
+            role: resp.role || 'OFFICER',
+            wardCode: resolvedWardCode,
+            wardName: resolvedWardName,
+            mustChangePin: Boolean(resp.mustChangePin),
+          };
+
+      await saveOfficerSession(sessionToken, principal);
       setLockedProfile(null);
       setIsBiometricLocked(false);
       setOfficer(principal);
@@ -129,6 +150,7 @@ export const OfficerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
     } catch (err: unknown) {
       const message =
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        (err instanceof Error && err.message) ||
         'Đăng nhập thất bại. Vui lòng kiểm tra Mã công chức, Mã PIN hoặc kết nối máy chủ.';
       setAuthError(message);
       throw new Error(message);
@@ -137,7 +159,20 @@ export const OfficerAuthProvider: React.FC<{ children: React.ReactNode }> = ({ c
 
   const changePin = useCallback(async (request: OfficerChangePinRequest) => {
     setAuthError(null);
-    await apiChangePin(request);
+    try {
+      await apiChangePin({
+        badgeId: request.badgeId.trim().toUpperCase(),
+        currentPin: request.currentPin.trim(),
+        newPin: request.newPin.trim(),
+        confirmPin: request.confirmPin.trim(),
+      });
+      setOfficer((prev) => (prev ? { ...prev, mustChangePin: false } : prev));
+    } catch (err: unknown) {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Không thể đổi mã PIN. Vui lòng kiểm tra lại thông tin.';
+      throw new Error(message);
+    }
   }, []);
 
   const refreshSession = useCallback(async (): Promise<OfficerPrincipal | null> => {

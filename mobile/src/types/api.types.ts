@@ -241,6 +241,9 @@ export interface OfficerDossierDto {
   formData: Record<string, unknown>;
   precheckReport?: Record<string, unknown>;
   vaultDocIds?: string[];
+  requestedSupplementItems?: string[];
+  supplementedAt?: string | null;
+  supplementCount?: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -316,12 +319,27 @@ export interface IssueClusterDto {
   descriptionSummary: string;
   status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | string;
   reportCount: number;
+  addressText?: string;
+  locationSource?: string;
+  locationAccuracyM?: number;
   wardCode?: string;
   wardName?: string;
   photoUrls?: string[];
   photoCount?: number;
   createdAt: string;
   lastReportAt: string;
+}
+
+export interface HitlGrayZoneItemDto {
+  id: string;
+  question: string;
+  maxSimilarity: number;
+  suggestedAnswer: string;
+  status: 'PENDING' | 'APPROVED' | string;
+  createdAt?: string;
+  resolvedAt?: string;
+  resolvedBy?: string;
+  approvedAnswer?: string;
 }
 
 // ============================================================================
@@ -397,8 +415,10 @@ export interface RegisterPushDeviceResponse {
 }
 
 export interface OfficerLoginResponse {
-  accessToken: string;
+  token?: string;
+  accessToken?: string;
   tokenType?: string;
+  expiresAtEpochSec?: number;
   expiresInSeconds?: number;
   expiresAt?: string;
   officer?: OfficerPrincipal;

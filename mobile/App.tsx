@@ -230,12 +230,14 @@ const styles = StyleSheet.create({
   },
   officerModalRoot: {
     flex: 1,
-    backgroundColor: COLORS.officerNavy,
+    backgroundColor: '#8F0A1B',
   },
   officerModalHeader: {
     height: 52,
     paddingHorizontal: SPACING.lg,
-    backgroundColor: COLORS.officerNavy,
+    backgroundColor: '#8F0A1B',
+    borderBottomWidth: 2,
+    borderBottomColor: '#D4A017',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

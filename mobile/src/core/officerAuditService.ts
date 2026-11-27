@@ -11,8 +11,126 @@ import {
   lookupOfficerDossierByQr,
   reviewOfficerDossier,
 } from '../api/client';
+import { AN_GIANG_WARDS, getWardByCode, normalizeVietnameseText } from './angiangWards';
 import { maskCccdNumber, parseSmartWardPassQr } from './cccdQrParser';
-import type { OfficerDossierDto, OfficerReviewRequest } from '../types/api.types';
+import type {
+  OfficerDossierDto,
+  OfficerLoginResponse,
+  OfficerReviewRequest,
+} from '../types/api.types';
+
+export type OfficerDossierFilter =
+  | 'ALL'
+  | 'SUPPLEMENTED'
+  | 'PENDING'
+  | 'APPROVED'
+  | 'SUPPLEMENT_REQUIRED';
+
+export interface OfficerDossierStatusMeta {
+  label: string;
+  bgColor: string;
+  borderColor: string;
+  textColor: string;
+}
+
+export const OFFICER_DOSSIER_STATUS_META: Record<string, OfficerDossierStatusMeta> = {
+  PENDING: {
+    label: 'Chờ duyệt',
+    bgColor: '#FFFBEB',
+    borderColor: '#FDE68A',
+    textColor: '#B45309',
+  },
+  SUPPLEMENTED: {
+    label: 'Vừa bổ sung',
+    bgColor: '#F5F3FF',
+    borderColor: '#DDD6FE',
+    textColor: '#6D28D9',
+  },
+  APPROVED: {
+    label: 'Đã duyệt',
+    bgColor: '#ECFDF5',
+    borderColor: '#A7F3D0',
+    textColor: '#047857',
+  },
+  SUPPLEMENT_REQUIRED: {
+    label: 'Cần bổ sung',
+    bgColor: '#FEF2F2',
+    borderColor: '#FECACA',
+    textColor: '#B91C1C',
+  },
+  REJECTED: {
+    label: 'Từ chối',
+    bgColor: '#FEF2F2',
+    borderColor: '#FECACA',
+    textColor: '#B91C1C',
+  },
+};
+
+export function getOfficerDossierStatusMeta(status?: string): OfficerDossierStatusMeta {
+  const key = (status || 'PENDING').trim().toUpperCase();
+  return (
+    OFFICER_DOSSIER_STATUS_META[key] || {
+      label: key || 'Chờ xử lý',
+      bgColor: '#F8FAFC',
+      borderColor: '#E2E8F0',
+      textColor: '#334155',
+    }
+  );
+}
+
+/**
+ * Extracts real JWT token from OfficerAuthController LoginResponse (`token` in Backend, `accessToken` fallback).
+ */
+export function extractOfficerSessionToken(resp: OfficerLoginResponse | null | undefined): string | null {
+  if (!resp) return null;
+  const candidate =
+    typeof resp.token === 'string' && resp.token.trim()
+      ? resp.token.trim()
+      : typeof resp.accessToken === 'string' && resp.accessToken.trim()
+      ? resp.accessToken.trim()
+      : '';
+  if (!candidate || candidate.startsWith('pending_sync_')) {
+    return null;
+  }
+  return candidate;
+}
+
+/**
+ * Matches Web RoleGateway convention (`CB-${wardCode}`).
+ */
+export function buildDefaultOfficerBadgeForWard(wardCode: string): string {
+  const clean = (wardCode || 'AG_P_LONGXUYEN').trim().toUpperCase();
+  return `CB-${clean}`;
+}
+
+export function resolveWardNameByCode(wardCode?: string | null): string {
+  const clean = (wardCode || '').trim();
+  if (!clean) return 'Phường Long Xuyên';
+  if (clean.toUpperCase() === 'AG_PROVINCE') return 'Tỉnh An Giang';
+  const match =
+    getWardByCode(clean) ||
+    AN_GIANG_WARDS.find((w) => w.code.toUpperCase() === clean.toUpperCase());
+  return match?.name || clean;
+}
+
+export function filterOfficerDossiers(
+  items: OfficerDossierDto[],
+  filter: OfficerDossierFilter,
+  keyword: string
+): OfficerDossierDto[] {
+  const normKw = normalizeVietnameseText(keyword);
+  return items.filter((item) => {
+    const status = (item.status || '').toUpperCase();
+    if (filter !== 'ALL' && status !== filter) {
+      return false;
+    }
+    if (!normKw) return true;
+    const haystack = normalizeVietnameseText(
+      `${item.dossierCode} ${item.citizenName} ${item.procedureName} ${item.procedureCode}`
+    );
+    return haystack.includes(normKw);
+  });
+}
 
 export const VAULT_410_GONE_MESSAGE =
   'HTTP 410 GONE — Liên kết xem 1 lần đã tự hủy trên Redis theo Luật Bảo vệ DLCN 91/2025/QH15 & NĐ 356/2025/NĐ-CP.';

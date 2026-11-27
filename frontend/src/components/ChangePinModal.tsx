@@ -67,8 +67,8 @@ export const ChangePinModal: React.FC<ChangePinModalProps> = ({
       setError('Vui lòng nhập Mã PIN mới.');
       return;
     }
-    if (cleanNew.length < 4 || cleanNew.length > 32) {
-      setError('Mã PIN mới phải từ 4 đến 32 ký tự.');
+    if (cleanNew.length < 6 || cleanNew.length > 32) {
+      setError('Mã PIN mới phải từ 6 đến 32 ký tự.');
       return;
     }
     if (cleanNew !== cleanConfirm) {
