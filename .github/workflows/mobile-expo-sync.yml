@@ -1,0 +1,78 @@
+name: Mobile Expo SDK Auto-Sync
+
+on:
+  schedule:
+    # Every Monday at 08:00 GMT+7 (01:00 UTC)
+    - cron: '0 1 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  expo-sdk-sync:
+    name: Auto-Sync Expo SDK Compatible Packages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout develop
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: mobile/package-lock.json
+
+      - name: Install Mobile Dependencies
+        working-directory: ./mobile
+        run: npm ci
+
+      - name: Align Expo SDK Compatible Packages
+        working-directory: ./mobile
+        run: npx --yes expo install --fix
+
+      - name: Check for Mobile Package Changes
+        id: check_changes
+        run: |
+          if [ -n "$(git status --porcelain mobile/)" ]; then
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run Expo Doctor (on changes)
+        if: steps.check_changes.outputs.has_changes == 'true'
+        working-directory: ./mobile
+        run: npx --yes expo-doctor
+
+      - name: Run Mobile Typecheck (on changes)
+        if: steps.check_changes.outputs.has_changes == 'true'
+        working-directory: ./mobile
+        run: npm run typecheck
+
+      - name: Run Mobile Vitest Suite (on changes)
+        if: steps.check_changes.outputs.has_changes == 'true'
+        working-directory: ./mobile
+        run: npm test
+
+      - name: Create Pull Request into develop
+        if: steps.check_changes.outputs.has_changes == 'true'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          base: develop
+          branch: chore/auto-expo-sdk-sync
+          commit-message: 'chore(mobile): auto-sync Expo SDK compatible packages'
+          title: 'chore(mobile): auto-sync Expo SDK compatible packages'
+          delete-branch: true
+          body: |
+            Automated weekly Expo SDK dependency alignment run against `develop`.
+
+            Checks verified before opening this PR:
+            - `npx --yes expo install --fix`
+            - `npx --yes expo-doctor`
+            - `npm run typecheck`
+            - `npm test`
