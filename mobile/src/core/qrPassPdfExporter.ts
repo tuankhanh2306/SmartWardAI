@@ -26,15 +26,31 @@ export function formatMobileSlaDeadline(slaDeadline?: string | null): string {
 
 export function getDossierStatusVietnamese(status: string): string {
   switch ((status || '').toUpperCase()) {
+    case 'OFFICIALLY_ACCEPTED':
+      return 'Hồ sơ đã được tiếp nhận';
     case 'APPROVED':
-      return 'Đã duyệt sơ bộ • Có mã hẹn QR';
+      return 'Đã kiểm tra sơ bộ • Có mã hẹn QR (chờ biên nhận)';
+    case 'UNDER_APPRAISAL':
+      return 'Đang thẩm định chuyên môn';
+    case 'PENDING_UBND_SIGNATURE':
+      return 'Trình lãnh đạo UBND ký duyệt';
+    case 'CENTER_SIGNED':
+      return 'Đã ký theo ủy quyền tại Trung tâm';
+    case 'TRANSFERRED_AWAITING_DECISION':
+      return 'Đã chuyển cơ sở – chờ quyết định tiếp nhận';
     case 'SUPPLEMENT_REQUIRED':
-      return 'Cần bổ sung hồ sơ';
+      return 'Cần bổ sung';
+    case 'SUPPLEMENTED':
+      return 'Đã bổ sung – chờ kiểm tra lại';
+    case 'READY_FOR_RETURN':
+      return 'Có kết quả – chờ trả';
+    case 'COMPLETED':
+      return 'Đã trả kết quả';
     case 'REJECTED':
       return 'Từ chối tiếp nhận';
     case 'PENDING':
     default:
-      return 'Đang chờ cán bộ sơ duyệt';
+      return 'Đã gửi yêu cầu kiểm tra trước';
   }
 }
 
@@ -85,6 +101,11 @@ export function buildElectronicQrPassHtml(pass: WalletQrPassRow): string {
   const qrSvg = buildDeterministicQrSvg(pass.qr_payload);
   const appointmentLabel = pass.appointment_code || 'CHỜ CẤP MÃ HẸN';
   const statusVi = getDossierStatusVietnamese(pass.status);
+  const passBadgeLabel = pass.qr_payload?.startsWith('SW_RECEIPT|')
+    ? 'PHIẾU BIÊN NHẬN CHÍNH THỨC'
+    : pass.qr_payload?.startsWith('SW_DRAFT|')
+    ? 'MÃ BẢN NHÁP SMARTWARD (KIỂM TRA TRƯỚC)'
+    : 'PHIẾU HẸN SƠ DUYỆT ĐIỆN TỬ';
 
   return `<!DOCTYPE html>
 <html lang="vi">
@@ -109,7 +130,7 @@ export function buildElectronicQrPassHtml(pass: WalletQrPassRow): string {
 </head>
 <body>
   <div class="card">
-    <div class="badge">PHIẾU HẸN SƠ DUYỆT ĐIỆN TỬ</div>
+    <div class="badge">${escapeHtml(passBadgeLabel)}</div>
     <div class="ward">UBND ${escapeHtml(pass.ward_name)}</div>
     <div class="sub">Bộ phận Một cửa — Tỉnh An Giang (Miễn phí 100% • Không SMS)</div>
     <div class="qr-wrap">

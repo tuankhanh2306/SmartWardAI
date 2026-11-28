@@ -22,6 +22,12 @@ export interface DossierSubmissionResponse {
   status: string;
   slaDeadline?: string | null;
   createdAt: string;
+  routingChannel?: string;
+  receivingAgency?: string | null;
+  officialReceiptNo?: string | null;
+  receiptVerifiedAt?: string | null;
+  qrKind?: 'SW_DRAFT' | 'SW_RECEIPT' | string;
+  receiptVerified?: boolean;
 }
 
 export interface DossierTimelineEvent {
@@ -40,7 +46,20 @@ export interface DossierTrackingResponse {
   procedureName: string;
   wardCode: string;
   citizenCccd: string;
-  status: 'PENDING' | 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'SUPPLEMENTED' | 'REJECTED' | string;
+  status:
+    | 'PENDING'
+    | 'OFFICIALLY_ACCEPTED'
+    | 'UNDER_APPRAISAL'
+    | 'PENDING_UBND_SIGNATURE'
+    | 'CENTER_SIGNED'
+    | 'TRANSFERRED_AWAITING_DECISION'
+    | 'APPROVED'
+    | 'SUPPLEMENT_REQUIRED'
+    | 'SUPPLEMENTED'
+    | 'READY_FOR_RETURN'
+    | 'COMPLETED'
+    | 'REJECTED'
+    | string;
   slaDeadline?: string | null;
   officerFeedback?: string;
   appointmentCode?: string;
@@ -52,6 +71,12 @@ export interface DossierTrackingResponse {
   requestedSupplementItems?: string[];
   supplementedAt?: string | null;
   supplementCount?: number;
+  routingChannel?: string;
+  receivingAgency?: string | null;
+  officialReceiptNo?: string | null;
+  receiptVerifiedAt?: string | null;
+  qrKind?: 'SW_DRAFT' | 'SW_RECEIPT' | string;
+  receiptVerified?: boolean;
 }
 
 export interface SubmitDossierSupplementPayload {
@@ -63,12 +88,24 @@ export interface SubmitDossierSupplementPayload {
 }
 
 export interface OfficerReviewPayload {
-  status: 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'REJECTED';
+  status:
+    | 'APPROVED'
+    | 'OFFICIALLY_ACCEPTED'
+    | 'UNDER_APPRAISAL'
+    | 'PENDING_UBND_SIGNATURE'
+    | 'CENTER_SIGNED'
+    | 'TRANSFERRED_AWAITING_DECISION'
+    | 'SUPPLEMENT_REQUIRED'
+    | 'READY_FOR_RETURN'
+    | 'COMPLETED'
+    | 'REJECTED';
   officerFeedback?: string;
   reviewStatus?: string;
   feedbackReason?: string;
   appointmentCode?: string;
   requestedItems?: string[];
+  receivingAgency?: string;
+  officialReceiptNo?: string;
 }
 
 export interface OfficerDossierItem {
@@ -79,7 +116,7 @@ export interface OfficerDossierItem {
   wardCode: string;
   citizenCccd: string;
   citizenName: string;
-  status: 'PENDING' | 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'SUPPLEMENTED' | 'REJECTED' | 'VALID' | 'HAS_ERRORS' | string;
+  status: DossierTrackingResponse['status'] | 'VALID' | 'HAS_ERRORS';
   slaDeadline?: string | null;
   officerFeedback?: string;
   appointmentCode?: string;
@@ -91,6 +128,42 @@ export interface OfficerDossierItem {
   requestedSupplementItems?: string[];
   supplementedAt?: string | null;
   supplementCount?: number;
+  routingChannel?: string;
+  receivingAgency?: string | null;
+  officialReceiptNo?: string | null;
+  receiptVerifiedAt?: string | null;
+  qrKind?: 'SW_DRAFT' | 'SW_RECEIPT' | string;
+  receiptVerified?: boolean;
+}
+
+export function getDossierStatusLabelVi(status?: string | null, receiptVerified = false): string {
+  switch ((status || 'PENDING').trim().toUpperCase()) {
+    case 'OFFICIALLY_ACCEPTED':
+      return 'Hồ sơ đã được tiếp nhận';
+    case 'APPROVED':
+      return receiptVerified ? 'Hồ sơ đã được tiếp nhận' : 'Đã kiểm tra sơ bộ — Chờ biên nhận';
+    case 'UNDER_APPRAISAL':
+      return 'Đang thẩm định chuyên môn';
+    case 'PENDING_UBND_SIGNATURE':
+      return 'Trình lãnh đạo UBND ký duyệt';
+    case 'CENTER_SIGNED':
+      return 'Đã ký theo ủy quyền tại Trung tâm';
+    case 'TRANSFERRED_AWAITING_DECISION':
+      return 'Đã chuyển cơ sở – chờ quyết định tiếp nhận';
+    case 'SUPPLEMENT_REQUIRED':
+      return 'Cần bổ sung';
+    case 'SUPPLEMENTED':
+      return 'Đã bổ sung – chờ kiểm tra lại';
+    case 'READY_FOR_RETURN':
+      return 'Có kết quả – chờ trả';
+    case 'COMPLETED':
+      return 'Đã trả kết quả';
+    case 'REJECTED':
+      return 'Từ chối tiếp nhận';
+    case 'PENDING':
+    default:
+      return 'Đã gửi yêu cầu kiểm tra trước';
+  }
 }
 
 export const UNVERIFIED_SLA_TEXT = 'Chưa xác định (chờ cán bộ Một cửa xác nhận)';
@@ -197,10 +270,15 @@ export interface LiveFormDossier {
   formType: 'CT01' | 'Khai sinh' | 'Kết hôn' | 'Bảo trợ';
   submittedAt: string;
   status: 'PENDING' | 'VALID' | 'HAS_ERRORS';
+  rawStatus?: string;
   cccd: string;
   citizenEmail?: string;
   contactPhone?: string;
   appointmentCode?: string;
+  receivingAgency?: string | null;
+  officialReceiptNo?: string | null;
+  receiptVerified?: boolean;
+  qrKind?: 'SW_DRAFT' | 'SW_RECEIPT' | string;
   errorCount: number;
   wardName?: string;
   officerFeedback?: string;

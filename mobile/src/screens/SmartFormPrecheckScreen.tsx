@@ -494,6 +494,7 @@ export const SmartFormPrecheckScreen: React.FC = () => {
   const hasBlockingPage = capturedPages.some(
     (p) => !p.attachedAsReference && !p.gate.isVerifiedForSubmission
   );
+  const isCt01External = formType === 'CT01';
   const isVisionLocked =
     capturedPages.length > 0
       ? hasBlockingPage
@@ -502,7 +503,9 @@ export const SmartFormPrecheckScreen: React.FC = () => {
     ? 'Kiểm tra / Chụp lại ảnh chưa đạt'
     : isVisionLocked && visionGate
     ? visionGate.submitButtonLabel
-    : 'Bước 3: Kiểm tra & Gửi sơ duyệt';
+    : isCt01External
+    ? 'Kiểm tra bản nháp CT01 (Kênh Công an xã / VNeID)'
+    : 'Gửi yêu cầu kiểm tra trước';
 
   return (
     <View style={styles.screen}>
@@ -893,16 +896,37 @@ export const SmartFormPrecheckScreen: React.FC = () => {
             </Text>
           ))}
 
-          {submitResult.success ? (
+          {submitResult.success && submitResult.stage !== 'EXTERNAL_CHANNEL_GUIDED' ? (
             <Pressable
               accessibilityRole="button"
               onPress={() => setSectionMode('wallet')}
               style={styles.openWalletBtn}
             >
               <QrCode size={15} color={COLORS.onPrimary} />
-              <Text style={styles.openWalletBtnText}>Mở Ví Phiếu Hẹn Mã QR →</Text>
+              <Text style={styles.openWalletBtnText}>Mở Mã Bản Nháp &amp; Ví QR →</Text>
             </Pressable>
           ) : null}
+        </View>
+      ) : null}
+
+      {isCt01External ? (
+        <View
+          style={{
+            backgroundColor: '#F0F9FF',
+            borderColor: '#BAE6FD',
+            borderWidth: 1,
+            borderRadius: RADIUS.md,
+            padding: SPACING.md,
+            marginBottom: SPACING.sm,
+            gap: 4,
+          }}
+        >
+          <Text style={{ fontSize: 13, fontWeight: '800', color: '#0C4A6E' }}>
+            Phương án 3A • Kênh giải quyết: Công an cấp xã / VNeID
+          </Text>
+          <Text style={{ fontSize: 12, color: '#0369A1', lineHeight: 17 }}>
+            SmartWard hỗ trợ kiểm tra lỗi và chuẩn bị bản nháp CT01, KHÔNG chuyển hồ sơ cư trú vào hàng đợi duyệt của UBND xã. Vui lòng nộp tại Công an {currentWard.name} hoặc VNeID / Cổng DVC Bộ Công an.
+          </Text>
         </View>
       ) : null}
 

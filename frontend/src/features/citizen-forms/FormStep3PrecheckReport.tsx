@@ -16,10 +16,20 @@ import {
 } from 'lucide-react';
 import {
   formatSlaDeadlineVi,
+  getDossierStatusLabelVi,
   type DossierSubmissionResponse,
   type FormPrecheckResponse,
 } from '../../api/client';
 import type { WardItem } from '../../data/anGiangWards';
+import { PROCEDURES_CATALOG } from '../../data/proceduresCatalog';
+
+const W1_POLICE_PROCEDURES = new Set([
+  'TTHC-CR-01',
+  'TTHC-CR-03',
+  'TTHC-CR-06',
+  'TTHC-CR-07',
+  'TTHC-CR-08',
+]);
 
 interface FormStep3PrecheckReportProps {
   currentWard: WardItem;
@@ -51,7 +61,23 @@ export const FormStep3PrecheckReport: React.FC<FormStep3PrecheckReportProps> = (
   onSubmitDossier,
   onOpenPrintModal,
   onOpenTrackingTab,
-}) => (
+}) => {
+  const procMeta = PROCEDURES_CATALOG.find(
+    (p) => p.code.toUpperCase() === canonicalProcedureCode.trim().toUpperCase()
+  );
+  const isExternalPoliceCt01 =
+    W1_POLICE_PROCEDURES.has(canonicalProcedureCode.trim().toUpperCase()) ||
+    procMeta?.submissionMode === 'EXTERNAL_CHANNEL_ONLY';
+  const isOfficiallyAccepted = Boolean(
+    submittedDossier?.receiptVerified &&
+      submittedDossier?.officialReceiptNo &&
+      submittedDossier?.receivingAgency
+  );
+  const submittedHeadline = isOfficiallyAccepted
+    ? 'Hồ Sơ Đã Được Tiếp Nhận'
+    : 'Đã Gửi Yêu Cầu Kiểm Tra Trước';
+
+  return (
   <>
     {precheckResult ? (
       <div className="p-6 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-4 animate-scaleUp">
@@ -71,10 +97,12 @@ export const FormStep3PrecheckReport: React.FC<FormStep3PrecheckReportProps> = (
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="font-bold text-sm">
                 {submittedDossier
-                  ? 'Đã Tiếp Nhận Hồ Sơ Chính Thức Tại Bộ Phận Một Cửa'
+                  ? submittedHeadline
                   : precheckResult.overallValid
-                  ? 'Tờ Khai Hợp Lệ — Sẵn Sàng Gửi Hồ Sơ Lên UBND'
-                  : 'Phát Hiện Lỗi Cần Chỉnh Sửa Trước Khi Gửi Hồ Sơ'}
+                  ? isExternalPoliceCt01
+                    ? 'Tờ Khai CT01 Hợp Lệ — Sẵn Sàng Nộp Công An Cấp Xã / VNeID'
+                    : 'Tờ Khai Hợp Lệ — Sẵn Sàng Gửi Kiểm Tra Trước'
+                  : 'Phát Hiện Lỗi Cần Chỉnh Sửa Trước Khi Nộp'}
               </h3>
 
               <button
@@ -124,9 +152,13 @@ export const FormStep3PrecheckReport: React.FC<FormStep3PrecheckReportProps> = (
 
             <p className="text-xs mt-1 leading-relaxed">
               {submittedDossier
-                ? `Hồ sơ thủ tục ${canonicalProcedureCode} đã được máy chủ xác nhận và cấp mã chính thức.`
+                ? isOfficiallyAccepted
+                  ? `Hồ sơ thủ tục ${canonicalProcedureCode} đã được tiếp nhận tại ${submittedDossier.receivingAgency} với số biên nhận ${submittedDossier.officialReceiptNo}.`
+                  : `SmartWard đã lưu yêu cầu kiểm tra trước (${canonicalProcedureCode}) và cấp mã bản nháp ${submittedDossier.dossierCode}. Hồ sơ chỉ chuyển sang trạng thái "Hồ sơ đã được tiếp nhận" sau khi cơ quan tiếp nhận đối chiếu và ghi nhận số biên nhận chính thức.`
                 : precheckResult.overallValid
-                ? 'Tờ khai mới chỉ hoàn tất bước Kiểm tra (chưa gửi lên UBND). Bấm "Gửi hồ sơ chính thức" bên dưới để nộp vào Bộ phận Một cửa.'
+                ? isExternalPoliceCt01
+                  ? 'Thủ tục cư trú CT01 thuộc thẩm quyền giải quyết của Công an cấp xã (hoặc nộp trực tuyến qua VNeID / Cổng DVC Bộ Công an). Bản nháp chỉ hỗ trợ bạn chuẩn bị và in tờ khai A4, không chuyển vào hàng đợi duyệt của UBND.'
+                  : 'Tờ khai mới chỉ kiểm tra trên trình duyệt. Bấm "Gửi yêu cầu kiểm tra trước" bên dưới để tạo mã bản nháp SmartWard gửi tới TTPVHCC đối chiếu.'
                 : 'Bà con vui lòng quay lại Bước 2 chỉnh sửa các mục báo đỏ trước khi gửi.'}
             </p>
           </div>
@@ -213,7 +245,28 @@ export const FormStep3PrecheckReport: React.FC<FormStep3PrecheckReportProps> = (
             <span>UBND {currentWard.name}</span>
           </div>
 
-          {!submittedDossier && precheckResult.overallValid && (
+          {!submittedDossier && precheckResult.overallValid && isExternalPoliceCt01 && (
+            <div
+              data-testid="ct01-police-routing-card"
+              className="p-4 rounded-xl bg-sky-50 border border-sky-200 text-xs text-sky-950 flex flex-col gap-2"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-extrabold text-sky-900">
+                  Phương án 3A • Kênh giải quyết: Công an cấp xã / VNeID
+                </span>
+                <span className="px-2 py-0.5 rounded bg-white border border-sky-300 text-[10px] font-bold text-sky-900">
+                  Không gửi UBND xã
+                </span>
+              </div>
+              <p className="leading-relaxed text-sky-900">
+                Theo phân luồng cư trú (CT01), SmartWard giúp bạn kiểm tra lỗi trường thông tin, xuất tờ khai A4 chuẩn NĐ 30/2020 và giữ bản nháp trên máy. Vui lòng nộp trực tiếp tại{' '}
+                <strong>Công an {currentWard.name}</strong> hoặc qua{' '}
+                <strong>VNeID / Cổng Dịch vụ công Bộ Công an</strong>.
+              </p>
+            </div>
+          )}
+
+          {!submittedDossier && precheckResult.overallValid && !isExternalPoliceCt01 && (
             <button
               type="button"
               onClick={onSubmitDossier}
@@ -223,12 +276,12 @@ export const FormStep3PrecheckReport: React.FC<FormStep3PrecheckReportProps> = (
               {submitLoading ? (
                 <>
                   <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span>Đang Gửi Hồ Sơ Lên UBND {currentWard.name}...</span>
+                  <span>Đang gửi yêu cầu kiểm tra trước tới TTPVHCC {currentWard.name}...</span>
                 </>
               ) : (
                 <>
                   <Send className="w-4 h-4" />
-                  <span>Gửi Hồ Sơ Chính Thức Lên UBND {currentWard.name}</span>
+                  <span>Gửi yêu cầu kiểm tra trước tới TTPVHCC {currentWard.name}</span>
                 </>
               )}
             </button>
@@ -288,21 +341,55 @@ export const FormStep3PrecheckReport: React.FC<FormStep3PrecheckReportProps> = (
     )}
 
     {submittedDossier && (
-      <div className="p-5 rounded-2xl bg-[#F0FDF4] border border-[#86EFAC] shadow-xs flex flex-col gap-3">
-        <div className="flex items-center gap-2 text-[#166534]">
-          <CheckCircle2 className="w-5 h-5 text-[#16A34A] shrink-0" />
-          <div>
-            <span className="font-extrabold text-sm block">Đã Tiếp Nhận Hồ Sơ Chính Thức</span>
-            <span className="text-[11px] text-[#15803D]">Máy chủ UBND {currentWard.name} đã xác nhận và cấp mã hồ sơ.</span>
+      <div
+        className={`p-5 rounded-2xl border shadow-xs flex flex-col gap-3 ${
+          isOfficiallyAccepted ? 'bg-[#F0FDF4] border-[#86EFAC]' : 'bg-[#FFFBEB] border-[#FDE68A]'
+        }`}
+      >
+        <div className={`flex items-center justify-between gap-2 ${isOfficiallyAccepted ? 'text-[#166534]' : 'text-[#92400E]'}`}>
+          <div className="flex items-center gap-2">
+            {isOfficiallyAccepted ? (
+              <CheckCircle2 className="w-5 h-5 text-[#16A34A] shrink-0" />
+            ) : (
+              <Clock className="w-5 h-5 text-[#D97706] shrink-0" />
+            )}
+            <div>
+              <span className="font-extrabold text-sm block">{submittedHeadline}</span>
+              <span className="text-[11px]">
+                {isOfficiallyAccepted
+                  ? `${submittedDossier.receivingAgency} đã xác nhận tiếp nhận với số biên nhận ${submittedDossier.officialReceiptNo}.`
+                  : `SmartWard đã ghi nhận yêu cầu kiểm tra trước cho ${currentWard.name} (chưa phải biên nhận tiếp nhận chính thức).`}
+              </span>
+            </div>
           </div>
+          <span
+            data-testid="qr-kind-badge"
+            className={`px-2 py-0.5 rounded font-mono text-[10px] font-bold border shrink-0 ${
+              isOfficiallyAccepted
+                ? 'bg-white text-[#065F46] border-[#86EFAC]'
+                : 'bg-white text-[#92400E] border-[#FCD34D]'
+            }`}
+          >
+            {submittedDossier.qrKind || (isOfficiallyAccepted ? 'SW_RECEIPT' : 'SW_DRAFT')}
+          </span>
         </div>
-        <div className="p-3 rounded-xl bg-white/80 border border-[#BBF7D0] flex flex-col gap-1.5 text-xs">
+        <div className="p-3 rounded-xl bg-white/80 border border-slate-200 flex flex-col gap-1.5 text-xs">
           <div className="flex items-center justify-between">
-            <span className="text-[#64748B]">Mã hồ sơ chính thức:</span>
+            <span className="text-[#64748B]">
+              {isOfficiallyAccepted ? 'Mã hồ sơ & Số biên nhận:' : 'Mã bản nháp SmartWard:'}
+            </span>
             <code className="font-mono font-bold text-[#0F2942] bg-[#E2E8F0] px-2 py-0.5 rounded text-xs">
-              {submittedDossier.dossierCode}
+              {isOfficiallyAccepted && submittedDossier.officialReceiptNo
+                ? `${submittedDossier.dossierCode} • ${submittedDossier.officialReceiptNo}`
+                : submittedDossier.dossierCode}
             </code>
           </div>
+          {submittedDossier.receivingAgency && (
+            <div className="flex items-center justify-between">
+              <span className="text-[#64748B]">Cơ quan tiếp nhận:</span>
+              <span className="font-semibold text-[#0F172A]">{submittedDossier.receivingAgency}</span>
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <span className="text-[#64748B]">Thời hạn giải quyết:</span>
             <span className="font-semibold text-[#166534]">
@@ -312,7 +399,7 @@ export const FormStep3PrecheckReport: React.FC<FormStep3PrecheckReportProps> = (
           <div className="flex items-center justify-between">
             <span className="text-[#64748B]">Trạng thái:</span>
             <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#FEF3C7] text-[#92400E]">
-              {submittedDossier.status} • Đã tiếp nhận chờ cán bộ thụ lý
+              {getDossierStatusLabelVi(submittedDossier.status, isOfficiallyAccepted)}
             </span>
           </div>
         </div>
@@ -327,4 +414,5 @@ export const FormStep3PrecheckReport: React.FC<FormStep3PrecheckReportProps> = (
       </div>
     )}
   </>
-);
+  );
+};

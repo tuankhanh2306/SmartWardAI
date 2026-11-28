@@ -296,6 +296,104 @@ export const DossierNextActionCard: React.FC<DossierNextActionCardProps> = ({
     );
   }
 
+  if (status === 'OFFICIALLY_ACCEPTED') {
+    return (
+      <div
+        data-testid="dossier-next-action-card"
+        className="p-4 rounded-2xl bg-[#ECFDF5] border-2 border-[#6EE7B7] text-[#064E3B] flex flex-col gap-2.5 shadow-2xs"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-1.5 font-extrabold text-xs sm:text-sm uppercase tracking-wide text-[#065F46]">
+            <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0" />
+            <span>Hồ sơ đã được tiếp nhận</span>
+          </span>
+          <span className="text-[11px] font-mono font-semibold text-[#065F46]">
+            Cập nhật: {updatedStr}
+          </span>
+        </div>
+        <div className="p-3 rounded-xl bg-white border border-[#A7F3D0] text-xs flex flex-col gap-1">
+          <div>
+            <strong>Cơ quan tiếp nhận:</strong> {trackingResult.receivingAgency || officeLabel}
+          </div>
+          {trackingResult.officialReceiptNo && (
+            <div>
+              <strong>Số biên nhận chính thức:</strong>{' '}
+              <code className="font-mono font-bold text-[#065F46]">{trackingResult.officialReceiptNo}</code>
+            </div>
+          )}
+        </div>
+        {hasVerifiedSla && (
+          <div className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-[#065F46]">
+            <CalendarCheck2 className="w-3.5 h-3.5" />
+            <span>Ngày hẹn trả dự kiến: {formatSlaDeadlineVi(trackingResult.slaDeadline, false)}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (status === 'TRANSFERRED_AWAITING_DECISION') {
+    return (
+      <div
+        data-testid="dossier-next-action-card"
+        className="p-4 rounded-2xl bg-[#EFF6FF] border-2 border-[#93C5FD] text-[#1E3A8A] flex flex-col gap-2 shadow-2xs"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-1.5 font-extrabold text-xs sm:text-sm uppercase tracking-wide text-[#1D4ED8]">
+            <Clock className="w-4 h-4 text-[#2563EB] shrink-0" />
+            <span>Đã chuyển cơ sở – chờ quyết định tiếp nhận</span>
+          </span>
+          <span className="text-[11px] font-mono font-semibold text-[#1E40AF]">{updatedStr}</span>
+        </div>
+        <p className="text-xs leading-relaxed">
+          {trackingResult.officerFeedback ||
+            'UBND cấp xã đã gửi văn bản đề nghị chuyển hồ sơ; hiện đang chờ người đứng đầu cơ sở trợ giúp xem xét và ra quyết định tiếp nhận.'}
+        </p>
+      </div>
+    );
+  }
+
+  if (status === 'READY_FOR_RETURN') {
+    return (
+      <div
+        data-testid="dossier-next-action-card"
+        className="p-4 rounded-2xl bg-[#ECFDF5] border-2 border-[#34D399] text-[#064E3B] flex flex-col gap-2 shadow-2xs"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-1.5 font-extrabold text-xs sm:text-sm uppercase tracking-wide text-[#065F46]">
+            <CheckCircle2 className="w-4 h-4 text-[#059669] shrink-0" />
+            <span>Có kết quả – chờ trả</span>
+          </span>
+          <span className="text-[11px] font-mono font-semibold text-[#065F46]">{updatedStr}</span>
+        </div>
+        <p className="text-xs leading-relaxed">
+          Hồ sơ đã có kết quả giải quyết. Vui lòng mang CCCD bản chính đến{' '}
+          <strong>{trackingResult.receivingAgency || officeLabel}</strong> để nhận kết quả.
+        </p>
+      </div>
+    );
+  }
+
+  if (status === 'COMPLETED') {
+    return (
+      <div
+        data-testid="dossier-next-action-card"
+        className="p-4 rounded-2xl bg-[#F0FDF4] border border-[#86EFAC] text-[#166534] flex flex-col gap-2"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="inline-flex items-center gap-1.5 font-extrabold text-xs sm:text-sm uppercase tracking-wide">
+            <CheckCircle2 className="w-4 h-4 text-[#16A34A] shrink-0" />
+            <span>Đã trả kết quả</span>
+          </span>
+          <span className="text-[11px] font-mono font-semibold">{updatedStr}</span>
+        </div>
+        <p className="text-xs leading-relaxed">
+          Hồ sơ đã hoàn tất quy trình và đã trả kết quả cho công dân.
+        </p>
+      </div>
+    );
+  }
+
   if (status === 'APPROVED') {
     return (
       <div
@@ -378,18 +476,19 @@ export const DossierNextActionCard: React.FC<DossierNextActionCardProps> = ({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <span className="inline-flex items-center gap-1.5 font-extrabold text-xs sm:text-sm uppercase tracking-wide text-[#92400E]">
           <Clock className="w-4 h-4 text-[#D97706] shrink-0" />
-          <span>Việc cần làm: Chờ Bộ phận Một cửa thẩm định hồ sơ</span>
+          <span>Đã gửi yêu cầu kiểm tra trước • Mã bản nháp SmartWard (SW_DRAFT)</span>
         </span>
         <span className="text-[11px] font-mono font-semibold text-[#92400E]">
           Cập nhật gần nhất: {updatedStr}
         </span>
       </div>
       <p className="text-xs leading-relaxed text-[#78350F]">
-        Hồ sơ đang được thụ lý tại <strong>{officeLabel}</strong>. Bạn chưa cần đến quầy lúc này; khi có phiếu hẹn hoặc yêu cầu bổ sung, mục này sẽ hiển thị ngay đầu trang.
+        SmartWard đang hỗ trợ kiểm tra hồ sơ trước cho <strong>{officeLabel}</strong>. Trạng thái sẽ chuyển sang{' '}
+        <strong>“Hồ sơ đã được tiếp nhận”</strong> sau khi cơ quan tiếp nhận xác nhận và cấp số biên nhận chính thức.
       </p>
       {hasVerifiedSla && (
         <div className="text-[11px] font-mono font-bold text-[#92400E]">
-          Hạn trả kết quả xác định: {formatSlaDeadlineVi(trackingResult.slaDeadline, false)}
+          Hạn giải quyết tham chiếu: {formatSlaDeadlineVi(trackingResult.slaDeadline, false)}
         </div>
       )}
     </div>

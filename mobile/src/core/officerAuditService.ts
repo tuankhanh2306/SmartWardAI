@@ -277,23 +277,35 @@ export async function lookupDossierByScannedCounterQr(
  */
 export async function submitOfficerDossierDecision(
   dossier: OfficerDossierDto,
-  decision: 'APPROVED' | 'SUPPLEMENT_REQUIRED',
+  decision: OfficerReviewRequest['status'],
   officerFeedback: string,
-  reviewApi: typeof reviewOfficerDossier = reviewOfficerDossier
+  reviewApi: typeof reviewOfficerDossier = reviewOfficerDossier,
+  extra?: { receivingAgency?: string; officialReceiptNo?: string }
 ): Promise<OfficerDossierDto> {
   const appointmentCode =
-    decision === 'APPROVED'
+    decision === 'APPROVED' || decision === 'OFFICIALLY_ACCEPTED'
       ? dossier.appointmentCode || generateAppointmentCode()
       : undefined;
 
+  const defaultFeedbackMap: Record<string, string> = {
+    APPROVED: `Hồ sơ hợp lệ 100%. Mời công dân mang CCCD gốc đến TTPVHCC xuất trình mã ${appointmentCode}.`,
+    OFFICIALLY_ACCEPTED: `Hồ sơ đã được tiếp nhận tại ${extra?.receivingAgency || 'TTPVHCC cấp xã'} (Số biên nhận: ${extra?.officialReceiptNo || ''}).`,
+    UNDER_APPRAISAL: 'Hồ sơ đã chuyển công chức chuyên môn UBND thẩm định.',
+    PENDING_UBND_SIGNATURE: 'Đã thẩm định đạt, trình Lãnh đạo UBND ký duyệt.',
+    CENTER_SIGNED: 'Đã ký theo quyết định ủy quyền tại Trung tâm Phục vụ Hành chính công.',
+    TRANSFERRED_AWAITING_DECISION: 'Đã gửi văn bản đề nghị sang cơ sở trợ giúp, chờ quyết định tiếp nhận.',
+    READY_FOR_RETURN: 'Hồ sơ đã có kết quả giải quyết — chờ trả công dân.',
+    COMPLETED: 'Công dân đã nhận kết quả giải quyết TTHC.',
+    SUPPLEMENT_REQUIRED: 'Vui lòng bổ sung thông tin/giấy tờ còn thiếu theo hướng dẫn của cán bộ tiếp nhận.',
+    REJECTED: 'Hồ sơ chưa đủ điều kiện tiếp nhận theo quy định.',
+  };
+
   const payload: OfficerReviewRequest = {
     status: decision,
-    officerFeedback:
-      officerFeedback.trim() ||
-      (decision === 'APPROVED'
-        ? `Hồ sơ hợp lệ 100%. Mời công dân mang CCCD gốc đến Bộ phận Một cửa xuất trình mã QR ${appointmentCode}.`
-        : 'Vui lòng bổ sung thông tin/giấy tờ còn thiếu theo hướng dẫn của cán bộ Một cửa.'),
+    officerFeedback: officerFeedback.trim() || defaultFeedbackMap[decision] || 'Đã cập nhật trạng thái hồ sơ.',
     appointmentCode,
+    receivingAgency: extra?.receivingAgency,
+    officialReceiptNo: extra?.officialReceiptNo,
   };
 
   const updated = await reviewApi(dossier.dossierCode, payload);

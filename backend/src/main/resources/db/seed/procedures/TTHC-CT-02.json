@@ -3,7 +3,7 @@
   "officialPortalCode": "1.001590",
   "procedureName": "Thủ tục Chứng thực chữ ký trong các giấy tờ, văn bản",
   "category": "Chứng thực",
-  "agency": "- Cơ quan có thẩm quyền giải quyết: Bộ Ngoại giao\n- Cơ quan trực tiếp thực hiện: Bộ phận Tiếp nhận và Trả kết quả (Một cửa) cấp Xã/Phường.",
+  "agency": "- Cơ quan tiếp nhận: Trung tâm Phục vụ hành chính công cấp xã.\n- Thẩm quyền ký: Lãnh đạo UBND cấp xã, hoặc Giám đốc/Phó Giám đốc TTPVHCC cấp xã khi có Quyết định ủy quyền còn hiệu lực (Nghị định 280/2025/NĐ-CP).",
   "process": "Nộp hồ sơ tại trụ sở Cơ quan đại diện ngoại giao, cơ quan lãnh sự hoặc cơ quan khác được ủy quyền thực hiện chức năng lãnh sự của Việt Nam ở nước ngoài (Cơ quan đại diện).\nCơ quan đại diện thực kiểm tra giấy tờ yêu cầu chứng thực, nếu thấy đủ giấy tờ theo quy định, tại thời điểm chứng thực, người yêu cầu chứng thực minh mẫn, nhận thức và làm chủ được hành vi của mình và việc chứng thực không thuộc các trường hợp không được chứng thực thì yêu cầu người yêu cầu chứng thực ký trước mặt và thực hiện chứng thực.\nNhận kết quả trực tiếp tại trụ sở cơ quan theo phiếu hẹn hồ sơ",
   "processStepsCount": 1,
   "requiredDocuments": [
@@ -108,5 +108,12 @@
   "chunksCount": 4,
   "validatedAt": "2026-11-03T03:34:04.541448+00:00",
   "lastApprovedAt": "2026-11-17T03:03:10.644606+00:00",
-  "contentHash": "f50ca676327bc5f5b1870f7b76363ed13d5e4b595af9631a90fb991255976cb7"
+  "contentHash": "f50ca676327bc5f5b1870f7b76363ed13d5e4b595af9631a90fb991255976cb7",
+  "workflowGroup": "W3",
+  "submissionMode": "PRECHECK_ENABLED",
+  "catalogStatus": "VERIFIED_AN_GIANG",
+  "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+  "appraisalUnit": "Chuyên viên tiếp nhận / Công chức Tư pháp tại TTPVHCC",
+  "signingAuthority": "Chủ tịch UBND cấp xã (hoặc Lãnh đạo TTPVHCC khi có QĐ ủy quyền còn hiệu lực)",
+  "requiresDelegationToSignAtCenter": true
 }

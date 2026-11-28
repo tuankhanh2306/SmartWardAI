@@ -739,6 +739,63 @@ export const PerWardDashboard: React.FC = () => {
     setSelectedDossier(null);
   };
 
+  const handleTransitionDossierStatus = async (
+    dossierId: string,
+    nextStatus:
+      | 'OFFICIALLY_ACCEPTED'
+      | 'UNDER_APPRAISAL'
+      | 'PENDING_UBND_SIGNATURE'
+      | 'CENTER_SIGNED'
+      | 'TRANSFERRED_AWAITING_DECISION'
+      | 'READY_FOR_RETURN'
+      | 'COMPLETED',
+    extra?: { receivingAgency?: string; officialReceiptNo?: string }
+  ) => {
+    const reviewer = `${officerProfile.name} (${officerProfile.badgeId} • TTPVHCC ${ward.name})`;
+    const defaultNoteMap: Record<string, string> = {
+      OFFICIALLY_ACCEPTED: `Đã xác nhận tiếp nhận hồ sơ tại ${extra?.receivingAgency || `TTPVHCC ${ward.name}`} (Biên nhận: ${extra?.officialReceiptNo || ''}) — ${reviewer}.`,
+      UNDER_APPRAISAL: 'Hồ sơ đã chuyển công chức chuyên môn UBND thẩm định.',
+      PENDING_UBND_SIGNATURE: 'Đã thẩm định đạt, trình Lãnh đạo UBND ký duyệt.',
+      CENTER_SIGNED: 'Đã ký theo quyết định ủy quyền tại Trung tâm Phục vụ Hành chính công.',
+      TRANSFERRED_AWAITING_DECISION: 'Đã gửi văn bản đề nghị sang cơ sở trợ giúp, chờ quyết định tiếp nhận.',
+      READY_FOR_RETURN: `Hồ sơ đã có kết quả giải quyết tại TTPVHCC ${ward.name} — chờ trả công dân.`,
+      COMPLETED: 'Công dân đã nhận kết quả giải quyết TTHC.',
+    };
+    const feedback = officerCustomNote.trim() || defaultNoteMap[nextStatus] || 'Đã cập nhật trạng thái xử lý.';
+
+    try {
+      const updated = await reviewOfficerDossier(dossierId, {
+        status: nextStatus,
+        officerFeedback: feedback,
+        receivingAgency: extra?.receivingAgency,
+        officialReceiptNo: extra?.officialReceiptNo,
+      });
+      setDossiers((prev) =>
+        prev.map((d) =>
+          d.id === dossierId
+            ? {
+                ...d,
+                status: nextStatus === 'READY_FOR_RETURN' || nextStatus === 'COMPLETED' || nextStatus === 'OFFICIALLY_ACCEPTED' ? 'VALID' : d.status,
+                rawStatus: updated?.status || nextStatus,
+                officerFeedback: feedback,
+                receivingAgency: updated?.receivingAgency ?? extra?.receivingAgency ?? (d as any).receivingAgency,
+                officialReceiptNo: updated?.officialReceiptNo ?? extra?.officialReceiptNo ?? (d as any).officialReceiptNo,
+                receiptVerified: updated?.receiptVerified ?? Boolean(extra?.officialReceiptNo),
+              }
+            : d
+        )
+      );
+      setOfficerCustomNote('');
+      setToastBanner(`Đã cập nhật hồ sơ ${dossierId} -> ${nextStatus}!`);
+      setTimeout(() => setToastBanner(null), 5000);
+      setSelectedDossier(null);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Không thể cập nhật trạng thái hồ sơ lúc này.';
+      setToastBanner(`Lỗi: ${msg}`);
+      setTimeout(() => setToastBanner(null), 5000);
+    }
+  };
+
   // Filtered incidents based on status & search
   const filteredIncidents = useMemo(() => {
     return incidents.filter((item) => {
@@ -1381,7 +1438,7 @@ export const PerWardDashboard: React.FC = () => {
           }`}
         >
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-wide">Phản ánh sự cố</span>
+            <span className="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-wide">UBND • Phản ánh sự cố</span>
             <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center shrink-0 border border-amber-200">
               <AlertTriangle className="w-5 h-5" />
             </div>
@@ -1427,7 +1484,7 @@ export const PerWardDashboard: React.FC = () => {
           }`}
         >
           <div className="flex items-center justify-between gap-2">
-            <span className="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-wide">Sơ duyệt hồ sơ</span>
+            <span className="text-xs sm:text-sm font-bold text-slate-600 uppercase tracking-wide">TTPVHCC • Tiếp nhận &amp; Kiểm tra hồ sơ</span>
             <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center shrink-0 border border-emerald-200">
               <FileCheck2 className="w-5 h-5" />
             </div>
@@ -1504,7 +1561,7 @@ export const PerWardDashboard: React.FC = () => {
               }`}
             >
               <AlertTriangle className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === 'INCIDENTS' ? 'text-[#FDE047]' : 'text-slate-500'}`} />
-              <span>Sự Cố Địa Bàn</span>
+              <span>UBND • Sự Cố Địa Bàn</span>
               <span
                 className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
                   activeTab === 'INCIDENTS'
@@ -1546,7 +1603,7 @@ export const PerWardDashboard: React.FC = () => {
               }`}
             >
               <FileCheck2 className={`w-4 h-4 sm:w-5 sm:h-5 ${activeTab === 'FORMS' ? 'text-[#FDE047]' : 'text-slate-500'}`} />
-              <span>Sơ Duyệt Tờ Khai</span>
+              <span>TTPVHCC • Hồ Sơ TTHC</span>
               <span
                 className={`px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
                   activeTab === 'FORMS'
@@ -1840,10 +1897,10 @@ export const PerWardDashboard: React.FC = () => {
               <div>
                 <h2 className="text-lg sm:text-xl font-extrabold text-[#750715] flex items-center gap-2">
                   <FileCheck2 className="w-6 h-6 text-[#B90E23]" />
-                  <span>Sơ Duyệt Hồ Sơ Một Cửa • {ward.name}</span>
+                  <span>TTPVHCC — Tiếp nhận &amp; Điều phối Hồ sơ • {ward.name}</span>
                 </h2>
                 <p className="text-xs sm:text-sm text-slate-600 mt-1 font-medium">
-                  Kiểm tra tờ khai CT01, Khai sinh, Kết hôn, Bảo trợ xã hội của người dân gửi đến.
+                  Tiếp nhận bản nháp kiểm tra trước (Khai sinh, Kết hôn, Bảo trợ), ghi nhận số biên nhận và trả kết quả (đã tách hồ sơ CT01 Công an &amp; Phản ánh hiện trường UBND).
                 </p>
               </div>
 
@@ -2059,6 +2116,7 @@ export const PerWardDashboard: React.FC = () => {
         setOfficerCustomNote={setOfficerCustomNote}
         handleApproveDossier={handleApproveDossier}
         handleRequestSupplement={handleRequestSupplement}
+        handleTransitionDossierStatus={handleTransitionDossierStatus}
       />
     </div>
   );

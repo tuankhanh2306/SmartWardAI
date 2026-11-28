@@ -3,7 +3,7 @@
   "officialPortalCode": "1.010041",
   "procedureName": "Xác nhận thông tin về cư trú",
   "category": "Cư trú",
-  "agency": "- Cơ quan có thẩm quyền giải quyết: Bộ Công an\n- Cơ quan trực tiếp thực hiện: Bộ phận Tiếp nhận và Trả kết quả (Một cửa) cấp Xã/Phường.",
+  "agency": "- Cơ quan có thẩm quyền tiếp nhận & giải quyết: Công an cấp xã (ngành dọc Bộ Công an).\n- Kênh nộp: Trực tiếp tại Công an cấp xã hoặc trực tuyến qua ứng dụng VNeID / Cổng Dịch vụ công Bộ Công an (không nộp vào hàng đợi duyệt của UBND xã).",
   "process": "Bước 1: Cá nhân, tổ chức chuẩn bị hồ sơ theo quy định của pháp luật.\n Bước 2: Cá nhân, tổ chức nộp hồ sơ đến Công an cấp xã.\n Bước 3: Khi tiếp nhận hồ sơ xác nhận thông tin về cư trú, cơ quan đăng ký cư trú kiểm tra tính pháp lý và nội dung hồ sơ:\n- Trường hợp hồ sơ đã đầy đủ, chính xác theo quy định thì cán bộ đăng ký tiếp nhận hồ sơ và cấp Phiếu tiếp nhận hồ sơ và hẹn trả kết quả (mẫu CT04 ban hành kèm theo Thông tư số 116/2026/TT-BCA) cho người đăng ký.\n- Trường hợp hồ sơ chưa đầy đủ, chưa chính xác theo quy định thì cán bộ đăng ký trả lại hồ sơ và cấp Phiếu thông báo về việc giải quyết hồ sơ cư trú (mẫu CT06 ban hành kèm theo Thông tư số 116/2026/TT-BCA) cho người đăng ký; ghi rõ lý do trả lại và hướng dẫn chi tiết, cụ thể cho công dân.\nBước 4: Căn cứ theo ngày hẹn trên Phiếu tiếp nhận hồ sơ và hẹn trả kết quả để nhận thông báo kết quả giải quyết thủ tục đăng ký cư trú (nếu có).",
   "processStepsCount": 1,
   "requiredDocuments": [
@@ -108,5 +108,13 @@
   "chunksCount": 4,
   "validatedAt": "2026-11-03T03:34:04.538273+00:00",
   "lastApprovedAt": "2026-11-17T03:03:10.639607+00:00",
-  "contentHash": "951820b5104035a1533589fd2378387f6346e8f9e4cee2456dc52c3d42243378"
+  "contentHash": "951820b5104035a1533589fd2378387f6346e8f9e4cee2456dc52c3d42243378",
+  "workflowGroup": "W1",
+  "submissionMode": "EXTERNAL_CHANNEL_ONLY",
+  "catalogStatus": "VERIFIED_AN_GIANG",
+  "receivingAgency": "Công an cấp xã / VNeID / Cổng DVC Bộ Công an",
+  "appraisalUnit": "Cán bộ đăng ký cư trú - Công an cấp xã",
+  "signingAuthority": "Trưởng Công an cấp xã",
+  "requiresDelegationToSignAtCenter": false,
+  "verificationNote": "Thủ tục thuộc thẩm quyền Công an cấp xã; SmartWard hỗ trợ kê khai & hướng dẫn nộp, không chuyển vào hàng đợi duyệt UBND."
 }

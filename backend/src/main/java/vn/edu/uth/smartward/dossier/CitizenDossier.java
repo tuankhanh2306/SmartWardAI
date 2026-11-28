@@ -78,6 +78,19 @@ public class CitizenDossier {
     @Builder.Default
     private Integer supplementCount = 0;
 
+    @Column(name = "routing_channel", nullable = false, length = 32)
+    @Builder.Default
+    private String routingChannel = "TTPVHCC_UBND";
+
+    @Column(name = "receiving_agency", length = 255)
+    private String receivingAgency;
+
+    @Column(name = "official_receipt_no", length = 64)
+    private String officialReceiptNo;
+
+    @Column(name = "receipt_verified_at")
+    private Instant receiptVerifiedAt;
+
     @Version
     @Column(name = "version")
     @Builder.Default

@@ -3,7 +3,7 @@
   "officialPortalCode": "1.014028",
   "procedureName": "Hỗ trợ chi phí mai táng đối với đối tượng hưởng trợ cấp hưu trí xã hội",
   "category": "Bảo trợ xã hội",
-  "agency": "- Cơ quan có thẩm quyền giải quyết: Bộ Y tế\n- Cơ quan trực tiếp thực hiện: Bộ phận Tiếp nhận và Trả kết quả (Một cửa) cấp Xã/Phường.",
+  "agency": "- Cơ quan tiếp nhận & trả kết quả: Trung tâm Phục vụ hành chính công cấp xã (NĐ 118/2025, sửa đổi bởi NĐ 367/2025 & NĐ 309/2026).\n- Cơ quan thẩm định & ký kết quả: Công chức chuyên môn thẩm định → Lãnh đạo UBND cấp xã ký duyệt.",
   "process": "- Bước 1: Cá nhân, cơ quan, đơn vị chịu trách nhiệm mai táng cho đối tượng làm hồ sơ theo quy định, gửi Chủ tịch Ủy ban nhân dân cấp xã nơi cư trú.\n\n- Bước 2: Trong thời hạn 03 ngày làm việc, kể từ ngày nhận được Tờ khai của cá nhân, cơ quan, đơn vị tổ chức đứng ra mai táng cho đối tượng, Chủ tịch Ủy ban nhân dân cấp xã xem xét, quyết định hỗ trợ chi phí mai táng và thực hiện chi trả kinh phí hỗ trợ theo quy định.\nTrường hợp thực hiện liên thông điện tử nhóm thủ tục hành chính đăng ký khai tử, xoá đăng ký thường trú, giải quyết mai táng phí, tử tuất thì thủ tục hỗ trợ chi phí mai táng thực hiện theo quy định tại Điều 11, Điều 12, Điều 13, Điều 14 và Điều 15 Nghị định số 63/2024/NĐ-CP của Chính phủ quy định việc thực hiện liên thông điện tử 02 nhóm thủ tục hành chính: đăng ký khai sinh, đăng ký thường trú, cấp thẻ bảo hiểm y tế cho trẻ em dưới 6 tuổi; đăng ký khai tử, xoá đăng ký thường trú, giải quyết mai táng phí, tử tuất, được sửa đổi, bổ sung bởi Nghị định số 301/2026/NĐ-CP (Quyết định số 1868/QĐ-BTP ngày 10/8/2026 của Bộ trưởng Bộ Tư pháp về việc công bố 02 nhóm thủ tục hành chính liên thông điện tử được thay thế: Đăng ký khai sinh, đăng ký thường trú, cấp thẻ bảo hiểm y tế, cấp thẻ căn cước cho trẻ em dưới 6 tuổi; đăng ký khai tử, xoá đăng ký thường trú, giải quyết mai táng phí, tử tuất).\n- Việc tiếp nhận thủ tục hành chính không phụ thuộc vào địa giới hành chính thực hiện theo quy định của pháp luật về thực hiện thủ tục hành chính không phụ thuộc địa giới hành chính.",
   "processStepsCount": 2,
   "requiredDocuments": [
@@ -102,5 +102,12 @@
   "chunksCount": 5,
   "validatedAt": "2026-11-03T03:34:04.528800+00:00",
   "lastApprovedAt": "2026-11-17T03:03:10.625488+00:00",
-  "contentHash": "9a79bb02b00f64768ba63412d62e08e3fb005f5ebb115163832ffe60b84c1b3d"
+  "contentHash": "9a79bb02b00f64768ba63412d62e08e3fb005f5ebb115163832ffe60b84c1b3d",
+  "workflowGroup": "W3",
+  "submissionMode": "PRECHECK_ENABLED",
+  "catalogStatus": "VERIFIED_AN_GIANG",
+  "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+  "appraisalUnit": "Công chức Văn hóa - Xã hội",
+  "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+  "requiresDelegationToSignAtCenter": false
 }

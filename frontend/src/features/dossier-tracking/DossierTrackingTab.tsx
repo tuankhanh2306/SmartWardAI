@@ -4,7 +4,12 @@ import {
 } from 'lucide-react';
 import type { WardItem } from '../../data/anGiangWards';
 import { useWard } from '../../context/WardContext';
-import { formatSlaDeadlineVi, type DossierTrackingResponse, type LiveFormDossier } from '../../api/client';
+import {
+  formatSlaDeadlineVi,
+  getDossierStatusLabelVi,
+  type DossierTrackingResponse,
+  type LiveFormDossier,
+} from '../../api/client';
 import { DossierNextActionCard } from './DossierNextActionCard';
 
 export interface DossierTrackingTabProps {
@@ -182,9 +187,13 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                     </div>
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wide border ${
-                        trackingResult.status === 'APPROVED'
+                        ['OFFICIALLY_ACCEPTED', 'APPROVED', 'CENTER_SIGNED', 'READY_FOR_RETURN', 'COMPLETED'].includes(
+                          (trackingResult.status || '').toUpperCase()
+                        )
                           ? 'bg-[#ECFDF5] text-[#065F46] border-[#A7F3D0]'
-                          : trackingResult.status === 'SUPPLEMENTED'
+                          : ['SUPPLEMENTED', 'UNDER_APPRAISAL', 'PENDING_UBND_SIGNATURE', 'TRANSFERRED_AWAITING_DECISION'].includes(
+                              (trackingResult.status || '').toUpperCase()
+                            )
                           ? 'bg-[#EFF6FF] text-[#1D4ED8] border-[#93C5FD]'
                           : trackingResult.status === 'SUPPLEMENT_REQUIRED'
                           ? 'bg-[#FEF2F2] text-[#991B1B] border-[#FECACA]'
@@ -193,15 +202,7 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
                           : 'bg-[#FFFBEB] text-[#92400E] border-[#FDE68A]'
                       }`}
                     >
-                      {trackingResult.status === 'APPROVED'
-                        ? 'ĐÃ TIẾP NHẬN / PHÊ DUYỆT'
-                        : trackingResult.status === 'SUPPLEMENTED'
-                        ? 'ĐÃ BỔ SUNG — CHỜ THẨM ĐỊNH'
-                        : trackingResult.status === 'SUPPLEMENT_REQUIRED'
-                        ? 'YÊU CẦU BỔ SUNG'
-                        : trackingResult.status === 'REJECTED'
-                        ? 'TỪ CHỐI TIẾP NHẬN'
-                        : 'ĐANG XỬ LÝ (PENDING)'}
+                      {getDossierStatusLabelVi(trackingResult.status, Boolean(trackingResult.receiptVerified))}
                     </span>
                   </div>
 
@@ -216,11 +217,34 @@ export const DossierTrackingTab: React.FC<DossierTrackingTabProps> = (props) => 
 
                     <div className="p-3.5 rounded-2xl bg-[#F8FAFC] border border-[#E2E8F0] flex flex-col gap-2">
                       <div className="flex items-center justify-between">
-                        <span className="text-[#64748B]">Mã hồ sơ:</span>
-                        <code className="font-mono font-bold text-sm text-[#0F2942] bg-[#E2E8F0] px-2 py-0.5 rounded">
-                          {trackingResult.dossierCode}
-                        </code>
+                        <span className="text-[#64748B]">
+                          {trackingResult.receiptVerified ? 'Mã hồ sơ chính thức:' : 'Mã bản nháp SmartWard:'}
+                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <code className="font-mono font-bold text-sm text-[#0F2942] bg-[#E2E8F0] px-2 py-0.5 rounded">
+                            {trackingResult.dossierCode}
+                          </code>
+                          <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-white border border-slate-300 text-slate-700">
+                            {trackingResult.qrKind || (trackingResult.receiptVerified ? 'SW_RECEIPT' : 'SW_DRAFT')}
+                          </span>
+                        </div>
                       </div>
+                      {trackingResult.officialReceiptNo && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-[#64748B]">Số biên nhận tiếp nhận:</span>
+                          <code className="font-mono font-bold text-[#065F46] bg-[#ECFDF5] px-2 py-0.5 rounded border border-[#A7F3D0]">
+                            {trackingResult.officialReceiptNo}
+                          </code>
+                        </div>
+                      )}
+                      {trackingResult.receivingAgency && (
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[#64748B] shrink-0">Cơ quan tiếp nhận:</span>
+                          <span className="font-semibold text-[#0F172A] text-right">
+                            {trackingResult.receivingAgency}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between">
                         <span className="text-[#64748B]">Thủ tục hành chính:</span>
                         <span className="font-bold text-[#0F172A] text-right max-w-xs">{trackingResult.procedureName}</span>

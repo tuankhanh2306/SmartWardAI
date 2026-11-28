@@ -1,6 +1,7 @@
 import React from 'react';
 import { Clock, FileCheck2, FileDown, Mail, RefreshCw } from 'lucide-react';
 import {
+  getDossierStatusLabelVi,
   getLiveSubmittedDossiers,
   trackDossier,
   type DossierSubmissionResponse,
@@ -40,6 +41,11 @@ export const FormStep3QrPassAndInbox: React.FC<FormStep3QrPassAndInboxProps> = (
     myDossiers[0];
 
   const appointmentCode = targetDossier?.appointmentCode;
+  const hasRealReceipt = Boolean(
+    targetDossier &&
+      targetDossier.officialReceiptNo &&
+      targetDossier.receivingAgency
+  );
   const hasRealAppointment = Boolean(
     targetDossier &&
       appointmentCode &&
@@ -51,15 +57,20 @@ export const FormStep3QrPassAndInbox: React.FC<FormStep3QrPassAndInboxProps> = (
     if (trackingDossierCode && trackingLast4Cccd) {
       try {
         const res = await trackDossier(trackingDossierCode, trackingLast4Cccd);
-        if (res?.appointmentCode) {
+        if (res?.dossierCode) {
           const updated = getLiveSubmittedDossiers().map((d) =>
             d.id === res.dossierCode
               ? {
                   ...d,
-                  appointmentCode: res.appointmentCode,
-                  status: (res.status === 'APPROVED' ? 'VALID' : d.status) as any,
+                  appointmentCode: res.appointmentCode || d.appointmentCode,
+                  rawStatus: res.status,
+                  receivingAgency: res.receivingAgency ?? d.receivingAgency,
+                  officialReceiptNo: res.officialReceiptNo ?? d.officialReceiptNo,
+                  receiptVerified: res.receiptVerified ?? d.receiptVerified,
+                  qrKind: res.qrKind ?? d.qrKind,
+                  status: (res.status === 'APPROVED' || res.status === 'OFFICIALLY_ACCEPTED' || res.status === 'COMPLETED' ? 'VALID' : d.status) as any,
                   officerFeedback: res.officerFeedback || d.officerFeedback,
-                  reviewedBy: d.reviewedBy || 'Bộ phận Một cửa',
+                  reviewedBy: d.reviewedBy || res.receivingAgency || 'TTPVHCC',
                 }
               : d
           );
@@ -97,11 +108,15 @@ export const FormStep3QrPassAndInbox: React.FC<FormStep3QrPassAndInboxProps> = (
                         : 'bg-[#FFFBEB] text-[#92400E] border border-[#FDE68A]'
                     }`}
                   >
-                    {d.status === 'VALID'
-                      ? d.reviewedBy ? 'Cán bộ đã duyệt sơ bộ' : 'Hợp lệ • Chờ nộp quầy'
+                    {d.rawStatus
+                      ? getDossierStatusLabelVi(d.rawStatus, Boolean(d.receiptVerified))
+                      : d.status === 'VALID'
+                      ? d.officialReceiptNo
+                        ? 'Hồ sơ đã được tiếp nhận'
+                        : 'Đã gửi yêu cầu kiểm tra trước'
                       : d.status === 'HAS_ERRORS'
-                      ? 'Cần chỉnh sửa / Bổ sung'
-                      : 'Đang chờ sơ duyệt'}
+                      ? 'Cần bổ sung'
+                      : 'Đã gửi yêu cầu kiểm tra trước'}
                   </span>
                 </div>
                 <span className="text-[11px] text-[#64748B] truncate">{d.procedure}</span>
@@ -121,19 +136,19 @@ export const FormStep3QrPassAndInbox: React.FC<FormStep3QrPassAndInboxProps> = (
           <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
             <span className="text-xs font-extrabold text-[#9F0C1E] flex items-center gap-1.5">
               <Clock className="w-4 h-4 text-[#9F0C1E]" />
-              <span>Phiếu Hẹn Sơ Duyệt & Mã QR Tiếp Nhận</span>
+              <span>Mã Bản Nháp SmartWard (Kiểm Tra Trước)</span>
             </span>
             <span className="px-2 py-0.5 rounded-full bg-[#FEF3C7] text-[#92400E] border border-[#FDE68A] text-[10px] font-bold">
-              Đang chờ cán bộ duyệt
+              SW_DRAFT • Chờ đối chiếu biên nhận
             </span>
           </div>
           <div className="p-4 rounded-xl bg-[#FFFBEB] border border-[#FDE68A] flex items-start gap-3 text-xs text-[#92400E]">
             <Clock className="w-5 h-5 text-[#D97706] shrink-0 mt-0.5" />
             <div className="flex flex-col gap-1">
-              <span className="font-extrabold text-[#78350F]">Hồ Sơ Đang Chờ Cán Bộ Xác Nhận & Cấp Lịch Hẹn</span>
+              <span className="font-extrabold text-[#78350F]">Đã gửi yêu cầu kiểm tra trước</span>
               <p className="text-[11px] leading-relaxed text-[#92400E]">
-                Hồ sơ <strong>{targetDossier.id}</strong> ({targetDossier.formType}) của bà con đã được lưu an toàn vào cơ sở dữ liệu.
-                Cán bộ Một cửa đang thụ lý sơ duyệt. Khi hồ sơ được phê duyệt sơ bộ, <strong>Mã QR và Phiếu hẹn chính thức</strong> sẽ được cấp tự động tại đây và gửi tới email của bà con.
+                Mã bản nháp SmartWard <strong>{targetDossier.id}</strong> ({targetDossier.formType}) đã được lưu để hỗ trợ đối chiếu. Trạng thái sẽ chỉ chuyển sang{' '}
+                <strong>“Hồ sơ đã được tiếp nhận”</strong> và cấp mã biên nhận <strong>SW_RECEIPT</strong> sau khi TTPVHCC / cơ quan tiếp nhận xác nhận và ghi nhận số biên nhận chính thức.
               </p>
             </div>
           </div>
@@ -157,11 +172,19 @@ export const FormStep3QrPassAndInbox: React.FC<FormStep3QrPassAndInboxProps> = (
             <div className="flex items-start justify-between gap-3 border-b border-[#E2E8F0] pb-2.5">
               <div>
                 <span className="inline-block px-2 py-0.5 rounded bg-[#F7EEDF] text-[#9F0C1E] text-[10px] font-black uppercase tracking-wider mb-1">
-                  PHIẾU HẸN SƠ DUYỆT ĐIỆN TỬ • ƯU TIÊN QUẦY MỘT CỬA
+                  {hasRealReceipt
+                    ? 'PHIẾU BIÊN NHẬN CHÍNH THỨC (SW_RECEIPT)'
+                    : 'MÃ BẢN NHÁP SMARTWARD (SW_DRAFT) • ĐÃ KIỂM TRA SƠ BỘ'}
                 </span>
-                <h4 className="font-extrabold text-sm text-[#0F172A]">UBND {targetDossier.wardName || currentWard.name}</h4>
+                <h4 className="font-extrabold text-sm text-[#0F172A]">
+                  {hasRealReceipt
+                    ? targetDossier.receivingAgency
+                    : `TTPVHCC ${targetDossier.wardName || currentWard.name}`}
+                </h4>
                 <p className="text-[11px] text-[#64748B]">
-                  Bộ phận Tiếp nhận & Trả kết quả Một cửa — {targetDossier.wardName || currentWard.name}, {currentWard.province}
+                  {hasRealReceipt
+                    ? `Số biên nhận: ${targetDossier.officialReceiptNo}`
+                    : `Mã kiểm tra trước — Chờ cấp số biên nhận khi nộp bản chính tại ${targetDossier.wardName || currentWard.name}`}
                 </p>
               </div>
               <div className="p-1.5 bg-white rounded-lg border border-[#CBD5E1] shrink-0 flex flex-col items-center">

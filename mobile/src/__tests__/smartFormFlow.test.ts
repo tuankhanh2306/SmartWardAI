@@ -150,10 +150,10 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
     expect(submitDossierApi).not.toHaveBeenCalled();
   });
 
-  it('thực thi trọn vẹn luồng khép kín Precheck -> Vault Upload + Xóa file cache (NĐ 13) -> POST /dossiers -> SQLite wallet_qr_passes', async () => {
+  it('thực thi trọn vẹn luồng khép kín Precheck -> Vault Upload + Xóa file cache (NĐ 13) -> POST /dossiers (TK-KS) -> SQLite SW_DRAFT', async () => {
     const precheckApi = vi.fn().mockResolvedValue({
       submissionId: 'SUB-001',
-      procedureCode: 'TTHC-CR-01',
+      procedureCode: 'TTHC-HT-01',
       overallValid: true,
       fieldValidations: [],
       warnings: [],
@@ -168,7 +168,7 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
     });
     const submitDossierApi = vi.fn().mockResolvedValue({
       dossierCode: 'HS-20261118-0001',
-      procedureCode: 'TTHC-CR-01',
+      procedureCode: 'TTHC-HT-01',
       wardCode: 'AG_P_LONGXUYEN',
       status: 'PENDING',
       slaDeadline: '2026-11-25T17:00:00Z',
@@ -180,18 +180,18 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
       {
         wardCode: 'AG_P_LONGXUYEN',
         wardName: 'Phường Long Xuyên',
-        visionGate: makeTestVisionGate('GOOD', 'CT01'),
+        visionGate: makeTestVisionGate('GOOD', 'TK-KS'),
         attachment: {
-          uri: 'file:///cache/ct01_resized.jpg',
-          fileName: 'ct01_resized.jpg',
+          uri: 'file:///cache/tkks_resized.jpg',
+          fileName: 'tkks_resized.jpg',
           mimeType: 'image/jpeg',
           isTempCacheFile: true,
         },
         validationInput: {
-          formType: 'CT01',
-          fullName: 'NGUYỄN MINH TUẤN KHANH',
+          formType: 'TK-KS',
+          fullName: 'NGUYỄN MINH AN',
           citizenCccd: '089205023490',
-          dateOfBirth: '2005-06-23',
+          dateOfBirth: '2026-10-25',
           gender: 'Nam',
           address: 'Số 18 Trần Hưng Đạo, Phường Long Xuyên, Tỉnh An Giang',
           citizenEmail: 'congdan.angiang@gmail.com',
@@ -199,9 +199,10 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
           qrVerified: true,
           referenceDate: REF_DATE,
           extra: {
-            hostCccdNumber: '089075001122',
-            hostDateOfBirth: '1975-03-10',
-            vneidHostConfirmed: true,
+            motherName: 'TRẦN THỊ BÌNH',
+            hospitalMotherName: 'TRẦN THỊ BÌNH',
+            hospitalBirthDate: '2026-10-25',
+            parentsMarried: 'YES',
           },
         },
       },
@@ -213,11 +214,11 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
     expect(res.dossierCode).toBe('HS-20261118-0001');
     expect(res.vaultToken).toBe('OTT_99887766');
     expect(res.tempFileCleaned).toBe(true);
-    expect(deleteTempFile).toHaveBeenCalledWith('file:///cache/ct01_resized.jpg');
+    expect(deleteTempFile).toHaveBeenCalledWith('file:///cache/tkks_resized.jpg');
 
-    // Verify Decree 13 CCCD masking and SQLite wallet persistence
+    // Verify Decree 13 CCCD masking and SQLite wallet persistence (SW_DRAFT until receipt verified)
     expect(res.walletRow?.citizen_cccd_mask).toBe('********3490');
-    expect(res.walletRow?.qr_payload).toBe('SMARTWARD_PASS|HS-20261118-0001|PENDING|AG_P_LONGXUYEN');
+    expect(res.walletRow?.qr_payload).toBe('SW_DRAFT|HS-20261118-0001|AG_P_LONGXUYEN');
 
     const stored = await getAllWalletQrPasses();
     expect(stored.some((p) => p.dossier_code === 'HS-20261118-0001')).toBe(true);
@@ -285,7 +286,7 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
   it('trả slaDeadline = null khi thủ tục chưa xác minh và hiển thị "Chưa xác định (chờ cán bộ Một cửa xác nhận)"', async () => {
     const precheckApi = vi.fn().mockResolvedValue({
       submissionCode: 'PC-NULL-SLA-01',
-      formType: 'CT01',
+      formType: 'TK-KS',
       valid: true,
       overallConfidence: 0.99,
       fieldValidations: [],
@@ -296,7 +297,7 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
     const vaultUploadApi = vi.fn();
     const submitDossierApi = vi.fn().mockResolvedValue({
       dossierCode: 'HS-20261120-AG_P_LONGXUYEN-9999',
-      procedureCode: 'TTHC-CR-01',
+      procedureCode: 'TTHC-HT-01',
       wardCode: 'AG_P_LONGXUYEN',
       status: 'PENDING',
       slaDeadline: null,
@@ -307,13 +308,13 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
       {
         wardCode: 'AG_P_LONGXUYEN',
         wardName: 'Phường Long Xuyên',
-        visionGate: makeTestVisionGate('GOOD', 'CT01'),
+        visionGate: makeTestVisionGate('GOOD', 'TK-KS'),
         attachment: null,
         validationInput: {
-          formType: 'CT01',
+          formType: 'TK-KS',
           fullName: 'NGUYỄN VĂN AN',
           citizenCccd: '089095001234',
-          dateOfBirth: '1995-01-10',
+          dateOfBirth: '2026-10-25',
           gender: 'Nam',
           address: 'Phường Long Xuyên, An Giang',
           citizenEmail: 'an.nguyen@gmail.com',
@@ -321,9 +322,10 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
           qrVerified: true,
           referenceDate: REF_DATE,
           extra: {
-            hostCccdNumber: '089075001122',
-            hostDateOfBirth: '1975-03-10',
-            vneidHostConfirmed: true,
+            motherName: 'TRẦN THỊ BÌNH',
+            hospitalMotherName: 'TRẦN THỊ BÌNH',
+            hospitalBirthDate: '2026-10-25',
+            parentsMarried: 'YES',
           },
         },
       },
@@ -342,7 +344,7 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
   it('nhận ngày sinh dd-mm-yyyy trong app Mobile và chuẩn hóa về yyyy-MM-dd khi gọi precheckApi & submitDossierApi', async () => {
     const precheckApi = vi.fn().mockResolvedValue({
       submissionCode: 'PC-DMY-01',
-      formType: 'CT01',
+      formType: 'TK-KS',
       valid: true,
       overallConfidence: 0.99,
       fieldValidations: [],
@@ -352,7 +354,7 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
     });
     const submitDossierApi = vi.fn().mockResolvedValue({
       dossierCode: 'HS-20261127-AG_P_LONGXUYEN-0001',
-      procedureCode: 'TTHC-CR-01',
+      procedureCode: 'TTHC-HT-01',
       wardCode: 'AG_P_LONGXUYEN',
       status: 'PENDING',
       slaDeadline: '2026-12-02T17:00:00+07:00',
@@ -363,13 +365,13 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
       {
         wardCode: 'AG_P_LONGXUYEN',
         wardName: 'Phường Long Xuyên',
-        visionGate: makeTestVisionGate('GOOD', 'CT01'),
+        visionGate: makeTestVisionGate('GOOD', 'TK-KS'),
         attachment: null,
         validationInput: {
-          formType: 'CT01',
-          fullName: 'NGUYỄN MINH TUẤN KHANH',
+          formType: 'TK-KS',
+          fullName: 'NGUYỄN MINH AN',
           citizenCccd: '089205023490',
-          dateOfBirth: '23-06-2005',
+          dateOfBirth: '25-10-2026',
           gender: 'Nam',
           address: 'Số 18 Trần Hưng Đạo, Phường Long Xuyên, An Giang',
           citizenEmail: 'khanh@example.invalid',
@@ -377,9 +379,10 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
           qrVerified: true,
           referenceDate: REF_DATE,
           extra: {
-            hostCccdNumber: '089075001122',
-            hostDateOfBirth: '10-03-1975',
-            vneidHostConfirmed: true,
+            motherName: 'TRẦN THỊ BÌNH',
+            hospitalMotherName: 'TRẦN THỊ BÌNH',
+            hospitalBirthDate: '25-10-2026',
+            parentsMarried: 'YES',
           },
         },
       },
@@ -387,9 +390,9 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
     );
 
     expect(res.success).toBe(true);
-    expect(precheckApi.mock.calls[0][0].dateOfBirth).toBe('2005-06-23');
-    expect(submitDossierApi.mock.calls[0][0].formData.dateOfBirth).toBe('2005-06-23');
-    expect(submitDossierApi.mock.calls[0][0].formData.hostDateOfBirth).toBe('1975-03-10');
+    expect(precheckApi.mock.calls[0][0].dateOfBirth).toBe('2026-10-25');
+    expect(submitDossierApi.mock.calls[0][0].formData.dateOfBirth).toBe('2026-10-25');
+    expect(submitDossierApi.mock.calls[0][0].formData.hospitalBirthDate).toBe('2026-10-25');
   });
   const members = [{fullName:'Người thứ nhất',hostRelation:'Con'}, {fullName:'Người thứ hai',hostRelation:'Em'}];
   const scenarios: {form:PaperForm; fields:Record<string,string>; extra:LocalFormValidationInput['extra']; expected:Record<string,unknown>}[] = [
@@ -416,14 +419,19 @@ describe('smartFormFlow — Chặng M3 (4 Biểu mẫu, AI Vision Gate & Pipelin
         paper:paperValues(form,{fields,members})}
     },{precheckApi,submitDossierApi,saveWalletPass:vi.fn()});
     expect(result.success).toBe(true);
+    if (form === 'CT01') {
+      // CT01 routes via Method 3A (Công an cấp xã / VNeID), never submits to UBND queue
+      expect(result.stage).toBe('EXTERNAL_CHANNEL_GUIDED');
+      expect(submitDossierApi).not.toHaveBeenCalled();
+      return;
+    }
     const sent = submitDossierApi.mock.calls[0][0].formData;
     expect(sent).toMatchObject(expected);
     for(const [key,value] of Object.entries(fields)){
       expect(precheckApi.mock.calls[0][0].formData[key]).toBe(value);
       expect(paperDetails(sent).some(([,v])=>v===value)).toBe(true);
     }
-    if(form === 'CT01') expect(JSON.parse(precheckApi.mock.calls[0][0].formData.householdMembers)).toEqual(members);
-    else expect(sent.householdMembers).toBeUndefined();
+    expect(sent.householdMembers).toBeUndefined();
   });
 
 });

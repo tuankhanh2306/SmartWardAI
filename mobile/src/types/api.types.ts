@@ -217,7 +217,19 @@ export interface VaultUploadResponse {
 // 4. Citizen Dossiers & Electronic QR Appointment Pass (PostgreSQL Sync)
 // ============================================================================
 
-export type DossierStatus = 'PENDING' | 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'REJECTED';
+export type DossierStatus =
+  | 'PENDING'
+  | 'OFFICIALLY_ACCEPTED'
+  | 'UNDER_APPRAISAL'
+  | 'PENDING_UBND_SIGNATURE'
+  | 'CENTER_SIGNED'
+  | 'TRANSFERRED_AWAITING_DECISION'
+  | 'APPROVED'
+  | 'SUPPLEMENT_REQUIRED'
+  | 'SUPPLEMENTED'
+  | 'READY_FOR_RETURN'
+  | 'COMPLETED'
+  | 'REJECTED';
 
 export interface SubmitDossierRequest {
   dossierCode?: string;
@@ -238,6 +250,12 @@ export interface DossierSubmissionResponse {
   slaDeadline?: string | null;
   createdAt: string;
   vaultDocIds?: string[];
+  routingChannel?: string;
+  receivingAgency?: string | null;
+  officialReceiptNo?: string | null;
+  receiptVerifiedAt?: string | null;
+  qrKind?: 'SW_DRAFT' | 'SW_RECEIPT' | string;
+  receiptVerified?: boolean;
 }
 
 export interface DossierTrackingRequest {
@@ -270,6 +288,12 @@ export interface DossierTrackingResponse {
   createdAt: string;
   updatedAt: string;
   timeline?: DossierTimelineEvent[];
+  routingChannel?: string;
+  receivingAgency?: string | null;
+  officialReceiptNo?: string | null;
+  receiptVerifiedAt?: string | null;
+  qrKind?: 'SW_DRAFT' | 'SW_RECEIPT' | string;
+  receiptVerified?: boolean;
 }
 
 export interface OfficerDossierDto {
@@ -292,14 +316,22 @@ export interface OfficerDossierDto {
   supplementCount?: number;
   createdAt: string;
   updatedAt: string;
+  routingChannel?: string;
+  receivingAgency?: string | null;
+  officialReceiptNo?: string | null;
+  receiptVerifiedAt?: string | null;
+  qrKind?: 'SW_DRAFT' | 'SW_RECEIPT' | string;
+  receiptVerified?: boolean;
 }
 
 export interface OfficerReviewRequest {
-  status: 'APPROVED' | 'SUPPLEMENT_REQUIRED' | 'REJECTED';
+  status: DossierStatus;
   officerFeedback?: string;
   reviewStatus?: string;
   feedbackReason?: string;
   appointmentCode?: string;
+  receivingAgency?: string;
+  officialReceiptNo?: string;
 }
 
 // ============================================================================

@@ -14,6 +14,8 @@ import vn.edu.uth.smartward.dossier.dto.*;
 import vn.edu.uth.smartward.rag.AdminProcedure;
 import vn.edu.uth.smartward.rag.AdminProcedureRepository;
 import vn.edu.uth.smartward.security.OfficerAuthService;
+import vn.edu.uth.smartward.security.SigningDelegation;
+import vn.edu.uth.smartward.security.SigningDelegationService;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -25,11 +27,32 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
 @Service
 public class CitizenDossierService {
+
+    public static final Set<String> POLICE_RESIDENCE_PROCEDURES = Set.of(
+            "TTHC-CR-01", "TTHC-CR-03", "TTHC-CR-06", "TTHC-CR-07", "TTHC-CR-08"
+    );
+    public static final Set<String> REFERENCE_ONLY_PROCEDURES = Set.of(
+            "TTHC-BT-05", "TTHC-CR-04", "TTHC-DC-01", "TTHC-DC-02", "TTHC-XD-01", "TTHC-XD-02"
+    );
+    private static final Set<String> ALLOWED_OFFICER_TARGET_STATUSES = Set.of(
+            "RECEIVED",
+            "OFFICIALLY_ACCEPTED",
+            "UNDER_APPRAISAL",
+            "PENDING_UBND_SIGNATURE",
+            "TRANSFERRED_AWAITING_DECISION",
+            "CENTER_SIGNED",
+            "READY_FOR_RETURN",
+            "COMPLETED",
+            "APPROVED",
+            "SUPPLEMENT_REQUIRED",
+            "REJECTED"
+    );
 
     private final CitizenDossierRepository dossierRepository;
     private final AdminProcedureRepository procedureRepository;
@@ -38,6 +61,7 @@ public class CitizenDossierService {
     private final DossierEventRepository dossierEventRepository;
     private final vn.edu.uth.smartward.audit.AuditService auditService;
     private final vn.edu.uth.smartward.notification.PushNotificationService pushNotificationService;
+    private final SigningDelegationService signingDelegationService;
     private record CachedIdempotencyEntry(String payloadHash, DossierSubmissionResponse response) {}
     private static final int MAX_IDEMPOTENCY_CACHE_SIZE = 1000;
     private final Map<String, CachedIdempotencyEntry> idempotencyCache = new java.util.concurrent.ConcurrentHashMap<>();
@@ -51,7 +75,8 @@ public class CitizenDossierService {
                                  @Autowired(required = false) RedisRateLimiter rateLimiter,
                                  @Autowired(required = false) DossierEventRepository dossierEventRepository,
                                  @Autowired(required = false) vn.edu.uth.smartward.audit.AuditService auditService,
-                                 @Autowired(required = false) vn.edu.uth.smartward.notification.PushNotificationService pushNotificationService) {
+                                 @Autowired(required = false) vn.edu.uth.smartward.notification.PushNotificationService pushNotificationService,
+                                 @Autowired(required = false) SigningDelegationService signingDelegationService) {
         this.dossierRepository = dossierRepository;
         this.procedureRepository = procedureRepository;
         this.objectMapper = objectMapper;
@@ -59,6 +84,17 @@ public class CitizenDossierService {
         this.dossierEventRepository = dossierEventRepository;
         this.auditService = auditService;
         this.pushNotificationService = pushNotificationService;
+        this.signingDelegationService = signingDelegationService;
+    }
+
+    public CitizenDossierService(CitizenDossierRepository dossierRepository,
+                                 AdminProcedureRepository procedureRepository,
+                                 ObjectMapper objectMapper,
+                                 RedisRateLimiter rateLimiter,
+                                 DossierEventRepository dossierEventRepository,
+                                 vn.edu.uth.smartward.audit.AuditService auditService,
+                                 vn.edu.uth.smartward.notification.PushNotificationService pushNotificationService) {
+        this(dossierRepository, procedureRepository, objectMapper, rateLimiter, dossierEventRepository, auditService, pushNotificationService, null);
     }
 
     public CitizenDossierService(CitizenDossierRepository dossierRepository,
@@ -141,6 +177,9 @@ public class CitizenDossierService {
         Instant slaDeadline = (workingDays != null && workingDays > 0)
                 ? calculateWorkingDayDeadline(Instant.now(), workingDays, VN_ZONE)
                 : null;
+        String routingChannel = POLICE_RESIDENCE_PROCEDURES.contains(procedureCode)
+                ? "POLICE_EXTERNAL"
+                : "TTPVHCC_UBND";
 
         CitizenDossier entity = CitizenDossier.builder()
                 .dossierCode(dossierCode)
@@ -154,6 +193,7 @@ public class CitizenDossierService {
                 .slaDeadline(slaDeadline)
                 .idempotencyKey(cleanIdempKey)
                 .payloadHash(payloadHash)
+                .routingChannel(routingChannel)
                 .build();
 
         CitizenDossier saved;
@@ -183,6 +223,9 @@ public class CitizenDossierService {
                 .slaDeadline(saved.getSlaDeadline())
                 .createdAt(saved.getCreatedAt() != null ? saved.getCreatedAt() : Instant.now())
                 .vaultDocIds(deserializeStringList(saved.getVaultDocIds()))
+                .routingChannel(saved.getRoutingChannel() != null ? saved.getRoutingChannel() : routingChannel)
+                .qrKind(resolveQrKind(saved))
+                .receiptVerified(isReceiptVerified(saved))
                 .build();
 
         if (cleanIdempKey != null) {
@@ -212,6 +255,9 @@ public class CitizenDossierService {
                 .slaDeadline(existing.getSlaDeadline())
                 .createdAt(existing.getCreatedAt() != null ? existing.getCreatedAt() : Instant.now())
                 .vaultDocIds(deserializeStringList(existing.getVaultDocIds()))
+                .routingChannel(existing.getRoutingChannel() != null ? existing.getRoutingChannel() : "TTPVHCC_UBND")
+                .qrKind(resolveQrKind(existing))
+                .receiptVerified(isReceiptVerified(existing))
                 .build();
     }
 
@@ -219,6 +265,10 @@ public class CitizenDossierService {
         if (!procedureCode.matches("^TTHC-[A-Z]{2,4}-\\d{2}$")) {
             throw new BusinessException(ErrorCode.VALIDATION_FAILED,
                     "Mã thủ tục hành chính '" + procedureCode + "' không đúng định dạng chuẩn (TTHC-XX-NN).");
+        }
+        if (REFERENCE_ONLY_PROCEDURES.contains(procedureCode)) {
+            throw new BusinessException(ErrorCode.VALIDATION_FAILED,
+                    "Thủ tục '" + procedureCode + "' hiện chỉ hỗ trợ tra cứu hướng dẫn (đang chờ xác minh quy trình tại An Giang hoặc thuộc thẩm quyền ngoài cấp xã), chưa mở nộp hồ sơ sơ duyệt.");
         }
         if (rawFormData == null) return;
         JsonNode node = objectMapper.valueToTree(rawFormData);
@@ -587,6 +637,12 @@ public class CitizenDossierService {
                 .requestedSupplementItems(deserializeStringList(dossier.getRequestedSupplementItems()))
                 .supplementedAt(dossier.getSupplementedAt())
                 .supplementCount(dossier.getSupplementCount() != null ? dossier.getSupplementCount() : 0)
+                .routingChannel(dossier.getRoutingChannel() != null ? dossier.getRoutingChannel() : "TTPVHCC_UBND")
+                .receivingAgency(dossier.getReceivingAgency())
+                .officialReceiptNo(dossier.getOfficialReceiptNo())
+                .receiptVerifiedAt(dossier.getReceiptVerifiedAt())
+                .qrKind(resolveQrKind(dossier))
+                .receiptVerified(isReceiptVerified(dossier))
                 .build();
     }
 
@@ -636,7 +692,30 @@ public class CitizenDossierService {
             );
         }
 
-        return list.stream().map(this::mapToOfficerDto).toList();
+        return list.stream()
+                .filter(d -> !isPoliceExternalDossier(d))
+                .map(this::mapToOfficerDto)
+                .toList();
+    }
+
+    private boolean isPoliceExternalDossier(CitizenDossier dossier) {
+        if (dossier == null) return false;
+        String channel = dossier.getRoutingChannel() != null ? dossier.getRoutingChannel().trim().toUpperCase() : "";
+        if ("POLICE_EXTERNAL".equals(channel)) return true;
+        String proc = dossier.getProcedureCode() != null ? dossier.getProcedureCode().trim().toUpperCase() : "";
+        return POLICE_RESIDENCE_PROCEDURES.contains(proc);
+    }
+
+    private boolean isReceiptVerified(CitizenDossier dossier) {
+        if (dossier == null) return false;
+        return dossier.getOfficialReceiptNo() != null
+                && !dossier.getOfficialReceiptNo().isBlank()
+                && dossier.getReceivingAgency() != null
+                && !dossier.getReceivingAgency().isBlank();
+    }
+
+    private String resolveQrKind(CitizenDossier dossier) {
+        return isReceiptVerified(dossier) ? "SW_RECEIPT" : "SW_DRAFT";
     }
 
     /**
@@ -747,14 +826,14 @@ public class CitizenDossierService {
         }
 
         String effectiveStatus = req.getEffectiveStatus();
-        if (effectiveStatus == null || (!effectiveStatus.equals("RECEIVED") && !effectiveStatus.equals("APPROVED") && !effectiveStatus.equals("SUPPLEMENT_REQUIRED") && !effectiveStatus.equals("REJECTED"))) {
+        if (effectiveStatus == null || !ALLOWED_OFFICER_TARGET_STATUSES.contains(effectiveStatus)) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST,
-                    "Trạng thái phê duyệt không hợp lệ. Phải là RECEIVED, APPROVED, SUPPLEMENT_REQUIRED hoặc REJECTED.");
+                    "Trạng thái phê duyệt không hợp lệ: " + effectiveStatus);
         }
 
-        // 2. Strict State Machine Transition Rules (5.5)
+        // 2. Strict State Machine Transition Rules (5.5 + 2026 TTPVHCC/UBND Reform)
         String oldStatus = dossier.getStatus() != null ? dossier.getStatus().trim().toUpperCase() : "PENDING";
-        if ("APPROVED".equals(oldStatus) || "REJECTED".equals(oldStatus)) {
+        if ("APPROVED".equals(oldStatus) || "COMPLETED".equals(oldStatus) || "REJECTED".equals(oldStatus)) {
             throw new BusinessException(ErrorCode.CONFLICT,
                     "Hồ sơ đã ở trạng thái kết thúc (" + oldStatus + "), không thể tiếp tục thay đổi trạng thái.");
         }
@@ -764,9 +843,43 @@ public class CitizenDossierService {
         }
 
         String effectiveFeedback = req.getEffectiveFeedback();
-        if (("REJECTED".equals(effectiveStatus) || "SUPPLEMENT_REQUIRED".equals(effectiveStatus)) && (effectiveFeedback == null || effectiveFeedback.isBlank())) {
+        if (("REJECTED".equals(effectiveStatus) || "SUPPLEMENT_REQUIRED".equals(effectiveStatus))
+                && (effectiveFeedback == null || effectiveFeedback.isBlank())) {
             throw new BusinessException(ErrorCode.VALIDATION_FAILED,
                     "Bắt buộc phải nhập lý do/ý kiến khi từ chối hoặc yêu cầu bổ sung hồ sơ.");
+        }
+
+        String reqAgency = req.receivingAgency() != null ? req.receivingAgency().trim() : "";
+        String reqReceiptNo = req.officialReceiptNo() != null ? req.officialReceiptNo().trim() : "";
+        if ("OFFICIALLY_ACCEPTED".equals(effectiveStatus)) {
+            if (reqAgency.isEmpty() || reqReceiptNo.isEmpty()) {
+                throw new BusinessException(ErrorCode.VALIDATION_FAILED,
+                        "Phải ghi nhận đầy đủ Cơ quan tiếp nhận và Mã số biên nhận chính thức trước khi chuyển trạng thái Đã tiếp nhận.");
+            }
+            dossier.setReceivingAgency(reqAgency);
+            dossier.setOfficialReceiptNo(reqReceiptNo);
+            if (dossier.getReceiptVerifiedAt() == null) {
+                dossier.setReceiptVerifiedAt(Instant.now());
+            }
+        } else if (!reqAgency.isEmpty() && !reqReceiptNo.isEmpty()) {
+            dossier.setReceivingAgency(reqAgency);
+            dossier.setOfficialReceiptNo(reqReceiptNo);
+            if (dossier.getReceiptVerifiedAt() == null) {
+                dossier.setReceiptVerifiedAt(Instant.now());
+            }
+        }
+
+        if ("CENTER_SIGNED".equals(effectiveStatus)) {
+            if (signingDelegationService == null) {
+                throw new BusinessException(ErrorCode.FORBIDDEN,
+                        "Chức năng ký ủy quyền tại Trung tâm PVHCC chưa sẵn sàng do thiếu dịch vụ kiểm tra văn bản ủy quyền.");
+            }
+            SigningDelegation verifiedDelegation = signingDelegationService.verifyDelegatedSigningAuthority(
+                    principal, dossier.getProcedureCode(), Instant.now()
+            );
+            if (effectiveFeedback == null || effectiveFeedback.isBlank()) {
+                effectiveFeedback = "Đã ký theo ủy quyền (" + verifiedDelegation.getDecisionNumber() + ")";
+            }
         }
 
         dossier.setStatus(effectiveStatus);
@@ -852,6 +965,12 @@ public class CitizenDossierService {
                 .requestedSupplementItems(deserializeStringList(dossier.getRequestedSupplementItems()))
                 .supplementedAt(dossier.getSupplementedAt())
                 .supplementCount(dossier.getSupplementCount() != null ? dossier.getSupplementCount() : 0)
+                .routingChannel(dossier.getRoutingChannel() != null ? dossier.getRoutingChannel() : "TTPVHCC_UBND")
+                .receivingAgency(dossier.getReceivingAgency())
+                .officialReceiptNo(dossier.getOfficialReceiptNo())
+                .receiptVerifiedAt(dossier.getReceiptVerifiedAt())
+                .qrKind(resolveQrKind(dossier))
+                .receiptVerified(isReceiptVerified(dossier))
                 .build();
     }
 
@@ -975,14 +1094,18 @@ public class CitizenDossierService {
     }
 
     private String mapFallbackProcedureName(String code) {
-        if (code == null) return "Thủ tục hành chính cấp xã";
+        if (code == null) return "Thủ tục hành chính";
         String c = code.trim().toUpperCase();
-        if (c.contains("CR-01") || c.contains("HT-01")) return "Đăng ký khai sinh";
-        if (c.contains("CR-02") || c.contains("HT-13")) return "Đăng ký khai tử liên thông";
-        if (c.contains("CR-03") || c.contains("HT-02")) return "Đăng ký kết hôn";
-        if (c.contains("CT-01")) return "Đăng ký thường trú";
+        if (c.contains("CR-01")) return "Đăng ký thường trú";
+        if (c.contains("CR-02")) return "Liên thông điện tử: Khai tử, xóa đăng ký thường trú, mai táng phí, tử tuất";
+        if (c.contains("CR-03")) return "Đăng ký tạm trú";
+        if (c.contains("HT-01")) return "Đăng ký khai sinh";
+        if (c.contains("HT-02")) return "Đăng ký kết hôn";
+        if (c.contains("HT-11")) return "Cấp Giấy xác nhận tình trạng hôn nhân";
+        if (c.contains("HT-13")) return "Đăng ký khai tử (trong nước)";
+        if (c.contains("CT-01")) return "Chứng thực bản sao từ bản chính";
         if (c.contains("DC-01")) return "Đăng ký biến động quyền sử dụng đất";
-        if (c.contains("BT-01")) return "Trợ cấp xã hội hàng tháng";
+        if (c.contains("BT-01")) return "Trợ cấp xã hội hằng tháng";
         return "Thủ tục " + code;
     }
 

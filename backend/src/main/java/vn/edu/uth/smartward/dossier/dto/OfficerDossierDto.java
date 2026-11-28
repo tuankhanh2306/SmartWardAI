@@ -25,5 +25,11 @@ public record OfficerDossierDto(
         Instant updatedAt,
         List<String> requestedSupplementItems,
         Instant supplementedAt,
-        Integer supplementCount
+        Integer supplementCount,
+        String routingChannel,
+        String receivingAgency,
+        String officialReceiptNo,
+        Instant receiptVerifiedAt,
+        String qrKind,
+        boolean receiptVerified
 ) {}

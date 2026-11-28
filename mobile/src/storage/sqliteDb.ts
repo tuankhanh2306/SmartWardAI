@@ -251,7 +251,18 @@ export function buildSmartWardPassPayload(
   appointmentCode: string | null | undefined,
   wardCode: string
 ): string {
-  return `SMARTWARD_PASS|${dossierCode}|${appointmentCode || 'PENDING'}|${wardCode}`;
+  if (!appointmentCode || appointmentCode === 'PENDING') {
+    return `SW_DRAFT|${dossierCode}|${wardCode}`;
+  }
+  return `SW_DRAFT|${dossierCode}|${appointmentCode}|${wardCode}`;
+}
+
+export function buildOfficialReceiptQrPayload(
+  officialReceiptNo: string,
+  receivingAgency: string,
+  dueDate?: string | null
+): string {
+  return `SW_RECEIPT|${officialReceiptNo}|${receivingAgency}|${dueDate || 'TBD'}`;
 }
 
 export async function upsertWalletQrPass(row: WalletQrPassRow): Promise<void> {

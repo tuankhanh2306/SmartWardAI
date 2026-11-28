@@ -135,41 +135,42 @@ describe('apiSyncContract — Chặng M5 (Officer QR Counter, Zero-Trust Vault 4
     expect(supp.officerFeedback).toContain('Mục 11');
   });
 
-  it('E2E Chiều 1 (Mobile nộp CT01 -> Web Officer duyệt -> Mobile Ví QR nhận mã LH-...)', async () => {
+  it('E2E Chiều 1 (Mobile nộp Khai sinh -> Web Officer duyệt -> Mobile Ví QR nhận mã LH-...)', async () => {
     const dossierCode = 'HS-E2E-M1-0001';
     const submitRes = await executeDossierSubmissionPipeline(
       {
         wardCode: 'AG_P_LONGXUYEN',
         wardName: 'Phường Long Xuyên',
         visionGate: evaluateDocumentVisionGate({
-          expectedFormType: 'CT01',
-          fileName: 'ct01_verified.jpg',
+          expectedFormType: 'TK-KS',
+          fileName: 'tkks_verified.jpg',
           mimeType: 'image/jpeg',
-          rawText: 'Tờ khai thay đổi thông tin cư trú CT01',
+          rawText: 'Tờ khai đăng ký khai sinh TK-KS',
           sharpnessScore: 96,
           brightnessScore: 198,
         }),
         attachment: null,
         validationInput: {
-          formType: 'CT01',
-          fullName: 'NGUYỄN MINH TUẤN KHANH',
+          formType: 'TK-KS',
+          fullName: 'NGUYỄN MINH AN',
           citizenCccd: '089205023490',
-          dateOfBirth: '2005-06-23',
+          dateOfBirth: '2026-10-25',
           address: 'Số 18 Trần Hưng Đạo, Phường Long Xuyên',
           citizenEmail: 'congdan@gmail.com',
           qrVerified: true,
           referenceDate: new Date('2026-11-18T00:00:00Z'),
           extra: {
-            hostCccdNumber: '089075001122',
-            hostDateOfBirth: '1975-03-10',
-            vneidHostConfirmed: true,
+            motherName: 'TRẦN THỊ BÌNH',
+            hospitalMotherName: 'TRẦN THỊ BÌNH',
+            hospitalBirthDate: '2026-10-25',
+            parentsMarried: 'YES',
           },
         },
       },
       {
         precheckApi: vi.fn().mockResolvedValue({
           submissionId: 'SUB-E2E',
-          procedureCode: 'TTHC-CR-01',
+          procedureCode: 'TTHC-HT-01',
           overallValid: true,
           fieldValidations: [],
           warnings: [],
@@ -178,7 +179,7 @@ describe('apiSyncContract — Chặng M5 (Officer QR Counter, Zero-Trust Vault 4
         }),
         submitDossierApi: vi.fn().mockResolvedValue({
           dossierCode,
-          procedureCode: 'TTHC-CR-01',
+          procedureCode: 'TTHC-HT-01',
           wardCode: 'AG_P_LONGXUYEN',
           status: 'PENDING',
           slaDeadline: '2026-11-25',
