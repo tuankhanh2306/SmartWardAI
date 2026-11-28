@@ -75,21 +75,19 @@ export interface OfflineProcedureEntry extends ProcedureItem {
 export const AN_GIANG_40_PROCEDURES: OfflineProcedureEntry[] = [
   {
     procedureCode: 'TTHC-BT-01',
-    officialPortalCode: '3.000733',
-    procedureName: 'Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng',
+    officialPortalCode: '1.116909',
+    procedureName: 'Thực hiện trợ cấp xã hội và nhận chăm sóc, nuôi dưỡng, hỗ trợ kinh phí nhận chăm sóc, nuôi dưỡng hằng tháng',
     category: 'Bảo trợ xã hội',
-    agency: 'Trung tâm PVHCC tiếp nhận • Chủ tịch UBND cấp xã ký quyết định (QĐ 4937/QĐ-UBND An Giang)',
-    processingTime: '10 ngày làm việc',
-    fee: 'Theo quy định của HĐND tỉnh An Giang',
+    agency: 'Tiếp nhận tại Trung tâm Phục vụ hành chính công bất kỳ trong tỉnh An Giang. Phòng Văn hóa - Xã hội thẩm định, Chủ tịch UBND cấp xã quyết định.',
+    processingTime: '07 ngày làm việc (56 giờ làm việc)',
+    fee: 'Tra cứu phí, lệ phí theo công bố của cơ quan tiếp nhận',
     status: 'ACTIVE',
-    chunksCount: 4,
+    chunksCount: 5,
     formType: 'TK-BTXH',
-    legalBasis: 'Nghị định 147/2025/NĐ-CP; Quyết định 4937/QĐ-UBND (tỉnh An Giang)',
+    legalBasis: 'Nghị định 335/2026/NĐ-CP; Quyết định 4937/QĐ-UBND An Giang',
     requiredDocs: [
-      'Tờ khai đề nghị trợ giúp xã hội hằng tháng (Mẫu TK-BTXH)',
-      'CCCD gắn chip 12 số của người hưởng hoặc người giám hộ',
-      'Giấy xác nhận mức độ khuyết tật nặng/đặc biệt nặng hoặc Giấy chứng nhận hộ nghèo/cận nghèo (nếu thuộc diện 75–79 tuổi)',
-      'Thông tin Số tài khoản ngân hàng nhận chi trả an sinh không dùng tiền mặt (Đề án 06)',
+      'Mẫu số 01 khi đề nghị hưởng trợ cấp xã hội hằng tháng',
+      'Mẫu số 02 khi đề nghị hỗ trợ kinh phí nhận chăm sóc, nuôi dưỡng hằng tháng',
     ],
     keywords: ['tro cap', 'bao tro', 'nguoi cao tuoi', 'tien gia', 'khuyet tat', 'tk-btxh', 'tthc-bt-01'],
   },
@@ -723,12 +721,10 @@ export function matchesProcedureFilter(
 export function resolveCoreFormTypeForProcedure(procedureCode?: string): CoreFormType | null {
   if (!procedureCode) return null;
   const clean = procedureCode.trim().toUpperCase();
-  const found = AN_GIANG_40_PROCEDURES.find((p) => p.procedureCode === clean);
-  if (found?.formType) return found.formType;
-  if (clean.startsWith('TTHC-CR-')) return 'CT01';
-  if (clean === 'TTHC-HT-01' || clean === 'TTHC-HT-04' || clean === 'TTHC-HT-08') return 'TK-KS';
-  if (clean === 'TTHC-HT-02' || clean === 'TTHC-HT-09' || clean === 'TTHC-HT-11') return 'TK-KH';
-  if (clean.startsWith('TTHC-BT-') || clean.startsWith('TTHC-NCC-')) return 'TK-BTXH';
+  if (clean === 'TTHC-CR-01') return 'CT01';
+  if (clean === 'TTHC-HT-01') return 'TK-KS';
+  if (clean === 'TTHC-HT-02' || clean === 'TTHC-HT-11') return 'TK-KH';
+  if (clean === 'TTHC-BT-01') return 'TK-BTXH';
   return null;
 }
 

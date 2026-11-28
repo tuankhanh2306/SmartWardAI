@@ -94,7 +94,7 @@ export const ProcedureSummaryCard: React.FC<ProcedureSummaryCardProps> = ({
         cls: 'bg-slate-100 text-slate-700 border-slate-300',
       };
     }
-    if (effectiveWorkflowGroup === 'W1' || effectiveSubmissionMode === 'EXTERNAL_CHANNEL_ONLY') {
+    if (effectiveWorkflowGroup === 'W1') {
       return {
         label: 'Công an cấp xã / VNeID',
         cls: 'bg-sky-50 text-sky-900 border-sky-200',

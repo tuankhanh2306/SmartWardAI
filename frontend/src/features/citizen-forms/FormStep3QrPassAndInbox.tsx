@@ -1,3 +1,4 @@
+import { QRCodeSVG } from 'qrcode.react';
 import React from 'react';
 import { Clock, FileCheck2, FileDown, Mail, RefreshCw } from 'lucide-react';
 import {
@@ -43,16 +44,10 @@ export const FormStep3QrPassAndInbox: React.FC<FormStep3QrPassAndInboxProps> = (
   const appointmentCode = targetDossier?.appointmentCode;
   const hasRealReceipt = Boolean(
     targetDossier &&
+      targetDossier.receiptVerified &&
       targetDossier.officialReceiptNo &&
       targetDossier.receivingAgency
   );
-  const hasRealAppointment = Boolean(
-    targetDossier &&
-      appointmentCode &&
-      !appointmentCode.startsWith('LH-MOCK') &&
-      targetDossier.status === 'VALID'
-  );
-
   const handleManualRefresh = async () => {
     if (trackingDossierCode && trackingLast4Cccd) {
       try {
@@ -64,13 +59,14 @@ export const FormStep3QrPassAndInbox: React.FC<FormStep3QrPassAndInboxProps> = (
                   ...d,
                   appointmentCode: res.appointmentCode || d.appointmentCode,
                   rawStatus: res.status,
+                  slaDeadline: res.slaDeadline,
                   receivingAgency: res.receivingAgency ?? d.receivingAgency,
                   officialReceiptNo: res.officialReceiptNo ?? d.officialReceiptNo,
                   receiptVerified: res.receiptVerified ?? d.receiptVerified,
                   qrKind: res.qrKind ?? d.qrKind,
                   status: (res.status === 'APPROVED' || res.status === 'OFFICIALLY_ACCEPTED' || res.status === 'COMPLETED' ? 'VALID' : d.status) as any,
                   officerFeedback: res.officerFeedback || d.officerFeedback,
-                  reviewedBy: d.reviewedBy || res.receivingAgency || 'TTPVHCC',
+                  reviewedBy: d.reviewedBy,
                 }
               : d
           );
@@ -111,7 +107,7 @@ export const FormStep3QrPassAndInbox: React.FC<FormStep3QrPassAndInboxProps> = (
                     {d.rawStatus
                       ? getDossierStatusLabelVi(d.rawStatus, Boolean(d.receiptVerified))
                       : d.status === 'VALID'
-                      ? d.officialReceiptNo
+                      ? d.receiptVerified && d.officialReceiptNo
                         ? 'Hồ sơ đã được tiếp nhận'
                         : 'Đã gửi yêu cầu kiểm tra trước'
                       : d.status === 'HAS_ERRORS'
@@ -131,7 +127,7 @@ export const FormStep3QrPassAndInbox: React.FC<FormStep3QrPassAndInboxProps> = (
         </div>
       )}
 
-      {targetDossier && !hasRealAppointment && (
+      {targetDossier && !hasRealReceipt && (
         <div className="p-5 rounded-2xl bg-white border border-[#CBD5E1] shadow-xs flex flex-col gap-3">
           <div className="flex items-center justify-between border-b border-[#E2E8F0] pb-2">
             <span className="text-xs font-extrabold text-[#9F0C1E] flex items-center gap-1.5">
@@ -166,7 +162,7 @@ export const FormStep3QrPassAndInbox: React.FC<FormStep3QrPassAndInboxProps> = (
         </div>
       )}
 
-      {targetDossier && hasRealAppointment && (
+      {targetDossier && (
         <div className="p-5 rounded-2xl bg-white border-2 border-[#B90E23] shadow-sm flex flex-col gap-3">
           <div ref={qrPassRef} className="p-4 rounded-xl bg-[#F8FAFC] border border-[#CBD5E1] flex flex-col gap-3">
             <div className="flex items-start justify-between gap-3 border-b border-[#E2E8F0] pb-2.5">
@@ -174,7 +170,7 @@ export const FormStep3QrPassAndInbox: React.FC<FormStep3QrPassAndInboxProps> = (
                 <span className="inline-block px-2 py-0.5 rounded bg-[#F7EEDF] text-[#9F0C1E] text-[10px] font-black uppercase tracking-wider mb-1">
                   {hasRealReceipt
                     ? 'PHIẾU BIÊN NHẬN CHÍNH THỨC (SW_RECEIPT)'
-                    : 'MÃ BẢN NHÁP SMARTWARD (SW_DRAFT) • ĐÃ KIỂM TRA SƠ BỘ'}
+                    : 'MÃ BẢN NHÁP SMARTWARD (SW_DRAFT)'}
                 </span>
                 <h4 className="font-extrabold text-sm text-[#0F172A]">
                   {hasRealReceipt
@@ -188,30 +184,9 @@ export const FormStep3QrPassAndInbox: React.FC<FormStep3QrPassAndInboxProps> = (
                 </p>
               </div>
               <div className="p-1.5 bg-white rounded-lg border border-[#CBD5E1] shrink-0 flex flex-col items-center">
-                <svg viewBox="0 0 100 100" className="w-16 h-16 text-[#0F172A]" fill="currentColor" aria-label="Mã QR Phiếu Hẹn Sơ Duyệt">
-                  <path d="M5,5 h28 v28 h-28 z M10,10 v18 h18 v-18 z M14,14 h10 v10 h-10 z" />
-                  <path d="M67,5 h28 v28 h-28 z M72,10 v18 h18 v-18 z M76,14 h10 v10 h-10 z" />
-                  <path d="M5,67 h28 v28 h-28 z M10,72 v18 h18 v-18 z M14,76 h10 v10 h-10 z" />
-                  <rect x="38" y="8" width="6" height="6" />
-                  <rect x="50" y="8" width="6" height="12" />
-                  <rect x="38" y="20" width="12" height="6" />
-                  <rect x="8" y="38" width="12" height="6" />
-                  <rect x="26" y="38" width="6" height="12" />
-                  <rect x="38" y="38" width="18" height="6" />
-                  <rect x="62" y="38" width="6" height="12" />
-                  <rect x="74" y="38" width="18" height="6" />
-                  <rect x="14" y="50" width="6" height="12" />
-                  <rect x="38" y="50" width="12" height="12" />
-                  <rect x="56" y="56" width="12" height="6" />
-                  <rect x="74" y="50" width="6" height="18" />
-                  <rect x="86" y="56" width="6" height="12" />
-                  <rect x="38" y="68" width="6" height="18" />
-                  <rect x="50" y="68" width="18" height="6" />
-                  <rect x="50" y="80" width="6" height="12" />
-                  <rect x="62" y="80" width="12" height="6" />
-                  <rect x="80" y="74" width="12" height="12" />
-                  <rect x="68" y="88" width="18" height="6" />
-                </svg>
+                <QRCodeSVG size={144} marginSize={4} title="Mã tra cứu tại quầy" value={hasRealReceipt
+                  ? `SW_RECEIPT|${targetDossier.officialReceiptNo}|${targetDossier.receivingAgency}|${targetDossier.slaDeadline || 'TBD'}`
+                  : `SW_DRAFT|${targetDossier.id}|${targetDossier.wardCode || currentWard.code}`} />
                 <span className="text-[9px] font-mono font-bold text-[#9F0C1E] mt-0.5">{appointmentCode}</span>
               </div>
             </div>
@@ -220,7 +195,7 @@ export const FormStep3QrPassAndInbox: React.FC<FormStep3QrPassAndInboxProps> = (
               <div><span className="text-[10px] text-[#64748B] block">Họ và tên công dân:</span><strong className="text-[#0F172A]">{targetDossier.citizenName}</strong></div>
               <div><span className="text-[10px] text-[#64748B] block">Mã hồ sơ sơ duyệt:</span><strong className="font-mono text-[#9F0C1E]">{targetDossier.id}</strong></div>
               <div><span className="text-[10px] text-[#64748B] block">Biểu mẫu & Thủ tục:</span><strong className="text-[#0F172A]">{targetDossier.formType} • {targetDossier.procedure}</strong></div>
-              <div><span className="text-[10px] text-[#64748B] block">Cán bộ duyệt sơ bộ:</span><strong className="text-[#065F46]">{targetDossier.reviewedBy || 'Trần Quốc Bảo (Một cửa)'}</strong></div>
+              <div><span className="text-[10px] text-[#64748B] block">Cán bộ duyệt sơ bộ:</span><strong className="text-[#065F46]">{targetDossier.reviewedBy || 'Chưa có thông tin'}</strong></div>
             </div>
 
             <div className="p-2.5 rounded-lg bg-[#ECFDF5] border border-[#A7F3D0] text-[11px] text-[#065F46] leading-relaxed">

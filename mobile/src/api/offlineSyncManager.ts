@@ -6,8 +6,7 @@
 import { submitCivicIncidentReport, trackCitizenDossier, uploadIncidentPhoto } from './client';
 import { classifyIncidentSyncError } from '../core/incidentSyncHistory';
 import {
-  buildOfficialReceiptQrPayload,
-  buildSmartWardPassPayload,
+  walletQrForTracking,
   cleanupOfflineIncidentPhotos,
   getAllWalletQrPasses,
   getOfflineIncidentQueue,
@@ -167,14 +166,7 @@ export async function syncWalletQrPassesFromServer(): Promise<{
       });
 
       const appointmentCode = remote.appointmentCode || pass.appointment_code;
-      const qrPayload =
-        remote.receiptVerified && remote.officialReceiptNo && remote.receivingAgency
-          ? buildOfficialReceiptQrPayload(
-              remote.officialReceiptNo,
-              remote.receivingAgency,
-              remote.slaDeadline || pass.sla_deadline
-            )
-          : buildSmartWardPassPayload(pass.dossier_code, appointmentCode, pass.ward_code);
+      const qrPayload = walletQrForTracking(remote, appointmentCode, pass.ward_code);
 
       await upsertWalletQrPass({
         ...pass,

@@ -264,6 +264,8 @@ export const reviewOfficerDossier = async (
 };
 
 export interface LiveFormDossier {
+  wardCode?: string;
+  slaDeadline?: string | null;
   id: string;
   citizenName: string;
   procedure: string;

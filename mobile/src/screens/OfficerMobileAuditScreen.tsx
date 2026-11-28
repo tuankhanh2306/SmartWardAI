@@ -1,3 +1,4 @@
+import { getProcedureRouting } from '../core/proceduresRoutingCatalog';
 import { paperDetails } from '../core/paperForm';
 /**
  * SmartWard AI Mobile — Đăng Nhập & Bàn Cán Bộ Một Cửa Di Động (Đồng bộ 100% với Web RoleGateway & PerWardDashboard)
@@ -81,6 +82,15 @@ import type {
 
 type OfficerDeskTab = 'FORMS' | 'INCIDENTS' | 'HITL';
 type IncidentStatusFilter = 'ALL' | 'OPEN' | 'IN_PROGRESS' | 'RESOLVED';
+
+const dossierActions = [
+  { status: 'UNDER_APPRAISAL', label: 'Chuyển thẩm định', from: ['OFFICIALLY_ACCEPTED'] },
+  { status: 'PENDING_UBND_SIGNATURE', label: 'Trình UBND ký', from: ['UNDER_APPRAISAL'] },
+  { status: 'TRANSFERRED_AWAITING_DECISION', label: 'Chuyển cơ sở chờ quyết định', from: ['UNDER_APPRAISAL'] },
+  { status: 'CENTER_SIGNED', label: 'Ký theo ủy quyền', from: ['OFFICIALLY_ACCEPTED', 'UNDER_APPRAISAL', 'PENDING_UBND_SIGNATURE'] },
+  { status: 'READY_FOR_RETURN', label: 'Có kết quả – chờ trả', from: ['CENTER_SIGNED', 'PENDING_UBND_SIGNATURE', 'TRANSFERRED_AWAITING_DECISION'] },
+  { status: 'COMPLETED', label: 'Đã trả kết quả', from: ['READY_FOR_RETURN'] },
+] as const;
 
 const DOSSIER_FILTER_CHIPS: Array<{ key: OfficerDossierFilter; label: string }> = [
   { key: 'ALL', label: 'Tất cả' },
@@ -385,7 +395,7 @@ export const OfficerMobileAuditScreen: React.FC = () => {
       | 'OFFICIALLY_ACCEPTED'
       | 'READY_FOR_RETURN'
       | 'COMPLETED'
-      | 'CENTER_SIGNED',
+      | typeof dossierActions[number]['status'],
     extra?: { receivingAgency?: string; officialReceiptNo?: string }
   ) => {
     if (!selectedDossier || reviewing) return;
@@ -426,6 +436,7 @@ export const OfficerMobileAuditScreen: React.FC = () => {
             ? `Đã cập nhật hồ sơ ${updated.dossierCode}: Đã trả kết quả.`
             : decision === 'APPROVED'
             ? `Đã kiểm tra sơ bộ hồ sơ ${updated.dossierCode} & tạo mã ${updated.appointmentCode || ''}.`
+            : decision !== 'SUPPLEMENT_REQUIRED' ? `Đã cập nhật hồ sơ ${updated.dossierCode}.`
             : `Đã gửi yêu cầu bổ sung hồ sơ ${updated.dossierCode} tới công dân.`,
       });
     } catch (err: any) {
@@ -1303,6 +1314,7 @@ export const OfficerMobileAuditScreen: React.FC = () => {
                 />
               </View>
 
+              {['PENDING', 'RECEIVED', 'APPROVED', 'SUPPLEMENTED'].includes(selectedDossier.status) && <>
               <View style={styles.field}>
                 <Text style={styles.label}>Xác nhận tiếp nhận chính thức (TTPVHCC)</Text>
                 <TextInput
@@ -1340,52 +1352,16 @@ export const OfficerMobileAuditScreen: React.FC = () => {
                   <Text style={styles.approveBtnText}>Xác nhận tiếp nhận</Text>
                 </Pressable>
 
-                <Pressable
-                  accessibilityRole="button"
-                  disabled={reviewing}
-                  onPress={() => {
-                    void handleReviewDecision('CENTER_SIGNED');
-                  }}
-                  style={({ pressed }) => [
-                    styles.approveBtn,
-                    { backgroundColor: '#6D28D9' },
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <Text style={styles.approveBtnText}>Ký theo ủy quyền</Text>
-                </Pressable>
               </View>
-
-              <View style={[styles.decisionRow, { marginBottom: 6 }]}>
-                <Pressable
-                  accessibilityRole="button"
-                  disabled={reviewing}
-                  onPress={() => {
-                    void handleReviewDecision('READY_FOR_RETURN');
-                  }}
-                  style={({ pressed }) => [
-                    styles.approveBtn,
-                    { backgroundColor: '#1D4ED8' },
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <Text style={styles.approveBtnText}>Có kết quả – chờ trả</Text>
-                </Pressable>
-
-                <Pressable
-                  accessibilityRole="button"
-                  disabled={reviewing}
-                  onPress={() => {
-                    void handleReviewDecision('COMPLETED');
-                  }}
-                  style={({ pressed }) => [
-                    styles.approveBtn,
-                    { backgroundColor: '#065F46' },
-                    pressed && styles.pressed,
-                  ]}
-                >
-                  <Text style={styles.approveBtnText}>Đã trả kết quả</Text>
-                </Pressable>
+              </>}
+              <View style={[styles.decisionRow, { flexWrap: 'wrap', marginBottom: 6 }]}>
+                {dossierActions.filter(action => (action.status !== 'TRANSFERRED_AWAITING_DECISION' || getProcedureRouting(selectedDossier.procedureCode)?.workflowGroup === 'W4') && action.from.some(status => status === selectedDossier.status)).map(action => (
+                  <Pressable key={action.status} accessibilityRole="button" disabled={reviewing}
+                    onPress={() => void handleReviewDecision(action.status)}
+                    style={({ pressed }) => [styles.approveBtn, pressed && styles.pressed]}>
+                    <Text style={styles.approveBtnText}>{action.label}</Text>
+                  </Pressable>
+                ))}
               </View>
 
               <View style={styles.decisionRow}>

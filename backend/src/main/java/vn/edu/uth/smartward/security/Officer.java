@@ -26,6 +26,9 @@ public class Officer {
     @Column(name = "ward_code", nullable = false, length = 64)
     private String wardCode;
 
+    @Column(name = "job_title", length = 160)
+    private String jobTitle;
+
     @Column(name = "role", nullable = false, length = 32)
     @Builder.Default
     private String role = "OFFICER";

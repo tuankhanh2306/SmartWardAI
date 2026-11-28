@@ -1,143 +1,110 @@
 {
   "procedureCode": "TTHC-BT-01",
-  "officialPortalCode": "3.000733",
-  "procedureName": "Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng",
+  "officialPortalCode": "1.116909",
+  "procedureName": "Thực hiện trợ cấp xã hội và nhận chăm sóc, nuôi dưỡng, hỗ trợ kinh phí nhận chăm sóc, nuôi dưỡng hằng tháng",
   "category": "Bảo trợ xã hội",
-  "agency": "- Cơ quan tiếp nhận: Trung tâm Phục vụ hành chính công cấp xã (phi địa giới trong tỉnh theo QĐ 4937/QĐ-UBND An Giang).\n- Cơ quan thẩm định & giải quyết: Công chức Văn hóa - Xã hội thẩm tra, Chủ tịch UBND cấp xã ký quyết định (NĐ 147/2025/NĐ-CP).",
-  "process": "a) Đối tượng hoặc gia đình đối tượng hoặc người giám hộ đề nghị hưởng trợ cấp xã hội hàng tháng làm 01 Tờ khai và cung cấp 01 bản sao đối với mỗi loại giấy tờ liên quan gửi trực tiếp tại tại Trung tâm Phục vụ hành chính công tỉnh An Giang hoặc Trung tâm Phục vụ hành chính công cấp xã; qua dịch vụ bưu chính; hoặc trực tuyến trên Cổng Dịch vụ công Quốc gia theo quy định đến Chủ tịch UBND cấp xã nơi cư trú.\nb) Trong thời hạn 10 ngày làm việc, kể từ ngày nhận được hồ sơ của đối tượng, Chủ tịch UBND cấp xã tổ chức xem xét, thực hiện xác thực và chuẩn hóa thông tin liên quan của đối tượng với cơ sở dữ liệu quốc gia về dân cư, quyết định và thực hiện chi trả trợ cấp xã hội hàng tháng cho đối tượng. Thời gian hưởng kể từ tháng Chủ tịch UBND cấp xã ký quyết định.\nTrường hợp không đủ điều kiện, trong thời hạn 03 ngày làm việc kể từ khi nhận hồ sơ của đối tượng, Chủ tịch UBND cấp xã trả lời bằng văn bản và nêu rõ lý do.",
+  "agency": "Tiếp nhận tại Trung tâm Phục vụ hành chính công bất kỳ trong tỉnh An Giang. Phòng Văn hóa - Xã hội thẩm định, Chủ tịch UBND cấp xã quyết định.",
+  "process": "Trung tâm tiếp nhận, kiểm tra và số hóa hồ sơ hợp lệ. Chuyên viên Phòng Văn hóa - Xã hội thẩm định, lãnh đạo phòng kiểm tra và trình Chủ tịch UBND cấp xã quyết định. Văn thư phát hành và Trung tâm trả kết quả.",
   "processStepsCount": 1,
   "requiredDocuments": [
     {
-      "documentName": "Tờ khai theo Mẫu số 01, 02, 03, 04, 05, 06, 07, 08 kèm theo Quy định ban hành (Nghị định 20/2021/NĐ-CP)",
+      "documentName": "Mẫu số 01 khi đề nghị hưởng trợ cấp xã hội hằng tháng",
       "originalQty": 1,
       "copyQty": 0,
       "isRequired": false
     },
     {
-      "documentName": "Giấy xác định mức độ khuyết tật đối với người khuyết tật.",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Giấy ra viện đối với đối tượng mắc bệnh hiểm nghèo.",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Xác nhận của cơ quan y tế có thẩm quyền đối với trường hợp nhiễm HIV/AIDS.",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Quyết định xuất ngũ hoặc xác nhận của cơ quan quân sự về thời gian tham gia quân đội đối với Bộ đội phục viên, xuất ngũ mắc bệnh tâm thần.",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Quyết định của cơ quan bảo hiểm xã hội về ngừng hưởng trợ cấp mất sức lao động đối với đối tượng ngừng hưởng trợ cấp mất sức lao động.",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Giấy xác nhận của cơ sở giáo dục phổ thông, cơ sở giáo dục nghề nghiệp và cơ sở giáo dục đại học (công lập và ngoài công lập) đối với người từ 16 đến 22 tuổi đang đi học (mẫu số 08).",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Giấy tờ liên quan khác (nếu có)",
+      "documentName": "Mẫu số 02 khi đề nghị hỗ trợ kinh phí nhận chăm sóc, nuôi dưỡng hằng tháng",
       "originalQty": 1,
       "copyQty": 0,
       "isRequired": false
     }
   ],
-  "requiredDocumentsCount": 8,
-  "processingTime": "Thủ tục: Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 4937/QĐ-UBND ngày 02/11/2026 của UBND tỉnh An Giang. Cơ quan có thẩm quyền giải quyết: UBND tỉnh An Giang / UBND cấp xã theo phân cấp. Thời hạn giải quyết: DIRECT: 10 ngày làm việc kể từ ngày tiếp nhận hồ sơ đầy đủ, hợp lệ | ONLINE: 10 ngày làm việc kể từ ngày tiếp nhận hồ sơ đầy đủ, hợp lệ | POSTAL: 10 ngày làm việc kể từ ngày tiếp nhận hồ sơ đầy đủ, hợp lệ. Mức phí/lệ phí: Theo quy định của HĐND cấp tỉnh/thành phố.",
-  "fee": "Theo quy định của HĐND tỉnh An Giang",
+  "requiredDocumentsCount": 2,
+  "processingTime": "07 ngày làm việc (56 giờ làm việc)",
+  "fee": "Tra cứu phí, lệ phí theo công bố của cơ quan tiếp nhận",
   "legalBasis": [
     {
-      "documentNumber": "Nghị định 147/2025/NĐ-CP",
-      "documentTitle": "Phân định thẩm quyền chính quyền địa phương 02 cấp trong lĩnh vực trợ giúp xã hội",
-      "year": "2025",
-      "effectiveDate": "2025-07-01"
+      "documentNumber": "335/2026/NĐ-CP",
+      "documentTitle": "Chính sách trợ giúp xã hội",
+      "year": "2026"
     },
     {
-      "documentNumber": "4937/QĐ-UBND (tỉnh An Giang)",
-      "documentTitle": "Quy trình nội bộ giải quyết TTHC lĩnh vực Bảo trợ xã hội phi địa giới hành chính trên địa bàn tỉnh An Giang",
-      "year": "2026",
-      "effectiveDate": "2026-11-02"
+      "documentNumber": "4937/QĐ-UBND",
+      "documentTitle": "Quy trình nội bộ về bảo trợ xã hội tại An Giang",
+      "year": "2026"
     }
   ],
   "legalBasisCount": 2,
-  "sourceUrl": "https://dichvucong.gov.vn (API id: 01a0b2bc-2e8b-72af-9807-ba861ba3eeec)",
+  "sourceUrl": "https://candang.angiang.gov.vn/sites/default/files/2026/11/van-ban/4937-qd-ubndsignedsigned.pdf",
   "collectedAt": "2026-11-03T03:23:38.660519+00:00",
   "verificationStatus": "VERIFIED_TIER_1",
   "chunks": [
     {
       "chunkId": "TTHC-BT-01_HCHK_001",
       "chunkType": "GENERAL_SECTION",
-      "title": "Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 4937/QĐ-UBND ngày 02/11/2026 của UBND tỉnh An Giang - Trình tự thực hiện",
+      "title": "Thực hiện trợ cấp xã hội và nhận chăm sóc, nuôi dưỡng, hỗ trợ kinh phí nhận chăm sóc, nuôi dưỡng hằng tháng – Trình tự thực hiện",
       "headerPath": "TTHC-BT-01 > Trình tự thực hiện",
-      "content": "a) Đối tượng hoặc gia đình đối tượng hoặc người giám hộ đề nghị hưởng trợ cấp xã hội hàng tháng làm 01 Tờ khai và cung cấp 01 bản sao đối với mỗi loại giấy tờ liên quan gửi trực tiếp tại tại Trung tâm Phục vụ hành chính công tỉnh An Giang hoặc Trung tâm Phục vụ hành chính công cấp xã; qua dịch vụ bưu chính; hoặc trực tuyến trên Cổng Dịch vụ công Quốc gia theo quy định đến Chủ tịch UBND cấp xã nơi cư trú.\nb) Trong thời hạn 10 ngày làm việc, kể từ ngày nhận được hồ sơ của đối tượng, Chủ tịch UBND cấp xã tổ chức xem xét, thực hiện xác thực và chuẩn hóa thông tin liên quan của đối tượng với cơ sở dữ liệu quốc gia về dân cư, quyết định và thực hiện chi trả trợ cấp xã hội hàng tháng cho đối tượng. Thời gian hưởng kể từ tháng Chủ tịch UBND cấp xã ký quyết định.\nTrường hợp không đủ điều kiện, trong thời hạn 03 ngày làm việc kể từ khi nhận hồ sơ của đối tượng, Chủ tịch UBND cấp xã trả lời bằng văn bản và nêu rõ lý do.",
-      "contentHash": "d69e7bb2ef433c23704773c12430b53b2d26b4b84fa310fef31587afd81a37f0",
-      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=3.000733",
-      "pipelineVersion": "1.0"
+      "content": "Trung tâm tiếp nhận, kiểm tra và số hóa hồ sơ hợp lệ. Chuyên viên Phòng Văn hóa - Xã hội thẩm định, lãnh đạo phòng kiểm tra và trình Chủ tịch UBND cấp xã quyết định. Văn thư phát hành và Trung tâm trả kết quả.",
+      "contentHash": "6e52b3b1c390aeb2b7ef9e6b7172f00f009281163b72429fda960c5ba39b13e1",
+      "sourceUrl": "https://candang.angiang.gov.vn/sites/default/files/2026/11/van-ban/4937-qd-ubndsignedsigned.pdf",
+      "pipelineVersion": "1.0",
+      "legalReference": "335/2026/NĐ-CP; 4937/QĐ-UBND"
     },
     {
       "chunkId": "TTHC-BT-01_HCHK_002",
       "chunkType": "GENERAL_SECTION",
-      "title": "Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 4937/QĐ-UBND ngày 02/11/2026 của UBND tỉnh An Giang - Thành phần hồ sơ",
+      "title": "Thực hiện trợ cấp xã hội và nhận chăm sóc, nuôi dưỡng, hỗ trợ kinh phí nhận chăm sóc, nuôi dưỡng hằng tháng – Thành phần hồ sơ",
       "headerPath": "TTHC-BT-01 > Thành phần hồ sơ",
-      "content": "- **Tài liệu 1:** Tờ khai theo Mẫu số 01, 02, 03, 04, 05, 06, 07, 08 kèm theo Quy định ban hành kèm theo Quyết định số 4937/QĐ-UBND ngày 02/11/2026 của UBND tỉnh An Giang (1 bản chính)\n- **Tài liệu 2:** Giấy xác định mức độ khuyết tật đối với người khuyết tật. (1 bản chính)\n- **Tài liệu 3:** Giấy ra viện đối với đối tượng mắc bệnh hiểm nghèo. (1 bản chính)\n- **Tài liệu 4:** Xác nhận của cơ quan y tế có thẩm quyền đối với trường hợp nhiễm HIV/AIDS. (1 bản chính)\n- **Tài liệu 5:** Quyết định xuất ngũ hoặc xác nhận của cơ quan quân sự về thời gian tham gia quân đội đối với Bộ đội phục viên, xuất ngũ mắc bệnh tâm thần. (1 bản chính)\n- **Tài liệu 6:** Quyết định của cơ quan bảo hiểm xã hội về ngừng hưởng trợ cấp mất sức lao động đối với đối tượng ngừng hưởng trợ cấp mất sức lao động. (1 bản chính)\n- **Tài liệu 7:** Giấy xác nhận của cơ sở giáo dục phổ thông, cơ sở giáo dục nghề nghiệp và cơ sở giáo dục đại học (công lập và ngoài công lập) đối với người từ 16 đến 22 tuổi đang đi học (mẫu số 08). (1 bản chính)\n- **Tài liệu 8:** Giấy tờ liên quan khác (nếu có) (1 bản chính)",
-      "contentHash": "31cabc736108bd6eff49662bf26c4e29ddddb1843040d879524d830a625e50a0",
-      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=3.000733",
-      "pipelineVersion": "1.0"
+      "content": "Mẫu số 01 khi đề nghị hưởng trợ cấp xã hội hằng tháng. Mẫu số 02 khi đề nghị hỗ trợ kinh phí nhận chăm sóc, nuôi dưỡng hằng tháng",
+      "contentHash": "b3f3a4addb7ac347e5cf59feee81b2e71253db163574ab327f80cfa5b4cb04b9",
+      "sourceUrl": "https://candang.angiang.gov.vn/sites/default/files/2026/11/van-ban/4937-qd-ubndsignedsigned.pdf",
+      "pipelineVersion": "1.0",
+      "legalReference": "335/2026/NĐ-CP; 4937/QĐ-UBND"
     },
     {
       "chunkId": "TTHC-BT-01_HCHK_003",
       "chunkType": "GENERAL_SECTION",
-      "title": "Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 4937/QĐ-UBND ngày 02/11/2026 của UBND tỉnh An Giang - Thời hạn và lệ phí",
+      "title": "Thực hiện trợ cấp xã hội và nhận chăm sóc, nuôi dưỡng, hỗ trợ kinh phí nhận chăm sóc, nuôi dưỡng hằng tháng – Thời hạn và lệ phí",
       "headerPath": "TTHC-BT-01 > Thời hạn và lệ phí",
-      "content": "Thủ tục: Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 4937/QĐ-UBND ngày 02/11/2026 của UBND tỉnh An Giang. Cơ quan có thẩm quyền giải quyết: UBND tỉnh An Giang / UBND cấp xã theo phân cấp. Thời hạn giải quyết: DIRECT: 10 ngày làm việc kể từ ngày tiếp nhận hồ sơ đầy đủ, hợp lệ | ONLINE: 10 ngày làm việc kể từ ngày tiếp nhận hồ sơ đầy đủ, hợp lệ | POSTAL: 10 ngày làm việc kể từ ngày tiếp nhận hồ sơ đầy đủ, hợp lệ. Mức phí/lệ phí: Theo quy định của HĐND cấp tỉnh/thành phố.",
-      "contentHash": "c8d5f5636f11ac1f4c60215670c14fd264dea46e1cbbcef871c913727cb48327",
-      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=3.000733",
-      "pipelineVersion": "1.0"
+      "content": "07 ngày làm việc (56 giờ làm việc). Tra cứu phí, lệ phí theo công bố của cơ quan tiếp nhận",
+      "contentHash": "39c74e154c32a7f0aac8d6e6a919a714dd20019e830f225e493150a44937f25c",
+      "sourceUrl": "https://candang.angiang.gov.vn/sites/default/files/2026/11/van-ban/4937-qd-ubndsignedsigned.pdf",
+      "pipelineVersion": "1.0",
+      "legalReference": "335/2026/NĐ-CP; 4937/QĐ-UBND"
     },
     {
       "chunkId": "TTHC-BT-01_HCHK_004",
       "chunkType": "GENERAL_SECTION",
-      "title": "Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 4937/QĐ-UBND ngày 02/11/2026 của UBND tỉnh An Giang - Cơ quan thực hiện",
+      "title": "Thực hiện trợ cấp xã hội và nhận chăm sóc, nuôi dưỡng, hỗ trợ kinh phí nhận chăm sóc, nuôi dưỡng hằng tháng – Cơ quan thực hiện",
       "headerPath": "TTHC-BT-01 > Cơ quan thực hiện",
-      "content": "- Cơ quan có thẩm quyền giải quyết: UBND tỉnh An Giang / UBND cấp xã theo phân cấp\n- Cơ quan trực tiếp thực hiện: Bộ phận Tiếp nhận và Trả kết quả (Một cửa) cấp Xã/Phường.",
-      "contentHash": "f4992a138fa60b0530b0c8f28daf93fbc77637c3ec25d060b5cd89f3631637db",
-      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=3.000733",
-      "pipelineVersion": "1.0"
+      "content": "Tiếp nhận tại Trung tâm Phục vụ hành chính công bất kỳ trong tỉnh An Giang. Phòng Văn hóa - Xã hội thẩm định, Chủ tịch UBND cấp xã quyết định.",
+      "contentHash": "df7a015252ac368ba33447e173a3fbca7e8949ff9c0a75bdd3d33ebe478312f0",
+      "sourceUrl": "https://candang.angiang.gov.vn/sites/default/files/2026/11/van-ban/4937-qd-ubndsignedsigned.pdf",
+      "pipelineVersion": "1.0",
+      "legalReference": "335/2026/NĐ-CP; 4937/QĐ-UBND"
     },
     {
       "chunkId": "TTHC-BT-01_HCHK_005",
       "chunkType": "GENERAL_SECTION",
-      "title": "Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 4937/QĐ-UBND ngày 02/11/2026 của UBND tỉnh An Giang - Căn cứ pháp lý",
+      "title": "Thực hiện trợ cấp xã hội và nhận chăm sóc, nuôi dưỡng, hỗ trợ kinh phí nhận chăm sóc, nuôi dưỡng hằng tháng – Căn cứ pháp lý",
       "headerPath": "TTHC-BT-01 > Căn cứ pháp lý",
-      "content": "- Luật Tiếp cận thông tin 2016; Nghị định 61/2018/NĐ-CP; Quyết định công bố TTHC của UBND Tỉnh An Giang.",
-      "contentHash": "ad7877dd369587c156ae4ca3d37d2c8cca1c6fe812096721562f894aef9b296c",
-      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=3.000733",
-      "pipelineVersion": "1.0"
+      "content": "Nghị định 335/2026/NĐ-CP và Quyết định 4937/QĐ-UBND của tỉnh An Giang.",
+      "contentHash": "0a2df34210ca54b69b7934f2e82dd6bcbc00ec795b1dbf0322ecb122ac9ef8e2",
+      "sourceUrl": "https://candang.angiang.gov.vn/sites/default/files/2026/11/van-ban/4937-qd-ubndsignedsigned.pdf",
+      "pipelineVersion": "1.0",
+      "legalReference": "335/2026/NĐ-CP; 4937/QĐ-UBND"
     }
   ],
-  "chunksCount": 4,
+  "chunksCount": 5,
   "validatedAt": "2026-11-03T03:34:04.524711+00:00",
   "lastApprovedAt": "2026-11-17T03:03:10.622493+00:00",
-  "contentHash": "4dd90d260c1b84faeb35c4209cd0952e1d264565249276af32d558a6b5ce5d11",
+  "contentHash": "d89e7d33f03f6b42c0de8ccf306604502cc9aea69dd188b167572e33c8d81407",
   "workflowGroup": "W3",
   "submissionMode": "PRECHECK_ENABLED",
   "catalogStatus": "VERIFIED_AN_GIANG",
-  "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
-  "appraisalUnit": "Công chức Văn hóa - Xã hội",
-  "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+  "receivingAgency": "Trung tâm Phục vụ hành chính công bất kỳ trong tỉnh An Giang",
+  "appraisalUnit": "Phòng Văn hóa - Xã hội",
+  "signingAuthority": "Chủ tịch UBND cấp xã",
   "requiresDelegationToSignAtCenter": false
 }

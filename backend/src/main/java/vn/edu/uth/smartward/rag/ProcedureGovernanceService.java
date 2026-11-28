@@ -778,6 +778,7 @@ public class ProcedureGovernanceService {
             String newHash = sha256Hex(textContent);
 
             LegalChunk existing = existingChunks.stream()
+                    .filter(LegalChunk::isActivePublicCatalogChunk)
                     .filter(c -> chunkType.equalsIgnoreCase(c.getChunkType())
                             || ("REQUIRED_DOCUMENTS".equals(chunkType) && "REQUIRED_DOCS".equalsIgnoreCase(c.getChunkType())))
                     .findFirst()
@@ -1054,6 +1055,7 @@ public class ProcedureGovernanceService {
         if (chunks == null || chunks.isEmpty()) return fallback;
         StringBuilder sb = new StringBuilder();
         for (LegalChunk c : chunks) {
+            if (!c.isActivePublicCatalogChunk()) continue;
             if (type.equalsIgnoreCase(c.getChunkType())
                     || ("REQUIRED_DOCUMENTS".equals(type) && "REQUIRED_DOCS".equalsIgnoreCase(c.getChunkType()))) {
                 if (!sb.isEmpty()) sb.append("\n\n");

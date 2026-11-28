@@ -1,3 +1,4 @@
+import qrcode from 'qrcode-generator';
 /**
  * SmartWard AI Mobile — Bộ Xuất File .PDF Phiếu Hẹn Sơ Duyệt Điện Tử Có Mã QR (MOB-4.4)
  * Kỷ luật bắt buộc:
@@ -54,52 +55,18 @@ export function getDossierStatusVietnamese(status: string): string {
   }
 }
 
-/**
- * Generates deterministic SVG matrix pattern representing the QR pass inside exported PDF
- * so the offline PDF always contains a crisp vector visual even without external image fetches.
- */
-function buildDeterministicQrSvg(payload: string): string {
-  const size = 21;
-  const cell = 6;
-  const dim = size * cell;
-  let hash = 2166136261;
-  for (let i = 0; i < payload.length; i++) {
-    hash ^= payload.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-
-  const isFinder = (r: number, c: number) =>
-    (r < 7 && c < 7) || (r < 7 && c >= size - 7) || (r >= size - 7 && c < 7);
-
-  const rects: string[] = [];
-  for (let r = 0; r < size; r++) {
-    for (let c = 0; c < size; c++) {
-      let dark = false;
-      if (isFinder(r, c)) {
-        const lr = r < 7 ? r : r - (size - 7);
-        const lc = c < 7 ? c : c - (size - 7);
-        dark =
-          lr === 0 ||
-          lr === 6 ||
-          lc === 0 ||
-          lc === 6 ||
-          (lr >= 2 && lr <= 4 && lc >= 2 && lc <= 4);
-      } else {
-        const bit = ((hash ^ ((r * 31 + c * 17) * 2654435761)) >>> 0) % 3;
-        dark = bit !== 0;
-      }
-      if (dark) {
-        rects.push(`<rect x="${c * cell}" y="${r * cell}" width="${cell}" height="${cell}" fill="#0F172A"/>`);
-      }
-    }
-  }
-
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${dim}" height="${dim}" viewBox="0 0 ${dim} ${dim}"><rect width="${dim}" height="${dim}" fill="#FFFFFF"/>${rects.join('')}</svg>`;
+function buildQrSvg(payload: string): string {
+  qrcode.stringToBytes = text => Array.from(new TextEncoder().encode(text));
+  const qr = qrcode(0, 'M');
+  qr.addData(payload, 'Byte');
+  qr.make();
+  return qr.createSvgTag(3, 12);
 }
 
 export function buildElectronicQrPassHtml(pass: WalletQrPassRow): string {
-  const qrSvg = buildDeterministicQrSvg(pass.qr_payload);
+  const qrSvg = buildQrSvg(pass.qr_payload);
   const appointmentLabel = pass.appointment_code || 'CHỜ CẤP MÃ HẸN';
+  const receiptAgency = pass.qr_payload?.startsWith('SW_RECEIPT|') ? pass.qr_payload.split('|')[2] : undefined;
   const statusVi = getDossierStatusVietnamese(pass.status);
   const passBadgeLabel = pass.qr_payload?.startsWith('SW_RECEIPT|')
     ? 'PHIẾU BIÊN NHẬN CHÍNH THỨC'
@@ -131,8 +98,8 @@ export function buildElectronicQrPassHtml(pass: WalletQrPassRow): string {
 <body>
   <div class="card">
     <div class="badge">${escapeHtml(passBadgeLabel)}</div>
-    <div class="ward">UBND ${escapeHtml(pass.ward_name)}</div>
-    <div class="sub">Bộ phận Một cửa — Tỉnh An Giang (Miễn phí 100% • Không SMS)</div>
+    <div class="ward">${escapeHtml(receiptAgency || pass.ward_name)}</div>
+    <div class="sub">Tra cứu hồ sơ SmartWard • Tỉnh An Giang</div>
     <div class="qr-wrap">
       ${qrSvg}
       <div class="code">${escapeHtml(appointmentLabel)}</div>
@@ -148,7 +115,7 @@ export function buildElectronicQrPassHtml(pass: WalletQrPassRow): string {
       ${pass.officer_feedback ? `<tr><td class="k">Lời dặn của Cán bộ</td><td class="v">${escapeHtml(pass.officer_feedback)}</td></tr>` : ''}
     </table>
     <div class="note">
-      Hướng dẫn: Xuất trình trực tiếp mã QR này kèm CCCD bản gốc tại Quầy ưu tiên Bộ phận Một cửa UBND ${escapeHtml(pass.ward_name)}.
+      Xuất trình mã QR tại cơ quan tiếp nhận để cán bộ tra cứu tiến độ hồ sơ.
     </div>
   </div>
 </body>

@@ -25,15 +25,15 @@ export interface ProcedureRoutingMetadata {
 export const PROCEDURES_ROUTING_CATALOG: ProcedureRoutingMetadata[] = [
   {
     "code": "TTHC-BT-01",
-    "name": "Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng",
+    "name": "Thực hiện trợ cấp xã hội và nhận chăm sóc, nuôi dưỡng, hỗ trợ kinh phí nhận chăm sóc, nuôi dưỡng hằng tháng",
     "category": "Bảo trợ xã hội",
-    "portalCode": "3.000733",
+    "portalCode": "1.116909",
     "workflowGroup": "W3",
     "submissionMode": "PRECHECK_ENABLED",
     "catalogStatus": "VERIFIED_AN_GIANG",
-    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
-    "appraisalUnit": "Công chức Văn hóa - Xã hội",
-    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công bất kỳ trong tỉnh An Giang",
+    "appraisalUnit": "Phòng Văn hóa - Xã hội",
+    "signingAuthority": "Chủ tịch UBND cấp xã",
     "requiresDelegationToSignAtCenter": false
   },
   {

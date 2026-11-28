@@ -85,6 +85,7 @@ public class ProcedureService {
 
         List<LegalChunk> chunks = chunkRepository.findByProcedureId(proc.getId());
 
+        if (chunks != null) chunks = chunks.stream().filter(LegalChunk::isActivePublicCatalogChunk).toList();
         String process = null;
         if (chunks != null) {
             process = chunks.stream()

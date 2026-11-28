@@ -76,6 +76,8 @@ interface QuickDossierItem {
   submittedAt: string;
   status: 'PENDING' | 'VALID' | 'HAS_ERRORS';
   rawStatus?: string;
+  procedureCode?: string;
+  receiptVerified?: boolean;
   slaDeadline?: string | null;
   supplementedAt?: string | null;
   supplementCount?: number;
@@ -548,6 +550,8 @@ export const PerWardDashboard: React.FC = () => {
                 ? 'HAS_ERRORS'
                 : 'PENDING',
             rawStatus: s.status,
+            procedureCode: s.procedureCode,
+            receiptVerified: s.receiptVerified,
             slaDeadline: s.slaDeadline ?? null,
             supplementedAt: s.supplementedAt ?? null,
             supplementCount: s.supplementCount ?? 0,
@@ -780,7 +784,7 @@ export const PerWardDashboard: React.FC = () => {
                 officerFeedback: feedback,
                 receivingAgency: updated?.receivingAgency ?? extra?.receivingAgency ?? (d as any).receivingAgency,
                 officialReceiptNo: updated?.officialReceiptNo ?? extra?.officialReceiptNo ?? (d as any).officialReceiptNo,
-                receiptVerified: updated?.receiptVerified ?? Boolean(extra?.officialReceiptNo),
+                receiptVerified: updated?.receiptVerified ?? d.receiptVerified,
               }
             : d
         )

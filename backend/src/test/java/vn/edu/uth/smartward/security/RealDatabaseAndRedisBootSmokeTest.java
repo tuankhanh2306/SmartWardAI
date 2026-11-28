@@ -118,6 +118,9 @@ class RealDatabaseAndRedisBootSmokeTest {
     @Autowired
     private StringRedisTemplate stringRedisTemplate;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbc;
+
     @Test
     @DisplayName("Full context boots against PostgreSQL + Redis, /api/v1/health returns UP, null SLA & HITL persist")
     void fullContextBootAndCorePersistence() throws Exception {
@@ -126,6 +129,13 @@ class RealDatabaseAndRedisBootSmokeTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.data.status").value("UP"));
+
+        assertThat(jdbc.queryForObject("SELECT portal_code FROM admin_procedures WHERE procedure_code = 'TTHC-BT-01'", String.class))
+                .isEqualTo("1.116909");
+        assertThat(jdbc.queryForObject("""
+                SELECT count(*) FROM legal_chunks c JOIN admin_procedures p ON p.id = c.procedure_id
+                WHERE p.procedure_code = 'TTHC-BT-01' AND c.status = 'ACTIVE' AND c.content LIKE '%Mẫu số 02%'
+                """, Integer.class)).isPositive();
 
         // 2. Unverified procedure SLA persists as NULL into real PostgreSQL citizen_dossiers
         DossierSubmissionResponse submission = dossierService.submitDossier(SubmitDossierRequest.builder()

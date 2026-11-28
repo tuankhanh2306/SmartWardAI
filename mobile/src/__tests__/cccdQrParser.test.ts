@@ -112,6 +112,14 @@ describe('cccdQrParser — Bộ giải mã QR CCCD 7 trường BCA & Phiếu h�
     expect(parseSmartWardPassQr('INVALID').valid).toBe(false);
   });
 
+  it('accepts draft and receipt QR with Vietnamese agency names and rejects missing fields', () => {
+    expect(parseSmartWardPassQr('SW_DRAFT|HS-123|AG_TEST').dossierCode).toBe('HS-123');
+    expect(parseSmartWardPassQr('SW_DRAFT|HS-123|LH-123|AG_TEST').wardCode).toBe('AG_TEST');
+    const receipt = 'SW_RECEIPT|BN-42|Trung tâm Long Xuyên|TBD';
+    expect(parseSmartWardPassQr(receipt)).toEqual({ valid: true, rawCode: receipt });
+    expect(parseSmartWardPassQr('SW_RECEIPT||Trung tâm|TBD').valid).toBe(false);
+  });
+
   it('so khớp ngày sinh dd-mm-yyyy với mã QR CCCD không báo lệch giả và gắn CONFLICT khi sai ngày', () => {
     const parsed = parseCccdQrString(VALID_QR);
     expect(parsed.data).toBeDefined();
