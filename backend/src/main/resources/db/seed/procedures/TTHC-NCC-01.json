@@ -3,7 +3,7 @@
   "officialPortalCode": "1.009472",
   "procedureName": "Tiếp nhận hồ sơ giải quyết chế độ ưu đãi đối với Người có công với cách mạng",
   "category": "Bảo trợ xã hội và Người có công",
-  "agency": "Ủy ban nhân dân cấp xã thuộc tỉnh An Giang",
+  "agency": "- Cơ quan tiếp nhận: Trung tâm Phục vụ hành chính công cấp xã.\n- Quy trình 2 tầng: UBND cấp xã tiếp nhận, xác nhận ban đầu → Chuyển cơ quan chuyên ngành cấp tỉnh quyết định chế độ.",
   "process": "Bước 1: Người có công hoặc thân nhân nộp hồ sơ yêu cầu giải quyết chế độ ưu đãi tại Bộ phận Một cửa UBND cấp xã.\nBước 2: Công chức Văn hóa - Xã hội tiếp nhận, kiểm tra hồ sơ, đối chiếu giấy tờ gốc và lập Giấy tiếp nhận hồ sơ và hẹn trả kết quả.\nBước 3: UBND cấp xã tiến hành thẩm tra, niêm yết công khai tại trụ sở (nếu quy định bắt buộc), lập tờ trình kèm hồ sơ gửi Sở Lao động - Thương binh và Xã hội tỉnh An Giang xem xét, giải quyết theo thẩm quyền.",
   "processStepsCount": 3,
   "requiredDocuments": [
@@ -88,5 +88,13 @@
     }
   ],
   "chunksCount": 4,
-  "validatedAt": "2026-11-11T00:00:00.000000+00:00"
+  "validatedAt": "2026-11-11T00:00:00.000000+00:00",
+  "workflowGroup": "W4",
+  "submissionMode": "PRECHECK_ENABLED",
+  "catalogStatus": "VERIFIED_AN_GIANG",
+  "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+  "appraisalUnit": "Công chức Văn hóa - Xã hội cấp xã",
+  "signingAuthority": "UBND xã xác nhận → Cơ quan chuyên ngành cấp tỉnh quyết định chế độ",
+  "requiresDelegationToSignAtCenter": false,
+  "verificationNote": "Cấp xã tiếp nhận và xác nhận ban đầu, sau đó chuyển cơ quan chuyên ngành cấp tỉnh quyết định."
 }

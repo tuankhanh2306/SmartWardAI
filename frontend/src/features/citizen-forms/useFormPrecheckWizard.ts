@@ -359,6 +359,16 @@ export function useFormPrecheckWizard(params: {
 
   // STEP 3 ACTION: Explicit Official Dossier Submission (reuses stable UUID on retry)
   const handleSubmitDossier = async () => {
+    const cleanProc = canonicalProcedureCode.trim().toUpperCase();
+    if (
+      selectedFormType === 'CT01' ||
+      ['TTHC-CR-01', 'TTHC-CR-03', 'TTHC-CR-06', 'TTHC-CR-07', 'TTHC-CR-08'].includes(cleanProc)
+    ) {
+      setSubmitError(
+        'Thủ tục cư trú (Mẫu CT01) được giải quyết tại Công an cấp xã hoặc qua VNeID / Cổng DVC Bộ Công an. Bản nháp SmartWard hỗ trợ kê khai & in mẫu A4, KHÔNG chuyển vào hàng đợi duyệt của UBND.'
+      );
+      return;
+    }
     if (!precheckResult || !precheckResult.overallValid || precheckResult.submissionId.startsWith('DRAFT_')) {
       setSubmitError('Vui lòng hoàn tất Kiểm tra tờ khai hợp lệ trước khi gửi hồ sơ.');
       setFormWizardStep(2);

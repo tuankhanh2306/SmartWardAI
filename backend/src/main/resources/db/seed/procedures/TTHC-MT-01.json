@@ -3,7 +3,7 @@
   "officialPortalCode": "1.010839",
   "procedureName": "Thủ tục Đăng ký môi trường cấp xã",
   "category": "Đất đai và Môi trường",
-  "agency": "Ủy ban nhân dân cấp xã / phường",
+  "agency": "- Cơ quan tiếp nhận & trả kết quả: Trung tâm Phục vụ hành chính công cấp xã (NĐ 118/2025, sửa đổi bởi NĐ 367/2025 & NĐ 309/2026).\n- Cơ quan thẩm định & ký kết quả: Công chức chuyên môn thẩm định → Lãnh đạo UBND cấp xã ký duyệt.",
   "process": "Bước 1: Chủ dự án đầu tư, cơ sở sản xuất kinh doanh dịch vụ thuộc đối tượng đăng ký môi trường nộp văn bản đăng ký môi trường đến UBND cấp xã nơi triển khai dự án, cơ sở.\nBước 2: UBND cấp xã tiếp nhận, kiểm tra hồ sơ đăng ký môi trường. Trường hợp hồ sơ chưa đầy đủ, trong thời hạn 01 ngày làm việc thông báo cho chủ dự án bổ sung, hoàn thiện.\nBước 3: UBND cấp xã cập nhật thông tin đăng ký môi trường vào Hệ thống thông tin, cơ sở dữ liệu môi trường quốc gia và ban hành văn bản tiếp nhận đăng ký môi trường cho chủ dự án, cơ sở.",
   "processStepsCount": 3,
   "requiredDocuments": [
@@ -82,5 +82,12 @@
     }
   ],
   "chunksCount": 4,
-  "validatedAt": "2026-11-11T00:00:00.000000+00:00"
+  "validatedAt": "2026-11-11T00:00:00.000000+00:00",
+  "workflowGroup": "W3",
+  "submissionMode": "PRECHECK_ENABLED",
+  "catalogStatus": "VERIFIED_AN_GIANG",
+  "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+  "appraisalUnit": "Công chức Kinh tế - Hạ tầng - Địa chính - Môi trường",
+  "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+  "requiresDelegationToSignAtCenter": false
 }

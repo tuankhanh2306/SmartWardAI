@@ -3,7 +3,7 @@
   "officialPortalCode": "1.116907",
   "procedureName": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội",
   "category": "Bảo trợ xã hội",
-  "agency": "- Cơ quan có thẩm quyền giải quyết: Bộ Y tế\n- Cơ quan trực tiếp thực hiện: Bộ phận Tiếp nhận và Trả kết quả (Một cửa) cấp Xã/Phường.",
+  "agency": "- Cơ quan tiếp nhận: Trung tâm Phục vụ hành chính công cấp xã (QĐ 4937/QĐ-UBND An Giang).\n- Quy trình 2 tầng: UBND cấp xã thẩm tra, ký văn bản đề nghị → Chuyển Cơ sở trợ giúp xã hội xem xét, quyết định tiếp nhận.",
   "process": "- Bước 1: Đối tượng hoặc người giám hộ, nhân viên công tác xã hội chuẩn bị hồ sơ theo quy định gửi Chủ tịch Uỷ ban nhân dân xã, phường, đặc khu nơi cư trú (sau đây gọi chung là cấp xã).\n - Bước 2: Trong thời hạn 03 ngày làm việc, kể từ ngày nhận được hồ sơ của đối tượng, Chủ tịch Ủy ban nhân dân cấp xã thực hiện xác thực thông tin liên quan của đối tượng với Cơ sở dữ liệu quốc gia về dân cư, Cơ sở dữ liệu tổng hợp quốc gia, Cơ sở dữ liệu chuyên ngành dùng chung, xem xét điều kiện của đối tượng và có văn bản gửi cơ sở trợ giúp xã hội kèm theo hồ sơ của đối tượng. Trường hợp đối tượng không đủ điều kiện tiếp nhận chăm sóc, nuôi dưỡng tại cơ sở trợ giúp xã hội thì Chủ tịch Ủy ban nhân dân cấp xã trả lời bằng văn bản và nêu rõ lý do;\n - Bước 3: Trong thời hạn 02 ngày làm việc, kể từ ngày nhận được văn bản đề nghị của Chủ tịch Ủy ban nhân dân cấp xã và hồ sơ của đối tượng, người đứng đầu cơ sở trợ giúp xã hội xem xét, quyết định tiếp nhận đối tượng vào nuôi dưỡng, chăm sóc tại cơ sở trợ giúp xã hội hoặc cung cấp dịch vụ chăm sóc tại cộng đồng phù hợp.\n Trường hợp không đủ điều kiện chăm sóc, nuôi dưỡng tại cơ sở trợ giúp xã hội, thì trả lời bằng văn bản và nêu rõ lý do.\n - Việc tiếp nhận thủ tục hành chính không phụ thuộc vào địa giới hành chính thực hiện theo quy định của pháp luật về thực hiện thủ tục hành chính không phụ thuộc địa giới hành chính.",
   "processStepsCount": 1,
   "requiredDocuments": [
@@ -84,5 +84,13 @@
   "chunksCount": 4,
   "validatedAt": "2026-11-03T03:34:04.527221+00:00",
   "lastApprovedAt": "2026-11-17T03:03:10.624488+00:00",
-  "contentHash": "3fed198277e775abe36f3b0485e388de60e21951c73852b444a06e37c03629a8"
+  "contentHash": "3fed198277e775abe36f3b0485e388de60e21951c73852b444a06e37c03629a8",
+  "workflowGroup": "W4",
+  "submissionMode": "PRECHECK_ENABLED",
+  "catalogStatus": "VERIFIED_AN_GIANG",
+  "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+  "appraisalUnit": "Công chức Văn hóa - Xã hội cấp xã",
+  "signingAuthority": "UBND xã ký đề nghị → Người đứng đầu Cơ sở trợ giúp xã hội quyết định tiếp nhận",
+  "requiresDelegationToSignAtCenter": false,
+  "verificationNote": "Theo QĐ 4937/QĐ-UBND An Giang, bước xã ký văn bản đề nghị nằm giữa quy trình; hồ sơ chuyển sang trạng thái Đã chuyển cơ sở – chờ quyết định tiếp nhận."
 }

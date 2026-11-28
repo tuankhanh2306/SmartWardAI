@@ -90,5 +90,13 @@
   "chunksCount": 4,
   "validatedAt": "2026-11-03T03:34:04.535082+00:00",
   "lastApprovedAt": "2026-11-17T03:03:10.635077+00:00",
-  "contentHash": "b607a43d91e83fc35c4546a6a3ba5abee152cc505a10b489b4aca39c04a6102c"
+  "contentHash": "b607a43d91e83fc35c4546a6a3ba5abee152cc505a10b489b4aca39c04a6102c",
+  "workflowGroup": "W6",
+  "submissionMode": "REFERENCE_ONLY",
+  "catalogStatus": "OUT_OF_WARD_SCOPE",
+  "receivingAgency": "Cơ quan có thẩm quyền của Bộ Ngoại giao",
+  "appraisalUnit": "Cục Lãnh sự / Sở Ngoại vụ",
+  "signingAuthority": "Bộ Ngoại giao",
+  "requiresDelegationToSignAtCenter": false,
+  "verificationNote": "Thủ tục thị thực của Bộ Ngoại giao nằm ngoài thẩm quyền cấp xã; chỉ hỗ trợ tra cứu hướng dẫn."
 }

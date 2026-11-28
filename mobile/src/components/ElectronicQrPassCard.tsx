@@ -25,9 +25,13 @@ export const ElectronicQrPassCard: React.FC<ElectronicQrPassCardProps> = ({ pass
   const [exporting, setExporting] = useState(false);
   const [exportMsg, setExportMsg] = useState<string | null>(null);
 
-  const isApproved = pass.status.toUpperCase() === 'APPROVED';
-  const isSupplement = pass.status.toUpperCase() === 'SUPPLEMENT_REQUIRED';
-  const isRejected = pass.status.toUpperCase() === 'REJECTED';
+  const statusUpper = (pass.status || 'PENDING').toUpperCase();
+  const isOk = ['APPROVED', 'OFFICIALLY_ACCEPTED', 'CENTER_SIGNED', 'READY_FOR_RETURN', 'COMPLETED'].includes(statusUpper);
+  const isErr = statusUpper === 'SUPPLEMENT_REQUIRED' || statusUpper === 'REJECTED';
+  const isOfficialReceipt = Boolean(pass.qr_payload?.startsWith('SW_RECEIPT|'));
+  const badgeText = isOfficialReceipt
+    ? 'PHIẾU BIÊN NHẬN CHÍNH THỨC'
+    : 'MÃ BẢN NHÁP SMARTWARD (KIỂM TRA TRƯỚC)';
 
   const handleDownloadPdf = async () => {
     setExporting(true);
@@ -41,14 +45,14 @@ export const ElectronicQrPassCard: React.FC<ElectronicQrPassCardProps> = ({ pass
     <View style={styles.card}>
       <View style={styles.topRow}>
         <View style={styles.passBadge}>
-          <Text style={styles.passBadgeText}>PHIẾU HẸN SƠ DUYỆT ĐIỆN TỬ</Text>
+          <Text style={styles.passBadgeText}>{badgeText}</Text>
         </View>
         <View
           style={[
             styles.statusPill,
-            isApproved
+            isOk
               ? styles.statusOk
-              : isSupplement || isRejected
+              : isErr
               ? styles.statusErr
               : styles.statusPending,
           ]}
@@ -56,26 +60,24 @@ export const ElectronicQrPassCard: React.FC<ElectronicQrPassCardProps> = ({ pass
           <Text
             style={[
               styles.statusText,
-              isApproved
+              isOk
                 ? styles.textOk
-                : isSupplement || isRejected
+                : isErr
                 ? styles.textErr
                 : styles.textPending,
             ]}
           >
-            {isApproved
-              ? 'Đã duyệt'
-              : isSupplement
-              ? 'Cần bổ sung'
-              : isRejected
-              ? 'Từ chối'
-              : 'Chờ duyệt'}
+            {getDossierStatusVietnamese(pass.status)}
           </Text>
         </View>
       </View>
 
       <Text style={styles.wardTitle}>UBND {pass.ward_name}</Text>
-      <Text style={styles.wardSub}>Bộ phận Một cửa — Tỉnh An Giang</Text>
+      <Text style={styles.wardSub}>
+        {isOfficialReceipt
+          ? 'TTPVHCC — Biên nhận tiếp nhận chính thức'
+          : 'Bản nháp kiểm tra trước — Chờ biên nhận chính thức'}
+      </Text>
 
       {/* High-contrast SVG QR Code (Works 100% offline in Airplane Mode) */}
       <View style={styles.qrStage}>

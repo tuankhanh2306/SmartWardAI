@@ -48,13 +48,13 @@ describe('walletAndIncidentFlow — Chặng M4 (Ví Mã QR Offline, Xuất PDF &
     };
 
     const html = buildElectronicQrPassHtml(pass);
-    expect(html).toContain('PHIẾU HẸN SƠ DUYỆT ĐIỆN TỬ');
+    expect(html).toContain('MÃ BẢN NHÁP SMARTWARD (KIỂM TRA TRƯỚC)');
     expect(html).toContain('UBND Phường Long Xuyên');
     expect(html).toContain('LH-20261118-8899');
     expect(html).toContain('********3490');
     expect(html).toContain('<svg');
     expect(html).toContain('Hồ sơ hợp lệ 100%');
-    expect(getDossierStatusVietnamese('APPROVED')).toContain('Có mã hẹn QR');
+    expect(getDossierStatusVietnamese('APPROVED')).toContain('Đã kiểm tra sơ bộ');
   });
 
   it('hoạt động Offline 100% (Airplane Mode): lưu và đọc lại Phiếu hẹn QR từ sqliteDb', async () => {

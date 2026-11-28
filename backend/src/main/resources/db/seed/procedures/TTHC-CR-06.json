@@ -3,7 +3,7 @@
   "officialPortalCode": "2.001159",
   "procedureName": "Thông báo lưu trú",
   "category": "Cư trú",
-  "agency": "- Cơ quan có thẩm quyền giải quyết: Bộ Công an\n- Cơ quan trực tiếp thực hiện: Bộ phận Tiếp nhận và Trả kết quả (Một cửa) cấp Xã/Phường.",
+  "agency": "- Cơ quan có thẩm quyền tiếp nhận & giải quyết: Công an cấp xã (ngành dọc Bộ Công an).\n- Kênh nộp: Trực tiếp tại Công an cấp xã hoặc trực tuyến qua ứng dụng VNeID / Cổng Dịch vụ công Bộ Công an (không nộp vào hàng đợi duyệt của UBND xã).",
   "process": "Bước 1: Cá nhân, tổ chức thông báo lưu trú tới cơ quan đăng ký cư trú.\n Bước 2: Cán bộ công an thực hiện tiếp nhận thông báo lưu trú.",
   "processStepsCount": 1,
   "requiredDocuments": [
@@ -102,5 +102,13 @@
   "chunksCount": 4,
   "validatedAt": "2026-11-03T03:34:04.536684+00:00",
   "lastApprovedAt": "2026-11-17T03:03:10.637084+00:00",
-  "contentHash": "d69a20a18ccbea9df676bb41d8685464e4f2bd3a7689e54c66bc159c23a415f8"
+  "contentHash": "d69a20a18ccbea9df676bb41d8685464e4f2bd3a7689e54c66bc159c23a415f8",
+  "workflowGroup": "W1",
+  "submissionMode": "EXTERNAL_CHANNEL_ONLY",
+  "catalogStatus": "VERIFIED_AN_GIANG",
+  "receivingAgency": "Công an cấp xã / VNeID / Cổng DVC Bộ Công an",
+  "appraisalUnit": "Cán bộ đăng ký cư trú - Công an cấp xã",
+  "signingAuthority": "Trưởng Công an cấp xã",
+  "requiresDelegationToSignAtCenter": false,
+  "verificationNote": "Thủ tục thuộc thẩm quyền Công an cấp xã; SmartWard hỗ trợ kê khai & hướng dẫn nộp, không chuyển vào hàng đợi duyệt UBND."
 }

@@ -3,7 +3,7 @@
   "officialPortalCode": "1.001606",
   "procedureName": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận",
   "category": "Chứng thực",
-  "agency": "- Cơ quan có thẩm quyền giải quyết: Bộ Ngoại giao\n- Cơ quan trực tiếp thực hiện: Bộ phận Tiếp nhận và Trả kết quả (Một cửa) cấp Xã/Phường.",
+  "agency": "- Cơ quan tiếp nhận: Trung tâm Phục vụ hành chính công cấp xã.\n- Thẩm quyền ký: Lãnh đạo UBND cấp xã, hoặc Giám đốc/Phó Giám đốc TTPVHCC cấp xã khi có Quyết định ủy quyền còn hiệu lực (Nghị định 280/2025/NĐ-CP).",
   "process": "1.2. Cơ quan đại diện tiếp nhận hồ sơ, xem xét giải quyết.\n1.3. Nhận kết quả trực tiếp tại trụ sở cơ quan theo phiếu hẹn hồ sơ.\n\n- Khi tiếp nhận hồ sơ, Cơ quan đại diện cấp phiếu hẹn cho Người yêu cầu chứng nhận giấy tờ, trong đó ghi rõ địa điểm, thời gian tiếp nhận hồ sơ, giấy tờ kèm theo và thời gian trả lời kết quả.",
   "processStepsCount": 2,
   "requiredDocuments": [
@@ -102,5 +102,12 @@
   "chunksCount": 5,
   "validatedAt": "2026-11-03T03:34:04.540933+00:00",
   "lastApprovedAt": "2026-11-17T03:03:10.643606+00:00",
-  "contentHash": "5f5bc77ceeee6363804327a8a5be510b3fdf1017945560db0df79d2a847da1b7"
+  "contentHash": "5f5bc77ceeee6363804327a8a5be510b3fdf1017945560db0df79d2a847da1b7",
+  "workflowGroup": "W3",
+  "submissionMode": "PRECHECK_ENABLED",
+  "catalogStatus": "VERIFIED_AN_GIANG",
+  "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+  "appraisalUnit": "Chuyên viên tiếp nhận / Công chức Tư pháp tại TTPVHCC",
+  "signingAuthority": "Chủ tịch UBND cấp xã (hoặc Lãnh đạo TTPVHCC khi có QĐ ủy quyền còn hiệu lực)",
+  "requiresDelegationToSignAtCenter": true
 }

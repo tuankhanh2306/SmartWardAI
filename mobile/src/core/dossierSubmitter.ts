@@ -12,6 +12,7 @@ import {
   submitCitizenDossier,
   uploadVaultDocument,
 } from '../api/client';
+import { getProcedureRouting } from './proceduresRoutingCatalog';
 import { maskCccdNumber } from './cccdQrParser';
 import {
   normalizeDateToIso,
@@ -26,6 +27,7 @@ import {
   savePersistedDossierAttachments,
 } from '../storage/dossierAttachmentStore';
 import {
+  buildOfficialReceiptQrPayload,
   buildSmartWardPassPayload,
   upsertWalletQrPass,
   type WalletQrPassRow,
@@ -96,6 +98,8 @@ export interface DossierPipelineResult {
   stage:
     | 'VISION_BLOCKED'
     | 'VALIDATION_FAILED'
+    | 'REFERENCE_ONLY_BLOCKED'
+    | 'EXTERNAL_CHANNEL_GUIDED'
     | 'UPLOAD_FAILED'
     | 'RECEIPT_MISMATCH'
     | 'SUBMITTED_ONLINE'
@@ -237,6 +241,33 @@ export async function executeDossierSubmissionPipeline(
   const procMeta = statusConfirmation
     ? {...baseProcedure, procedureCode:'TTHC-HT-11', procedureName:'Xác nhận tình trạng hôn nhân'}
     : baseProcedure;
+  const routingMeta = getProcedureRouting(procMeta.procedureCode);
+  if (routingMeta?.submissionMode === 'REFERENCE_ONLY') {
+    return {
+      success: false,
+      stage: 'REFERENCE_ONLY_BLOCKED',
+      fieldValidations: localCheck.fieldValidations,
+      warnings: localCheck.warnings,
+      message:
+        routingMeta.verificationNote ||
+        `Thủ tục ${procMeta.procedureCode} hiện chỉ hỗ trợ tra cứu, chưa mở nộp trực tuyến trên hệ thống.`,
+    };
+  }
+  if (routingMeta?.submissionMode === 'EXTERNAL_CHANNEL_ONLY') {
+    return {
+      success: true,
+      stage: 'EXTERNAL_CHANNEL_GUIDED',
+      fieldValidations: localCheck.fieldValidations,
+      warnings: Array.from(
+        new Set([
+          ...localCheck.warnings,
+          'Bản nháp CT01 không chuyển vào hàng đợi duyệt của UBND cấp xã.',
+        ])
+      ),
+      message:
+        'Đã hoàn tất kiểm tra bản nháp CT01 (Phương án 3A). Vui lòng nộp trực tiếp tại Công an cấp xã hoặc qua VNeID / Cổng DVC Bộ Công an.',
+    };
+  }
   const flatFormData = buildFlatFormData(input.validationInput);
   let mergedValidations = [...localCheck.fieldValidations];
   let mergedWarnings = [...localCheck.warnings];
@@ -492,10 +523,23 @@ export async function executeDossierSubmissionPipeline(
       await clearPersistedAttachments(input.validationInput.formType);
     }
 
-    // 4. Persist to Offline SQLite wallet_qr_passes
+    // 4. Persist to Offline SQLite wallet_qr_passes (SW_DRAFT until officialReceiptNo verified)
+    const qrPayload =
+      submitted.receiptVerified && submitted.officialReceiptNo && submitted.receivingAgency
+        ? buildOfficialReceiptQrPayload(
+            submitted.officialReceiptNo,
+            submitted.receivingAgency,
+            submitted.slaDeadline || null
+          )
+        : buildSmartWardPassPayload(
+            submitted.dossierCode,
+            submitted.officialReceiptNo || null,
+            input.wardCode
+          );
+
     const walletRow: WalletQrPassRow = {
       dossier_code: submitted.dossierCode,
-      appointment_code: null,
+      appointment_code: submitted.officialReceiptNo || null,
       procedure_code: procMeta.procedureCode,
       procedure_name: procMeta.procedureName,
       ward_code: input.wardCode,
@@ -507,13 +551,16 @@ export async function executeDossierSubmissionPipeline(
       status: submitted.status || 'PENDING',
       officer_feedback: null,
       sla_deadline: submitted.slaDeadline || null,
-      qr_payload: buildSmartWardPassPayload(submitted.dossierCode, null, input.wardCode),
+      qr_payload: qrPayload,
       synced_at: Date.now(),
     };
 
     await saveWalletPass(walletRow);
 
     const confirmedCount = vaultDocIds.length;
+    const isOfficiallyAccepted = Boolean(
+      submitted.receiptVerified && submitted.officialReceiptNo && submitted.receivingAgency
+    );
     return {
       success: true,
       stage: 'SUBMITTED_ONLINE',
@@ -528,10 +575,11 @@ export async function executeDossierSubmissionPipeline(
       idempotencyKey,
       walletRow,
       tempFileCleaned,
-      message:
-        confirmedCount > 0
-          ? `Đã gửi hồ sơ ${submitted.dossierCode} kèm ${confirmedCount} ảnh giấy tờ đã xác nhận tới Bộ phận Một cửa ${input.wardName}.`
-          : `Đã gửi hồ sơ ${submitted.dossierCode} tới Bộ phận Một cửa ${input.wardName}.`,
+      message: isOfficiallyAccepted
+        ? `Hồ sơ đã được tiếp nhận (${submitted.dossierCode}, Biên nhận ${submitted.officialReceiptNo}) tại ${submitted.receivingAgency}.`
+        : confirmedCount > 0
+        ? `Đã gửi yêu cầu kiểm tra trước (${submitted.dossierCode}, ${confirmedCount} ảnh giấy tờ) tới TTPVHCC ${input.wardName}.`
+        : `Đã gửi yêu cầu kiểm tra trước (${submitted.dossierCode}) tới TTPVHCC ${input.wardName}.`,
     };
   } catch {
     if (hasMultiAttachments) {

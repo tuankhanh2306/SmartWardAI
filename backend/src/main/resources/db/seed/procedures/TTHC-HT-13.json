@@ -3,7 +3,7 @@
   "officialPortalCode": "1.000874",
   "procedureName": "Thủ tục Đăng ký khai tử (trong nước)",
   "category": "Hộ tịch",
-  "agency": "Ủy ban nhân dân cấp xã / phường",
+  "agency": "- Cơ quan tiếp nhận & trả kết quả: Trung tâm Phục vụ hành chính công cấp xã (NĐ 118/2025, sửa đổi bởi NĐ 367/2025 & NĐ 309/2026).\n- Cơ quan thẩm định & ký kết quả: Công chức chuyên môn thẩm định → Lãnh đạo UBND cấp xã ký duyệt.",
   "process": "Bước 1: Người có trách nhiệm đăng ký khai tử nộp hồ sơ trực tiếp tại Bộ phận Một cửa UBND cấp xã hoặc nộp trực tuyến qua Cổng Dịch vụ công Quốc gia/Cổng Dịch vụ công cấp tỉnh.\nBước 2: Công chức Tư pháp - Hộ tịch tiếp nhận, kiểm tra hồ sơ, đối chiếu thông tin trong Cơ sở dữ liệu hộ tịch và Cơ sở dữ liệu quốc gia về dân cư.\nBước 3: Nếu hồ sơ đầy đủ, hợp lệ, công chức Tư pháp - Hộ tịch ghi vào Sổ đăng ký khai tử, cập nhật thông tin khai tử trên Phần mềm đăng ký hộ tịch dùng chung, báo cáo Chủ tịch UBND cấp xã ký cấp Trích lục khai tử cho người yêu cầu.",
   "processStepsCount": 3,
   "requiredDocuments": [
@@ -88,5 +88,12 @@
     }
   ],
   "chunksCount": 4,
-  "validatedAt": "2026-11-11T00:00:00.000000+00:00"
+  "validatedAt": "2026-11-11T00:00:00.000000+00:00",
+  "workflowGroup": "W3",
+  "submissionMode": "PRECHECK_ENABLED",
+  "catalogStatus": "VERIFIED_AN_GIANG",
+  "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+  "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+  "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+  "requiresDelegationToSignAtCenter": false
 }

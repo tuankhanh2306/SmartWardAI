@@ -5,7 +5,10 @@ import {
   CheckCircle2, ExternalLink, FileCheck2, Mail, Navigation, PhoneCall, RefreshCw, ShieldCheck, Sparkles, UserCheck, X, ZoomIn
 } from 'lucide-react';
 import type { WardItem } from '../../data/anGiangWards';
-import { fetchOfficerIncidentPhotoBlobUrl, type HitlGrayZoneItem } from '../../api/client';
+import {
+  fetchOfficerIncidentPhotoBlobUrl,
+  type HitlGrayZoneItem,
+} from '../../api/client';
 
 export interface OfficerDashboardDrawersProps {
   ward: WardItem;
@@ -33,6 +36,18 @@ export interface OfficerDashboardDrawersProps {
   setOfficerCustomNote: (v: string) => void;
   handleApproveDossier: (id: string) => void;
   handleRequestSupplement: (id: string, requestedItems?: string[]) => void;
+  handleTransitionDossierStatus?: (
+    id: string,
+    status:
+      | 'OFFICIALLY_ACCEPTED'
+      | 'UNDER_APPRAISAL'
+      | 'PENDING_UBND_SIGNATURE'
+      | 'CENTER_SIGNED'
+      | 'TRANSFERRED_AWAITING_DECISION'
+      | 'READY_FOR_RETURN'
+      | 'COMPLETED',
+    extra?: { receivingAgency?: string; officialReceiptNo?: string }
+  ) => void;
 }
 
 const SUPPLEMENT_PRESET_CHIPS = [
@@ -51,7 +66,7 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
     vaultStatus, vaultTokenConsumed, showVaultScan, vaultLoading,
     handleCloseVaultDocument, handleOpenVaultDocument, consumedVaultTokens = {}, vaultImageBlobUrl,
     vaultError, officerCustomNote, setOfficerCustomNote,
-    handleApproveDossier, handleRequestSupplement,
+    handleApproveDossier, handleRequestSupplement, handleTransitionDossierStatus,
   } = props;
 
   // TASK-031: Load authenticated SEC-09 field incident photos & Lightbox modal
@@ -59,10 +74,20 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
   const [incidentPhotosLoading, setIncidentPhotosLoading] = useState(false);
   const [lightboxPhotoUrl, setLightboxPhotoUrl] = useState<string | null>(null);
   const [selectedSupplementItems, setSelectedSupplementItems] = useState<string[]>([]);
+  const [receivingAgencyInput, setReceivingAgencyInput] = useState<string>(
+    `Trung tâm Phục vụ Hành chính công ${ward.name}`
+  );
+  const [officialReceiptNoInput, setOfficialReceiptNoInput] = useState<string>('');
+  const [receiptValidationError, setReceiptValidationError] = useState<string | null>(null);
 
   useEffect(() => {
     setSelectedSupplementItems([]);
-  }, [selectedDossier?.id]);
+    setReceivingAgencyInput(
+      selectedDossier?.receivingAgency || `Trung tâm Phục vụ Hành chính công ${ward.name}`
+    );
+    setOfficialReceiptNoInput(selectedDossier?.officialReceiptNo || '');
+    setReceiptValidationError(null);
+  }, [selectedDossier?.id, selectedDossier?.receivingAgency, selectedDossier?.officialReceiptNo, ward.name]);
 
   const selectedPhotoUrlsKey = Array.isArray(selectedIncident?.photoUrls)
     ? (selectedIncident.photoUrls as string[]).join('|')
@@ -929,6 +954,71 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                   })}
                 </div>
               </div>
+
+              {handleTransitionDossierStatus && (
+                <div className="p-3 rounded-xl bg-white border border-slate-200 flex flex-col gap-2">
+                  <span className="text-[11px] font-extrabold text-[#0F2942] uppercase tracking-wide">
+                    Nghiệp vụ TTPVHCC • Tiếp nhận biên nhận &amp; Trả kết quả
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <input
+                      type="text"
+                      value={receivingAgencyInput}
+                      onChange={(e) => {
+                        setReceivingAgencyInput(e.target.value);
+                        setReceiptValidationError(null);
+                      }}
+                      placeholder="Cơ quan tiếp nhận (VD: TTPVHCC xã...)"
+                      className="h-9 px-2.5 rounded-lg border border-slate-300 text-xs text-slate-900 bg-slate-50"
+                    />
+                    <input
+                      type="text"
+                      value={officialReceiptNoInput}
+                      onChange={(e) => {
+                        setOfficialReceiptNoInput(e.target.value);
+                        setReceiptValidationError(null);
+                      }}
+                      placeholder="Số biên nhận chính thức (VD: BN-2026-001)"
+                      className="h-9 px-2.5 rounded-lg border border-slate-300 text-xs font-mono text-slate-900 bg-slate-50"
+                    />
+                  </div>
+                  {receiptValidationError && (
+                    <span className="text-[11px] font-semibold text-red-700">{receiptValidationError}</span>
+                  )}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (!receivingAgencyInput.trim() || !officialReceiptNoInput.trim()) {
+                          setReceiptValidationError('Cần nhập đủ Cơ quan tiếp nhận và Số biên nhận trước khi xác nhận.');
+                          return;
+                        }
+                        handleTransitionDossierStatus(selectedDossier.id, 'OFFICIALLY_ACCEPTED', {
+                          receivingAgency: receivingAgencyInput.trim(),
+                          officialReceiptNo: officialReceiptNoInput.trim(),
+                        });
+                      }}
+                      className="px-3 py-1.5 rounded-lg bg-[#0F766E] hover:bg-[#115E59] text-white text-[11px] font-bold cursor-pointer"
+                    >
+                      Xác nhận tiếp nhận (Biên nhận)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleTransitionDossierStatus(selectedDossier.id, 'READY_FOR_RETURN')}
+                      className="px-3 py-1.5 rounded-lg bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-[11px] font-bold cursor-pointer"
+                    >
+                      Có kết quả – chờ trả
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleTransitionDossierStatus(selectedDossier.id, 'COMPLETED')}
+                      className="px-3 py-1.5 rounded-lg bg-[#065F46] hover:bg-[#064E3B] text-white text-[11px] font-bold cursor-pointer"
+                    >
+                      Đã trả kết quả
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center gap-2">
                 <button

@@ -3,7 +3,7 @@
   "officialPortalCode": "1.117007",
   "procedureName": "Xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế",
   "category": "Cư trú",
-  "agency": "- Cơ quan có thẩm quyền giải quyết: Bộ Công an\n- Cơ quan trực tiếp thực hiện: Bộ phận Tiếp nhận và Trả kết quả (Một cửa) cấp Xã/Phường.",
+  "agency": "- Cơ quan tiếp nhận & trả kết quả: Trung tâm Phục vụ hành chính công cấp xã (NĐ 118/2025, sửa đổi bởi NĐ 367/2025 & NĐ 309/2026).\n- Cơ quan thẩm định & ký kết quả: Công chức chuyên môn thẩm định → Lãnh đạo UBND cấp xã ký duyệt.",
   "process": "- Bước 1: Cơ quan đầu mối phối hợp với Ủy ban nhân dân cấp xã, các cơ quan, tổ chức liên quan xác minh hoàn cảnh khó khăn về kinh tế.\n\n- Bước 2: Xác nhận của Ủy ban nhân dân cấp xã nơi nạn nhân cư trú hoặc cơ quan, tổ chức nơi nạn nhân học tập, làm việc về việc nạn nhân hoặc gia đình của nạn nhân đang gặp khó khăn về kinh tế đối với trường hợp nạn nhân bị thương trong vụ tai nạn giao thông đường bộ với tỷ lệ tổn thương cơ thể trên 31% đến dưới 81% đang gặp khó khăn về kinh tế hoặc xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế đối với trường hợp hộ gia đình có nạn nhân bị chết trong vụ tai nạn giao thông đường bộ đang gặp khó khăn về kinh tế.",
   "processStepsCount": 2,
   "requiredDocuments": [
@@ -84,5 +84,12 @@
   "chunksCount": 5,
   "validatedAt": "2026-11-03T03:34:04.538793+00:00",
   "lastApprovedAt": "2026-11-17T03:03:10.640606+00:00",
-  "contentHash": "684b7b90371661459b196d1cc3e58e0dbf30c1dd4bc0bf30b199f5a2c3f57209"
+  "contentHash": "684b7b90371661459b196d1cc3e58e0dbf30c1dd4bc0bf30b199f5a2c3f57209",
+  "workflowGroup": "W3",
+  "submissionMode": "PRECHECK_ENABLED",
+  "catalogStatus": "VERIFIED_AN_GIANG",
+  "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+  "appraisalUnit": "Công chức chuyên môn cấp xã",
+  "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+  "requiresDelegationToSignAtCenter": false
 }

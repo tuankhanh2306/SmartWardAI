@@ -103,6 +103,7 @@ class FullSpringContextSmokeTest {
     @MockBean private WardRegistryRepository wardRegistryRepository;
     @MockBean private NotificationDeviceTokenRepository notificationDeviceTokenRepository;
     @MockBean private NotificationDeliveryLogRepository notificationDeliveryLogRepository;
+    @MockBean private SigningDelegationRepository signingDelegationRepository;
     @MockBean private StringRedisTemplate stringRedisTemplate;
     @MockBean private RedisConnectionFactory redisConnectionFactory;
 

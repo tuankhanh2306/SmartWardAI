@@ -1,151 +1,31 @@
 {
   "procedureCode": "TTHC-XD-02",
   "officialPortalCode": "3.000785",
-  "procedureName": "(Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố",
-  "category": "Địa chính, Đất đai và Xây dựng",
-  "agency": "- Cơ quan có thẩm quyền giải quyết: UBND Thành phố Đà Nẵng\n- Cơ quan trực tiếp thực hiện: Bộ phận Tiếp nhận và Trả kết quả (Một cửa) cấp Xã/Phường.",
-  "process": "Bước 1: Người yêu cầu đăng ký nộp hồ sơ đến Trung tâm Phục vụ hành chính công thành phố hoặc cấp xã.\nKhi nộp hồ sơ, người yêu cầu đăng ký được lựa chọn nộp bản sao giấy tờ và xuất trình bản chính để cán bộ tiếp nhận hồ sơ kiểm tra đối chiếu hoặc nộp bản chính giấy tờ hoặc nộp bản sao giấy tờ đã có công chứng hoặc chứng thực; trường hợp nộp hồ sơ theo hình thức trực tuyến thì hồ sơ nộp phải được số hóa từ bản chính hoặc bản sao giấy tờ đã được công chứng, chứng thực.\nTrường hợp nộp bản sao hoặc bản số hóa các loại giấy tờ thì khi nhận kết quả giải quyết thủ tục hành chính người yêu cầu đăng ký phải nộp bản chính các giấy tờ thuộc thành phần hồ sơ theo quy định.\nBước 2: Cơ quan tiếp nhận hồ sơ thực hiện:\nKiểm tra tính đầy đủ của thành phần hồ sơ; cấp Giấy tiếp nhận hồ sơ và hẹn trả kết quả.\nTrường hợp chưa đầy đủ thành phần hồ sơ thì trả hồ sơ kèm Phiếu yêu cầu bổ sung, hoàn thiện hồ sơ để người yêu cầu đăng ký hoàn thiện, bổ sung theo quy định.\nChuyển hồ sơ đến Sở Nông nghiệp và Môi trường.\nBước 3: Sở Nông nghiệp và Môi trường thực hiện kiểm tra thực tế sử dụng đất của tổ chức, xác định ranh giới cụ thể của thửa đất theo quy định tại khoản 2 Điều 142 và khoản 2 Điều 145 Luật Đất đai và thực hiện các công việc sau:\na) Trình Ủy ban nhân dân thành phố quyết định hình thức sử dụng đất theo Mẫu số 26 ban hành kèm theo Quyết định số 135/2026/QĐ-UBND của UBND thành phố.\nb) Lập và gửi Phiếu chuyển thông tin để xác định nghĩa vụ tài chính về đất đai theo Mẫu số 10 ban hành kèm theo đến cơ quan thuế để xác định và thông báo thu nghĩa vụ tài chính cho người sử dụng đất.\nc) Cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất khi có thông tin từ cơ sở dữ liệu được liên thông hoặc chứng từ hoặc giấy tờ chứng minh đã hoàn thành nghĩa vụ tài chính.\nd) Chuyển kết quả cho cơ quan tiếp nhận hồ sơ để trả cho người sử dụng đất.\nđ) Chuyển hồ sơ kèm theo bản sao Giấy chứng nhận đã cấp đến Văn phòng đăng ký đất đai thành phố để cập nhật vào hồ sơ địa chính, cơ sở dữ liệu đất đai",
+  "procedureName": "Thông báo khởi công xây dựng công trình nhà ở riêng lẻ (Chỉ tra cứu hướng dẫn diện miễn thủ tục)",
+  "category": "Xây dựng",
+  "agency": "- Cơ quan quản lý trật tự xây dựng tại địa bàn: UBND cấp xã.\n- Lưu ý pháp lý: Theo Luật Xây dựng, nhà ở riêng lẻ của hộ gia đình, cá nhân thông thường được miễn thủ tục gửi thông báo khởi công (chỉ tra cứu hướng dẫn).",
+  "process": "Theo Luật Xây dựng hiện hành, chủ đầu tư là hộ gia đình, cá nhân xây dựng nhà ở riêng lẻ (đã có giấy phép xây dựng hoặc thuộc diện miễn giấy phép) không bắt buộc thực hiện thủ tục gửi thông báo khởi công đến UBND cấp xã. Trường hợp công trình đặc thù thuộc diện phải thông báo, chủ đầu tư gửi thông báo trước ít nhất 03 ngày làm việc đến cơ quan quản lý trật tự xây dựng tại địa phương.",
   "processStepsCount": 1,
   "requiredDocuments": [
     {
-      "documentName": "Đơn đăng ký đất đai, tài sản gắn liền với đất theo Mẫu số 18 ban hành kèm theo Nghị định số 49/2026/NĐ-CP và Quyết định số 3828/QĐ-UBND của UBND tỉnh An Giang",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Một trong các loại giấy tờ quy định tại Điều 137, khoản 4, khoản 5 Điều 148, khoản 4, khoản 5 Điều 149 của Luật Đất đai (nếu có)",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Trường hợp chủ đầu tư xây dựng nhà ở để kinh doanh quy định tại khoản 4 Điều 148 của Luật Đất đai hoặc chủ đầu tư tạo lập công trình xây dựng quy định tại khoản 4 Điều 149 của Luật Đất đai đề nghị chứng nhận quyền sở hữu nhà ở, quyền sở hữu công trình xây dựng thì phải có quyết định phê duyệt dự án hoặc quyết định đầu tư dự án hoặc giấy phép đầu tư hoặc giấy chứng nhận đầu tư hoặc giấy phép xây dựng hoặc giấy tờ khác theo quy định của pháp luật; văn bản về việc nhà ở, công trình xây dựng đã được nghiệm thu đưa vào khai thác, sử dụng theo quy định của pháp luật về xây dựng; sơ đồ tài sản đề nghị chứng nhận quyền sở hữu.",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Đối với công trình xây dựng không phải là nhà ở thì phải có thêm giấy tờ về quyền sử dụng đất theo quy định của pháp luật về đất đai hoặc hợp đồng thuê đất với người sử dụng đất có mục đích sử dụng đất phù hợp với mục đích xây dựng công trình",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Sơ đồ hoặc bản trích lục bản đồ địa chính hoặc mảnh trích đo bản đồ địa chính thửa đất (nếu có); mảnh trích đo bản đồ địa chính thửa đất (nếu có) đối với người gốc Việt Nam định cư ở nước ngoài",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Báo cáo kết quả rà soát hiện trạng sử dụng đất theo Mẫu số 22d đối với trường hợp tổ chức trong nước, tổ chức tôn giáo, tổ chức tôn giáo trực thuộc đang sử dụng đất",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Quyết định vị trí đóng quân hoặc văn bản giao cơ sở nhà đất hoặc địa điểm công trình quốc phòng, an ninh được cấp có thẩm quyền phê duyệt cho đơn vị quân đội, đơn vị công an, đơn vị sự nghiệp công lập thuộc Quân đội nhân dân, Công an nhân dân; doanh nghiệp nhà nước do Bộ Quốc phòng, Bộ Công an được giao quản lý, sử dụng đất, công trình gắn liền với đất",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Hồ sơ thiết kế xây dựng công trình đã được cơ quan chuyên môn về xây dựng thẩm định hoặc đã có văn bản chấp thuận kết quả nghiệm thu hoàn thành hạng mục công trình, công trình xây dựng theo quy định của pháp luật về xây dựng đối với trường hợp chứng nhận quyền sở hữu công trình xây dựng trên đất nông nghiệp mà chủ sở hữu công trình không có một trong các loại giấy tờ quy định tại Điều 149 Luật Đất đai hoặc công trình được miễn giấy phép xây dựng theo quy định của pháp luật về xây dựng.",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Chứng từ thực hiện nghĩa vụ tài chính, giấy tờ liên quan đến việc miễn, giảm nghĩa vụ tài chính về đất đai, tài sản gắn liền với đất (nếu có)",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Trường hợp có nhiều người chung quyền sử dụng đất, chung quyền sở hữu tài sản gắn liền với đất có thỏa thuận cấp chung một Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất thì nộp thêm văn bản thỏa thuận đó",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Văn bản về việc đại diện theo quy định của pháp luật về dân sự đối với trường hợp thực hiện thủ tục thông qua người đại diện",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Tờ khai lệ phí trước bạ (bản chính)",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Tờ khai thuế thu nhập từ chuyển nhượng bất động sản theo quy định của pháp luật về thuế (bản chính, nếu có)",
-      "originalQty": 1,
-      "copyQty": 0,
-      "isRequired": false
-    },
-    {
-      "documentName": "Văn bản của người sử dụng đất đề nghị được miễn, giảm các Khoản nghĩa vụ tài chính về đất đai (bản chính) và bản sao các giấy tờ chứng minh thuộc đối tượng được miễn, giảm theo quy định của pháp luật (nếu có); trừ trường hợp các loại giấy tờ miễn giảm tiền sử dụng đất đã tích hợp trên Cơ sở dữ liệu quốc gia về dân cư, dữ liệu chuyên ngành",
+      "documentName": "Thông báo khởi công xây dựng (chỉ áp dụng nếu công trình không thuộc diện miễn của hộ gia đình, cá nhân)",
       "originalQty": 1,
       "copyQty": 0,
       "isRequired": false
     }
   ],
-  "requiredDocumentsCount": 14,
-  "processingTime": "Thủ tục: (Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố. Cơ quan có thẩm quyền giải quyết: UBND Thành phố Đà Nẵng. Thời hạn giải quyết: DIRECT: 4.1. Trường hợp hồ sơ đầy đủ và hợp lệ:\nKhông quá 17 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất lần đầu; không quá 20 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận lần đầu (trong đó đăng ký đất đai, tài sản gắn liền với đất lần đầu là không quá 17 ngày làm việc; cấp Giấy chứng nhận lần đầu là không quá 03 ngày làm việc).\nThời gian cơ quan thuế xác định nghĩa vụ tài chính: Không quá 05 ngày làm việc\nĐối với các xã miền núi, hải đảo, vùng sâu, vùng xa, vùng có điều kiện kinh tế - xã hội khó khăn, vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn thì thời gian thực hiện được tăng thêm 10 ngày làm việc.\n4.2. Trường hợp hồ sơ chưa đầy đủ, chưa hợp lệ thì trong thời gian không quá 03 ngày làm việc, Sở Nông nghiệp và Môi trường phải thông báo và hướng dẫn người nộp hồ sơ bổ sung, hoàn chỉnh hồ sơ theo quy định | ONLINE: 4.1. Trường hợp hồ sơ đầy đủ và hợp lệ:\nKhông quá 17 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất lần đầu; không quá 20 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận lần đầu (trong đó đăng ký đất đai, tài sản gắn liền với đất lần đầu là không quá 17 ngày làm việc; cấp Giấy chứng nhận lần đầu là không quá 03 ngày làm việc).\nThời gian cơ quan thuế xác định nghĩa vụ tài chính: Không quá 05 ngày làm việc\nĐối với các xã miền núi, hải đảo, vùng sâu, vùng xa, vùng có điều kiện kinh tế - xã hội khó khăn, vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn thì thời gian thực hiện được tăng thêm 10 ngày làm việc.\n4.2. Trường hợp hồ sơ chưa đầy đủ, chưa hợp lệ thì trong thời gian không quá 03 ngày làm việc, Sở Nông nghiệp và Môi trường phải thông báo và hướng dẫn người nộp hồ sơ bổ sung, hoàn chỉnh hồ sơ theo quy định | POSTAL: 4.1. Trường hợp hồ sơ đầy đủ và hợp lệ:\nKhông quá 17 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất lần đầu; không quá 20 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận lần đầu (trong đó đăng ký đất đai, tài sản gắn liền với đất lần đầu là không quá 17 ngày làm việc; cấp Giấy chứng nhận lần đầu là không quá 03 ngày làm việc).\nThời gian cơ quan thuế xác định nghĩa vụ tài chính: Không quá 05 ngày làm việc\nĐối với các xã miền núi, hải đảo, vùng sâu, vùng xa, vùng có điều kiện kinh tế - xã hội khó khăn, vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn thì thời gian thực hiện được tăng thêm 10 ngày làm việc.\n4.2. Trường hợp hồ sơ chưa đầy đủ, chưa hợp lệ thì trong thời gian không quá 03 ngày làm việc, Sở Nông nghiệp và Môi trường phải thông báo và hướng dẫn người nộp hồ sơ bổ sung, hoàn chỉnh hồ sơ theo quy định. Mức phí/lệ phí: Đối với đất và tài sản.",
-  "fee": "Đối với đất và tài sản",
+  "requiredDocumentsCount": 1,
+  "processingTime": "Không phát sinh thủ tục bắt buộc đối với nhà ở riêng lẻ thông thường của hộ gia đình, cá nhân.",
+  "fee": "Miễn phí",
   "legalBasis": [
     {
-      "documentNumber": "49/2026/NĐ-CP",
-      "documentTitle": "quy định chi tiết và hướng dẫn một số điều của Nghị quyết số 254/2025/QH15 của Quốc hội quy định một số cơ chế, chính sách tháo gỡ khó khăn vướng mắc trong tổ chức thi hành Luật Đất đai",
-      "year": "2026",
-      "effectiveDate": "2026-01-01"
-    },
-    {
-      "documentNumber": "3828/QĐ-UBND (Tỉnh An Giang)",
-      "documentTitle": "Quy định trình tự, thủ tục hành chính về đất đai trên địa bàn tỉnh An Giang.",
-      "year": "2026",
-      "effectiveDate": "2026-01-01"
-    },
-    {
-      "documentNumber": "101/2024/NĐ-CP",
-      "documentTitle": "Nghị định quy định về điều tra cơ bản đất đai, đăng ký, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất và Hệ thống thông tin đất đai.",
-      "year": "2024",
-      "effectiveDate": "2024-01-01"
-    },
-    {
-      "documentNumber": "31/2024/QH15",
-      "documentTitle": "Luật Đất đai số 31/2024/QH15 ngày 18/01/2024 được sửa đổi bổ sung một số điều bởi Luật số 43/2024/QH15, Luật số 47/2024/QH15 và Luật số 58/2024/QH15 của Quốc hội.",
-      "year": "2024",
-      "effectiveDate": "2024-01-01"
-    },
-    {
-      "documentNumber": "151/2025/NĐ-CP",
-      "documentTitle": "Quy định về phân định thẩm quyền của chính quyền địa phương 02 cấp, phân quyền, phân cấp trong lĩnh vực đất đai",
-      "year": "2025",
-      "effectiveDate": "2025-01-01"
-    },
-    {
-      "documentNumber": "226/2025/NĐ-CP",
-      "documentTitle": "sửa đổi, bổ sung một số điều của các nghị định quy định chi tiết thi hành Luật Đất đai.",
-      "year": "2025",
-      "effectiveDate": "2025-01-01"
-    },
-    {
-      "documentNumber": "254/2025/QH15",
-      "documentTitle": "Quy định một số cơ chế, chính sách tháo gỡ khó khăn vướng mắc trong tổ chức thi hành Luật Đất đai",
-      "year": "2025",
-      "effectiveDate": "2025-01-01"
-    },
-    {
-      "documentNumber": "5025/QĐ-UBND (Tỉnh An Giang)",
-      "documentTitle": "Quy định về phân cấp một số nhiệm vụ trong lĩnh vực đất đai trên địa bàn tỉnh An Giang",
-      "year": "2026",
-      "effectiveDate": "2026-01-01"
+      "documentNumber": "Luật Xây dựng 2014 (sửa đổi 2020)",
+      "documentTitle": "Điều 107 điều kiện khởi công xây dựng công trình",
+      "year": "2020",
+      "effectiveDate": "2021-01-01"
     }
   ],
-  "legalBasisCount": 8,
+  "legalBasisCount": 1,
   "sourceUrl": "https://dichvucong.gov.vn (API ID: 01a1692f-998c-761a-bb0d-2e60b8387c52)",
   "collectedAt": "2026-11-03T03:33:54.530344+00:00",
   "verificationStatus": "VERIFIED_TIER_1",
@@ -153,56 +33,54 @@
     {
       "chunkId": "TTHC-XD-02_HCHK_001",
       "chunkType": "GENERAL_SECTION",
-      "title": "(Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố - Trình tự thực hiện",
-      "headerPath": "TTHC-XD-02 > Trình tự thực hiện",
-      "content": "Bước 1: Người yêu cầu đăng ký nộp hồ sơ đến Trung tâm Phục vụ hành chính công thành phố hoặc cấp xã.\nKhi nộp hồ sơ, người yêu cầu đăng ký được lựa chọn nộp bản sao giấy tờ và xuất trình bản chính để cán bộ tiếp nhận hồ sơ kiểm tra đối chiếu hoặc nộp bản chính giấy tờ hoặc nộp bản sao giấy tờ đã có công chứng hoặc chứng thực; trường hợp nộp hồ sơ theo hình thức trực tuyến thì hồ sơ nộp phải được số hóa từ bản chính hoặc bản sao giấy tờ đã được công chứng, chứng thực.\nTrường hợp nộp bản sao hoặc bản số hóa các loại giấy tờ thì khi nhận kết quả giải quyết thủ tục hành chính người yêu cầu đăng ký phải nộp bản chính các giấy tờ thuộc thành phần hồ sơ theo quy định.\nBước 2: Cơ quan tiếp nhận hồ sơ thực hiện:\nKiểm tra tính đầy đủ của thành phần hồ sơ; cấp Giấy tiếp nhận hồ sơ và hẹn trả kết quả.\nTrường hợp chưa đầy đủ thành phần hồ sơ thì trả hồ sơ kèm Phiếu yêu cầu bổ sung, hoàn thiện hồ sơ để người yêu cầu đăng ký hoàn thiện, bổ sung theo quy định.\nChuyển hồ sơ đến Sở Nông nghiệp và Môi trường.\nBước 3: Sở Nông nghiệp và Môi trường thực hiện kiểm tra thực tế sử dụng đất của tổ chức, xác định ranh giới cụ thể của thửa đất theo quy định tại khoản 2 Điều 142 và khoản 2 Điều 145 Luật Đất đai và thực hiện các công việc sau:\na) Trình Ủy ban nhân dân thành phố quyết định hình thức sử dụng đất theo Mẫu số 26 ban hành kèm theo Quyết định số 135/2026/QĐ-UBND của UBND thành phố.\nb) Lập và gửi Phiếu chuyển thông tin để xác định nghĩa vụ tài chính về đất đai theo Mẫu số 10 ban hành kèm theo đến cơ quan thuế để xác định và thông báo thu nghĩa vụ tài chính cho người sử dụng đất.\nc) Cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất khi có thông tin từ cơ sở dữ liệu được liên thông hoặc chứng từ hoặc giấy tờ chứng minh đã hoàn thành nghĩa vụ tài chính.\nd) Chuyển kết quả cho cơ quan tiếp nhận hồ sơ để trả cho người sử dụng đất.\nđ) Chuyển hồ sơ kèm theo bản sao Giấy chứng nhận đã cấp đến Văn phòng đăng ký đất đai thành phố để cập nhật vào hồ sơ địa chính, cơ sở dữ liệu đất đai",
-      "contentHash": "2949d0de71c57ffd92d0840328bffd4f33396d82ec7e02d9631649c5451b7169",
-      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=3.000785",
-      "pipelineVersion": "1.0"
+      "title": "Thông báo khởi công nhà ở riêng lẻ - Hướng dẫn áp dụng",
+      "headerPath": "TTHC-XD-02 > Hướng dẫn áp dụng",
+      "content": "Theo Luật Xây dựng hiện hành, chủ đầu tư là hộ gia đình, cá nhân xây dựng nhà ở riêng lẻ (đã có giấy phép xây dựng hoặc thuộc diện miễn giấy phép) không bắt buộc thực hiện thủ tục gửi thông báo khởi công đến UBND cấp xã. Trường hợp công trình đặc thù thuộc diện phải thông báo, chủ đầu tư gửi thông báo trước ít nhất 03 ngày làm việc đến cơ quan quản lý trật tự xây dựng tại địa phương.",
+      "pipelineVersion": "2.0"
     },
     {
       "chunkId": "TTHC-XD-02_HCHK_002",
       "chunkType": "GENERAL_SECTION",
-      "title": "(Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố - Thành phần hồ sơ",
+      "title": "Thông báo khởi công nhà ở riêng lẻ - Thành phần hồ sơ",
       "headerPath": "TTHC-XD-02 > Thành phần hồ sơ",
-      "content": "- **Tài liệu 1:** Đơn đăng ký đất đai, tài sản gắn liền với đất theo Mẫu số 22 ban hành kèm theo Quyết định số 135/2026/QĐ-UBND ngày 24/9/2026 của UBND thành phố (1 bản chính)\n- **Tài liệu 2:** Một trong các loại giấy tờ quy định tại Điều 137, khoản 4, khoản 5 Điều 148, khoản 4, khoản 5 Điều 149 của Luật Đất đai (nếu có) (1 bản chính)\n- **Tài liệu 3:** Trường hợp chủ đầu tư xây dựng nhà ở để kinh doanh quy định tại khoản 4 Điều 148 của Luật Đất đai hoặc chủ đầu tư tạo lập công trình xây dựng quy định tại khoản 4 Điều 149 của Luật Đất đai đề nghị chứng nhận quyền sở hữu nhà ở, quyền sở hữu công trình xây dựng thì phải có quyết định phê duyệt dự án hoặc quyết định đầu tư dự án hoặc giấy phép đầu tư hoặc giấy chứng nhận đầu tư hoặc giấy phép xây dựng hoặc giấy tờ khác theo quy định của pháp luật; văn bản về việc nhà ở, công trình xây dựng đã được nghiệm thu đưa vào khai thác, sử dụng theo quy định của pháp luật về xây dựng; sơ đồ tài sản đề nghị chứng nhận quyền sở hữu. (1 bản chính)\n- **Tài liệu 4:** Đối với công trình xây dựng không phải là nhà ở thì phải có thêm giấy tờ về quyền sử dụng đất theo quy định của pháp luật về đất đai hoặc hợp đồng thuê đất với người sử dụng đất có mục đích sử dụng đất phù hợp với mục đích xây dựng công trình (1 bản chính)\n- **Tài liệu 5:** Sơ đồ hoặc bản trích lục bản đồ địa chính hoặc mảnh trích đo bản đồ địa chính thửa đất (nếu có); mảnh trích đo bản đồ địa chính thửa đất (nếu có) đối với người gốc Việt Nam định cư ở nước ngoài (1 bản chính)\n- **Tài liệu 6:** Báo cáo kết quả rà soát hiện trạng sử dụng đất theo Mẫu số 22d đối với trường hợp tổ chức trong nước, tổ chức tôn giáo, tổ chức tôn giáo trực thuộc đang sử dụng đất (1 bản chính)\n- **Tài liệu 7:** Quyết định vị trí đóng quân hoặc văn bản giao cơ sở nhà đất hoặc địa điểm công trình quốc phòng, an ninh được cấp có thẩm quyền phê duyệt cho đơn vị quân đội, đơn vị công an, đơn vị sự nghiệp công lập thuộc Quân đội nhân dân, Công an nhân dân; doanh nghiệp nhà nước do Bộ Quốc phòng, Bộ Công an được giao quản lý, sử dụng đất, công trình gắn liền với đất (1 bản chính)\n- **Tài liệu 8:** Hồ sơ thiết kế xây dựng công trình đã được cơ quan chuyên môn về xây dựng thẩm định hoặc đã có văn bản chấp thuận kết quả nghiệm thu hoàn thành hạng mục công trình, công trình xây dựng theo quy định của pháp luật về xây dựng đối với trường hợp chứng nhận quyền sở hữu công trình xây dựng trên đất nông nghiệp mà chủ sở hữu công trình không có một trong các loại giấy tờ quy định tại Điều 149 Luật Đất đai hoặc công trình được miễn giấy phép xây dựng theo quy định của pháp luật về xây dựng. (1 bản chính)\n- **Tài liệu 9:** Chứng từ thực hiện nghĩa vụ tài chính, giấy tờ liên quan đến việc miễn, giảm nghĩa vụ tài chính về đất đai, tài sản gắn liền với đất (nếu có) (1 bản chính)\n- **Tài liệu 10:** Trường hợp có nhiều người chung quyền sử dụng đất, chung quyền sở hữu tài sản gắn liền với đất có thỏa thuận cấp chung một Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất thì nộp thêm văn bản thỏa thuận đó (1 bản chính)\n- **Tài liệu 11:** Văn bản về việc đại diện theo quy định của pháp luật về dân sự đối với trường hợp thực hiện thủ tục thông qua người đại diện (1 bản chính)\n- **Tài liệu 12:** Tờ khai lệ phí trước bạ (bản chính) (1 bản chính)\n- **Tài liệu 13:** Tờ khai thuế thu nhập từ chuyển nhượng bất động sản theo quy định của pháp luật về thuế (bản chính, nếu có) (1 bản chính)\n- **Tài liệu 14:** Văn bản của người sử dụng đất đề nghị được miễn, giảm các Khoản nghĩa vụ tài chính về đất đai (bản chính) và bản sao các giấy tờ chứng minh thuộc đối tượng được miễn, giảm theo quy định của pháp luật (nếu có); trừ trường hợp các loại giấy tờ miễn giảm tiền sử dụng đất đã tích hợp trên Cơ sở dữ liệu quốc gia về dân cư, dữ liệu chuyên ngành (1 bản chính)",
-      "contentHash": "74627fa49d054def32f877f1a239a4cd8111a42aa1037b9f285d0f455cf01613",
-      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=3.000785",
-      "pipelineVersion": "1.0"
+      "content": "Nhà ở riêng lẻ thông thường của hộ gia đình, cá nhân được miễn nộp thông báo khởi công.",
+      "pipelineVersion": "2.0"
     },
     {
       "chunkId": "TTHC-XD-02_HCHK_003",
       "chunkType": "GENERAL_SECTION",
-      "title": "(Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố - Thời hạn và lệ phí",
+      "title": "Thông báo khởi công nhà ở riêng lẻ - Thời hạn và lệ phí",
       "headerPath": "TTHC-XD-02 > Thời hạn và lệ phí",
-      "content": "Thủ tục: (Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố. Cơ quan có thẩm quyền giải quyết: UBND Thành phố Đà Nẵng. Thời hạn giải quyết: DIRECT: 4.1. Trường hợp hồ sơ đầy đủ và hợp lệ:\nKhông quá 17 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất lần đầu; không quá 20 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận lần đầu (trong đó đăng ký đất đai, tài sản gắn liền với đất lần đầu là không quá 17 ngày làm việc; cấp Giấy chứng nhận lần đầu là không quá 03 ngày làm việc).\nThời gian cơ quan thuế xác định nghĩa vụ tài chính: Không quá 05 ngày làm việc\nĐối với các xã miền núi, hải đảo, vùng sâu, vùng xa, vùng có điều kiện kinh tế - xã hội khó khăn, vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn thì thời gian thực hiện được tăng thêm 10 ngày làm việc.\n4.2. Trường hợp hồ sơ chưa đầy đủ, chưa hợp lệ thì trong thời gian không quá 03 ngày làm việc, Sở Nông nghiệp và Môi trường phải thông báo và hướng dẫn người nộp hồ sơ bổ sung, hoàn chỉnh hồ sơ theo quy định | ONLINE: 4.1. Trường hợp hồ sơ đầy đủ và hợp lệ:\nKhông quá 17 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất lần đầu; không quá 20 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận lần đầu (trong đó đăng ký đất đai, tài sản gắn liền với đất lần đầu là không quá 17 ngày làm việc; cấp Giấy chứng nhận lần đầu là không quá 03 ngày làm việc).\nThời gian cơ quan thuế xác định nghĩa vụ tài chính: Không quá 05 ngày làm việc\nĐối với các xã miền núi, hải đảo, vùng sâu, vùng xa, vùng có điều kiện kinh tế - xã hội khó khăn, vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn thì thời gian thực hiện được tăng thêm 10 ngày làm việc.\n4.2. Trường hợp hồ sơ chưa đầy đủ, chưa hợp lệ thì trong thời gian không quá 03 ngày làm việc, Sở Nông nghiệp và Môi trường phải thông báo và hướng dẫn người nộp hồ sơ bổ sung, hoàn chỉnh hồ sơ theo quy định | POSTAL: 4.1. Trường hợp hồ sơ đầy đủ và hợp lệ:\nKhông quá 17 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất lần đầu; không quá 20 ngày làm việc đối với trường hợp đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận lần đầu (trong đó đăng ký đất đai, tài sản gắn liền với đất lần đầu là không quá 17 ngày làm việc; cấp Giấy chứng nhận lần đầu là không quá 03 ngày làm việc).\nThời gian cơ quan thuế xác định nghĩa vụ tài chính: Không quá 05 ngày làm việc\nĐối với các xã miền núi, hải đảo, vùng sâu, vùng xa, vùng có điều kiện kinh tế - xã hội khó khăn, vùng có điều kiện kinh tế - xã hội đặc biệt khó khăn thì thời gian thực hiện được tăng thêm 10 ngày làm việc.\n4.2. Trường hợp hồ sơ chưa đầy đủ, chưa hợp lệ thì trong thời gian không quá 03 ngày làm việc, Sở Nông nghiệp và Môi trường phải thông báo và hướng dẫn người nộp hồ sơ bổ sung, hoàn chỉnh hồ sơ theo quy định. Mức phí/lệ phí: Đối với đất và tài sản.",
-      "contentHash": "f4ac793ed701632cfcac4dcc97361449075abc9cdce803edc9bd23b74c7ee678",
-      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=3.000785",
-      "pipelineVersion": "1.0"
+      "content": "Miễn phí; chỉ gửi trước 03 ngày làm việc đối với công trình thuộc diện bắt buộc thông báo.",
+      "pipelineVersion": "2.0"
     },
     {
       "chunkId": "TTHC-XD-02_HCHK_004",
       "chunkType": "GENERAL_SECTION",
-      "title": "(Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố - Cơ quan thực hiện",
+      "title": "Thông báo khởi công nhà ở riêng lẻ - Cơ quan thực hiện",
       "headerPath": "TTHC-XD-02 > Cơ quan thực hiện",
-      "content": "- Cơ quan có thẩm quyền giải quyết: UBND Thành phố Đà Nẵng\n- Cơ quan trực tiếp thực hiện: Bộ phận Tiếp nhận và Trả kết quả (Một cửa) cấp Xã/Phường.",
-      "contentHash": "f4992a138fa60b0530b0c8f28daf93fbc77637c3ec25d060b5cd89f3631637db",
-      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=3.000785",
-      "pipelineVersion": "1.0"
+      "content": "- Cơ quan quản lý trật tự xây dựng tại địa bàn: UBND cấp xã.\n- Lưu ý pháp lý: Theo Luật Xây dựng, nhà ở riêng lẻ của hộ gia đình, cá nhân thông thường được miễn thủ tục gửi thông báo khởi công (chỉ tra cứu hướng dẫn).",
+      "pipelineVersion": "2.0"
     },
     {
       "chunkId": "TTHC-XD-02_HCHK_005",
       "chunkType": "GENERAL_SECTION",
-      "title": "(Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố - Căn cứ pháp lý",
+      "title": "Thông báo khởi công nhà ở riêng lẻ - Căn cứ pháp lý",
       "headerPath": "TTHC-XD-02 > Căn cứ pháp lý",
-      "content": "- Luật Tiếp cận thông tin 2016; Nghị định 61/2018/NĐ-CP; Quyết định công bố TTHC của UBND Tỉnh An Giang.",
-      "contentHash": "ad7877dd369587c156ae4ca3d37d2c8cca1c6fe812096721562f894aef9b296c",
-      "sourceUrl": "https://dichvucong.gov.vn/p/home/dvc-chi-tiet-thu-tuc-hanh-chinh.html?ma_thu_tuc=3.000785",
-      "pipelineVersion": "1.0"
+      "content": "Điều 107 Luật Xây dựng 2014 (sửa đổi 2020): nhà ở riêng lẻ của hộ gia đình, cá nhân được miễn thông báo khởi công.",
+      "pipelineVersion": "2.0"
     }
   ],
   "chunksCount": 4,
   "validatedAt": "2026-11-03T03:34:04.571141+00:00",
   "lastApprovedAt": "2026-11-17T03:03:10.683832+00:00",
-  "contentHash": "eb5c4ab0618daf57a6364722c8b513ca2593473a4641282a9743d0d1cd310d1b"
+  "contentHash": "eb5c4ab0618daf57a6364722c8b513ca2593473a4641282a9743d0d1cd310d1b",
+  "workflowGroup": "W6",
+  "submissionMode": "REFERENCE_ONLY",
+  "catalogStatus": "PENDING_VERIFICATION",
+  "receivingAgency": "UBND cấp xã (chỉ áp dụng diện bắt buộc)",
+  "appraisalUnit": "Bộ phận Quản lý trật tự xây dựng",
+  "signingAuthority": "Miễn thủ tục đối với nhà ở riêng lẻ thông thường",
+  "requiresDelegationToSignAtCenter": false,
+  "verificationNote": "Đã khôi phục đúng loại việc Xây dựng; nhà ở riêng lẻ hộ gia đình/cá nhân được miễn thông báo khởi công — chỉ tra cứu."
 }

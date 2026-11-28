@@ -3,6 +3,10 @@
  * Single Source of Truth: backend/src/main/resources/db/seed/procedures/*.json
  */
 
+export type ProcedureWorkflowGroup = 'W1' | 'W2' | 'W3' | 'W4' | 'W5' | 'W6';
+export type ProcedureSubmissionMode = 'PRECHECK_ENABLED' | 'EXTERNAL_CHANNEL_ONLY' | 'REFERENCE_ONLY';
+export type ProcedureCatalogStatus = 'VERIFIED_AN_GIANG' | 'PENDING_VERIFICATION' | 'OUT_OF_WARD_SCOPE';
+
 export interface ProcedureCatalogItem {
   code: string;
   name: string;
@@ -10,287 +14,589 @@ export interface ProcedureCatalogItem {
   portalCode: string;
   chunksCount: number;
   fee?: string;
+  workflowGroup: ProcedureWorkflowGroup;
+  submissionMode: ProcedureSubmissionMode;
+  catalogStatus: ProcedureCatalogStatus;
+  receivingAgency: string;
+  appraisalUnit: string;
+  signingAuthority: string;
+  requiresDelegationToSignAtCenter: boolean;
+  verificationNote?: string;
 }
 
 export const PROCEDURES_CATALOG: ProcedureCatalogItem[] = [
   {
     "code": "TTHC-BT-01",
-    "name": "Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng theo Điều 3 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ- UBND",
+    "name": "Thủ tục trợ cấp xã hội hằng tháng cho đối tượng bảo trợ xã hội ở cộng đồng",
     "category": "Bảo trợ xã hội",
     "portalCode": "3.000733",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Văn hóa - Xã hội",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-BT-02",
     "name": "Hỗ trợ chi phí mai táng cho đối tượng bảo trợ xã hội",
     "category": "Bảo trợ xã hội",
     "portalCode": "1.116910",
-    "chunksCount": 5
+    "chunksCount": 5,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Văn hóa - Xã hội",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-BT-03",
     "name": "Tiếp nhận đối tượng bảo trợ xã hội có hoàn cảnh đặc biệt khó khăn vào cơ sở trợ giúp xã hội",
     "category": "Bảo trợ xã hội",
     "portalCode": "1.116907",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W4",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Văn hóa - Xã hội cấp xã",
+    "signingAuthority": "UBND xã ký đề nghị → Người đứng đầu Cơ sở trợ giúp xã hội quyết định tiếp nhận",
+    "requiresDelegationToSignAtCenter": false,
+    "verificationNote": "Theo QĐ 4937/QĐ-UBND An Giang, bước xã ký văn bản đề nghị nằm giữa quy trình; hồ sơ chuyển sang trạng thái Đã chuyển cơ sở – chờ quyết định tiếp nhận."
   },
   {
     "code": "TTHC-BT-04",
     "name": "Hỗ trợ chi phí mai táng đối với đối tượng hưởng trợ cấp hưu trí xã hội",
     "category": "Bảo trợ xã hội",
     "portalCode": "1.014028",
-    "chunksCount": 5
+    "chunksCount": 5,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Văn hóa - Xã hội",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-BT-05",
-    "name": "Thủ tục hỗ trợ chi phí mai táng cho đối tượng được trợ cấp xã hội hàng tháng ở cộng đồng theo Điều 4 Quy định ban hành kèm theo Quyết định số 124/2026/QĐ-UBND",
+    "name": "[Chờ xác minh An Giang] Hỗ trợ chi phí mai táng / Trợ cấp xã hội đột xuất (đang đối chiếu QĐ 4937/QĐ-UBND)",
     "category": "Bảo trợ xã hội",
     "portalCode": "3.000731",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "REFERENCE_ONLY",
+    "catalogStatus": "PENDING_VERIFICATION",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Văn hóa - Xã hội",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false,
+    "verificationNote": "Giữ trạng thái chờ xác minh cho đến khi xác định thủ tục tương ứng tại An Giang theo QĐ 4937/QĐ-UBND; chỉ được tra cứu."
   },
   {
     "code": "TTHC-CR-01",
     "name": "Đăng ký thường trú",
     "category": "Cư trú",
     "portalCode": "1.116788",
-    "chunksCount": 6
+    "chunksCount": 6,
+    "workflowGroup": "W1",
+    "submissionMode": "EXTERNAL_CHANNEL_ONLY",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Công an cấp xã / VNeID / Cổng DVC Bộ Công an",
+    "appraisalUnit": "Cán bộ đăng ký cư trú - Công an cấp xã",
+    "signingAuthority": "Trưởng Công an cấp xã",
+    "requiresDelegationToSignAtCenter": false,
+    "verificationNote": "Thủ tục thuộc thẩm quyền Công an cấp xã; SmartWard hỗ trợ kê khai & hướng dẫn nộp, không chuyển vào hàng đợi duyệt UBND."
   },
   {
     "code": "TTHC-CR-02",
     "name": "Liên thông điện tử: Đăng ký khai tử, xóa đăng ký thường trú, giải quyết mai táng phí, tử tuất",
     "category": "Cư trú",
     "portalCode": "2.002913",
-    "chunksCount": 7
+    "chunksCount": 7,
+    "workflowGroup": "W2",
+    "submissionMode": "EXTERNAL_CHANNEL_ONLY",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Cổng Dịch vụ công Quốc gia / VNeID (Liên thông NĐ 63/2024/NĐ-CP)",
+    "appraisalUnit": "Tư pháp xã • Công an xã • VH-XH / BHXH",
+    "signingAuthority": "Nhiều cơ quan độc lập (Khai tử, Xóa thường trú, Mai táng phí/Tử tuất)",
+    "requiresDelegationToSignAtCenter": false,
+    "verificationNote": "Thủ tục liên thông có nhiều kết quả độc lập; hoàn thành một nhánh chưa đồng nghĩa hoàn tất toàn bộ hồ sơ."
   },
   {
     "code": "TTHC-CR-03",
     "name": "Đăng ký tạm trú",
     "category": "Cư trú",
     "portalCode": "1.116789",
-    "chunksCount": 6
+    "chunksCount": 6,
+    "workflowGroup": "W1",
+    "submissionMode": "EXTERNAL_CHANNEL_ONLY",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Công an cấp xã / VNeID / Cổng DVC Bộ Công an",
+    "appraisalUnit": "Cán bộ đăng ký cư trú - Công an cấp xã",
+    "signingAuthority": "Trưởng Công an cấp xã",
+    "requiresDelegationToSignAtCenter": false,
+    "verificationNote": "Thủ tục thuộc thẩm quyền Công an cấp xã; SmartWard hỗ trợ kê khai & hướng dẫn nộp, không chuyển vào hàng đợi duyệt UBND."
   },
   {
     "code": "TTHC-CR-04",
     "name": "Thủ tục gia hạn tạm trú, cấp thị thực mới cho người nước ngoài đang tạm trú ở Việt Nam tại cơ quan có thẩm quyền ở trong nước của Bộ Ngoại giao",
     "category": "Cư trú",
     "portalCode": "1.000039",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W6",
+    "submissionMode": "REFERENCE_ONLY",
+    "catalogStatus": "OUT_OF_WARD_SCOPE",
+    "receivingAgency": "Cơ quan có thẩm quyền của Bộ Ngoại giao",
+    "appraisalUnit": "Cục Lãnh sự / Sở Ngoại vụ",
+    "signingAuthority": "Bộ Ngoại giao",
+    "requiresDelegationToSignAtCenter": false,
+    "verificationNote": "Thủ tục thị thực của Bộ Ngoại giao nằm ngoài thẩm quyền cấp xã; chỉ hỗ trợ tra cứu hướng dẫn."
   },
   {
     "code": "TTHC-CR-06",
     "name": "Thông báo lưu trú",
     "category": "Cư trú",
     "portalCode": "2.001159",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W1",
+    "submissionMode": "EXTERNAL_CHANNEL_ONLY",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Công an cấp xã / VNeID / Cổng DVC Bộ Công an",
+    "appraisalUnit": "Cán bộ đăng ký cư trú - Công an cấp xã",
+    "signingAuthority": "Trưởng Công an cấp xã",
+    "requiresDelegationToSignAtCenter": false,
+    "verificationNote": "Thủ tục thuộc thẩm quyền Công an cấp xã; SmartWard hỗ trợ kê khai & hướng dẫn nộp, không chuyển vào hàng đợi duyệt UBND."
   },
   {
     "code": "TTHC-CR-07",
     "name": "Khai báo tạm vắng",
     "category": "Cư trú",
     "portalCode": "1.003677",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W1",
+    "submissionMode": "EXTERNAL_CHANNEL_ONLY",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Công an cấp xã / VNeID / Cổng DVC Bộ Công an",
+    "appraisalUnit": "Cán bộ đăng ký cư trú - Công an cấp xã",
+    "signingAuthority": "Trưởng Công an cấp xã",
+    "requiresDelegationToSignAtCenter": false,
+    "verificationNote": "Thủ tục thuộc thẩm quyền Công an cấp xã; SmartWard hỗ trợ kê khai & hướng dẫn nộp, không chuyển vào hàng đợi duyệt UBND."
   },
   {
     "code": "TTHC-CR-08",
     "name": "Xác nhận thông tin về cư trú",
     "category": "Cư trú",
     "portalCode": "1.010041",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W1",
+    "submissionMode": "EXTERNAL_CHANNEL_ONLY",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Công an cấp xã / VNeID / Cổng DVC Bộ Công an",
+    "appraisalUnit": "Cán bộ đăng ký cư trú - Công an cấp xã",
+    "signingAuthority": "Trưởng Công an cấp xã",
+    "requiresDelegationToSignAtCenter": false,
+    "verificationNote": "Thủ tục thuộc thẩm quyền Công an cấp xã; SmartWard hỗ trợ kê khai & hướng dẫn nộp, không chuyển vào hàng đợi duyệt UBND."
   },
   {
     "code": "TTHC-CR-09",
     "name": "Xác nhận của Ủy ban nhân dân cấp xã nơi hộ gia đình cư trú về việc hộ gia đình đang gặp khó khăn về kinh tế",
     "category": "Cư trú",
     "portalCode": "1.117007",
-    "chunksCount": 5
+    "chunksCount": 5,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức chuyên môn cấp xã",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-CR-10",
     "name": "Thủ tục xác nhận thông tin hộ tịch",
     "category": "Hộ tịch",
     "portalCode": "2.002516",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-CT-01",
     "name": "Thủ tục Chứng thực bản sao từ bản chính các giấy tờ, văn bản do cơ quan có thẩm quyền cấp hoặc chứng nhận",
     "category": "Chứng thực",
     "portalCode": "1.001606",
-    "chunksCount": 5
+    "chunksCount": 5,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Chuyên viên tiếp nhận / Công chức Tư pháp tại TTPVHCC",
+    "signingAuthority": "Chủ tịch UBND cấp xã (hoặc Lãnh đạo TTPVHCC khi có QĐ ủy quyền còn hiệu lực)",
+    "requiresDelegationToSignAtCenter": true
   },
   {
     "code": "TTHC-CT-02",
     "name": "Thủ tục Chứng thực chữ ký trong các giấy tờ, văn bản",
     "category": "Chứng thực",
     "portalCode": "1.001590",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Chuyên viên tiếp nhận / Công chức Tư pháp tại TTPVHCC",
+    "signingAuthority": "Chủ tịch UBND cấp xã (hoặc Lãnh đạo TTPVHCC khi có QĐ ủy quyền còn hiệu lực)",
+    "requiresDelegationToSignAtCenter": true
   },
   {
     "code": "TTHC-CT-04",
     "name": "Chứng thực văn bản phân chia di sản mà di sản là động sản, quyền sử dụng đất, nhà ở",
     "category": "Chứng thực",
     "portalCode": "2.001406",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-CT-05",
     "name": "Thủ tục ghi vào Sổ hộ tịch việc ly hôn, hủy việc kết hôn của công dân Việt Nam đã được giải quyết tại cơ quan có thẩm quyền của nước ngoài",
     "category": "Hộ tịch",
     "portalCode": "2.000554",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-CT-06",
     "name": "Thủ tục ghi vào Sổ hộ tịch việc hộ tịch khác của công dân Việt Nam đã được giải quyết tại cơ quan có thẩm quyền của nước ngoài (khai sinh; giám hộ; nhận cha, mẹ, con; xác định cha, mẹ, con; nuôi con nuôi; khai tử; thay đổi hộ tịch)",
     "category": "Hộ tịch",
     "portalCode": "2.000547",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-CT-07",
     "name": "Chứng thực văn bản từ chối nhận di sản",
     "category": "Chứng thực",
     "portalCode": "2.001016",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-CT-08",
     "name": "Chứng thực di chúc",
     "category": "Chứng thực",
     "portalCode": "2.001019",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-DC-01",
-    "name": "(Đà Nẵng) Đăng ký biến động quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất trong các trường hợp chuyển đổi quyền sử dụng đất nông nghiệp mà không theo phương án dồn điền, đổi thửa; chuyển nhượng, thừa kế, tặng cho quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất, góp vốn bằng quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất (kể cả tặng cho quyền sử dụng đất cho Nhà nước hoặc cộng đồng dân cư hoặc mở rộng đường giao thông); cho thuê, cho thuê lại quyền sử dụng đất trong dự án xây dựng kinh doanh kết cấu hạ tầng; bán hoặc tặng cho hoặc để thừa kế hoặc góp vốn bằng tài sản gắn liền với đất thuê của Nhà nước theo hình thức thuê đất trả tiền hàng năm",
+    "name": "Đăng ký biến động quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất",
     "category": "Địa chính",
     "portalCode": "3.000758",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W5",
+    "submissionMode": "REFERENCE_ONLY",
+    "catalogStatus": "PENDING_VERIFICATION",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công (phi địa giới trong tỉnh)",
+    "appraisalUnit": "Chi nhánh Văn phòng Đăng ký đất đai (+ Cơ quan Thuế)",
+    "signingAuthority": "Chi nhánh Văn phòng Đăng ký đất đai",
+    "requiresDelegationToSignAtCenter": false,
+    "verificationNote": "Đã gỡ nội dung Đà Nẵng; đang ở chế độ chỉ tra cứu cho đến khi xác nhận quy trình nội bộ đất đai An Giang."
   },
   {
     "code": "TTHC-DC-02",
-    "name": "(Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất, hộ gia đình, cá nhân, cộng đồng dân cư",
+    "name": "Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận lần đầu cho hộ gia đình, cá nhân, cộng đồng dân cư",
     "category": "Địa chính",
     "portalCode": "3.000780",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "REFERENCE_ONLY",
+    "catalogStatus": "PENDING_VERIFICATION",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Kinh tế - Hạ tầng - Địa chính - Môi trường",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false,
+    "verificationNote": "Đã gỡ nội dung Đà Nẵng / khôi phục đúng loại việc; giữ chế độ chỉ tra cứu cho đến khi xác nhận quy trình chi tiết tại An Giang."
   },
   {
     "code": "TTHC-HT-01",
     "name": "Thủ tục đăng ký khai sinh",
     "category": "Hộ tịch",
     "portalCode": "1.001193",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-HT-02",
     "name": "Thủ tục đăng ký kết hôn",
     "category": "Hộ tịch",
     "portalCode": "1.000894",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-HT-03",
     "name": "Thủ tục đăng ký khai tử có yếu tố nước ngoài tại khu vực biên giới",
     "category": "Hộ tịch",
     "portalCode": "1.004827",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-HT-04",
     "name": "Cấp bản sao Trích lục hộ tịch, bản sao Giấy khai sinh",
     "category": "Hộ tịch",
     "portalCode": "2.000635",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-HT-05",
     "name": "Thủ tục đăng ký nhận cha, mẹ, con có yếu tố nước ngoài",
     "category": "Hộ tịch",
     "portalCode": "2.000779",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-HT-06",
     "name": "Thủ tục đăng ký giám hộ",
     "category": "Hộ tịch",
     "portalCode": "1.004837",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-HT-07",
     "name": "Thủ tục đăng ký chấm dứt giám hộ có yếu tố nước ngoài",
     "category": "Hộ tịch",
     "portalCode": "2.000756",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-HT-08",
     "name": "Thủ tục đăng ký lại khai sinh có yếu tố nước ngoài",
     "category": "Hộ tịch",
     "portalCode": "2.000522",
-    "chunksCount": 5
+    "chunksCount": 5,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-HT-09",
     "name": "Thủ tục đăng ký lại kết hôn có yếu tố nước ngoài",
     "category": "Hộ tịch",
     "portalCode": "2.000513",
-    "chunksCount": 5
+    "chunksCount": 5,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-HT-10",
     "name": "Thủ tục đăng ký lại khai tử có yếu tố nước ngoài",
     "category": "Hộ tịch",
     "portalCode": "2.000497",
-    "chunksCount": 5
+    "chunksCount": 5,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-HT-11",
     "name": "Thủ tục cấp Giấy xác nhận tình trạng hôn nhân",
     "category": "Hộ tịch",
     "portalCode": "1.004873",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-HT-12",
     "name": "Thủ tục thay đổi, cải chính, bổ sung thông tin hộ tịch, xác định lại dân tộc có yếu tố nước ngoài",
     "category": "Hộ tịch",
     "portalCode": "2.000748",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-HT-13",
     "name": "Thủ tục Đăng ký khai tử (trong nước)",
     "category": "Hộ tịch",
     "portalCode": "1.000874",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Tư pháp - Hộ tịch",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-MT-01",
     "name": "Thủ tục Đăng ký môi trường cấp xã",
     "category": "Đất đai và Môi trường",
     "portalCode": "1.010839",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Kinh tế - Hạ tầng - Địa chính - Môi trường",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false
   },
   {
     "code": "TTHC-NCC-01",
     "name": "Tiếp nhận hồ sơ giải quyết chế độ ưu đãi đối với Người có công với cách mạng",
     "category": "Bảo trợ xã hội và Người có công",
     "portalCode": "1.009472",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W4",
+    "submissionMode": "PRECHECK_ENABLED",
+    "catalogStatus": "VERIFIED_AN_GIANG",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Văn hóa - Xã hội cấp xã",
+    "signingAuthority": "UBND xã xác nhận → Cơ quan chuyên ngành cấp tỉnh quyết định chế độ",
+    "requiresDelegationToSignAtCenter": false,
+    "verificationNote": "Cấp xã tiếp nhận và xác nhận ban đầu, sau đó chuyển cơ quan chuyên ngành cấp tỉnh quyết định."
   },
   {
     "code": "TTHC-XD-01",
-    "name": "(Đà Nẵng) Đăng ký biến động đối với trường hợp thay đổi quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất theo thỏa thuận của các thành viên hộ gia đình hoặc của vợ và chồng; quyền sử dụng đất xây dựng công trình trên mặt đất phục vụ cho việc vận hành, khai thác sử dụng công trình ngầm, quyền sở hữu công trình ngầm; bán tài sản, điều chuyển, chuyển nhượng quyền sử dụng đất là tài sản công theo quy định của pháp luật về quản lý, sử dụng tài sản công; nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất theo kết quả giải quyết tranh chấp, khiếu nại, tố cáo về đất đai hoặc bản án, quyết định của Tòa án, quyết định thi hành án của cơ quan thi hành án đã được thi hành; quyết định hoặc phán quyết của Trọng tài thương mại Việt Nam về giải quyết tranh chấp giữa các bên phát sinh từ hoạt động thương mại liên quan đến đất đai; nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất do xử lý tài sản thế chấp là quyền sử dụng đất, tài sản gắn liền với đất đã được đăng ký, bao gồm cả xử lý khoản nợ có nguồn gốc từ khoản nợ xấu của tổ chức tín dụng, chi nhánh ngân hàng nước ngoài",
-    "category": "Địa chính, Đất đai và Xây dựng",
+    "name": "Cấp giấy phép xây dựng mới đối với nhà ở riêng lẻ",
+    "category": "Xây dựng",
     "portalCode": "3.000761",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W3",
+    "submissionMode": "REFERENCE_ONLY",
+    "catalogStatus": "PENDING_VERIFICATION",
+    "receivingAgency": "Trung tâm Phục vụ hành chính công cấp xã",
+    "appraisalUnit": "Công chức Kinh tế - Hạ tầng - Địa chính - Môi trường",
+    "signingAuthority": "Chủ tịch / Phó Chủ tịch UBND cấp xã",
+    "requiresDelegationToSignAtCenter": false,
+    "verificationNote": "Đã gỡ nội dung Đà Nẵng / khôi phục đúng loại việc; giữ chế độ chỉ tra cứu cho đến khi xác nhận quy trình chi tiết tại An Giang."
   },
   {
     "code": "TTHC-XD-02",
-    "name": "(Đà Nẵng) Đăng ký đất đai, tài sản gắn liền với đất, cấp Giấy chứng nhận quyền sử dụng đất, quyền sở hữu tài sản gắn liền với đất lần đầu đối với tổ chức đang sử dụng đất đối với các trường hợp quy định tại điểm c khoản 2 Điều 20 Quy định kèm theo Quyết định số 135/2026/QĐ-UBND của Ủy ban nhân dân thành phố",
-    "category": "Địa chính, Đất đai và Xây dựng",
+    "name": "Thông báo khởi công xây dựng công trình nhà ở riêng lẻ (Chỉ tra cứu hướng dẫn diện miễn thủ tục)",
+    "category": "Xây dựng",
     "portalCode": "3.000785",
-    "chunksCount": 4
+    "chunksCount": 4,
+    "workflowGroup": "W6",
+    "submissionMode": "REFERENCE_ONLY",
+    "catalogStatus": "PENDING_VERIFICATION",
+    "receivingAgency": "UBND cấp xã (chỉ áp dụng diện bắt buộc)",
+    "appraisalUnit": "Bộ phận Quản lý trật tự xây dựng",
+    "signingAuthority": "Miễn thủ tục đối với nhà ở riêng lẻ thông thường",
+    "requiresDelegationToSignAtCenter": false,
+    "verificationNote": "Đã khôi phục đúng loại việc Xây dựng; nhà ở riêng lẻ hộ gia đình/cá nhân được miễn thông báo khởi công — chỉ tra cứu."
   }
 ];

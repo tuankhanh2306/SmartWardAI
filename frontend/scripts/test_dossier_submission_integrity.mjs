@@ -90,11 +90,12 @@ assert(
   'Initial dossier cache must store appointmentCode as undefined until officer approval'
 );
 
-// Audit 1.5: QR pass conditional rendering
+// Audit 1.5: QR pass conditional rendering (2026 SW_DRAFT vs official SW_RECEIPT)
 assert(
   sourceCode.includes('hasRealAppointment = Boolean(') &&
-  sourceCode.includes('Hồ Sơ Đang Chờ Cán Bộ Xác Nhận & Cấp Lịch Hẹn'),
-  'Must render "Waiting for officer approval" banner when appointmentCode is not yet officially granted'
+  sourceCode.includes('Đã gửi yêu cầu kiểm tra trước') &&
+  sourceCode.includes('SW_DRAFT'),
+  'Must render SW_DRAFT pre-check draft banner when official receipt/appointment is not yet granted'
 );
 
 // =================================================================

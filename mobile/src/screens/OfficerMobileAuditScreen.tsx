@@ -162,7 +162,19 @@ export const OfficerMobileAuditScreen: React.FC = () => {
   const [scanNotice, setScanNotice] = useState<{ type: 'ok' | 'err'; text: string } | null>(null);
   const [selectedDossier, setSelectedDossier] = useState<OfficerDossierDto | null>(null);
   const [feedbackInput, setFeedbackInput] = useState('');
+  const [receivingAgencyInput, setReceivingAgencyInput] = useState(
+    `Trung tâm Phục vụ Hành chính công ${currentWard.name}`
+  );
+  const [officialReceiptNoInput, setOfficialReceiptNoInput] = useState('');
   const [reviewing, setReviewing] = useState(false);
+
+  useEffect(() => {
+    setReceivingAgencyInput(
+      selectedDossier?.receivingAgency ||
+        `Trung tâm Phục vụ Hành chính công ${currentWard.name}`
+    );
+    setOfficialReceiptNoInput(selectedDossier?.officialReceiptNo || '');
+  }, [selectedDossier?.dossierCode, selectedDossier?.receivingAgency, selectedDossier?.officialReceiptNo, currentWard.name]);
 
   // Tab 2: Field Incidents (Triage Clusters)
   const [clusters, setClusters] = useState<IssueClusterDto[]>([]);
@@ -366,15 +378,36 @@ export const OfficerMobileAuditScreen: React.FC = () => {
     });
   };
 
-  const handleReviewDecision = async (decision: 'APPROVED' | 'SUPPLEMENT_REQUIRED') => {
+  const handleReviewDecision = async (
+    decision:
+      | 'APPROVED'
+      | 'SUPPLEMENT_REQUIRED'
+      | 'OFFICIALLY_ACCEPTED'
+      | 'READY_FOR_RETURN'
+      | 'COMPLETED'
+      | 'CENTER_SIGNED',
+    extra?: { receivingAgency?: string; officialReceiptNo?: string }
+  ) => {
     if (!selectedDossier || reviewing) return;
+    if (
+      decision === 'OFFICIALLY_ACCEPTED' &&
+      (!extra?.receivingAgency?.trim() || !extra?.officialReceiptNo?.trim())
+    ) {
+      setScanNotice({
+        type: 'err',
+        text: 'Cần nhập Cơ quan tiếp nhận và Số biên nhận trước khi xác nhận tiếp nhận.',
+      });
+      return;
+    }
     setReviewing(true);
     setScanNotice(null);
     try {
       const updated = await submitOfficerDossierDecision(
         selectedDossier,
         decision,
-        feedbackInput
+        feedbackInput,
+        undefined,
+        extra
       );
       setSelectedDossier(updated);
       setDossiers((prev) =>
@@ -383,14 +416,23 @@ export const OfficerMobileAuditScreen: React.FC = () => {
       setScanNotice({
         type: 'ok',
         text:
-          decision === 'APPROVED'
-            ? `Đã duyệt hồ sơ ${updated.dossierCode} & cấp mã hẹn ${updated.appointmentCode || ''}.`
+          decision === 'OFFICIALLY_ACCEPTED'
+            ? `Đã xác nhận tiếp nhận hồ sơ ${updated.dossierCode} (Biên nhận ${extra?.officialReceiptNo}).`
+            : decision === 'CENTER_SIGNED'
+            ? `Đã ký theo ủy quyền tại Trung tâm cho hồ sơ ${updated.dossierCode}.`
+            : decision === 'READY_FOR_RETURN'
+            ? `Đã cập nhật hồ sơ ${updated.dossierCode}: Có kết quả – chờ trả.`
+            : decision === 'COMPLETED'
+            ? `Đã cập nhật hồ sơ ${updated.dossierCode}: Đã trả kết quả.`
+            : decision === 'APPROVED'
+            ? `Đã kiểm tra sơ bộ hồ sơ ${updated.dossierCode} & tạo mã ${updated.appointmentCode || ''}.`
             : `Đã gửi yêu cầu bổ sung hồ sơ ${updated.dossierCode} tới công dân.`,
       });
-    } catch {
+    } catch (err: any) {
+      const serverMsg = err?.response?.data?.message;
       setScanNotice({
         type: 'err',
-        text: 'Không thể đồng bộ kết quả duyệt lên máy chủ lúc này.',
+        text: serverMsg || 'Không thể đồng bộ kết quả xử lý lên máy chủ lúc này.',
       });
     } finally {
       setReviewing(false);
@@ -971,7 +1013,7 @@ export const OfficerMobileAuditScreen: React.FC = () => {
             color={activeTab === 'FORMS' ? '#FFFFFF' : COLORS.textSecondary}
           />
           <Text style={[styles.tabText, activeTab === 'FORMS' && styles.tabTextActive]}>
-            Hồ sơ ({dossiers.length})
+            TTPVHCC • Hồ sơ ({dossiers.length})
           </Text>
         </Pressable>
 
@@ -984,7 +1026,7 @@ export const OfficerMobileAuditScreen: React.FC = () => {
             color={activeTab === 'INCIDENTS' ? '#FFFFFF' : COLORS.textSecondary}
           />
           <Text style={[styles.tabText, activeTab === 'INCIDENTS' && styles.tabTextActive]}>
-            Sự cố ({clusters.length})
+            UBND • Sự cố ({clusters.length})
           </Text>
         </Pressable>
 
@@ -1259,6 +1301,91 @@ export const OfficerMobileAuditScreen: React.FC = () => {
                   multiline
                   style={[styles.input, styles.multiline, typography.bodyMd]}
                 />
+              </View>
+
+              <View style={styles.field}>
+                <Text style={styles.label}>Xác nhận tiếp nhận chính thức (TTPVHCC)</Text>
+                <TextInput
+                  value={receivingAgencyInput}
+                  onChangeText={setReceivingAgencyInput}
+                  placeholder="Cơ quan tiếp nhận (VD: TTPVHCC xã...)"
+                  placeholderTextColor={COLORS.textMuted}
+                  style={[styles.input, typography.bodyMd, { marginBottom: 6 }]}
+                />
+                <TextInput
+                  value={officialReceiptNoInput}
+                  onChangeText={setOfficialReceiptNoInput}
+                  placeholder="Số biên nhận chính thức (VD: BN-2026-001)"
+                  placeholderTextColor={COLORS.textMuted}
+                  style={[styles.input, typography.bodyMd]}
+                />
+              </View>
+
+              <View style={[styles.decisionRow, { flexWrap: 'wrap', marginBottom: 6 }]}>
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={reviewing}
+                  onPress={() => {
+                    void handleReviewDecision('OFFICIALLY_ACCEPTED', {
+                      receivingAgency: receivingAgencyInput,
+                      officialReceiptNo: officialReceiptNoInput,
+                    });
+                  }}
+                  style={({ pressed }) => [
+                    styles.approveBtn,
+                    { backgroundColor: '#0F766E' },
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text style={styles.approveBtnText}>Xác nhận tiếp nhận</Text>
+                </Pressable>
+
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={reviewing}
+                  onPress={() => {
+                    void handleReviewDecision('CENTER_SIGNED');
+                  }}
+                  style={({ pressed }) => [
+                    styles.approveBtn,
+                    { backgroundColor: '#6D28D9' },
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text style={styles.approveBtnText}>Ký theo ủy quyền</Text>
+                </Pressable>
+              </View>
+
+              <View style={[styles.decisionRow, { marginBottom: 6 }]}>
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={reviewing}
+                  onPress={() => {
+                    void handleReviewDecision('READY_FOR_RETURN');
+                  }}
+                  style={({ pressed }) => [
+                    styles.approveBtn,
+                    { backgroundColor: '#1D4ED8' },
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text style={styles.approveBtnText}>Có kết quả – chờ trả</Text>
+                </Pressable>
+
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={reviewing}
+                  onPress={() => {
+                    void handleReviewDecision('COMPLETED');
+                  }}
+                  style={({ pressed }) => [
+                    styles.approveBtn,
+                    { backgroundColor: '#065F46' },
+                    pressed && styles.pressed,
+                  ]}
+                >
+                  <Text style={styles.approveBtnText}>Đã trả kết quả</Text>
+                </Pressable>
               </View>
 
               <View style={styles.decisionRow}>

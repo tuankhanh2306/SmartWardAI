@@ -35,13 +35,28 @@ export const ProceduresCatalogPage: React.FC = () => {
         const deprecatedCodes = new Set(['TTHC-BT-06', 'TTHC-CR-05', 'TTHC-CT-03']);
         const mapped: ProcedureCatalogItem[] = data
           .filter((p) => !deprecatedCodes.has((p.procedureCode || '').trim().toUpperCase()))
-          .map((p) => ({
-            code: p.procedureCode,
-            name: p.procedureName,
-            category: p.category,
-            portalCode: p.officialPortalCode || '',
-            chunksCount: p.chunksCount || 4,
-          }));
+          .map((p) => {
+            const localMeta = PROCEDURES_CATALOG.find((item) => item.code === p.procedureCode);
+            const raw = p as Record<string, any>;
+            return {
+              code: p.procedureCode,
+              name: p.procedureName,
+              category: p.category,
+              portalCode: p.officialPortalCode || localMeta?.portalCode || '',
+              chunksCount: p.chunksCount || localMeta?.chunksCount || 4,
+              workflowGroup: raw.workflowGroup || localMeta?.workflowGroup || 'W3',
+              submissionMode: raw.submissionMode || localMeta?.submissionMode || 'PRECHECK_ENABLED',
+              catalogStatus: raw.catalogStatus || localMeta?.catalogStatus || 'VERIFIED_AN_GIANG',
+              receivingAgency: raw.receivingAgency || localMeta?.receivingAgency || 'Trung tâm Phục vụ Hành chính công cấp xã',
+              appraisalUnit: raw.appraisalUnit || localMeta?.appraisalUnit || 'Công chức chuyên môn UBND cấp xã',
+              signingAuthority: raw.signingAuthority || localMeta?.signingAuthority || 'Chủ tịch / Phó Chủ tịch UBND cấp xã',
+              requiresDelegationToSignAtCenter:
+                typeof raw.requiresDelegationToSignAtCenter === 'boolean'
+                  ? raw.requiresDelegationToSignAtCenter
+                  : localMeta?.requiresDelegationToSignAtCenter ?? false,
+              verificationNote: raw.verificationNote || localMeta?.verificationNote,
+            };
+          });
         setProcedures(mapped);
       })
       .catch((err) => {
@@ -559,6 +574,11 @@ export const ProceduresCatalogPage: React.FC = () => {
                       isFeeExempt={freeFee}
                       feeLabel={freeFee ? 'Miễn phí' : 'Có thu phí'}
                       supportedFormType={supportedFormType}
+                      workflowGroup={proc.workflowGroup}
+                      submissionMode={proc.submissionMode}
+                      catalogStatus={proc.catalogStatus}
+                      receivingAgency={proc.receivingAgency}
+                      verificationNote={proc.verificationNote}
                       ward={currentWard}
                       onStartForm={(code, _ft, wardCode) => navigate(getFormUrl(code, wardCode))}
                       onViewDocsAndOffice={() => handleOpenA4(proc)}

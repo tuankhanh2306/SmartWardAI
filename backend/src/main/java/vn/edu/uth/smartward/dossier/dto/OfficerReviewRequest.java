@@ -13,7 +13,9 @@ public record OfficerReviewRequest(
         String officerFeedback,
         String feedbackReason,
         String appointmentCode,
-        List<String> requestedItems
+        List<String> requestedItems,
+        String receivingAgency,
+        String officialReceiptNo
 ) {
     public OfficerReviewRequest(
             String status,
@@ -21,7 +23,17 @@ public record OfficerReviewRequest(
             String officerFeedback,
             String feedbackReason,
             String appointmentCode) {
-        this(status, reviewStatus, officerFeedback, feedbackReason, appointmentCode, null);
+        this(status, reviewStatus, officerFeedback, feedbackReason, appointmentCode, null, null, null);
+    }
+
+    public OfficerReviewRequest(
+            String status,
+            String reviewStatus,
+            String officerFeedback,
+            String feedbackReason,
+            String appointmentCode,
+            List<String> requestedItems) {
+        this(status, reviewStatus, officerFeedback, feedbackReason, appointmentCode, requestedItems, null, null);
     }
     public String getEffectiveStatus() {
         if (status != null && !status.isBlank()) {

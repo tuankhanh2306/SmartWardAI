@@ -11,6 +11,12 @@ import {
   Scale,
 } from 'lucide-react';
 import type { WardItem } from '../data/anGiangWards';
+import {
+  PROCEDURES_CATALOG,
+  type ProcedureCatalogStatus,
+  type ProcedureSubmissionMode,
+  type ProcedureWorkflowGroup,
+} from '../data/proceduresCatalog';
 import { resolveSupportedFormTypeByProcedure } from '../features/citizen-forms/procedureFormMap';
 
 const DEFAULT_WORKING_HOURS = 'Sáng: 07:00 – 11:00 | Chiều: 13:00 – 17:00 (Thứ 2 – Thứ 6)';
@@ -22,6 +28,11 @@ export interface ProcedureSummaryCardProps {
   feeLabel?: string;
   isFeeExempt?: boolean;
   supportedFormType?: string | null;
+  workflowGroup?: ProcedureWorkflowGroup | string;
+  submissionMode?: ProcedureSubmissionMode | string;
+  catalogStatus?: ProcedureCatalogStatus | string;
+  receivingAgency?: string;
+  verificationNote?: string;
   requiredDocsSummary?: string[];
   legalBasis?: string;
   ward: WardItem;
@@ -32,9 +43,8 @@ export interface ProcedureSummaryCardProps {
 
 /**
  * Shared Procedure Summary Card used across both Legal Assistant Chat and Procedures Catalog (TASK-052).
- * - Renders "Bắt đầu điền" when an online form template exists (TK-KS, CT01, TK-KH, TK-BTXH).
- * - Renders "Xem giấy tờ và nơi nộp" for the remaining 36 procedures without online templates.
- * - Displays ward-scoped receiving office & working hours, explicitly noting when working hours are default config.
+ * - Distinguishes external channel procedures (W1 Công an cấp xã / VNeID), multi-result linked dossiers (W2),
+ *   and browse-only/unverified procedures (REFERENCE_ONLY) from standard TTPVHCC -> UBND workflows.
  */
 export const ProcedureSummaryCard: React.FC<ProcedureSummaryCardProps> = ({
   procedureCode,
@@ -43,6 +53,11 @@ export const ProcedureSummaryCard: React.FC<ProcedureSummaryCardProps> = ({
   feeLabel,
   isFeeExempt = false,
   supportedFormType,
+  workflowGroup,
+  submissionMode,
+  catalogStatus,
+  receivingAgency,
+  verificationNote,
   requiredDocsSummary = [],
   legalBasis,
   ward,
@@ -52,10 +67,60 @@ export const ProcedureSummaryCard: React.FC<ProcedureSummaryCardProps> = ({
 }) => {
   const [showOfficeDetails, setShowOfficeDetails] = useState(false);
 
-  const effectiveFormType =
-    supportedFormType !== undefined
-      ? supportedFormType
-      : resolveSupportedFormTypeByProcedure(procedureCode);
+  const catalogMeta = PROCEDURES_CATALOG.find(
+    (item) => item.code.toUpperCase() === procedureCode.trim().toUpperCase()
+  );
+  const effectiveWorkflowGroup = workflowGroup || catalogMeta?.workflowGroup || 'W3';
+  const effectiveSubmissionMode = submissionMode || catalogMeta?.submissionMode || 'PRECHECK_ENABLED';
+  const effectiveCatalogStatus = catalogStatus || catalogMeta?.catalogStatus || 'VERIFIED_AN_GIANG';
+  const effectiveReceivingAgency =
+    receivingAgency || catalogMeta?.receivingAgency || `Trung tâm Phục vụ Hành chính công ${ward.name}`;
+  const effectiveVerificationNote = verificationNote || catalogMeta?.verificationNote;
+
+  const isReferenceOnly = effectiveSubmissionMode === 'REFERENCE_ONLY';
+  const effectiveFormType = isReferenceOnly
+    ? null
+    : supportedFormType !== undefined
+    ? supportedFormType
+    : resolveSupportedFormTypeByProcedure(procedureCode);
+
+  const workflowBadge = (() => {
+    if (isReferenceOnly) {
+      return {
+        label:
+          effectiveCatalogStatus === 'PENDING_VERIFICATION'
+            ? 'Chỉ tra cứu • Chờ xác minh An Giang'
+            : 'Chỉ tra cứu',
+        cls: 'bg-slate-100 text-slate-700 border-slate-300',
+      };
+    }
+    if (effectiveWorkflowGroup === 'W1' || effectiveSubmissionMode === 'EXTERNAL_CHANNEL_ONLY') {
+      return {
+        label: 'Công an cấp xã / VNeID',
+        cls: 'bg-sky-50 text-sky-900 border-sky-200',
+      };
+    }
+    if (effectiveWorkflowGroup === 'W2') {
+      return {
+        label: 'Liên thông nhiều kết quả',
+        cls: 'bg-indigo-50 text-indigo-900 border-indigo-200',
+      };
+    }
+    if (effectiveWorkflowGroup === 'W4') {
+      return {
+        label: 'TTPVHCC → UBND xã → Cơ sở trợ giúp',
+        cls: 'bg-violet-50 text-violet-900 border-violet-200',
+      };
+    }
+    return {
+      label: 'TTPVHCC → UBND xã',
+      cls: 'bg-emerald-50 text-emerald-900 border-emerald-200',
+    };
+  })();
+
+  const formattedReceivingOffice = effectiveReceivingAgency.toLowerCase().includes(ward.name.toLowerCase())
+    ? effectiveReceivingAgency
+    : `${effectiveReceivingAgency} (${ward.name})`;
 
   const workingHours = ward.workingHours || DEFAULT_WORKING_HOURS;
   const isDefaultWorkingHours =
@@ -70,7 +135,7 @@ export const ProcedureSummaryCard: React.FC<ProcedureSummaryCardProps> = ({
     >
       <div className="flex flex-col gap-2 min-w-0">
         <div className="flex flex-wrap items-center justify-between gap-1.5">
-          <div className="flex items-center gap-1.5 min-w-0">
+          <div className="flex flex-wrap items-center gap-1.5 min-w-0">
             <span className="font-mono text-[11px] font-bold px-2 py-0.5 rounded bg-[#FEF2F2] text-[#9F0C1E] border border-[#FECACA] shrink-0">
               {procedureCode}
             </span>
@@ -79,6 +144,12 @@ export const ProcedureSummaryCard: React.FC<ProcedureSummaryCardProps> = ({
                 Mẫu {effectiveFormType}
               </span>
             )}
+            <span
+              data-testid={`workflow-badge-${procedureCode}`}
+              className={`text-[10px] font-semibold px-1.5 py-0.5 rounded border shrink-0 ${workflowBadge.cls}`}
+            >
+              {workflowBadge.label}
+            </span>
           </div>
           <span
             className={`px-2 py-0.5 rounded text-[10px] font-bold shrink-0 ${
@@ -92,6 +163,12 @@ export const ProcedureSummaryCard: React.FC<ProcedureSummaryCardProps> = ({
         </div>
 
         <h3 className="font-bold text-sm text-slate-900 leading-snug">{procedureName}</h3>
+
+        {isReferenceOnly && effectiveVerificationNote && (
+          <p className="text-[11px] text-amber-900 bg-amber-50/80 border border-amber-200 rounded-lg px-2.5 py-1.5 leading-snug">
+            {effectiveVerificationNote}
+          </p>
+        )}
 
         {requiredDocsSummary.length > 0 && (
           <div className="text-xs text-slate-700 bg-slate-50/90 border border-slate-200/80 rounded-lg px-2.5 py-2 flex flex-col gap-1">
@@ -113,7 +190,7 @@ export const ProcedureSummaryCard: React.FC<ProcedureSummaryCardProps> = ({
           <div className="flex items-start gap-1.5">
             <Building2 className="w-3.5 h-3.5 text-[#0F766E] shrink-0 mt-0.5" />
             <span className="line-clamp-1">
-              Nơi nộp: <strong className="text-slate-800">Bộ phận Một cửa UBND {ward.name}</strong>
+              Nơi nộp: <strong className="text-slate-800">{formattedReceivingOffice}</strong>
             </span>
           </div>
 
