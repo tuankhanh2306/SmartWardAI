@@ -356,3 +356,18 @@ const styles = StyleSheet.create({
     opacity: 0.8,
   },
 });
+
+/** Read-only location supplied by the officer cluster endpoint. */
+export function IncidentLocationPreview({ latitude, longitude }: { latitude: number; longitude: number }) {
+  if (!NativeMapView || !NativeMarker) return null;
+  const point = { latitude, longitude };
+  return (
+    <NativeMapView
+      style={{ height: 180, width: '100%' }}
+      region={{ ...point, latitudeDelta: 0.005, longitudeDelta: 0.005 }}
+      scrollEnabled={false} zoomEnabled={false} rotateEnabled={false} pitchEnabled={false}
+    >
+      <NativeMarker coordinate={point} title="Vị trí cụm sự cố" />
+    </NativeMapView>
+  );
+}

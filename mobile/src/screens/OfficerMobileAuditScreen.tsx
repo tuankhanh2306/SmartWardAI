@@ -1,3 +1,4 @@
+import { OfficerIncidentEvidence } from '../components/OfficerIncidentEvidence';
 import { paperDetails } from '../core/paperForm';
 /**
  * SmartWard AI Mobile — Đăng Nhập & Bàn Cán Bộ Một Cửa Di Động (Đồng bộ 100% với Web RoleGateway & PerWardDashboard)
@@ -1501,9 +1502,11 @@ export const OfficerMobileAuditScreen: React.FC = () => {
                     <MapPin size={12} color={COLORS.textMuted} />
                     <Text style={styles.clusterAddress} numberOfLines={2}>
                       {cluster.addressText ||
-                        `${cluster.centroidLatitude.toFixed(5)}, ${cluster.centroidLongitude.toFixed(5)}`}
+                        'Chưa có địa chỉ hiện trường'}
                     </Text>
                   </View>
+
+                  <OfficerIncidentEvidence cluster={cluster} />
 
                   {st !== 'RESOLVED' ? (
                     <View style={styles.clusterActions}>
