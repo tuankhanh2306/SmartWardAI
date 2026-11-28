@@ -194,6 +194,7 @@ public class ProcedureVectorIndexWorker {
             String newHash = ProcedureGovernanceService.sha256Hex(textContent);
 
             LegalChunk existing = existingChunks.stream()
+                    .filter(LegalChunk::isActivePublicCatalogChunk)
                     .filter(c -> chunkType.equalsIgnoreCase(c.getChunkType())
                             || ("REQUIRED_DOCUMENTS".equals(chunkType) && "REQUIRED_DOCS".equalsIgnoreCase(c.getChunkType())))
                     .findFirst()

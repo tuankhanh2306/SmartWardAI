@@ -265,6 +265,16 @@ export function buildOfficialReceiptQrPayload(
   return `SW_RECEIPT|${officialReceiptNo}|${receivingAgency}|${dueDate || 'TBD'}`;
 }
 
+export function walletQrForTracking(tracked: {
+  dossierCode: string; receiptVerified?: boolean; officialReceiptNo?: string | null;
+  receivingAgency?: string | null; slaDeadline?: string | null;
+}, appointmentCode: string | null | undefined, wardCode: string) {
+  if (tracked.receiptVerified && tracked.officialReceiptNo && tracked.receivingAgency) {
+    return buildOfficialReceiptQrPayload(tracked.officialReceiptNo, tracked.receivingAgency, tracked.slaDeadline);
+  }
+  return buildSmartWardPassPayload(tracked.dossierCode, appointmentCode, wardCode);
+}
+
 export async function upsertWalletQrPass(row: WalletQrPassRow): Promise<void> {
   const [
     encCitizenName,

@@ -21,6 +21,7 @@ import java.util.Locale;
 public class SigningDelegationService {
 
     private final SigningDelegationRepository delegationRepository;
+    private final OfficerRepository officerRepository;
 
     public SigningDelegation verifyDelegatedSigningAuthority(
             OfficerAuthService.OfficerPrincipal principal,
@@ -59,9 +60,10 @@ public class SigningDelegationService {
 
         Instant effectiveNow = atTime != null ? atTime : Instant.now();
         String badge = principal.badgeId() != null ? principal.badgeId().trim() : "";
-        String fullNameLower = principal.fullName() != null
-                ? principal.fullName().toLowerCase(Locale.ROOT)
-                : "";
+        Officer account = officerRepository.findByBadgeIdIgnoreCase(badge)
+                .filter(candidate -> Boolean.TRUE.equals(candidate.getActive()) && wardCode.equalsIgnoreCase(candidate.getWardCode()))
+                .orElse(null);
+        String assignedTitle = account != null && account.getJobTitle() != null ? account.getJobTitle() : "";
 
         boolean sawExpiredOrFuture = false;
         boolean sawWrongIdentity = false;
@@ -84,12 +86,12 @@ public class SigningDelegationService {
                 continue;
             }
 
-            boolean badgeMatch = hasBadgeConstraint
+            boolean badgeMatch = account != null && hasBadgeConstraint
                     && badge.equalsIgnoreCase(d.getDelegateBadgeId().trim());
             boolean titleMatch = hasTitleConstraint
-                    && fullNameLower.contains(d.getDelegateTitle().trim().toLowerCase(Locale.ROOT));
+                    && assignedTitle.trim().equalsIgnoreCase(d.getDelegateTitle().trim());
 
-            if (badgeMatch || titleMatch) {
+            if (hasBadgeConstraint ? badgeMatch : titleMatch) {
                 log.info("[SIGNING_DELEGATION] Verified authority: badge={}, ward={}, proc={}, decision={}",
                         badge, wardCode, procCode, d.getDecisionNumber());
                 return d;

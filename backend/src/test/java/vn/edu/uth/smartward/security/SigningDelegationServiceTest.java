@@ -24,9 +24,12 @@ class SigningDelegationServiceTest {
 
     private SigningDelegationService service;
 
+    @Mock
+    private vn.edu.uth.smartward.security.OfficerRepository officerRepository;
+
     @BeforeEach
     void setUp() {
-        service = new SigningDelegationService(delegationRepository);
+        service = new SigningDelegationService(delegationRepository, officerRepository);
     }
 
     private SigningDelegation kienHaiActiveDelegation() {
@@ -51,13 +54,16 @@ class SigningDelegationServiceTest {
 
         OfficerAuthService.OfficerPrincipal officer = new OfficerAuthService.OfficerPrincipal(
                 "CB-AG_DK_KIENHAI",
-                "Nguyễn Văn An — Phó Giám đốc Trung tâm Phục vụ hành chính công",
+                "Nguyễn Văn An",
                 "AG_DK_KIENHAI",
                 "OFFICER",
                 "jti-1",
                 Instant.now().getEpochSecond() + 3600
         );
 
+        when(officerRepository.findByBadgeIdIgnoreCase("CB-AG_DK_KIENHAI")).thenReturn(java.util.Optional.of(
+                vn.edu.uth.smartward.security.Officer.builder().wardCode("AG_DK_KIENHAI").active(true)
+                        .jobTitle("Phó Giám đốc Trung tâm Phục vụ hành chính công").build()));
         SigningDelegation result = service.verifyDelegatedSigningAuthority(
                 officer, "TTHC-CT-01", Instant.parse("2026-11-28T10:00:00Z"));
         assertThat(result.getDecisionNumber()).isEqualTo("989/QĐ-UBND");
@@ -74,7 +80,7 @@ class SigningDelegationServiceTest {
 
         OfficerAuthService.OfficerPrincipal officer = new OfficerAuthService.OfficerPrincipal(
                 "CB-AG_DK_KIENHAI",
-                "Nguyễn Văn An — Phó Giám đốc Trung tâm Phục vụ hành chính công",
+                "Nguyễn Văn An",
                 "AG_DK_KIENHAI",
                 "OFFICER",
                 "jti-2",
@@ -95,7 +101,7 @@ class SigningDelegationServiceTest {
 
         OfficerAuthService.OfficerPrincipal nonDeputy = new OfficerAuthService.OfficerPrincipal(
                 "CB-AG_DK_KIENHAI-STAFF",
-                "Trần Thị Bình — Chuyên viên tiếp nhận",
+                "Trần Thị Bình — Phó Giám đốc Trung tâm Phục vụ hành chính công",
                 "AG_DK_KIENHAI",
                 "OFFICER",
                 "jti-3",

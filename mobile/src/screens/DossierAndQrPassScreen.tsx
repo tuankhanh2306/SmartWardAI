@@ -27,7 +27,7 @@ import { useWard } from '../context/WardContext';
 import { getWardByCode } from '../core/angiangWards';
 import { maskCccdNumber } from '../core/cccdQrParser';
 import {
-  buildSmartWardPassPayload,
+  walletQrForTracking,
   getAllWalletQrPasses,
   upsertWalletQrPass,
   type WalletQrPassRow,
@@ -108,8 +108,8 @@ export const DossierAndQrPassScreen: React.FC = () => {
         status: tracked.status || 'PENDING',
         officer_feedback: tracked.officerFeedback || null,
         sla_deadline: tracked.slaDeadline || null,
-        qr_payload: buildSmartWardPassPayload(
-          tracked.dossierCode,
+        qr_payload: walletQrForTracking(
+          tracked,
           tracked.appointmentCode,
           tracked.wardCode || currentWard.code
         ),

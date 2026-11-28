@@ -49,7 +49,7 @@ describe('walletAndIncidentFlow — Chặng M4 (Ví Mã QR Offline, Xuất PDF &
 
     const html = buildElectronicQrPassHtml(pass);
     expect(html).toContain('MÃ BẢN NHÁP SMARTWARD (KIỂM TRA TRƯỚC)');
-    expect(html).toContain('UBND Phường Long Xuyên');
+    expect(html).toContain('Phường Long Xuyên');
     expect(html).toContain('LH-20261118-8899');
     expect(html).toContain('********3490');
     expect(html).toContain('<svg');

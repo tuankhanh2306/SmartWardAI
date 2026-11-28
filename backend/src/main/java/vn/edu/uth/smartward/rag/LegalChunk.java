@@ -85,4 +85,8 @@ public class LegalChunk {
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private OffsetDateTime createdAt;
+
+    public boolean isActivePublicCatalogChunk() {
+        return "ACTIVE".equalsIgnoreCase(status) && "PUBLIC".equalsIgnoreCase(visibilityScope) && wardCode == null;
+    }
 }

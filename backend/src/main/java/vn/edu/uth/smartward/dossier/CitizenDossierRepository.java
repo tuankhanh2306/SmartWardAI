@@ -19,6 +19,9 @@ public interface CitizenDossierRepository extends JpaRepository<CitizenDossier, 
 
     Optional<CitizenDossier> findByIdempotencyKey(String idempotencyKey);
 
+    List<CitizenDossier> findTop2ByWardCodeIgnoreCaseAndReceivingAgencyIgnoreCaseAndOfficialReceiptNoIgnoreCaseAndReceiptVerifiedAtIsNotNull(
+            String wardCode, String agency, String number);
+
     boolean existsByDossierCode(String dossierCode);
 
     long countByDossierCodeStartingWith(String prefix);

@@ -28,8 +28,8 @@ export function resolveSupportedFormTypeByProcedure(procedureCode?: string | nul
   const clean = procedureCode.trim().toUpperCase();
   if (clean === 'TTHC-HT-01' || clean === 'KS-01-DK') return 'TK-KS';
   if (clean === 'TTHC-HT-02' || clean === 'TTHC-HT-11' || clean === 'HT-02-DK') return 'TK-KH';
-  if (clean === 'TTHC-BT-01' || clean === 'TTHC-BT-02') return 'TK-BTXH';
-  if (clean === 'TTHC-CR-01' || clean === 'TTHC-CR-03' || clean === 'CT-01' || clean === 'CT01') return 'CT01';
+  if (clean === 'TTHC-BT-01') return 'TK-BTXH';
+  if (clean === 'TTHC-CR-01' || clean === 'CT-01' || clean === 'CT01') return 'CT01';
   return null;
 }
 

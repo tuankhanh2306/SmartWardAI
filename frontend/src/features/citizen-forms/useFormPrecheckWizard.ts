@@ -436,6 +436,7 @@ export function useFormPrecheckWizard(params: {
         appointmentCode: undefined,
         errorCount: issues.length,
         wardName: currentWard.name,
+        wardCode: currentWard.code,
         vaultToken: ocr.vaultDocInfo?.oneTimeToken,
         vaultDocId: ocr.vaultDocInfo?.docId,
         details: {

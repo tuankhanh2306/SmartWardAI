@@ -44,9 +44,12 @@ class ProcedureWorkflowReformTest {
 
     private CitizenDossierService service;
 
+    @Mock
+    private vn.edu.uth.smartward.security.OfficerRepository officerRepository;
+
     @BeforeEach
     void setUp() {
-        SigningDelegationService delegationService = new SigningDelegationService(delegationRepository);
+        SigningDelegationService delegationService = new SigningDelegationService(delegationRepository, officerRepository);
         service = new CitizenDossierService(
                 dossierRepository,
                 procedureRepository,
@@ -86,7 +89,7 @@ class ProcedureWorkflowReformTest {
                 .formData("{\"childName\":\"BÉ AN\"}").build();
 
         when(dossierRepository.findByWardCodeIgnoreCaseOrderByCreatedAtDesc("AG_P_LONGXUYEN"))
-                .thenReturn(List.of(cr01, ht01));
+                .thenReturn(List.of(cr01, CitizenDossier.builder().procedureCode("TTHC-CR-02").routingChannel("TTPVHCC_UBND").build(), ht01));
 
         List<OfficerDossierDto> queue = service.getOfficerDossiers("AG_P_LONGXUYEN", null);
         assertThat(queue).hasSize(1);
@@ -147,6 +150,13 @@ class ProcedureWorkflowReformTest {
         )).isInstanceOf(BusinessException.class)
                 .satisfies(ex -> assertThat(((BusinessException) ex).getErrorCode()).isEqualTo(ErrorCode.VALIDATION_FAILED));
 
+        assertThatThrownBy(() -> service.reviewDossier(sub.dossierCode(), OfficerReviewRequest.builder()
+                .status("APPROVED").receivingAgency("TTPVHCC").officialReceiptNo("BN-X").build(), officer))
+                .isInstanceOf(BusinessException.class);
+        assertThat(stored.getReceiptVerifiedAt()).isNull();
+        assertThat(service.lookupOfficerDossierByQr("SW_DRAFT|" + sub.dossierCode() + "|AG_P_LONGXUYEN", officer).dossierCode())
+                .isEqualTo(sub.dossierCode());
+
         // Recording both receivingAgency and officialReceiptNo transitions to SW_RECEIPT
         service.reviewDossier(
                 sub.dossierCode(),
@@ -160,11 +170,19 @@ class ProcedureWorkflowReformTest {
         );
 
         DossierTrackingResponse tracked = service.trackDossier(sub.dossierCode(), "3490", "127.0.0.1");
+        when(dossierRepository.findTop2ByWardCodeIgnoreCaseAndReceivingAgencyIgnoreCaseAndOfficialReceiptNoIgnoreCaseAndReceiptVerifiedAtIsNotNull(
+                officer.wardCode(), stored.getReceivingAgency(), stored.getOfficialReceiptNo())).thenReturn(List.of(stored));
+        assertThat(service.lookupOfficerDossierByQr("SW_RECEIPT|BN-2026-0042|TTPVHCC Phường Long Xuyên|TBD", officer).dossierCode())
+                .isEqualTo(sub.dossierCode());
         assertThat(tracked.qrKind()).isEqualTo("SW_RECEIPT");
         assertThat(tracked.receiptVerified()).isTrue();
         assertThat(tracked.receivingAgency()).isEqualTo("TTPVHCC Phường Long Xuyên");
         assertThat(tracked.officialReceiptNo()).isEqualTo("BN-2026-0042");
 
+        assertThatThrownBy(() -> service.reviewDossier(sub.dossierCode(), OfficerReviewRequest.builder().status("COMPLETED").build(), officer))
+                .isInstanceOf(BusinessException.class);
+        service.reviewDossier(sub.dossierCode(), OfficerReviewRequest.builder().status("UNDER_APPRAISAL").build(), officer);
+        service.reviewDossier(sub.dossierCode(), OfficerReviewRequest.builder().status("PENDING_UBND_SIGNATURE").build(), officer);
         // Transitions: READY_FOR_RETURN -> COMPLETED
         service.reviewDossier(sub.dossierCode(), OfficerReviewRequest.builder().status("READY_FOR_RETURN").build(), officer);
         assertThat(stored.getStatus()).isEqualTo("READY_FOR_RETURN");
@@ -181,7 +199,7 @@ class ProcedureWorkflowReformTest {
                 .procedureCode("TTHC-CT-01")
                 .wardCode("AG_DK_KIENHAI")
                 .citizenCccd("089205023490")
-                .status("PENDING")
+                .status("OFFICIALLY_ACCEPTED")
                 .build();
         when(dossierRepository.findByDossierCodeIgnoreCase("HS-CT01-55")).thenReturn(Optional.of(stored));
         when(dossierRepository.save(any(CitizenDossier.class))).thenAnswer(inv -> inv.getArgument(0));
@@ -208,6 +226,9 @@ class ProcedureWorkflowReformTest {
 
         OfficerAuthService.OfficerPrincipal authorizedDeputy = new OfficerAuthService.OfficerPrincipal(
                 "CB-AG_DK_KIENHAI", "Lê Văn B — Phó Giám đốc Trung tâm Phục vụ hành chính công", "AG_DK_KIENHAI", "OFFICER", "jti-2", Instant.now().getEpochSecond() + 3600);
+        when(officerRepository.findByBadgeIdIgnoreCase("CB-AG_DK_KIENHAI")).thenReturn(java.util.Optional.of(
+                vn.edu.uth.smartward.security.Officer.builder().wardCode("AG_DK_KIENHAI").active(true)
+                        .jobTitle("Phó Giám đốc Trung tâm Phục vụ hành chính công").build()));
         CitizenDossier signed = service.reviewDossier(
                 "HS-CT01-55",
                 OfficerReviewRequest.builder().status("CENTER_SIGNED").build(),

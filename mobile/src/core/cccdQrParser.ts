@@ -264,6 +264,15 @@ export function parseSmartWardPassQr(rawQr: string): ParsedSmartWardPassQr {
     return { valid: false, rawCode: '' };
   }
 
+  const [kind, ...fields] = trimmed.split('|');
+  if (kind === 'SW_RECEIPT') {
+    return { valid: fields.length === 3 && fields.every(field => field.trim()), rawCode: trimmed };
+  }
+  if (kind === 'SW_DRAFT') {
+    const [dossierCode] = fields;
+    const valid = [2, 3].includes(fields.length) && fields.every(field => field.trim());
+    return { valid, rawCode: trimmed, dossierCode, wardCode: fields[fields.length - 1] };
+  }
   if (trimmed.toUpperCase().startsWith('SMARTWARD_PASS|')) {
     const parts = trimmed.split('|').map((p) => p.trim());
     const dossierCode = parts[1] || undefined;

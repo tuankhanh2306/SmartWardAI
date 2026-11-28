@@ -15,7 +15,7 @@ public interface LegalChunkRepository extends JpaRepository<LegalChunk, Long> {
 
     List<LegalChunk> findByProcedureId(Long procedureId);
 
-    @Query("SELECT c.procedure.id, COUNT(c) FROM LegalChunk c GROUP BY c.procedure.id")
+    @Query("SELECT c.procedure.id, COUNT(c) FROM LegalChunk c WHERE c.status = 'ACTIVE' AND c.visibilityScope = 'PUBLIC' AND c.wardCode IS NULL GROUP BY c.procedure.id")
     List<Object[]> countChunksByProcedure();
 
     List<LegalChunk> findByEmbeddingIsNull();

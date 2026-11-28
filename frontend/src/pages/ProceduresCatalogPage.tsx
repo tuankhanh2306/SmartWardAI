@@ -197,10 +197,7 @@ export const ProceduresCatalogPage: React.FC = () => {
 
   const getFormUrl = (code: string, wardCode: string = currentWard.code) => {
     const cleanCode = code.trim().toUpperCase();
-    if (['TTHC-CR-01', 'TTHC-HT-01', 'TTHC-HT-02', 'TTHC-BT-01'].includes(cleanCode)) {
-      return `/citizen/form?procedure=${encodeURIComponent(cleanCode)}&ward=${encodeURIComponent(wardCode)}#form`;
-    }
-    return `/citizen/form?ward=${encodeURIComponent(wardCode)}#form`;
+    return `/citizen/form?procedure=${encodeURIComponent(cleanCode)}&ward=${encodeURIComponent(wardCode)}#form`;
   };
 
   const quickProcedures = useMemo(
@@ -555,16 +552,6 @@ export const ProceduresCatalogPage: React.FC = () => {
               ) : (
                 filteredProcedures.map((proc) => {
                   const freeFee = isFeeExempt(proc);
-                  const supportedFormType =
-                    proc.code === 'TTHC-CR-01'
-                      ? 'CT01'
-                      : proc.code === 'TTHC-HT-01'
-                      ? 'TK-KS'
-                      : proc.code === 'TTHC-HT-02'
-                      ? 'TK-KH'
-                      : proc.code === 'TTHC-BT-01'
-                      ? 'TK-BTXH'
-                      : null;
                   return (
                     <ProcedureSummaryCard
                       key={proc.code}
@@ -573,7 +560,6 @@ export const ProceduresCatalogPage: React.FC = () => {
                       category={proc.category}
                       isFeeExempt={freeFee}
                       feeLabel={freeFee ? 'Miễn phí' : 'Có thu phí'}
-                      supportedFormType={supportedFormType}
                       workflowGroup={proc.workflowGroup}
                       submissionMode={proc.submissionMode}
                       catalogStatus={proc.catalogStatus}

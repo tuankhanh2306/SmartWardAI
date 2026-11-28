@@ -92,7 +92,7 @@ assert(
 
 // Audit 1.5: QR pass conditional rendering (2026 SW_DRAFT vs official SW_RECEIPT)
 assert(
-  sourceCode.includes('hasRealAppointment = Boolean(') &&
+  sourceCode.includes('<QRCodeSVG') && sourceCode.includes('receiptVerified') &&
   sourceCode.includes('Đã gửi yêu cầu kiểm tra trước') &&
   sourceCode.includes('SW_DRAFT'),
   'Must render SW_DRAFT pre-check draft banner when official receipt/appointment is not yet granted'

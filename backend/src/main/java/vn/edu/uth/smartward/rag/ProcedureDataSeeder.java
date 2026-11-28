@@ -187,6 +187,7 @@ public class ProcedureDataSeeder implements CommandLineRunner {
                     mismatchedOrMissing.size(), activeModelId);
             int synced = 0;
             for (LegalChunk c : mismatchedOrMissing) {
+                if ("INACTIVE".equalsIgnoreCase(c.getStatus())) continue;
                 try {
                     float[] emb = aiModelClient.generateEmbedding(c.getTitle() + " " + c.getContent());
                     if (emb == null || emb.length == 0) continue;

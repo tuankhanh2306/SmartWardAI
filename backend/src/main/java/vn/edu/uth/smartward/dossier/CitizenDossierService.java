@@ -34,12 +34,27 @@ import java.util.UUID;
 @Service
 public class CitizenDossierService {
 
-    public static final Set<String> POLICE_RESIDENCE_PROCEDURES = Set.of(
-            "TTHC-CR-01", "TTHC-CR-03", "TTHC-CR-06", "TTHC-CR-07", "TTHC-CR-08"
-    );
-    public static final Set<String> REFERENCE_ONLY_PROCEDURES = Set.of(
-            "TTHC-BT-05", "TTHC-CR-04", "TTHC-DC-01", "TTHC-DC-02", "TTHC-XD-01", "TTHC-XD-02"
-    );
+    private record Routing(String mode, String group) {}
+    private static final Routing DEFAULT_ROUTING = new Routing("", "");
+    private static final Map<String, Routing> ROUTING = loadRouting();
+
+    private static Map<String, Routing> loadRouting() {
+        var resolver = new org.springframework.core.io.support.PathMatchingResourcePatternResolver();
+        var mapper = new ObjectMapper();
+        Map<String, Routing> modes = new java.util.HashMap<>();
+        try {
+            for (var resource : resolver.getResources("classpath:db/seed/procedures/*.json")) {
+                try (var input = resource.getInputStream()) {
+                    JsonNode seed = mapper.readTree(input);
+                    modes.put(seed.required("procedureCode").asText(), new Routing(seed.required("submissionMode").asText(), seed.required("workflowGroup").asText()));
+                }
+            }
+        } catch (java.io.IOException error) {
+            throw new IllegalStateException("Không đọc được danh mục định tuyến", error);
+        }
+        if (modes.isEmpty()) throw new IllegalStateException("Danh mục định tuyến trống");
+        return Map.copyOf(modes);
+    }
     private static final Set<String> ALLOWED_OFFICER_TARGET_STATUSES = Set.of(
             "RECEIVED",
             "OFFICIALLY_ACCEPTED",
@@ -177,9 +192,10 @@ public class CitizenDossierService {
         Instant slaDeadline = (workingDays != null && workingDays > 0)
                 ? calculateWorkingDayDeadline(Instant.now(), workingDays, VN_ZONE)
                 : null;
-        String routingChannel = POLICE_RESIDENCE_PROCEDURES.contains(procedureCode)
-                ? "POLICE_EXTERNAL"
-                : "TTPVHCC_UBND";
+        if ("EXTERNAL_CHANNEL_ONLY".equals(ROUTING.getOrDefault(procedureCode, DEFAULT_ROUTING).mode())) {
+            throw new BusinessException(ErrorCode.VALIDATION_FAILED, "Thủ tục này được nộp qua kênh chuyên ngành hoặc liên thông.");
+        }
+        String routingChannel = "TTPVHCC_UBND";
 
         CitizenDossier entity = CitizenDossier.builder()
                 .dossierCode(dossierCode)
@@ -266,7 +282,7 @@ public class CitizenDossierService {
             throw new BusinessException(ErrorCode.VALIDATION_FAILED,
                     "Mã thủ tục hành chính '" + procedureCode + "' không đúng định dạng chuẩn (TTHC-XX-NN).");
         }
-        if (REFERENCE_ONLY_PROCEDURES.contains(procedureCode)) {
+        if ("REFERENCE_ONLY".equals(ROUTING.getOrDefault(procedureCode, DEFAULT_ROUTING).mode())) {
             throw new BusinessException(ErrorCode.VALIDATION_FAILED,
                     "Thủ tục '" + procedureCode + "' hiện chỉ hỗ trợ tra cứu hướng dẫn (đang chờ xác minh quy trình tại An Giang hoặc thuộc thẩm quyền ngoài cấp xã), chưa mở nộp hồ sơ sơ duyệt.");
         }
@@ -693,17 +709,17 @@ public class CitizenDossierService {
         }
 
         return list.stream()
-                .filter(d -> !isPoliceExternalDossier(d))
+                .filter(d -> !isExternalDossier(d))
                 .map(this::mapToOfficerDto)
                 .toList();
     }
 
-    private boolean isPoliceExternalDossier(CitizenDossier dossier) {
+    private boolean isExternalDossier(CitizenDossier dossier) {
         if (dossier == null) return false;
         String channel = dossier.getRoutingChannel() != null ? dossier.getRoutingChannel().trim().toUpperCase() : "";
         if ("POLICE_EXTERNAL".equals(channel)) return true;
         String proc = dossier.getProcedureCode() != null ? dossier.getProcedureCode().trim().toUpperCase() : "";
-        return POLICE_RESIDENCE_PROCEDURES.contains(proc);
+        return "EXTERNAL_CHANNEL_ONLY".equals(ROUTING.getOrDefault(proc, DEFAULT_ROUTING).mode());
     }
 
     private boolean isReceiptVerified(CitizenDossier dossier) {
@@ -742,7 +758,22 @@ public class CitizenDossierService {
         String candidateDossierCode = null;
         String candidateAppointmentCode = null;
 
-        if (trimmed.toUpperCase().startsWith("SMARTWARD_PASS|")) {
+        Optional<CitizenDossier> found = Optional.empty();
+        if (trimmed.startsWith("SW_RECEIPT|")) {
+            String[] fields = trimmed.split("\\|", -1);
+            if (fields.length != 4 || principal == null || principal.wardCode() == null) {
+                throw new BusinessException(ErrorCode.INVALID_REQUEST, "Biên nhận hoặc đơn vị tra cứu không hợp lệ.");
+            }
+            List<CitizenDossier> matches = dossierRepository
+                    .findTop2ByWardCodeIgnoreCaseAndReceivingAgencyIgnoreCaseAndOfficialReceiptNoIgnoreCaseAndReceiptVerifiedAtIsNotNull(
+                            principal.wardCode(), fields[2], fields[1]);
+            if (matches.size() > 1) throw new BusinessException(ErrorCode.CONFLICT, "Trùng số biên nhận. Hãy tra bằng mã hồ sơ.");
+            found = matches.stream().findFirst();
+        } else if (trimmed.startsWith("SW_DRAFT|")) {
+            String[] fields = trimmed.split("\\|", -1);
+            if (fields.length != 3 && fields.length != 4) throw new BusinessException(ErrorCode.INVALID_REQUEST, "Mã bản nháp không hợp lệ.");
+            candidateDossierCode = fields[1];
+        } else if (trimmed.toUpperCase().startsWith("SMARTWARD_PASS|")) {
             String[] parts = trimmed.split("\\|", -1);
             if (parts.length > 1 && !parts[1].isBlank()) {
                 candidateDossierCode = parts[1].trim();
@@ -757,7 +788,6 @@ public class CitizenDossierService {
             candidateAppointmentCode = trimmed;
         }
 
-        Optional<CitizenDossier> found = Optional.empty();
         if (candidateDossierCode != null && !candidateDossierCode.isBlank()) {
             found = dossierRepository.findByDossierCodeIgnoreCase(candidateDossierCode);
         }
@@ -825,6 +855,9 @@ public class CitizenDossierService {
             }
         }
 
+        if (isExternalDossier(dossier)) {
+            throw new BusinessException(ErrorCode.FORBIDDEN, "Hồ sơ này thuộc kênh chuyên ngành hoặc liên thông.");
+        }
         String effectiveStatus = req.getEffectiveStatus();
         if (effectiveStatus == null || !ALLOWED_OFFICER_TARGET_STATUSES.contains(effectiveStatus)) {
             throw new BusinessException(ErrorCode.INVALID_REQUEST,
@@ -833,13 +866,28 @@ public class CitizenDossierService {
 
         // 2. Strict State Machine Transition Rules (5.5 + 2026 TTPVHCC/UBND Reform)
         String oldStatus = dossier.getStatus() != null ? dossier.getStatus().trim().toUpperCase() : "PENDING";
-        if ("APPROVED".equals(oldStatus) || "COMPLETED".equals(oldStatus) || "REJECTED".equals(oldStatus)) {
+        if (("APPROVED".equals(oldStatus) && !"OFFICIALLY_ACCEPTED".equals(effectiveStatus)) || "COMPLETED".equals(oldStatus) || "REJECTED".equals(oldStatus)) {
             throw new BusinessException(ErrorCode.CONFLICT,
                     "Hồ sơ đã ở trạng thái kết thúc (" + oldStatus + "), không thể tiếp tục thay đổi trạng thái.");
         }
         if (oldStatus.equals(effectiveStatus)) {
             throw new BusinessException(ErrorCode.CONFLICT,
                     "Hồ sơ hiện đã ở trạng thái " + effectiveStatus + ".");
+        }
+
+        boolean transitionAllowed = switch (effectiveStatus) {
+            case "OFFICIALLY_ACCEPTED", "RECEIVED", "APPROVED" -> Set.of("PENDING", "RECEIVED", "APPROVED", "SUPPLEMENTED").contains(oldStatus);
+            case "UNDER_APPRAISAL" -> "OFFICIALLY_ACCEPTED".equals(oldStatus);
+            case "TRANSFERRED_AWAITING_DECISION" -> "UNDER_APPRAISAL".equals(oldStatus)
+                    && "W4".equals(ROUTING.getOrDefault(dossier.getProcedureCode(), DEFAULT_ROUTING).group());
+            case "PENDING_UBND_SIGNATURE" -> "UNDER_APPRAISAL".equals(oldStatus);
+            case "CENTER_SIGNED" -> Set.of("OFFICIALLY_ACCEPTED", "UNDER_APPRAISAL", "PENDING_UBND_SIGNATURE").contains(oldStatus);
+            case "READY_FOR_RETURN" -> Set.of("PENDING_UBND_SIGNATURE", "CENTER_SIGNED", "TRANSFERRED_AWAITING_DECISION").contains(oldStatus);
+            case "COMPLETED" -> "READY_FOR_RETURN".equals(oldStatus);
+            default -> !Set.of("READY_FOR_RETURN", "CENTER_SIGNED").contains(oldStatus);
+        };
+        if (!transitionAllowed) {
+            throw new BusinessException(ErrorCode.CONFLICT, "Không thể chuyển hồ sơ từ " + oldStatus + " sang " + effectiveStatus + ".");
         }
 
         String effectiveFeedback = req.getEffectiveFeedback();
@@ -852,21 +900,21 @@ public class CitizenDossierService {
         String reqAgency = req.receivingAgency() != null ? req.receivingAgency().trim() : "";
         String reqReceiptNo = req.officialReceiptNo() != null ? req.officialReceiptNo().trim() : "";
         if ("OFFICIALLY_ACCEPTED".equals(effectiveStatus)) {
-            if (reqAgency.isEmpty() || reqReceiptNo.isEmpty()) {
+            if (reqAgency.isEmpty() || reqReceiptNo.isEmpty() || reqAgency.contains("|") || reqReceiptNo.contains("|") || reqReceiptNo.length() > 64 || reqAgency.length() > 255) {
                 throw new BusinessException(ErrorCode.VALIDATION_FAILED,
                         "Phải ghi nhận đầy đủ Cơ quan tiếp nhận và Mã số biên nhận chính thức trước khi chuyển trạng thái Đã tiếp nhận.");
             }
+            if (dossier.getReceiptVerifiedAt() != null && (!reqAgency.equals(dossier.getReceivingAgency())
+                    || !reqReceiptNo.equals(dossier.getOfficialReceiptNo()))) {
+                throw new BusinessException(ErrorCode.CONFLICT, "Biên nhận đã xác nhận phải giữ nguyên số và cơ quan tiếp nhận.");
+            }
             dossier.setReceivingAgency(reqAgency);
             dossier.setOfficialReceiptNo(reqReceiptNo);
             if (dossier.getReceiptVerifiedAt() == null) {
                 dossier.setReceiptVerifiedAt(Instant.now());
             }
-        } else if (!reqAgency.isEmpty() && !reqReceiptNo.isEmpty()) {
-            dossier.setReceivingAgency(reqAgency);
-            dossier.setOfficialReceiptNo(reqReceiptNo);
-            if (dossier.getReceiptVerifiedAt() == null) {
-                dossier.setReceiptVerifiedAt(Instant.now());
-            }
+        } else if (!reqAgency.isEmpty() || !reqReceiptNo.isEmpty()) {
+            throw new BusinessException(ErrorCode.VALIDATION_FAILED, "Chỉ ghi biên nhận ở bước xác nhận tiếp nhận.");
         }
 
         if ("CENTER_SIGNED".equals(effectiveStatus)) {

@@ -1,3 +1,4 @@
+import { PROCEDURES_CATALOG } from '../../data/proceduresCatalog';
 import { paperDetails } from '../citizen-forms/paperForm';
 import React, { useEffect, useState } from 'react';
 import {
@@ -49,6 +50,15 @@ export interface OfficerDashboardDrawersProps {
     extra?: { receivingAgency?: string; officialReceiptNo?: string }
   ) => void;
 }
+
+const dossierActions = [
+  { status: 'UNDER_APPRAISAL', label: 'Chuyển thẩm định', from: ['OFFICIALLY_ACCEPTED'] },
+  { status: 'PENDING_UBND_SIGNATURE', label: 'Trình UBND ký', from: ['UNDER_APPRAISAL'] },
+  { status: 'TRANSFERRED_AWAITING_DECISION', label: 'Chuyển cơ sở chờ quyết định', from: ['UNDER_APPRAISAL'] },
+  { status: 'CENTER_SIGNED', label: 'Ký theo ủy quyền', from: ['OFFICIALLY_ACCEPTED', 'UNDER_APPRAISAL', 'PENDING_UBND_SIGNATURE'] },
+  { status: 'READY_FOR_RETURN', label: 'Có kết quả – chờ trả', from: ['CENTER_SIGNED', 'PENDING_UBND_SIGNATURE', 'TRANSFERRED_AWAITING_DECISION'] },
+  { status: 'COMPLETED', label: 'Đã trả kết quả', from: ['READY_FOR_RETURN'] },
+] as const;
 
 const SUPPLEMENT_PRESET_CHIPS = [
   'Giấy chứng sinh bản chính / bản chụp rõ nét',
@@ -960,6 +970,7 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                   <span className="text-[11px] font-extrabold text-[#0F2942] uppercase tracking-wide">
                     Nghiệp vụ TTPVHCC • Tiếp nhận biên nhận &amp; Trả kết quả
                   </span>
+                  {['PENDING', 'RECEIVED', 'APPROVED', 'SUPPLEMENTED'].includes(selectedDossier.rawStatus || 'PENDING') && <>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <input
                       type="text"
@@ -1002,20 +1013,16 @@ export const OfficerDashboardDrawers: React.FC<OfficerDashboardDrawersProps> = (
                     >
                       Xác nhận tiếp nhận (Biên nhận)
                     </button>
-                    <button
-                      type="button"
-                      onClick={() => handleTransitionDossierStatus(selectedDossier.id, 'READY_FOR_RETURN')}
-                      className="px-3 py-1.5 rounded-lg bg-[#1D4ED8] hover:bg-[#1E40AF] text-white text-[11px] font-bold cursor-pointer"
-                    >
-                      Có kết quả – chờ trả
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleTransitionDossierStatus(selectedDossier.id, 'COMPLETED')}
-                      className="px-3 py-1.5 rounded-lg bg-[#065F46] hover:bg-[#064E3B] text-white text-[11px] font-bold cursor-pointer"
-                    >
-                      Đã trả kết quả
-                    </button>
+                  </div>
+                  </>}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {dossierActions.filter(action => (action.status !== 'TRANSFERRED_AWAITING_DECISION' || PROCEDURES_CATALOG.find(p => p.code === selectedDossier.procedureCode)?.workflowGroup === 'W4') && action.from.some(status => status === selectedDossier.rawStatus)).map(action => (
+                      <button key={action.status} type="button"
+                        onClick={() => handleTransitionDossierStatus(selectedDossier.id, action.status)}
+                        className="px-3 py-1.5 rounded-lg bg-[#1D4ED8] text-white text-[11px] font-bold cursor-pointer">
+                        {action.label}
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
