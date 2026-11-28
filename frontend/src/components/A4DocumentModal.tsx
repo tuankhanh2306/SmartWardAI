@@ -732,25 +732,25 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                     </tr>
                   </thead>
                   <tbody>
-                    {[0, 1, 2, 3].map((rowIdx) => {
-                      const isFirstFilled = rowIdx === 0 && !isBlank;
+                    {Array.from({length: Math.max(4, isBlank ? 0 : initialData.householdMembers?.length || 0)}, (_,rowIdx) => {
+                      const member = isBlank ? null : initialData.householdMembers?.[rowIdx];
                       return (
                         <tr key={rowIdx} className="h-6.5">
-                          <td className="border border-black py-0.5 px-1">{isFirstFilled ? '1' : ''}</td>
+                          <td className="border border-black py-0.5 px-1">{member ? rowIdx + 1 : ''}</td>
                           <td className="border border-black py-0.5 px-2 font-semibold uppercase">
-                            {isFirstFilled ? val(activeData.fullName, '', '') : ''}
+                            {member?.fullName || ''}
                           </td>
                           <td className="border border-black py-0.5 px-1">
-                            {isFirstFilled ? val(activeData.dob, '', '') : ''}
+                            {member?.birthDate || ''}
                           </td>
                           <td className="border border-black py-0.5 px-1">
-                            {isFirstFilled ? val(activeData.gender, '', '') : ''}
+                            {member?.gender || ''}
                           </td>
                           <td className="border border-black py-0.5 px-1 font-mono">
-                            {isFirstFilled ? val(activeData.idNumber, '', '') : ''}
+                            {member?.citizenCccd || ''}
                           </td>
                           <td className="border border-black py-0.5 px-1">
-                            {isFirstFilled ? val(activeData.hostRelation, '', '') : ''}
+                            {member?.hostRelation || ''}
                           </td>
                         </tr>
                       );
@@ -850,7 +850,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                 <strong>Họ, chữ đệm, tên người yêu cầu:</strong>{' '}
                 <span className="uppercase font-semibold">
                   {val(
-                    activeData.applicantName || activeData.fatherName || activeData.motherName,
+                    activeData.applicantName,
                     'NGUYỄN VĂN MINH',
                     '......................................................................................'
                   )}
@@ -1104,7 +1104,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                   'Số: ............., Quyển số: ............., đăng ký ngày ..... tháng ..... năm .......... tại ...........................................'
                 ) : (
                   <span>
-                    Số: <strong>45/2020</strong>, Quyển số: <strong>01/2020</strong>, đăng ký ngày <strong>12</strong> tháng <strong>10</strong> năm <strong>2020</strong> tại <strong>UBND {currentWard.name}</strong>
+                    Số: <strong>{val(activeData.marriageCertNumber)}</strong>, Quyển số: <strong>{val(activeData.marriageBook)}</strong>, đăng ký ngày <strong>{val(activeData.marriageDate)}</strong> tại <strong>{val(activeData.marriagePlace)}</strong>
                   </span>
                 )}
               </div>
@@ -1125,17 +1125,17 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                   <span className="inline-flex items-center gap-1">
                     Có
                     <span className="inline-flex w-4 h-4 border border-black items-center justify-center text-[10pt] font-bold">
-                      {isBlank ? '' : 'X'}
+                      {!isBlank && Number(activeData.copiesRequested) > 0 ? 'X' : ''}
                     </span>
                   </span>
                   <span>,</span>
                   <span className="inline-flex items-center gap-1">
                     Không
-                    <span className="inline-flex w-4 h-4 border border-black items-center justify-center text-[10pt]"></span>
+                    <span className="inline-flex w-4 h-4 border border-black items-center justify-center text-[10pt]">{!isBlank && activeData.copiesRequested === '0' ? 'X' : ''}</span>
                   </span>
                 </div>
                 <div className="text-[10.5pt] mt-1">
-                  Số lượng: {isBlank ? '.......' : <strong>02</strong>} bản
+                  Số lượng: {isBlank ? '.......' : <strong>{val(activeData.copiesRequested)}</strong>} bản
                 </div>
               </div>
 
@@ -1378,7 +1378,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
           const bankRaw = String(activeData.bankAccount || '').trim();
           const bankSplit = bankRaw.split(/\s*-\s*/);
           const bankNo = bankSplit[0] || '';
-          const bankOrg = bankSplit.slice(1).join(' - ') || `VietinBank Chi nhánh ${currentWard.name}`;
+          const bankOrg = activeData.bankName || bankSplit.slice(1).join(' - ') || `VietinBank Chi nhánh ${currentWard.name}`;
 
           return (
             <div className="space-y-2.5 text-[10.5pt] leading-snug">
@@ -1658,7 +1658,7 @@ export const A4DocumentModal: React.FC<A4DocumentModalProps> = ({
                   <div>b) Tài khoản ngân hàng {chk(payMethod === 'BANK')}</div>
                   <div className="pl-4 space-y-0.5">
                     <div>Số tài khoản ngân hàng: <strong>{payMethod === 'BANK' ? d(bankNo, '70110000889912', '…………………………………………') : '…………………………………………'}</strong></div>
-                    <div>Tên chủ tài khoản: <strong className="uppercase">{payMethod === 'BANK' ? d(activeData.fullName, 'NGUYỄN VĂN PHÚC', '………………………………………………') : '………………………………………………'}</strong></div>
+                    <div>Tên chủ tài khoản: <strong className="uppercase">{payMethod === 'BANK' ? d(activeData.accountHolderName, '', '………………………………………………') : '………………………………………………'}</strong></div>
                     <div>Tại ngân hàng: <strong>{payMethod === 'BANK' ? d(bankOrg, `VietinBank Chi nhánh ${currentWard.name}`, '………………………………………………') : '………………………………………………'}</strong></div>
                   </div>
                   <div>c) Ví điện tử {chk(payMethod === 'EWALLET')}</div>

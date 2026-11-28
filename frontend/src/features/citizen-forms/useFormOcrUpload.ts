@@ -15,6 +15,7 @@ export interface VaultDocInfo {
 }
 
 export interface FormOcrFieldSetters {
+  setDeclarerName: (value: string) => void;
   resetBasicFields: () => void;
   setFullName: (v: string) => void;
   setCccd: (v: string) => void;
@@ -150,11 +151,15 @@ export function useFormOcrUpload(
       const mappedDeclarationScope = sanitizeWardText((result.declarationScope || '').trim());
 
       let mappedCount = 0;
-      if (mappedFullName) { setters.setFullName(mappedFullName); mappedCount++; }
-      if (mappedCccd) { setters.setCccd(mappedCccd); mappedCount++; }
-      if (mappedDob) { setters.setDob(mappedDob); mappedCount++; }
-      if (mappedGender) { setters.setGender(mappedGender); mappedCount++; }
-      if (mappedAddress) { setters.setAddress(mappedAddress); mappedCount++; }
+      if (selectedFormType === 'TK-KS' && qrData?.fullName) {
+        setters.setDeclarerName(qrData.fullName);
+        mappedCount++;
+      }
+      if (mappedFullName && selectedFormType !== 'TK-KS') { setters.setFullName(mappedFullName); mappedCount++; }
+      if (mappedCccd && (selectedFormType !== 'TK-KS' || qrData)) { setters.setCccd(mappedCccd); mappedCount++; }
+      if (mappedDob && selectedFormType !== 'TK-KS') { setters.setDob(mappedDob); mappedCount++; }
+      if (mappedGender && selectedFormType !== 'TK-KS') { setters.setGender(mappedGender); mappedCount++; }
+      if (mappedAddress && (selectedFormType !== 'TK-KS' || qrData)) { setters.setAddress(mappedAddress); mappedCount++; }
       if (mappedPhone) { setters.setPhoneNumber(mappedPhone); setters.setReporterPhone(mappedPhone); mappedCount++; }
       if (mappedHostRelation) { setters.setHostRelation(mappedHostRelation); mappedCount++; }
       if (mappedHostName) { setters.setHostName(mappedHostName); mappedCount++; }
@@ -166,7 +171,7 @@ export function useFormOcrUpload(
 
       if (selectedFormType === 'TK-KS') {
         if (result.childName) { setters.setFullName(result.childName); mappedCount++; }
-        if (result.dob || mappedDob) setters.setHospitalBirthDate(result.dob || mappedDob);
+
         if (result.childEthnicity) setters.setChildEthnicity(result.childEthnicity);
         if (result.childNationality) setters.setChildNationality(result.childNationality);
         if (result.birthPlace) { setters.setChildBirthPlace(sanitizeWardText(result.birthPlace)); mappedCount++; }
@@ -174,7 +179,7 @@ export function useFormOcrUpload(
         if (result.birthCertIssueDate) { setters.setBirthCertIssueDate(result.birthCertIssueDate); mappedCount++; }
         if (result.motherName) { setters.setMotherName(result.motherName); setters.setHospitalMotherName(result.motherName); mappedCount++; }
         if (result.fatherName) { setters.setFatherName(result.fatherName); mappedCount++; }
-        if (mappedAddress) { setters.setFatherResidence(mappedAddress); setters.setMotherResidence(mappedAddress); }
+
       } else if (selectedFormType === 'TK-KH') {
         if (result.partnerName) { setters.setPartnerName(result.partnerName); mappedCount++; }
         if (result.partnerCccd) { setters.setPartnerCccd(result.partnerCccd); mappedCount++; }

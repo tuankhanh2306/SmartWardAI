@@ -1,3 +1,4 @@
+import { emptyPaper, paperValues, type PaperDraft, type PaperForm } from './paperForm';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   getCitizenEmailNotifications,
@@ -46,14 +47,24 @@ export function useFormPrecheckWizard(params: {
   } = params;
 
   const [selectedFormType, setSelectedFormType] = useState<CitizenFormType>(initialType);
+  const [paperByType, setPaperByType] = useState<Partial<Record<PaperForm, PaperDraft>>>({});
+  const paper = paperByType[selectedFormType] ?? emptyPaper;
+  const setPaper = (next: PaperDraft) => setPaperByType(prev => ({...prev, [selectedFormType]:next}));
+
   const [formWizardStep, setFormWizardStep] = useState<1 | 2 | 3>(1);
   const [showReferenceTable, setShowReferenceTable] = useState(false);
   const [showPrintModal, setShowPrintModal] = useState(false);
   const [showCccdQrModal, setShowCccdQrModal] = useState(false);
   const [qrDiscrepancies, setQrDiscrepancies] = useState<QrFieldDiscrepancy[]>([]);
 
-  const [fullName, setFullName] = useState(''); const [cccd, setCccd] = useState('');
-  const [dob, setDob] = useState(''); const [gender, setGender] = useState('Nam');
+  const adultFullName = useState('');
+  const childFullName = useState('');
+  const [fullName, setFullName] = selectedFormType === 'TK-KS' ? childFullName : adultFullName; const [cccd, setCccd] = useState('');
+  const adultDob = useState('');
+  const childDob = useState('');
+  const [dob, setDob] = selectedFormType === 'TK-KS' ? childDob : adultDob; const adultGender = useState('Nam');
+  const childGender = useState('Nam');
+  const [gender, setGender] = selectedFormType === 'TK-KS' ? childGender : adultGender;
   const [issueDate, setIssueDate] = useState(''); const [address, setAddress] = useState('');
   const [citizenEmail, setCitizenEmail] = useState(''); const [phoneNumber, setPhoneNumber] = useState('');
   const [hostName, setHostName] = useState(''); const [hostCccd, setHostCccd] = useState('');
@@ -104,8 +115,10 @@ export function useFormPrecheckWizard(params: {
   const dossierPhoneInputRef = useRef<HTMLInputElement>(null);
 
   const ocr = useFormOcrUpload(selectedFormType, currentWard.name, {
+    setDeclarerName: value => setPaper({...paper,fields:{...paper.fields,declarerName:value}}),
     resetBasicFields: () => {
-      setFullName(''); setCccd(''); setDob(''); setGender(''); setIssueDate('');
+      if (selectedFormType !== 'TK-KS') { setFullName(''); setDob(''); setGender(''); }
+      setCccd(''); setIssueDate('');
       setAddress(''); setPhoneNumber(''); setHostName(''); setHostCccd('');
       setHostRelation('Chủ hộ'); setDeclarationScope('Đăng ký thường trú');
     },
@@ -122,9 +135,9 @@ export function useFormPrecheckWizard(params: {
   });
 
   const canonicalProcedureCode = resolveCanonicalProcedureCode(selectedFormType, marriageMode);
-  const currentFormDataPayload = useMemo(
+  const currentFormDataPayload = useMemo<Record<string, any>>(
     () =>
-      buildCanonicalSubmissionFormData({
+      ({...buildCanonicalSubmissionFormData({
         selectedFormType, fullName, dob, gender, issueDate, address, phoneNumber, citizenEmail,
         sharpnessScore: ocr.visionGateResult?.sharpnessScore ?? null,
         templateMatched: ocr.visionGateResult?.templateMatched ?? null,
@@ -136,7 +149,18 @@ export function useFormPrecheckWizard(params: {
         partnerAddress, maritalCertPurpose, previousMaritalStatus,
         disabilityLevel, householdStatus, bankAccount, socialTargetGroup,
       }),
+      ...(selectedFormType === "TK-KS" ? {declarerCccd: cccd.trim(), childBirthDate: dob.trim(), childGender: gender} : {}),
+      ...(selectedFormType === "TK-KH" ? {
+        ...(marriageMode === 'MARRIAGE_REGISTRATION' ? {applicantEthnicity, partnerEthnicity, applicantMarriageCount, partnerMarriageCount} : {}),
+        ...(previousMaritalStatus === 'DIVORCED' ? {divorceJudgmentNumber, divorceJudgmentDate} : {}),
+        ...(previousMaritalStatus === 'WIDOWED' ? {deathCertNumber, deathCertDate} : {}),
+      } : {}),
+      ...(selectedFormType === "TK-BTXH" ? { poorHouseholdBookNumber, disabilityCertNumber, disabilityCertIssueDate, disabilityCertIssuer, guardianName, guardianCccd, guardianRelation, guardianPhone, hasBhyt, bhytNumber, paymentMethod } : {}),
+      ...(selectedFormType !== 'TK-KH' || marriageMode === 'MARRIAGE_REGISTRATION' ? paperValues(selectedFormType, paper, parentsMarried) : {}),
+      }),
     [
+      cccd, paper, applicantEthnicity, partnerEthnicity, applicantMarriageCount, partnerMarriageCount, divorceJudgmentNumber, divorceJudgmentDate, deathCertNumber, deathCertDate,
+      poorHouseholdBookNumber, disabilityCertNumber, disabilityCertIssueDate, disabilityCertIssuer, guardianName, guardianCccd, guardianRelation, guardianPhone, hasBhyt, bhytNumber, paymentMethod,
       selectedFormType, fullName, dob, gender, issueDate, address, phoneNumber, citizenEmail,
       ocr.visionGateResult, hostName, hostCccd, hostRelation, declarationScope,
       hospitalBirthDate, motherName, hospitalMotherName, motherResidence, fatherName, fatherResidence,
@@ -165,12 +189,12 @@ export function useFormPrecheckWizard(params: {
     if (rawType === 'CT01' || rawType === 'TK-KS' || rawType === 'TK-KH' || rawType === 'TK-BTXH') {
       setSelectedFormType(rawType);
     }
-    if (typeof agentDraftState.fullName === 'string' && agentDraftState.fullName.trim()) setFullName(agentDraftState.fullName.trim());
+    if (rawType !== 'TK-KS' && typeof agentDraftState.fullName === 'string' && agentDraftState.fullName.trim()) adultFullName[1](agentDraftState.fullName.trim());
     if (typeof agentDraftState.citizenCccd === 'string' && agentDraftState.citizenCccd.trim()) setCccd(agentDraftState.citizenCccd.trim());
-    if (typeof agentDraftState.dateOfBirth === 'string' && agentDraftState.dateOfBirth.trim()) {
-      setDob(normalizeDateToYMD(agentDraftState.dateOfBirth.trim()) || agentDraftState.dateOfBirth.trim());
+    if (rawType !== 'TK-KS' && typeof agentDraftState.dateOfBirth === 'string' && agentDraftState.dateOfBirth.trim()) {
+      adultDob[1](normalizeDateToYMD(agentDraftState.dateOfBirth.trim()) || agentDraftState.dateOfBirth.trim());
     }
-    if (typeof agentDraftState.gender === 'string' && agentDraftState.gender.trim()) setGender(agentDraftState.gender.trim());
+    if (rawType !== 'TK-KS' && typeof agentDraftState.gender === 'string' && agentDraftState.gender.trim()) adultGender[1](agentDraftState.gender.trim());
     if (typeof agentDraftState.address === 'string' && agentDraftState.address.trim()) setAddress(agentDraftState.address.trim());
     if (typeof agentDraftState.phoneNumber === 'string' && agentDraftState.phoneNumber.trim()) setPhoneNumber(agentDraftState.phoneNumber.trim());
     const nestedMother = agentDraftState.formData?.motherName;
@@ -187,11 +211,16 @@ export function useFormPrecheckWizard(params: {
   }, [selectedFormType, hostRelation, fullName, cccd, hostName, hostCccd]);
 
   const handleCccdQrSuccess = (decoded: DecodedCccdQr, discrepancies: QrFieldDiscrepancy[]) => {
-    setCccd(decoded.cccdNumber); setFullName(decoded.fullName); setDob(decoded.dateOfBirth);
-    setGender(decoded.gender); setAddress(decoded.address);
+    setCccd(decoded.cccdNumber);
+    if (selectedFormType === 'TK-KS') {
+      setPaper({...paper, fields:{...paper.fields, declarerName:decoded.fullName}});
+    } else {
+      setFullName(decoded.fullName); setDob(decoded.dateOfBirth); setGender(decoded.gender);
+    }
+    setAddress(decoded.address);
     if (decoded.issueDate) setIssueDate(decoded.issueDate);
     ocr.setOcrSuccess(true); ocr.setOcrConfidence(100);
-    setPrecheckResult(null); setVerifiedSnapshotHash(null); setQrDiscrepancies(discrepancies);
+    setPrecheckResult(null); setVerifiedSnapshotHash(null); setQrDiscrepancies(selectedFormType === 'TK-KS' ? [] : discrepancies);
   };
 
   const handleSelectFormType = (type: CitizenFormType) => {
@@ -205,6 +234,8 @@ export function useFormPrecheckWizard(params: {
   };
 
   const clearAllFormInputs = () => {
+    setPaperByType({});
+    adultFullName[1](''); childFullName[1](''); adultDob[1](''); childDob[1](''); adultGender[1]('Nam'); childGender[1]('Nam');
     setFullName(''); setCccd(''); setDob(''); setGender('Nam'); setIssueDate('');
     setAddress(''); setCitizenEmail(''); setPhoneNumber('');
     setHostName(''); setHostCccd(''); setHostRelation('Chủ hộ');
@@ -218,13 +249,14 @@ export function useFormPrecheckWizard(params: {
 
   const restoreDraftState = (
     meta: { formType: CitizenFormType; wizardStep: 1 | 2 | 3; parentsMarried?: 'YES' | 'NO'; marriageMode?: MarriageFormMode },
-    pii: Record<string, string> | null
+    pii: import('./useFormDraftStorage').SessionFormPiiSnapshot | null
   ) => {
     setSelectedFormType(meta.formType);
     setFormWizardStep(meta.wizardStep === 3 ? 2 : meta.wizardStep);
     if (meta.parentsMarried) setParentsMarried(meta.parentsMarried);
     if (meta.marriageMode) setMarriageMode(meta.marriageMode);
     if (pii) {
+      if (pii.paper) setPaperByType(prev => ({...prev,[meta.formType]:pii.paper}));
       if (pii.fullName) setFullName(pii.fullName);
       if (pii.cccd) setCccd(pii.cccd);
       if (pii.dob) setDob(pii.dob);
@@ -357,7 +389,7 @@ export function useFormPrecheckWizard(params: {
           wardCode: currentWard.code,
           citizenCccd: cleanCccd,
           idempotencyKey: submissionAttemptUuid,
-          formData: currentFormDataPayload,
+          formData: {...currentFormDataPayload, ...(currentFormDataPayload.householdMembers ? {householdMembers: JSON.parse(currentFormDataPayload.householdMembers)} : {})},
           precheckReport: precheckResult,
           vaultDocIds: ocr.vaultDocInfo?.docId ? [ocr.vaultDocInfo.docId] : [],
         });
@@ -446,6 +478,7 @@ export function useFormPrecheckWizard(params: {
   };
 
   return {
+    paper, setPaper,
     selectedFormType, canonicalProcedureCode, formWizardStep, setFormWizardStep,
     showReferenceTable, setShowReferenceTable, showPrintModal, setShowPrintModal,
     showCccdQrModal, setShowCccdQrModal, qrDiscrepancies,

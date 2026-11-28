@@ -102,6 +102,7 @@ export const FormAndIssueReporting: React.FC = () => {
     parentsMarried: wizard.parentsMarried,
     marriageMode: wizard.marriageMode,
     sessionSnapshot: {
+      paper: wizard.paper,
       formType: wizard.selectedFormType,
       fullName: wizard.fullName,
       cccd: wizard.cccd,
@@ -127,7 +128,7 @@ export const FormAndIssueReporting: React.FC = () => {
       if (targetWard && targetWard.code !== currentWard.code) {
         setWard(targetWard);
       }
-      wizard.restoreDraftState(meta, pii as any);
+      wizard.restoreDraftState(meta, pii);
     },
     onClearFields: wizard.clearAllFormInputs,
   });
@@ -422,6 +423,9 @@ export const FormAndIssueReporting: React.FC = () => {
                   : 'Theo Nghị định số 20/2021/NĐ-CP, Nghị định số 76/2024/NĐ-CP & Luật BHXH 2024'
               }
               initialData={{
+                ...wizard.paper.fields, householdMembers: wizard.paper.members,
+                applicantName: wizard.paper.fields.declarerName, applicantRelation: wizard.paper.fields.declarerRelation,
+                applicantResidence: wizard.address, birthDateInWords: wizard.paper.fields.childDobInWords, hometown: wizard.paper.fields.childHometown,
                 fullName: wizard.fullName, gender: wizard.gender, dob: wizard.dob, idNumber: wizard.cccd,
                 phone: wizard.phoneNumber, address: wizard.address,
                 hostName: wizard.hostName, hostCccd: wizard.hostCccd, hostRelation: wizard.hostRelation, declarationScope: wizard.declarationScope,
@@ -429,12 +433,12 @@ export const FormAndIssueReporting: React.FC = () => {
                 birthDate: wizard.selectedFormType === 'TK-KS' ? wizard.dob : undefined,
                 birthPlace: wizard.childBirthPlace, childEthnicity: wizard.childEthnicity, childNationality: wizard.childNationality,
                 birthCertNumber: wizard.birthCertNumber, birthCertIssueDate: wizard.birthCertIssueDate,
-                fatherName: wizard.fatherName, fatherDob: wizard.fatherDob, fatherResidence: wizard.fatherResidence,
-                motherName: wizard.motherName, motherDob: wizard.motherDob, motherResidence: wizard.motherResidence,
+                fatherName: wizard.fatherName, fatherDob: wizard.paper.fields.fatherYear || wizard.fatherDob, fatherResidence: wizard.fatherResidence,
+                motherName: wizard.motherName, motherDob: wizard.paper.fields.motherYear || wizard.motherDob, motherResidence: wizard.motherResidence,
                 spouseName: wizard.partnerName, spouseDob: wizard.partnerDob, spouseGender: wizard.partnerGender,
                 spouseIdNumber: wizard.partnerCccd, spouseAddress: wizard.partnerAddress,
                 applicantEthnicity: wizard.applicantEthnicity, spouseEthnicity: wizard.partnerEthnicity,
-                applicantNationality: wizard.applicantNationality, spouseNationality: wizard.partnerNationality,
+                applicantNationality: wizard.paper.fields.applicantNationality, spouseNationality: wizard.paper.fields.partnerNationality,
                 applicantMarriageCount: wizard.applicantMarriageCount, spouseMarriageCount: wizard.partnerMarriageCount,
                 issueDate: wizard.issueDate, maritalCertPurpose: wizard.maritalCertPurpose,
                 divorceJudgmentNumber: wizard.divorceJudgmentNumber, divorceJudgmentDate: wizard.divorceJudgmentDate,
@@ -455,8 +459,9 @@ export const FormAndIssueReporting: React.FC = () => {
           onClose={() => wizard.setShowCccdQrModal(false)}
           onScanSuccess={wizard.handleCccdQrSuccess}
           currentFormData={{
-            cccd: wizard.cccd, fullName: wizard.fullName, dob: wizard.dob,
-            gender: wizard.gender, address: wizard.address, issueDate: wizard.issueDate,
+            cccd: wizard.cccd, fullName: wizard.selectedFormType === 'TK-KS' ? wizard.paper.fields.declarerName : wizard.fullName,
+            dob: wizard.selectedFormType === 'TK-KS' ? undefined : wizard.dob,
+            gender: wizard.selectedFormType === 'TK-KS' ? undefined : wizard.gender, address: wizard.address, issueDate: wizard.issueDate,
           }}
         />
       </div>

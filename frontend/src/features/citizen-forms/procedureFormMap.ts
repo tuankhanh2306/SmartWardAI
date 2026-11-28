@@ -147,12 +147,13 @@ export function buildCanonicalSubmissionFormData(params: {
   } else if (params.selectedFormType === 'TK-KH') {
     Object.assign(base, {
       marriageMode: params.marriageMode,
+      ...(params.marriageMode === 'MARRIAGE_REGISTRATION' ? {
       partnerName: params.partnerName.trim(),
       partnerCccd: params.partnerCccd.trim(),
       partnerDob: params.partnerDob.trim(),
       partnerGender: params.partnerGender,
       partnerAddress: params.partnerAddress.trim(),
-      maritalCertPurpose: params.maritalCertPurpose.trim(),
+      } : {maritalCertPurpose: params.maritalCertPurpose.trim()}),
       previousMaritalStatus: params.previousMaritalStatus,
     });
   } else if (params.selectedFormType === 'TK-BTXH') {
